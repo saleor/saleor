@@ -63,7 +63,23 @@ def page_list(db, page_type):
         "is_published": True,
         "page_type": page_type,
     }
-    pages = Page.objects.bulk_create([Page(**data_1), Page(**data_2)])
+    data_3 = {
+        "slug": "test3",
+        "title": "Test page3",
+        "content": dummy_editorjs("Test content."),
+        "is_published": True,
+        "page_type": page_type,
+    }
+    data_4 = {
+        "slug": "test4",
+        "title": "Test page4",
+        "content": dummy_editorjs("Test content."),
+        "is_published": True,
+        "page_type": page_type,
+    }
+    pages = Page.objects.bulk_create(
+        [Page(**data_1), Page(**data_2), Page(**data_3), Page(**data_4)]
+    )
     return pages
 
 

@@ -4,8 +4,10 @@ import graphene
 import pytest
 
 from .....attribute import AttributeInputType
+from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....page.models import Page, PageType
+from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 QUERY_PAGES_WITH_WHERE = """
@@ -601,6 +603,638 @@ def test_pages_query_with_attribute_value_boolean(
 
 
 @pytest.mark.parametrize(
+    ("filter_type", "expected_count"), [("containsAny", 2), ("containsAll", 1)]
+)
+def test_pages_query_with_attribute_value_reference_to_pages(
+    filter_type,
+    expected_count,
+    staff_api_client,
+    page_list,
+    page_type,
+    page_type_page_reference_attribute,
+):
+    # given
+    page_type.page_attributes.add(page_type_page_reference_attribute)
+
+    reference_page_1_slug = "referenced-page-1"
+    reference_page_2_slug = "referenced-page-2"
+    referenced_page_1, referenced_page_2 = Page.objects.bulk_create(
+        [
+            Page(
+                title="Referenced Page 1",
+                slug=reference_page_1_slug,
+                page_type=page_type,
+                is_published=True,
+            ),
+            Page(
+                title="Referenced Page 2",
+                slug=reference_page_2_slug,
+                page_type=page_type,
+                is_published=True,
+            ),
+        ]
+    )
+
+    attribute_value_1, attribute_value_2 = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=page_type_page_reference_attribute,
+                name=f"Page {referenced_page_1.pk}",
+                slug=f"page-{referenced_page_1.pk}",
+                reference_page=referenced_page_1,
+            ),
+            AttributeValue(
+                attribute=page_type_page_reference_attribute,
+                name=f"Page {referenced_page_2.pk}",
+                slug=f"page-{referenced_page_2.pk}",
+                reference_page=referenced_page_2,
+            ),
+        ]
+    )
+    page_with_both_references = page_list[0]
+    associate_attribute_values_to_instance(
+        page_with_both_references,
+        {page_type_page_reference_attribute.pk: [attribute_value_1, attribute_value_2]},
+    )
+
+    page_with_single_reference = page_list[1]
+    associate_attribute_values_to_instance(
+        page_with_single_reference,
+        {page_type_page_reference_attribute.pk: [attribute_value_2]},
+    )
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": "page-reference",
+                    "value": {
+                        "reference": {
+                            "pageSlugs": {
+                                filter_type: [
+                                    reference_page_1_slug,
+                                    reference_page_2_slug,
+                                ]
+                            }
+                        }
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGES_WITH_WHERE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["pages"]["edges"]
+    assert len(pages_nodes) == expected_count
+
+
+@pytest.mark.parametrize(
+    ("filter_type", "expected_count"), [("containsAny", 2), ("containsAll", 1)]
+)
+def test_pages_query_with_attribute_value_reference_to_products(
+    filter_type,
+    expected_count,
+    staff_api_client,
+    page_list,
+    page_type,
+    page_type_product_reference_attribute,
+    product_list,
+):
+    # given
+    page_type.page_attributes.add(page_type_product_reference_attribute)
+
+    first_product = product_list[0]
+    second_product = product_list[1]
+
+    attribute_value_1, attribute_value_2 = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=page_type_product_reference_attribute,
+                name=f"Product {first_product.pk}",
+                slug=f"product-{first_product.pk}",
+                reference_product=first_product,
+            ),
+            AttributeValue(
+                attribute=page_type_product_reference_attribute,
+                name=f"Product {second_product.pk}",
+                slug=f"product-{second_product.pk}",
+                reference_product=second_product,
+            ),
+        ]
+    )
+
+    page_with_both_references = page_list[0]
+    associate_attribute_values_to_instance(
+        page_with_both_references,
+        {
+            page_type_product_reference_attribute.pk: [
+                attribute_value_1,
+                attribute_value_2,
+            ]
+        },
+    )
+
+    page_with_single_reference = page_list[1]
+    associate_attribute_values_to_instance(
+        page_with_single_reference,
+        {page_type_product_reference_attribute.pk: [attribute_value_2]},
+    )
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": "product-reference",
+                    "value": {
+                        "reference": {
+                            "productSlugs": {
+                                filter_type: [first_product.slug, second_product.slug]
+                            }
+                        }
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGES_WITH_WHERE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["pages"]["edges"]
+    assert len(pages_nodes) == expected_count
+    assert pages_nodes[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Page", page_list[0].pk
+    )
+
+
+@pytest.mark.parametrize(
+    ("filter_type", "expected_count"), [("containsAny", 2), ("containsAll", 1)]
+)
+def test_pages_query_with_attribute_value_reference_to_product_variants(
+    filter_type,
+    expected_count,
+    staff_api_client,
+    page_list,
+    page_type,
+    page_type_variant_reference_attribute,
+    product_variant_list,
+):
+    # given
+    page_type.page_attributes.add(page_type_variant_reference_attribute)
+
+    first_variant_sku = "test-variant-1"
+    second_variant_sku = "test-variant-2"
+
+    first_variant = product_variant_list[0]
+    first_variant.sku = first_variant_sku
+    first_variant.save()
+
+    second_variant = product_variant_list[1]
+    second_variant.sku = second_variant_sku
+    second_variant.save()
+
+    attribute_value_1, attribute_value_2 = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=page_type_variant_reference_attribute,
+                name=f"Variant {first_variant.pk}",
+                slug=f"variant-{first_variant.pk}",
+                reference_variant=first_variant,
+            ),
+            AttributeValue(
+                attribute=page_type_variant_reference_attribute,
+                name=f"Variant {second_variant.pk}",
+                slug=f"variant-{second_variant.pk}",
+                reference_variant=second_variant,
+            ),
+        ]
+    )
+
+    page_with_both_references = page_list[0]
+    associate_attribute_values_to_instance(
+        page_with_both_references,
+        {
+            page_type_variant_reference_attribute.pk: [
+                attribute_value_1,
+                attribute_value_2,
+            ]
+        },
+    )
+
+    page_with_single_reference = page_list[1]
+    associate_attribute_values_to_instance(
+        page_with_single_reference,
+        {page_type_variant_reference_attribute.pk: [attribute_value_2]},
+    )
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": "variant-reference",
+                    "value": {
+                        "reference": {
+                            "productVariantSkus": {
+                                filter_type: [
+                                    first_variant_sku,
+                                    second_variant_sku,
+                                ]
+                            }
+                        }
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGES_WITH_WHERE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["pages"]["edges"]
+    assert len(pages_nodes) == expected_count
+    assert pages_nodes[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Page", page_list[0].pk
+    )
+
+
+@pytest.mark.parametrize(
+    ("filter_type", "expected_count"), [("containsAny", 3), ("containsAll", 2)]
+)
+def test_pages_query_with_attribute_value_referenced_page_ids(
+    filter_type,
+    expected_count,
+    staff_api_client,
+    page_list,
+    page_type,
+    page_type_page_reference_attribute,
+):
+    # given
+    page_type.page_attributes.add(
+        page_type_page_reference_attribute,
+    )
+
+    referenced_first_page, referenced_second_page, referenced_third_page = (
+        Page.objects.bulk_create(
+            [
+                Page(
+                    title="Referenced Page",
+                    slug="referenced-page",
+                    page_type=page_type,
+                    is_published=True,
+                ),
+                Page(
+                    title="Referenced Page",
+                    slug="referenced-page2",
+                    page_type=page_type,
+                    is_published=True,
+                ),
+                Page(
+                    title="Referenced Page",
+                    slug="referenced-page3",
+                    page_type=page_type,
+                    is_published=True,
+                ),
+            ]
+        )
+    )
+
+    first_attr_value, second_attr_value, third_attr_value = (
+        AttributeValue.objects.bulk_create(
+            [
+                AttributeValue(
+                    attribute=page_type_page_reference_attribute,
+                    name=f"Page {referenced_first_page.pk}",
+                    slug=f"page-{referenced_first_page.pk}",
+                    reference_page=referenced_first_page,
+                ),
+                AttributeValue(
+                    attribute=page_type_page_reference_attribute,
+                    name=f"Page {referenced_second_page.pk}",
+                    slug=f"page-{referenced_second_page.pk}",
+                    reference_page=referenced_second_page,
+                ),
+                AttributeValue(
+                    attribute=page_type_page_reference_attribute,
+                    name=f"Page {referenced_third_page.pk}",
+                    slug=f"page-{referenced_third_page.pk}",
+                    reference_page=referenced_third_page,
+                ),
+            ]
+        )
+    )
+    fist_page_with_all_ids = page_list[0]
+    second_page_with_all_ids = page_list[1]
+    page_with_single_id = page_list[2]
+    associate_attribute_values_to_instance(
+        fist_page_with_all_ids,
+        {
+            page_type_page_reference_attribute.pk: [
+                first_attr_value,
+                second_attr_value,
+                third_attr_value,
+            ],
+        },
+    )
+
+    associate_attribute_values_to_instance(
+        second_page_with_all_ids,
+        {
+            page_type_page_reference_attribute.pk: [
+                first_attr_value,
+                second_attr_value,
+                third_attr_value,
+            ],
+        },
+    )
+
+    associate_attribute_values_to_instance(
+        page_with_single_id,
+        {page_type_page_reference_attribute.pk: [first_attr_value]},
+    )
+
+    referenced_first_global_id = to_global_id_or_none(referenced_first_page)
+    referenced_second_global_id = to_global_id_or_none(referenced_second_page)
+    referenced_third_global_id = to_global_id_or_none(referenced_third_page)
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": page_type_page_reference_attribute.slug,
+                    "value": {
+                        "reference": {
+                            "referencedIds": {
+                                filter_type: [
+                                    referenced_first_global_id,
+                                    referenced_second_global_id,
+                                    referenced_third_global_id,
+                                ]
+                            }
+                        }
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGES_WITH_WHERE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["pages"]["edges"]
+    assert len(page_list) > len(pages_nodes)
+    assert len(pages_nodes) == expected_count
+
+
+@pytest.mark.parametrize(
+    ("filter_type", "expected_count"), [("containsAny", 3), ("containsAll", 2)]
+)
+def test_pages_query_with_attribute_value_referenced_variant_ids(
+    filter_type,
+    expected_count,
+    staff_api_client,
+    page_list,
+    page_type,
+    page_type_variant_reference_attribute,
+    product_variant_list,
+):
+    # given
+    page_type.page_attributes.add(
+        page_type_variant_reference_attribute,
+    )
+
+    first_variant = product_variant_list[0]
+    second_variant = product_variant_list[1]
+    third_variant = product_variant_list[2]
+
+    first_attr_value, second_attr_value, third_attr_value = (
+        AttributeValue.objects.bulk_create(
+            [
+                AttributeValue(
+                    attribute=page_type_variant_reference_attribute,
+                    name=f"Variant {first_variant.pk}",
+                    slug=f"variant-{first_variant.pk}",
+                    reference_variant=first_variant,
+                ),
+                AttributeValue(
+                    attribute=page_type_variant_reference_attribute,
+                    name=f"Variant {second_variant.pk}",
+                    slug=f"variant-{second_variant.pk}",
+                    reference_variant=second_variant,
+                ),
+                AttributeValue(
+                    attribute=page_type_variant_reference_attribute,
+                    name=f"Variant {third_variant.pk}",
+                    slug=f"variant-{third_variant.pk}",
+                    reference_variant=third_variant,
+                ),
+            ]
+        )
+    )
+    fist_page_with_all_ids = page_list[0]
+    second_page_with_all_ids = page_list[1]
+    page_with_single_id = page_list[2]
+    associate_attribute_values_to_instance(
+        fist_page_with_all_ids,
+        {
+            page_type_variant_reference_attribute.pk: [
+                first_attr_value,
+                second_attr_value,
+                third_attr_value,
+            ],
+        },
+    )
+
+    associate_attribute_values_to_instance(
+        second_page_with_all_ids,
+        {
+            page_type_variant_reference_attribute.pk: [
+                first_attr_value,
+                second_attr_value,
+                third_attr_value,
+            ],
+        },
+    )
+
+    associate_attribute_values_to_instance(
+        page_with_single_id,
+        {page_type_variant_reference_attribute.pk: [first_attr_value]},
+    )
+    referenced_first_global_id = to_global_id_or_none(first_variant)
+    referenced_second_global_id = to_global_id_or_none(second_variant)
+    referenced_third_global_id = to_global_id_or_none(third_variant)
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": page_type_variant_reference_attribute.slug,
+                    "value": {
+                        "reference": {
+                            "referencedIds": {
+                                filter_type: [
+                                    referenced_first_global_id,
+                                    referenced_second_global_id,
+                                    referenced_third_global_id,
+                                ]
+                            }
+                        }
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGES_WITH_WHERE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["pages"]["edges"]
+    assert len(page_list) > len(pages_nodes)
+    assert len(pages_nodes) == expected_count
+
+
+@pytest.mark.parametrize(
+    ("filter_type", "expected_count"), [("containsAny", 3), ("containsAll", 2)]
+)
+def test_pages_query_with_attribute_value_referenced_product_ids(
+    filter_type,
+    expected_count,
+    staff_api_client,
+    page_list,
+    page_type,
+    page_type_product_reference_attribute,
+    product_list,
+):
+    # given
+    page_type.page_attributes.add(
+        page_type_product_reference_attribute,
+    )
+    first_product = product_list[0]
+    second_product = product_list[1]
+    third_product = product_list[2]
+
+    first_attr_value, second_attr_value, third_attr_value = (
+        AttributeValue.objects.bulk_create(
+            [
+                AttributeValue(
+                    attribute=page_type_product_reference_attribute,
+                    name=f"Product {first_product.pk}",
+                    slug=f"Product-{first_product.pk}",
+                    reference_product=first_product,
+                ),
+                AttributeValue(
+                    attribute=page_type_product_reference_attribute,
+                    name=f"Product {second_product.pk}",
+                    slug=f"product-{second_product.pk}",
+                    reference_product=second_product,
+                ),
+                AttributeValue(
+                    attribute=page_type_product_reference_attribute,
+                    name=f"Product {third_product.pk}",
+                    slug=f"Product-{third_product.pk}",
+                    reference_product=third_product,
+                ),
+            ]
+        )
+    )
+    fist_page_with_all_ids = page_list[0]
+    second_page_with_all_ids = page_list[1]
+    page_with_single_id = page_list[2]
+    associate_attribute_values_to_instance(
+        fist_page_with_all_ids,
+        {
+            page_type_product_reference_attribute.pk: [
+                first_attr_value,
+                second_attr_value,
+                third_attr_value,
+            ],
+        },
+    )
+
+    associate_attribute_values_to_instance(
+        second_page_with_all_ids,
+        {
+            page_type_product_reference_attribute.pk: [
+                first_attr_value,
+                second_attr_value,
+                third_attr_value,
+            ],
+        },
+    )
+
+    associate_attribute_values_to_instance(
+        page_with_single_id,
+        {
+            page_type_product_reference_attribute.pk: [
+                first_attr_value,
+            ],
+        },
+    )
+    referenced_first_global_id = to_global_id_or_none(first_product)
+    referenced_second_global_id = to_global_id_or_none(second_product)
+    referenced_third_global_id = to_global_id_or_none(third_product)
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": page_type_product_reference_attribute.slug,
+                    "value": {
+                        "reference": {
+                            "referencedIds": {
+                                filter_type: [
+                                    referenced_first_global_id,
+                                    referenced_second_global_id,
+                                    referenced_third_global_id,
+                                ]
+                            }
+                        }
+                    },
+                },
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGES_WITH_WHERE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["pages"]["edges"]
+    assert len(page_list) > len(pages_nodes)
+    assert len(pages_nodes) == expected_count
+
+
+@pytest.mark.parametrize(
     "attribute_filter",
     [
         # When input receives None
@@ -659,6 +1293,158 @@ def test_pages_query_with_attribute_value_boolean(
         [{"slug": "date_time", "value": {"slug": None}}],
         # Date time can't be used with non date time fields
         [{"slug": "date_time", "value": {"numeric": {"eq": 1.2}}}],
+        # Reference attribute
+        [
+            {
+                "slug": "date_time",
+                "value": {
+                    "reference": {
+                        "pageSlugs": {
+                            "containsAll": [
+                                "about",
+                            ]
+                        }
+                    }
+                },
+            }
+        ],
+        [{"slug": "reference-product", "value": {}}],
+        [{"slug": "reference-product", "value": {"reference": {}}}],
+        [{"slug": "reference-product", "value": {"reference": None}}],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"referencedIds": {"containsAll": []}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"pageSlugs": {"containsAll": []}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"productSlugs": {"containsAll": []}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"productVariantSkus": {"containsAll": []}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"pageSlugs": {"containsAny": []}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"productSlugs": {"containsAny": []}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"productVariantSkus": {"containsAny": []}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"referencedIds": {"containsAny": []}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {
+                    "reference": {"pageSlugs": {"containsAny": [], "containsAll": []}}
+                },
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {
+                    "reference": {
+                        "productSlugs": {"containsAny": [], "containsAll": []}
+                    }
+                },
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {
+                    "reference": {
+                        "productVariantSkus": {"containsAny": [], "containsAll": []}
+                    }
+                },
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {
+                    "reference": {
+                        "referencedIds": {"containsAny": [], "containsAll": []}
+                    }
+                },
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"referencedIds": {"containsAll": None}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"pageSlugs": {"containsAll": None}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"productSlugs": {"containsAll": None}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"productVariantSkus": {"containsAll": None}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"pageSlugs": {"containsAny": None}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"productSlugs": {"containsAny": None}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"productVariantSkus": {"containsAny": None}}},
+            }
+        ],
+        [
+            {
+                "slug": "reference-product",
+                "value": {"reference": {"referencedIds": {"containsAny": None}}},
+            }
+        ],
     ],
 )
 def test_pages_query_failed_filter_validation(
@@ -672,6 +1458,7 @@ def test_pages_query_failed_filter_validation(
     numeric_attribute_without_unit,
     date_attribute,
     date_time_attribute,
+    page_type_product_reference_attribute,
 ):
     # given
     boolean_attribute.type = "PAGE_TYPE"
@@ -679,6 +1466,12 @@ def test_pages_query_failed_filter_validation(
     numeric_attribute_without_unit.type = "PAGE_TYPE"
     numeric_attribute_without_unit.save()
 
+    page_type_product_reference_attribute.slug = "reference-product"
+    page_type_product_reference_attribute.save()
+
+    page_type.page_attributes.add(
+        page_type_product_reference_attribute,
+    )
     page_type.page_attributes.add(size_page_attribute)
     page_type.page_attributes.add(tag_page_attribute)
     page_type.page_attributes.add(boolean_attribute)

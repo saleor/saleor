@@ -1,3 +1,5 @@
+from typing import Literal
+
 import django_filters
 import graphene
 from django.db.models import Exists, FloatField, OuterRef, Q
@@ -7,6 +9,13 @@ from graphql import GraphQLError
 from ...attribute import AttributeInputType
 from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributeValue
 from ...page import models
+from ..attribute.filters import (
+    CONTAINS_TYPING,
+    filter_by_contains_referenced_object_ids,
+    filter_by_contains_referenced_pages,
+    filter_by_contains_referenced_products,
+    filter_by_contains_referenced_variants,
+)
 from ..core.context import ChannelQsContext
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.filters import (
@@ -22,6 +31,7 @@ from ..core.filters.where_filters import (
     OperationObjectTypeWhereFilter,
 )
 from ..core.filters.where_input import (
+    ContainsFilterInput,
     DecimalFilterInput,
     GlobalIDFilterInput,
     StringFilterInput,
@@ -212,9 +222,120 @@ def filter_pages_by_attributes(qs, value):
             attr_filter_expression &= filter_by_date_time_attribute(
                 attr.id, attr_value["date_time"], qs.db
             )
+        elif attr.input_type == AttributeInputType.REFERENCE:
+            attr_filter_expression &= filter_pages_by_reference_attributes(
+                attr.id, attr_value["reference"], qs.db
+            )
     if attr_filter_expression != Q():
         return qs.filter(attr_filter_expression)
     return qs.none()
+
+
+def filter_pages_by_reference_attributes(
+    attr_id: int | None,
+    attr_value: dict[
+        Literal[
+            "referenced_ids", "page_slugs", "product_slugs", "product_variant_skus"
+        ],
+        CONTAINS_TYPING,
+    ],
+    db_connection_name: str,
+):
+    filter_expression = Q()
+
+    if "referenced_ids" in attr_value:
+        filter_expression &= filter_by_contains_referenced_object_ids(
+            attr_id,
+            attr_value["referenced_ids"],
+            db_connection_name,
+            assigned_attr_model=AssignedPageAttributeValue,
+            assigned_id_field_name="page_id",
+        )
+    if "page_slugs" in attr_value:
+        filter_expression &= filter_by_contains_referenced_pages(
+            attr_id,
+            attr_value["page_slugs"],
+            db_connection_name,
+            assigned_attr_model=AssignedPageAttributeValue,
+            assigned_id_field_name="page_id",
+        )
+    if "product_slugs" in attr_value:
+        filter_expression &= filter_by_contains_referenced_products(
+            attr_id,
+            attr_value["product_slugs"],
+            db_connection_name,
+            assigned_attr_model=AssignedPageAttributeValue,
+            assigned_id_field_name="page_id",
+        )
+    if "product_variant_skus" in attr_value:
+        filter_expression &= filter_by_contains_referenced_variants(
+            attr_id,
+            attr_value["product_variant_skus"],
+            db_connection_name,
+            assigned_attr_model=AssignedPageAttributeValue,
+            assigned_id_field_name="page_id",
+        )
+    return filter_expression
+
+
+def validate_attribute_value_reference_input(
+    values: list[
+        dict[
+            Literal[
+                "referenced_ids", "page_slugs", "product_slugs", "product_variant_skus"
+            ],
+            CONTAINS_TYPING,
+        ]
+        | None
+    ],
+):
+    """Validate the input for reference attributes.
+
+    This function checks if the input for reference attributes is valid.
+    It raises a GraphQLError if the input is invalid.
+    """
+    duplicated_error = []
+    empty_input_value_error = set()
+    for value in values:
+        if not value:
+            raise GraphQLError(
+                message="Invalid input for reference attributes. "
+                "Provided 'value' cannot be null or empty."
+            )
+        for key in value:
+            single_key_value = value[key]
+            if (
+                "contains_all" in single_key_value
+                and "contains_any" in single_key_value
+            ):
+                duplicated_error.append(key)
+                continue
+            if (
+                "contains_all" in single_key_value
+                and not single_key_value["contains_all"]
+            ):
+                empty_input_value_error.add(key)
+                continue
+            if (
+                "contains_any" in single_key_value
+                and not single_key_value["contains_any"]
+            ):
+                empty_input_value_error.add(key)
+
+    if empty_input_value_error:
+        raise GraphQLError(
+            message=(
+                f"Invalid input for reference attributes. For fields: {', '.join(empty_input_value_error)}. "
+                f"Provided values cannot be null or empty."
+            )
+        )
+    if duplicated_error:
+        raise GraphQLError(
+            message=(
+                f"Invalid input for reference attributes. For fields: {', '.join(duplicated_error)}. "
+                "Cannot provide both 'containsAll' and 'containsAny' for the same reference filter."
+            )
+        )
 
 
 def validate_attribute_value_input(attributes: list[dict], db_connection_name: str):
@@ -222,6 +343,7 @@ def validate_attribute_value_input(attributes: list[dict], db_connection_name: s
     value_as_empty_list = []
     value_more_than_one_list = []
     invalid_input_type_list = []
+    reference_value_list = []
     if len(slug_list) != len(set(slug_list)):
         raise GraphQLError(
             message="Duplicated attribute slugs in attribute 'where' input are not allowed."
@@ -245,6 +367,8 @@ def validate_attribute_value_input(attributes: list[dict], db_connection_name: s
         if value[value_key] is None:
             value_as_empty_list.append(attr["slug"])
             continue
+        if value_key == "reference":
+            reference_value_list.append(value["reference"])
 
     if type_specific_value_list:
         attribute_input_type_map = Attribute.objects.using(db_connection_name).in_bulk(
@@ -265,6 +389,10 @@ def validate_attribute_value_input(attributes: list[dict], db_connection_name: s
                 invalid_input_type_list.append(attr_slug)
             if "boolean" == value_key and input_type != AttributeInputType.BOOLEAN:
                 invalid_input_type_list.append(attr_slug)
+            if "reference" == value_key and input_type != AttributeInputType.REFERENCE:
+                invalid_input_type_list.append(attr_slug)
+
+    validate_attribute_value_reference_input(reference_value_list)
 
     if value_as_empty_list:
         raise GraphQLError(
@@ -289,6 +417,26 @@ def validate_attribute_value_input(attributes: list[dict], db_connection_name: s
         )
 
 
+class ReferenceAttributeWhereInput(BaseInputObjectType):
+    referenced_ids = ContainsFilterInput(
+        description="Returns objects with a reference pointing to an object identified by the given ID.",
+    )
+    page_slugs = ContainsFilterInput(
+        description="Returns objects with a reference pointing to a page identified by the given slug.",
+    )
+    product_slugs = ContainsFilterInput(
+        description=(
+            "Returns objects with a reference pointing to a product identified by the given slug."
+        )
+    )
+    product_variant_skus = ContainsFilterInput(
+        description=(
+            "Returns objects with a reference pointing "
+            "to a product variant identified by the given sku."
+        )
+    )
+
+
 class AttributeValuePageInput(BaseInputObjectType):
     slug = StringFilterInput(
         description="Filter by slug assigned to AttributeValue.",
@@ -311,6 +459,10 @@ class AttributeValuePageInput(BaseInputObjectType):
     boolean = graphene.Boolean(
         required=False,
         description="Filter by boolean value for attributes of boolean type.",
+    )
+    reference = ReferenceAttributeWhereInput(
+        required=False,
+        description=("Filter by reference attribute value."),
     )
 
 
