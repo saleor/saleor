@@ -2313,67 +2313,112 @@ def test_orders_filter_by_order_events(
     [
         (
             {
-                "paymentMethodDetails": {
-                    "type": {"eq": "CARD"},
-                }
+                "transactions": [
+                    {
+                        "paymentMethodDetails": {
+                            "type": {"eq": "CARD"},
+                        }
+                    }
+                ]
             },
             [0, 2],
         ),
         (
             {
-                "paymentMethodDetails": {
-                    "type": {"eq": "OTHER"},
-                }
+                "transactions": [
+                    {
+                        "paymentMethodDetails": {
+                            "type": {"eq": "OTHER"},
+                        }
+                    }
+                ]
             },
             [1],
         ),
         (
             {
-                "paymentMethodDetails": {
-                    "card": {
-                        "brand": {"eq": "Brand"},
+                "transactions": [
+                    {
+                        "paymentMethodDetails": {
+                            "card": {
+                                "brand": {"eq": "Brand"},
+                            }
+                        }
                     }
-                }
+                ]
             },
             [0],
         ),
         (
             {
-                "paymentMethodDetails": {
-                    "card": {
-                        "brand": {"eq": "Brand4"},
+                "transactions": [
+                    {
+                        "paymentMethodDetails": {
+                            "card": {
+                                "brand": {"eq": "Brand4"},
+                            }
+                        }
                     }
-                }
+                ]
             },
             [2],
         ),
         (
             {
-                "paymentMethodDetails": {
-                    "card": {
-                        "brand": {"eq": "Brand2"},
+                "transactions": [
+                    {
+                        "paymentMethodDetails": {
+                            "card": {
+                                "brand": {"eq": "Brand2"},
+                            }
+                        }
                     }
-                }
+                ]
             },
             [0],
         ),
         (
             {
-                "paymentMethodDetails": {
-                    "type": {"oneOf": ["CARD", "OTHER"]},
-                }
+                "transactions": [
+                    {
+                        "paymentMethodDetails": {
+                            "type": {"oneOf": ["CARD", "OTHER"]},
+                        }
+                    }
+                ]
             },
             [0, 1, 2],
         ),
         (
             {
-                "paymentMethodDetails": {
-                    "card": {
-                        "brand": {"oneOf": ["Brand2", "Brand4"]},
+                "transactions": [
+                    {
+                        "paymentMethodDetails": {
+                            "card": {
+                                "brand": {"oneOf": ["Brand2", "Brand4"]},
+                            }
+                        }
                     }
-                }
+                ]
             },
             [0, 2],
+        ),
+        (
+            {
+                "transactions": [
+                    {
+                        "paymentMethodDetails": {
+                            "type": {"eq": "CARD"},
+                        }
+                    },
+                    {
+                        "paymentMethodDetails": {
+                            "card": {"brand": {"eq": "Brand"}},
+                        }
+                    },
+                ]
+            },
+            [0],
         ),
     ],
 )
@@ -2435,7 +2480,7 @@ def test_orders_filter_by_transaction_payment_details(
     )
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"where": {"transactions": where}}
+    variables = {"where": where}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
@@ -2449,20 +2494,47 @@ def test_orders_filter_by_transaction_payment_details(
 
 
 @pytest.mark.parametrize(
-    ("metadata", "expected_indexes"),
+    ("metadata_list", "expected_indexes"),
     [
-        ({"key": "foo"}, [0, 1]),
-        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
-        ({"key": "foo", "value": {"eq": "baz"}}, []),
-        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
-        ({"key": "notfound"}, []),
-        ({"key": "foo", "value": {"eq": None}}, []),
-        ({"key": "foo", "value": {"oneOf": []}}, []),
-        (None, []),
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}},
+            ],
+            [0, 1],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo", "value": {"eq": "bar"}}},
+                {"metadata": {"key": "foo", "value": {"eq": "zaz"}}},
+            ],
+            [],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo", "value": {"eq": "bar"}}},
+                {"metadata": {"key": "notfound"}},
+            ],
+            [],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo", "value": {"eq": "zaz"}}},
+                {"metadata": {"key": "foo"}},
+            ],
+            [1],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo", "value": {"eq": "baz"}}},
+                {"metadata": {"key": "notfound"}},
+            ],
+            [],
+        ),
     ],
 )
 def test_orders_filter_by_transaction_metadata(
-    metadata,
+    metadata_list,
     expected_indexes,
     order_list,
     staff_api_client,
@@ -2495,7 +2567,114 @@ def test_orders_filter_by_transaction_metadata(
     )
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"where": {"transactions": {"metadata": metadata}}}
+    variables = {"where": {"transactions": metadata_list}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("transaction_filters", "expected_indexes"),
+    [
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"paymentMethodDetails": {"type": {"eq": "CARD"}}},
+            ],
+            [0, 2],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"paymentMethodDetails": {"type": {"eq": "OTHER"}}},
+            ],
+            [1],
+        ),
+        (
+            [
+                {"metadata": {"key": "notfound"}},
+                {"paymentMethodDetails": {"type": {"eq": "OTHER"}}},
+            ],
+            [],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo", "value": {"eq": "baz"}}},
+                {"paymentMethodDetails": {"type": {"eq": "CARD"}}},
+            ],
+            [0],
+        ),
+    ],
+)
+def test_orders_filter_by_transactions_with_mixed_conditions(
+    transaction_filters,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+    transaction_item_generator,
+):
+    # given
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        payment_method_type="card",
+        payment_method_name="Credit card",
+        cc_brand="Brand",
+        cc_first_digits="1234",
+        cc_last_digits="5678",
+        cc_exp_month=12,
+        cc_exp_year=2025,
+        metadata={},
+    )
+
+    # second_transaction
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        payment_method_type="card",
+        payment_method_name="Second Credit card",
+        cc_brand="Brand2",
+        cc_first_digits="1234",
+        cc_last_digits="5678",
+        cc_exp_month=12,
+        cc_exp_year=2025,
+        metadata={"foo": "baz"},
+    )
+
+    # third_transaction
+    transaction_item_generator(
+        order_id=order_list[1].pk,
+        charged_value=order_list[1].total.gross.amount,
+        payment_method_type="other",
+        payment_method_name="Third payment method",
+        cc_brand=None,
+        cc_first_digits=None,
+        cc_last_digits=None,
+        cc_exp_month=None,
+        cc_exp_year=None,
+        metadata={"foo": "zaz"},
+    )
+
+    # fourth_transaction
+    transaction_item_generator(
+        order_id=order_list[2].pk,
+        charged_value=order_list[2].total.gross.amount,
+        payment_method_type="card",
+        payment_method_name="Fourth Credit card",
+        cc_brand="Brand4",
+        metadata={"foo": "bar"},
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"transactions": transaction_filters}}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
