@@ -20,7 +20,12 @@ if TYPE_CHECKING:
     from ...interface import GatewayResponse, PaymentData, TokenConfig
 
 
-class DummyGatewayPlugin(BasePlugin):
+class DeprecatedDummyGatewayPlugin(BasePlugin):
+    """Deprecated.
+
+    This plugin is deprecated and will be removed in future version.
+    """
+
     PLUGIN_ID = "mirumee.payments.dummy"
     PLUGIN_NAME = GATEWAY_NAME
     DEFAULT_ACTIVE = True

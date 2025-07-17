@@ -11,7 +11,12 @@ if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData
 
 
-class RazorpayGatewayPlugin(BasePlugin):
+class DeprecatedRazorpayGatewayPlugin(BasePlugin):
+    """Deprecated.
+
+    This plugin is deprecated and will be removed in future version.
+    """
+
     PLUGIN_NAME = GATEWAY_NAME
     PLUGIN_ID = "mirumee.payments.razorpay"
     DEFAULT_CONFIGURATION = [

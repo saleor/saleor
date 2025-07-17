@@ -321,7 +321,7 @@ def test_checkout_add_payment_no_checkout_email(
 
 
 @patch(
-    "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin.CONFIGURATION_PER_CHANNEL",
+    "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin.CONFIGURATION_PER_CHANNEL",
     False,
 )
 def test_checkout_add_payment_not_supported_currency(
@@ -371,7 +371,10 @@ def test_checkout_add_payment_not_existing_gateway(
     assert data["errors"][0]["field"] == "gateway"
 
 
-@patch("saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin.DEFAULT_ACTIVE", False)
+@patch(
+    "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin.DEFAULT_ACTIVE",
+    False,
+)
 def test_checkout_add_payment_gateway_inactive(
     user_api_client, checkout_without_shipping_required, address
 ):

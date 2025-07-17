@@ -183,7 +183,7 @@ def test_payment_capture_gateway_error(
 
 @patch(
     "saleor.payment.gateways.dummy_credit_card.plugin."
-    "DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
+    "DeprecatedDummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
     True,
 )
 def test_payment_capture_gateway_dummy_credit_card_error(

@@ -844,19 +844,19 @@ GRAPHQL_QUERY_MAX_COMPLEXITY = int(
 FEDERATED_QUERY_MAX_ENTITIES = int(os.environ.get("FEDERATED_QUERY_MAX_ENTITIES", 100))
 
 BUILTIN_PLUGINS = [
-    "saleor.plugins.avatax.plugin.AvataxPlugin",
+    "saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin",
     "saleor.plugins.webhook.plugin.WebhookPlugin",
-    "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
-    "saleor.payment.gateways.dummy_credit_card.plugin.DummyCreditCardGatewayPlugin",
+    "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
+    "saleor.payment.gateways.dummy_credit_card.plugin.DeprecatedDummyCreditCardGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
-    "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
-    "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
+    "saleor.payment.gateways.braintree.plugin.DeprecatedBraintreeGatewayPlugin",
+    "saleor.payment.gateways.razorpay.plugin.DeprecatedRazorpayGatewayPlugin",
     "saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin",
     "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin",
     "saleor.payment.gateways.np_atobarai.plugin.NPAtobaraiGatewayPlugin",
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
     "saleor.plugins.admin_email.plugin.AdminEmailPlugin",
-    "saleor.plugins.sendgrid.plugin.SendgridEmailPlugin",
+    "saleor.plugins.sendgrid.plugin.DeprecatedSendgridEmailPlugin",
     "saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin",
 ]
 

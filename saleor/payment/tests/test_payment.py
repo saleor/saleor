@@ -690,7 +690,7 @@ def test_is_currency_supported(
     manager = get_plugins_manager(allow_replica=False)
     dummy_gateway_config.supported_currencies = "USD, EUR"
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
+        "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin._get_gateway_config",
         lambda _: dummy_gateway_config,
     )
 

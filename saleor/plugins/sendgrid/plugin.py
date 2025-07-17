@@ -97,7 +97,12 @@ EVENT_MAP = {
 HELP_TEXT_TEMPLATE = "ID of the dynamic template in Sendgrid"
 
 
-class SendgridEmailPlugin(BasePlugin):
+class DeprecatedSendgridEmailPlugin(BasePlugin):
+    """Deprecated.
+
+    This plugin is deprecated and will be removed in future version.
+    """
+
     PLUGIN_ID = "mirumee.notifications.sendgrid_email"
     PLUGIN_NAME = "Sendgrid"
     DEFAULT_ACTIVE = False

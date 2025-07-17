@@ -14,7 +14,7 @@ from .. import (
     refund,
     void,
 )
-from ..plugin import DummyCreditCardGatewayPlugin
+from ..plugin import DeprecatedDummyCreditCardGatewayPlugin
 
 NO_LONGER_ACTIVE = "This payment is no longer active."
 CANNOT_BE_AUTHORIZED_AGAIN = "Charged transactions cannot be authorized again."
@@ -27,9 +27,9 @@ CANNOT_CHARGE_MORE_THAN_UNCAPTURED = "Unable to charge more than un-captured amo
 
 @pytest.fixture(autouse=True)
 def setup_dummy_credit_card_gateway(settings):
-    DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE = True
+    DeprecatedDummyCreditCardGatewayPlugin.DEFAULT_ACTIVE = True
     settings.PLUGINS = [
-        "saleor.payment.gateways.dummy_credit_card.plugin.DummyCreditCardGatewayPlugin"
+        "saleor.payment.gateways.dummy_credit_card.plugin.DeprecatedDummyCreditCardGatewayPlugin"
     ]
     return settings
 
@@ -437,7 +437,7 @@ def test_process_payment_pre_authorized(
     dummy_gateway_config.auto_capture = False
     monkeypatch.setattr(
         "saleor.payment.gateways.dummy_credit_card.plugin."
-        "DummyCreditCardGatewayPlugin._get_gateway_config",
+        "DeprecatedDummyCreditCardGatewayPlugin._get_gateway_config",
         lambda _: dummy_gateway_config,
     )
 
@@ -466,7 +466,7 @@ def test_process_payment_pre_authorized_and_capture(
     dummy_gateway_config.auto_capture = True
     monkeypatch.setattr(
         "saleor.payment.gateways.dummy_credit_card.plugin."
-        "DummyCreditCardGatewayPlugin._get_gateway_config",
+        "DeprecatedDummyCreditCardGatewayPlugin._get_gateway_config",
         lambda _: dummy_gateway_config,
     )
 
@@ -495,7 +495,7 @@ def test_process_payment_pre_authorized_and_capture_error(
     dummy_gateway_config.auto_capture = True
     monkeypatch.setattr(
         "saleor.payment.gateways.dummy_credit_card.plugin."
-        "DummyCreditCardGatewayPlugin._get_gateway_config",
+        "DeprecatedDummyCreditCardGatewayPlugin._get_gateway_config",
         lambda _: dummy_gateway_config,
     )
 

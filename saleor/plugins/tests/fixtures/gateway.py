@@ -4,8 +4,8 @@ import pytest
 @pytest.fixture(autouse=True)
 def setup_dummy_gateways(settings):
     settings.PLUGINS = [
-        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
-        "saleor.payment.gateways.dummy_credit_card.plugin.DummyCreditCardGatewayPlugin",
+        "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
+        "saleor.payment.gateways.dummy_credit_card.plugin.DeprecatedDummyCreditCardGatewayPlugin",
     ]
     return settings
 

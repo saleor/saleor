@@ -2924,7 +2924,7 @@ def test_checkout_complete_checkout_without_lines(
 @pytest.mark.parametrize(("token", "error"), list(TOKEN_VALIDATION_MAPPING.items()))
 @patch(
     "saleor.payment.gateways.dummy_credit_card.plugin."
-    "DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
+    "DeprecatedDummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
     True,
 )
 def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
@@ -5827,7 +5827,7 @@ def test_checkout_complete_empty_product_translation(
 @override_settings(
     PLUGINS=[
         "saleor.plugins.webhook.plugin.WebhookPlugin",
-        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+        "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
     ]
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
