@@ -813,9 +813,15 @@ def test_attributes_values_with_limit(
 
     AttributeValue.objects.bulk_create(
         [
-            AttributeValue(slug="10", name="num-10", attribute=numeric_attribute),
-            AttributeValue(slug="20", name="num-20", attribute=numeric_attribute),
-            AttributeValue(slug="30", name="num-30", attribute=numeric_attribute),
+            AttributeValue(
+                slug="10", name="10", numeric=10, attribute=numeric_attribute
+            ),
+            AttributeValue(
+                slug="20", name="20", numeric=20, attribute=numeric_attribute
+            ),
+            AttributeValue(
+                slug="30", name="30", numeric=30, attribute=numeric_attribute
+            ),
         ]
     )
     limit = 1
@@ -837,9 +843,15 @@ def test_attributes_values_default_limit(
     # given
     AttributeValue.objects.bulk_create(
         [
-            AttributeValue(slug="10", name="num-10", attribute=numeric_attribute),
-            AttributeValue(slug="20", name="num-20", attribute=numeric_attribute),
-            AttributeValue(slug="30", name="num-30", attribute=numeric_attribute),
+            AttributeValue(
+                slug="10", name="10", numeric=10, attribute=numeric_attribute
+            ),
+            AttributeValue(
+                slug="20", name="20", numeric=20, attribute=numeric_attribute
+            ),
+            AttributeValue(
+                slug="30", name="30", numeric=30, attribute=numeric_attribute
+            ),
         ]
     )
     attribute_count = {

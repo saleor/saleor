@@ -1456,7 +1456,7 @@ def test_update_variant_with_date_time_attribute(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-def test_update_variant_with_numeric_attribute(
+def test_update_variant_removes_numeric_attribute_value(
     product_variant_updated,
     permission_manage_products,
     product,
@@ -1498,6 +1498,59 @@ def test_update_variant_with_numeric_attribute(
     assert data["attributes"][-1]["attribute"]["slug"] == numeric_attribute.slug
     assert not data["attributes"][-1]["values"]
     assert numeric_attribute.values.count() == values_count
+    product_variant_updated.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_adds_numeric_attribute(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    numeric_attribute,
+    warehouse,
+):
+    # given
+    product_type.variant_attributes.add(numeric_attribute)
+
+    numeric_value = 33.12
+    numeric_name = str(numeric_value)
+
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attr_id = graphene.Node.to_global_id("Attribute", numeric_attribute.id)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variables = {
+        "id": variant_id,
+        "attributes": [
+            {"id": attr_id, "numeric": numeric_name},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+
+    attribute_data = [
+        attr_data
+        for attr_data in data["attributes"]
+        if attr_data["attribute"]["slug"] == numeric_attribute.slug
+    ][0]
+    assert attribute_data["attribute"]["slug"] == numeric_attribute.slug
+    assert attribute_data["values"][0]["name"] == numeric_name
+
+    assert numeric_attribute.values.filter(
+        name=numeric_name, numeric=numeric_value
+    ).first()
     product_variant_updated.assert_called_once_with(product.variants.last())
 
 

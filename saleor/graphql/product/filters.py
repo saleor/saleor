@@ -5,10 +5,10 @@ from typing import TypedDict
 
 import django_filters
 import graphene
-from django.db.models import Exists, FloatField, OuterRef, Q, Subquery, Sum
+from django.db.models import Exists, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
-from django.db.models.functions import Cast, Coalesce
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from ...attribute import AttributeInputType
@@ -157,20 +157,24 @@ def _clean_product_attributes_range_filter_input(
     )
     values = (
         AttributeValue.objects.using(database_connection_name)
-        .filter(Exists(attributes.filter(pk=OuterRef("attribute_id"))))
-        .annotate(numeric_value=Cast("name", FloatField()))
+        .filter(
+            Exists(attributes.filter(pk=OuterRef("attribute_id"))),
+            numeric__isnull=False,
+        )
         .select_related("attribute")
     )
 
     attributes_map: dict[str, int] = {}
-    values_map: defaultdict[str, defaultdict[str, list[int]]] = defaultdict(
+    values_map: defaultdict[str, defaultdict[float, list[int]]] = defaultdict(
         lambda: defaultdict(list)
     )
     for value_data in values.values_list(
-        "attribute_id", "attribute__slug", "pk", "numeric_value"
+        "attribute_id", "attribute__slug", "pk", "numeric"
     ):
         attr_pk, attr_slug, pk, numeric_value = value_data
         attributes_map[attr_slug] = attr_pk
+        if not numeric_value:
+            continue
         values_map[attr_slug][numeric_value].append(pk)
 
     for attr_name, val_range in filter_value:

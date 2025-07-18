@@ -640,7 +640,8 @@ def test_update_product_with_numeric_attribute_value(
     attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     product_type.product_attributes.add(numeric_attribute)
 
-    new_value = "45.2"
+    numeric_value = 45.2
+    new_value = str(numeric_value)
 
     variables = {
         "productId": product_id,
@@ -676,6 +677,10 @@ def test_update_product_with_numeric_attribute_value(
         ],
     }
     assert expected_att_data in attributes
+    assert numeric_attribute.values.filter(
+        name=new_value,
+        numeric=numeric_value,
+    ).exists()
 
     updated_webhook_mock.assert_called_once_with(product)
 
@@ -698,13 +703,14 @@ def test_update_product_with_numeric_attribute_value_new_value_is_not_created(
     product_type.product_attributes.add(numeric_attribute)
     slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
     value = AttributeValue.objects.create(
-        attribute=numeric_attribute, slug=slug_value, name="20.0"
+        attribute=numeric_attribute, slug=slug_value, name="20.0", numeric=20.0
     )
     associate_attribute_values_to_instance(product, {numeric_attribute.pk: [value]})
 
     value_count = AttributeValue.objects.count()
 
-    new_value = "45.2"
+    numeric_value = 45.2
+    new_value = str(numeric_value)
 
     variables = {
         "productId": product_id,
@@ -743,6 +749,7 @@ def test_update_product_with_numeric_attribute_value_new_value_is_not_created(
     assert AttributeValue.objects.count() == value_count
     value.refresh_from_db()
     assert value.name == new_value
+    assert value.numeric == numeric_value
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -2356,7 +2363,8 @@ def test_update_product_with_numeric_attribute_value_by_numeric_field(
     attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     product_type.product_attributes.add(numeric_attribute)
 
-    new_value = "45.2"
+    numeric_value = 45.2
+    new_value = str(numeric_value)
 
     variables = {
         "productId": product_id,
@@ -2392,6 +2400,9 @@ def test_update_product_with_numeric_attribute_value_by_numeric_field(
         ],
     }
     assert expected_att_data in attributes
+    assert numeric_attribute.values.filter(
+        name=new_value, numeric=numeric_value
+    ).first()
 
     updated_webhook_mock.assert_called_once_with(product)
 
@@ -2412,7 +2423,7 @@ def test_update_product_with_numeric_attribute_by_numeric_field_null_value(
     product_type.product_attributes.add(numeric_attribute)
     slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
     value = AttributeValue.objects.create(
-        attribute=numeric_attribute, slug=slug_value, name="20.0"
+        attribute=numeric_attribute, slug=slug_value, name="20.0", numeric=20.0
     )
     associate_attribute_values_to_instance(product, {numeric_attribute.pk: [value]})
 
@@ -2449,13 +2460,14 @@ def test_update_product_with_numeric_attribute_by_numeric_field_new_value_not_cr
     product_type.product_attributes.add(numeric_attribute)
     slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
     value = AttributeValue.objects.create(
-        attribute=numeric_attribute, slug=slug_value, name="20.0"
+        attribute=numeric_attribute, slug=slug_value, name="20.0", numeric=20.0
     )
     associate_attribute_values_to_instance(product, {numeric_attribute.pk: [value]})
 
     value_count = AttributeValue.objects.count()
 
-    new_value = "45.2"
+    numeric_value = 45.2
+    new_value = str(numeric_value)
 
     variables = {
         "productId": product_id,
@@ -2494,6 +2506,7 @@ def test_update_product_with_numeric_attribute_by_numeric_field_new_value_not_cr
     assert AttributeValue.objects.count() == value_count
     value.refresh_from_db()
     assert value.name == new_value
+    assert value.numeric == numeric_value
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

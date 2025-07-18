@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Q
 from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
@@ -10,6 +11,7 @@ from text_unidecode import unidecode
 
 from ....attribute import models
 from ....attribute.error_codes import AttributeBulkUpdateErrorCode
+from ....attribute.lock_objects import attribute_value_qs_select_for_update
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.utils import get_webhooks_for_event
@@ -572,24 +574,28 @@ class AttributeBulkUpdate(BaseMutation):
             values_to_remove.extend(attribute_data["remove_values"])
             values_to_create.extend(attribute_data["add_values"])
 
-        models.Attribute.objects.bulk_update(
-            attributes_to_update,
-            [
-                "name",
-                "slug",
-                "unit",
-                "value_required",
-                "visible_in_storefront",
-                "is_variant_only",
-                "filterable_in_dashboard",
-                "external_reference",
-            ],
-        )
+        with transaction.atomic():
+            models.Attribute.objects.bulk_update(
+                attributes_to_update,
+                [
+                    "name",
+                    "slug",
+                    "unit",
+                    "value_required",
+                    "visible_in_storefront",
+                    "is_variant_only",
+                    "filterable_in_dashboard",
+                    "external_reference",
+                ],
+            )
+            locked_ids = (
+                attribute_value_qs_select_for_update()
+                .filter(pk__in=[value.pk for value in values_to_remove])
+                .values_list("pk", flat=True)
+            )
+            models.AttributeValue.objects.filter(id__in=locked_ids).delete()
 
-        models.AttributeValue.objects.filter(
-            id__in=[values_to_remove.id for values_to_remove in values_to_remove]
-        ).delete()
-        models.AttributeValue.objects.bulk_create(values_to_create)
+            models.AttributeValue.objects.bulk_create(values_to_create)
 
         updated_attributes.extend(attributes_to_update)
         return updated_attributes, values_to_remove, values_to_create

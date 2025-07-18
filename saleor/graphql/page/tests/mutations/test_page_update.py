@@ -21,6 +21,7 @@ from .....page.error_codes import PageErrorCode
 from .....page.models import Page
 from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
+from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 UPDATE_PAGE_MUTATION = """
@@ -1413,3 +1414,51 @@ def test_update_page_with_single_reference_attributes(
     ]
     for attr_data in attributes_data:
         assert attr_data in expected_attributes_data
+
+
+def test_update_page_with_numeric_attribute(
+    staff_api_client, permission_manage_pages, page, numeric_attribute
+):
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page_type = page.page_type
+    page_type.page_attributes.all().delete()
+    page_type.page_attributes.add(numeric_attribute)
+
+    numeric_value = 33.12
+    numeric_name = str(numeric_value)
+
+    variables = {
+        "id": to_global_id_or_none(page),
+        "input": {
+            "attributes": [
+                {
+                    "id": to_global_id_or_none(numeric_attribute),
+                    "numeric": numeric_value,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["errors"]
+    attributes = data["page"]["attributes"]
+    assert len(attributes) == 1
+    assert attributes[0]["attribute"]["slug"] == numeric_attribute.slug
+    assert len(attributes[0]["values"]) == 1
+    assert attributes[0]["values"][0]["slug"] == f"{page.pk}_{numeric_attribute.pk}"
+    assert attributes[0]["values"][0]["name"] == numeric_name
+
+    assert numeric_attribute.values.filter(
+        name=numeric_name,
+        numeric=numeric_value,
+    ).exists()

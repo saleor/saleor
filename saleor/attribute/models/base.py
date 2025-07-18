@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, TypeVar, Union
 
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models, transaction
 from django.db.models import Case, Exists, F, OrderBy, OuterRef, Q, Value, When
 
@@ -319,10 +319,18 @@ class AttributeValueManager(models.Manager):
             )
 
         if objects_to_be_updated:
-            self.bulk_update(
-                objects_to_be_updated,
-                fields=update_fields,
-            )
+            from ..lock_objects import attribute_value_qs_select_for_update
+
+            with transaction.atomic():
+                _locked_qs = (
+                    attribute_value_qs_select_for_update()
+                    .filter(pk__in=[obj.pk for obj in objects_to_be_updated])
+                    .select_for_update(of=(["self"]))
+                )
+                self.bulk_update(
+                    objects_to_be_updated,
+                    fields=update_fields,
+                )
 
         return results
 
@@ -355,6 +363,7 @@ class AttributeValue(ModelWithExternalReference):
     )
     boolean = models.BooleanField(blank=True, null=True)
     date_time = models.DateTimeField(blank=True, null=True)
+    numeric = models.FloatField(null=True, blank=True)
 
     reference_product = models.ForeignKey(
         Product,
@@ -405,7 +414,11 @@ class AttributeValue(ModelWithExternalReference):
                 # `opclasses` and `fields` should be the same length
                 fields=["name", "slug"],
                 opclasses=["gin_trgm_ops"] * 2,
-            )
+            ),
+            BTreeIndex(
+                fields=["numeric"],
+                name="attribute_value_numeric_idx",
+            ),
         ]
 
     def __str__(self) -> str:

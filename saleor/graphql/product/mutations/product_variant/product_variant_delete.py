@@ -1,9 +1,11 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Exists, OuterRef
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
+from .....attribute.lock_objects import attribute_value_qs_select_for_update
 from .....core.tracing import traced_atomic_transaction
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....order import events as order_events
@@ -142,10 +144,14 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
 
     @staticmethod
     def delete_assigned_attribute_values(instance):
-        attribute_models.AttributeValue.objects.filter(
-            variantassignments__variant_id=instance.id,
-            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
-        ).delete()
+        with transaction.atomic():
+            locked_ids = attribute_value_qs_select_for_update().filter(
+                variantassignments__variant_id=instance.id,
+                attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+            )
+            attribute_models.AttributeValue.objects.filter(
+                id__in=locked_ids,
+            ).delete()
 
     @staticmethod
     def delete_product_channel_listings_without_available_variants(instance):

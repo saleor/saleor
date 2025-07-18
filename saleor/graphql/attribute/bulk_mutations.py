@@ -1,7 +1,9 @@
 import graphene
+from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
 from ...attribute import models
+from ...attribute.lock_objects import attribute_value_qs_select_for_update
 from ...permission.enums import PageTypePermissions
 from ...product import models as product_models
 from ...webhook.event_types import WebhookEventAsyncType
@@ -126,8 +128,12 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         attributes = {value.attribute for value in queryset}
-        values = list(queryset)
-        queryset.delete()
+        with transaction.atomic():
+            locked_qs = attribute_value_qs_select_for_update()
+            locked_qs = locked_qs.filter(pk__in=queryset.values_list("pk", flat=True))
+            values = list(locked_qs)
+            queryset.delete()
+
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED)
         for value in values:

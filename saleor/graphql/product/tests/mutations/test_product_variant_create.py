@@ -1447,6 +1447,7 @@ def test_create_variant_with_numeric_attribute(
     warehouse,
     numeric_attribute,
 ):
+    # given
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
@@ -1454,7 +1455,8 @@ def test_create_variant_with_numeric_attribute(
     product_type.variant_attributes.set([numeric_attribute])
     variant_slug = numeric_attribute.slug
     attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
-    variant_value = "22.31"
+    numeric_value = 22.31
+    numeric_name = "22.31"
     stocks = [
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
@@ -1468,13 +1470,17 @@ def test_create_variant_with_numeric_attribute(
             "sku": sku,
             "stocks": stocks,
             "weight": weight,
-            "attributes": [{"id": attribute_id, "values": [variant_value]}],
+            "attributes": [{"id": attribute_id, "values": [numeric_name]}],
             "trackInventory": True,
         }
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     assert not content["errors"]
     data = content["productVariant"]
@@ -1492,6 +1498,11 @@ def test_create_variant_with_numeric_attribute(
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
     created_webhook_mock.assert_called_once_with(product.variants.last())
+
+    assert numeric_attribute.values.filter(
+        name=numeric_name,
+        numeric=numeric_value,
+    ).first()
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
