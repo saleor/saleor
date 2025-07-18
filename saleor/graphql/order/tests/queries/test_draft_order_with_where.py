@@ -844,20 +844,41 @@ def test_draft_order_filter_by_voucher_code_empty_value(
 
 
 @pytest.mark.parametrize(
-    ("metadata", "expected_indexes"),
+    ("filter_input", "expected_indexes"),
     [
-        ({"key": "foo"}, [0, 1]),
-        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
-        ({"key": "foo", "value": {"eq": "baz"}}, []),
-        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
-        ({"key": "notfound"}, []),
-        ({"key": "foo", "value": {"eq": None}}, []),
-        ({"key": "foo", "value": {"oneOf": []}}, []),
+        ([{"metadata": {"key": "foo"}}], [0, 1]),
+        ([{"metadata": {"key": "foo", "value": {"eq": "bar"}}}], [0]),
+        ([{"metadata": {"key": "foo", "value": {"eq": "baz"}}}], []),
+        ([{"metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}}], [0, 1]),
+        ([{"metadata": {"key": "notfound"}}], []),
+        ([{"metadata": {"key": "foo", "value": {"eq": None}}}], []),
+        ([{"metadata": {"key": "foo", "value": {"oneOf": []}}}], []),
         (None, []),
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"metadata": {"key": "foo", "value": {"eq": "bar"}}},
+            ],
+            [0],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"metadata": {"key": "baz", "value": {"eq": "zaz"}}},
+            ],
+            [0, 1],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"metadata": {"key": "foo", "value": {"eq": "baz"}}},
+            ],
+            [],
+        ),
     ],
 )
 def test_draft_orders_filter_by_lines_metadata(
-    metadata,
+    filter_input,
     expected_indexes,
     draft_order_list,
     staff_api_client,
@@ -866,8 +887,14 @@ def test_draft_orders_filter_by_lines_metadata(
     # given
     lines = []
     metadata_values = [
-        {"foo": "bar"},
-        {"foo": "zaz"},
+        {
+            "foo": "bar",
+            "baz": "zaz",
+        },
+        {
+            "foo": "zaz",
+            "baz": "zaz",
+        },
         {},
     ]
     for order, metadata_value in zip(draft_order_list, metadata_values, strict=True):
@@ -889,7 +916,7 @@ def test_draft_orders_filter_by_lines_metadata(
     OrderLine.objects.bulk_create(lines)
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"where": {"lines": {"metadata": metadata}}}
+    variables = {"where": {"lines": filter_input}}
 
     # when
     response = staff_api_client.post_graphql(DRAFT_ORDERS_WHERE_QUERY, variables)
@@ -1262,41 +1289,87 @@ def test_draft_orders_filter_by_product_type_none(
     ("event_input", "expected_indexes"),
     [
         (
-            {
-                "date": {"gte": "2025-01-01T00:00:00Z"},
-                "type": {"eq": OrderEvents.NOTE_ADDED.upper()},
-            },
+            [
+                {
+                    "date": {"gte": "2025-01-01T00:00:00Z"},
+                    "type": {"eq": OrderEvents.NOTE_ADDED.upper()},
+                }
+            ],
             [0, 1, 2],
         ),
         (
-            {
-                "date": {"gte": "2025-01-01T00:00:00Z"},
-                "type": {"eq": OrderEvents.ORDER_FULLY_PAID.upper()},
-            },
+            [
+                {
+                    "date": {"gte": "2025-01-01T00:00:00Z"},
+                    "type": {"eq": OrderEvents.ORDER_FULLY_PAID.upper()},
+                }
+            ],
             [0, 1],
         ),
         (
-            {
-                "date": {"gte": "2026-01-01T00:00:00Z"},
-            },
+            [
+                {
+                    "date": {"gte": "2026-01-01T00:00:00Z"},
+                }
+            ],
             [],
         ),
         (
-            {
-                "date": {"gte": "2020-01-01T00:00:00Z"},
-            },
+            [
+                {
+                    "date": {"gte": "2020-01-01T00:00:00Z"},
+                }
+            ],
             [0, 1, 2],
         ),
         (
-            {
-                "type": {
-                    "oneOf": [
-                        OrderEvents.NOTE_ADDED.upper(),
-                        OrderEvents.ORDER_FULLY_PAID.upper(),
-                    ]
-                },
-            },
+            [
+                {
+                    "type": {
+                        "oneOf": [
+                            OrderEvents.NOTE_ADDED.upper(),
+                            OrderEvents.ORDER_FULLY_PAID.upper(),
+                        ]
+                    },
+                }
+            ],
             [0, 1, 2],
+        ),
+        (
+            [
+                {
+                    "type": {"eq": OrderEvents.NOTE_ADDED.upper()},
+                },
+                {
+                    "type": {"eq": OrderEvents.ORDER_FULLY_PAID.upper()},
+                },
+            ],
+            [0, 1],
+        ),
+        (
+            [
+                {
+                    "date": {"gte": "2025-01-01T00:00:00Z"},
+                    "type": {"oneOf": [OrderEvents.NOTE_ADDED.upper()]},
+                },
+                {
+                    "date": {"gte": "2025-02-01T00:00:00Z"},
+                    "type": {"oneOf": [OrderEvents.ORDER_FULLY_PAID.upper()]},
+                },
+            ],
+            [0, 1],
+        ),
+        (
+            [
+                {
+                    "date": {"gte": "2025-01-01T00:00:00Z"},
+                    "type": {"eq": OrderEvents.NOTE_ADDED.upper()},
+                },
+                {
+                    "date": {"gte": "2025-02-02T00:00:00Z"},
+                },
+            ],
+            [0, 1],
         ),
     ],
 )

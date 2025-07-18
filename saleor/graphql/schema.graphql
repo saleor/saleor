@@ -13256,17 +13256,23 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by whether the order has any invoices."""
   hasInvoices: Boolean
 
-  """Filter by invoice data associated with the order."""
-  invoices: InvoiceFilterInput
+  """
+  Filter by invoice data associated with the order. Each list item represents conditions that must be satisfied by a single invoice. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  invoices: [InvoiceFilterInput!]
 
   """Filter by whether the order has any fulfillments."""
   hasFulfillments: Boolean
 
-  """Filter by fulfillment data associated with the order."""
-  fulfillments: FulfillmentFilterInput
+  """
+  Filter by fulfillment data associated with the order.Each list item specifies conditions that must be satisfied by a single fulfillment. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  fulfillments: [FulfillmentFilterInput!]
 
-  """Filter by metadata fields of order lines."""
-  lines: LinesFilterInput
+  """
+  Filter by line items associated with the order. Each list item specifies conditions that must be satisfied by a single line. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  lines: [LinesFilterInput!]
 
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
@@ -13285,8 +13291,10 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by the product type of related order lines."""
   productTypeId: GlobalIDFilterInput
 
-  """Filter by order events."""
-  events: OrderEventFilterInput
+  """
+  Filter by order events. Each list item specifies conditions that must be satisfied by a single event. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  events: [OrderEventFilterInput!]
 
   """Filter by billing address of the order."""
   billingAddress: AddressFilterInput
@@ -13511,8 +13519,10 @@ input DraftOrderWhereInput @doc(category: "Orders") {
   """Filter by voucher code used in the order."""
   voucherCode: StringFilterInput
 
-  """Filter by metadata fields of order lines."""
-  lines: LinesFilterInput
+  """
+  Filter by line items associated with the order. Each list item specifies conditions that must be satisfied by a single line. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  lines: [LinesFilterInput!]
 
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
@@ -13531,8 +13541,10 @@ input DraftOrderWhereInput @doc(category: "Orders") {
   """Filter by the product type of related order lines."""
   productTypeId: GlobalIDFilterInput
 
-  """Filter by order events."""
-  events: OrderEventFilterInput
+  """
+  Filter by order events. Each list item specifies conditions that must be satisfied by a single event. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  events: [OrderEventFilterInput!]
 
   """Filter by billing address of the order."""
   billingAddress: AddressFilterInput
