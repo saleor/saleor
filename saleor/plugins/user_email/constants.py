@@ -6,7 +6,7 @@ PLUGIN_ID = "mirumee.notifications.user_email"
 
 
 DEFAULT_EMAIL_TEMPLATES_PATH = os.path.join(
-    settings.PROJECT_ROOT, "saleor/plugins/user_email/default_email_templates"
+    settings.PROJECT_ROOT, "saleor", "plugins", "user_email", "default_email_templates"
 )
 
 ACCOUNT_CONFIRMATION_TEMPLATE_FIELD = "account_confirmation"
