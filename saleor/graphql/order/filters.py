@@ -74,6 +74,12 @@ from .enums import (
     OrderStatusFilter,
 )
 
+LIST_INPUT_OBJECT_DESCRIPTION = (
+    " Each list item represents conditions that must be satisfied by a single "
+    "object. The filter matches orders that have related objects "
+    "meeting all specified groups of conditions."
+)
+
 
 def filter_payment_status(qs, _, value):
     if value:
@@ -778,10 +784,8 @@ class OrderWhere(MetadataWhereBase):
         input_class=InvoiceFilterInput,
         method="filter_invoices",
         help_text=(
-            "Filter by invoice data associated with the order. "
-            "Each list item represents conditions that must be satisfied by a single "
-            "invoice. The filter matches orders that have related objects "
-            "meeting all specified groups of conditions."
+            "Filter by invoice data associated with the order."
+            + LIST_INPUT_OBJECT_DESCRIPTION
         ),
     )
     has_fulfillments = BooleanWhereFilter(
@@ -793,19 +797,15 @@ class OrderWhere(MetadataWhereBase):
         method="filter_fulfillments",
         help_text=(
             "Filter by fulfillment data associated with the order."
-            "Each list item specifies conditions that must be satisfied by a single "
-            "fulfillment. The filter matches orders that have related objects "
-            "meeting all specified groups of conditions."
+            + LIST_INPUT_OBJECT_DESCRIPTION
         ),
     )
     lines = ListObjectTypeWhereFilter(
         input_class=LinesFilterInput,
         method=filter_where_lines,
         help_text=(
-            "Filter by line items associated with the order. "
-            "Each list item specifies conditions that must be satisfied by a single "
-            "line. The filter matches orders that have related objects "
-            "meeting all specified groups of conditions."
+            "Filter by line items associated with the order."
+            + LIST_INPUT_OBJECT_DESCRIPTION
         ),
     )
     lines_count = OperationObjectTypeWhereFilter(
@@ -818,9 +818,7 @@ class OrderWhere(MetadataWhereBase):
         method=filter_where_transactions,
         help_text=(
             "Filter by transaction data associated with the order."
-            "Each list item specifies conditions that must be satisfied by a single "
-            "transaction. The filter matches orders that have related objects "
-            "meeting all specified groups of conditions."
+            + LIST_INPUT_OBJECT_DESCRIPTION
         ),
     )
     total_gross = ObjectTypeWhereFilter(
@@ -841,11 +839,7 @@ class OrderWhere(MetadataWhereBase):
     events = ListObjectTypeWhereFilter(
         input_class=OrderEventFilterInput,
         method=filter_where_events,
-        help_text=(
-            "Filter by order events. Each list item specifies conditions that must be "
-            "satisfied by a single event. The filter matches orders that have related "
-            "objects meeting all specified groups of conditions."
-        ),
+        help_text=("Filter by order events." + LIST_INPUT_OBJECT_DESCRIPTION),
     )
     billing_address = ObjectTypeWhereFilter(
         input_class=AddressFilterInput,
@@ -972,10 +966,8 @@ class DraftOrderWhere(MetadataWhereBase):
         input_class=LinesFilterInput,
         method=filter_where_lines,
         help_text=(
-            "Filter by line items associated with the order. "
-            "Each list item specifies conditions that must be satisfied by a single "
-            "line. The filter matches orders that have related objects "
-            "meeting all specified groups of conditions."
+            "Filter by line items associated with the order."
+            + LIST_INPUT_OBJECT_DESCRIPTION
         ),
     )
     lines_count = OperationObjectTypeWhereFilter(
@@ -988,9 +980,7 @@ class DraftOrderWhere(MetadataWhereBase):
         method=filter_where_transactions,
         help_text=(
             "Filter by transaction data associated with the order."
-            "Each list item specifies conditions that must be satisfied by a single "
-            "transaction. The filter matches orders that have related objects "
-            "meeting all specified groups of conditions."
+            + LIST_INPUT_OBJECT_DESCRIPTION
         ),
     )
     total_gross = ObjectTypeWhereFilter(
@@ -1011,11 +1001,7 @@ class DraftOrderWhere(MetadataWhereBase):
     events = ListObjectTypeWhereFilter(
         input_class=OrderEventFilterInput,
         method=filter_where_events,
-        help_text=(
-            "Filter by order events. Each list item specifies conditions that must be "
-            "satisfied by a single event. The filter matches orders that have related "
-            "objects meeting all specified groups of conditions."
-        ),
+        help_text=("Filter by order events." + LIST_INPUT_OBJECT_DESCRIPTION),
     )
     billing_address = ObjectTypeWhereFilter(
         input_class=AddressFilterInput,
