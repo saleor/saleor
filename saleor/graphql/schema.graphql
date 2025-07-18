@@ -13271,8 +13271,10 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
 
-  """Filter by transaction data associated with the order."""
-  transactions: TransactionFilterInput
+  """
+  Filter by transaction data associated with the order.Each list item specifies conditions that must be satisfied by a single transaction. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  transactions: [TransactionFilterInput!]
 
   """Filter by total gross amount of the order."""
   totalGross: PriceFilterInput
@@ -13515,8 +13517,10 @@ input DraftOrderWhereInput @doc(category: "Orders") {
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
 
-  """Filter by transaction data associated with the order."""
-  transactions: TransactionFilterInput
+  """
+  Filter by transaction data associated with the order.Each list item specifies conditions that must be satisfied by a single transaction. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  transactions: [TransactionFilterInput!]
 
   """Filter by total gross amount of the order."""
   totalGross: PriceFilterInput
