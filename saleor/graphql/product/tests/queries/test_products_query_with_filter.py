@@ -138,7 +138,7 @@ def test_products_query_with_filter_numeric_attributes(
         category=category,
     )
     attr_value = AttributeValue.objects.create(
-        attribute=numeric_attribute, name="5", slug="5"
+        attribute=numeric_attribute, name="5", slug="5", numeric=5.0
     )
 
     associate_attribute_values_to_instance(
@@ -153,7 +153,7 @@ def test_products_query_with_filter_numeric_attributes(
         category=category,
     )
     attr_value = AttributeValue.objects.create(
-        attribute=numeric_attribute, name="5", slug="5_X"
+        attribute=numeric_attribute, name="5", slug="5_X", numeric=5.0
     )
 
     associate_attribute_values_to_instance(
@@ -370,7 +370,7 @@ def test_products_query_with_filter_by_attributes_values_and_range(
         category=category,
     )
     attr_value_2 = AttributeValue.objects.create(
-        attribute=numeric_attribute, name="5.2", slug="5_2"
+        attribute=numeric_attribute, name="5.2", slug="5_2", numeric=5.2
     )
 
     associate_attribute_values_to_instance(
@@ -1378,7 +1378,8 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
 
     numeric_attr_value = numeric_attribute.values.first()
     numeric_attr_value.name = "13456"
-    numeric_attr_value.save(update_fields=["name"])
+    numeric_attr_value.numeric = 13456
+    numeric_attr_value.save(update_fields=["name", "numeric"])
 
     associate_attribute_values_to_instance(
         product_with_numeric_attr,
@@ -1426,7 +1427,8 @@ def test_products_query_with_filter_search_by_numeric_attribute_value_without_un
 
     numeric_attr_value = numeric_attribute.values.first()
     numeric_attr_value.name = "13456"
-    numeric_attr_value.save(update_fields=["name"])
+    numeric_attr_value.numeric = 13456
+    numeric_attr_value.save(update_fields=["name", "numeric"])
 
     associate_attribute_values_to_instance(
         product_with_numeric_attr,

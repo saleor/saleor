@@ -1,8 +1,10 @@
 import graphene
+from django.db import transaction
 from django.db.models.expressions import Exists, OuterRef
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
+from .....attribute.lock_objects import attribute_value_qs_select_for_update
 from .....core.tracing import traced_atomic_transaction
 from .....order import events as order_events
 from .....order import models as order_models
@@ -97,7 +99,15 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES
         )
 
-        attribute_models.AttributeValue.objects.filter(
-            Exists(assigned_values.filter(value_id=OuterRef("id"))),
-            Exists(attributes.filter(id=OuterRef("attribute_id"))),
-        ).delete()
+        with transaction.atomic():
+            locked_ids = (
+                attribute_value_qs_select_for_update()
+                .filter(
+                    Exists(assigned_values.filter(value_id=OuterRef("id"))),
+                    Exists(attributes.filter(id=OuterRef("attribute_id"))),
+                )
+                .values_list("id", flat=True)
+            )
+            attribute_models.AttributeValue.objects.filter(
+                id__in=locked_ids,
+            ).delete()

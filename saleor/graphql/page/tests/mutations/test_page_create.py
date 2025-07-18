@@ -13,6 +13,7 @@ from .....page.error_codes import PageErrorCode
 from .....page.models import Page, PageType
 from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
+from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 CREATE_PAGE_MUTATION = """
@@ -60,12 +61,17 @@ CREATE_PAGE_MUTATION = """
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_page_create_mutation(staff_api_client, permission_manage_pages, page_type):
+def test_page_create_mutation(
+    staff_api_client, permission_manage_pages, page_type, numeric_attribute
+):
+    # given
     page_slug = "test-slug"
     page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    page_type.page_attributes.add(numeric_attribute)
 
     # Default attributes defined in page_type fixture
     tag_attr = page_type.page_attributes.get(name="tag")
@@ -78,6 +84,9 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     size_attr_id = graphene.Node.to_global_id("Attribute", size_attr.id)
     non_existent_attr_value = "New value"
 
+    numeric_value = 42.1
+    numeric_name = str(numeric_value)
+
     # test creating root page
     variables = {
         "input": {
@@ -89,13 +98,20 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
             "attributes": [
                 {"id": tag_attr_id, "values": [tag_value_name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
+                {
+                    "id": to_global_id_or_none(numeric_attribute),
+                    "values": [numeric_name],
+                },
             ],
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["pageCreate"]
     assert data["errors"] == []
@@ -114,6 +130,9 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     )
     assert slugify(non_existent_attr_value) in values
     assert tag_value_slug in values
+    assert numeric_attribute.values.filter(
+        name=numeric_name, numeric=numeric_value
+    ).exists()
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -1497,3 +1516,61 @@ def test_create_page_with_single_reference_attributes(
     ]
     for attr_data in attributes_data:
         assert attr_data in expected_attributes_data
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_page_create_mutation_with_numeric_attribue(
+    staff_api_client, permission_manage_pages, page_type, numeric_attribute
+):
+    # given
+    page_slug = "test-slug"
+    page_content = dummy_editorjs("test content", True)
+    page_title = "test title"
+    page_is_published = True
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+    page_type.page_attributes.all().delete()
+    page_type.page_attributes.add(numeric_attribute)
+
+    numeric_value = 42.1
+    numeric_name = str(numeric_value)
+
+    # test creating root page
+    variables = {
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [
+                {
+                    "id": to_global_id_or_none(numeric_attribute),
+                    "numeric": numeric_name,
+                },
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    assert data["errors"] == []
+
+    assert len(data["page"]["attributes"]) == 1
+    attribute = data["page"]["attributes"][0]
+    assert attribute["attribute"]["slug"] == numeric_attribute.slug
+    assert len(attribute["values"]) == 1
+    assert (
+        attribute["values"][0]["slug"]
+        == f"{Page.objects.get().id}_{numeric_attribute.id}"
+    )
+    assert attribute["values"][0]["name"] == numeric_name
+
+    assert numeric_attribute.values.filter(
+        name=numeric_name, numeric=numeric_value
+    ).exists()

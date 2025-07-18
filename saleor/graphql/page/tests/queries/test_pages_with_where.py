@@ -3,7 +3,6 @@ import datetime
 import graphene
 import pytest
 
-from .....attribute import AttributeInputType
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....page.models import Page, PageType
@@ -333,11 +332,13 @@ def test_pages_query_with_attribute_value_numeric(
     attr_value_1 = numeric_attribute_without_unit.values.first()
     attr_value_1.name = "1.2"
     attr_value_1.slug = "1.2"
+    attr_value_1.numeric = 1.2
     attr_value_1.save()
 
     attr_value_2 = numeric_attribute_without_unit.values.last()
     attr_value_2.name = "2"
     attr_value_2.slug = "2"
+    attr_value_2.numeric = 2
     attr_value_2.save()
 
     associate_attribute_values_to_instance(
@@ -1606,7 +1607,7 @@ def test_pages_query_with_non_matching_records(
                 {
                     "slug": "page-size",
                     "value": {
-                        "numeric": {"range": {"lte": 89}},
+                        "slug": {"eq": "10"},
                     },
                 },
                 {
@@ -1761,9 +1762,6 @@ def test_pages_query_with_multiple_attribute_filters(
     boolean_attribute.save()
 
     page_type.page_attributes.add(size_page_attribute)
-    size_page_attribute.input_type = AttributeInputType.NUMERIC
-    size_page_attribute.save()
-
     page_type.page_attributes.add(tag_page_attribute)
     page_type.page_attributes.add(author_page_attribute)
     page_type.page_attributes.add(boolean_attribute)

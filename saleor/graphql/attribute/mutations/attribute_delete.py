@@ -1,6 +1,8 @@
 import graphene
+from django.db import transaction
 
 from ....attribute import models as models
+from ....attribute.lock_objects import attribute_value_qs_select_for_update
 from ....permission.enums import ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -44,3 +46,26 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_deleted, instance)
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
+    ):
+        """Perform a mutation that deletes a model instance."""
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
+
+        cls.clean_instance(info, instance)
+        db_id = instance.id
+        with transaction.atomic():
+            # Lock the attribute values to prevent concurrent modifications
+            locked_qs = attribute_value_qs_select_for_update().filter(
+                attribute_id=instance.id
+            )
+            models.AttributeValue.objects.filter(id__in=locked_qs).delete()
+            instance.delete()
+
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
+        cls.post_save_action(info, instance, None)
+        return cls.success_response(instance)
