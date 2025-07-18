@@ -73,8 +73,15 @@ class CheckoutLineInfo(LineInfo):
         if listing is not present, calculate current unit price based on
         `undiscounted_unit_price` and catalogue promotion discounts.
         """
+
+        # if price_override is set, it takes precedence over any other price for
+        # further calculations
+        if self.line.price_override is not None:
+            return Money(self.line.price_override, self.line.currency)
+
         if self.channel_listing and self.channel_listing.discounted_price is not None:
             return self.channel_listing.discounted_price
+
         catalogue_discounts = self.get_catalogue_discounts()
         total_price = self.undiscounted_unit_price * self.line.quantity
         for discount in catalogue_discounts:

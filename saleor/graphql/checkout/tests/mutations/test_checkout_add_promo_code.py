@@ -18,7 +18,7 @@ from .....checkout.utils import (
     assign_external_shipping_to_checkout,
 )
 from .....core.models import EventDelivery
-from .....discount import VoucherType
+from .....discount import DiscountValueType, VoucherType
 from .....plugins.manager import get_plugins_manager
 from .....product.models import (
     Collection,
@@ -1457,3 +1457,42 @@ def test_checkout_add_voucher_triggers_webhooks(
 
     tax_delivery = tax_delivery_call.args[0]
     assert tax_delivery.webhook_id == tax_webhook.id
+
+
+def test_add_promo_code_with_price_override_set(
+    user_api_client, checkout_with_item, voucher
+):
+    # given
+    checkout_line = checkout_with_item.lines.first()
+    price_override = Decimal("5.00")
+    checkout_line.price_override = price_override
+    checkout_line.save(update_fields=["price_override"])
+    product = checkout_line.variant.product
+
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.discount_value_type = DiscountValueType.PERCENTAGE
+    cl = voucher.channel_listings.get(channel=checkout_with_item.channel)
+    cl.discount_value = Decimal("10.00")  # 10% discount
+    cl.save(update_fields=["discount_value"])
+    voucher.save(update_fields=["type", "discount_value_type"])
+    voucher.products.add(product)
+
+    # total expected discount is 10% of price override
+    expected_discount = price_override * Decimal("0.10") * checkout_line.quantity
+    expected_subtotal = price_override * checkout_line.quantity - expected_discount
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": voucher.code,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_ADD_PROMO_CODE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutAddPromoCode"]
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["voucherCode"] == voucher.code
+    assert data["checkout"]["discount"]["amount"] == expected_discount
+    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == expected_subtotal
