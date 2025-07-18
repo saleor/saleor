@@ -26,7 +26,8 @@ def test_reference_handler_clean_and_validate_product_reference(
     # then
     assert not attribute_errors
     assert handler.values_input.references
-    assert set(handler.values_input.references) == set(product_list)
+    assert handler.values_input.reference_objects
+    assert set(handler.values_input.reference_objects) == set(product_list)
 
 
 def test_reference_handler_clean_and_validate_page_reference(
@@ -46,7 +47,8 @@ def test_reference_handler_clean_and_validate_page_reference(
     # then
     assert not attribute_errors
     assert handler.values_input.references
-    assert set(handler.values_input.references) == set(page_list)
+    assert handler.values_input.reference_objects
+    assert set(handler.values_input.reference_objects) == set(page_list)
 
 
 def test_reference_handler_clean_and_validate_variant_reference(
@@ -68,7 +70,8 @@ def test_reference_handler_clean_and_validate_variant_reference(
     # then
     assert not attribute_errors
     assert handler.values_input.references
-    assert set(handler.values_input.references) == set(product_variant_list)
+    assert handler.values_input.reference_objects
+    assert set(handler.values_input.reference_objects) == set(product_variant_list)
 
 
 def test_reference_handler_clean_and_validate_category_reference(
@@ -87,8 +90,9 @@ def test_reference_handler_clean_and_validate_category_reference(
 
     # then
     assert not attribute_errors
+    assert handler.values_input.reference_objects
     assert handler.values_input.references
-    assert set(handler.values_input.references) == set(category_list)
+    assert set(handler.values_input.reference_objects) == set(category_list)
 
 
 def test_reference_handler_clean_and_validate_collection_reference(
@@ -110,7 +114,8 @@ def test_reference_handler_clean_and_validate_collection_reference(
     # then
     assert not attribute_errors
     assert handler.values_input.references
-    assert set(handler.values_input.references) == set(collection_list)
+    assert handler.values_input.reference_objects
+    assert set(handler.values_input.reference_objects) == set(collection_list)
 
 
 def test_single_reference_handler_clean_and_validate_page_reference(
@@ -129,7 +134,7 @@ def test_single_reference_handler_clean_and_validate_page_reference(
 
     # then
     assert not attribute_errors
-    assert handler.values_input.reference == page
+    assert handler.values_input.reference_objects == [page]
 
 
 def test_single_reference_handler_clean_and_validate_variant_reference(
@@ -148,7 +153,7 @@ def test_single_reference_handler_clean_and_validate_variant_reference(
 
     # then
     assert not attribute_errors
-    assert handler.values_input.reference == variant
+    assert handler.values_input.reference_objects == [variant]
 
 
 def test_single_reference_handler_clean_and_validate_category_reference(
@@ -167,7 +172,7 @@ def test_single_reference_handler_clean_and_validate_category_reference(
 
     # then
     assert not attribute_errors
-    assert handler.values_input.reference == category
+    assert handler.values_input.reference_objects == [category]
 
 
 def test_single_reference_handler_clean_and_validate_collection_reference(
@@ -186,7 +191,7 @@ def test_single_reference_handler_clean_and_validate_collection_reference(
 
     # then
     assert not attribute_errors
-    assert handler.values_input.reference == collection
+    assert handler.values_input.reference_objects == [collection]
 
 
 def test_single_reference_handler_clean_and_validate_success(
@@ -205,7 +210,7 @@ def test_single_reference_handler_clean_and_validate_success(
 
     # then
     assert not attribute_errors
-    assert handler.values_input.reference == product
+    assert handler.values_input.reference_objects == [product]
 
 
 def test_reference_handler_clean_and_validate_value_required(
@@ -297,7 +302,7 @@ def test_reference_handler_pre_save_value(
     attribute = product_type_product_reference_attribute
     values_input = AttrValuesInput(
         global_id=graphene.Node.to_global_id("Attribute", attribute.id),
-        references=product_list,
+        reference_objects=product_list,
     )
     handler = ReferenceAttributeHandler(attribute, values_input)
     instance = product
@@ -326,7 +331,7 @@ def test_single_reference_handler_pre_save_value(
     ref_product = product_list[0]
     values_input = AttrValuesInput(
         global_id=graphene.Node.to_global_id("Attribute", attribute.id),
-        reference=ref_product,
+        reference_objects=[ref_product],
     )
     handler = ReferenceAttributeHandler(attribute, values_input)
     instance = product
