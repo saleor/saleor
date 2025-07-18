@@ -294,12 +294,18 @@ class GatewayResponse:
     error: Optional[str]
     customer_id: Optional[str] = None
     payment_method_info: Optional[PaymentMethodInfo] = None
+    # @deprecated
     raw_response: Optional[dict[str, str]] = None
     action_required_data: Optional[JSONType] = None
     # Some gateway can process transaction asynchronously. This value define if we
     # should create new transaction based on this response
     transaction_already_processed: bool = False
     psp_reference: Optional[str] = None
+
+    # Temporary pass Adyen-plugin-specific data to model, so we can drop raw_response
+    # After the plugin is gone, this should be removed
+    legacy_adyen_plugin_result_code: str | None = None
+    legacy_adyen_plugin_payment_method: str | None = None
 
 
 @dataclass
