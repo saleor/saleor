@@ -1639,6 +1639,13 @@ def test_orders_filter_by_fulfillment_status(
         ),
         (
             [
+                {"metadata": {"key": "foo"}},
+                {"metadata": {"key": "notfound"}},
+            ],
+            [],
+        ),
+        (
+            [
                 {"metadata": {"key": "foo", "value": {"eq": "bar"}}},
                 {"metadata": {"key": "baz", "value": {"eq": "zaz"}}},
             ],
@@ -1741,6 +1748,17 @@ def test_orders_filter_by_fulfillment_metadata(
                 {"status": {"eq": FulfillmentStatus.RETURNED.upper()}},
                 {"metadata": {"key": "foo", "value": {"eq": "baz"}}},
             ],
+            [],
+        ),
+        (
+            [
+                {"status": {}},
+                {"metadata": {"key": "foo"}},
+            ],
+            [0, 1],
+        ),
+        (
+            [],
             [],
         ),
     ],

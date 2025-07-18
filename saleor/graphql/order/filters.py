@@ -668,18 +668,18 @@ def filter_where_events(qs, _, value: list | None):
 
         event_qs = None
         if filter_value := input_data.get("date"):
-            events = filter_where_by_range_field(
+            event_qs = filter_where_by_range_field(
                 OrderEvent.objects.using(qs.db), "date", filter_value
             )
         if filter_value := input_data.get("type"):
-            events = filter_where_by_value_field(
+            event_qs = filter_where_by_value_field(
                 event_qs or OrderEvent.objects.using(qs.db), "type", filter_value
             )
-        if events is not None:
-            lookup &= Q(Exists(events.filter(order_id=OuterRef("id"))))
+        if event_qs is not None:
+            lookup &= Q(Exists(event_qs.filter(order_id=OuterRef("id"))))
     if lookup:
         return qs.filter(lookup)
-    return qs
+    return qs.none()
 
 
 def filter_where_billing_address(qs, _, value):
