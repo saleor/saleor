@@ -13257,7 +13257,7 @@ input OrderWhereInput @doc(category: "Orders") {
   hasInvoices: Boolean
 
   """
-  Filter by invoice data associated with the order. Each list item represents conditions that must be satisfied by a single invoice. The filter matches orders that have related objects meeting all specified groups of conditions.
+  Filter by invoice data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
   """
   invoices: [InvoiceFilterInput!]
 
@@ -13265,12 +13265,12 @@ input OrderWhereInput @doc(category: "Orders") {
   hasFulfillments: Boolean
 
   """
-  Filter by fulfillment data associated with the order.Each list item specifies conditions that must be satisfied by a single fulfillment. The filter matches orders that have related objects meeting all specified groups of conditions.
+  Filter by fulfillment data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
   """
   fulfillments: [FulfillmentFilterInput!]
 
   """
-  Filter by line items associated with the order. Each list item specifies conditions that must be satisfied by a single line. The filter matches orders that have related objects meeting all specified groups of conditions.
+  Filter by line items associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
   """
   lines: [LinesFilterInput!]
 
@@ -13278,7 +13278,7 @@ input OrderWhereInput @doc(category: "Orders") {
   linesCount: IntFilterInput
 
   """
-  Filter by transaction data associated with the order.Each list item specifies conditions that must be satisfied by a single transaction. The filter matches orders that have related objects meeting all specified groups of conditions.
+  Filter by transaction data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
   """
   transactions: [TransactionFilterInput!]
 
@@ -13292,7 +13292,7 @@ input OrderWhereInput @doc(category: "Orders") {
   productTypeId: GlobalIDFilterInput
 
   """
-  Filter by order events. Each list item specifies conditions that must be satisfied by a single event. The filter matches orders that have related objects meeting all specified groups of conditions.
+  Filter by order events. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
   """
   events: [OrderEventFilterInput!]
 
@@ -13520,7 +13520,7 @@ input DraftOrderWhereInput @doc(category: "Orders") {
   voucherCode: StringFilterInput
 
   """
-  Filter by line items associated with the order. Each list item specifies conditions that must be satisfied by a single line. The filter matches orders that have related objects meeting all specified groups of conditions.
+  Filter by line items associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
   """
   lines: [LinesFilterInput!]
 
@@ -13528,7 +13528,7 @@ input DraftOrderWhereInput @doc(category: "Orders") {
   linesCount: IntFilterInput
 
   """
-  Filter by transaction data associated with the order.Each list item specifies conditions that must be satisfied by a single transaction. The filter matches orders that have related objects meeting all specified groups of conditions.
+  Filter by transaction data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
   """
   transactions: [TransactionFilterInput!]
 
@@ -13542,7 +13542,7 @@ input DraftOrderWhereInput @doc(category: "Orders") {
   productTypeId: GlobalIDFilterInput
 
   """
-  Filter by order events. Each list item specifies conditions that must be satisfied by a single event. The filter matches orders that have related objects meeting all specified groups of conditions.
+  Filter by order events. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
   """
   events: [OrderEventFilterInput!]
 
