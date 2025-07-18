@@ -425,7 +425,7 @@ class FileAttributeHandler(AttributeTypeHandler):
 class ReferenceAttributeHandler(AttributeTypeHandler):
     """Handler for Reference and Single Reference attribute type."""
 
-    def get_references(self) -> Sequence[str | None]:
+    def get_references(self) -> Sequence[str]:
         if self.attribute.input_type == AttributeInputType.SINGLE_REFERENCE:
             return [self.values_input.reference] if self.values_input.reference else []
         return self.values_input.references or []
@@ -460,13 +460,10 @@ class ReferenceAttributeHandler(AttributeTypeHandler):
                 self.attribute_identifier
             )
             return
-        if self.attribute.input_type == AttributeInputType.SINGLE_REFERENCE:
-            self.values_input.reference = ref_instances[0] if ref_instances else None
-        else:
-            self.values_input.references = ref_instances
+        self.values_input.reference_objects = ref_instances
 
     def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
-        references = self.get_references()
+        references = self.values_input.reference_objects
         entity_type = self.attribute.entity_type
         if not references or not entity_type:
             return []
@@ -479,7 +476,7 @@ class ReferenceAttributeHandler(AttributeTypeHandler):
                 name = f"{ref.product.name}: {name}"  # type: ignore[union-attr]
 
             # Reference values are unique per referenced entity
-            slug = slugify(unidecode(f"{instance.id}_{ref.id}"))  # type: ignore[union-attr]
+            slug = slugify(unidecode(f"{instance.id}_{ref.id}"))
             defaults = {"name": name}
             value_data = {
                 "attribute": self.attribute,
