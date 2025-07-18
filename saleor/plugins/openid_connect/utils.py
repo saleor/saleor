@@ -412,6 +412,7 @@ def get_or_create_user_from_payload(
         "first_name": payload.get("given_name", ""),
         "last_name": payload.get("family_name", ""),
         "private_metadata": {oidc_metadata_key: sub},
+        "external_reference": sub,
         "password": make_password(None),
     }
     cache_key = oidc_metadata_key + ":" + sub
