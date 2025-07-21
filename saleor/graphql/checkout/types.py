@@ -1094,7 +1094,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 excluded_payloads
             )
 
-            taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+            taxed_total = calculations.calculate_checkout_total(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
@@ -1103,6 +1103,13 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 pregenerated_subscription_payloads=tax_payloads,
                 allow_sync_webhooks=root.allow_sync_webhooks,
             )
+
+            taxed_total = calculations.subtract_gift_cards_from_total(
+                total=taxed_total,
+                checkout_info=checkout_info,
+                database_connection_name=database_connection_name,
+            )
+
             return max(taxed_total, zero_taxed_money(root.node.currency))
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
@@ -1554,7 +1561,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 excluded_payloads
             )
 
-            taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+            taxed_total = calculations.calculate_checkout_total(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,

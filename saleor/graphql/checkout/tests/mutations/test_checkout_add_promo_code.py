@@ -975,11 +975,15 @@ def test_checkout_get_total_with_many_gift_card(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_gift_card)
     checkout_info = fetch_checkout_info(checkout_with_gift_card, lines, manager)
-    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+    taxed_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_gift_card.shipping_address,
+    )
+    taxed_total = calculations.subtract_gift_cards_from_total(
+        total=taxed_total,
+        checkout_info=checkout_info,
     )
     total_with_gift_card = (
         taxed_total.gross.amount - gift_card_created_by_staff.current_balance_amount

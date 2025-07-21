@@ -22,7 +22,7 @@ def payment_stripe_for_checkout(checkout_with_items, address, shipping_method):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
     payment = create_payment(

@@ -84,8 +84,12 @@ def test_calculate_checkout_total_with_gift_cards(
         net=Money(checkout_total_net, "USD"), gross=Money(checkout_total_gross, "USD")
     )
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     assert total.net == Money(expected_total_net, "USD")

@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from stripe.error import SignatureVerificationError
 from stripe.stripe_object import StripeObject
 
-from ....checkout.calculations import calculate_checkout_total_with_gift_cards
+from ....checkout.calculations import calculate_checkout_total
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -191,7 +191,7 @@ def _finalize_checkout(
         payment_refund_or_void(payment, manager, checkout.channel.slug)
         raise ValidationError("Some of the checkout lines variants are unavailable.")
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    checkout_total = calculate_checkout_total_with_gift_cards(
+    checkout_total = calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,

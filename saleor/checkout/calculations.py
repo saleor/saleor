@@ -125,7 +125,7 @@ def checkout_subtotal(
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
 
-def calculate_checkout_total_with_gift_cards(
+def calculate_checkout_total(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
@@ -148,6 +148,14 @@ def calculate_checkout_total_with_gift_cards(
         allow_sync_webhooks=allow_sync_webhooks,
     )
 
+    return total
+
+
+def subtract_gift_cards_from_total(
+    total: "TaxedMoney",
+    checkout_info: "CheckoutInfo",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> "TaxedMoney":
     if total == zero_taxed_money(total.currency):
         return total
 

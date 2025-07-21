@@ -153,8 +153,12 @@ def test_order_from_checkout(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -392,8 +396,12 @@ def test_order_from_checkout_with_metadata(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -462,8 +470,12 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -566,7 +578,7 @@ def test_order_from_checkout_gift_card_bought(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    amount = calculations.calculate_checkout_total_with_gift_cards(
+    amount = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     ).gross.amount
 
@@ -2194,7 +2206,7 @@ def test_order_from_draft_create_with_preorder_variant(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
     channel = checkout.channel
@@ -2568,7 +2580,7 @@ def test_order_from_draft_create_0_total_value_from_voucher(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     orders_count = Order.objects.count()
@@ -2629,8 +2641,12 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}

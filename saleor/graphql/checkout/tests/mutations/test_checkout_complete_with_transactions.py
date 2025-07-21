@@ -139,7 +139,7 @@ def prepare_checkout_for_test(
             voucher.codes.first(),
         )
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, shipping_address
     )
     transaction = transaction_item_generator(checkout_id=checkout.pk)
@@ -187,7 +187,7 @@ def test_checkout_without_any_transaction(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 
@@ -236,7 +236,7 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 
@@ -290,7 +290,7 @@ def test_checkout_with_total_0(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
     channel = checkout.channel
@@ -370,8 +370,12 @@ def test_checkout_with_authorized(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     transaction = transaction_item_generator(
@@ -480,8 +484,12 @@ def test_checkout_with_charged(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     transaction = transaction_item_generator(
@@ -586,8 +594,12 @@ def test_checkout_price_override(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     transaction = transaction_item_generator(
@@ -678,8 +690,12 @@ def test_checkout_paid_with_multiple_transactions(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     transaction = transaction_item_generator(
@@ -741,7 +757,7 @@ def test_checkout_partially_paid(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 
@@ -794,8 +810,12 @@ def test_checkout_partially_paid_allow_unpaid_order(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     transaction = transaction_item_generator(
@@ -850,7 +870,7 @@ def test_checkout_with_pending_charged(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 
@@ -928,8 +948,12 @@ def test_checkout_with_pending_authorized(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     transaction = transaction_item_generator(checkout_id=checkout.pk)
@@ -1330,10 +1354,13 @@ def test_checkout_complete(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
-
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
+    )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
     channel.save()
@@ -1837,8 +1864,12 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     channel = checkout.channel
@@ -2209,8 +2240,12 @@ def test_checkout_complete_with_entire_order_voucher_paid_with_gift_card_and_tra
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
@@ -2320,8 +2355,12 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
         gift_card.initial_balance_amount - total_without_gc.gross.amount
     )
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     shipping_price = shipping_method.channel_listings.get(
@@ -2542,8 +2581,12 @@ def test_checkout_complete_with_voucher_apply_once_per_order_and_gift_card(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
@@ -2731,7 +2774,7 @@ def test_checkout_complete_with_shipping_voucher(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 
@@ -3074,8 +3117,12 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
@@ -3647,9 +3694,7 @@ def test_checkout_complete_checkout_without_lines(
     lines, _ = fetch_checkout_lines(checkout)
     assert not lines
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
-    )
+    calculations.calculate_checkout_total(manager, checkout_info, lines, address)
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
     channel.save()
@@ -4300,7 +4345,7 @@ def test_checkout_complete_with_preorder_variant(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 
@@ -4997,7 +5042,7 @@ def test_checkout_complete_with_invalid_address(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 
@@ -5107,8 +5152,12 @@ def test_checkout_complete_empty_product_translation(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
 
     channel = checkout.channel
@@ -5261,7 +5310,7 @@ def test_checkout_complete_with_external_shipping_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 

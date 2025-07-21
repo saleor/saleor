@@ -124,9 +124,7 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_fixed(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    _ = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
-    )
+    _ = calculations.calculate_checkout_total(manager, checkout_info, lines, address)
 
     shipping_price = shipping_method.channel_listings.get().price_amount
     base_unit_price = max(price_override - reward, Decimal(0))
@@ -203,9 +201,7 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_percentag
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    _ = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
-    )
+    _ = calculations.calculate_checkout_total(manager, checkout_info, lines, address)
 
     shipping_price = shipping_method.channel_listings.get().price_amount
     unit_discount = Decimal(price_override * reward / 100)
@@ -692,9 +688,7 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_and_entir
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     add_voucher_code_to_checkout(manager, checkout_info, lines, voucher_code)
-    _ = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
-    )
+    _ = calculations.calculate_checkout_total(manager, checkout_info, lines, address)
 
     shipping_price = shipping_method.channel_listings.get().price_amount
     base_unit_price = max(price_override - catalogue_reward, Decimal(0))

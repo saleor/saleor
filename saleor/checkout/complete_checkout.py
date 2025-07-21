@@ -655,11 +655,16 @@ def _prepare_order_data(
         checkout_info.shipping_address or checkout_info.billing_address
     )  # FIXME: check which address we need here
 
-    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+    taxed_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=address,
+    )
+
+    taxed_total = calculations.subtract_gift_cards_from_total(
+        total=taxed_total,
+        checkout_info=checkout_info,
     )
 
     undiscounted_base_shipping_price = base_checkout_undiscounted_delivery_price(
@@ -1394,12 +1399,17 @@ def _create_order_from_checkout(
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     # total
-    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+    taxed_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=checkout_lines_info,
         address=address,
         force_update=force_update,
+    )
+
+    taxed_total = calculations.subtract_gift_cards_from_total(
+        total=taxed_total,
+        checkout_info=checkout_info,
     )
 
     # voucher

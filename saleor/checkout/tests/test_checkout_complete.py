@@ -870,7 +870,7 @@ def test_create_order_gift_card_bought(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    amount = calculations.calculate_checkout_total_with_gift_cards(
+    amount = calculations.calculate_checkout_total(
         manager, checkout_info, lines, customer_user.default_billing_address
     ).gross.amount
 
@@ -1735,7 +1735,7 @@ def test_complete_checkout_checkout_limited_use_voucher_multiple_thread(
     voucher_free_shipping.usage_limit = 1
     voucher_free_shipping.save(update_fields=["usage_limit"])
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 
@@ -1803,7 +1803,7 @@ def test_complete_checkout_checkout_completed_in_the_meantime(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
 
@@ -2547,7 +2547,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
     )
     calculation_call_count = mocked_get_tax_calculation_strategy_for_checkout.call_count

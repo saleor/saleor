@@ -95,8 +95,12 @@ def test_checkout_complete(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -260,8 +264,12 @@ def test_checkout_complete_for_token_as_input(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager, checkout_info, lines, address
+    )
+    total = calculations.subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
