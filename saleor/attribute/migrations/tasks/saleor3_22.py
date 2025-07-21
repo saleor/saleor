@@ -6,15 +6,15 @@ from ....celeryconf import app
 from ....core.db.connection import allow_writer
 from ...models.base import AttributeValue
 
+# Takes around 0.11 seconds to process the batch.
+# The memory usage is marginal (~1MB).
 BATCH_SIZE = 500
 
 
 @app.task
 @allow_writer()
-def fulfill_attribute_value_numeric_field(attribute_value_pk=None):
-    if attribute_value_pk is None:
-        attribute_value_pk = 0
-    value_ids = (
+def fulfill_attribute_value_numeric_field(attribute_value_pk=0):
+    value_ids = list(
         AttributeValue.objects.filter(
             pk__gte=attribute_value_pk,
             numeric__isnull=True,
