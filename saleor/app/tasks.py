@@ -81,9 +81,9 @@ def _raw_remove_deliveries(deliveries_ids):
     ]
     delete_files_from_private_storage_task.delay(files_to_delete)
 
-    attempts._raw_delete(attempts.db)  # type: ignore[attr-defined] # raw access # noqa: E501
-    deliveries._raw_delete(deliveries.db)  # type: ignore[attr-defined] # raw access # noqa: E501
-    payloads._raw_delete(payloads.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+    attempts._raw_delete(attempts.db)
+    deliveries._raw_delete(deliveries.db)
+    payloads._raw_delete(payloads.db)
 
 
 @celeryconf.app.task
