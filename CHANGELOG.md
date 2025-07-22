@@ -130,11 +130,13 @@ Like `reference`, the `single-reference` type can target entities defined in the
 
 Following plugins are now marked as deprecated:
 
-- Braintree (`mirumee.payments.braintree`)
-- Razorpay (`mirumme.payments.razorpay`)
-- Sendgrid (`mirumee.notifications.sendgrid_email`)
-- Dummy (`mirumee.payments.dummy`)
-- DummyCreditCard (`mirumee.payments.dummy_credit_card`)
-- Avalara (`mirumee.taxes.avalara`)
+| Plugin Name | Plugin ID | Possible replacements |
+|-------------|-----------|-------------|
+| Braintree | `mirumee.payments.braintree` | [JusPay Hyperswitch App](https://docs.hyperswitch.io/explore-hyperswitch/e-commerce-platform-plugins/saleor-app) or [Custom App](https://docs.saleor.io/developer/extending/apps/overview) |
+| Razorpay | `mirumee.payments.razorpay` | [JusPay Hyperswitch App](https://docs.hyperswitch.io/explore-hyperswitch/e-commerce-platform-plugins/saleor-app) or [Custom App](https://docs.saleor.io/developer/extending/apps/overview) |
+| Sendgrid | `mirumee.notifications.sendgrid_email` | [Saleor SMTP App](https://apps.saleor.io/apps/smtp) |
+| Dummy | `mirumee.payments.dummy` | [Saleor Dummy Payment App](https://github.com/saleor/dummy-payment-app) |
+| DummyCreditCard | `mirumee.payments.dummy_credit_card` | [Saleor Dummy Payment App](https://github.com/saleor/dummy-payment-app) |
+| Avalara | `mirumee.taxes.avalara` | [Saleor Avalara AvaTax App](https://apps.saleor.io/apps/avatax) |
 
-We plan to remove deprecated plugins in the future versions of Saleor. We recommend you use [Saleor apps](https://apps.saleor.io/) instead.
+We plan to remove deprecated plugins in the future versions of Saleor.
