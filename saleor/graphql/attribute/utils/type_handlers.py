@@ -562,6 +562,7 @@ class NumericAttributeHandler(AttributeTypeHandler):
             return []
         defaults = {
             "name": numeric_val,
+            "numeric": float(numeric_val),
         }
         return self._update_or_create_value(instance, defaults)
 
@@ -674,6 +675,7 @@ class LegacyValuesHandler(AttributeTypeHandler):
             value = self.values_input.values[0]
             defaults = {
                 "name": value,
+                "numeric": float(value),
             }
             return self._update_or_create_value(instance, defaults)
 

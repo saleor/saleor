@@ -2,8 +2,7 @@ from typing import Literal
 
 import django_filters
 import graphene
-from django.db.models import Exists, FloatField, OuterRef, Q
-from django.db.models.functions import Cast
+from django.db.models import Exists, OuterRef, Q
 from graphql import GraphQLError
 
 from ...attribute import AttributeInputType
@@ -99,12 +98,11 @@ def filter_by_slug_or_name(attr_id, attr_value, db_connection_name: str):
 
 def filter_by_numeric_attribute(attr_id, numeric_value, db_connection_name: str):
     qs_by_numeric = AttributeValue.objects.using(db_connection_name).filter(
-        attribute_id=attr_id
+        attribute_id=attr_id, numeric__isnull=False
     )
-    qs_by_numeric = qs_by_numeric.annotate(numeric_value=Cast("name", FloatField()))
     qs_by_numeric = filter_where_by_numeric_field(
         qs_by_numeric,
-        "numeric_value",
+        "numeric",
         numeric_value,
     )
     assigned_attr_value = AssignedPageAttributeValue.objects.using(

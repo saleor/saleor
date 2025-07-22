@@ -11,11 +11,7 @@ from .....attribute.tests.model_helpers import (
 )
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....product import ProductTypeKind
-from .....product.models import (
-    Product,
-    ProductChannelListing,
-    ProductType,
-)
+from .....product.models import Product, ProductChannelListing, ProductType
 from .....warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ....tests.utils import get_graphql_content
 
@@ -877,7 +873,7 @@ def test_products_filter_by_numeric_attributes(
 
     product_list[1].product_type = product_type
     attr_value = AttributeValue.objects.create(
-        attribute=numeric_attribute, name="5", slug="5"
+        attribute=numeric_attribute, name="5", slug="5", numeric=5.0
     )
     associate_attribute_values_to_instance(
         product_list[1],
@@ -885,7 +881,7 @@ def test_products_filter_by_numeric_attributes(
     )
 
     attr_value = AttributeValue.objects.create(
-        attribute=numeric_attribute, name="5", slug="5_X"
+        attribute=numeric_attribute, name="5", slug="5_X", numeric=5.0
     )
     product_list[2].product_type = product_type
     associate_attribute_values_to_instance(
@@ -990,7 +986,7 @@ def test_products_filter_by_attributes_values_and_range(
 
     product_list[1].product_type = product_type
     attr_value_2 = AttributeValue.objects.create(
-        attribute=numeric_attribute, name="1.2", slug="1_2"
+        attribute=numeric_attribute, name="1.2", slug="1_2", numeric=1.2
     )
     associate_attribute_values_to_instance(
         product_list[1],
