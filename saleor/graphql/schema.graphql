@@ -12967,7 +12967,7 @@ input PageWhereInput @doc(category: "Pages") {
   pageType: GlobalIDFilterInput
 
   """Filter by attributes associated with the page."""
-  attributes: [AttributePageWhereInput!]
+  attributes: [AssignedAttributeWhereInput!]
 
   """List of conditions that must be met."""
   AND: [PageWhereInput!]
@@ -13006,17 +13006,17 @@ input MetadataValueFilterInput {
   oneOf: [String!]
 }
 
-input AttributePageWhereInput {
+input AssignedAttributeWhereInput {
   """Filter by attribute slug."""
   slug: String
 
   """
   Filter by value of the attribute. Only one value input field is allowed. If provided more than one, the error will be raised.
   """
-  value: AttributeValuePageInput
+  value: AssignedAttributeValueInput
 }
 
-input AttributeValuePageInput {
+input AssignedAttributeValueInput {
   """Filter by slug assigned to AttributeValue."""
   slug: StringFilterInput
 
@@ -13036,10 +13036,10 @@ input AttributeValuePageInput {
   boolean: Boolean
 
   """Filter by reference attribute value."""
-  reference: ReferenceAttributeWhereInput
+  reference: AssignedAttributeReferenceInput
 }
 
-input ReferenceAttributeWhereInput {
+input AssignedAttributeReferenceInput {
   """
   Returns objects with a reference pointing to an object identified by the given ID.
   """
