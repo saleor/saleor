@@ -12,7 +12,7 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.types import BaseInputObjectType, ExportError, NonNullList
 from ...core.utils import WebhookEventInfo
-from ...product.filters import ProductFilterInput
+from ...product.filters.product import ProductFilterInput
 from ...product.types import Product
 from ...warehouse.types import Warehouse
 from ..enums import ExportScope, FileTypeEnum, ProductFieldEnum

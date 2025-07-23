@@ -5,12 +5,10 @@ from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import BaseInputObjectType, NonNullList
 from ..discount.filters import DiscountedObjectWhereInput
-from ..product.filters import (
-    CategoryWhereInput,
-    CollectionWhereInput,
-    ProductVariantWhereInput,
-    ProductWhereInput,
-)
+from ..product.filters.category import CategoryWhereInput
+from ..product.filters.collection import CollectionWhereInput
+from ..product.filters.product import ProductWhereInput
+from ..product.filters.product_variant import ProductVariantWhereInput
 from .enums import RewardTypeEnum, RewardValueTypeEnum
 
 
