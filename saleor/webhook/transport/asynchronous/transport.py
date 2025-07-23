@@ -38,13 +38,11 @@ from ....graphql.webhook.subscription_payload import (
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...metrics import (
-    record_async_webhooks_count,
-    record_first_delivery_attempt_delay,
-)
 from ...observability import WebhookData
 from ..metrics import (
+    record_async_webhooks_count,
     record_external_request,
+    record_first_delivery_attempt_delay,
 )
 from ..utils import (
     DeferredPayloadData,
