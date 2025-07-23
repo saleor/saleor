@@ -29,7 +29,7 @@ def checkout_with_charged_payment(checkout_with_billing_address):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    taxed_total = calculations.checkout_total(
+    taxed_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -64,7 +64,7 @@ def checkout_with_charged_payment_for_cc(checkout_with_billing_address_for_cc):
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     manager = get_plugins_manager(allow_replica=False)
-    taxed_total = calculations.checkout_total(
+    taxed_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -107,7 +107,7 @@ def checkout_preorder_with_charged_payment(
 
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager(allow_replica=False)
-    taxed_total = calculations.checkout_total(
+    taxed_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -151,7 +151,7 @@ def checkout_with_digital_line_with_charged_payment(
     add_variant_to_checkout(checkout_info, variant, 1)
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
-    taxed_total = calculations.checkout_total(
+    taxed_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,

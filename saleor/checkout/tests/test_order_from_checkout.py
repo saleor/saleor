@@ -123,7 +123,7 @@ def test_create_order_with_gift_card_partial_use(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    price_without_gift_card = calculations.checkout_total(
+    price_without_gift_card = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -177,7 +177,7 @@ def test_create_order_with_many_gift_cards_worth_more_than_total(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    price_without_gift_card = calculations.checkout_total(
+    price_without_gift_card = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -247,7 +247,7 @@ def test_create_order_with_many_gift_cards(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    price_without_gift_card = calculations.checkout_total(
+    price_without_gift_card = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,

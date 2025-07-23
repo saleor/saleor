@@ -52,7 +52,7 @@ def _enable_flat_rates(
         ("30.00", "36.00", "12.00", "20", "24.00"),  # tax rate = 20%
     ],
 )
-@mock.patch("saleor.checkout.calculations.checkout_total")
+@mock.patch("saleor.checkout.calculations.calculate_checkout_total")
 def test_calculate_checkout_total_with_gift_cards(
     checkout_total_mock,
     checkout_total_net,

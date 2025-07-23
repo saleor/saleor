@@ -730,7 +730,7 @@ def _prepare_order_data(
 
     order_data.update(_process_voucher_data_for_order(checkout_info))
 
-    order_data["total_price_left"] = calculations.checkout_total(
+    order_data["total_price_left"] = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -1530,7 +1530,7 @@ def _create_order_from_checkout(
     )
 
     # giftcards
-    total_without_giftcard = calculations.checkout_total(
+    total_without_giftcard = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=checkout_lines_info,

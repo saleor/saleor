@@ -135,9 +135,14 @@ def calculate_checkout_total_with_gift_cards(
     force_update: bool = False,
     allow_sync_webhooks: bool = True,
 ) -> "TaxedMoney":
+    """Return the total cost of the checkout taking into account gift cards total.
+
+    Gift cards total is subtracted from total gross amount and subtracted proportionally
+    from total net amount.
+    """
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
-    total = checkout_total(
+    total = calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -168,7 +173,7 @@ def calculate_checkout_total_with_gift_cards(
     return total
 
 
-def checkout_total(
+def calculate_checkout_total(
     *,
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
