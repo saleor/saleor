@@ -8,8 +8,9 @@ from graphql import GraphQLError
 from ...attribute import AttributeInputType
 from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributeValue
 from ...page import models
-from ..attribute.filters import (
+from ..attribute.shared_filters import (
     CONTAINS_TYPING,
+    AssignedAttributeWhereInput,
     filter_by_contains_referenced_object_ids,
     filter_by_contains_referenced_pages,
     filter_by_contains_referenced_products,
@@ -30,14 +31,10 @@ from ..core.filters.where_filters import (
     OperationObjectTypeWhereFilter,
 )
 from ..core.filters.where_input import (
-    ContainsFilterInput,
-    DecimalFilterInput,
     GlobalIDFilterInput,
     StringFilterInput,
     WhereInputObjectType,
 )
-from ..core.types.base import BaseInputObjectType
-from ..core.types.common import DateRangeInput, DateTimeRangeInput
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import (
     filter_by_id,
@@ -467,66 +464,6 @@ def validate_attribute_value_input(attributes: list[dict], db_connection_name: s
         )
 
 
-class ReferenceAttributeWhereInput(BaseInputObjectType):
-    referenced_ids = ContainsFilterInput(
-        description="Returns objects with a reference pointing to an object identified by the given ID.",
-    )
-    page_slugs = ContainsFilterInput(
-        description="Returns objects with a reference pointing to a page identified by the given slug.",
-    )
-    product_slugs = ContainsFilterInput(
-        description=(
-            "Returns objects with a reference pointing to a product identified by the given slug."
-        )
-    )
-    product_variant_skus = ContainsFilterInput(
-        description=(
-            "Returns objects with a reference pointing "
-            "to a product variant identified by the given sku."
-        )
-    )
-
-
-class AttributeValuePageInput(BaseInputObjectType):
-    slug = StringFilterInput(
-        description="Filter by slug assigned to AttributeValue.",
-    )
-    name = StringFilterInput(
-        description="Filter by name assigned to AttributeValue.",
-    )
-    numeric = DecimalFilterInput(
-        required=False,
-        description="Filter by numeric value for attributes of numeric type.",
-    )
-    date = DateRangeInput(
-        required=False,
-        description="Filter by date value for attributes of date type.",
-    )
-    date_time = DateTimeRangeInput(
-        required=False,
-        description="Filter by date time value for attributes of date time type.",
-    )
-    boolean = graphene.Boolean(
-        required=False,
-        description="Filter by boolean value for attributes of boolean type.",
-    )
-    reference = ReferenceAttributeWhereInput(
-        required=False,
-        description=("Filter by reference attribute value."),
-    )
-
-
-class AttributePageWhereInput(BaseInputObjectType):
-    slug = graphene.String(description="Filter by attribute slug.", required=False)
-    value = AttributeValuePageInput(
-        required=False,
-        description=(
-            "Filter by value of the attribute. Only one value input field is allowed. "
-            "If provided more than one, the error will be raised."
-        ),
-    )
-
-
 class PageWhere(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Page"))
     slug = OperationObjectTypeWhereFilter(
@@ -540,7 +477,7 @@ class PageWhere(MetadataWhereBase):
         help_text="Filter by page type.",
     )
     attributes = ListObjectTypeWhereFilter(
-        input_class=AttributePageWhereInput,
+        input_class=AssignedAttributeWhereInput,
         method="filter_attributes",
         help_text="Filter by attributes associated with the page.",
     )
