@@ -5,7 +5,12 @@ from django.db.models import Exists, OuterRef, Q, QuerySet
 from graphql import GraphQLError
 
 from ...attribute import AttributeInputType
-from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributeValue
+from ...attribute.models import (
+    AssignedPageAttributeValue,
+    AssignedProductAttributeValue,
+    Attribute,
+    AttributeValue,
+)
 from ...page import models as page_models
 from ...product import models as product_models
 from ..core.filters import DecimalFilterInput
@@ -85,8 +90,10 @@ CONTAINS_TYPING = dict[Literal["contains_any", "contains_all"], list[str]]
 class SharedContainsFilterParams(TypedDict):
     attr_id: int | None
     db_connection_name: str
-    assigned_attr_model: type[AssignedPageAttributeValue]
-    assigned_id_field_name: Literal["page_id"]
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ]
+    assigned_id_field_name: Literal["page_id", "product_id"]
     identifier_field_name: Literal["slug", "id", "sku"]
 
 
@@ -94,8 +101,10 @@ def filter_by_contains_referenced_object_ids(
     attr_id: int | None,
     attr_value: CONTAINS_TYPING,
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     """Build a filter expression for objects referencing other entities by global IDs.
 
@@ -193,8 +202,10 @@ def _filter_contains_single_expression(
     attr_value_reference_field_name: Literal[
         "reference_page_id", "reference_product_id", "reference_variant_id"
     ],
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     single_reference_qs = AttributeValue.objects.using(db_connection_name).filter(
         Exists(reference_objs.filter(id=OuterRef(attr_value_reference_field_name))),
@@ -215,8 +226,10 @@ def _filter_contains_all_condition(
     attr_id: int | None,
     db_connection_name: str,
     contains_all: list[str],
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
     identifier_field_name: Literal["slug", "id", "sku"],
     referenced_model: type[
         page_models.Page | product_models.Product | product_models.ProductVariant
@@ -257,8 +270,10 @@ def _filter_contains_any_condition(
     attr_id: int | None,
     db_connection_name: str,
     contains_any: list[str],
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
     identifier_field_name: Literal["slug", "id", "sku"],
     referenced_model: type[
         page_models.Page | product_models.Product | product_models.ProductVariant
@@ -294,8 +309,10 @@ def filter_by_contains_referenced_pages(
     attr_id: int | None,
     attr_value: CONTAINS_TYPING,
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     """Build a filter expression for referenced pages.
 
@@ -339,8 +356,10 @@ def filter_by_contains_referenced_products(
     attr_id: int | None,
     attr_value: CONTAINS_TYPING,
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     """Build a filter expression for referenced products.
 
@@ -385,8 +404,10 @@ def filter_by_contains_referenced_variants(
     attr_id: int | None,
     attr_value: CONTAINS_TYPING,
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     """Build a filter expression for referenced product variants.
 
@@ -432,8 +453,10 @@ def filter_by_slug_or_name(
     attr_id: int | None,
     attr_value: dict,
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     attribute_values = AttributeValue.objects.using(db_connection_name).filter(
         **{"attribute_id": attr_id} if attr_id else {}
@@ -457,8 +480,10 @@ def filter_by_numeric_attribute(
     attr_id: int | None,
     numeric_value,
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     qs_by_numeric = AttributeValue.objects.using(db_connection_name).filter(
         attribute__input_type=AttributeInputType.NUMERIC,
@@ -481,8 +506,10 @@ def filter_by_boolean_attribute(
     attr_id: int | None,
     boolean_value,
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     qs_by_boolean = AttributeValue.objects.using(db_connection_name).filter(
         attribute__input_type=AttributeInputType.BOOLEAN,
@@ -500,8 +527,10 @@ def filter_by_date_attribute(
     attr_id: int | None,
     date_value,
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     qs_by_date = AttributeValue.objects.using(db_connection_name).filter(
         attribute__input_type=AttributeInputType.DATE,
@@ -523,8 +552,10 @@ def filter_by_date_time_attribute(
     attr_id: int | None,
     date_time_value,
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     qs_by_date_time = AttributeValue.objects.using(db_connection_name).filter(
         attribute__input_type=AttributeInputType.DATE_TIME,
@@ -542,12 +573,14 @@ def filter_by_date_time_attribute(
     return Exists(assigned_attr_value)
 
 
-def filter_objects_by_attributes(
-    qs: QuerySet[page_models.Page],
+def filter_objects_by_attributes[T: (page_models.Page, product_models.Product)](
+    qs: QuerySet[T],
     value: list[dict],
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
-):
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
+) -> QuerySet[T]:
     attribute_slugs = {
         attr_filter["slug"] for attr_filter in value if "slug" in attr_filter
     }
@@ -651,8 +684,10 @@ def filter_objects_by_reference_attributes(
         CONTAINS_TYPING,
     ],
     db_connection_name: str,
-    assigned_attr_model: type[AssignedPageAttributeValue],
-    assigned_id_field_name: Literal["page_id"],
+    assigned_attr_model: type[
+        AssignedPageAttributeValue | AssignedProductAttributeValue
+    ],
+    assigned_id_field_name: Literal["page_id", "product_id"],
 ):
     filter_expression = Q()
 

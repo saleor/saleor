@@ -88,6 +88,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend the `Attribute` type with a `values` field, allowing you to retrieve all values assigned to a specific attribute.
 - Add new `single-reference` attribute. You can now create a reference attribute that points to only one object (unlike the existing `reference` type, which supports multiple references).
 Like `reference`, the `single-reference` type can target entities defined in the `AttributeEntityTypeEnum`.
+- Extended support for filtering `products` by associated attributes
+  - Attribute slug is now optional when filtering by attribute values
+  - Added support for filtering by associated reference objects (e.g., `products`, `pages`, `variants`)
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.

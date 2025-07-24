@@ -50,10 +50,8 @@ from ...utils.filters import (
     filter_where_by_numeric_field,
     filter_where_by_value_field,
 )
-from ..enums import (
-    StockAvailability,
-)
-from .product_attributes import filter_attributes, where_filter_attributes
+from ..enums import StockAvailability
+from .product_attributes import filter_products_by_attributes, validate_attribute_input
 from .product_helpers import (
     filter_categories,
     filter_collections,
@@ -164,7 +162,9 @@ class ProductFilter(MetadataFilterBase):
         ]
 
     def filter_attributes(self, queryset, name, value):
-        return filter_attributes(queryset, name, value)
+        if not value:
+            return queryset
+        return filter_products_by_attributes(queryset, value)
 
     def filter_variant_price(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
@@ -224,6 +224,11 @@ class ProductFilter(MetadataFilterBase):
     def filter_stock_availability(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return filter_stock_availability(queryset, name, value, channel_slug)
+
+    def is_valid(self):
+        if attributes := self.data.get("attributes"):
+            validate_attribute_input(attributes, self.queryset.db)
+        return super().is_valid()
 
 
 class ProductWhere(MetadataWhereFilterBase):
@@ -425,11 +430,16 @@ class ProductWhere(MetadataWhereFilterBase):
 
     @staticmethod
     def filter_attributes(queryset, name, value):
-        return where_filter_attributes(queryset, name, value)
+        return filter_products_by_attributes(queryset, value)
 
     def filter_stock_availability(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return where_filter_stock_availability(queryset, name, value, channel_slug)
+
+    def is_valid(self):
+        if attributes := self.data.get("attributes"):
+            validate_attribute_input(attributes, self.queryset.db)
+        return super().is_valid()
 
 
 class ProductFilterInput(ChannelFilterInputObjectType):
