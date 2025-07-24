@@ -10,6 +10,9 @@ from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.db.connection import allow_writer_in_context
 from ...core.taxes import zero_money, zero_taxed_money
+from ...discount.utils.promotion import (
+    create_discount_objects_for_order_promotions,
+)
 from ...graphql.core.context import get_database_connection_name
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
@@ -973,7 +976,23 @@ class Checkout(ModelObjectType[models.Checkout]):
 
     @staticmethod
     def resolve_lines(root: models.Checkout, info: ResolveInfo):
-        return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+        @allow_writer_in_context(info.context)
+        def create_discounts_and_fetch_lines(lines_info):
+            CheckoutLinesByCheckoutTokenLoader(info.context).clear(root.token)
+            create_discount_objects_for_order_promotions(
+                root,
+                lines_info,
+                subtotal=root.subtotal,
+                channel=root.channel,
+                country=root.get_country(),
+            )
+            return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+
+        return (
+            CheckoutLinesInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(create_discounts_and_fetch_lines)
+        )
 
     @staticmethod
     @traced_resolver
