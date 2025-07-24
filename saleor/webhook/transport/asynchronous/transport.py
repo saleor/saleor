@@ -755,7 +755,10 @@ def _process_send_webhooks_async_for_app(
                 failed_deliveries_attempts.append(
                     (delivery, attempt, attempt_count, response)
                 )
-            elif response.status == EventDeliveryStatus.SUCCESS:
+                # if encounter failure stop processing further deliveries
+                # in case app is not responding
+                break
+            if response.status == EventDeliveryStatus.SUCCESS:
                 task_logger.info(
                     "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
                     webhook.id,
