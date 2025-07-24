@@ -1664,7 +1664,7 @@ def test_recalculate_checkout_discount_with_promotion(
     checkout.price_expiration = timezone.now()
     checkout.save()
     assert (
-        calculations.checkout_total(
+        calculations.calculate_checkout_total(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
@@ -1852,7 +1852,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
-    checkout_total = calculations.checkout_total(
+    checkout_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -1890,7 +1890,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
-    checkout_total = calculations.checkout_total(
+    checkout_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -2289,7 +2289,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.checkout_total(
+    total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -2311,7 +2311,7 @@ def test_is_fully_paid_mg_payments(checkout_with_item, payment_dummy):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.checkout_total(
+    total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -2341,7 +2341,7 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.checkout_total(
+    total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,

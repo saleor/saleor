@@ -11,9 +11,9 @@ from django_countries.fields import Country
 from requests.exceptions import ConnectTimeout
 
 from .....checkout.calculations import (
+    calculate_checkout_total,
     checkout_line_unit_price,
     checkout_shipping_price,
-    checkout_total,
 )
 from .....checkout.fetch import (
     CheckoutInfo,
@@ -345,7 +345,7 @@ def request_data_for_gateway_config(
     checkout = checkout_info.checkout
     address = checkout_info.shipping_address or checkout_info.billing_address
     lines = lines or []
-    total = checkout_total(
+    total = calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
