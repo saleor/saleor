@@ -5,6 +5,7 @@ import graphene
 from promise import Promise
 
 from ...account.models import User
+from ...channel import MarkAsPaidStrategy
 from ...checkout import calculations, models, problems
 from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
@@ -1094,15 +1095,33 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 excluded_payloads
             )
 
-            taxed_total = calculations.calculate_checkout_total_with_gift_cards(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                database_connection_name=database_connection_name,
-                pregenerated_subscription_payloads=tax_payloads,
-                allow_sync_webhooks=root.allow_sync_webhooks,
-            )
+            # DONE-INFO: regardless of flow
+
+            if (
+                checkout_info.channel.order_mark_as_paid_strategy
+                == MarkAsPaidStrategy.TRANSACTION_FLOW
+            ):
+                # For transaction flow total is not reduced by gift cards but rather
+                # covered by a manually created upon checkout complete transaction originating from gift cards.
+                taxed_total = calculations.calculate_checkout_total(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    address=address,
+                    database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=tax_payloads,
+                    allow_sync_webhooks=root.allow_sync_webhooks,
+                )
+            else:
+                taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    address=address,
+                    database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=tax_payloads,
+                    allow_sync_webhooks=root.allow_sync_webhooks,
+                )
             return max(taxed_total, zero_taxed_money(root.node.currency))
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
@@ -1554,15 +1573,32 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 excluded_payloads
             )
 
-            taxed_total = calculations.calculate_checkout_total_with_gift_cards(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                database_connection_name=database_connection_name,
-                pregenerated_subscription_payloads=tax_payloads,
-                allow_sync_webhooks=root.allow_sync_webhooks,
-            )
+            # DONE-INFO: regardless of flow
+            if (
+                checkout_info.channel.order_mark_as_paid_strategy
+                == MarkAsPaidStrategy.TRANSACTION_FLOW
+            ):
+                # For transaction flow total is not reduced by gift cards but rather
+                # covered by a manually created upon checkout complete transaction originating from gift cards.
+                taxed_total = calculations.calculate_checkout_total(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    address=address,
+                    database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=tax_payloads,
+                    allow_sync_webhooks=root.allow_sync_webhooks,
+                )
+            else:
+                taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    address=address,
+                    database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=tax_payloads,
+                    allow_sync_webhooks=root.allow_sync_webhooks,
+                )
             currency = root.node.currency
             checkout_total = max(taxed_total, zero_taxed_money(currency))
             total_charged = zero_money(currency)

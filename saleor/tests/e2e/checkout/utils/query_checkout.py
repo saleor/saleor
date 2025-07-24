@@ -52,6 +52,10 @@ query Checkout($checkoutId: ID!){
         amount
       }
     }
+    totalBalance {
+      amount
+      currency
+    }
   }
 }
 """

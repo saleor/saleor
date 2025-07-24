@@ -51,6 +51,11 @@ query OrderDetails($id: ID!) {
     status
     transactions {
       id
+      pspReference
+      chargedAmount {
+        amount
+        currency
+      }
     }
     metadata {
       key
