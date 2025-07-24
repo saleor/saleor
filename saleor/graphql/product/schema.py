@@ -55,17 +55,11 @@ from .bulk_mutations import (
     ProductVariantStocksUpdate,
 )
 from .dataloaders.products import CategoryByIdLoader, CategoryBySlugLoader
-from .filters import (
-    CategoryFilterInput,
-    CategoryWhereInput,
-    CollectionFilterInput,
-    CollectionWhereInput,
-    ProductFilterInput,
-    ProductTypeFilterInput,
-    ProductVariantFilterInput,
-    ProductVariantWhereInput,
-    ProductWhereInput,
-)
+from .filters.category import CategoryFilterInput, CategoryWhereInput
+from .filters.collection import CollectionFilterInput, CollectionWhereInput
+from .filters.product import ProductFilterInput, ProductWhereInput
+from .filters.product_type import ProductTypeFilterInput
+from .filters.product_variant import ProductVariantFilterInput, ProductVariantWhereInput
 from .mutations import (
     CategoryCreate,
     CategoryDelete,

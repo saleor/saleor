@@ -15,7 +15,7 @@ from ....core import JobStatus
 from ....discount.models import VoucherCode
 from ....giftcard.models import GiftCard
 from ....graphql.csv.enums import ProductFieldEnum
-from ....graphql.product.filters import ProductFilter
+from ....graphql.product.filters.product import ProductFilter
 from ....product.models import Product, ProductChannelListing
 from ... import FileTypes
 from ...utils.export import (

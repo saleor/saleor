@@ -32,7 +32,7 @@ def export_products(
     file_type: str,
     delimiter: str = ",",
 ):
-    from ...graphql.product.filters import ProductFilter
+    from ...graphql.product.filters.product import ProductFilter
 
     file_name = get_filename("product", file_type)
     queryset = get_queryset(Product, ProductFilter, scope)

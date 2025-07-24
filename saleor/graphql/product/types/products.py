@@ -147,7 +147,10 @@ from ..dataloaders import (
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
 from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
-from ..filters import ProductVariantFilterInput, ProductVariantWhereInput
+from ..filters.product_variant import (
+    ProductVariantFilterInput,
+    ProductVariantWhereInput,
+)
 from ..resolvers import resolve_product_variants, resolve_products
 from ..sorters import MediaSortingInput, ProductVariantSortingInput
 from .channels import ProductChannelListing, ProductVariantChannelListing

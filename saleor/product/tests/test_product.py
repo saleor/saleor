@@ -13,7 +13,7 @@ from ...account import events as account_events
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...discount import RewardValueType
 from ...discount.models import PromotionRule
-from ...graphql.product.filters import (
+from ...graphql.product.filters.product_attributes import (
     _clean_product_attributes_boolean_filter_input,
     _clean_product_attributes_date_time_range_filter_input,
     filter_products_by_attributes_values,
