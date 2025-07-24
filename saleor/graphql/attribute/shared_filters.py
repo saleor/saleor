@@ -12,6 +12,11 @@ from ..core.filters import DecimalFilterInput
 from ..core.filters.where_input import ContainsFilterInput, StringFilterInput
 from ..core.types import DateRangeInput, DateTimeRangeInput
 from ..core.types.base import BaseInputObjectType
+from ..utils.filters import (
+    filter_range_field,
+    filter_where_by_numeric_field,
+    filter_where_by_value_field,
+)
 
 
 class AssignedAttributeReferenceInput(BaseInputObjectType):
@@ -421,6 +426,269 @@ def filter_by_contains_referenced_variants(
             **shared_filter_params,
         )
     return Q()
+
+
+def filter_by_slug_or_name(
+    attr_id: int | None,
+    attr_value: dict,
+    db_connection_name: str,
+    assigned_attr_model: type[AssignedPageAttributeValue],
+    assigned_id_field_name: Literal["page_id"],
+):
+    attribute_values = AttributeValue.objects.using(db_connection_name).filter(
+        **{"attribute_id": attr_id} if attr_id else {}
+    )
+    if "slug" in attr_value:
+        attribute_values = filter_where_by_value_field(
+            attribute_values, "slug", attr_value["slug"]
+        )
+    if "name" in attr_value:
+        attribute_values = filter_where_by_value_field(
+            attribute_values, "name", attr_value["name"]
+        )
+    assigned_attr_value = assigned_attr_model.objects.using(db_connection_name).filter(
+        Exists(attribute_values.filter(id=OuterRef("value_id"))),
+        **{str(assigned_id_field_name): OuterRef("id")},
+    )
+    return Q(Exists(assigned_attr_value))
+
+
+def filter_by_numeric_attribute(
+    attr_id: int | None,
+    numeric_value,
+    db_connection_name: str,
+    assigned_attr_model: type[AssignedPageAttributeValue],
+    assigned_id_field_name: Literal["page_id"],
+):
+    qs_by_numeric = AttributeValue.objects.using(db_connection_name).filter(
+        attribute__input_type=AttributeInputType.NUMERIC,
+        **{"attribute_id": attr_id} if attr_id else {},
+    )
+    qs_by_numeric = filter_where_by_numeric_field(
+        qs_by_numeric,
+        "numeric",
+        numeric_value,
+    )
+
+    assigned_attr_value = assigned_attr_model.objects.using(db_connection_name).filter(
+        value__in=qs_by_numeric,
+        **{str(assigned_id_field_name): OuterRef("id")},
+    )
+    return Q(Exists(assigned_attr_value))
+
+
+def filter_by_boolean_attribute(
+    attr_id: int | None,
+    boolean_value,
+    db_connection_name: str,
+    assigned_attr_model: type[AssignedPageAttributeValue],
+    assigned_id_field_name: Literal["page_id"],
+):
+    qs_by_boolean = AttributeValue.objects.using(db_connection_name).filter(
+        attribute__input_type=AttributeInputType.BOOLEAN,
+        **{"attribute_id": attr_id} if attr_id else {},
+    )
+    qs_by_boolean = qs_by_boolean.filter(boolean=boolean_value)
+    assigned_attr_value = assigned_attr_model.objects.using(db_connection_name).filter(
+        value__in=qs_by_boolean,
+        **{str(assigned_id_field_name): OuterRef("id")},
+    )
+    return Q(Exists(assigned_attr_value))
+
+
+def filter_by_date_attribute(
+    attr_id: int | None,
+    date_value,
+    db_connection_name: str,
+    assigned_attr_model: type[AssignedPageAttributeValue],
+    assigned_id_field_name: Literal["page_id"],
+):
+    qs_by_date = AttributeValue.objects.using(db_connection_name).filter(
+        attribute__input_type=AttributeInputType.DATE,
+        **{"attribute_id": attr_id} if attr_id else {},
+    )
+    qs_by_date = filter_range_field(
+        qs_by_date,
+        "date_time__date",
+        date_value,
+    )
+    assigned_attr_value = assigned_attr_model.objects.using(db_connection_name).filter(
+        value__in=qs_by_date,
+        **{str(assigned_id_field_name): OuterRef("id")},
+    )
+    return Q(Exists(assigned_attr_value))
+
+
+def filter_by_date_time_attribute(
+    attr_id: int | None,
+    date_time_value,
+    db_connection_name: str,
+    assigned_attr_model: type[AssignedPageAttributeValue],
+    assigned_id_field_name: Literal["page_id"],
+):
+    qs_by_date_time = AttributeValue.objects.using(db_connection_name).filter(
+        attribute__input_type=AttributeInputType.DATE_TIME,
+        **{"attribute_id": attr_id} if attr_id else {},
+    )
+    qs_by_date_time = filter_range_field(
+        qs_by_date_time,
+        "date_time",
+        date_time_value,
+    )
+    assigned_attr_value = assigned_attr_model.objects.using(db_connection_name).filter(
+        value__in=qs_by_date_time,
+        **{str(assigned_id_field_name): OuterRef("id")},
+    )
+    return Exists(assigned_attr_value)
+
+
+def filter_objects_by_attributes(
+    qs: QuerySet[page_models.Page],
+    value: list[dict],
+    assigned_attr_model: type[AssignedPageAttributeValue],
+    assigned_id_field_name: Literal["page_id"],
+):
+    attribute_slugs = {
+        attr_filter["slug"] for attr_filter in value if "slug" in attr_filter
+    }
+    attributes_map = {
+        attr.slug: attr
+        for attr in Attribute.objects.using(qs.db).filter(slug__in=attribute_slugs)
+    }
+    if len(attribute_slugs) != len(attributes_map.keys()):
+        # Filter over non existing attribute
+        return qs.none()
+
+    attr_filter_expression = Q()
+
+    attr_without_values_input = []
+    for attr_filter in value:
+        if "slug" in attr_filter and "value" not in attr_filter:
+            attr_without_values_input.append(attributes_map[attr_filter["slug"]])
+
+    if attr_without_values_input:
+        atr_value_qs = AttributeValue.objects.using(qs.db).filter(
+            attribute_id__in=[attr.id for attr in attr_without_values_input]
+        )
+        assigned_attr_value = assigned_attr_model.objects.using(qs.db).filter(
+            Exists(atr_value_qs.filter(id=OuterRef("value_id"))),
+            **{str(assigned_id_field_name): OuterRef("id")},
+        )
+        attr_filter_expression = Q(Exists(assigned_attr_value))
+
+    for attr_filter in value:
+        attr_value = attr_filter.get("value")
+        if not attr_value:
+            # attrs without value input are handled separately
+            continue
+
+        attr_id = None
+        if attr_slug := attr_filter.get("slug"):
+            attr = attributes_map[attr_slug]
+            attr_id = attr.id
+
+        attr_value = attr_filter["value"]
+
+        if "slug" in attr_value or "name" in attr_value:
+            attr_filter_expression &= filter_by_slug_or_name(
+                attr_id,
+                attr_value,
+                qs.db,
+                assigned_attr_model=assigned_attr_model,
+                assigned_id_field_name=assigned_id_field_name,
+            )
+        elif "numeric" in attr_value:
+            attr_filter_expression &= filter_by_numeric_attribute(
+                attr_id,
+                attr_value["numeric"],
+                qs.db,
+                assigned_attr_model=assigned_attr_model,
+                assigned_id_field_name=assigned_id_field_name,
+            )
+        elif "boolean" in attr_value:
+            attr_filter_expression &= filter_by_boolean_attribute(
+                attr_id,
+                attr_value["boolean"],
+                qs.db,
+                assigned_attr_model=assigned_attr_model,
+                assigned_id_field_name=assigned_id_field_name,
+            )
+        elif "date" in attr_value:
+            attr_filter_expression &= filter_by_date_attribute(
+                attr_id,
+                attr_value["date"],
+                qs.db,
+                assigned_attr_model=assigned_attr_model,
+                assigned_id_field_name=assigned_id_field_name,
+            )
+        elif "date_time" in attr_value:
+            attr_filter_expression &= filter_by_date_time_attribute(
+                attr_id,
+                attr_value["date_time"],
+                qs.db,
+                assigned_attr_model=assigned_attr_model,
+                assigned_id_field_name=assigned_id_field_name,
+            )
+        elif "reference" in attr_value:
+            attr_filter_expression &= filter_objects_by_reference_attributes(
+                attr_id,
+                attr_value["reference"],
+                qs.db,
+                assigned_attr_model=assigned_attr_model,
+                assigned_id_field_name=assigned_id_field_name,
+            )
+    if attr_filter_expression != Q():
+        return qs.filter(attr_filter_expression)
+    return qs.none()
+
+
+def filter_objects_by_reference_attributes(
+    attr_id: int | None,
+    attr_value: dict[
+        Literal[
+            "referenced_ids", "page_slugs", "product_slugs", "product_variant_skus"
+        ],
+        CONTAINS_TYPING,
+    ],
+    db_connection_name: str,
+    assigned_attr_model: type[AssignedPageAttributeValue],
+    assigned_id_field_name: Literal["page_id"],
+):
+    filter_expression = Q()
+
+    if "referenced_ids" in attr_value:
+        filter_expression &= filter_by_contains_referenced_object_ids(
+            attr_id,
+            attr_value["referenced_ids"],
+            db_connection_name,
+            assigned_attr_model=assigned_attr_model,
+            assigned_id_field_name=assigned_id_field_name,
+        )
+    if "page_slugs" in attr_value:
+        filter_expression &= filter_by_contains_referenced_pages(
+            attr_id,
+            attr_value["page_slugs"],
+            db_connection_name,
+            assigned_attr_model=assigned_attr_model,
+            assigned_id_field_name=assigned_id_field_name,
+        )
+    if "product_slugs" in attr_value:
+        filter_expression &= filter_by_contains_referenced_products(
+            attr_id,
+            attr_value["product_slugs"],
+            db_connection_name,
+            assigned_attr_model=assigned_attr_model,
+            assigned_id_field_name=assigned_id_field_name,
+        )
+    if "product_variant_skus" in attr_value:
+        filter_expression &= filter_by_contains_referenced_variants(
+            attr_id,
+            attr_value["product_variant_skus"],
+            db_connection_name,
+            assigned_attr_model=assigned_attr_model,
+            assigned_id_field_name=assigned_id_field_name,
+        )
+    return filter_expression
 
 
 def validate_attribute_value_reference_input(
