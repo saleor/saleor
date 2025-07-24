@@ -2,17 +2,14 @@ from typing import Literal, TypedDict
 
 import graphene
 from django.db.models import Exists, OuterRef, Q, QuerySet
+from graphql import GraphQLError
 
+from ...attribute import AttributeInputType
 from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributeValue
 from ...page import models as page_models
 from ...product import models as product_models
-from ..core.filters import (
-    DecimalFilterInput,
-)
-from ..core.filters.where_input import (
-    ContainsFilterInput,
-    StringFilterInput,
-)
+from ..core.filters import DecimalFilterInput
+from ..core.filters.where_input import ContainsFilterInput, StringFilterInput
 from ..core.types import DateRangeInput, DateTimeRangeInput
 from ..core.types.base import BaseInputObjectType
 
@@ -424,3 +421,173 @@ def filter_by_contains_referenced_variants(
             **shared_filter_params,
         )
     return Q()
+
+
+def validate_attribute_value_reference_input(
+    index_with_values: list[
+        tuple[
+            str,
+            dict[
+                Literal[
+                    "referenced_ids",
+                    "page_slugs",
+                    "product_slugs",
+                    "product_variant_skus",
+                ],
+                CONTAINS_TYPING,
+            ]
+            | None,
+        ]
+    ],
+):
+    """Validate the input for reference attributes.
+
+    This function checks if the input for reference attributes is valid.
+    It raises a GraphQLError if the input is invalid.
+    """
+
+    duplicated_error = set()
+    empty_input_value_error = set()
+    invalid_input_type_error = set()
+    for index, value in index_with_values:
+        if not value:
+            invalid_input_type_error.add(index)
+            continue
+        for key in value:
+            single_key_value = value[key]
+            if (
+                "contains_all" in single_key_value
+                and "contains_any" in single_key_value
+            ):
+                duplicated_error.add(index)
+                continue
+            if (
+                "contains_all" in single_key_value
+                and not single_key_value["contains_all"]
+            ):
+                empty_input_value_error.add(index)
+                continue
+            if (
+                "contains_any" in single_key_value
+                and not single_key_value["contains_any"]
+            ):
+                empty_input_value_error.add(index)
+
+    if invalid_input_type_error:
+        raise GraphQLError(
+            message=(
+                "Invalid input for reference attributes. For attribute input on positions: "
+                f"{', '.join(invalid_input_type_error)}. "
+                "Provided values must contains 'containsAll' or 'containsAny' key."
+            )
+        )
+    if empty_input_value_error:
+        raise GraphQLError(
+            message=(
+                "Invalid input for reference attributes. For attribute input on positions: "
+                f"{', '.join(empty_input_value_error)}. "
+                "Provided values cannot be null or empty."
+            )
+        )
+    if duplicated_error:
+        raise GraphQLError(
+            message=(
+                "Invalid input for reference attributes. For attribute input on positions: "
+                f"{', '.join(duplicated_error)}. "
+                "Cannot provide both 'containsAll' and 'containsAny' for the same reference filter."
+            )
+        )
+
+
+def validate_attribute_value_input(attributes: list[dict], db_connection_name: str):
+    slug_list = [attr.get("slug") for attr in attributes if "slug" in attr]
+    value_as_empty_or_null_list = []
+    value_more_than_one_list = []
+    invalid_input_type_list = []
+    reference_value_list = []
+    if len(slug_list) != len(set(slug_list)):
+        raise GraphQLError(
+            message="Duplicated attribute slugs in attribute 'where' input are not allowed."
+        )
+
+    type_specific_value_with_attr_slug_list = {}
+    for index, attr in enumerate(attributes):
+        if not attr.get("value") and not attr.get("slug"):
+            value_as_empty_or_null_list.append(str(index))
+            continue
+
+        attr_slug = attr.get("slug")
+        attr_slug_provided_as_none = attr_slug is None and "slug" in attr
+        if attr_slug_provided_as_none:
+            value_as_empty_or_null_list.append(str(index))
+            continue
+
+        value_as_empty = "value" in attr and not attr["value"]
+        if value_as_empty:
+            value_as_empty_or_null_list.append(str(index))
+            continue
+
+        value = attr.get("value")
+        if not value:
+            continue
+
+        value_keys = value.keys()
+        if len(value_keys) > 1:
+            value_more_than_one_list.append(str(index))
+            continue
+        value_key = list(value_keys)[0]
+        if value_key not in ["slug", "name"] and attr_slug:
+            type_specific_value_with_attr_slug_list[attr_slug] = (str(index), value_key)
+        if value[value_key] is None:
+            value_as_empty_or_null_list.append(str(index))
+            continue
+        if value_key == "reference":
+            reference_value_list.append((str(index), value["reference"]))
+
+    if type_specific_value_with_attr_slug_list:
+        attribute_input_type_map = Attribute.objects.using(db_connection_name).in_bulk(
+            type_specific_value_with_attr_slug_list.keys(),
+            field_name="slug",
+        )
+        for attr_slug, (
+            index_str,
+            value_key,
+        ) in type_specific_value_with_attr_slug_list.items():
+            if attr_slug not in attribute_input_type_map:
+                continue
+
+            input_type = attribute_input_type_map[attr_slug].input_type
+            if "numeric" == value_key and input_type != AttributeInputType.NUMERIC:
+                invalid_input_type_list.append(index_str)
+            if "date" == value_key and input_type != AttributeInputType.DATE:
+                invalid_input_type_list.append(index_str)
+            if "date_time" == value_key and input_type != AttributeInputType.DATE_TIME:
+                invalid_input_type_list.append(index_str)
+            if "boolean" == value_key and input_type != AttributeInputType.BOOLEAN:
+                invalid_input_type_list.append(index_str)
+            if "reference" == value_key and input_type != AttributeInputType.REFERENCE:
+                invalid_input_type_list.append(index_str)
+
+    validate_attribute_value_reference_input(reference_value_list)
+
+    if value_as_empty_or_null_list:
+        raise GraphQLError(
+            message=(
+                f"Incorrect input for attributes on position: {','.join(value_as_empty_or_null_list)}. "
+                "Provided 'value' cannot be empty or null."
+            )
+        )
+    if value_more_than_one_list:
+        raise GraphQLError(
+            message=(
+                f"Incorrect input for attributes on position: {','.join(value_more_than_one_list)}. "
+                "Provided 'value' must have only one input key."
+            )
+        )
+    if invalid_input_type_list:
+        raise GraphQLError(
+            message=(
+                f"Incorrect input for attributes on position: {','.join(invalid_input_type_list)}. "
+                "Provided 'value' do not match the attribute input type."
+            )
+        )
