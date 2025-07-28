@@ -160,6 +160,7 @@ def test_gift_card_total_payment_for_checkout_core_1101(
 
     # Check if transaction for gift card has been correctly created but only for
     # transaction flow.
+    # MW-TODO: why is this test failing?
     if mark_as_paid_strategy == MarkAsPaidStrategy.TRANSACTION_FLOW.upper():
         assert len(staff_order_data["transactions"]) == 1
         assert (

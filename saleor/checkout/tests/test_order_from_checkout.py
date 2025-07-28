@@ -89,7 +89,6 @@ def test_create_order_with_gift_card(
     total_gross_without_gift_cards = (
         subtotal.gross + shipping_price.gross - checkout.discount
     )
-    gift_cards_balance = checkout.get_total_gift_cards_balance()
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
@@ -101,7 +100,7 @@ def test_create_order_with_gift_card(
     assert order.gift_cards.count() == 1
     gift_card = order.gift_cards.first()
     assert gift_card.current_balance.amount == 0
-    assert order.total.gross == (total_gross_without_gift_cards - gift_cards_balance)
+    assert order.total.gross == total_gross_without_gift_cards
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
@@ -151,7 +150,7 @@ def test_create_order_with_gift_card_partial_use(
     )
 
     assert order.gift_cards.count() > 0
-    assert order.total == zero_taxed_money(order.currency)
+    assert order.total == price_without_gift_card
     assert gift_card_balance_before_order == expected_old_balance
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card_used, type=GiftCardEvents.USED_IN_ORDER
@@ -253,10 +252,6 @@ def test_create_order_with_many_gift_cards(
         lines=lines,
         address=checkout.shipping_address,
     )
-    gift_cards_balance_before_order = (
-        gift_card_created_by_staff.current_balance.amount
-        + gift_card.current_balance.amount
-    )
 
     checkout.gift_cards.add(gift_card_created_by_staff)
     checkout.gift_cards.add(gift_card)
@@ -278,9 +273,7 @@ def test_create_order_with_many_gift_cards(
     assert order.gift_cards.count() > 0
     assert gift_card_created_by_staff.current_balance == zero_price
     assert gift_card.current_balance == zero_price
-    assert price_without_gift_card.gross.amount == (
-        gift_cards_balance_before_order + order.total.gross.amount
-    )
+    assert price_without_gift_card.gross.amount == order.total.gross.amount
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card_created_by_staff, type=GiftCardEvents.USED_IN_ORDER
     )

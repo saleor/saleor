@@ -2,16 +2,16 @@ import pytest
 
 from ....channel import MarkAsPaidStrategy
 from ...e2e.utils import assign_permissions
-from ..shop.utils.preparing_shop import prepare_default_shop
 from ..channel.utils import update_channel
-from ..product.utils.preparing_product import prepare_products
 from ..gift_cards.utils import create_gift_card
-from .utils import checkout_create, checkout_add_promo_code, get_checkout
+from ..product.utils.preparing_product import prepare_products
+from ..shop.utils.preparing_shop import prepare_default_shop
+from .utils import checkout_add_promo_code, checkout_create, get_checkout
 
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("mark_as_paid_strategy, expected_total_balance_after_adding_gift_card"),
+    ("mark_as_paid_strategy", "expected_total_balance_after_adding_gift_card"),
     [
         (MarkAsPaidStrategy.TRANSACTION_FLOW.upper(), -44.99),
         (MarkAsPaidStrategy.PAYMENT_FLOW.upper(), -34.99),
@@ -40,7 +40,6 @@ def test_checkout_total_balance_with_gift_card(
     channel_id = shop_data["channel"]["id"]
     channel_slug = shop_data["channel"]["slug"]
     warehouse_id = shop_data["warehouse"]["id"]
-    shipping_method_id = shop_data["shipping_method"]["id"]
     update_channel(
         e2e_staff_api_client,
         channel_id,
@@ -55,7 +54,6 @@ def test_checkout_total_balance_with_gift_card(
 
     product2_variant_id = products_data[1]["variant_id"]
     product2_variant_price = float(products_data[1]["price"])
-
 
     product1_quantity = 1
     product2_quantity = 4
@@ -105,4 +103,3 @@ def test_checkout_total_balance_with_gift_card(
     checkout_data = get_checkout(e2e_logged_api_client, checkout_data["id"])
     total_balance_amount = checkout_data["totalBalance"]["amount"]
     assert total_balance_amount == expected_total_balance_after_adding_gift_card
-

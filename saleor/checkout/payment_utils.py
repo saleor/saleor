@@ -45,8 +45,9 @@ def _update_authorize_status(
     total_authorized: Money,
     total_charged: Money,
     checkout_has_lines: bool,
+    total_gift_cards_balance: Money,
 ):
-    total_covered = total_authorized + total_charged
+    total_covered = total_authorized + total_charged + total_gift_cards_balance
     zero_money_amount = zero_money(checkout.currency)
 
     checkout_with_only_zero_price_lines = (
@@ -97,12 +98,17 @@ def update_checkout_payment_statuses(
     total_authorized_amount, total_charged_amount = _get_payment_amount_for_checkout(
         checkout_transactions, checkout.currency
     )
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance(
+        database_connection_name
+    )
+
     _update_authorize_status(
         checkout,
         checkout_total_gross,
         total_authorized_amount,
         total_charged_amount,
         checkout_has_lines,
+        total_gift_cards_balance,
     )
     _update_charge_status(
         checkout, checkout_total_gross, total_charged_amount, checkout_has_lines

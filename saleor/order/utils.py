@@ -466,7 +466,10 @@ def add_gift_cards_to_order(
     total_price_left: Money,
     user: User | None,
     app: Optional["App"],
+    create_gift_card_transaction: bool = False,
 ):
+    from ..payment.utils import create_transaction_for_order
+
     total_before_gift_card_compensation = total_price_left
     order_gift_cards = []
     gift_cards_to_update = []
@@ -495,6 +498,33 @@ def add_gift_cards_to_order(
     ]
     GiftCard.objects.bulk_update(gift_cards_to_update, update_fields)
     gift_card_events.gift_cards_used_in_order_event(balance_data, order, user, app)
+
+    if create_gift_card_transaction:
+        for gift_card, old_current_balance in balance_data:
+            create_transaction_for_order(
+                order=order,
+                user=user,
+                app=app,
+                psp_reference=gift_card.display_code,
+                charged_value=old_current_balance - gift_card.current_balance.amount,
+                available_actions=[],  # MW-ASK: should we have any actions here?
+                name="Gift card",
+            )
+            updates_amounts_for_order(order)
+            # events.order_manually_marked_as_paid_event(
+            #     order=order,
+            #     user=request_user,
+            #     app=app,
+            #     transaction_reference=external_reference,
+            # )
+            # call_order_events(
+            #     manager,
+            #     [
+            #         WebhookEventAsyncType.ORDER_FULLY_PAID,
+            #         WebhookEventAsyncType.ORDER_UPDATED,
+            #     ],
+            #     order,
+            # )
 
     gift_card_compensation = total_before_gift_card_compensation - total_price_left
     if gift_card_compensation.amount > 0:

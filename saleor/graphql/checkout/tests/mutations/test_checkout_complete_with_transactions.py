@@ -32,6 +32,7 @@ from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderOrigin, Ord
 from .....order.models import Fulfillment, Order
 from .....payment import TransactionEventType
 from .....payment.model_helpers import get_subtotal
+from .....payment.models import TransactionItem
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....plugins.manager import PluginsManager, get_plugins_manager
 from .....product.models import (
@@ -236,8 +237,11 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
 
     update_checkout_payment_statuses(
@@ -260,10 +264,17 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     assert not data["errors"]
     assert to_global_id_or_none(order) == data["order"]["id"]
 
-    assert order.total_charged == zero_money(order.currency)
+    gift_card_transaction = TransactionItem.objects.get(order_id=order.pk)
+
+    gift_card.refresh_from_db()
+    assert gift_card_transaction.psp_reference == gift_card.display_code
+    assert gift_card_transaction.charged_value == gift_card.initial_balance_amount
+    assert gift_card.current_balance == zero_money(gift_card.currency)
+
+    assert order.total_charged == gift_card.initial_balance
     assert order.total_authorized == zero_money(order.currency)
-    assert order.charge_status == OrderChargeStatus.NONE
-    assert order.authorize_status == OrderAuthorizeStatus.NONE
+    assert order.charge_status == OrderChargeStatus.PARTIAL
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
     assert order.subtotal.gross == get_subtotal(order.lines.all(), order.currency).gross
 
     assert order.lines_count == len(lines)
@@ -370,12 +381,18 @@ def test_checkout_with_authorized(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
 
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance()
+
     transaction = transaction_item_generator(
-        checkout_id=checkout.pk, authorized_value=total.gross.amount
+        checkout_id=checkout.pk,
+        authorized_value=(total - total_gift_cards_balance).gross.amount,
     )
 
     update_checkout_payment_statuses(
@@ -397,9 +414,9 @@ def test_checkout_with_authorized(
     assert not data["errors"]
     assert to_global_id_or_none(order) == data["order"]["id"]
 
-    assert order.total_charged == zero_money(order.currency)
+    assert order.total_charged == gift_card.initial_balance
     assert order.total_authorized_amount == transaction.authorized_value
-    assert order.charge_status == OrderChargeStatus.NONE
+    assert order.charge_status == OrderChargeStatus.PARTIAL
     assert order.authorize_status == OrderAuthorizeStatus.FULL
 
     assert order.status == OrderStatus.UNFULFILLED
@@ -439,6 +456,18 @@ def test_checkout_with_authorized(
 
     assert not Checkout.objects.filter()
     assert not len(Reservation.objects.all())
+
+    transactions = TransactionItem.objects.filter(order_id=order.pk).order_by(
+        "created_at"
+    )
+    assert transactions.count() == 2
+    assert transactions[0] == transaction
+
+    gift_card.refresh_from_db()
+    gift_card_transaction = transactions[1]
+    assert gift_card_transaction.psp_reference == gift_card.display_code
+    assert gift_card_transaction.charged_value == gift_card.initial_balance_amount
+    assert gift_card.current_balance == zero_money(gift_card.currency)
 
     customer_user.refresh_from_db()
     assert customer_user.number_of_orders == user_number_of_orders + 1
@@ -480,12 +509,18 @@ def test_checkout_with_charged(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
 
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance()
+
     transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount
+        checkout_id=checkout.pk,
+        charged_value=(total - total_gift_cards_balance).gross.amount,
     )
 
     update_checkout_payment_statuses(
@@ -507,7 +542,19 @@ def test_checkout_with_charged(
     assert not data["errors"]
     assert to_global_id_or_none(order) == data["order"]["id"]
 
-    assert order.total_charged_amount == transaction.charged_value
+    transactions = TransactionItem.objects.filter(order_id=order.pk).order_by(
+        "created_at"
+    )
+    assert transactions.count() == 2
+    assert transactions[0] == transaction
+
+    gift_card.refresh_from_db()
+    gift_card_transaction = transactions[1]
+    assert gift_card_transaction.psp_reference == gift_card.display_code
+    assert gift_card_transaction.charged_value == gift_card.initial_balance_amount
+    assert gift_card.current_balance == zero_money(gift_card.currency)
+
+    assert order.total_charged_amount == sum([t.charged_value for t in transactions])
     assert order.total_authorized == zero_money(order.currency)
     assert order.charge_status == OrderChargeStatus.FULL
     assert order.authorize_status == OrderAuthorizeStatus.FULL
@@ -586,12 +633,18 @@ def test_checkout_price_override(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
 
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance()
+
     transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount
+        checkout_id=checkout.pk,
+        charged_value=(total - total_gift_cards_balance).gross.amount,
     )
 
     update_checkout_payment_statuses(
@@ -613,7 +666,10 @@ def test_checkout_price_override(
     assert not data["errors"]
     assert to_global_id_or_none(order) == data["order"]["id"]
 
-    assert order.total_charged_amount == transaction.charged_value
+    assert (
+        order.total_charged_amount
+        == transaction.charged_value + total_gift_cards_balance.amount
+    )
     assert order.total_authorized == zero_money(order.currency)
     assert order.charge_status == OrderChargeStatus.FULL
     assert order.authorize_status == OrderAuthorizeStatus.FULL
@@ -678,12 +734,18 @@ def test_checkout_paid_with_multiple_transactions(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
 
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance()
+
     transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal(10)
+        checkout_id=checkout.pk,
+        charged_value=(total - total_gift_cards_balance).gross.amount - Decimal(10),
     )
     second_transaction = transaction_item_generator(
         checkout_id=checkout.pk, charged_value=Decimal(10)
@@ -710,7 +772,9 @@ def test_checkout_paid_with_multiple_transactions(
 
     assert (
         order.total_charged_amount
-        == transaction.charged_value + second_transaction.charged_value
+        == transaction.charged_value
+        + second_transaction.charged_value
+        + total_gift_cards_balance.amount
     )
     assert order.total_authorized == zero_money(order.currency)
     assert order.charge_status == OrderChargeStatus.FULL
@@ -741,12 +805,18 @@ def test_checkout_partially_paid(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
 
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance()
+
     transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal(10)
+        checkout_id=checkout.pk,
+        charged_value=(total - total_gift_cards_balance).gross.amount - Decimal(10),
     )
 
     update_checkout_payment_statuses(
@@ -794,12 +864,18 @@ def test_checkout_partially_paid_allow_unpaid_order(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
 
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance()
+
     transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal(10)
+        checkout_id=checkout.pk,
+        charged_value=(total - total_gift_cards_balance).gross.amount - Decimal(10),
     )
 
     update_checkout_payment_statuses(
@@ -821,7 +897,10 @@ def test_checkout_partially_paid_allow_unpaid_order(
     assert not data["errors"]
     assert to_global_id_or_none(order) == data["order"]["id"]
 
-    assert order.total_charged_amount == transaction.charged_value
+    assert (
+        order.total_charged_amount
+        == transaction.charged_value + total_gift_cards_balance.amount
+    )
     assert order.total_authorized == zero_money(order.currency)
     assert order.charge_status == OrderChargeStatus.PARTIAL
     assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
@@ -850,9 +929,14 @@ def test_checkout_with_pending_charged(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
+
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance()
 
     transaction = transaction_item_generator(checkout_id=checkout.pk)
     transaction_events_generator(
@@ -864,7 +948,7 @@ def test_checkout_with_pending_charged(
             TransactionEventType.CHARGE_REQUEST,
         ],
         amounts=[
-            total.gross.amount,
+            (total - total_gift_cards_balance).gross.amount,
         ],
     )
     recalculate_transaction_amounts(transaction)
@@ -888,10 +972,10 @@ def test_checkout_with_pending_charged(
     assert not data["errors"]
     assert to_global_id_or_none(order) == data["order"]["id"]
 
-    assert order.total_charged == zero_money(order.currency)
+    assert order.total_charged == total_gift_cards_balance
     assert order.total_authorized == zero_money(order.currency)
-    assert order.charge_status == OrderChargeStatus.NONE
-    assert order.authorize_status == OrderAuthorizeStatus.NONE
+    assert order.charge_status == OrderChargeStatus.PARTIAL
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
     assert order.subtotal.gross == get_subtotal(order.lines.all(), order.currency).gross
 
 
@@ -928,9 +1012,14 @@ def test_checkout_with_pending_authorized(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
+
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance()
 
     transaction = transaction_item_generator(checkout_id=checkout.pk)
     transaction_events_generator(
@@ -942,7 +1031,7 @@ def test_checkout_with_pending_authorized(
             TransactionEventType.AUTHORIZATION_REQUEST,
         ],
         amounts=[
-            total.gross.amount,
+            (total - total_gift_cards_balance).gross.amount,
         ],
     )
     recalculate_transaction_amounts(transaction)
@@ -966,10 +1055,10 @@ def test_checkout_with_pending_authorized(
     assert not data["errors"]
     assert to_global_id_or_none(order) == data["order"]["id"]
 
-    assert order.total_charged == zero_money(order.currency)
+    assert order.total_charged == total_gift_cards_balance
     assert order.total_authorized == zero_money(order.currency)
-    assert order.charge_status == OrderChargeStatus.NONE
-    assert order.authorize_status == OrderAuthorizeStatus.NONE
+    assert order.charge_status == OrderChargeStatus.PARTIAL
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
 
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
@@ -1330,9 +1419,14 @@ def test_checkout_complete(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
+
+    total_gift_cards_balance = checkout.get_total_gift_cards_balance()
 
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -1364,9 +1458,9 @@ def test_checkout_complete(
     assert order.subtotal.gross == get_subtotal(order.lines.all(), order.currency).gross
     assert order.metadata == checkout.metadata_storage.metadata
     assert order.private_metadata == checkout.metadata_storage.private_metadata
-    transaction = order.payment_transactions.first()
-    assert transaction
-    assert order.total_charged_amount == transaction.charged_value
+    assert order.total_charged_amount == sum(
+        [t.charged_value for t in TransactionItem.objects.all()]
+    )
     assert order.total_authorized == zero_money(order.currency)
 
     order_line = order.lines.first()
@@ -1415,7 +1509,7 @@ def test_checkout_complete(
     assert gift_card.initial_balance_amount == Decimal(
         caplog.records[0].gift_card_compensation
     )
-    assert total.gross.amount == Decimal(
+    assert (total - total_gift_cards_balance).gross.amount == Decimal(
         caplog.records[0].total_after_gift_card_compensation
     )
 
@@ -1837,8 +1931,11 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
 
     channel = checkout.channel
@@ -1872,9 +1969,9 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     assert order.subtotal.gross == subtotal
     assert order.metadata == checkout.metadata_storage.metadata
     assert order.private_metadata == checkout.metadata_storage.private_metadata
-    transaction = order.payment_transactions.first()
-    assert transaction
-    assert order.total_charged_amount == transaction.charged_value
+    assert order.total_charged_amount == sum(
+        [t.charged_value for t in TransactionItem.objects.all()]
+    )
     assert order.total_authorized == zero_money(order.currency)
     assert order.shipping_price == zero_taxed_money(order.currency)
     assert order.undiscounted_total == TaxedMoney(
@@ -2209,13 +2306,16 @@ def test_checkout_complete_with_entire_order_voucher_paid_with_gift_card_and_tra
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
+
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
     ).price
-    gift_card_initial_balance = gift_card.initial_balance_amount
 
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -2251,7 +2351,6 @@ def test_checkout_complete_with_entire_order_voucher_paid_with_gift_card_and_tra
     assert (
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
-        - gift_card_initial_balance
     )
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
@@ -2320,9 +2419,9 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
         gift_card.initial_balance_amount - total_without_gc.gross.amount
     )
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
-    )
+    # total = calculations.calculate_checkout_total_with_gift_cards(
+    #     manager, checkout_info, lines, address
+    # )
 
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
@@ -2342,7 +2441,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
     assert not data["errors"]
 
     order = Order.objects.get()
-    assert order.total == total
+    assert order.total == total_without_gc
     subtotal = get_subtotal(order.lines.all(), order.currency)
     assert order.subtotal.gross == subtotal.gross
     assert (
@@ -2542,13 +2641,15 @@ def test_checkout_complete_with_voucher_apply_once_per_order_and_gift_card(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
     ).price
-    gift_card_initial_balance = gift_card.initial_balance_amount
 
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -2582,7 +2683,6 @@ def test_checkout_complete_with_voucher_apply_once_per_order_and_gift_card(
     assert (
         order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
-        - gift_card_initial_balance
     )
     assert order_line_discount.type == DiscountType.VOUCHER
     assert order_line_discount.voucher == voucher_percentage
@@ -3074,13 +3174,15 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
     ).price
-    gift_card_initial_balance = gift_card.initial_balance_amount
 
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -3119,7 +3221,6 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     assert (
         order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
-        - gift_card_initial_balance
     )
     assert order_line_discount.type == DiscountType.VOUCHER
     assert order_line_discount.voucher == voucher_specific_product_type
@@ -5107,8 +5208,11 @@ def test_checkout_complete_empty_product_translation(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     )
 
     channel = checkout.channel
@@ -5141,9 +5245,9 @@ def test_checkout_complete_empty_product_translation(
     assert order.subtotal.gross == get_subtotal(order.lines.all(), order.currency).gross
     assert order.metadata == checkout.metadata_storage.metadata
     assert order.private_metadata == checkout.metadata_storage.private_metadata
-    transaction = order.payment_transactions.first()
-    assert transaction
-    assert order.total_charged_amount == transaction.charged_value
+    assert order.total_charged_amount == sum(
+        [t.charged_value for t in TransactionItem.objects.all()]
+    )
     assert order.total_authorized == zero_money(order.currency)
 
     order_line = order.lines.first()
