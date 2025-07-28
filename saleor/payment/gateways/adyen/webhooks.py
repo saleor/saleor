@@ -195,15 +195,16 @@ def create_order(payment, checkout, manager):
                 "Some of the checkout lines variants are unavailable."
             )
         checkout_info = fetch_checkout_info(checkout, lines, manager)
-        checkout_total = calculate_checkout_total_with_gift_cards(
+        # DONE-INFO: transaction flow
+        checkout_total_with_gift_cards = calculate_checkout_total_with_gift_cards(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address or checkout.billing_address,
         )
-        # when checkout total value is different than total amount from payments
+        # when checkout total value adjusted for gift cards is different than total amount from payments
         # it means that some products has been removed during the payment was completed
-        if checkout_total.gross.amount != payment.total:
+        if checkout_total_with_gift_cards.gross.amount != payment.total:
             payment_refund_or_void(payment, manager, checkout_info.channel.slug)
             raise ValidationError(
                 "Cannot create order - some products do not exist anymore."
