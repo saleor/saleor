@@ -1056,6 +1056,7 @@ def is_fully_paid(
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
     address = checkout_info.shipping_address or checkout_info.billing_address
+    # DONE-INFO: payment flow
     checkout_total = calculations.calculate_checkout_total_with_gift_cards(
         manager=manager,
         checkout_info=checkout_info,

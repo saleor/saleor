@@ -261,6 +261,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         address = (
             checkout.shipping_address or checkout.billing_address
         )  # FIXME: check which address we need here
+        # DONE-INFO: payment flow
         checkout_total = calculate_checkout_total_with_gift_cards(
             manager=manager,
             checkout_info=checkout_info,
