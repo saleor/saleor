@@ -1055,13 +1055,17 @@ def is_fully_paid(
     checkout = checkout_info.checkout
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
-    address = checkout_info.shipping_address or checkout_info.billing_address
-    # DONE-INFO: payment flow
-    checkout_total = calculations.calculate_checkout_total_with_gift_cards(
+    checkout_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
+        address=checkout.shipping_address or checkout.billing_address,
+        database_connection_name=database_connection_name,
+    )
+
+    checkout_total = calculations.subtract_gift_cards_from_total(
+        total=checkout_total,
+        checkout_info=checkout_info,
         database_connection_name=database_connection_name,
     )
     checkout_total = max(
