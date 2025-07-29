@@ -1095,34 +1095,29 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 excluded_payloads
             )
 
-            # DONE-INFO: regardless of flow
+            total = calculations.calculate_checkout_total(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                address=address,
+                database_connection_name=database_connection_name,
+                pregenerated_subscription_payloads=tax_payloads,
+                allow_sync_webhooks=root.allow_sync_webhooks,
+            )
 
+            # For transaction flow total is not reduced by gift cards but rather
+            # covered by a manually created upon checkout complete transaction originating from gift cards.
             if (
                 checkout_info.channel.order_mark_as_paid_strategy
-                == MarkAsPaidStrategy.TRANSACTION_FLOW
+                == MarkAsPaidStrategy.PAYMENT_FLOW
             ):
-                # For transaction flow total is not reduced by gift cards but rather
-                # covered by a manually created upon checkout complete transaction originating from gift cards.
-                taxed_total = calculations.calculate_checkout_total(
-                    manager=manager,
+                total = calculations.subtract_gift_cards_from_total(
+                    total=total,
                     checkout_info=checkout_info,
-                    lines=lines,
-                    address=address,
                     database_connection_name=database_connection_name,
-                    pregenerated_subscription_payloads=tax_payloads,
-                    allow_sync_webhooks=root.allow_sync_webhooks,
                 )
-            else:
-                taxed_total = calculations.calculate_checkout_total_with_gift_cards(
-                    manager=manager,
-                    checkout_info=checkout_info,
-                    lines=lines,
-                    address=address,
-                    database_connection_name=database_connection_name,
-                    pregenerated_subscription_payloads=tax_payloads,
-                    allow_sync_webhooks=root.allow_sync_webhooks,
-                )
-            return max(taxed_total, zero_taxed_money(root.node.currency))
+
+            return max(total, zero_taxed_money(root.node.currency))
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         return Promise.all(dataloaders).then(calculate_total_price)
@@ -1574,6 +1569,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
             )
 
             # DONE-INFO: regardless of flow
+            # TODO - get rid of this if (always take into account gift card value, look TODO below)
             if (
                 checkout_info.channel.order_mark_as_paid_strategy
                 == MarkAsPaidStrategy.TRANSACTION_FLOW
@@ -1589,6 +1585,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                     pregenerated_subscription_payloads=tax_payloads,
                     allow_sync_webhooks=root.allow_sync_webhooks,
                 )
+                # get rid of this branch below as well
             else:
                 taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                     manager=manager,
@@ -1606,6 +1603,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 total_charged += transaction.amount_charged
                 total_charged += transaction.amount_charge_pending
             return total_charged - checkout_total.gross
+            # TODO: (total_charged + gift card value) - checkout_total.gross
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         dataloaders.append(

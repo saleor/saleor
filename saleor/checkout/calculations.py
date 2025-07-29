@@ -135,11 +135,7 @@ def calculate_checkout_total_with_gift_cards(
     force_update: bool = False,
     allow_sync_webhooks: bool = True,
 ) -> "TaxedMoney":
-    """Return the total cost of the checkout taking into account gift cards total.
-
-    Gift cards total is subtracted from total gross amount and subtracted proportionally
-    from total net amount.
-    """
+    """Return the total cost of the checkout taking into account gift cards total."""
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
     total = calculate_checkout_total(
@@ -153,6 +149,19 @@ def calculate_checkout_total_with_gift_cards(
         allow_sync_webhooks=allow_sync_webhooks,
     )
 
+    return subtract_gift_cards_from_total(
+        total=total,
+        checkout_info=checkout_info,
+        database_connection_name=database_connection_name,
+    )
+
+
+def subtract_gift_cards_from_total(
+    total: "TaxedMoney",
+    checkout_info: "CheckoutInfo",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> "TaxedMoney":
+    """Gift cards total is subtracted from total gross amount and subtracted proportionally from total net amount."""
     if total == zero_taxed_money(total.currency):
         return total
 
