@@ -3781,6 +3781,14 @@ type Money {
 
   """Amount of money."""
   amount: Float!
+
+  """
+  Amount of money represented as an integer in the smallest currency unit.
+  """
+  fractionalAmount: Int!
+
+  """Number of digits after the decimal point in the currency."""
+  fractionDigits: Int!
 }
 
 """
