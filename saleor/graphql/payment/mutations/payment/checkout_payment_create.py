@@ -3,8 +3,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from .....checkout import calculations
 from .....checkout import models as checkout_models
-from .....checkout.calculations import calculate_checkout_total_with_gift_cards
 from .....checkout.checkout_cleaner import (
     clean_billing_address,
     clean_checkout_shipping,
@@ -258,15 +258,16 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             manager, gateway, input, channel_slug=checkout_info.channel.slug
         )
 
-        address = (
-            checkout.shipping_address or checkout.billing_address
-        )  # FIXME: check which address we need here
-        # DONE-INFO: payment flow
-        checkout_total = calculate_checkout_total_with_gift_cards(
+        checkout_total = calculations.calculate_checkout_total(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            address=address,
+            address=checkout.shipping_address or checkout.billing_address,
+        )
+
+        checkout_total = calculations.subtract_gift_cards_from_total(
+            total=checkout_total,
+            checkout_info=checkout_info,
         )
         amount = input.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)

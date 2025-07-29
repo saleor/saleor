@@ -25,7 +25,7 @@ from django.http.request import HttpHeaders
 from django.http.response import HttpResponseRedirect
 from graphql import GraphQLError
 
-from ....checkout.calculations import calculate_checkout_total_with_gift_cards
+from ....checkout import calculations
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -195,16 +195,21 @@ def create_order(payment, checkout, manager):
                 "Some of the checkout lines variants are unavailable."
             )
         checkout_info = fetch_checkout_info(checkout, lines, manager)
-        # DONE-INFO: transaction flow
-        checkout_total_with_gift_cards = calculate_checkout_total_with_gift_cards(
+        checkout_total = calculations.calculate_checkout_total(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address or checkout.billing_address,
         )
+
+        checkout_total = calculations.subtract_gift_cards_from_total(
+            total=checkout_total,
+            checkout_info=checkout_info,
+        )
+
         # when checkout total value adjusted for gift cards is different than total amount from payments
         # it means that some products has been removed during the payment was completed
-        if checkout_total_with_gift_cards.gross.amount != payment.total:
+        if checkout_total.gross.amount != payment.total:
             payment_refund_or_void(payment, manager, checkout_info.channel.slug)
             raise ValidationError(
                 "Cannot create order - some products do not exist anymore."

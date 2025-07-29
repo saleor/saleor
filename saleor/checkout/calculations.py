@@ -138,7 +138,7 @@ def calculate_checkout_total_with_gift_cards(
     """Return the total cost of the checkout taking into account gift cards total."""
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
-    total = calculate_checkout_total(
+    checkout_total = calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
@@ -150,7 +150,7 @@ def calculate_checkout_total_with_gift_cards(
     )
 
     return subtract_gift_cards_from_total(
-        total=total,
+        total=checkout_total,
         checkout_info=checkout_info,
         database_connection_name=database_connection_name,
     )

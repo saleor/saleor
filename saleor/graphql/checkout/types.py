@@ -1095,7 +1095,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 excluded_payloads
             )
 
-            total = calculations.calculate_checkout_total(
+            checkout_total = calculations.calculate_checkout_total(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
@@ -1111,13 +1111,13 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 checkout_info.channel.order_mark_as_paid_strategy
                 == MarkAsPaidStrategy.PAYMENT_FLOW
             ):
-                total = calculations.subtract_gift_cards_from_total(
-                    total=total,
+                checkout_total = calculations.subtract_gift_cards_from_total(
+                    total=checkout_total,
                     checkout_info=checkout_info,
                     database_connection_name=database_connection_name,
                 )
 
-            return max(total, zero_taxed_money(root.node.currency))
+            return max(checkout_total, zero_taxed_money(root.node.currency))
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         return Promise.all(dataloaders).then(calculate_total_price)
