@@ -11,10 +11,10 @@ from .utils import checkout_add_promo_code, checkout_create, get_checkout
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("mark_as_paid_strategy", "expected_total_balance_after_adding_gift_card"),
+    "mark_as_paid_strategy",
     [
-        (MarkAsPaidStrategy.TRANSACTION_FLOW.upper(), -44.99),
-        (MarkAsPaidStrategy.PAYMENT_FLOW.upper(), -34.99),
+        MarkAsPaidStrategy.TRANSACTION_FLOW.upper(),
+        MarkAsPaidStrategy.PAYMENT_FLOW.upper(),
     ],
 )
 def test_checkout_total_balance_with_gift_card(
@@ -25,7 +25,6 @@ def test_checkout_total_balance_with_gift_card(
     permission_manage_gift_card,
     permission_manage_orders,
     mark_as_paid_strategy,
-    expected_total_balance_after_adding_gift_card,
 ):
     # Before
     permissions = [
@@ -102,4 +101,6 @@ def test_checkout_total_balance_with_gift_card(
     # Step 4 - Check checkout total balance
     checkout_data = get_checkout(e2e_logged_api_client, checkout_data["id"])
     total_balance_amount = checkout_data["totalBalance"]["amount"]
-    assert total_balance_amount == expected_total_balance_after_adding_gift_card
+    assert total_balance_amount == -(
+        calculated_subtotal - gift_card["initialBalance"]["amount"]
+    )
