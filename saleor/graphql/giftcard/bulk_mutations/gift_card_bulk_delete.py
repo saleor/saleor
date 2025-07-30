@@ -19,7 +19,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = "Delete gift cards."
+        description = "Deletes gift cards."
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)

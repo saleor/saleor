@@ -14901,7 +14901,7 @@ type Mutation {
   ): WebhookCreate @doc(category: "Webhooks")
 
   """
-  Delete a webhook. Before the deletion, the webhook is deactivated to pause any deliveries that are already scheduled. The deletion might fail if delivery is in progress. In such a case, the webhook is not deleted but remains deactivated. 
+  Deletes a webhook. Before the deletion, the webhook is deactivated to pause any deliveries that are already scheduled. The deletion might fail if delivery is in progress. In such a case, the webhook is not deleted but remains deactivated. 
   
   Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
   """
@@ -14960,7 +14960,7 @@ type Mutation {
   ): WebhookTrigger @doc(category: "Webhooks")
 
   """
-  Creates new warehouse. 
+  Creates a new warehouse. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
@@ -15022,7 +15022,7 @@ type Mutation {
   ): WarehouseShippingZoneUnassign @doc(category: "Products")
 
   """
-  Create a tax class. 
+  Creates a tax class. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -15032,7 +15032,7 @@ type Mutation {
   ): TaxClassCreate @doc(category: "Taxes")
 
   """
-  Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
+  Deletes a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -15042,7 +15042,7 @@ type Mutation {
   ): TaxClassDelete @doc(category: "Taxes")
 
   """
-  Update a tax class. 
+  Updates a tax class. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -15055,7 +15055,7 @@ type Mutation {
   ): TaxClassUpdate @doc(category: "Taxes")
 
   """
-  Update tax configuration for a channel. 
+  Updates tax configuration for a channel. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -15068,7 +15068,7 @@ type Mutation {
   ): TaxConfigurationUpdate @doc(category: "Taxes")
 
   """
-  Update tax class rates for a specific country. 
+  Updates tax class rates for a specific country. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -15145,7 +15145,7 @@ type Mutation {
   ): StaffNotificationRecipientUpdate @doc(category: "Users")
 
   """
-  Delete staff notification recipient. 
+  Deletes staff notification recipient. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
@@ -15858,7 +15858,7 @@ type Mutation {
   ): DigitalContentDelete @doc(category: "Products")
 
   """
-  Update digital content. 
+  Updates digital content. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
@@ -15923,7 +15923,7 @@ type Mutation {
   ): ProductVariantBulkCreate @doc(category: "Products")
 
   """
-  Update multiple product variants. 
+  Updates multiple product variants. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
@@ -15965,7 +15965,7 @@ type Mutation {
   ): ProductVariantStocksCreate @doc(category: "Products")
 
   """
-  Delete stocks from product variant. 
+  Deletes stocks from product variant. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
@@ -15981,7 +15981,7 @@ type Mutation {
   ): ProductVariantStocksDelete @doc(category: "Products")
 
   """
-  Update stocks for product variant. 
+  Updates stocks for product variant. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
@@ -16045,7 +16045,7 @@ type Mutation {
   ): ProductVariantTranslate @doc(category: "Products")
 
   """
-  Creates/updates translations for products variants. 
+  Creates/updates translations for product variants. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   
@@ -16057,7 +16057,7 @@ type Mutation {
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum
 
-    """List of products variants translations."""
+    """List of product variant translations."""
     translations: [ProductVariantBulkTranslateInput!]!
   ): ProductVariantBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: [])
 
@@ -16186,7 +16186,7 @@ type Mutation {
   ): PaymentCheckBalance @doc(category: "Payments")
 
   """
-  Create transaction for checkout or order. 
+  Creates transaction for checkout or order. 
   
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
@@ -16556,7 +16556,7 @@ type Mutation {
   ): PageTranslate @doc(category: "Pages")
 
   """
-  Create a new page type. 
+  Creates a new page type. 
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
@@ -16566,7 +16566,7 @@ type Mutation {
   ): PageTypeCreate @doc(category: "Pages")
 
   """
-  Update page type. 
+  Updates page type. 
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
@@ -16579,7 +16579,7 @@ type Mutation {
   ): PageTypeUpdate @doc(category: "Pages")
 
   """
-  Delete a page type. 
+  Deletes a page type. 
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
@@ -16589,7 +16589,7 @@ type Mutation {
   ): PageTypeDelete @doc(category: "Pages")
 
   """
-  Delete page types. 
+  Deletes page types. 
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
@@ -16888,7 +16888,7 @@ type Mutation {
   ): OrderGrantRefundUpdate @doc(category: "Orders")
 
   """
-  Create order lines for an order. 
+  Creates order lines for an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -17415,7 +17415,7 @@ type Mutation {
   ): GiftCardCreate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_CREATED, NOTIFY_USER], syncEvents: [])
 
   """
-  Delete gift card. 
+  Deletes gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -17486,7 +17486,7 @@ type Mutation {
   ): GiftCardAddNote @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: [])
 
   """
-  Create gift cards. 
+  Creates gift cards. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -17500,7 +17500,7 @@ type Mutation {
   ): GiftCardBulkCreate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_CREATED, NOTIFY_USER], syncEvents: [])
 
   """
-  Delete gift cards. 
+  Deletes gift cards. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
@@ -18031,7 +18031,7 @@ type Mutation {
   ): CheckoutAddPromoCode @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
-  Update billing address in the existing checkout.
+  Updates billing address in the existing checkout.
   
   Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
@@ -18117,7 +18117,7 @@ type Mutation {
     input: CheckoutCreateInput!
   ): CheckoutCreate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_CREATED], syncEvents: [])
 
-  """Create new checkout from existing order."""
+  """Creates a new checkout from existing order."""
   checkoutCreateFromOrder(
     """ID of a order that will be used to create the checkout."""
     id: ID!
@@ -18306,7 +18306,7 @@ type Mutation {
     token: UUID @deprecated(reason: "Use `id` instead.")
   ): CheckoutRemovePromoCode @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
-  """Create a new payment for given checkout."""
+  """Creates a new payment for given checkout."""
   checkoutPaymentCreate(
     """The ID of the checkout."""
     checkoutId: ID @deprecated(reason: "Use `id` instead.")
@@ -18322,7 +18322,7 @@ type Mutation {
   ): CheckoutPaymentCreate @doc(category: "Checkout")
 
   """
-  Update shipping address in the existing checkout.
+  Updates shipping address in the existing checkout.
   
   Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
@@ -18391,7 +18391,7 @@ type Mutation {
   ): CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT])
 
   """
-  Update language code in the existing checkout.
+  Updates language code in the existing checkout.
   
   Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
@@ -18450,7 +18450,7 @@ type Mutation {
   ): OrderCreateFromCheckout @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [ORDER_CREATED, NOTIFY_USER, NOTIFY_USER, ORDER_UPDATED, ORDER_PAID, ORDER_FULLY_PAID, ORDER_CONFIRMED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS, CHECKOUT_CALCULATE_TAXES])
 
   """
-  Creates new channel. 
+  Creates a new channel. 
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   
@@ -18483,7 +18483,7 @@ type Mutation {
   ): ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED, CHANNEL_METADATA_UPDATED], syncEvents: [])
 
   """
-  Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. 
+  Deletes a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. 
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   
@@ -18724,7 +18724,7 @@ type Mutation {
   ): AttributeValueUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_UPDATED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
-  Creates/updates translations for attributes values. 
+  Creates/updates translations for attribute values. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
@@ -18860,7 +18860,7 @@ type Mutation {
   ): AppRetryInstall @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_INSTALLED], syncEvents: [])
 
   """
-  Delete failed installation. 
+  Deletes failed installation. 
   
   Requires one of the following permissions: MANAGE_APPS.
   """
@@ -19171,7 +19171,7 @@ type Mutation {
   ): AccountAddressUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_UPDATED], syncEvents: [])
 
   """
-  Delete an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+  Deletes an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
   
   Triggers the following webhook events:
   - ADDRESS_DELETED (async): An address was deleted.
@@ -19617,7 +19617,7 @@ input WebhookCreateInput @doc(category: "Webhooks") {
 }
 
 """
-Delete a webhook. Before the deletion, the webhook is deactivated to pause any deliveries that are already scheduled. The deletion might fail if delivery is in progress. In such a case, the webhook is not deleted but remains deactivated. 
+Deletes a webhook. Before the deletion, the webhook is deactivated to pause any deliveries that are already scheduled. The deletion might fail if delivery is in progress. In such a case, the webhook is not deleted but remains deactivated. 
 
 Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
 """
@@ -19756,7 +19756,7 @@ enum WebhookTriggerErrorCode @doc(category: "Webhooks") {
 }
 
 """
-Creates new warehouse. 
+Creates a new warehouse. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -19879,7 +19879,7 @@ type WarehouseShippingZoneUnassign @doc(category: "Products") {
 }
 
 """
-Create a tax class. 
+Creates a tax class. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -19929,7 +19929,7 @@ input CountryRateInput @doc(category: "Taxes") {
 }
 
 """
-Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
+Deletes a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -19958,7 +19958,7 @@ enum TaxClassDeleteErrorCode @doc(category: "Taxes") {
 }
 
 """
-Update a tax class. 
+Updates a tax class. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -20016,7 +20016,7 @@ input CountryRateUpdateInput @doc(category: "Taxes") {
 }
 
 """
-Update tax configuration for a channel. 
+Updates tax configuration for a channel. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -20119,7 +20119,7 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
 }
 
 """
-Update tax class rates for a specific country. 
+Updates tax class rates for a specific country. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -20355,7 +20355,7 @@ type StaffNotificationRecipientUpdate @doc(category: "Users") {
 }
 
 """
-Delete staff notification recipient. 
+Deletes staff notification recipient. 
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
@@ -22439,7 +22439,7 @@ type DigitalContentDelete @doc(category: "Products") {
 }
 
 """
-Update digital content. 
+Updates digital content. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -22677,7 +22677,7 @@ type BulkProductError @doc(category: "Products") {
 }
 
 """
-Update multiple product variants. 
+Updates multiple product variants. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -22838,7 +22838,7 @@ type BulkStockError @doc(category: "Products") {
 }
 
 """
-Delete stocks from product variant. 
+Deletes stocks from product variant. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -22872,7 +22872,7 @@ enum StockErrorCode @doc(category: "Products") {
 }
 
 """
-Update stocks for product variant. 
+Updates stocks for product variant. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -22965,7 +22965,7 @@ input NameTranslationInput {
 }
 
 """
-Creates/updates translations for products variants. 
+Creates/updates translations for product variants. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 
@@ -23222,7 +23222,7 @@ input MoneyInput {
 }
 
 """
-Create transaction for checkout or order. 
+Creates transaction for checkout or order. 
 
 Requires one of the following permissions: HANDLE_PAYMENTS.
 """
@@ -24071,7 +24071,7 @@ input PageTranslationInput {
 }
 
 """
-Create a new page type. 
+Creates a new page type. 
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
@@ -24093,7 +24093,7 @@ input PageTypeCreateInput @doc(category: "Pages") {
 }
 
 """
-Update page type. 
+Updates page type. 
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
@@ -24118,7 +24118,7 @@ input PageTypeUpdateInput @doc(category: "Pages") {
 }
 
 """
-Delete a page type. 
+Deletes a page type. 
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
@@ -24129,7 +24129,7 @@ type PageTypeDelete @doc(category: "Pages") {
 }
 
 """
-Delete page types. 
+Deletes page types. 
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
@@ -24926,7 +24926,7 @@ input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {
 }
 
 """
-Create order lines for an order. 
+Creates order lines for an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -26215,7 +26215,7 @@ input PriceInput {
 }
 
 """
-Delete gift card. 
+Deletes gift card. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -26343,7 +26343,7 @@ input GiftCardAddNoteInput @doc(category: "Gift cards") {
 }
 
 """
-Create gift cards. 
+Creates gift cards. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -26378,7 +26378,7 @@ input GiftCardBulkCreateInput @doc(category: "Gift cards") {
 }
 
 """
-Delete gift cards. 
+Deletes gift cards. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
@@ -27787,7 +27787,7 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
 }
 
 """
-Update billing address in the existing checkout.
+Updates billing address in the existing checkout.
 
 Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
@@ -27964,7 +27964,7 @@ input CheckoutValidationRules @doc(category: "Checkout") {
   billingAddress: CheckoutAddressValidationRules
 }
 
-"""Create new checkout from existing order."""
+"""Creates a new checkout from existing order."""
 type CheckoutCreateFromOrder @doc(category: "Checkout") {
   """Variants that were not attached to the checkout."""
   unavailableVariants: [CheckoutCreateFromOrderUnavailableVariant!]
@@ -28167,7 +28167,7 @@ type CheckoutRemovePromoCode @doc(category: "Checkout") @webhookEventsInfo(async
   errors: [CheckoutError!]!
 }
 
-"""Create a new payment for given checkout."""
+"""Creates a new payment for given checkout."""
 type CheckoutPaymentCreate @doc(category: "Checkout") {
   """Related checkout object."""
   checkout: Checkout
@@ -28225,7 +28225,7 @@ enum StorePaymentMethodEnum @doc(category: "Payments") {
 }
 
 """
-Update shipping address in the existing checkout.
+Updates shipping address in the existing checkout.
 
 Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
@@ -28265,7 +28265,7 @@ type CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(
 }
 
 """
-Update language code in the existing checkout.
+Updates language code in the existing checkout.
 
 Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
@@ -28335,7 +28335,7 @@ enum OrderCreateFromCheckoutErrorCode @doc(category: "Orders") {
 }
 
 """
-Creates new channel. 
+Creates a new channel. 
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 
@@ -28616,7 +28616,7 @@ input ChannelUpdateInput @doc(category: "Channels") {
 }
 
 """
-Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. 
+Deletes a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. 
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 
@@ -29162,7 +29162,7 @@ type AttributeValueUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncE
 }
 
 """
-Creates/updates translations for attributes values. 
+Creates/updates translations for attribute values. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
@@ -29427,7 +29427,7 @@ type AppRetryInstall @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP
 }
 
 """
-Delete failed installation. 
+Deletes failed installation. 
 
 Requires one of the following permissions: MANAGE_APPS.
 """
@@ -29952,7 +29952,7 @@ type AccountAddressUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents
 }
 
 """
-Delete an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+Deletes an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
 
 Triggers the following webhook events:
 - ADDRESS_DELETED (async): An address was deleted.

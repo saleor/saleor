@@ -14,7 +14,7 @@ class StaffNotificationRecipientDelete(ModelDeleteMutation):
         )
 
     class Meta:
-        description = "Delete staff notification recipient."
+        description = "Deletes staff notification recipient."
         model = account_models.StaffNotificationRecipient
         object_type = StaffNotificationRecipient
         permissions = (SitePermissions.MANAGE_SETTINGS,)

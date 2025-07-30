@@ -18,7 +18,7 @@ class PageTypeDelete(ModelDeleteMutation):
         id = graphene.ID(required=True, description="ID of the page type to delete.")
 
     class Meta:
-        description = "Delete a page type."
+        description = "Deletes a page type."
         model = models.PageType
         object_type = PageType
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)

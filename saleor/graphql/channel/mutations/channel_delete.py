@@ -38,7 +38,7 @@ class ChannelDelete(ModelDeleteMutation):
 
     class Meta:
         description = (
-            "Delete a channel. Orders associated with the deleted "
+            "Deletes a channel. Orders associated with the deleted "
             "channel will be moved to the target channel. "
             "Checkouts, product availability, and pricing will be removed."
         )

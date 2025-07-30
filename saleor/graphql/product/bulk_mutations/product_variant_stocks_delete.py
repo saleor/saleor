@@ -39,7 +39,7 @@ class ProductVariantStocksDelete(BaseMutation):
         )
 
     class Meta:
-        description = "Delete stocks from product variant."
+        description = "Deletes stocks from product variant."
         doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = StockError
