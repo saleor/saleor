@@ -58,7 +58,7 @@ class TaxClassCreate(DeprecatedModelMutation):
         )
 
     class Meta:
-        description = "Create a tax class."
+        description = "Creates a tax class."
         error_type_class = TaxClassCreateError
         model = models.TaxClass
         object_type = TaxClass

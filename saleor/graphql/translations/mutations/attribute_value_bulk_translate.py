@@ -76,7 +76,7 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
         )
 
     class Meta:
-        description = "Creates/updates translations for attributes values."
+        description = "Creates/updates translations for attribute values."
         base_model = models.AttributeValue
         translation_model = models.AttributeValueTranslation
         translation_fields = ["name", "rich_text", "plain_text"]
