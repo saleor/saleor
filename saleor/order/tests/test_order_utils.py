@@ -9,9 +9,16 @@ from ...discount import DiscountType, DiscountValueType
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...graphql.order.utils import OrderLineData
+from ...order.utils import update_order_authorize_data, update_order_charge_data
 from ...payment import TransactionEventType
+from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
-from .. import OrderGrantedRefundStatus, OrderStatus
+from .. import (
+    OrderAuthorizeStatus,
+    OrderChargeStatus,
+    OrderGrantedRefundStatus,
+    OrderStatus,
+)
 from ..events import OrderEvents
 from ..fetch import OrderLineInfo
 from ..models import Order, OrderEvent
@@ -452,6 +459,114 @@ def test_add_gift_cards_to_order_no_checkout_user(
             "old_current_balance": "20.000",
         },
     }
+
+
+def test_add_gift_cards_to_order_creates_gift_card_transaction(
+    checkout_with_item, gift_card, order, staff_user
+):
+    # given
+    assert TransactionItem.objects.exists() is False
+    checkout = checkout_with_item
+    checkout.gift_cards.add(gift_card)
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total_price_left = Money(30, gift_card.currency)
+
+    # when
+    add_gift_cards_to_order(
+        checkout_info,
+        order,
+        total_price_left,
+        staff_user,
+        None,
+        create_gift_card_transaction=True,
+    )
+
+    # then
+    gift_card.refresh_from_db()
+    transaction = TransactionItem.objects.get()
+    assert transaction.order == order
+    assert transaction.user is None
+    assert transaction.app is None
+    assert transaction.psp_reference is None
+    assert transaction.available_actions == []
+    assert transaction.charged_value == gift_card.initial_balance_amount
+    assert gift_card.display_code in transaction.name
+
+
+@pytest.mark.parametrize(
+    ("total_price_left_amount", "expected_gift_card_transactions_count"),
+    [
+        (5, 1),
+        (30, 2),
+    ],
+)
+def test_add_gift_cards_to_order_creates_gift_card_transaction_for_each_used_gift_card(
+    checkout_with_item,
+    gift_card,
+    gift_card_expiry_date,
+    order,
+    staff_user,
+    total_price_left_amount,
+    expected_gift_card_transactions_count,
+):
+    # given
+    assert TransactionItem.objects.exists() is False
+    checkout = checkout_with_item
+    checkout.gift_cards.add(gift_card, gift_card_expiry_date)
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total_price_left = Money(total_price_left_amount, gift_card.currency)
+
+    # when
+    add_gift_cards_to_order(
+        checkout_info,
+        order,
+        total_price_left,
+        staff_user,
+        None,
+        create_gift_card_transaction=True,
+    )
+
+    # then
+    assert TransactionItem.objects.count() == expected_gift_card_transactions_count
+
+
+def test_add_gift_cards_to_order_updates_amounts_for_order(
+    checkout_with_item,
+    gift_card,
+    order_with_lines,
+    staff_user,
+):
+    checkout = checkout_with_item
+    checkout.gift_cards.add(gift_card)
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    assert order_with_lines.total_charged_amount == 0
+    assert order_with_lines.charge_status == OrderChargeStatus.NONE
+    assert order_with_lines.authorize_status == OrderAuthorizeStatus.NONE
+
+    # when
+    add_gift_cards_to_order(
+        checkout_info,
+        order_with_lines,
+        order_with_lines.total_gross,
+        staff_user,
+        None,
+        create_gift_card_transaction=True,
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    update_order_charge_data(order_with_lines, with_save=False)
+    update_order_authorize_data(order_with_lines, with_save=False)
+    assert order_with_lines.total_charged_amount == gift_card.initial_balance_amount
+    assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
+    assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
 
 
 def test_get_total_order_discount_excluding_shipping(order, voucher_shipping_type):

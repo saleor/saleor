@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from ..account.models import User
@@ -211,7 +212,7 @@ def gift_card_note_added_event(
 
 
 def gift_cards_used_in_order_event(
-    balance_data: Iterable[tuple[GiftCard, float]],
+    balance_data: Iterable[tuple[GiftCard, Decimal]],
     order: "Order",
     user: User | None,
     app: App | None,

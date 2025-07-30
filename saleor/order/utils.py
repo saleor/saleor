@@ -473,7 +473,7 @@ def add_gift_cards_to_order(
     total_before_gift_card_compensation = total_price_left
     order_gift_cards = []
     gift_cards_to_update = []
-    balance_data: list[tuple[GiftCard, float]] = []
+    balance_data: list[tuple[GiftCard, Decimal]] = []
     used_by_user = checkout_info.user
     used_by_email = cast(str, checkout_info.get_customer_email())
     for gift_card in checkout_info.checkout.gift_cards.select_for_update():
@@ -503,28 +503,13 @@ def add_gift_cards_to_order(
         for gift_card, old_current_balance in balance_data:
             create_transaction_for_order(
                 order=order,
-                user=user,
-                app=app,
-                psp_reference=gift_card.display_code,
+                user=None,  # user is not an owner of this transaction
+                app=None,  # app is not an owner of this transaction
+                psp_reference=None,
                 charged_value=old_current_balance - gift_card.current_balance.amount,
-                available_actions=[],  # MW-ASK: should we have any actions here?
-                name="Gift card",
+                available_actions=[],  # What would happen if we wanted to refund this transaction?
+                name=f"Gift card (***{gift_card.display_code})",
             )
-            updates_amounts_for_order(order)
-            # events.order_manually_marked_as_paid_event(
-            #     order=order,
-            #     user=request_user,
-            #     app=app,
-            #     transaction_reference=external_reference,
-            # )
-            # call_order_events(
-            #     manager,
-            #     [
-            #         WebhookEventAsyncType.ORDER_FULLY_PAID,
-            #         WebhookEventAsyncType.ORDER_UPDATED,
-            #     ],
-            #     order,
-            # )
 
     gift_card_compensation = total_before_gift_card_compensation - total_price_left
     if gift_card_compensation.amount > 0:
@@ -541,7 +526,7 @@ def add_gift_cards_to_order(
 def update_gift_card_balance(
     gift_card: GiftCard,
     total_price_left: Money,
-    balance_data: list[tuple[GiftCard, float]],
+    balance_data: list[tuple[GiftCard, Decimal]],
 ) -> Money:
     previous_balance = gift_card.current_balance
     if total_price_left < gift_card.current_balance:

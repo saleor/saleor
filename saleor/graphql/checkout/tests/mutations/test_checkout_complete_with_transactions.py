@@ -264,13 +264,6 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     assert not data["errors"]
     assert to_global_id_or_none(order) == data["order"]["id"]
 
-    gift_card_transaction = TransactionItem.objects.get(order_id=order.pk)
-
-    gift_card.refresh_from_db()
-    assert gift_card_transaction.psp_reference == gift_card.display_code
-    assert gift_card_transaction.charged_value == gift_card.initial_balance_amount
-    assert gift_card.current_balance == zero_money(gift_card.currency)
-
     assert order.total_charged == gift_card.initial_balance
     assert order.total_authorized == zero_money(order.currency)
     assert order.charge_status == OrderChargeStatus.PARTIAL
@@ -457,18 +450,6 @@ def test_checkout_with_authorized(
     assert not Checkout.objects.filter()
     assert not len(Reservation.objects.all())
 
-    transactions = TransactionItem.objects.filter(order_id=order.pk).order_by(
-        "created_at"
-    )
-    assert transactions.count() == 2
-    assert transactions[0] == transaction
-
-    gift_card.refresh_from_db()
-    gift_card_transaction = transactions[1]
-    assert gift_card_transaction.psp_reference == gift_card.display_code
-    assert gift_card_transaction.charged_value == gift_card.initial_balance_amount
-    assert gift_card.current_balance == zero_money(gift_card.currency)
-
     customer_user.refresh_from_db()
     assert customer_user.number_of_orders == user_number_of_orders + 1
 
@@ -518,7 +499,7 @@ def test_checkout_with_charged(
 
     total_gift_cards_balance = checkout.get_total_gift_cards_balance()
 
-    transaction = transaction_item_generator(
+    transaction_item_generator(
         checkout_id=checkout.pk,
         charged_value=(total - total_gift_cards_balance).gross.amount,
     )
@@ -545,15 +526,6 @@ def test_checkout_with_charged(
     transactions = TransactionItem.objects.filter(order_id=order.pk).order_by(
         "created_at"
     )
-    assert transactions.count() == 2
-    assert transactions[0] == transaction
-
-    gift_card.refresh_from_db()
-    gift_card_transaction = transactions[1]
-    assert gift_card_transaction.psp_reference == gift_card.display_code
-    assert gift_card_transaction.charged_value == gift_card.initial_balance_amount
-    assert gift_card.current_balance == zero_money(gift_card.currency)
-
     assert order.total_charged_amount == sum([t.charged_value for t in transactions])
     assert order.total_authorized == zero_money(order.currency)
     assert order.charge_status == OrderChargeStatus.FULL
