@@ -1,4 +1,5 @@
 import graphene
+from babel.numbers import get_currency_precision
 
 from ....core.prices import quantize_price
 from ...core.doc_category import DOC_CATEGORY_TAXES
@@ -8,6 +9,14 @@ from ...core.types import BaseObjectType
 class Money(graphene.ObjectType):
     currency = graphene.String(description="Currency code.", required=True)
     amount = graphene.Float(description="Amount of money.", required=True)
+    fractional_amount = graphene.Int(
+        description="Amount of money represented as an integer in the smallest currency unit.",
+        required=True,
+    )
+    fraction_digits = graphene.Int(
+        description="Number of digits after the decimal point in the currency.",
+        required=True,
+    )
 
     class Meta:
         description = "Represents amount of money in specific currency."
@@ -15,6 +24,15 @@ class Money(graphene.ObjectType):
     @staticmethod
     def resolve_amount(root, _info):
         return quantize_price(root.amount, root.currency)
+
+    @staticmethod
+    def resolve_fractional_amount(root, _info):
+        precision = get_currency_precision(root.currency)
+        return int(quantize_price(root.amount, root.currency) * (10**precision))
+
+    @staticmethod
+    def resolve_fraction_digits(root, _info):
+        return get_currency_precision(root.currency)
 
 
 class MoneyRange(graphene.ObjectType):
