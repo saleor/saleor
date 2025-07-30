@@ -18,6 +18,7 @@ from ..core.filters.where_input import ContainsFilterInput, StringFilterInput
 from ..core.types import DateRangeInput, DateTimeRangeInput
 from ..core.types.base import BaseInputObjectType
 from ..utils.filters import (
+    Number,
     filter_range_field,
     filter_where_by_numeric_field,
     filter_where_by_value_field,
@@ -571,6 +572,86 @@ def filter_by_date_time_attribute(
         **{str(assigned_id_field_name): OuterRef("id")},
     )
     return Exists(assigned_attr_value)
+
+
+def get_attribute_values_by_slug_or_name_value(
+    attr_id: int | None,
+    attr_value: dict,
+    db_connection_name: str,
+) -> QuerySet[AttributeValue]:
+    attribute_values = AttributeValue.objects.using(db_connection_name).filter(
+        **{"attribute_id": attr_id} if attr_id else {}
+    )
+    if "slug" in attr_value:
+        attribute_values = filter_where_by_value_field(
+            attribute_values, "slug", attr_value["slug"]
+        )
+    if "name" in attr_value:
+        attribute_values = filter_where_by_value_field(
+            attribute_values, "name", attr_value["name"]
+        )
+    return attribute_values
+
+
+def get_attribute_values_by_numeric_value(
+    attr_id: int | None,
+    numeric_value: dict[str, Number | list[Number] | dict[str, Number]],
+    db_connection_name: str,
+) -> QuerySet[AttributeValue]:
+    qs_by_numeric = AttributeValue.objects.using(db_connection_name).filter(
+        attribute__input_type=AttributeInputType.NUMERIC,
+        **{"attribute_id": attr_id} if attr_id else {},
+    )
+    qs_by_numeric = filter_where_by_numeric_field(
+        qs_by_numeric,
+        "numeric",
+        numeric_value,
+    )
+    return qs_by_numeric
+
+
+def get_attribute_values_by_boolean_value(
+    attr_id: int | None,
+    boolean_value: bool,
+    db_connection_name: str,
+) -> QuerySet[AttributeValue]:
+    qs_by_boolean = AttributeValue.objects.using(db_connection_name).filter(
+        attribute__input_type=AttributeInputType.BOOLEAN,
+        **{"attribute_id": attr_id} if attr_id else {},
+    )
+    return qs_by_boolean.filter(boolean=boolean_value)
+
+
+def get_attribute_values_by_date_value(
+    attr_id: int | None,
+    date_value: dict[str, str],
+    db_connection_name: str,
+) -> QuerySet[AttributeValue]:
+    qs_by_date = AttributeValue.objects.using(db_connection_name).filter(
+        attribute__input_type=AttributeInputType.DATE,
+        **{"attribute_id": attr_id} if attr_id else {},
+    )
+    return filter_range_field(
+        qs_by_date,
+        "date_time__date",
+        date_value,
+    )
+
+
+def get_attribute_values_by_date_time_value(
+    attr_id: int | None,
+    date_value: dict[str, str],
+    db_connection_name: str,
+) -> QuerySet[AttributeValue]:
+    qs_by_date = AttributeValue.objects.using(db_connection_name).filter(
+        attribute__input_type=AttributeInputType.DATE_TIME,
+        **{"attribute_id": attr_id} if attr_id else {},
+    )
+    return filter_range_field(
+        qs_by_date,
+        "date_time",
+        date_value,
+    )
 
 
 def filter_objects_by_attributes[T: (page_models.Page, product_models.Product)](

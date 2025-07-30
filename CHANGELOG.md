@@ -91,6 +91,7 @@ Like `reference`, the `single-reference` type can target entities defined in the
 - Extended support for filtering `products` by associated attributes
   - Attribute slug is now optional when filtering by attribute values
   - Added support for filtering by associated reference objects (e.g., `products`, `pages`, `variants`)
+- Add support for filtering `productVariants` by associated attributes
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
