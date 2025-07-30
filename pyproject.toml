@@ -19,6 +19,9 @@ build-schema.cmd = "python manage.py get_graphql_schema"
 build-schema.capture_stdout = "saleor/graphql/schema.graphql"
 build-schema.help = "Build GraphQL schema to saleor/graphql/schema.graphql file"
 
+generate-docs.cmd = "python scripts/generate_graphql_docs.py"
+generate-docs.help = "Generate GraphQL API documentation from schema"
+
 migrate.cmd = "python manage.py migrate"
 migrate.help = "Run database migrations"
 
