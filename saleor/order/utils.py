@@ -501,12 +501,29 @@ def add_gift_cards_to_order(
 
     if create_gift_card_transaction:
         for gift_card, old_current_balance in balance_data:
+            charged_value = old_current_balance - gift_card.current_balance_amount
+            if charged_value < Decimal(0):
+                charged_value = Decimal(0)
+
+                details = {
+                    "checkout_id": graphene.Node.to_global_id(
+                        "Checkout", checkout_info.checkout.pk
+                    ),
+                    "old_current_balance": str(old_current_balance),
+                    "gift_card.current_balance_amount": str(
+                        gift_card.current_balance_amount
+                    ),
+                }
+                logger.error(
+                    "Gift card transaction charged value below 0.", extra=details
+                )
+
             create_transaction_for_order(
                 order=order,
                 user=None,  # user is not an owner of this transaction
                 app=None,  # app is not an owner of this transaction
                 psp_reference=None,
-                charged_value=old_current_balance - gift_card.current_balance.amount,
+                charged_value=charged_value,
                 available_actions=[],  # What would happen if we wanted to refund this transaction?
                 name=f"Gift card (***{gift_card.display_code})",
             )
