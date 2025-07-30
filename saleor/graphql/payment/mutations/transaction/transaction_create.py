@@ -117,7 +117,7 @@ class TransactionCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Create transaction for checkout or order."
+        description = "Creates transaction for checkout or order."
         doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)

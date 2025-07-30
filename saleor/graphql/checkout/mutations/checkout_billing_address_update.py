@@ -60,7 +60,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         )
 
     class Meta:
-        description = "Update billing address in the existing checkout."
+        description = "Updates billing address in the existing checkout."
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"

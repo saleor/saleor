@@ -35,7 +35,7 @@ class PageTypeUpdate(PageTypeMixin, DeprecatedModelMutation):
         )
 
     class Meta:
-        description = "Update page type."
+        description = "Updates page type."
         model = models.PageType
         object_type = PageType
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)

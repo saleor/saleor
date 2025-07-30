@@ -152,7 +152,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update multiple product variants."
+        description = "Updates multiple product variants."
         doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductVariantBulkError

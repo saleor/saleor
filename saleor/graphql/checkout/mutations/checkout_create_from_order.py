@@ -73,7 +73,7 @@ class CheckoutCreateFromOrder(BaseMutation):
         )
 
     class Meta:
-        description = "Create new checkout from existing order."
+        description = "Creates a new checkout from existing order."
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutCreateFromOrderError
 
