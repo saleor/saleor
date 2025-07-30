@@ -3,7 +3,8 @@ import math
 from collections import defaultdict
 from typing import TypedDict
 
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, QuerySet
+from graphql import GraphQLError
 
 from ....attribute import AttributeInputType
 from ....attribute.models import (
@@ -13,9 +14,10 @@ from ....attribute.models import (
     Attribute,
     AttributeValue,
 )
-from ....product.models import (
-    Product,
-    ProductVariant,
+from ....product.models import Product, ProductVariant
+from ...attribute.shared_filters import (
+    filter_objects_by_attributes,
+    validate_attribute_value_input,
 )
 
 T_PRODUCT_FILTER_QUERIES = dict[int, list[int]]
@@ -234,7 +236,7 @@ def filter_products_by_attributes_values_qs(qs, values_qs):
     return qs.filter(product_attribute_filter | variant_attribute_filter)
 
 
-def filter_products_by_attributes(
+def _filter_products_by_deprecated_attributes_input(
     qs,
     filter_slug_values,
     filter_name_values,
@@ -276,43 +278,7 @@ def filter_products_by_attributes(
     return filter_products_by_attributes_values(qs, queries)
 
 
-def filter_attributes(qs, _, value):
-    if value:
-        slug_value_list = []
-        name_value_list = []
-        boolean_list = []
-        value_range_list = []
-        date_range_list = []
-        date_time_range_list = []
-
-        for v in value:
-            slug = v["slug"]
-            if "values" in v:
-                slug_value_list.append((slug, v["values"]))
-            elif "value_names" in v:
-                name_value_list.append((slug, v["value_names"]))
-            elif "values_range" in v:
-                value_range_list.append((slug, v["values_range"]))
-            elif "date" in v:
-                date_range_list.append((slug, v["date"]))
-            elif "date_time" in v:
-                date_time_range_list.append((slug, v["date_time"]))
-            elif "boolean" in v:
-                boolean_list.append((slug, v["boolean"]))
-
-        qs = filter_products_by_attributes(
-            qs,
-            slug_value_list,
-            name_value_list,
-            value_range_list,
-            boolean_list,
-            date_range_list,
-            date_time_range_list,
-        )
-    return qs
-
-
-def where_filter_attributes(qs, _, value):
+def deprecated_filter_attributes(qs, value):
     if not value:
         return qs.none()
 
@@ -338,7 +304,7 @@ def where_filter_attributes(qs, _, value):
         elif "boolean" in v:
             boolean_list.append((slug, v["boolean"]))
 
-    qs = filter_products_by_attributes(
+    qs = _filter_products_by_deprecated_attributes_input(
         qs,
         slug_value_list,
         name_value_list,
@@ -348,3 +314,65 @@ def where_filter_attributes(qs, _, value):
         date_time_range_list,
     )
     return qs
+
+
+def _filter_products_by_attributes(qs, value):
+    return filter_objects_by_attributes(
+        qs,
+        value,
+        AssignedProductAttributeValue,
+        "product_id",
+    )
+
+
+def validate_attribute_input(attributes: list[dict], db_connection_name: str):
+    value_used_with_deprecated_input = []
+    missing_slug_for_deprecated_input: list[str] = []
+
+    used_deprecated_filter = [
+        # When input contains other fields than slug and value
+        bool(set(attr_data.keys()).difference({"slug", "value"}))
+        for attr_data in attributes
+    ]
+    mixed_filter_usage = len(set(used_deprecated_filter)) > 1
+    if mixed_filter_usage:
+        raise GraphQLError(
+            "The provided `attributes` input contains a mix of deprecated "
+            "and new fields. Please use either the new `value` field "
+            "exclusively or only the deprecated fields."
+        )
+
+    for index, attr_data in enumerate(attributes):
+        if set(attr_data.keys()).difference({"slug", "value"}):
+            # Input contains deprecated input values
+            if not attr_data.get("slug"):
+                missing_slug_for_deprecated_input.append(str(index))
+                continue
+            if "value" in attr_data:
+                value_used_with_deprecated_input.append(str(index))
+                continue
+    if missing_slug_for_deprecated_input:
+        raise GraphQLError(
+            "Attribute `slug` is required when using deprecated fields in "
+            "the `attributes` input. "
+            f"Missing at indices: {', '.join(missing_slug_for_deprecated_input)}."
+        )
+    if value_used_with_deprecated_input:
+        raise GraphQLError(
+            "The `value` field cannot be used with deprecated fields in "
+            "the `attributes` input. "
+            f"Used at indices: {', '.join(value_used_with_deprecated_input)}."
+        )
+
+    validate_attribute_value_input(attributes, db_connection_name)
+
+
+def filter_products_by_attributes(
+    qs: QuerySet[Product], value: list[dict[str, str | dict | list | bool]]
+) -> QuerySet[Product]:
+    if not value:
+        return qs.none()
+
+    if set(value[0].keys()).difference({"slug", "value"}):
+        return deprecated_filter_attributes(qs, value)
+    return _filter_products_by_attributes(qs, value)

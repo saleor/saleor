@@ -55,6 +55,7 @@ from .filters import (
     AttributeValueWhereInput,
     search_attribute_values,
 )
+from .shared_filters import AssignedAttributeValueInput
 from .sorters import AttributeChoicesSortingInput
 from .utils.shared import ENTITY_TYPE_MAPPING
 
@@ -534,7 +535,15 @@ class SelectedAttribute(ChannelContextTypeForObjectType):
 
 
 class AttributeInput(BaseInputObjectType):
-    slug = graphene.String(required=True, description=AttributeDescriptions.SLUG)
+    slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
+    value = AssignedAttributeValueInput(
+        required=False,
+        description=(
+            "Filter by value of the attribute. Only one value input field is allowed. "
+            "If provided more than one, the error will be raised. Cannot be combined "
+            "with deprecated fields of `AttributeInput`. "
+        ),
+    )
     value_names = NonNullList(
         graphene.String,
         required=False,
@@ -551,26 +560,42 @@ class AttributeInput(BaseInputObjectType):
         description=(
             "Slugs identifying the attributeValues associated with the Attribute. "
             "When specified, it filters the results to include only records with "
-            "one of the matching values."
+            "one of the matching values. Requires `slug` to be provided. "
+            f" {DEPRECATED_IN_3X_INPUT} Use `value` instead."
         ),
     )
     values_range = graphene.Field(
         IntRangeInput,
         required=False,
-        description=AttributeValueDescriptions.VALUES_RANGE,
+        description=(
+            AttributeValueDescriptions.VALUES_RANGE
+            + " Requires `slug` to be provided. "
+            f"{DEPRECATED_IN_3X_INPUT} Use `value` instead."
+        ),
     )
     date_time = graphene.Field(
         DateTimeRangeInput,
         required=False,
-        description=AttributeValueDescriptions.DATE_TIME_RANGE,
+        description=(
+            AttributeValueDescriptions.DATE_TIME_RANGE
+            + " Requires `slug` to be provided. "
+            f"{DEPRECATED_IN_3X_INPUT} Use `value` instead."
+        ),
     )
     date = graphene.Field(
         DateRangeInput,
         required=False,
-        description=AttributeValueDescriptions.DATE_RANGE,
+        description=(
+            AttributeValueDescriptions.DATE_RANGE + " Requires `slug` to be provided. "
+            f"{DEPRECATED_IN_3X_INPUT} Use `value` instead."
+        ),
     )
     boolean = graphene.Boolean(
-        required=False, description=AttributeDescriptions.BOOLEAN
+        required=False,
+        description=(
+            AttributeDescriptions.BOOLEAN + " Requires `slug` to be provided. "
+            f"{DEPRECATED_IN_3X_INPUT} Use `value` instead."
+        ),
     )
 
     class Meta:
