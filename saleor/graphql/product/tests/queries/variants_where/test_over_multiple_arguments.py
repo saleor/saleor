@@ -1,6 +1,11 @@
 import pytest
 
+from ......attribute import AttributeEntityType, AttributeInputType, AttributeType
+from ......attribute.models.base import Attribute, AttributeValue
 from ......attribute.utils import associate_attribute_values_to_instance
+from ......page.models import Page
+from ......product.models import Product
+from .....core.utils import to_global_id_or_none
 from .....tests.utils import get_graphql_content
 from .shared import PRODUCT_VARIANTS_WHERE_QUERY
 
@@ -269,3 +274,136 @@ def test_product_variants_query_with_multiple_attribute_filters(
     content = get_graphql_content(response)
     product_variants_nodes = content["data"]["productVariants"]["edges"]
     assert len(product_variants_nodes) == expected_count_result
+
+
+@pytest.mark.parametrize(
+    ("filter_type", "expected_count"), [("containsAny", 3), ("containsAll", 1)]
+)
+def test_product_variants_query_with_multiple_attribute_referenced_ids(
+    filter_type,
+    expected_count,
+    staff_api_client,
+    product_variant_list,
+    page_type,
+    channel_USD,
+    product_type_product_reference_attribute,
+    product_type_page_reference_attribute,
+    variant,
+):
+    # given
+    assert len(product_variant_list) > expected_count
+
+    product_type = product_variant_list[0].product.product_type
+
+    variant_reference_attribute = Attribute.objects.create(
+        slug="second-variant-reference",
+        name="variant reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT_VARIANT,
+    )
+
+    product_type.variant_attributes.set(
+        [
+            product_type_product_reference_attribute,
+            product_type_page_reference_attribute,
+            variant_reference_attribute,
+        ]
+    )
+
+    referenced_page = Page.objects.create(
+        title="Referenced Page 1",
+        slug="referenced-page-1",
+        page_type=page_type,
+        is_published=True,
+    )
+    referenced_product = Product.objects.create(
+        name="Reference Product 1",
+        slug="ref-1",
+        product_type=product_type,
+    )
+    referenced_variant = variant
+
+    attr_ref_product, attr_ref_page, attr_ref_variant = (
+        AttributeValue.objects.bulk_create(
+            [
+                AttributeValue(
+                    attribute=product_type_product_reference_attribute,
+                    name=f"Product {referenced_product.pk}",
+                    slug=f"product-{referenced_product.pk}",
+                    reference_product=referenced_product,
+                ),
+                AttributeValue(
+                    attribute=product_type_page_reference_attribute,
+                    name=f"Page {referenced_page.pk}",
+                    slug=f"page-{referenced_page.pk}",
+                    reference_page=referenced_page,
+                ),
+                AttributeValue(
+                    attribute=variant_reference_attribute,
+                    name=f"Variant {referenced_variant.pk}",
+                    slug=f"variant-{referenced_variant.pk}",
+                    reference_variant=referenced_variant,
+                ),
+            ]
+        )
+    )
+    product_variant_with_all_references = product_variant_list[0]
+    associate_attribute_values_to_instance(
+        product_variant_with_all_references,
+        {
+            product_type_product_reference_attribute.pk: [attr_ref_product],
+            product_type_page_reference_attribute.pk: [attr_ref_page],
+            variant_reference_attribute.pk: [attr_ref_variant],
+        },
+    )
+    product_variant_with_two_references = product_variant_list[1]
+    associate_attribute_values_to_instance(
+        product_variant_with_two_references,
+        {
+            product_type_product_reference_attribute.pk: [attr_ref_product],
+            product_type_page_reference_attribute.pk: [attr_ref_page],
+        },
+    )
+    product_variant_with_single_reference = product_variant_list[3]
+    associate_attribute_values_to_instance(
+        product_variant_with_single_reference,
+        {
+            product_type_product_reference_attribute.pk: [attr_ref_product],
+        },
+    )
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "value": {
+                        "reference": {
+                            "referencedIds": {
+                                filter_type: [
+                                    to_global_id_or_none(referenced_product),
+                                    to_global_id_or_none(referenced_page),
+                                    to_global_id_or_none(referenced_variant),
+                                ]
+                            }
+                        }
+                    },
+                }
+            ]
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANTS_WHERE_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_variants_nodes = content["data"]["productVariants"]["edges"]
+    assert len(product_variants_nodes) == expected_count
+    returned_ids = [node["node"]["id"] for node in product_variants_nodes]
+    # Returned in both cases
+    assert to_global_id_or_none(product_variant_with_all_references) in returned_ids

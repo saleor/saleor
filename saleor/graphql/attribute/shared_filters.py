@@ -654,6 +654,93 @@ def get_attribute_values_by_date_time_value(
     )
 
 
+def _get_attribute_values_by_referenced_page_identifiers(
+    field_name: str,
+    identifiers: list[str] | list[int],
+    db_connection_name: str,
+):
+    pages = page_models.Page.objects.using(db_connection_name).filter(
+        **{f"{field_name}__in": identifiers}
+    )
+    return AttributeValue.objects.using(db_connection_name).filter(
+        Exists(pages.filter(id=OuterRef("reference_page_id"))),
+    )
+
+
+def get_attribute_values_by_referenced_page_slugs(
+    slugs: list[str], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_page_identifiers(
+        "slug", slugs, db_connection_name
+    )
+
+
+def get_attribute_values_by_referenced_page_ids(
+    ids: list[int], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_page_identifiers(
+        "id", ids, db_connection_name
+    )
+
+
+def _get_attribute_values_by_referenced_product_identifiers(
+    field_name: str,
+    identifiers: list[str] | list[int],
+    db_connection_name: str,
+) -> QuerySet[AttributeValue]:
+    products = product_models.Product.objects.using(db_connection_name).filter(
+        **{f"{field_name}__in": identifiers}
+    )
+    return AttributeValue.objects.using(db_connection_name).filter(
+        Exists(products.filter(id=OuterRef("reference_product_id"))),
+    )
+
+
+def get_attribute_values_by_referenced_product_slugs(
+    slugs: list[str], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_product_identifiers(
+        "slug", slugs, db_connection_name
+    )
+
+
+def get_attribute_values_by_referenced_product_ids(
+    ids: list[int], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_product_identifiers(
+        "id", ids, db_connection_name
+    )
+
+
+def _get_attribute_values_by_referenced_variant_identifiers(
+    field_name: str,
+    identifiers: list[str] | list[int],
+    db_connection_name: str,
+):
+    variants = product_models.ProductVariant.objects.using(db_connection_name).filter(
+        **{f"{field_name}__in": identifiers}
+    )
+    return AttributeValue.objects.using(db_connection_name).filter(
+        Exists(variants.filter(id=OuterRef("reference_variant_id"))),
+    )
+
+
+def get_attribute_values_by_referenced_variant_skus(
+    slugs: list[str], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_variant_identifiers(
+        "sku", slugs, db_connection_name
+    )
+
+
+def get_attribute_values_by_referenced_variant_ids(
+    ids: list[int], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_variant_identifiers(
+        "id", ids, db_connection_name
+    )
+
+
 def filter_objects_by_attributes[T: (page_models.Page, product_models.Product)](
     qs: QuerySet[T],
     value: list[dict],
