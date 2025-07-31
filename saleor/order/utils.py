@@ -528,6 +528,8 @@ def add_gift_cards_to_order(
                 name=f"Gift card (***{gift_card.display_code})",
             )
 
+    # TODO: ORDER_FULLY_PAID is sent **twice** upon checkout complete having gift cards
+    # even on main. Is this a problem?
     gift_card_compensation = total_before_gift_card_compensation - total_price_left
     if gift_card_compensation.amount > 0:
         details = {
