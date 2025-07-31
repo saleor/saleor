@@ -337,8 +337,8 @@ def validate_attribute_input(attributes: list[dict], db_connection_name: str):
     mixed_filter_usage = len(set(used_deprecated_filter)) > 1
     if mixed_filter_usage:
         raise GraphQLError(
-            "The provided `attributes` input contains a mix of deprecated "
-            "and new fields. Please use either the new `value` field "
+            "The provided `attributes` input contains a mix of deprecated fields"
+            "and `value`. Please use either the `AttributeInput.value` field "
             "exclusively or only the deprecated fields."
         )
 

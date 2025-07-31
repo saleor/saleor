@@ -66,7 +66,7 @@ class PageTypeCreate(PageTypeMixin, DeprecatedModelMutation):
         )
 
     class Meta:
-        description = "Create a new page type."
+        description = "Creates a new page type."
         model = models.PageType
         object_type = PageType
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)

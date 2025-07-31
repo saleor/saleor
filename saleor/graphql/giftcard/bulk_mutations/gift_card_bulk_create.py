@@ -62,7 +62,7 @@ class GiftCardBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Create gift cards."
+        description = "Creates gift cards."
         doc_category = DOC_CATEGORY_GIFT_CARDS
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)

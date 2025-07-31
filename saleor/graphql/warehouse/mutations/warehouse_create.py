@@ -19,7 +19,7 @@ class WarehouseCreate(
         )
 
     class Meta:
-        description = "Creates new warehouse."
+        description = "Creates a new warehouse."
         model = models.Warehouse
         object_type = Warehouse
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)

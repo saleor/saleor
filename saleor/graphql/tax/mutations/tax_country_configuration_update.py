@@ -66,7 +66,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update tax class rates for a specific country."
+        description = "Updates tax class rates for a specific country."
         doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxCountryConfigurationUpdateError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)

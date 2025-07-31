@@ -208,7 +208,7 @@ class DigitalContentUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update digital content."
+        description = "Updates digital content."
         doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"

@@ -16,7 +16,7 @@ class GiftCardDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of the gift card to delete.", required=True)
 
     class Meta:
-        description = "Delete gift card."
+        description = "Deletes gift card."
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)

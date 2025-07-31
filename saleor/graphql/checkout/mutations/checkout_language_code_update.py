@@ -40,7 +40,7 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update language code in the existing checkout."
+        description = "Updates language code in the existing checkout."
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"

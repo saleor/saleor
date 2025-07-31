@@ -146,7 +146,7 @@ class TaxConfigurationUpdate(DeprecatedModelMutation):
         )
 
     class Meta:
-        description = "Update tax configuration for a channel."
+        description = "Updates tax configuration for a channel."
         error_type_class = TaxConfigurationUpdateError
         model = models.TaxConfiguration
         object_type = TaxConfiguration

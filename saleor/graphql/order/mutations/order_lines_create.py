@@ -58,7 +58,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         )
 
     class Meta:
-        description = "Create order lines for an order."
+        description = "Creates order lines for an order."
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError

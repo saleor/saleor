@@ -104,7 +104,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Create a new payment for given checkout."
+        description = "Creates a new payment for given checkout."
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
