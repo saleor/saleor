@@ -71,7 +71,7 @@ class TaxClassUpdate(DeprecatedModelMutation):
         )
 
     class Meta:
-        description = "Update a tax class."
+        description = "Updates a tax class."
         error_type_class = TaxClassUpdateError
         model = models.TaxClass
         object_type = TaxClass

@@ -24,7 +24,7 @@ class TaxClassDelete(ModelDeleteMutation):
 
     class Meta:
         description = (
-            "Delete a tax class. After deleting the tax class any products, "
+            "Deletes a tax class. After deleting the tax class any products, "
             "product types or shipping methods using it are updated to use the "
             "default tax class."
         )

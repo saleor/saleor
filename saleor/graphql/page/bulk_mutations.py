@@ -100,7 +100,7 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = "Delete page types."
+        description = "Deletes page types."
         model = models.PageType
         object_type = PageType
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)

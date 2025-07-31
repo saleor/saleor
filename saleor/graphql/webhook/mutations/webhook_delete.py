@@ -21,7 +21,7 @@ class WebhookDelete(ModelDeleteMutation):
 
     class Meta:
         description = (
-            "Delete a webhook. Before the deletion, the webhook is deactivated to "
+            "Deletes a webhook. Before the deletion, the webhook is deactivated to "
             "pause any deliveries that are already scheduled. The deletion might fail "
             "if delivery is in progress. In such a case, the webhook is not deleted "
             "but remains deactivated."

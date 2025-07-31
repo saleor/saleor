@@ -69,11 +69,11 @@ class ProductVariantBulkTranslate(BaseBulkTranslateMutation):
         translations = NonNullList(
             ProductVariantBulkTranslateInput,
             required=True,
-            description="List of products variants translations.",
+            description="List of product variant translations.",
         )
 
     class Meta:
-        description = "Creates/updates translations for products variants."
+        description = "Creates/updates translations for product variants."
         base_model = models.ProductVariant
         translation_model = models.ProductVariantTranslation
         translation_fields = ["name"]

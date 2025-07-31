@@ -290,7 +290,7 @@ class ChannelCreate(DeprecatedModelMutation):
         )
 
     class Meta:
-        description = "Creates new channel."
+        description = "Creates a new channel."
         model = models.Channel
         object_type = Channel
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)

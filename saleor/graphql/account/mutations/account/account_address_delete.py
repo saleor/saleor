@@ -11,7 +11,7 @@ class AccountAddressDelete(BaseAddressDelete):
     class Meta:
         auto_permission_message = False
         description = (
-            "Delete an address of the logged-in user. Requires one of the following "
+            "Deletes an address of the logged-in user. Requires one of the following "
             "permissions: MANAGE_USERS, IS_OWNER."
         )
         doc_category = DOC_CATEGORY_USERS
