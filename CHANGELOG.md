@@ -91,8 +91,8 @@ Like `reference`, the `single-reference` type can target entities defined in the
 - Extended support for filtering `products` by associated attributes
   - Attribute slug is now optional when filtering by attribute values
   - Added support for filtering by associated reference objects (e.g., `products`, `pages`, `variants`)
-- Add support for filtering `productVariants` by associated attributes
 - Added `fractionalAmount` and `fractionDigits` fields to the `Money` type. These fields allow monetary values to be represented as a pair of integers, which is often required when integrating with payment service providers.
+- Add support for filtering `productVariants` by associated attributes
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.

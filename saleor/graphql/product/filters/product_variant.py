@@ -4,7 +4,6 @@ from django.db.models import Exists, OuterRef, Q
 from django.db.models.query import QuerySet
 from django.utils import timezone
 
-from ....attribute import AttributeInputType
 from ....attribute.models import (
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
@@ -112,10 +111,6 @@ def filter_by_date_attribute(
     date_value,
     db_connection_name: str,
 ):
-    qs_by_date = AttributeValue.objects.using(db_connection_name).filter(
-        attribute__input_type=AttributeInputType.DATE,
-        **{"attribute_id": attr_id} if attr_id else {},
-    )
     qs_by_date = get_attribute_values_by_date_value(
         attr_id=attr_id,
         date_value=date_value,
@@ -132,10 +127,6 @@ def filter_by_date_time_attribute(
     date_value,
     db_connection_name: str,
 ):
-    qs_by_date_time = AttributeValue.objects.using(db_connection_name).filter(
-        attribute__input_type=AttributeInputType.DATE_TIME,
-        **{"attribute_id": attr_id} if attr_id else {},
-    )
     qs_by_date_time = get_attribute_values_by_date_time_value(
         attr_id=attr_id,
         date_value=date_value,
