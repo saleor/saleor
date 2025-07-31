@@ -8361,11 +8361,28 @@ input ProductVariantWhereInput @doc(category: "Products") {
   """Filter by when was the most recent update."""
   updatedAt: DateTimeRangeInput
 
+  """
+  Filter by attributes associated with the variant.
+  
+  Added in Saleor 3.22.
+  """
+  attributes: [AssignedAttributeWhereInput!]
+
   """List of conditions that must be met."""
   AND: [ProductVariantWhereInput!]
 
   """A list of conditions of which at least one must be met."""
   OR: [ProductVariantWhereInput!]
+}
+
+input AssignedAttributeWhereInput {
+  """Filter by attribute slug."""
+  slug: String
+
+  """
+  Filter by value of the attribute. Only one value input field is allowed. If provided more than one, the error will be raised.
+  """
+  value: AssignedAttributeValueInput
 }
 
 input ProductVariantSortingInput @doc(category: "Products") {
@@ -13077,16 +13094,6 @@ input MetadataValueFilterInput {
 
   """The value included in."""
   oneOf: [String!]
-}
-
-input AssignedAttributeWhereInput {
-  """Filter by attribute slug."""
-  slug: String
-
-  """
-  Filter by value of the attribute. Only one value input field is allowed. If provided more than one, the error will be raised.
-  """
-  value: AssignedAttributeValueInput
 }
 
 type PageTypeCountableConnection @doc(category: "Pages") {
