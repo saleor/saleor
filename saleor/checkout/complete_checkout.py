@@ -655,6 +655,7 @@ def _prepare_order_data(
         checkout_info.shipping_address or checkout_info.billing_address
     )  # FIXME: check which address we need here
 
+    # DONE-INFO: payment flow
     taxed_total = calculations.calculate_checkout_total_with_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
@@ -1394,7 +1395,8 @@ def _create_order_from_checkout(
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     # total
-    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+    # DONE-INFO: transaction flow
+    taxed_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=checkout_lines_info,
@@ -1530,13 +1532,7 @@ def _create_order_from_checkout(
     )
 
     # giftcards
-    total_without_giftcard = calculations.calculate_checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=checkout_lines_info,
-        address=address,
-    ).gross
-    add_gift_cards_to_order(checkout_info, order, total_without_giftcard, user, app)
+    add_gift_cards_to_order(checkout_info, order, taxed_total.gross, user, app, True)
 
     # payments
     checkout_info.checkout.payments.update(order=order, checkout_id=None)

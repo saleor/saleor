@@ -466,11 +466,14 @@ def add_gift_cards_to_order(
     total_price_left: Money,
     user: User | None,
     app: Optional["App"],
+    create_gift_card_transaction: bool = False,
 ):
+    from ..payment.utils import create_transaction_for_order
+
     total_before_gift_card_compensation = total_price_left
     order_gift_cards = []
     gift_cards_to_update = []
-    balance_data: list[tuple[GiftCard, float]] = []
+    balance_data: list[tuple[GiftCard, Decimal]] = []
     used_by_user = checkout_info.user
     used_by_email = cast(str, checkout_info.get_customer_email())
     for gift_card in checkout_info.checkout.gift_cards.select_for_update():
@@ -496,6 +499,35 @@ def add_gift_cards_to_order(
     GiftCard.objects.bulk_update(gift_cards_to_update, update_fields)
     gift_card_events.gift_cards_used_in_order_event(balance_data, order, user, app)
 
+    if create_gift_card_transaction:
+        for gift_card, old_current_balance in balance_data:
+            charged_value = old_current_balance - gift_card.current_balance_amount
+            if charged_value < Decimal(0):
+                charged_value = Decimal(0)
+
+                details = {
+                    "checkout_id": graphene.Node.to_global_id(
+                        "Checkout", checkout_info.checkout.pk
+                    ),
+                    "old_current_balance": str(old_current_balance),
+                    "gift_card.current_balance_amount": str(
+                        gift_card.current_balance_amount
+                    ),
+                }
+                logger.error(
+                    "Gift card transaction charged value below 0.", extra=details
+                )
+
+            create_transaction_for_order(
+                order=order,
+                user=None,  # user is not an owner of this transaction
+                app=None,  # app is not an owner of this transaction
+                psp_reference=None,
+                charged_value=charged_value,
+                available_actions=[],  # What would happen if we wanted to refund this transaction?
+                name=f"Gift card (***{gift_card.display_code})",
+            )
+
     gift_card_compensation = total_before_gift_card_compensation - total_price_left
     if gift_card_compensation.amount > 0:
         details = {
@@ -511,7 +543,7 @@ def add_gift_cards_to_order(
 def update_gift_card_balance(
     gift_card: GiftCard,
     total_price_left: Money,
-    balance_data: list[tuple[GiftCard, float]],
+    balance_data: list[tuple[GiftCard, Decimal]],
 ) -> Money:
     previous_balance = gift_card.current_balance
     if total_price_left < gift_card.current_balance:

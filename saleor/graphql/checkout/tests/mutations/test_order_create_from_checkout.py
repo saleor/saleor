@@ -153,8 +153,8 @@ def test_order_from_checkout(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -392,8 +392,8 @@ def test_order_from_checkout_with_metadata(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -462,8 +462,8 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+    total = calculations.calculate_checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -886,7 +886,6 @@ def test_order_from_checkout_with_voucher_and_gift_card(
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
     ).price
-    gift_card_initial_balance = gift_card.initial_balance_amount
     discount_amount = checkout.discount
 
     orders_count = Order.objects.count()
@@ -925,7 +924,6 @@ def test_order_from_checkout_with_voucher_and_gift_card(
     assert (
         order_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
-        - gift_card_initial_balance
     )
     assert order_discount.type == DiscountType.VOUCHER
     assert order_discount.voucher == voucher_percentage
@@ -2629,7 +2627,7 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total_with_gift_cards(
+    total = calculations.calculate_checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     orders_count = Order.objects.count()
