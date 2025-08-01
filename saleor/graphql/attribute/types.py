@@ -544,16 +544,6 @@ class AttributeInput(BaseInputObjectType):
             "with deprecated fields of `AttributeInput`. "
         ),
     )
-    value_names = NonNullList(
-        graphene.String,
-        required=False,
-        description=(
-            "Names corresponding to the attributeValues associated with the Attribute. "
-            "When specified, it filters the results to include only records with "
-            "one of the matching values."
-        )
-        + ADDED_IN_322,
-    )
     values = NonNullList(
         graphene.String,
         required=False,

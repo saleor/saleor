@@ -37,7 +37,7 @@ T_PRODUCT_FILTER_QUERIES = dict[int, list[int]]
 
 
 def _clean_product_attributes_filter_input(
-    filter_values, field, queries, database_connection_name
+    filter_values, queries, database_connection_name
 ):
     attribute_slugs = []
     values = []
@@ -55,29 +55,29 @@ def _clean_product_attributes_filter_input(
         attributes_slug_pk_map[attr_slug] = attr_pk
         attributes_pk_slug_map[attr_pk] = attr_slug
 
-    values_map = _populate_value_map(
-        database_connection_name, field, values, attributes, attributes_pk_slug_map
+    values_map = _populate_slug_value_map(
+        database_connection_name, values, attributes, attributes_pk_slug_map
     )
 
     _update_queries(queries, filter_values, attributes_slug_pk_map, values_map)
 
 
-def _populate_value_map(
-    database_connection_name, field, values, attribute_qs, attributes_pk_slug_map
+def _populate_slug_value_map(
+    database_connection_name, slugs, attribute_qs, attributes_pk_slug_map
 ):
     value_maps: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
     for (
         attr_pk,
         value_pk,
-        field_value,
+        value_slug,
     ) in (
         AttributeValue.objects.using(database_connection_name)
         .filter(Exists(attribute_qs.filter(pk=OuterRef("attribute_id"))))
-        .filter(**{f"{field}__in": values})
-        .values_list("attribute_id", "pk", field)
+        .filter(slug__in=slugs)
+        .values_list("attribute_id", "pk", "slug")
     ):
         attr_slug = attributes_pk_slug_map[attr_pk]
-        value_maps[attr_slug][field_value].append(value_pk)
+        value_maps[attr_slug][value_slug].append(value_pk)
 
     return value_maps
 
@@ -252,7 +252,6 @@ def filter_products_by_attributes_values_qs(qs, values_qs):
 def _filter_products_by_deprecated_attributes_input(
     qs,
     filter_slug_values,
-    filter_name_values,
     filter_range_values,
     filter_boolean_values,
     date_range_list,
@@ -261,13 +260,7 @@ def _filter_products_by_deprecated_attributes_input(
     queries: dict[int, list[int]] = defaultdict(list)
     try:
         if filter_slug_values:
-            _clean_product_attributes_filter_input(
-                filter_slug_values, "slug", queries, qs.db
-            )
-        if filter_name_values:
-            _clean_product_attributes_filter_input(
-                filter_name_values, "name", queries, qs.db
-            )
+            _clean_product_attributes_filter_input(filter_slug_values, queries, qs.db)
         if filter_range_values:
             _clean_product_attributes_range_filter_input(
                 filter_range_values, queries, qs.db
@@ -296,7 +289,6 @@ def deprecated_filter_attributes(qs, value):
         return qs.none()
 
     slug_value_list = []
-    name_value_list = []
     boolean_list = []
     value_range_list = []
     date_range_list = []
@@ -306,8 +298,6 @@ def deprecated_filter_attributes(qs, value):
         slug = v["slug"]
         if "values" in v:
             slug_value_list.append((slug, v["values"]))
-        elif "value_names" in v:
-            name_value_list.append((slug, v["value_names"]))
         elif "values_range" in v:
             value_range_list.append((slug, v["values_range"]))
         elif "date" in v:
@@ -320,7 +310,6 @@ def deprecated_filter_attributes(qs, value):
     qs = _filter_products_by_deprecated_attributes_input(
         qs,
         slug_value_list,
-        name_value_list,
         value_range_list,
         boolean_list,
         date_range_list,
