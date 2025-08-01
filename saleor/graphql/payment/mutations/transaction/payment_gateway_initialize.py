@@ -148,6 +148,8 @@ class PaymentGatewayInitialize(TransactionSessionBase):
         response_data = manager.payment_gateway_initialize_session(
             amount, payment_gateways_data, source_object
         )
+        if response_data is None:
+            response_data = []
         return cls(
             gateway_configs=cls.prepare_response(payment_gateways_data, response_data),
             errors=[],
