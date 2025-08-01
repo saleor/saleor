@@ -1,0 +1,57 @@
+name: TEST-ENV-CLEANUP-CRON
+# Daily cleanup of all stale environments (environments for which there is no open PR with "test deployment" label)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  cleanup:
+    name: Remove stale test env deployments
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # needed by aws-actions/configure-aws-credentials
+      contents: read
+    steps:
+      - uses: rlespinasse/github-slug-action@955b5ba4560860f8a633bd24190941f16016e42c # v5.1.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
+          aws-region: us-east-1
+
+      - name: Get branches from open PRs with "test deployment" label
+        id: get-branches
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            // Get all open PRs - pagination is needed or otherwise we would retrieve only first 30
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            // Select PRs with "test deployment" label and extract their source branches
+            const branches = pulls
+              .filter(pr => pr.labels.some(label => label.name === 'test deployment'))
+              .map(pr => pr.head.ref);
+
+            // Deduplicate (in case there are multiple PRs with the same source branch)
+            return [...new Set(branches)];
+
+      - name: Invoke test-env-manager lambda
+        uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
+        with:
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          REGION: us-east-1
+          FunctionName: test-env-manager
+          Payload: >-
+            {
+              "action": "daily-cleanup",
+              "labels_to_preserve": ${{ steps.get-branches.outputs.result }}
+            }
+          LogType: Tail
