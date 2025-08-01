@@ -444,10 +444,10 @@ def get_multiple_deliveries_for_webhooks(
         logger.warning("Event delivery id: %r not found", not_found_delivery_id)
 
     for delivery in deliveries:
-        if delivery.webhook.is_active:
+        if delivery.webhook.is_active and delivery.webhook.app.is_active:
             active_deliveries[delivery.pk] = delivery
         else:
-            logger.info("Event delivery id: %r webhook is disabled.", delivery.pk)
+            logger.info("Event delivery id: %r app/webhook is disabled.", delivery.pk)
             inactive_delivery_ids.add(delivery.pk)
 
     if inactive_delivery_ids:
