@@ -4,6 +4,7 @@ from typing import cast
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import F, Subquery
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
@@ -727,7 +728,20 @@ class ProductVariantBulkUpdate(BaseMutation):
         if stocks_to_update:
             stock_bulk_update(stocks_to_update, ["quantity"])
 
-        models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
+        if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
+            try:
+                models.ProductVariantChannelListing.objects.bulk_create(
+                    listings_to_create
+                )
+            except IntegrityError as exc:
+                raise ValidationError(
+                    "Duplicate Channel Listing Detected.",
+                    code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
+                ) from exc
+        else:
+            models.ProductVariantChannelListing.objects.bulk_create(
+                listings_to_create, ignore_conflicts=True
+            )
         models.ProductVariantChannelListing.objects.bulk_update(
             listings_to_update,
             fields=[
