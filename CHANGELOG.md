@@ -8,8 +8,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Increased query cost for attribute-related operations due to the addition of `AttributeValue.referencedObject`.
 
 ### GraphQL API
-
-- Added support for filtering products by attribute value names. The `AttributeInput` now includes a `valueNames` field, enabling filtering by the names of attribute values, in addition to the existing filtering by value slugs.
 - You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.

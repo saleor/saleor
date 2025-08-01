@@ -7780,13 +7780,6 @@ input AttributeInput @doc(category: "Attributes") {
   value: AssignedAttributeValueInput
 
   """
-  Names corresponding to the attributeValues associated with the Attribute. When specified, it filters the results to include only records with one of the matching values.
-  
-  Added in Saleor 3.22.
-  """
-  valueNames: [String!]
-
-  """
   Slugs identifying the attributeValues associated with the Attribute. When specified, it filters the results to include only records with one of the matching values. Requires `slug` to be provided.
   """
   values: [String!] @deprecated(reason: "Use `value` instead.")
