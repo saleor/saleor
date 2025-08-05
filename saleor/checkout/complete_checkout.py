@@ -22,7 +22,7 @@ from ..checkout import CheckoutAuthorizeStatus, calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
-from ..core.taxes import TaxDataError, TaxError, zero_taxed_money
+from ..core.taxes import TaxDataError, TaxError, zero_money, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
@@ -1422,12 +1422,19 @@ def _create_order_from_checkout(
         address=address,
     )
 
+    is_checkout_covered_with_gift_cards = (
+        checkout_info.checkout.get_total_gift_cards_balance() >= taxed_total.gross
+        and taxed_total.gross > zero_money(taxed_total.currency)
+    )
     # status
     status = (
         OrderStatus.UNFULFILLED
         if (
             checkout_info.channel.automatically_confirm_all_new_orders
-            and checkout_info.checkout.payment_transactions.exists()
+            and (
+                checkout_info.checkout.payment_transactions.exists()
+                or is_checkout_covered_with_gift_cards
+            )
         )
         else OrderStatus.UNCONFIRMED
     )
@@ -1524,7 +1531,14 @@ def _create_order_from_checkout(
     )
 
     # giftcards
-    add_gift_cards_to_order(checkout_info, order, taxed_total.gross, user, app, True)
+    add_gift_cards_to_order(
+        checkout_info,
+        order,
+        taxed_total.gross,
+        user,
+        app,
+        create_gift_card_transaction=True,
+    )
 
     # payments
     checkout_info.checkout.payments.update(order=order, checkout_id=None)
@@ -1698,25 +1712,49 @@ def complete_checkout(
         )
 
     active_payment = checkout.get_last_active_payment()
-    is_checkout_fully_authorized = (
-        checkout.authorize_status == CheckoutAuthorizeStatus.FULL
-    )
     checkout_is_zero = checkout_info.checkout.total.gross.amount == Decimal(0)
+
+    is_checkout_covered_with_gift_cards = (
+        checkout_info.checkout.get_total_gift_cards_balance()
+        >= calculations.calculate_checkout_total(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=checkout.shipping_address,
+        ).gross
+    )
+
     is_transaction_flow = (
         checkout_info.channel.order_mark_as_paid_strategy
         == MarkAsPaidStrategy.TRANSACTION_FLOW
     )
-    # When checkout is zero, we don't need any transaction to cover the checkout total.
-    # We check if checkout is zero, and we also check what flow for marking an order as
-    # paid is used. In case when we have TRANSACTION_FLOW we use transaction flow to
-    # finalize the checkout.
-    # When checkout is not fully authorized and contains active payment, we use the
-    # payment flow to finalize the checkout.
+    is_fully_authorized_with_transaction = (
+        checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+        and transactions.exists()
+    )
+    has_transaction_and_no_active_payment = transactions.exists() and not active_payment
+    does_not_require_authorization_with_transaction = (
+        checkout_is_zero and is_transaction_flow
+    ) or (is_checkout_covered_with_gift_cards and is_transaction_flow)
+
+    # Why is this logic that complex?
+    # We're not able to simply rely on channel's mark as paid strategy option because
+    # despite it there might be checkout being completed with payment as well as
+    # transcation.
+    # Complete checkout transaction-way if:
+    # - checkout is fully authorized and has at least one transaction (TransactionItem)
+    # OR
+    # - checkout has transaction and does not have any active payments
+    # OR
+    # - channel allows for unpaid orders
+    # OR
+    # - checkout is already fully covered (by either being zero OR fully covered with
+    #   gift cards) and channel mark as paid strategy is transaction flow)
     if (
-        is_checkout_fully_authorized
-        or (transactions and not active_payment)
+        is_fully_authorized_with_transaction
+        or has_transaction_and_no_active_payment
         or checkout_info.channel.allow_unpaid_orders
-        or (checkout_is_zero and is_transaction_flow)
+        or does_not_require_authorization_with_transaction
     ):
         order = complete_checkout_with_transaction(
             manager=manager,

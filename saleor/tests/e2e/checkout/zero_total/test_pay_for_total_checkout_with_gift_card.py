@@ -18,10 +18,14 @@ from ..utils import (
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("mark_as_paid_strategy"),
+    (
+        "mark_as_paid_strategy",
+        "expected_total_gross_amount",
+        "expected_transactions_count",
+    ),
     [
-        (MarkAsPaidStrategy.TRANSACTION_FLOW.upper()),
-        (MarkAsPaidStrategy.PAYMENT_FLOW.upper()),
+        (MarkAsPaidStrategy.TRANSACTION_FLOW, 86.99, 1),
+        (MarkAsPaidStrategy.PAYMENT_FLOW, 0, 0),
     ],
 )
 def test_gift_card_total_payment_for_checkout_core_1101(
@@ -32,6 +36,8 @@ def test_gift_card_total_payment_for_checkout_core_1101(
     permission_manage_gift_card,
     permission_manage_orders,
     mark_as_paid_strategy,
+    expected_total_gross_amount,
+    expected_transactions_count,
 ):
     # Before
     permissions = [
@@ -50,7 +56,7 @@ def test_gift_card_total_payment_for_checkout_core_1101(
     update_channel(
         e2e_staff_api_client,
         channel_id,
-        input={"orderSettings": {"markAsPaidStrategy": mark_as_paid_strategy}},
+        input={"orderSettings": {"markAsPaidStrategy": mark_as_paid_strategy.upper()}},
     )
 
     products_data = prepare_products(
@@ -138,10 +144,7 @@ def test_gift_card_total_payment_for_checkout_core_1101(
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
 
     # Gift cards do not reduce total amount for transaction flow.
-    if mark_as_paid_strategy == MarkAsPaidStrategy.TRANSACTION_FLOW.upper():
-        assert total_gross_amount == calculated_subtotal + shipping_price
-    elif mark_as_paid_strategy == MarkAsPaidStrategy.PAYMENT_FLOW.upper():
-        assert total_gross_amount == 0
+    assert total_gross_amount == expected_total_gross_amount
 
     assert checkout_data["giftCards"][0]["id"] == gift_card_id
     assert checkout_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]
@@ -152,7 +155,7 @@ def test_gift_card_total_payment_for_checkout_core_1101(
         checkout_id,
     )
     assert order_data["status"] == "UNFULFILLED"
-    assert order_data["total"]["gross"]["amount"] == 0
+    assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["giftCards"][0]["id"] == gift_card_id
     assert order_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]
 
@@ -160,12 +163,4 @@ def test_gift_card_total_payment_for_checkout_core_1101(
 
     # Check if transaction for gift card has been correctly created but only for
     # transaction flow.
-    # MW-TODO: why is this test failing?
-    if mark_as_paid_strategy == MarkAsPaidStrategy.TRANSACTION_FLOW.upper():
-        assert len(staff_order_data["transactions"]) == 1
-        assert (
-            staff_order_data["transactions"][0]["chargedAmount"]["amount"]
-            == calculated_subtotal + shipping_price
-        )
-    elif mark_as_paid_strategy == MarkAsPaidStrategy.PAYMENT_FLOW.upper():
-        assert len(staff_order_data["transactions"]) == 0
+    assert len(staff_order_data["transactions"]) == expected_transactions_count

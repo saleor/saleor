@@ -63,6 +63,7 @@ from . import AddressType, base_calculations, calculations
 from .error_codes import CheckoutErrorCode
 from .lock_objects import checkout_lines_qs_select_for_update
 from .models import Checkout, CheckoutLine, CheckoutMetadata
+from .payment_utils import update_checkout_payment_statuses
 
 if TYPE_CHECKING:
     from measurement.measures import Weight
@@ -806,6 +807,11 @@ def add_promo_code_to_checkout(
             user_email,
             promo_code,
             checkout_info.channel.currency_code,
+        )
+        update_checkout_payment_statuses(
+            checkout=checkout_info.checkout,
+            checkout_total_gross=checkout_info.checkout.total.gross,
+            checkout_has_lines=bool(lines),
         )
     else:
         raise InvalidPromoCode()

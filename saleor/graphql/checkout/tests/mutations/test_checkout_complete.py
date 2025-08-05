@@ -7,12 +7,14 @@ from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
+from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
+from .....core.taxes import zero_money
 from .....order import OrderStatus
 from .....order.models import Order
 from .....payment.model_helpers import get_subtotal
@@ -199,6 +201,7 @@ def test_checkout_complete_0_total_value_no_payment(
     checkout_with_item_total_0,
     address,
 ):
+    # given
     checkout = checkout_with_item_total_0
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
@@ -225,8 +228,11 @@ def test_checkout_complete_0_total_value_no_payment(
         "id": to_global_id_or_none(checkout),
         "redirectUrl": "https://www.example.com",
     }
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
@@ -263,6 +269,7 @@ def test_checkout_complete_0_total_value_from_voucher(
     address,
     voucher,
 ):
+    # given
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
@@ -292,8 +299,11 @@ def test_checkout_complete_0_total_value_from_voucher(
         "id": to_global_id_or_none(checkout),
         "redirectUrl": "https://www.example.com",
     }
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
@@ -323,7 +333,7 @@ def test_checkout_complete_0_total_value_from_voucher(
 
 
 @pytest.mark.integration
-def test_checkout_complete_0_total_value_from_giftcard(
+def test_checkout_complete_0_total_value_from_giftcard_payment_flow(
     user_api_client,
     checkout_without_shipping_required,
     address,
@@ -344,6 +354,77 @@ def test_checkout_complete_0_total_value_from_giftcard(
     checkout_line_variant = checkout_line.variant
 
     checkout.refresh_from_db()
+
+    channel = checkout.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.PAYMENT_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    calculations.calculate_checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+    assert order.total.gross == zero_money(order.currency)
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert order.subtotal == subtotal
+    assert data["order"]["subtotal"]["net"]["amount"] == subtotal.net.amount
+    assert order.metadata == checkout.metadata_storage.metadata
+    assert order.private_metadata == checkout.metadata_storage.private_metadata
+
+    order_line = order.lines.first()
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
+    assert order.shipping_address is None
+    assert order.shipping_method is None
+
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
+
+
+@pytest.mark.integration
+def test_checkout_complete_0_total_value_from_giftcard_transaction_flow(
+    user_api_client,
+    checkout_without_shipping_required,
+    address,
+    gift_card,
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.gift_cards.add(gift_card)
+    checkout.save()
+    checkout.metadata_storage.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    checkout.refresh_from_db()
+
+    channel = checkout.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
