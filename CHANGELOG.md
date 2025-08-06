@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by associated payment method name and type.
     - Filter by associated billing and shipping address phone number and country code.
     - Filter by associated transactionItems metadata.
+    - Filter by warehouse used to fulfill the order.
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.

@@ -1,3 +1,4 @@
+from collections.abc import Mapping, Sequence
 from decimal import Decimal
 from typing import TYPE_CHECKING
 from uuid import UUID
@@ -113,7 +114,7 @@ ValueT = str | UUID
 
 
 def filter_where_by_value_field(
-    qs: "QuerySet", field: str, value: dict[str, ValueT | list[ValueT]]
+    qs: "QuerySet", field: str, value: Mapping[str, ValueT | Sequence[ValueT]]
 ):
     if value is None:
         return qs.none()
@@ -128,7 +129,7 @@ def filter_where_by_value_field(
 
 
 def filter_where_by_id_field(
-    qs: "QuerySet", field: str, value: dict[str, str | list[str]], type: str
+    qs: "QuerySet", field: str, value: Mapping[str, str | list[str]], type: str
 ):
     from . import resolve_global_ids_to_primary_keys
 
