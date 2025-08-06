@@ -559,16 +559,40 @@ def clear_successful_deliveries(deliveries: list["EventDelivery"]):
 
 @allow_writer()
 def process_failed_deliveries(
-    failed_deliveries_attempts: list[tuple[EventDelivery, EventDeliveryAttempt, int]],
+    failed_deliveries_attempts: list[
+        tuple[EventDelivery, EventDeliveryAttempt, int, WebhookResponse]
+    ],
     max_webhook_retries: int,
 ) -> None:
     deliveries_to_update = []
     deliveries_attempts_to_update = []
-    for delivery, attempt, attempt_count in failed_deliveries_attempts:
+    for delivery, attempt, attempt_count, response in failed_deliveries_attempts:
         if attempt_count >= max_webhook_retries:
             delivery.status = EventDeliveryStatus.FAILED
             deliveries_to_update.append(delivery)
         deliveries_attempts_to_update.append(attempt)
+
+        webhook = delivery.webhook
+        log_extra_details = {
+            "webhook": {
+                "id": webhook.id,
+                "target_url": sanitize_url_for_logging(webhook.target_url),
+                "event": delivery.event_type,
+                "execution_mode": "async",
+                "duration": response.duration,
+                "http_status_code": response.response_status_code,
+            },
+        }
+        task_logger.info(
+            "[Webhook ID: %r] Failed request to %r: %r for event: %r."
+            " Delivery attempt id: %r",
+            webhook.id,
+            sanitize_url_for_logging(webhook.target_url),
+            response.content,
+            delivery.event_type,
+            attempt.id,
+            extra=log_extra_details,
+        )
 
     if deliveries_to_update:
         EventDelivery.objects.bulk_update(deliveries_to_update, ["status"])
