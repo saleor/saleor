@@ -305,6 +305,11 @@ def test_product_variants_query_failed_filter_validation_for_duplicated_attr_slu
         {"reference": {"productSlugs": {"containsAny": None}}},
         {"reference": {"productVariantSkus": {"containsAny": None}}},
         {"reference": {"referencedIds": {"containsAny": None}}},
+        {"reference": {"referencedIds": {"containsAny": ["non-existing-id"]}}},
+        {"reference": {"referencedIds": {"containsAll": ["non-existing-id"]}}},
+        # ID of not valid object
+        {"reference": {"referencedIds": {"containsAny": ["T3JkZXI6MQ=="]}}},
+        {"reference": {"referencedIds": {"containsAll": ["T3JkZXI6MQ=="]}}},
     ],
 )
 def test_product_variants_query_failed_filter_validation_for_reference_attribute_with_slug_input(
