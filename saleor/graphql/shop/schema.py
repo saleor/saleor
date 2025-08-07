@@ -1,11 +1,15 @@
 import graphene
 
 from ...channel import models as channel_models
-from ...permission.enums import GiftcardPermissions, OrderPermissions
+from ...permission.enums import GiftcardPermissions, OrderPermissions, SitePermissions
 from ..channel.types import OrderSettings
 from ..core.context import get_database_connection_name
 from ..core.descriptions import DEFAULT_DEPRECATION_REASON
-from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS, DOC_CATEGORY_ORDERS
+from ..core.doc_category import (
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_SHOP,
+)
 from ..core.fields import PermissionsField
 from ..site.dataloaders import load_site_callback
 from ..translations.mutations import ShopSettingsTranslate
@@ -20,7 +24,7 @@ from .mutations import (
     StaffNotificationRecipientDelete,
     StaffNotificationRecipientUpdate,
 )
-from .types import GiftCardSettings, Shop
+from .types import GiftCardSettings, RefundSettings, Shop
 
 
 class ShopQueries(graphene.ObjectType):
@@ -46,6 +50,14 @@ class ShopQueries(graphene.ObjectType):
         required=True,
         permissions=[GiftcardPermissions.MANAGE_GIFT_CARD],
         doc_category=DOC_CATEGORY_GIFT_CARDS,
+    )
+    # TODO Do we need custom resolver?
+    refund_settings = PermissionsField(
+        RefundSettings,
+        description="Refunds related settings from site settings.",
+        required=True,
+        permissions=[SitePermissions.MANAGE_SETTINGS],
+        doc_category=DOC_CATEGORY_SHOP,
     )
 
     def resolve_shop(self, _info):

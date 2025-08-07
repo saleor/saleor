@@ -79,6 +79,16 @@ class OrderSettings(ModelObjectType[site_models.SiteSettings]):
         model = site_models.SiteSettings
 
 
+class RefundSettings(ModelObjectType[site_models.SiteSettings]):
+    allow_custom_refund_reasons = graphene.Boolean(required=True, default_value=True)
+    # page_type_id = graphene.ID() ??
+
+    class Meta:
+        description = "Refund related settings from site settings."
+        doc_category = DOC_CATEGORY_ORDERS
+        model = site_models.SiteSettings
+
+
 class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="The gift card expiry type settings.", required=True

@@ -262,6 +262,13 @@ type Query {
   giftCardSettings: GiftCardSettings! @doc(category: "Gift cards")
 
   """
+  Refunds related settings from site settings.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  refundSettings: RefundSettings! @doc(category: "Shop")
+
+  """
   Look up a shipping zone by ID.
   
   Requires one of the following permissions: MANAGE_SHIPPING.
@@ -12787,6 +12794,11 @@ enum TimePeriodTypeEnum {
   YEAR
 }
 
+"""Refund related settings from site settings."""
+type RefundSettings @doc(category: "Orders") {
+  allowCustomRefundReasons: Boolean!
+}
+
 input ShippingZoneFilterInput @doc(category: "Shipping") {
   search: String
   channels: [ID!]
@@ -20514,6 +20526,20 @@ input ShopSettingsInput {
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean @deprecated(reason: "To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.")
+
+  """
+  Allow to set a custom reason for a refund. When set to false, only referenced models will be accepted
+  
+  Added in Saleor 3.22.
+  """
+  allowCustomRefundReasons: Boolean
+
+  """
+  The ID of a model type, that will be used to reference refund reasons. All models with of this type will be accepted as refund reasons. 
+  
+  Added in Saleor 3.22.
+  """
+  refundReasonType: ID
 }
 
 """
