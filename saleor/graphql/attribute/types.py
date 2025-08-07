@@ -4,7 +4,7 @@ import graphene
 from django.db.models import QuerySet
 from promise import Promise
 
-from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...attribute import AttributeInputType, models
 from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
@@ -129,25 +129,15 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
 
     @staticmethod
     def resolve_name(root: models.AttributeValue, info: ResolveInfo):
-        def _resolve_name(attribute):
-            if attribute.input_type == AttributeInputType.REFERENCE:
-                if attribute.entity_type == AttributeEntityType.PRODUCT:
-                    return _resolve_referenced_product_name(
-                        root.reference_product_id, info
-                    )
-                if attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
-                    return _resolve_referenced_product_variant_name(
-                        root.reference_variant_id, info
-                    )
-                if attribute.entity_type == AttributeEntityType.PAGE:
-                    return _resolve_referenced_page_name(root.reference_page_id, info)
-            return root.name
-
-        return (
-            AttributesByAttributeId(info.context)
-            .load(root.attribute_id)
-            .then(_resolve_name)
-        )
+        if root.reference_product_id:
+            return _resolve_referenced_product_name(root.reference_product_id, info)
+        if root.reference_variant_id:
+            return _resolve_referenced_product_variant_name(
+                root.reference_variant_id, info
+            )
+        if root.reference_page_id:
+            return _resolve_referenced_page_name(root.reference_page_id, info)
+        return root.name
 
     @staticmethod
     def resolve_input_type(root: models.AttributeValue, info: ResolveInfo):
