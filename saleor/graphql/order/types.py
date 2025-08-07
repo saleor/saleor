@@ -110,6 +110,7 @@ from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
 from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
+from ..page.types import Page
 from ..payment.dataloaders import (
     TransactionByPaymentIdLoader,
     TransactionItemByIDLoader,
@@ -268,6 +269,10 @@ class OrderGrantedRefund(
     updated_at = DateTime(required=True, description="Time of last update.")
     amount = graphene.Field(Money, required=True, description="Refund amount.")
     reason = graphene.String(description="Reason of the refund.")
+    # TODO Resolvers
+    reasonReference = graphene.Field(
+        Page, required=False, description="Reason model for refund."
+    )
     user = graphene.Field(
         User,
         description=(

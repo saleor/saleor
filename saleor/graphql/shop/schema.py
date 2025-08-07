@@ -16,6 +16,7 @@ from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     GiftCardSettingsUpdate,
     OrderSettingsUpdate,
+    RefundSettingsUpdate,
     ShopAddressUpdate,
     ShopDomainUpdate,
     ShopFetchTaxRates,
@@ -107,3 +108,4 @@ class ShopMutations(graphene.ObjectType):
         deprecation_reason="Use `channelUpdate` mutation instead."
     )
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
+    refund_settings_update = RefundSettingsUpdate.Field()

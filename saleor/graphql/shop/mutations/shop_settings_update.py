@@ -7,7 +7,7 @@ from ....permission.enums import SitePermissions
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.enums import WeightUnitsEnum
 from ...core.mutations import BaseMutation
@@ -112,19 +112,6 @@ class ShopSettingsInput(graphene.InputObjectType):
             "a shipping method, assign a tax class to the shipping method with "
             "`shippingPriceCreate` or `shippingPriceUpdate` mutations."
         ),
-    )
-    allow_custom_refund_reasons = graphene.Boolean(
-        description=(
-            f"Allow to set a custom reason for a refund. When set to false, only referenced models will be accepted"
-            f"{ADDED_IN_322}"
-        )
-    )
-    refund_reason_type = graphene.ID(
-        description=(
-            "The ID of a model type, that will be used to reference refund reasons. "
-            "All models with of this type will be accepted as refund reasons. "
-            f"{ADDED_IN_322}"
-        )
     )
 
 

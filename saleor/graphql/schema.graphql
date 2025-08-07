@@ -10969,6 +10969,12 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Added in Saleor 3.22.
   """
   paymentMethodDetails: PaymentMethodDetails
+
+  """Reason of the refund."""
+  reason: String
+
+  """Reason model for refund."""
+  reasonReference: Page
 }
 
 """
@@ -12287,6 +12293,9 @@ type OrderGrantedRefund @doc(category: "Orders") {
 
   """Reason of the refund."""
   reason: String
+
+  """Reason model for refund."""
+  reasonReference: Page
 
   """
   User who performed the action. Requires of of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
@@ -15270,6 +15279,16 @@ type Mutation {
     """Fields required to update gift card settings."""
     input: GiftCardSettingsUpdateInput!
   ): GiftCardSettingsUpdate @doc(category: "Gift cards")
+
+  """
+  Update shop refund settings across all channels.  
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  refundSettingsUpdate(
+    """Fields required to update shop refund settings."""
+    input: RefundSettingsUpdateInput!
+  ): RefundSettingsUpdate @doc(category: "Orders")
 
   """
   Manage shipping method's availability in channels. 
@@ -20526,20 +20545,6 @@ input ShopSettingsInput {
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean @deprecated(reason: "To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.")
-
-  """
-  Allow to set a custom reason for a refund. When set to false, only referenced models will be accepted
-  
-  Added in Saleor 3.22.
-  """
-  allowCustomRefundReasons: Boolean
-
-  """
-  The ID of a model type, that will be used to reference refund reasons. All models with of this type will be accepted as refund reasons. 
-  
-  Added in Saleor 3.22.
-  """
-  refundReasonType: ID
 }
 
 """
@@ -20689,6 +20694,53 @@ input TimePeriodInputType {
 
   """The type of the period."""
   type: TimePeriodTypeEnum!
+}
+
+"""
+Update shop refund settings across all channels.  
+
+Requires one of the following permissions: MANAGE_SETTINGS.
+"""
+type RefundSettingsUpdate @doc(category: "Orders") {
+  """Refund settings."""
+  refundSettings: RefundSettings
+  refundSettingsErrors: [RefundSettingsError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [RefundSettingsError!]!
+}
+
+type RefundSettingsError @doc(category: "Shop") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: RefundSettingsErrorCode!
+}
+
+enum RefundSettingsErrorCode @doc(category: "Shop") {
+  INVALID
+  REQUIRED
+  GRAPHQL_ERROR
+}
+
+input RefundSettingsUpdateInput @doc(category: "Orders") {
+  """
+  Allow to set a custom reason for a refund. When set to false, only referenced models will be accepted
+  
+  Added in Saleor 3.22.
+  """
+  allowCustomRefundReasons: Boolean
+
+  """
+  The ID of a model type, that will be used to reference refund reasons. All models with of this type will be accepted as refund reasons. 
+  
+  Added in Saleor 3.22.
+  """
+  refundReasonType: ID
 }
 
 """
@@ -34518,7 +34570,7 @@ type PaymentMethodProcessTokenizationSession implements Event @doc(category: "Pa
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order | PageType
+union _Entity = App | PageType | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order
 
 """_Service manifest as defined by Federation spec."""
 type _Service {
