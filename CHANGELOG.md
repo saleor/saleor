@@ -79,7 +79,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - `collection.products`
   - `pageType.availableAttributes`
 - Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign category and collection as a attribute reference.
-- Attribute values now expose the `referencedObject`, allowing for easier access to the linked entity.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
 - Filtering products by `category` now also includes subcategories. The filter will return products that belong to the specified categories as well as their subcategories.
 - Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.

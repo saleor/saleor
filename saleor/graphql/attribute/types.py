@@ -1,7 +1,7 @@
 import graphene
 from django.conf import settings
 
-from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...attribute import AttributeInputType, models
 from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
@@ -40,8 +40,6 @@ from ..core.types import (
 from ..core.types.context import ChannelContextType, ChannelContextTypeForObjectType
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
-from ..page.dataloaders import PageByIdLoader
-from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import (
@@ -85,10 +83,6 @@ class AttributeValue(ChannelContextType[models.AttributeValue]):
     )
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     reference = graphene.ID(description="The ID of the referenced object.")
-    referenced_object = graphene.Field(
-        "saleor.graphql.attribute.unions.AttributeValueReferencedObject",
-        description="The object referenced by the attribute value." + ADDED_IN_322,
-    )
 
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
@@ -116,49 +110,6 @@ class AttributeValue(ChannelContextType[models.AttributeValue]):
         description = "Represents a value of an attribute."
         interfaces = [graphene.relay.Node]
         model = models.AttributeValue
-
-    @staticmethod
-    def resolve_referenced_object(
-        root: ChannelContext[models.AttributeValue], info: ResolveInfo
-    ):
-        attr_value = root.node
-
-        def prepare_referenced_object(attribute):
-            if not attribute:
-                return None
-            reference_pk = get_reference_pk(attribute, attr_value)
-
-            if reference_pk is None:
-                return None
-
-            def wrap_with_channel_context(_object):
-                return ChannelContext(node=_object, channel_slug=root.channel_slug)
-
-            if attribute.entity_type == AttributeEntityType.PRODUCT:
-                return (
-                    ProductByIdLoader(info.context)
-                    .load(reference_pk)
-                    .then(wrap_with_channel_context)
-                )
-            if attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
-                return (
-                    ProductVariantByIdLoader(info.context)
-                    .load(reference_pk)
-                    .then(wrap_with_channel_context)
-                )
-            if attribute.entity_type == AttributeEntityType.PAGE:
-                return (
-                    PageByIdLoader(info.context)
-                    .load(reference_pk)
-                    .then(wrap_with_channel_context)
-                )
-            return None
-
-        return (
-            AttributesByAttributeId(info.context)
-            .load(attr_value.attribute_id)
-            .then(prepare_referenced_object)
-        )
 
     def resolve_input_type(
         root: ChannelContext[models.AttributeValue], info: ResolveInfo
