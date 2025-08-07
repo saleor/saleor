@@ -12806,6 +12806,9 @@ enum TimePeriodTypeEnum {
 """Refund related settings from site settings."""
 type RefundSettings @doc(category: "Orders") {
   allowCustomRefundReasons: Boolean!
+
+  """Model type used for refund reasons."""
+  modelType: PageType
 }
 
 input ShippingZoneFilterInput @doc(category: "Shipping") {
@@ -20740,7 +20743,7 @@ input RefundSettingsUpdateInput @doc(category: "Orders") {
   
   Added in Saleor 3.22.
   """
-  refundReasonType: ID
+  refundReasonModelType: ID
 }
 
 """

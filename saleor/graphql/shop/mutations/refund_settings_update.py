@@ -21,7 +21,7 @@ class RefundSettingsUpdateInput(BaseInputObjectType):
             f"{ADDED_IN_322}"
         )
     )
-    refund_reason_type = graphene.ID(
+    refund_reason_model_type = graphene.ID(
         description=(
             "The ID of a model type, that will be used to reference refund reasons. "
             "All models with of this type will be accepted as refund reasons. "
@@ -54,9 +54,9 @@ class RefundSettingsUpdate(BaseMutation):
         input = data.get("input")
 
         allow_custom_refund_reasons = input.get("allow_custom_refund_reasons")
-        refund_reason_type = input.get("refund_reason_type")
+        refund_reason_model_type = input.get("refund_reason_model_type")
 
-        if not allow_custom_refund_reasons and refund_reason_type is None:
+        if not allow_custom_refund_reasons and refund_reason_model_type is None:
             raise ValidationError(
                 {
                     "allow_custom_refund_reasons": ValidationError(
@@ -76,25 +76,33 @@ class RefundSettingsUpdate(BaseMutation):
 
         settings.allow_custom_refund_reasons = allow_custom_refund_reasons
 
+        # Why do I create it? So it knows what to return? todo
+        refund_settings = RefundSettings()
+
         # Handle refund_reason_type - validate PageType exists and create one-to-one reference
-        if refund_reason_type:
+        if refund_reason_model_type:
             try:
-                page_type = PageType.objects.get(pk=refund_reason_type)
-                settings.refund_reason_type_id = page_type
+                model_type = PageType.objects.get(pk=refund_reason_model_type)
+                settings.refund_reason_model_type = model_type
+
+                refund_settings.allow_custom_refund_reasons = (
+                    allow_custom_refund_reasons
+                )
+                refund_settings.model_type = model_type
+
             except PageType.DoesNotExist:
                 raise ValidationError(
                     {
-                        "refund_reason_type": ValidationError(
+                        "refund_reason_model_type": ValidationError(
                             "PageType with given ID does not exist.", code="not_found"
                         )
                     }
                 ) from None
+        else:
+            # Set to None when refund_reason_type is null/None
+            settings.refund_reason_model_type = None
 
-        # TODO Logic
-
-        refund_settings = RefundSettings(
-            # TODO Properly instantionate this
-            allow_custom_refund_reasons=True  # todo
-        )
+            refund_settings.allow_custom_refund_reasons = allow_custom_refund_reasons
+            refund_settings.model_type = None
 
         return RefundSettingsUpdate(refund_settings=refund_settings)

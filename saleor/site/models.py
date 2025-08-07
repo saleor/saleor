@@ -103,7 +103,7 @@ class SiteSettings(ModelWithMetadata):
 
     # todo Should we keep pushing to this model or meybe create a new one?
     allow_custom_refund_reasons = models.BooleanField(default=True)
-    refund_reason_type_id = models.OneToOneField(
+    refund_reason_model_type = models.OneToOneField(
         null=True, on_delete=models.SET_NULL, to=PageType
     )
 
