@@ -6124,18 +6124,6 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   ): AttributeValueCountableConnection
 
   """
-  List of all existing attribute values. This includes all values that have been assigned to attributes.
-  
-  Added in Saleor 3.22.
-  """
-  values(
-    """
-    Maximum number of attribute values to return. The default value is also the maximum number of values that can be fetched.
-    """
-    limit: Int = 100
-  ): [AttributeValue!]
-
-  """
   Whether the attribute requires values to be passed or not. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   valueRequired: Boolean!
