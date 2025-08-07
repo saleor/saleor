@@ -12,6 +12,7 @@ from ..core import TimePeriodType
 from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation
+from ..page.models import PageType
 from ..permission.enums import SitePermissions
 from . import GiftCardSettingsExpiryType
 from .error_codes import SiteErrorCode
@@ -99,6 +100,12 @@ class SiteSettings(ModelWithMetadata):
     charge_taxes_on_shipping = models.BooleanField(default=True)
     include_taxes_in_prices = models.BooleanField(default=True)
     display_gross_prices = models.BooleanField(default=True)
+
+    # todo Should we keep pushing to this model or meybe create a new one?
+    allow_custom_refund_reasons = models.BooleanField(default=True)
+    refund_reason_type_id = models.OneToOneField(
+        null=True, on_delete=models.SET_NULL, to=PageType
+    )
 
     class Meta:
         permissions = (
