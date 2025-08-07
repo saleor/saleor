@@ -1,12 +1,16 @@
 import graphene
+from django.core.exceptions import ValidationError
 
+from ....page.models import PageType
 from ....permission.enums import SitePermissions
+from ....site.models import SiteSettings
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
 from ...core.types.common import RefundSettingsError
+from ...site.dataloaders import get_site_promise
 from ..types import RefundSettings
 
 
@@ -47,8 +51,44 @@ class RefundSettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        # TODO Validation
+        input = data.get("input")
+
+        allow_custom_refund_reasons = input.get("allow_custom_refund_reasons")
+        refund_reason_type = input.get("refund_reason_type")
+
+        if not allow_custom_refund_reasons and refund_reason_type is None:
+            raise ValidationError(
+                {
+                    "allow_custom_refund_reasons": ValidationError(
+                        "When allowCustomRefundReasons is false, model type must be provided",
+                        # TODO What code?
+                        code="required",
+                    )
+                }
+            ) from None
+
         # TODO Check permissions
+
+        site = get_site_promise(info.context).get()
+
+        # TODO how does it work, where "settings" come from?
+        settings: SiteSettings = site.settings
+
+        settings.allow_custom_refund_reasons = allow_custom_refund_reasons
+
+        # Handle refund_reason_type - validate PageType exists and create one-to-one reference
+        if refund_reason_type:
+            try:
+                page_type = PageType.objects.get(pk=refund_reason_type)
+                settings.refund_reason_type_id = page_type
+            except PageType.DoesNotExist:
+                raise ValidationError(
+                    {
+                        "refund_reason_type": ValidationError(
+                            "PageType with given ID does not exist.", code="not_found"
+                        )
+                    }
+                ) from None
 
         # TODO Logic
 
