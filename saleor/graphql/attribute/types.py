@@ -1,5 +1,4 @@
 import graphene
-from django.conf import settings
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
 from ...permission.enums import (
@@ -46,7 +45,6 @@ from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import (
     AttributesByAttributeId,
-    AttributeValuesByAttributeIdWithLimitLoader,
 )
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
@@ -265,21 +263,6 @@ class Attribute(ChannelContextType[models.Attribute]):
             "Available only for attributes with predefined choices."
         ),
     )
-    values = NonNullList(
-        AttributeValue,
-        description=(
-            "List of all existing attribute values. This includes all values"
-            " that have been assigned to attributes." + ADDED_IN_322
-        ),
-        limit=graphene.Int(
-            description=(
-                "Maximum number of attribute values to return. "
-                "The default value is also the maximum number of values "
-                "that can be fetched."
-            ),
-            default_value=settings.NESTED_QUERY_LIMIT,
-        ),
-    )
 
     value_required = graphene.Boolean(
         description=(
@@ -400,24 +383,6 @@ class Attribute(ChannelContextType[models.Attribute]):
         )
         return create_connection_slice(
             channel_context_qs, info, kwargs, AttributeValueCountableConnection
-        )
-
-    @staticmethod
-    def resolve_values(
-        root: ChannelContext[models.Attribute], info: ResolveInfo, limit: int, **kwargs
-    ):
-        attr = root.node
-
-        def map_channel_context(values):
-            return [
-                ChannelContext(node=value, channel_slug=root.channel_slug)
-                for value in values
-            ]
-
-        return (
-            AttributeValuesByAttributeIdWithLimitLoader(info.context, limit=limit)
-            .load(attr.id)
-            .then(map_channel_context)
         )
 
     @staticmethod

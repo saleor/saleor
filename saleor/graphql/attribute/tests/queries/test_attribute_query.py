@@ -1,10 +1,10 @@
 import graphene
 import pytest
-from django.db.models import Count, Q
+from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
 
 from .....attribute import AttributeInputType, AttributeType
-from .....attribute.models import Attribute, AttributeValue
+from .....attribute.models import Attribute
 from .....product import ProductTypeKind
 from .....product.models import Category, Collection, Product, ProductType
 from .....tests.utils import dummy_editorjs
@@ -783,107 +783,3 @@ def test_get_attribute_by_external_reference(
     data = content["data"]["attribute"]
     assert data["externalReference"] == ext_ref
     assert data["id"] == graphene.Node.to_global_id("Attribute", attribute.id)
-
-
-ATTRIBUTE_VALUES_QUERY = """
-query ($limit: Int) {
-    attributes(first: 10) {
-        edges {
-            node {
-                id
-                name
-                slug
-                values(limit: $limit) {
-                    name
-                    slug
-                }
-            }
-        }
-    }
-}
-"""
-
-
-def test_attributes_values_with_limit(
-    api_client, numeric_attribute, size_attribute, weight_attribute
-):
-    # given
-    assert weight_attribute.values.count() > 1
-    assert size_attribute.values.count() > 1
-
-    AttributeValue.objects.bulk_create(
-        [
-            AttributeValue(
-                slug="10", name="10", numeric=10, attribute=numeric_attribute
-            ),
-            AttributeValue(
-                slug="20", name="20", numeric=20, attribute=numeric_attribute
-            ),
-            AttributeValue(
-                slug="30", name="30", numeric=30, attribute=numeric_attribute
-            ),
-        ]
-    )
-    limit = 1
-    variables = {"limit": limit}
-
-    # when
-    response = api_client.post_graphql(ATTRIBUTE_VALUES_QUERY, variables)
-
-    # then
-    data = get_graphql_content(response)
-    attributes = data["data"]["attributes"]["edges"]
-    for attribute in attributes:
-        assert len(attribute["node"]["values"]) == limit
-
-
-def test_attributes_values_default_limit(
-    api_client, numeric_attribute, size_attribute, weight_attribute
-):
-    # given
-    AttributeValue.objects.bulk_create(
-        [
-            AttributeValue(
-                slug="10", name="10", numeric=10, attribute=numeric_attribute
-            ),
-            AttributeValue(
-                slug="20", name="20", numeric=20, attribute=numeric_attribute
-            ),
-            AttributeValue(
-                slug="30", name="30", numeric=30, attribute=numeric_attribute
-            ),
-        ]
-    )
-    attribute_count = {
-        att.slug: att.values_count
-        for att in Attribute.objects.annotate(values_count=Count("values"))
-    }
-
-    # when
-    response = api_client.post_graphql(ATTRIBUTE_VALUES_QUERY, {})
-
-    # then
-    data = get_graphql_content(response)
-    attributes = data["data"]["attributes"]["edges"]
-    for attribute in attributes:
-        assert (
-            len(attribute["node"]["values"])
-            == attribute_count[attribute["node"]["slug"]]
-        )
-
-
-def test_attributes_values_limit_exceeded(api_client, weight_attribute):
-    # given
-    limit = 150
-    variables = {"limit": limit}
-
-    # when
-    response = api_client.post_graphql(ATTRIBUTE_VALUES_QUERY, variables)
-
-    # then
-    content = get_graphql_content_from_response(response)
-
-    assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == (
-        "The limit for attribute values cannot be greater than 100."
-    )
