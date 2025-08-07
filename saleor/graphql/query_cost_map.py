@@ -152,9 +152,6 @@ COST_MAP = {
         "productTypes": {"complexity": 1, "multipliers": ["first", "last"]},
         "productVariantTypes": {"complexity": 1, "multipliers": ["first", "last"]},
     },
-    "AttributeValue": {
-        "referencedObject": {"complexity": 1},
-    },
     "Category": {
         "ancestors": {"complexity": 1, "multipliers": ["first", "last"]},
         "children": {"complexity": 1, "multipliers": ["first", "last"]},
