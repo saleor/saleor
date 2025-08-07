@@ -23,6 +23,7 @@ POPULATE_DEFAULTS = False
 
 CELERY_TASK_ALWAYS_EAGER = True
 
+PUBLIC_URL = "https://example.com"
 SECRET_KEY = "NOTREALLY"
 
 ALLOWED_CLIENT_HOSTS = ["www.example.com"]

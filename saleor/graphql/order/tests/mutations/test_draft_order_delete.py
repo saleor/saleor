@@ -343,9 +343,7 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.additional",
     )
     assert not mocked_send_webhook_request_sync.called
     assert wrapped_call_order_event.called

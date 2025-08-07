@@ -7,8 +7,8 @@ from ..models import SiteSettings
 
 def test_new_get_current():
     result = Site.objects.get_current()
-    assert result.name == "mirumee.com"
-    assert result.domain == "mirumee.com"
+    assert result.name == "example.com"
+    assert result.domain == "example.com"
     assert type(result.settings) is SiteSettings
 
 

@@ -376,7 +376,6 @@ def test_create_variant_with_file_attribute(
     file_attribute,
     permission_manage_products,
     warehouse,
-    site_settings,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -387,8 +386,7 @@ def test_create_variant_with_file_attribute(
     product_type.variant_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
     existing_value = file_attribute.values.first()
-    domain = site_settings.site.domain
-    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{existing_value.file_url}"
 
     values_count = file_attribute.values.count()
 
@@ -509,7 +507,6 @@ def test_create_variant_with_file_attribute_new_value(
     file_attribute,
     permission_manage_products,
     warehouse,
-    site_settings,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -520,7 +517,7 @@ def test_create_variant_with_file_attribute_new_value(
     product_type.variant_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
     new_value = "new_value.txt"
-    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{new_value}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{new_value}"
 
     values_count = file_attribute.values.count()
 

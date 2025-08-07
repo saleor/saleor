@@ -92,7 +92,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
             "media__image": (
                 ""
                 if not product.media.all()
-                else f"http://mirumee.com{product.media.first().image.url}"
+                else f"https://example.com{product.media.first().image.url}"
             ),
         }
 
@@ -112,10 +112,10 @@ def test_get_products_data(product, product_with_image, collection, image, chann
                 "variants__media__image": (
                     ""
                     if not variant.media.all()
-                    else f"http://mirumee.com{variant.media.first().image.url}"
+                    else f"https://example.com{variant.media.first().image.url}"
                 ),
                 "variant_weight": (
-                    "{} g".foramt(int(variant.weight.value)) if variant.weight else ""
+                    f"{int(variant.weight.value)} g" if variant.weight else ""
                 ),
                 "variants__is_preorder": variant.is_preorder,
                 "variants__preorder_global_threshold": (

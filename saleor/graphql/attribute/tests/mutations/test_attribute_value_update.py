@@ -366,7 +366,7 @@ def test_update_swatch_attribute_value_clear_value(
     query = UPDATE_ATTRIBUTE_VALUE_MUTATION
     value = swatch_attribute.values.filter(value__isnull=False).first()
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
-    file_url = "http://mirumee.com/test_media/test_file.jpeg"
+    file_url = "https://example.com/test_media/test_file.jpeg"
     variables = {"input": {"fileUrl": file_url, **additional_field}, "id": node_id}
 
     # when
@@ -422,7 +422,7 @@ def test_update_swatch_attribute_value_clear_file_value(
 @pytest.mark.parametrize(
     ("field", "input_value"),
     [
-        ("fileUrl", "http://mirumee.com/test_media/test_file.jpeg"),
+        ("fileUrl", "https://example.com/test_media/test_file.jpeg"),
         ("contentType", "jpeg"),
     ],
 )

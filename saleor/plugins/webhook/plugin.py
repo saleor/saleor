@@ -2727,7 +2727,7 @@ class WebhookPlugin(BasePlugin):
         domain = get_domain()
         webhook = delivery.webhook
         app = webhook.app
-        message_group_id = f"{domain}:{app.identifier}"
+        message_group_id = f"{domain}:{app.identifier or app.id}"
         send_webhook_request_async.apply_async(
             kwargs={
                 "event_delivery_id": delivery.pk,

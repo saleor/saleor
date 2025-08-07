@@ -3,7 +3,7 @@ interactions:
     body: '{"amount": {"value": "8000", "currency": "USD"}, "reference": "UGF5bWVudDoxMTUw",
       "paymentMethod": {"type": "scheme", "encryptedCardNumber": "test_4646464646464644",
       "encryptedExpiryMonth": "test_03", "encryptedExpiryYear": "test_2030", "encryptedSecurityCode":
-      "test_737"}, "returnUrl": "http://mirumee.com/plugins/mirumee.payments.adyen/additional-actions?payment=UGF5bWVudDoxMTUw&checkout=d72ba46f-95ce-4971-b548-2f65c51309b6",
+      "test_737"}, "returnUrl": "https://example.com/plugins/mirumee.payments.adyen/additional-actions?payment=UGF5bWVudDoxMTUw&checkout=d72ba46f-95ce-4971-b548-2f65c51309b6",
       "merchantAccount": "SaleorECOM", "channel": "web", "shopperEmail": "", "applicationInfo":
       {"adyenLibrary": {"name": "adyen-python-api-library", "version": "4.0.0"}}}'
     headers:

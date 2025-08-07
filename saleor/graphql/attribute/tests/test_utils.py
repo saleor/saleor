@@ -809,7 +809,7 @@ def test_clean_variant_attribute_input_multiple_errors(
 
 @pytest.mark.parametrize("creation", [True, False])
 def test_clean_attributes_with_file_input_type_for_product(
-    creation, weight_attribute, file_attribute, product_type, site_settings
+    creation, weight_attribute, file_attribute, product_type
 ):
     # given
     file_attribute.value_required = True
@@ -818,8 +818,7 @@ def test_clean_attributes_with_file_input_type_for_product(
     weight_attribute.save(update_fields=["value_required"])
     product_type.product_attributes.add(weight_attribute, file_attribute)
 
-    domain = site_settings.site.domain
-    file_url = f"http://{domain}{settings.MEDIA_URL}test_file.jpeg"
+    file_url = f"https://example.com{settings.MEDIA_URL}test_file.jpeg"
 
     input_data = [
         {
@@ -1815,11 +1814,10 @@ def test_clean_rich_text_attributes_input_for_product_only_image_block(
     )
 
 
-def test_clean_file_url(site_settings, file_attribute):
+def test_clean_file_url(file_attribute):
     # given
     name = "Test.jpg"
-    domain = site_settings.site.domain
-    url = f"http://{domain}{settings.MEDIA_URL}{name}"
+    url = f"https://example.com{settings.MEDIA_URL}{name}"
 
     file_handler = FileAttributeHandler(
         file_attribute,

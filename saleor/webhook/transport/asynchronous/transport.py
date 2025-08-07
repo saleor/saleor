@@ -435,7 +435,7 @@ def trigger_webhooks_async_for_multiple_objects(
     domain = get_domain()
     for delivery in deliveries:
         app = delivery.webhook.app
-        message_group_id = f"{domain}:{app.identifier}"
+        message_group_id = f"{domain}:{app.identifier or app.id}"
         # TODO: switch to new `send_webhooks_async_for_app` task when we have
         # deduplication mechanism in place.
         send_webhook_request_async.apply_async(
@@ -576,7 +576,7 @@ def generate_deferred_payloads(
     for delivery in event_deliveries_for_bulk_update:
         # Trigger webhook delivery task when the payload is ready.
         app = delivery.webhook.app
-        message_group_id = f"{domain}:{app.identifier}"
+        message_group_id = f"{domain}:{app.identifier or app.id}"
         # TODO: switch to new `send_webhooks_async_for_app` task when we have
         # deduplication mechanism in place.
         send_webhook_request_async.apply_async(

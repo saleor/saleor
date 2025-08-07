@@ -784,7 +784,7 @@ USER_AVATAR_QUERY = """
 
 
 def test_query_user_avatar_with_size_and_format_proxy_url_returned(
-    staff_api_client, media_root, permission_manage_staff, site_settings
+    staff_api_client, media_root, permission_manage_staff
 ):
     # given
     user = staff_api_client.user
@@ -807,15 +807,14 @@ def test_query_user_avatar_with_size_and_format_proxy_url_returned(
     # then
     content = get_graphql_content(response)
     data = content["data"]["user"]
-    domain = site_settings.site.domain
     assert (
         data["avatar"]["url"]
-        == f"http://{domain}/thumbnail/{user_uuid}/128/{format.lower()}/"
+        == f"https://example.com/thumbnail/{user_uuid}/128/{format.lower()}/"
     )
 
 
 def test_query_user_avatar_with_size_proxy_url_returned(
-    staff_api_client, media_root, permission_manage_staff, site_settings
+    staff_api_client, media_root, permission_manage_staff
 ):
     # given
     user = staff_api_client.user
@@ -836,14 +835,11 @@ def test_query_user_avatar_with_size_proxy_url_returned(
     # then
     content = get_graphql_content(response)
     data = content["data"]["user"]
-    assert (
-        data["avatar"]["url"]
-        == f"http://{site_settings.site.domain}/thumbnail/{user_uuid}/128/"
-    )
+    assert data["avatar"]["url"] == f"https://example.com/thumbnail/{user_uuid}/128/"
 
 
 def test_query_user_avatar_with_size_thumbnail_url_returned(
-    staff_api_client, media_root, permission_manage_staff, site_settings
+    staff_api_client, media_root, permission_manage_staff
 ):
     # given
     user = staff_api_client.user
@@ -869,12 +865,12 @@ def test_query_user_avatar_with_size_thumbnail_url_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
+        == f"https://example.com/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
 def test_query_user_avatar_original_size_custom_format_provided_original_image_returned(
-    staff_api_client, media_root, permission_manage_staff, site_settings
+    staff_api_client, media_root, permission_manage_staff
 ):
     # given
     user = staff_api_client.user
@@ -898,12 +894,12 @@ def test_query_user_avatar_original_size_custom_format_provided_original_image_r
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{site_settings.site.domain}/media/user-avatars/{avatar_mock.name}"
+        == f"https://example.com/media/user-avatars/{avatar_mock.name}"
     )
 
 
 def test_query_user_avatar_no_size_value(
-    staff_api_client, media_root, permission_manage_staff, site_settings
+    staff_api_client, media_root, permission_manage_staff
 ):
     # given
     user = staff_api_client.user
@@ -925,10 +921,7 @@ def test_query_user_avatar_no_size_value(
     # then
     content = get_graphql_content(response)
     data = content["data"]["user"]
-    assert (
-        data["avatar"]["url"]
-        == f"http://{site_settings.site.domain}/thumbnail/{user_uuid}/4096/"
-    )
+    assert data["avatar"]["url"] == f"https://example.com/thumbnail/{user_uuid}/4096/"
 
 
 def test_query_user_avatar_no_image(staff_api_client, permission_manage_staff):

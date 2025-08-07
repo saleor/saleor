@@ -568,7 +568,7 @@ def swatch_attribute(db):
         attribute=attribute,
         name="Logo",
         slug="logo",
-        file_url="http://mirumee.com/test_media/test_file.jpeg",
+        file_url="http://example.com/test_media/test_file.jpeg",
         content_type="image/jpeg",
     )
     return attribute

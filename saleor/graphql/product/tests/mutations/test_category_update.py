@@ -264,7 +264,6 @@ def test_category_update_background_image_mutation(
     category,
     permission_manage_products,
     media_root,
-    site_settings,
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -315,7 +314,7 @@ def test_category_update_background_image_mutation(
     assert category.background_image.file
     assert data["category"]["backgroundImage"]["alt"] == image_alt
     assert data["category"]["backgroundImage"]["url"].startswith(
-        f"http://{site_settings.site.domain}/media/category-backgrounds/{image_name}"
+        f"https://example.com/media/category-backgrounds/{image_name}"
     )
 
     # ensure that thumbnails for old background image has been deleted

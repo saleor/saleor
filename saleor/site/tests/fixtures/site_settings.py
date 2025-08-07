@@ -12,11 +12,11 @@ def site_settings(db, settings) -> SiteSettings:
     saleor.site.models.SiteSettings have a one-to-one relationship and a site
     should never exist without a matching settings object.
     """
-    site = Site.objects.get_or_create(name="mirumee.com", domain="mirumee.com")[0]
+    site = Site.objects.get_or_create(name="example.com", domain="example.com")[0]
     obj = SiteSettings.objects.get_or_create(
         site=site,
-        default_mail_sender_name="Mirumee Labs",
-        default_mail_sender_address="mirumee@example.com",
+        default_mail_sender_name="Example",
+        default_mail_sender_address="example@example.com",
     )[0]
     settings.SITE_ID = site.pk
     settings.ALLOWED_HOSTS += [site.domain]

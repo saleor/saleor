@@ -41,9 +41,7 @@ def test_trigger_webhooks_async(
                     "telemetry_context": mock.ANY,
                 },
                 queue=None,
-                bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
+                MessageGroupId=f"example.com:{delivery.webhook.app.identifier or delivery.webhook.app.id}",
             )
             in mocked_send_webhook_request.mock_calls
         )
@@ -106,9 +104,7 @@ def test_trigger_webhooks_async_for_multiple_objects(
                     "telemetry_context": mock.ANY,
                 },
                 queue=None,
-                bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
+                MessageGroupId=f"example.com:{delivery.webhook.app.identifier or delivery.webhook.app.id}",
             )
             in mocked_send_webhook_request.mock_calls
         )

@@ -1699,7 +1699,6 @@ def test_update_product_variant_with_current_file_attribute(
     product_with_variant_with_file_attribute,
     file_attribute,
     permission_manage_products,
-    site_settings,
 ):
     product = product_with_variant_with_file_attribute
     variant = product.variants.first()
@@ -1712,9 +1711,7 @@ def test_update_product_variant_with_current_file_attribute(
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     file_attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
-    file_url = (
-        f"http://{site_settings.site.domain}{settings.MEDIA_URL}{second_value.file_url}"
-    )
+    file_url = f"https://example.com{settings.MEDIA_URL}{second_value.file_url}"
 
     variables = {
         "id": variant_id,
@@ -1749,7 +1746,6 @@ def test_update_product_variant_with_duplicated_file_attribute(
     product_with_variant_with_file_attribute,
     file_attribute,
     permission_manage_products,
-    site_settings,
 ):
     product = product_with_variant_with_file_attribute
     variant = product.variants.first()
@@ -1775,8 +1771,7 @@ def test_update_product_variant_with_duplicated_file_attribute(
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     file_attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
-    domain = site_settings.site.domain
-    file_url = f"http://{domain}{settings.MEDIA_URL}{file_attr_value.file_url}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{file_attr_value.file_url}"
 
     variables = {
         "id": variant_id,
@@ -1805,7 +1800,6 @@ def test_update_product_variant_with_file_attribute_new_value_is_not_created(
     product_with_variant_with_file_attribute,
     file_attribute,
     permission_manage_products,
-    site_settings,
 ):
     product = product_with_variant_with_file_attribute
     variant = product.variants.first()
@@ -1819,8 +1813,7 @@ def test_update_product_variant_with_file_attribute_new_value_is_not_created(
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     file_attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
-    domain = site_settings.site.domain
-    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{existing_value.file_url}"
 
     variables = {
         "id": variant_id,
