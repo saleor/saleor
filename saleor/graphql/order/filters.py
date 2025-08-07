@@ -302,12 +302,14 @@ def filter_fulfillments_by_warehouse_details(
             Warehouse.objects.using(qs.db), "id", warehouse_id_filter, "Warehouse"
         )
     if warehouse_slug_filter := value.get("slug"):
-        warehouse_qs = warehouse_qs or Warehouse.objects.using(qs.db)
+        if warehouse_qs is None:
+            warehouse_qs = Warehouse.objects.using(qs.db)
         warehouse_qs = filter_where_by_value_field(
             warehouse_qs, "slug", warehouse_slug_filter
         )
     if warehouse_external_reference := value.get("external_reference"):
-        warehouse_qs = warehouse_qs or Warehouse.objects.using(qs.db)
+        if warehouse_qs is None:
+            warehouse_qs = Warehouse.objects.using(qs.db)
         warehouse_qs = filter_where_by_value_field(
             warehouse_qs, "external_reference", warehouse_external_reference
         )

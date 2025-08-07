@@ -2175,6 +2175,10 @@ def test_orders_filter_fulfillment_warehouse_external_reference(
                 ]
             }
         },
+        {
+            "slug": {"oneOf": ["non-existing-warehouse"]},
+            "externalReference": {"eq": "existing-warehouse-ref"},
+        },
     ],
 )
 def test_orders_filter_fulfillment_warehouse_non_existing(
@@ -2187,7 +2191,14 @@ def test_orders_filter_fulfillment_warehouse_non_existing(
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
+    fulfillment = fulfilled_order.fulfillments.first()
+
     assert FulfillmentLine.objects.count() > 1
+
+    existing_warehouse = fulfillment.lines.first().stock.warehouse
+    existing_warehouse.slug = "existing-warehouse-slug"
+    existing_warehouse.external_reference = "existing-warehouse-ref"
+    existing_warehouse.save()
 
     variables = {
         "where": {"fulfillments": [{"warehouse": where_warehouse_non_existing_input}]}
