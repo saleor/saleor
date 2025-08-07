@@ -13387,6 +13387,9 @@ input FulfillmentFilterInput @doc(category: "Orders") {
 
   """Filter by metadata fields."""
   metadata: MetadataFilterInput
+
+  """Filter by fulfillment warehouse."""
+  warehouse: FulfillmentWarehouseFilterInput
 }
 
 """Filter by fulfillment status."""
@@ -13396,6 +13399,18 @@ input FulfillmentStatusEnumFilterInput @doc(category: "Orders") {
 
   """The value included in."""
   oneOf: [FulfillmentStatus!]
+}
+
+"""Filter input for fulfillment warehouses."""
+input FulfillmentWarehouseFilterInput @doc(category: "Orders") {
+  """Filter fulfillments by warehouse ID."""
+  id: GlobalIDFilterInput
+
+  """Filter fulfillments by warehouse slug."""
+  slug: StringFilterInput
+
+  """Filter fulfillments by warehouse external reference."""
+  externalReference: StringFilterInput
 }
 
 """Filter input for order lines data."""

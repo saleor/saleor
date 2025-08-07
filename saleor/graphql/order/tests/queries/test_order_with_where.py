@@ -17,13 +17,17 @@ from .....order import (
     OrderEvents,
     OrderStatus,
 )
-from .....order.models import Order, OrderEvent, OrderLine
+from .....order.models import FulfillmentLine, Order, OrderEvent, OrderLine
 from .....order.search import prepare_order_search_vector_value
+from .....warehouse.models import Stock
+from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 
 @pytest.fixture
-def orders_with_fulfillments(order_list):
+def orders_with_fulfillments(
+    order_list, warehouses, order_lines_generator, product_variant_list
+):
     statuses = [
         FulfillmentStatus.FULFILLED,
         FulfillmentStatus.REFUNDED,
@@ -34,11 +38,43 @@ def orders_with_fulfillments(order_list):
         {"foo": "zaz"},
         {},
     ]
+    variant_1 = product_variant_list[0]
+    variant_2 = product_variant_list[1]
+    variant_1_quantity = 10
+    variant_2_quantity = 5
+    stock_1, stock_2 = Stock.objects.bulk_create(
+        [
+            Stock(
+                product_variant=variant_1,
+                warehouse=warehouses[0],
+                quantity=variant_1_quantity * len(order_list),
+            ),
+            Stock(
+                product_variant=variant_2,
+                warehouse=warehouses[1],
+                quantity=variant_2_quantity * len(order_list),
+            ),
+        ]
+    )
     for order, status, metadata in zip(
         order_list, statuses, metadata_values, strict=True
     ):
-        order.fulfillments.create(
+        fulfillment = order.fulfillments.create(
             tracking_number="123", status=status, metadata=metadata
+        )
+        line_1, line_2 = order_lines_generator(
+            order,
+            [variant_1, variant_2],
+            [10, 20],
+            [variant_1_quantity, variant_2_quantity],
+            create_allocations=False,
+        )
+
+        fulfillment.lines.create(
+            order_line=line_1, quantity=line_1.quantity, stock=stock_1
+        )
+        fulfillment.lines.create(
+            order_line=line_2, quantity=line_2.quantity, stock=stock_2
         )
     return order_list
 
@@ -1974,6 +2010,303 @@ def test_orders_filter_fulfillment_status_oneof_metadata_oneof(
         str(orders_with_fulfillments[0].number),
         str(orders_with_fulfillments[1].number),
     }
+
+
+def test_orders_filter_fulfillment_warehouse_id_eq(
+    orders_with_fulfillments,
+    staff_api_client,
+    permission_group_manage_orders,
+    fulfilled_order,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    expected_order = fulfilled_order
+    fulfillment = expected_order.fulfillments.first()
+    warehouse = fulfillment.lines.first().stock.warehouse
+
+    variables = {
+        "where": {
+            "fulfillments": [
+                {"warehouse": {"id": {"eq": to_global_id_or_none(warehouse)}}}
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    order_number_from_api = orders[0]["node"]["number"]
+    assert order_number_from_api == str(expected_order.number)
+
+
+def test_orders_filter_fulfillment_warehouse_id_one_of(
+    orders_with_fulfillments,
+    staff_api_client,
+    permission_group_manage_orders,
+    fulfilled_order,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    expected_order = fulfilled_order
+    fulfillment = expected_order.fulfillments.first()
+    warehouse = fulfillment.lines.first().stock.warehouse
+
+    variables = {
+        "where": {
+            "fulfillments": [
+                {"warehouse": {"id": {"oneOf": [to_global_id_or_none(warehouse)]}}}
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    order_number_from_api = orders[0]["node"]["number"]
+    assert order_number_from_api == str(expected_order.number)
+
+
+@pytest.mark.parametrize(
+    "where_warehouse_slug",
+    [
+        {"slug": {"eq": "warehouse-to-get"}},
+        {"slug": {"oneOf": ["warehouse-to-get"]}},
+    ],
+)
+def test_orders_filter_fulfillment_warehouse_slug(
+    where_warehouse_slug,
+    orders_with_fulfillments,
+    staff_api_client,
+    permission_group_manage_orders,
+    fulfilled_order,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    expected_order = fulfilled_order
+    fulfillment = expected_order.fulfillments.first()
+
+    assert FulfillmentLine.objects.count() > 1
+
+    warehouse = fulfillment.lines.first().stock.warehouse
+
+    expected_warehouse_slug = "warehouse-to-get"
+    warehouse.slug = expected_warehouse_slug
+    warehouse.save()
+
+    variables = {"where": {"fulfillments": [{"warehouse": where_warehouse_slug}]}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    order_number_from_api = orders[0]["node"]["number"]
+    assert order_number_from_api == str(expected_order.number)
+
+
+@pytest.mark.parametrize(
+    "where_warehouse_external_reference",
+    [
+        {"externalReference": {"eq": "warehouse-to-get"}},
+        {"externalReference": {"oneOf": ["warehouse-to-get"]}},
+    ],
+)
+def test_orders_filter_fulfillment_warehouse_external_reference(
+    where_warehouse_external_reference,
+    orders_with_fulfillments,
+    staff_api_client,
+    permission_group_manage_orders,
+    fulfilled_order,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    expected_order = fulfilled_order
+    fulfillment = expected_order.fulfillments.first()
+
+    assert FulfillmentLine.objects.count() > 1
+
+    warehouse = fulfillment.lines.first().stock.warehouse
+
+    expected_warehouse_external_reference = "warehouse-to-get"
+    warehouse.external_reference = expected_warehouse_external_reference
+    warehouse.save()
+
+    variables = {
+        "where": {"fulfillments": [{"warehouse": where_warehouse_external_reference}]}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    order_number_from_api = orders[0]["node"]["number"]
+    assert order_number_from_api == str(expected_order.number)
+
+
+@pytest.mark.parametrize(
+    "where_warehouse_non_existing_input",
+    [
+        {"externalReference": {"eq": "non-existing-warehouse"}},
+        {"externalReference": {"oneOf": ["non-existing-warehouse"]}},
+        {"slug": {"eq": "non-existing-warehouse"}},
+        {"slug": {"oneOf": ["non-existing-warehouse"]}},
+        {
+            "id": {
+                "eq": "V2FyZWhvdXNlOjJjMGNiODAwLTU0N2ItNDM1ZS04Y2UwLTkyYTFiOTE1ZmFkMQ=="
+            }
+        },
+        {
+            "id": {
+                "oneOf": [
+                    "V2FyZWhvdXNlOjJjMGNiODAwLTU0N2ItNDM1ZS04Y2UwLTkyYTFiOTE1ZmFkMQ=="
+                ]
+            }
+        },
+        {
+            "slug": {"oneOf": ["non-existing-warehouse"]},
+            "externalReference": {"eq": "existing-warehouse-ref"},
+        },
+    ],
+)
+def test_orders_filter_fulfillment_warehouse_non_existing(
+    where_warehouse_non_existing_input,
+    orders_with_fulfillments,
+    staff_api_client,
+    permission_group_manage_orders,
+    fulfilled_order,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    fulfillment = fulfilled_order.fulfillments.first()
+
+    assert FulfillmentLine.objects.count() > 1
+
+    existing_warehouse = fulfillment.lines.first().stock.warehouse
+    existing_warehouse.slug = "existing-warehouse-slug"
+    existing_warehouse.external_reference = "existing-warehouse-ref"
+    existing_warehouse.save()
+
+    variables = {
+        "where": {"fulfillments": [{"warehouse": where_warehouse_non_existing_input}]}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+@pytest.mark.parametrize(
+    "where_additional_filters",
+    [
+        {"status": {"eq": FulfillmentStatus.FULFILLED.upper()}},
+        {"metadata": {"key": "notfound"}},
+    ],
+)
+def test_orders_filter_fulfillment_warehouse_with_multiple_filters_with_no_match(
+    where_additional_filters,
+    staff_api_client,
+    permission_group_manage_orders,
+    fulfilled_order,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    expected_order = fulfilled_order
+    fulfillment = expected_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.metadata = {"key": "value"}
+    fulfillment.save()
+
+    warehouse = fulfillment.lines.first().stock.warehouse
+
+    variables = {
+        "where": {
+            "fulfillments": [
+                {
+                    "warehouse": {"id": {"eq": to_global_id_or_none(warehouse)}},
+                    **where_additional_filters,
+                },
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+@pytest.mark.parametrize(
+    "where_additional_filters",
+    [
+        {"status": {"eq": FulfillmentStatus.FULFILLED.upper()}},
+        {"metadata": {"key": "meta-key"}},
+    ],
+)
+def test_orders_filter_fulfillment_warehouse_multiple_filters(
+    where_additional_filters,
+    orders_with_fulfillments,
+    staff_api_client,
+    permission_group_manage_orders,
+    fulfilled_order,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    expected_order = fulfilled_order
+
+    fulfillment = expected_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.FULFILLED
+    fulfillment.metadata = {"meta-key": "meta-value"}
+    fulfillment.save()
+
+    assert FulfillmentLine.objects.count() > 1
+
+    warehouse = fulfillment.lines.first().stock.warehouse
+
+    expected_warehouse_external_reference = "warehouse-to-get"
+    warehouse.external_reference = expected_warehouse_external_reference
+    warehouse.save()
+
+    variables = {
+        "where": {
+            "fulfillments": [
+                {
+                    "warehouse": {"id": {"eq": to_global_id_or_none(warehouse)}},
+                    **where_additional_filters,
+                },
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    order_number_from_api = orders[0]["node"]["number"]
+    assert order_number_from_api == str(expected_order.number)
 
 
 @pytest.mark.parametrize(
