@@ -2,6 +2,7 @@ from typing import cast
 
 import graphene
 from django.db.models import QuerySet
+from promise import Promise
 
 from ...attribute import AttributeInputType, models
 from ...permission.enums import (
@@ -17,10 +18,7 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
-from ..core.descriptions import (
-    DEFAULT_DEPRECATION_REASON,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ..core.descriptions import DEFAULT_DEPRECATION_REASON, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
@@ -37,6 +35,8 @@ from ..core.types import (
 )
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
+from ..page.dataloaders import PageByIdLoader
+from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributesByAttributeId
@@ -45,6 +45,50 @@ from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTyp
 from .filters import AttributeValueFilterInput
 from .sorters import AttributeChoicesSortingInput
 from .utils import AttributeAssignmentMixin
+
+
+def _resolve_referenced_product_name(
+    reference_product_id: int | None, info: ResolveInfo
+) -> Promise[None | str]:
+    if not reference_product_id:
+        return Promise.resolve(None)
+    return (
+        ProductByIdLoader(info.context)
+        .load(reference_product_id)
+        .then(lambda product: product.name if product else None)
+    )
+
+
+def _resolve_referenced_product_variant_name(
+    reference_variant_id: int | None, info: ResolveInfo
+) -> Promise[None | str]:
+    if not reference_variant_id:
+        return Promise.resolve(None)
+
+    def resolve_variant_name(variant):
+        if variant is None:
+            return None
+        return _resolve_referenced_product_name(variant.product_id, info).then(
+            lambda product_name: f"{product_name}: {variant.name}"
+        )
+
+    return (
+        ProductVariantByIdLoader(info.context)
+        .load(reference_variant_id)
+        .then(resolve_variant_name)
+    )
+
+
+def _resolve_referenced_page_name(
+    reference_page_id: int | None, info: ResolveInfo
+) -> Promise[None | str]:
+    if not reference_page_id:
+        return Promise.resolve(None)
+    return (
+        PageByIdLoader(info.context)
+        .load(reference_page_id)
+        .then(lambda page: page.title if page else None)
+    )
 
 
 class AttributeValue(ModelObjectType[models.AttributeValue]):
@@ -82,6 +126,18 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
         description = "Represents a value of an attribute."
         interfaces = [graphene.relay.Node]
         model = models.AttributeValue
+
+    @staticmethod
+    def resolve_name(root: models.AttributeValue, info: ResolveInfo):
+        if root.reference_product_id:
+            return _resolve_referenced_product_name(root.reference_product_id, info)
+        if root.reference_variant_id:
+            return _resolve_referenced_product_variant_name(
+                root.reference_variant_id, info
+            )
+        if root.reference_page_id:
+            return _resolve_referenced_page_name(root.reference_page_id, info)
+        return root.name
 
     @staticmethod
     def resolve_input_type(root: models.AttributeValue, info: ResolveInfo):
