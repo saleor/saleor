@@ -1,7 +1,7 @@
 import graphene
 from promise import Promise
 
-from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...attribute import AttributeInputType, models
 from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
@@ -160,27 +160,17 @@ class AttributeValue(ChannelContextType[models.AttributeValue]):
     def resolve_name(root: ChannelContext[models.AttributeValue], info: ResolveInfo):
         attr_value = root.node
 
-        def _resolve_name(attribute):
-            if attribute.input_type == AttributeInputType.REFERENCE:
-                if attribute.entity_type == AttributeEntityType.PRODUCT:
-                    return _resolve_referenced_product_name(
-                        attr_value.reference_product_id, info
-                    )
-                if attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
-                    return _resolve_referenced_product_variant_name(
-                        attr_value.reference_variant_id, info
-                    )
-                if attribute.entity_type == AttributeEntityType.PAGE:
-                    return _resolve_referenced_page_name(
-                        attr_value.reference_page_id, info
-                    )
-            return attr_value.name
-
-        return (
-            AttributesByAttributeId(info.context)
-            .load(attr_value.attribute_id)
-            .then(_resolve_name)
-        )
+        if attr_value.reference_product_id:
+            return _resolve_referenced_product_name(
+                attr_value.reference_product_id, info
+            )
+        if attr_value.reference_variant_id:
+            return _resolve_referenced_product_variant_name(
+                attr_value.reference_variant_id, info
+            )
+        if attr_value.reference_page_id:
+            return _resolve_referenced_page_name(attr_value.reference_page_id, info)
+        return attr_value.name
 
     @staticmethod
     def resolve_input_type(
