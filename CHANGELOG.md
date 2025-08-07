@@ -5,7 +5,6 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.22.0 [Unreleased]
 
 ### Breaking changes
-- Increased query cost for attribute-related operations due to the addition of `AttributeValue.referencedObject`.
 
 ### GraphQL API
 - You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
