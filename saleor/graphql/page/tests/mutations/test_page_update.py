@@ -255,7 +255,7 @@ def test_update_page_only_title(staff_api_client, permission_manage_pages, page)
 
 
 def test_update_page_with_file_attribute_value(
-    staff_api_client, permission_manage_pages, page, page_file_attribute, site_settings
+    staff_api_client, permission_manage_pages, page, page_file_attribute
 ):
     # given
     query = UPDATE_PAGE_MUTATION
@@ -268,7 +268,7 @@ def test_update_page_with_file_attribute_value(
 
     page_id = graphene.Node.to_global_id("Page", page.id)
     file_name = "test.txt"
-    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{file_name}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{file_name}"
 
     variables = {
         "id": page_id,
@@ -305,7 +305,7 @@ def test_update_page_with_file_attribute_value(
 
 
 def test_update_page_with_file_attribute_new_value_is_not_created(
-    staff_api_client, permission_manage_pages, page, page_file_attribute, site_settings
+    staff_api_client, permission_manage_pages, page, page_file_attribute
 ):
     # given
     query = UPDATE_PAGE_MUTATION
@@ -321,8 +321,7 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
     )
 
     page_id = graphene.Node.to_global_id("Page", page.id)
-    domain = site_settings.site.domain
-    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{existing_value.file_url}"
 
     variables = {
         "id": page_id,

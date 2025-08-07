@@ -22,7 +22,6 @@ def test_create_product_with_attributes_created_in_bulk_core_0704(
     permission_manage_pages,
     permission_manage_products,
     permission_manage_product_types_and_attributes,
-    site_settings,
 ):
     # Before
     permissions = [
@@ -83,7 +82,7 @@ def test_create_product_with_attributes_created_in_bulk_core_0704(
     expected_base_text = "Test rich attribute text"
     expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
     new_value = "new_test_value.txt"
-    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{new_value}"
+    file_url = f"{settings.PUBLIC_URL}{settings.MEDIA_URL}{new_value}"
     file_content_type = "text/plain"
 
     attributes = [

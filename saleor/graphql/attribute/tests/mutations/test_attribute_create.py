@@ -335,7 +335,7 @@ def test_create_swatch_attribute_and_attribute_values_with_file(
 
     attribute_name = "Example numeric attribute name"
     name = "Logo"
-    file_url = "http://mirumee.com/test_media/test_logo.png"
+    file_url = "https://example.com/test_media/test_logo.png"
     content_type = "image/png"
     variables = {
         "input": {
@@ -464,7 +464,7 @@ def test_create_swatch_attribute_and_attribute_values_file_and_value_provided(
 
     attribute_name = "Example numeric attribute name"
     name = "Pink"
-    file_url = "http://mirumee.com/test_media/test_file.jpeg"
+    file_url = "https://example.com/test_media/test_file.jpeg"
     variables = {
         "input": {
             "name": attribute_name,

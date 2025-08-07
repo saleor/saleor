@@ -54,7 +54,7 @@ def test_is_secret_api_key_valid_correct_key(mocked_webhook):
 def test_subscribe_webhook_returns_webhook_object(mocked_webhook, channel_USD):
     api_key = "api_key"
     expected_url = (
-        "http://mirumee.com/plugins/channel/main/saleor.payments.stripe/webhooks/"
+        "https://example.com/plugins/channel/main/saleor.payments.stripe/webhooks/"
     )
 
     subscribe_webhook(api_key, channel_slug=channel_USD.slug)
@@ -63,7 +63,7 @@ def test_subscribe_webhook_returns_webhook_object(mocked_webhook, channel_USD):
         api_key=api_key,
         url=expected_url,
         enabled_events=WEBHOOK_EVENTS,
-        metadata={METADATA_IDENTIFIER: "mirumee.com"},
+        metadata={METADATA_IDENTIFIER: "example.com"},
     )
 
 

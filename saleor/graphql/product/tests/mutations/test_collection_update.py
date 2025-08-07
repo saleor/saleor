@@ -182,7 +182,6 @@ def test_update_collection_with_background_image(
     collection_with_image,
     permission_manage_products,
     media_root,
-    site_settings,
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -225,7 +224,7 @@ def test_update_collection_with_background_image(
     collection = Collection.objects.get(slug=slug)
     assert data["collection"]["backgroundImage"]["alt"] == image_alt
     assert data["collection"]["backgroundImage"]["url"].startswith(
-        f"http://{site_settings.site.domain}/media/collection-backgrounds/{image_name}"
+        f"https://example.com/media/collection-backgrounds/{image_name}"
     )
 
     # ensure that thumbnails for old background image has been deleted

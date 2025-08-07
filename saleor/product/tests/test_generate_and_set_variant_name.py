@@ -127,7 +127,7 @@ def test_generate_and_set_variant_name_only_not_variant_selection_attributes(
                 attribute=file_attribute,
                 name="test_file_3.txt",
                 slug="test_file3txt",
-                file_url="http://mirumee.com/test_media/test_file3.txt",
+                file_url="https://example.com/test_media/test_file3.txt",
                 content_type="text/plain",
             ),
         ]

@@ -18,7 +18,7 @@ from ..transport.asynchronous import trigger_webhooks_async
 
 @pytest.mark.parametrize(
     ("queue_name", "additional_call_args"),
-    [("queue_name", {}), ("queue_name.fifo", {"MessageGroupId": "mirumee.com"})],
+    [("queue_name", {}), ("queue_name.fifo", {"MessageGroupId": "example.com"})],
 )
 def test_trigger_webhooks_with_aws_sqs(
     queue_name,
@@ -68,10 +68,10 @@ def test_trigger_webhooks_with_aws_sqs(
     expected_call_args = {
         "QueueUrl": f"https://sqs.us-east-1.amazonaws.com/account_id/{queue_name}",
         "MessageAttributes": {
-            "SaleorDomain": {"DataType": "String", "StringValue": "mirumee.com"},
+            "SaleorDomain": {"DataType": "String", "StringValue": "example.com"},
             "SaleorApiUrl": {
                 "DataType": "String",
-                "StringValue": "http://mirumee.com/graphql/",
+                "StringValue": "https://example.com/graphql/",
             },
             "EventType": {"DataType": "String", "StringValue": "order_created"},
             "Signature": {"DataType": "String", "StringValue": expected_signature},
@@ -140,10 +140,10 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     mocked_client.send_message.assert_called_once_with(
         QueueUrl="https://sqs.us-east-1.amazonaws.com/account_id/queue_name",
         MessageAttributes={
-            "SaleorDomain": {"DataType": "String", "StringValue": "mirumee.com"},
+            "SaleorDomain": {"DataType": "String", "StringValue": "example.com"},
             "SaleorApiUrl": {
                 "DataType": "String",
-                "StringValue": "http://mirumee.com/graphql/",
+                "StringValue": "https://example.com/graphql/",
             },
             "EventType": {"DataType": "String", "StringValue": "order_created"},
             "Signature": {"DataType": "String", "StringValue": expected_signature},
@@ -191,8 +191,8 @@ def test_trigger_webhooks_with_google_pub_sub(
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
         expected_data.encode("utf-8"),
-        saleorDomain="mirumee.com",
-        saleorApiUrl="http://mirumee.com/graphql/",
+        saleorDomain="example.com",
+        saleorApiUrl="https://example.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
     )
@@ -244,8 +244,8 @@ def test_trigger_webhooks_with_google_pub_sub_when_timout_error_raised(
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
         expected_data.encode("utf-8"),
-        saleorDomain="mirumee.com",
-        saleorApiUrl="http://mirumee.com/graphql/",
+        saleorDomain="example.com",
+        saleorApiUrl="https://example.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
     )
@@ -284,8 +284,8 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
         message.encode("utf-8"),
-        saleorDomain="mirumee.com",
-        saleorApiUrl="http://mirumee.com/graphql/",
+        saleorDomain="example.com",
+        saleorApiUrl="https://example.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
     )
@@ -328,12 +328,12 @@ def test_trigger_webhooks_with_http(
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
         "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
+        "X-Saleor-Domain": "example.com",
         "X-Saleor-Signature": expected_signature,
         "Saleor-Event": "order_created",
-        "Saleor-Domain": "mirumee.com",
+        "Saleor-Domain": "example.com",
         "Saleor-Signature": expected_signature,
-        "Saleor-Api-Url": "http://mirumee.com/graphql/",
+        "Saleor-Api-Url": "https://example.com/graphql/",
     }
 
     mock_request.assert_called_once_with(
@@ -377,12 +377,12 @@ def test_trigger_webhooks_with_http_and_secret_key(
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
         "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
+        "X-Saleor-Domain": "example.com",
         "X-Saleor-Signature": expected_signature,
         "Saleor-Event": "order_created",
-        "Saleor-Domain": "mirumee.com",
+        "Saleor-Domain": "example.com",
         "Saleor-Signature": expected_signature,
-        "Saleor-Api-Url": "http://mirumee.com/graphql/",
+        "Saleor-Api-Url": "https://example.com/graphql/",
     }
 
     mock_request.assert_called_once_with(
@@ -424,12 +424,12 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
         "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
+        "X-Saleor-Domain": "example.com",
         "X-Saleor-Signature": expected_signature,
         "Saleor-Event": "order_created",
-        "Saleor-Domain": "mirumee.com",
+        "Saleor-Domain": "example.com",
         "Saleor-Signature": expected_signature,
-        "Saleor-Api-Url": "http://mirumee.com/graphql/",
+        "Saleor-Api-Url": "https://example.com/graphql/",
     }
 
     signature_headers = jwt.get_unverified_header(expected_signature)
@@ -463,12 +463,12 @@ def test_trigger_webhooks_with_http_and_custom_headers(
     expected_headers = {
         "Content-Type": "application/json",
         "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
+        "X-Saleor-Domain": "example.com",
         "X-Saleor-Signature": expected_signature,
         "Saleor-Event": "order_created",
-        "Saleor-Domain": "mirumee.com",
+        "Saleor-Domain": "example.com",
         "Saleor-Signature": expected_signature,
-        "Saleor-Api-Url": "http://mirumee.com/graphql/",
+        "Saleor-Api-Url": "https://example.com/graphql/",
         "X-Key": "Value",
         "Authorization-Key": "Value",
     }
@@ -536,7 +536,5 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     mock_async_apply.assert_called_once_with(
         kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
         queue=expected_queue_name,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.test",
     )

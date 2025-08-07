@@ -525,7 +525,7 @@ def test_product_variant_bulk_create_with_date_attribute(
 
 
 def test_product_variant_bulk_create_with_file_attribute(
-    staff_api_client, product, file_attribute, permission_manage_products, site_settings
+    staff_api_client, product, file_attribute, permission_manage_products
 ):
     # given
     product_variant_count = ProductVariant.objects.count()
@@ -534,8 +534,7 @@ def test_product_variant_bulk_create_with_file_attribute(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
     existing_value = file_attribute.values.first()
-    domain = site_settings.site.domain
-    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{existing_value.file_url}"
 
     sku = str(uuid4())[:12]
     variants = [
@@ -571,7 +570,6 @@ def test_product_variant_bulk_create_with_datetime_attribute(
     product,
     date_time_attribute,
     permission_manage_products,
-    site_settings,
 ):
     # given
     product_variant_count = ProductVariant.objects.count()
@@ -614,7 +612,6 @@ def test_product_variant_bulk_create_with_rich_text_attribute(
     product,
     rich_text_attribute,
     permission_manage_products,
-    site_settings,
 ):
     # given
     product_variant_count = ProductVariant.objects.count()
@@ -657,7 +654,6 @@ def test_product_variant_bulk_create_with_numeric_attribute(
     product,
     numeric_attribute,
     permission_manage_products,
-    site_settings,
 ):
     # given
     product_variant_count = ProductVariant.objects.count()
@@ -700,7 +696,6 @@ def test_product_variant_bulk_create_with_page_reference_attribute(
     product,
     product_type_page_reference_attribute,
     permission_manage_products,
-    site_settings,
     page,
 ):
     # given
@@ -746,7 +741,6 @@ def test_product_variant_bulk_create_with_single_reference_attribute(
     product,
     product_type_category_single_reference_attribute,
     permission_manage_products,
-    site_settings,
     category,
 ):
     # given

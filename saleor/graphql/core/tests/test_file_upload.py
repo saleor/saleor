@@ -119,7 +119,7 @@ def test_file_upload_by_superuser(superuser_api_client, media_root):
 
 
 def test_file_upload_file_with_the_same_name_already_exists(
-    staff_api_client, media_root, site_settings
+    staff_api_client, media_root
 ):
     # given
     image_file1, image_name1 = create_image()
@@ -143,13 +143,12 @@ def test_file_upload_file_with_the_same_name_already_exists(
     data = content["data"]["fileUpload"]
     errors = data["errors"]
 
-    domain = site_settings.site.domain
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/jpeg"
     file_url = data["uploadedFile"]["url"]
-    assert file_url != f"http://{domain}/media/{image_file._name}"
-    assert file_url != f"http://{domain}/media/{path}"
-    assert default_storage.exists(file_url.replace(f"http://{domain}/media/", ""))
+    assert file_url != f"https://example.com/media/{image_file._name}"
+    assert file_url != f"https://example.com/media/{path}"
+    assert default_storage.exists(file_url.replace("https://example.com/media/", ""))
 
 
 def test_file_upload_file_name_with_space(staff_api_client, media_root):

@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"amount": {"value": "8000", "currency": "USD"}, "reference": "UGF5bWVudDo1NzU=",
-      "paymentMethod": {"type": "klarna_account"}, "returnUrl": "http://mirumee.com/plugins/mirumee.payments.adyen/additional-actions?payment=UGF5bWVudDo1NzU%3D&checkout=7eaddd6c-e06f-4deb-bc3e-02162cb3ac10",
+      "paymentMethod": {"type": "klarna_account"}, "returnUrl": "https://example.com/plugins/mirumee.payments.adyen/additional-actions?payment=UGF5bWVudDo1NzU%3D&checkout=7eaddd6c-e06f-4deb-bc3e-02162cb3ac10",
       "merchantAccount": "SaleorECOM", "browserInfo": {"acceptHeader": "*/*", "colorDepth":
       24, "language": "en-US", "javaEnabled": false, "screenHeight": 1080, "screenWidth":
       1920, "userAgent": ["Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML,

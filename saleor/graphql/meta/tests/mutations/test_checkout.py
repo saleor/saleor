@@ -424,9 +424,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
             "telemetry_context": ANY,
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.additional",
     )
 
     # confirm each sync webhook con was called without saving event delivery
@@ -521,9 +519,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
             "telemetry_context": ANY,
         },
         queue=None,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.additional",
     )
 
     # confirm each sync webhook con was called without saving event delivery
