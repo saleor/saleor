@@ -757,9 +757,10 @@ def test_update_page_with_product_reference_attribute_existing_value(
     page_type = page.page_type
     page_type.page_attributes.add(page_type_product_reference_attribute)
 
+    expected_name = product.name
     attr_value = AttributeValue.objects.create(
         attribute=page_type_product_reference_attribute,
-        name=page.title,
+        name=expected_name,
         slug=f"{page.pk}_{product.pk}",
         reference_product=product,
     )
@@ -797,7 +798,7 @@ def test_update_page_with_product_reference_attribute_existing_value(
             {
                 "slug": attr_value.slug,
                 "file": None,
-                "name": page.title,
+                "name": expected_name,
                 "reference": reference,
                 "plainText": None,
             }
@@ -877,9 +878,10 @@ def test_update_page_with_variant_reference_attribute_existing_value(
     page_type = page.page_type
     page_type.page_attributes.add(page_type_variant_reference_attribute)
 
+    expected_name = f"{variant.product.name}: {variant.name}"
     attr_value = AttributeValue.objects.create(
         attribute=page_type_variant_reference_attribute,
-        name=page.title,
+        name=expected_name,
         slug=f"{page.pk}_{variant.pk}",
         reference_variant=variant,
     )
@@ -917,7 +919,7 @@ def test_update_page_with_variant_reference_attribute_existing_value(
             {
                 "slug": attr_value.slug,
                 "file": None,
-                "name": page.title,
+                "name": expected_name,
                 "reference": reference,
                 "plainText": None,
             }
