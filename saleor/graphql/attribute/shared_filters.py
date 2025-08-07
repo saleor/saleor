@@ -17,6 +17,7 @@ from ..core.filters import DecimalFilterInput
 from ..core.filters.where_input import ContainsFilterInput, StringFilterInput
 from ..core.types import DateRangeInput, DateTimeRangeInput
 from ..core.types.base import BaseInputObjectType
+from ..core.utils import from_global_id_or_error
 from ..utils.filters import (
     Number,
     filter_range_field,
@@ -265,6 +266,33 @@ def get_attribute_values_by_referenced_variant_ids(
     )
 
 
+def _has_valid_reference_global_id(global_id: "str") -> bool:
+    try:
+        obj_type, _ = from_global_id_or_error(global_id)
+    except GraphQLError:
+        return False
+
+    if obj_type not in (
+        "Page",
+        "Product",
+        "ProductVariant",
+    ):
+        return False
+    return True
+
+
+def _has_valid_reference_global_ids(
+    single_key_value: CONTAINS_TYPING,
+) -> bool:
+    for global_id in single_key_value.get("contains_all", []):
+        if not _has_valid_reference_global_id(global_id):
+            return False
+    for global_id in single_key_value.get("contains_any", []):
+        if not _has_valid_reference_global_id(global_id):
+            return False
+    return True
+
+
 def validate_attribute_value_reference_input(
     index_with_values: list[
         tuple[
@@ -291,6 +319,7 @@ def validate_attribute_value_reference_input(
     duplicated_error = set()
     empty_input_value_error = set()
     invalid_input_type_error = set()
+    invalid_reference_global_id_error = set()
     for index, value in index_with_values:
         if not value:
             invalid_input_type_error.add(index)
@@ -314,7 +343,18 @@ def validate_attribute_value_reference_input(
                 and not single_key_value["contains_any"]
             ):
                 empty_input_value_error.add(index)
+            if key == "referenced_ids":
+                if not _has_valid_reference_global_ids(single_key_value):
+                    invalid_reference_global_id_error.add(index)
 
+    if invalid_reference_global_id_error:
+        raise GraphQLError(
+            message=(
+                "Invalid input for reference attributes. For attribute input on positions: "
+                f"{', '.join(invalid_reference_global_id_error)}. "
+                "Provided values must contain valid global IDs."
+            )
+        )
     if invalid_input_type_error:
         raise GraphQLError(
             message=(
