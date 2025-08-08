@@ -99,7 +99,7 @@ class CustomerCreate(BaseCustomerCreate):
 
     @classmethod
     @traced_atomic_transaction()
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         addresses_to_set_on_user = []
         if default_shipping_address := cleaned_input.get(SHIPPING_ADDRESS_FIELD):
             addresses_to_set_on_user.append(default_shipping_address)

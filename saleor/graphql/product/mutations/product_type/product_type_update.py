@@ -29,7 +29,7 @@ class ProductTypeUpdate(ProductTypeCreate):
         return data.get("kind", instance.kind)
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         variant_attr = cleaned_input.get("variant_attributes")
         if variant_attr:
             variant_attr = set(variant_attr)

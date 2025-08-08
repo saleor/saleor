@@ -97,7 +97,13 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
 
     @classmethod
     @traced_atomic_transaction()
-    def save(cls, info: ResolveInfo, instance: models.User, cleaned_input):
+    def save(
+        cls,
+        info: ResolveInfo,
+        instance: models.User,
+        cleaned_input,
+        instance_tracker=None,
+    ):
         manager = get_plugin_manager_promise(info.context).get()
 
         cls.save_default_addresses(cleaned_input=cleaned_input, user_instance=instance)
