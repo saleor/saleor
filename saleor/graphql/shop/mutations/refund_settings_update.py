@@ -71,22 +71,18 @@ class RefundSettingsUpdate(BaseMutation):
         # todo site loader
         settings = SiteSettings.objects.get()
 
-        settings.allow_custom_refund_reasons = allow_custom_refund_reasons
-
-        # Why do I create it? So it knows what to return? todo
-        refund_settings = RefundSettings()
+        if allow_custom_refund_reasons is not None:
+            settings.allow_custom_refund_reasons = allow_custom_refund_reasons
 
         # Handle refund_reason_type - validate PageType exists and create one-to-one reference
         if refund_reason_model_type:
             try:
-                model_type = PageType.objects.get(pk=refund_reason_model_type)
-                settings.refund_reason_model_type = model_type
-
-                refund_settings.allow_custom_refund_reasons = (
-                    allow_custom_refund_reasons
+                # Decode the global ID to get the actual database ID
+                page_type_id = cls.get_global_id_or_error(
+                    refund_reason_model_type, "PageType"
                 )
-                refund_settings.model_type = model_type
-
+                model_type = PageType.objects.get(pk=page_type_id)
+                settings.refund_reason_model_type = model_type
             except PageType.DoesNotExist:
                 raise ValidationError(
                     {
@@ -99,7 +95,6 @@ class RefundSettingsUpdate(BaseMutation):
             # Set to None when refund_reason_type is null/None
             settings.refund_reason_model_type = None
 
-            refund_settings.allow_custom_refund_reasons = allow_custom_refund_reasons
-            refund_settings.model_type = None
+        settings.save()
 
-        return RefundSettingsUpdate(refund_settings=refund_settings)
+        return RefundSettingsUpdate(refund_settings=settings)
