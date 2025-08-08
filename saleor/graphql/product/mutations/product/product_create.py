@@ -167,7 +167,7 @@ class ProductCreate(DeprecatedModelMutation):
                 raise ValidationError({"attributes": e}) from e
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         with traced_atomic_transaction():
             instance.search_index_dirty = True
             instance.save()
