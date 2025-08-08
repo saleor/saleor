@@ -5,6 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ...app.enums import description
 from ....order import models
 from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
@@ -67,7 +68,9 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
             "`grantRefundForShipping`."
         )
     )
+    # TODO: either accept one of them or both, depending on if we want to keep reason on top
     reason = graphene.String(description="Reason of the granted refund.")
+    reason_reference = graphene.ID(description="ID of Model to reference in reason.")
     lines = NonNullList(
         OrderGrantRefundCreateLineInput,
         description="Lines to assign to granted refund.",
@@ -194,6 +197,8 @@ class OrderGrantRefundCreate(BaseMutation):
         transaction_id = input.get("transaction_id")
         input_lines = input.get("lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", False)
+
+        # todo Find model and verify it's type is right
 
         cls.validate_input(input)
 

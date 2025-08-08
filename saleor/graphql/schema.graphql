@@ -12378,6 +12378,12 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   """Message related to the transaction's event."""
   message: String!
 
+  """Reason of the transaction refund"""
+  reason: String
+
+  """Reason model of the transaction refund."""
+  reasonReference: Page
+
   """
   The url that will allow to redirect user to payment provider page with transaction details.
   """
@@ -24907,6 +24913,9 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
 
   """Reason of the granted refund."""
   reason: String
+
+  """ID of Model to reference in reason."""
+  reasonReference: ID
 
   """Lines to assign to granted refund."""
   lines: [OrderGrantRefundCreateLineInput!]
