@@ -3,14 +3,13 @@ from django.core.exceptions import ValidationError
 
 from ....page.models import PageType
 from ....permission.enums import SitePermissions
-from ....site.models import SiteSettings
+from ....site.models import RefundSettings as RefundSettingsModel
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
 from ...core.types.common import RefundSettingsError
-from ...site.dataloaders import get_site_promise
 from ..types import RefundSettings
 
 
@@ -69,10 +68,7 @@ class RefundSettingsUpdate(BaseMutation):
 
         # TODO Check permissions
 
-        site = get_site_promise(info.context).get()
-
-        # TODO how does it work, where "settings" come from?
-        settings: SiteSettings = site.settings
+        settings = RefundSettingsModel.objects.get()
 
         settings.allow_custom_refund_reasons = allow_custom_refund_reasons
 

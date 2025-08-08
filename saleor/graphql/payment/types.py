@@ -344,6 +344,17 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         description="Message related to the transaction's event.",
         required=True,
     )
+    # TODO Maybe this can be merged with "message"
+    reason = graphene.String(
+        description="Reason of the transaction refund",
+        required=False,
+    )
+    # TODO Resolver
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason model of the transaction refund.",
+    )
     external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "

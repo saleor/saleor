@@ -101,12 +101,6 @@ class SiteSettings(ModelWithMetadata):
     include_taxes_in_prices = models.BooleanField(default=True)
     display_gross_prices = models.BooleanField(default=True)
 
-    # todo Should we keep pushing to this model or meybe create a new one?
-    allow_custom_refund_reasons = models.BooleanField(default=True)
-    refund_reason_model_type = models.OneToOneField(
-        null=True, on_delete=models.SET_NULL, to=PageType
-    )
-
     class Meta:
         permissions = (
             (SitePermissions.MANAGE_SETTINGS.codename, "Manage settings."),
@@ -133,6 +127,19 @@ class SiteSettings(ModelWithMetadata):
         # Refer to email.header.Header and django.core.mail.message.sanitize_address.
         value = str(Address(sender_name, addr_spec=sender_address))
         return value
+
+
+class RefundSettings(models.Model):
+    site = models.OneToOneField(
+        Site, related_name="refund_settings", on_delete=models.CASCADE
+    )
+    allow_custom_refund_reasons = models.BooleanField(default=True)
+    refund_reason_model_type = models.OneToOneField(
+        null=True, on_delete=models.SET_NULL, to=PageType
+    )
+
+    class Meta:
+        permissions = ((SitePermissions.MANAGE_SETTINGS.codename, "Manage settings."),)
 
 
 class SiteSettingsTranslation(Translation):
