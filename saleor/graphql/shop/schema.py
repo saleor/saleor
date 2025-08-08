@@ -88,6 +88,10 @@ class ShopQueries(graphene.ObjectType):
     def resolve_gift_card_settings(self, _info, site):
         return site.settings
 
+    @load_site_callback
+    def resolve_refund_settings(self, _info, site):
+        return site.settings
+
 
 class ShopMutations(graphene.ObjectType):
     staff_notification_recipient_create = StaffNotificationRecipientCreate.Field()

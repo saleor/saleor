@@ -12,7 +12,6 @@ from ..core import TimePeriodType
 from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation
-from ..page.models import PageType
 from ..permission.enums import SitePermissions
 from . import GiftCardSettingsExpiryType
 from .error_codes import SiteErrorCode
@@ -96,6 +95,12 @@ class SiteSettings(ModelWithMetadata):
     )
     gift_card_expiry_period = models.PositiveIntegerField(null=True, blank=True)
 
+    # refund settings
+    allow_custom_refund_reasons = models.BooleanField(default=True, null=False)
+    refund_reason_model_type = models.OneToOneField(
+        null=True, blank=True, on_delete=models.SET_NULL, to="page.PageType"
+    )
+
     # deprecated
     charge_taxes_on_shipping = models.BooleanField(default=True)
     include_taxes_in_prices = models.BooleanField(default=True)
@@ -127,19 +132,6 @@ class SiteSettings(ModelWithMetadata):
         # Refer to email.header.Header and django.core.mail.message.sanitize_address.
         value = str(Address(sender_name, addr_spec=sender_address))
         return value
-
-
-class RefundSettings(models.Model):
-    site = models.OneToOneField(
-        Site, related_name="refund_settings", on_delete=models.CASCADE
-    )
-    allow_custom_refund_reasons = models.BooleanField(default=True)
-    refund_reason_model_type = models.OneToOneField(
-        null=True, on_delete=models.SET_NULL, to=PageType
-    )
-
-    class Meta:
-        permissions = ((SitePermissions.MANAGE_SETTINGS.codename, "Manage settings."),)
 
 
 class SiteSettingsTranslation(Translation):

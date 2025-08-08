@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....page.models import PageType
 from ....permission.enums import SitePermissions
-from ....site.models import RefundSettings as RefundSettingsModel
+from ....site.models import SiteSettings
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_ORDERS
@@ -68,7 +68,8 @@ class RefundSettingsUpdate(BaseMutation):
 
         # TODO Check permissions
 
-        settings = RefundSettingsModel.objects.get()
+        # todo site loader
+        settings = SiteSettings.objects.get()
 
         settings.allow_custom_refund_reasons = allow_custom_refund_reasons
 
