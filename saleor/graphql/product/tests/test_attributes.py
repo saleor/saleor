@@ -43,6 +43,10 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                 }
                 value
               }
+              ...on AssignedTextAttribute{
+                text: value
+                text_translation: translation(languageCode:FR)
+              }
             }
             variants {
               attributes {
@@ -58,6 +62,10 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                     id
                   }
                   value
+                }
+                ...on AssignedTextAttribute{
+                  text: value
+                  text_translation: translation(languageCode:FR)
                 }
               }
             }

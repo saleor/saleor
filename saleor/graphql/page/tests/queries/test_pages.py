@@ -276,6 +276,10 @@ PAGES_QUERY = """
                             }
                             value
                         }
+                        ...on AssignedTextAttribute{
+                            text:value
+                            text_translation: translation(languageCode:FR)
+                        }
                     }
                 }
             }
