@@ -34502,6 +34502,25 @@ type AssignedTextAttribute implements SelectedAttribute {
   translation(languageCode: LanguageCodeEnum!): JSON
 }
 
+"""
+Represents plain text attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedPlainTextAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """Plain text content."""
+  value: String
+
+  """Translation of the plain text content."""
+  translation(languageCode: LanguageCodeEnum!): String
+}
+
 """_Any value scalar as defined by Federation spec."""
 scalar _Any
 
