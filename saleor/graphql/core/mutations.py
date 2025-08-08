@@ -24,6 +24,7 @@ from ...core.db.connection import allow_writer
 from ...core.exceptions import PermissionDenied
 from ...core.utils import metadata_manager
 from ...core.utils.events import call_event
+from ...core.utils.update_mutation_manager import InstanceTracker
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import BasePermissionEnum
 from ...permission.utils import (
@@ -656,6 +657,7 @@ class DeprecatedModelMutation(BaseMutation):
         model=None,
         return_field_name=None,
         object_type=None,
+        instance_tracker_fields=None,
         _meta=None,
         **options,
     ):
@@ -673,9 +675,13 @@ class DeprecatedModelMutation(BaseMutation):
         if arguments is None:
             arguments = {}
 
+        if instance_tracker_fields is None:
+            instance_tracker_fields = []
+
         _meta.model = model
         _meta.object_type = object_type
         _meta.return_field_name = return_field_name
+        _meta.instance_tracker_fields = instance_tracker_fields
         super().__init_subclass_with_meta__(_meta=_meta, **options)
 
         model_type = cls.get_type_for_model()
@@ -748,7 +754,14 @@ class DeprecatedModelMutation(BaseMutation):
         return cls(**{cls._meta.return_field_name: instance, "errors": []})
 
     @classmethod
-    def save(cls, _info: ResolveInfo, instance, _cleaned_input, /):
+    def save(
+        cls,
+        _info: ResolveInfo,
+        instance,
+        _cleaned_input,
+        /,
+        instance_tracker: InstanceTracker | None = None,
+    ):
         instance.save()
 
     @classmethod
@@ -800,7 +813,13 @@ class DeprecatedModelMutation(BaseMutation):
         that this is an "update" mutation. Otherwise, a new instance is
         created based on the model associated with this mutation.
         """
+        instance_tracker = None
         instance = cls.get_instance(info, **data)
+        if cls._meta.instance_tracker_fields:
+            instance_tracker = InstanceTracker(
+                instance, cls._meta.instance_tracker_fields
+            )
+
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
 
@@ -822,7 +841,7 @@ class DeprecatedModelMutation(BaseMutation):
             instance, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, instance)
-        cls.save(info, instance, cleaned_input)
+        cls.save(info, instance, cleaned_input, instance_tracker)
         cls._save_m2m(info, instance, cleaned_input)
 
         # add to cleaned_input popped metadata to allow running post save events

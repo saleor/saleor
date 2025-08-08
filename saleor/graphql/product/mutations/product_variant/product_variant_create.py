@@ -246,7 +246,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
             )
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         new_variant = instance.pk is None
         cls.set_track_inventory(info, instance, cleaned_input)
         with traced_atomic_transaction():

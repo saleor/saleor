@@ -1,7 +1,9 @@
 import graphene
 
+from ....core.utils.update_mutation_manager import InstanceTracker
 from ....page import models
 from ....permission.enums import PagePermissions
+from ....product.models import Product
 from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -25,6 +27,9 @@ class PageUpdate(PageCreate):
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
+        instance_tracker_fields = [
+            "title",
+        ]
 
     @classmethod
     def clean_attributes(cls, attributes: list[dict], page_type: models.PageType):
@@ -35,10 +40,32 @@ class PageUpdate(PageCreate):
         return cleaned_attributes
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        instance_tracker: InstanceTracker | None = None,
+    ):
         super(PageCreate, cls).save(info, instance, cleaned_input)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_updated, instance)
+
+        if instance_tracker is not None:
+            modified_instance_fields = instance_tracker.get_modified_fields()
+            if "title" in modified_instance_fields:
+                cls.update_products_search_index(instance)
+
+    @classmethod
+    def update_products_search_index(cls, instance):
+        # Update `name` of AttributeValue instances
+        attribute_values_qs = instance.references.all()
+        attribute_values_qs.update(name=instance.title)
+
+        # Mark products that use this instance as reference as dirty
+        Product.objects.filter(attributevalues__value__reference_page=instance).update(
+            search_index_dirty=True
+        )
 
     @classmethod
     def success_response(cls, instance):
