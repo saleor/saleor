@@ -2,6 +2,7 @@ import graphene
 
 from ....page import models
 from ....permission.enums import PagePermissions
+from ....product.models import Product
 from ...attribute.utils import PageAttributeAssignmentMixin
 from ...core import ResolveInfo
 from ...core.types import PageError
@@ -38,3 +39,15 @@ class PageUpdate(PageCreate):
         super(PageCreate, cls).save(info, instance, cleaned_input)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_updated, instance)
+        cls.update_products_search_index(instance)
+
+    @classmethod
+    def update_products_search_index(cls, instance):
+        # Update `name` of AttributeValue instances
+        attribute_values_qs = instance.references.all()
+        attribute_values_qs.update(name=instance.title)
+
+        # Mark products that use this instance as reference as dirty
+        Product.objects.filter(attributevalues__value__reference_page=instance).update(
+            search_index_dirty=True
+        )

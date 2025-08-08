@@ -214,6 +214,15 @@ def get_search_vectors_for_values(
             )
             for value in values
         ]
+    elif input_type == AttributeInputType.REFERENCE:
+        search_vectors += [
+            NoValidationSearchVector(
+                Value(value.name),
+                config="simple",
+                weight="B",
+            )
+            for value in values
+        ]
     return search_vectors
 
 
