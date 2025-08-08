@@ -51,6 +51,11 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                 plain_text: value
                 plain_translation: translation(languageCode:FR)
               }
+              ...on AssignedFileAttribute{
+                file: value {
+                  contentType
+                }
+              }
             }
             variants {
               attributes {
@@ -74,6 +79,11 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                 ...on AssignedPlainTextAttribute{
                   plain_text: value
                   plain_translation: translation(languageCode:FR)
+                }
+                ...on AssignedFileAttribute{
+                  file: value {
+                    contentType
+                  }
                 }
               }
             }

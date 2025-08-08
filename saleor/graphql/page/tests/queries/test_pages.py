@@ -284,6 +284,11 @@ PAGES_QUERY = """
                             plain_text: value
                             plain_translation: translation(languageCode:FR)
                         }
+                        ...on AssignedFileAttribute{
+                            file: value {
+                                contentType
+                            }
+                        }
                     }
                 }
             }
