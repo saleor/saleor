@@ -176,3 +176,76 @@ def test_assigned_numeric_attribute(staff_api_client, page, numeric_attribute):
 
     assert len(content["data"]["page"]["attributes"]) == 1
     assert content["data"]["page"]["attributes"][0]["value"] == attr_value.numeric
+
+
+ASSIGNED_TEXT_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ...on AssignedTextAttribute{
+        value
+        translation(languageCode:FR)
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_text_attribute_translation(
+    staff_api_client,
+    page,
+    rich_text_attribute_page_type,
+    translated_page_unique_attribute_value,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([rich_text_attribute_page_type])
+
+    attr_value = rich_text_attribute_page_type.values.first()
+    assert attr_value.id == translated_page_unique_attribute_value.attribute_value_id
+
+    associate_attribute_values_to_instance(
+        page, {rich_text_attribute_page_type.pk: [attr_value]}
+    )
+
+    assert attr_value.rich_text is not None
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_TEXT_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    assert (
+        content["data"]["page"]["attributes"][0]["translation"]
+        == translated_page_unique_attribute_value.rich_text
+    )
+
+
+def test_assigned_text_attribute(staff_api_client, page, rich_text_attribute):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([rich_text_attribute])
+
+    attr_value = rich_text_attribute.values.first()
+
+    associate_attribute_values_to_instance(page, {rich_text_attribute.pk: [attr_value]})
+
+    assert attr_value.rich_text is not None
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_TEXT_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    assert content["data"]["page"]["attributes"][0]["value"] == attr_value.rich_text

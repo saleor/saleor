@@ -144,6 +144,13 @@ COST_MAP = {
     "AssignedNumericAttribute": {
         "attribute": {"complexity": 1},
         "values": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedTextAttribute": {
+        "attribute": {"complexity": 1},
+        "values": {"complexity": 1},
+        "value": {"complexity": 1},
+        "translation": {"complexity": 1},
     },
     "Attribute": {
         "choices": {"complexity": 1, "multipliers": ["first", "last"]},
