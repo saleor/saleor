@@ -1,4 +1,5 @@
 import graphene
+from promise import Promise
 
 from ...attribute import AttributeInputType, models
 from ...permission.enums import (
@@ -39,6 +40,8 @@ from ..core.types import (
 from ..core.types.context import ChannelContextType, ChannelContextTypeForObjectType
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
+from ..page.dataloaders import PageByIdLoader
+from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import (
@@ -67,6 +70,50 @@ def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
     if reference_pk is None:
         return None
     return reference_pk
+
+
+def _resolve_referenced_product_name(
+    reference_product_id: int | None, info: ResolveInfo
+) -> Promise[None | str]:
+    if not reference_product_id:
+        return Promise.resolve(None)
+    return (
+        ProductByIdLoader(info.context)
+        .load(reference_product_id)
+        .then(lambda product: product.name if product else None)
+    )
+
+
+def _resolve_referenced_product_variant_name(
+    reference_variant_id: int | None, info: ResolveInfo
+) -> Promise[None | str]:
+    if not reference_variant_id:
+        return Promise.resolve(None)
+
+    def resolve_variant_name(variant):
+        if variant is None:
+            return None
+        return _resolve_referenced_product_name(variant.product_id, info).then(
+            lambda product_name: f"{product_name}: {variant.name}"
+        )
+
+    return (
+        ProductVariantByIdLoader(info.context)
+        .load(reference_variant_id)
+        .then(resolve_variant_name)
+    )
+
+
+def _resolve_referenced_page_name(
+    reference_page_id: int | None, info: ResolveInfo
+) -> Promise[None | str]:
+    if not reference_page_id:
+        return Promise.resolve(None)
+    return (
+        PageByIdLoader(info.context)
+        .load(reference_page_id)
+        .then(lambda page: page.title if page else None)
+    )
 
 
 class AttributeValue(ChannelContextType[models.AttributeValue]):
@@ -109,6 +156,23 @@ class AttributeValue(ChannelContextType[models.AttributeValue]):
         interfaces = [graphene.relay.Node]
         model = models.AttributeValue
 
+    @staticmethod
+    def resolve_name(root: ChannelContext[models.AttributeValue], info: ResolveInfo):
+        attr_value = root.node
+
+        if attr_value.reference_product_id:
+            return _resolve_referenced_product_name(
+                attr_value.reference_product_id, info
+            )
+        if attr_value.reference_variant_id:
+            return _resolve_referenced_product_variant_name(
+                attr_value.reference_variant_id, info
+            )
+        if attr_value.reference_page_id:
+            return _resolve_referenced_page_name(attr_value.reference_page_id, info)
+        return attr_value.name
+
+    @staticmethod
     def resolve_input_type(
         root: ChannelContext[models.AttributeValue], info: ResolveInfo
     ):
