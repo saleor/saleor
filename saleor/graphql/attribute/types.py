@@ -37,16 +37,14 @@ from ..core.types import (
     IntRangeInput,
     NonNullList,
 )
-from ..core.types.context import ChannelContextType, ChannelContextTypeForObjectType
+from ..core.types.context import ChannelContextType
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import (
-    AttributesByAttributeId,
-)
+from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import (
@@ -56,7 +54,7 @@ from .filters import (
 )
 from .shared_filters import AssignedAttributeValueInput
 from .sorters import AttributeChoicesSortingInput
-from .utils.shared import ENTITY_TYPE_MAPPING
+from .utils.shared import ENTITY_TYPE_MAPPING, SelectedAttributeData
 
 
 def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
@@ -498,22 +496,6 @@ class AssignedVariantAttribute(BaseObjectType):
         doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
-class SelectedAttribute(ChannelContextTypeForObjectType):
-    attribute = graphene.Field(
-        Attribute,
-        default_value=None,
-        description=AttributeDescriptions.NAME,
-        required=True,
-    )
-    values = NonNullList(
-        AttributeValue, description="Values of an attribute.", required=True
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = "Represents a custom attribute."
-
-
 class AttributeInput(BaseInputObjectType):
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     value = AssignedAttributeValueInput(
@@ -658,3 +640,56 @@ class AttributeValueInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
+class SelectedAttribute(graphene.Interface):
+    attribute = graphene.Field(
+        Attribute,
+        default_value=None,
+        description=AttributeDescriptions.NAME,
+        required=True,
+    )
+    values = NonNullList(
+        AttributeValue,
+        description="Values of an attribute.",
+        required=True,
+        deprecation_reason="Use type-specific fields instead.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+        description = "Represents an assigned attribute to an object."
+
+    @staticmethod
+    def resolve_type(instance: SelectedAttributeData, _info):
+        attr_type = SELECTED_ATTRIBUTE_MAP.get(
+            instance.attribute.node.input_type,
+        )
+        if not attr_type:
+            # It is only a temporary until introducing the rest of the types.
+            return AssignedNumericAttribute
+        return attr_type
+
+
+class AssignedNumericAttribute(BaseObjectType):
+    value = graphene.Float(
+        required=False,
+        description="Numeric value of an attribute.",
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents a numeric value of an attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> float | None:
+        if not root.values:
+            return None
+
+        attr_value = root.values[0].node
+        return attr_value.numeric
+
+
+SELECTED_ATTRIBUTE_MAP = {
+    AttributeInputType.NUMERIC: AssignedNumericAttribute,
+}

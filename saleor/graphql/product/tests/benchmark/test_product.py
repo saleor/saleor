@@ -71,6 +71,12 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
               name
               value: name
             }
+            ... on AssignedNumericAttribute {
+              attribute {
+                id
+              }
+              value
+            }
           }
           media {
             id
