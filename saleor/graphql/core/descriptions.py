@@ -26,3 +26,8 @@ CHANNEL_REQUIRED = (
 )
 
 RICH_CONTENT = "\n\nRich text format. For reference see https://editorjs.io/"
+
+NESTED_QUERY_LIMIT_DESCRIPTION = (
+    "Maximum number of objects to return. "
+    "The default value is also the maximum number of objects that can be fetched."
+)

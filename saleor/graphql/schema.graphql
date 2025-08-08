@@ -6070,6 +6070,18 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   """The entity type which can be used as a reference."""
   entityType: AttributeEntityTypeEnum
 
+  """
+  The reference types (product or page type) that are used to narrow down the choices of reference objects.
+  
+  Added in Saleor 3.22.
+  """
+  referenceTypes(
+    """
+    Maximum number of objects to return. The default value is also the maximum number of objects that can be fetched.
+    """
+    limit: Int = 100
+  ): [ReferenceType!]
+
   """Name of an attribute displayed in the interface."""
   name: String
 
@@ -6231,9 +6243,211 @@ enum AttributeEntityTypeEnum @doc(category: "Attributes") {
   COLLECTION
 }
 
+"""
+The reference types (product or page type) that are used to narrow down the choices of reference objects.
+ProductType applicable for reference attribute with `PRODUCT` or `PRODUCT_VARIANT` entity type.
+PageType applicable for reference attribute with `PAGE` entity type.
+"""
+union ReferenceType = ProductType | PageType
+
+"""
+Represents a type of page. It defines what attributes are available to pages of this type.
+"""
+type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page type."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the page type."""
+  name: String!
+
+  """Slug of the page type."""
+  slug: String!
+
+  """Page attributes of that page type."""
+  attributes: [Attribute!]
+
+  """
+  Attributes that can be assigned to the page type.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  availableAttributes(
+    """Filtering options for attributes."""
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for attributes."""
+    where: AttributeWhereInput
+
+    """Search attributes."""
+    search: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
+
+  """
+  Whether page type has pages assigned.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  hasPages: Boolean
+}
+
+type AttributeCountableConnection @doc(category: "Attributes") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [AttributeCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type AttributeCountableEdge @doc(category: "Attributes") {
+  """The item at the end of the edge."""
+  node: Attribute!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input AttributeFilterInput @doc(category: "Attributes") {
+  valueRequired: Boolean
+  isVariantOnly: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
+  availableInGrid: Boolean
+  metadata: [MetadataFilter!]
+  search: String
+  ids: [ID!]
+  type: AttributeTypeEnum
+  inCollection: ID
+  inCategory: ID
+  slugs: [String!]
+
+  """Specifies the channel by which the data should be filtered."""
+  channel: String @deprecated(reason: "Use root-level channel argument instead.")
+}
+
+input MetadataFilter {
+  """Key of a metadata item."""
+  key: String!
+
+  """Value of a metadata item."""
+  value: String
+}
+
 enum AttributeTypeEnum @doc(category: "Attributes") {
   PRODUCT_TYPE
   PAGE_TYPE
+}
+
+"""Where filtering options."""
+input AttributeWhereInput @doc(category: "Attributes") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+  name: StringFilterInput
+  slug: StringFilterInput
+  withChoices: Boolean
+  inputType: AttributeInputTypeEnumFilterInput
+  entityType: AttributeEntityTypeEnumFilterInput
+  type: AttributeTypeEnumFilterInput
+  unit: MeasurementUnitsEnumFilterInput
+  inCollection: ID
+  inCategory: ID
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
+  filterableInDashboard: Boolean
+
+  """List of conditions that must be met."""
+  AND: [AttributeWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [AttributeWhereInput!]
+}
+
+"""Define the filtering options for string fields."""
+input StringFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
+}
+
+input AttributeInputTypeEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: AttributeInputTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeInputTypeEnum!]
+}
+
+input AttributeEntityTypeEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: AttributeEntityTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeEntityTypeEnum!]
+}
+
+input AttributeTypeEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: AttributeTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeTypeEnum!]
+}
+
+input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: MeasurementUnitsEnum
+
+  """The value included in."""
+  oneOf: [MeasurementUnitsEnum!]
 }
 
 enum MeasurementUnitsEnum {
@@ -6495,15 +6709,6 @@ input AttributeValueWhereInput @doc(category: "Attributes") {
   OR: [AttributeValueWhereInput!]
 }
 
-"""Define the filtering options for string fields."""
-input StringFilterInput {
-  """The value equal to."""
-  eq: String
-
-  """The value included in."""
-  oneOf: [String!]
-}
-
 type ProductTypeCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -6538,106 +6743,6 @@ type AssignedVariantAttribute @doc(category: "Attributes") {
   Determines, whether assigned attribute is allowed for variant selection. Supported variant types for variant selection are: ['dropdown', 'boolean', 'swatch', 'numeric']
   """
   variantSelection: Boolean!
-}
-
-type AttributeCountableConnection @doc(category: "Attributes") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [AttributeCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type AttributeCountableEdge @doc(category: "Attributes") {
-  """The item at the end of the edge."""
-  node: Attribute!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-input AttributeFilterInput @doc(category: "Attributes") {
-  valueRequired: Boolean
-  isVariantOnly: Boolean
-  visibleInStorefront: Boolean
-  filterableInStorefront: Boolean
-  filterableInDashboard: Boolean
-  availableInGrid: Boolean
-  metadata: [MetadataFilter!]
-  search: String
-  ids: [ID!]
-  type: AttributeTypeEnum
-  inCollection: ID
-  inCategory: ID
-  slugs: [String!]
-
-  """Specifies the channel by which the data should be filtered."""
-  channel: String @deprecated(reason: "Use root-level channel argument instead.")
-}
-
-input MetadataFilter {
-  """Key of a metadata item."""
-  key: String!
-
-  """Value of a metadata item."""
-  value: String
-}
-
-"""Where filtering options."""
-input AttributeWhereInput @doc(category: "Attributes") {
-  metadata: [MetadataFilter!]
-  ids: [ID!]
-  name: StringFilterInput
-  slug: StringFilterInput
-  withChoices: Boolean
-  inputType: AttributeInputTypeEnumFilterInput
-  entityType: AttributeEntityTypeEnumFilterInput
-  type: AttributeTypeEnumFilterInput
-  unit: MeasurementUnitsEnumFilterInput
-  inCollection: ID
-  inCategory: ID
-  valueRequired: Boolean
-  visibleInStorefront: Boolean
-  filterableInDashboard: Boolean
-
-  """List of conditions that must be met."""
-  AND: [AttributeWhereInput!]
-
-  """A list of conditions of which at least one must be met."""
-  OR: [AttributeWhereInput!]
-}
-
-input AttributeInputTypeEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: AttributeInputTypeEnum
-
-  """The value included in."""
-  oneOf: [AttributeInputTypeEnum!]
-}
-
-input AttributeEntityTypeEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: AttributeEntityTypeEnum
-
-  """The value included in."""
-  oneOf: [AttributeEntityTypeEnum!]
-}
-
-input AttributeTypeEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: AttributeTypeEnum
-
-  """The value included in."""
-  oneOf: [AttributeTypeEnum!]
-}
-
-input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: MeasurementUnitsEnum
-
-  """The value included in."""
-  oneOf: [MeasurementUnitsEnum!]
 }
 
 """
@@ -8698,92 +8803,6 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
 
   """List of attributes assigned to this page."""
   attributes: [SelectedAttribute!]!
-}
-
-"""
-Represents a type of page. It defines what attributes are available to pages of this type.
-"""
-type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
-  """ID of the page type."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the page type."""
-  name: String!
-
-  """Slug of the page type."""
-  slug: String!
-
-  """Page attributes of that page type."""
-  attributes: [Attribute!]
-
-  """
-  Attributes that can be assigned to the page type.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  availableAttributes(
-    """Filtering options for attributes."""
-    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for attributes."""
-    where: AttributeWhereInput
-
-    """Search attributes."""
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeCountableConnection
-
-  """
-  Whether page type has pages assigned.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  hasPages: Boolean
 }
 
 """
