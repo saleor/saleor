@@ -41,7 +41,7 @@ from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
 from ..order import OrderOrigin, OrderStatus
-from ..order.actions import mark_order_as_paid_with_payment, order_created
+from ..order.actions import order_created
 from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
@@ -1200,14 +1200,6 @@ def complete_checkout_post_payment_part(
                 payment=payment,
             )
             raise ValidationError(code=e.code, message=e.message) from e
-
-        # if the order total value is 0 it is paid from the definition
-        if order.total.net.amount == 0:
-            if (
-                order.channel.order_mark_as_paid_strategy
-                == MarkAsPaidStrategy.PAYMENT_FLOW
-            ):
-                mark_order_as_paid_with_payment(order, user, app, manager)
 
     return order, action_required, action_data
 

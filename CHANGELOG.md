@@ -5,6 +5,9 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.22.0 [Unreleased]
 
 ### Breaking changes
+- The following changes were implemented to orders with a zero total amount:
+  - No manual charge (`Transaction` or `Payment`) object will be created.
+  - The `OrderEvents.ORDER_MARKED_AS_PAID` event will no longer be emitted.
 
 ### GraphQL API
 - You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
