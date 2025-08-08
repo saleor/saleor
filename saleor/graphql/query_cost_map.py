@@ -152,6 +152,12 @@ COST_MAP = {
         "value": {"complexity": 1},
         "translation": {"complexity": 1},
     },
+    "AssignedPlainTextAttribute": {
+        "attribute": {"complexity": 1},
+        "values": {"complexity": 1},
+        "value": {"complexity": 1},
+        "translation": {"complexity": 1},
+    },
     "Attribute": {
         "choices": {"complexity": 1, "multipliers": ["first", "last"]},
         "productTypes": {"complexity": 1, "multipliers": ["first", "last"]},
