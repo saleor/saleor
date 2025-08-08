@@ -7626,13 +7626,13 @@ input MetadataInput {
   value: String!
 }
 
-"""Represents a custom attribute."""
-type SelectedAttribute @doc(category: "Attributes") {
+"""Represents an assigned attribute to an object."""
+interface SelectedAttribute {
   """Name of an attribute displayed in the interface."""
   attribute: Attribute!
 
   """Values of an attribute."""
-  values: [AttributeValue!]!
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 }
 
 enum ReportingPeriod {
@@ -34465,6 +34465,22 @@ type PaymentMethodProcessTokenizationSession implements Event @doc(category: "Pa
   The ID returned by app from `PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION` webhook.
   """
   id: String!
+}
+
+"""
+Represents a numeric value of an attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedNumericAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """Numeric value of an attribute."""
+  value: Float
 }
 
 """_Any value scalar as defined by Federation spec."""

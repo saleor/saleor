@@ -141,6 +141,10 @@ COST_MAP = {
         "tokens": {"complexity": 1},
         "webhooks": {"complexity": 1},
     },
+    "AssignedNumericAttribute": {
+        "attribute": {"complexity": 1},
+        "values": {"complexity": 1},
+    },
     "Attribute": {
         "choices": {"complexity": 1, "multipliers": ["first", "last"]},
         "productTypes": {"complexity": 1, "multipliers": ["first", "last"]},
@@ -298,10 +302,6 @@ COST_MAP = {
     },
     "SaleChannelListing": {
         "channel": {"complexity": 1},
-    },
-    "SelectedAttribute": {
-        "attribute": {"complexity": 1},
-        "values": {"complexity": 1},
     },
     "ShippingMethodChannelListing": {
         "channel": {"complexity": 1},

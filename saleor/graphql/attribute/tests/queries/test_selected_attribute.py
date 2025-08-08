@@ -138,3 +138,41 @@ def test_attribute_value_name_when_referenced_page_was_changed(
     assert len(content["data"]["page"]["attributes"][0]["values"]) == 1
     data = content["data"]["page"]["attributes"][0]["values"][0]
     assert data["name"] == new_page_title
+
+
+ASSIGNED_NUMERIC_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ... on AssignedNumericAttribute {
+        attribute {
+          id
+        }
+        value
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_numeric_attribute(staff_api_client, page, numeric_attribute):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([numeric_attribute])
+
+    attr_value = numeric_attribute.values.first()
+
+    associate_attribute_values_to_instance(page, {numeric_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_NUMERIC_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    assert content["data"]["page"]["attributes"][0]["value"] == attr_value.numeric

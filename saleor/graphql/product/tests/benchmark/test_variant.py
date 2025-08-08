@@ -72,6 +72,12 @@ def test_retrieve_variant_list(
               name
               value: name
             }
+            ... on AssignedNumericAttribute {
+              attribute {
+                id
+              }
+              value
+            }
           }
         }
 
