@@ -25,9 +25,9 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
-from ..core.enums import MeasurementUnitsEnum
+from ..core.enums import LanguageCodeEnum, MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
-from ..core.scalars import Date, DateTime
+from ..core.scalars import JSON, Date, DateTime
 from ..core.types import (
     BaseInputObjectType,
     BaseObjectType,
@@ -42,6 +42,9 @@ from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
+from ..translations.dataloaders import (
+    AttributeValueTranslationByIdAndLanguageCodeLoader,
+)
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributesByAttributeId
@@ -690,6 +693,56 @@ class AssignedNumericAttribute(BaseObjectType):
         return attr_value.numeric
 
 
+class AssignedTextAttribute(BaseObjectType):
+    value = graphene.Field(
+        JSON,
+        description="Rich text content.",
+        required=False,
+    )
+
+    translation = graphene.Field(
+        JSON,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            required=True,
+        ),
+        description="Translation of the rich text content.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents text attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> JSON | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.rich_text
+
+    @staticmethod
+    def resolve_translation(
+        root: SelectedAttributeData, info: ResolveInfo, *, language_code
+    ) -> Promise[JSON | None] | None:
+        if not root.values:
+            return None
+
+        def _wrap_translation(
+            translation: AttributeValueTranslation | None,
+        ) -> JSON | None:
+            if translation is None:
+                return None
+            return translation.rich_text
+
+        return (
+            AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
+            .load((root.values[0].node.id, language_code))
+            .then(_wrap_translation)
+        )
+
+
 SELECTED_ATTRIBUTE_MAP = {
     AttributeInputType.NUMERIC: AssignedNumericAttribute,
+    AttributeInputType.RICH_TEXT: AssignedTextAttribute,
 }
