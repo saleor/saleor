@@ -26,6 +26,7 @@ from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
+from ..page.types import Page
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     TransactionByPaymentIdLoader,
@@ -343,6 +344,17 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         description="Message related to the transaction's event.",
         required=True,
     )
+    # TODO Maybe this can be merged with "message"
+    reason = graphene.String(
+        description="Reason of the transaction refund",
+        required=False,
+    )
+    # TODO Resolver
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason model of the transaction refund.",
+    )
     external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "
@@ -598,6 +610,13 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     payment_method_details = graphene.Field(
         PaymentMethodDetails,
         description="The payment method used for this transaction." + ADDED_IN_322,
+    )
+
+    # TODO Resolvers
+    reason = graphene.String(description="Reason of the refund.")
+    # TODO Resolvers
+    reasonReference = graphene.Field(
+        Page, required=False, description="Reason model for refund."
     )
 
     class Meta:
