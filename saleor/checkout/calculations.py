@@ -806,6 +806,7 @@ def fetch_checkout_data(
             # if authorized status was not yet updated, do it now.
             current_total_gross == zero_money(current_total_gross.currency)
             and checkout_info.checkout.authorize_status != CheckoutAuthorizeStatus.FULL
+            and bool(lines)
         )
     ):
         update_checkout_payment_statuses(
