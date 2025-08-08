@@ -340,13 +340,13 @@ class Attribute(ChannelContextType[models.Attribute]):
             AttributeEntityTypeEnum.PRODUCT.value,
             AttributeEntityTypeEnum.PRODUCT_VARIANT.value,
         ]:
-            return AttributeReferenceProductTypesByAttributeIdLoader(info.context).load(
-                attr.id
-            )
+            return AttributeReferenceProductTypesByAttributeIdLoader(
+                info.context, limit=limit
+            ).load(attr.id)
         if attr.entity_type == AttributeEntityTypeEnum.PAGE.value:
-            return AttributeReferencePageTypesByAttributeIdLoader(info.context).load(
-                attr.id
-            )
+            return AttributeReferencePageTypesByAttributeIdLoader(
+                info.context, limit=limit
+            ).load(attr.id)
         return []
 
     @staticmethod
