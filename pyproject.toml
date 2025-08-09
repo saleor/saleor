@@ -116,7 +116,7 @@ package-mode = false
   requests-hardened = ">=1.0.0,<2.0.0"
   Rx = "^1.6.3"
   semantic-version = "^2.10.0"
-  sendgrid = "^6.7.1"
+  sendgrid = "^6.12.4"
   sentry-sdk = "^2.12"
   stripe = "^3.0.0"
   text-unidecode = "^1.2"
