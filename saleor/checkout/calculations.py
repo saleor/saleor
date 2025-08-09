@@ -8,7 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from ..checkout import base_calculations
+from ..checkout import CheckoutAuthorizeStatus, base_calculations
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import (
@@ -798,7 +798,17 @@ def fetch_checkout_data(
         allow_sync_webhooks=allow_sync_webhooks,
     )
     current_total_gross = checkout_info.checkout.total.gross
-    if current_total_gross != previous_total_gross or force_status_update:
+    if (
+        current_total_gross != previous_total_gross
+        or force_status_update
+        or (
+            # Checkout with total being zero is fully authorized therefore
+            # if authorized status was not yet updated, do it now.
+            current_total_gross == zero_money(current_total_gross.currency)
+            and checkout_info.checkout.authorize_status != CheckoutAuthorizeStatus.FULL
+            and bool(lines)
+        )
+    ):
         update_checkout_payment_statuses(
             checkout=checkout_info.checkout,
             checkout_total_gross=current_total_gross,
