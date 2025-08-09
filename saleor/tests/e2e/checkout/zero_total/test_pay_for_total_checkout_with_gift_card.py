@@ -1,5 +1,7 @@
 import pytest
 
+from .....channel import MarkAsPaidStrategy
+from .....tests.e2e.orders.utils import order_query
 from ...channel.utils import update_channel
 from ...gift_cards.utils import create_gift_card
 from ...product.utils.preparing_product import prepare_products
@@ -16,10 +18,14 @@ from ..utils import (
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("mark_as_paid_strategy"),
+    (
+        "mark_as_paid_strategy",
+        "expected_total_gross_amount",
+        "expected_transactions_count",
+    ),
     [
-        ("TRANSACTION_FLOW"),
-        ("PAYMENT_FLOW"),
+        (MarkAsPaidStrategy.TRANSACTION_FLOW, 86.99, 1),
+        (MarkAsPaidStrategy.PAYMENT_FLOW, 0, 0),
     ],
 )
 def test_gift_card_total_payment_for_checkout_core_1101(
@@ -28,13 +34,17 @@ def test_gift_card_total_payment_for_checkout_core_1101(
     shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_gift_card,
+    permission_manage_orders,
     mark_as_paid_strategy,
+    expected_total_gross_amount,
+    expected_transactions_count,
 ):
     # Before
     permissions = [
         *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_gift_card,
+        permission_manage_orders,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -46,7 +56,7 @@ def test_gift_card_total_payment_for_checkout_core_1101(
     update_channel(
         e2e_staff_api_client,
         channel_id,
-        input={"orderSettings": {"markAsPaidStrategy": mark_as_paid_strategy}},
+        input={"orderSettings": {"markAsPaidStrategy": mark_as_paid_strategy.upper()}},
     )
 
     products_data = prepare_products(
@@ -132,7 +142,10 @@ def test_gift_card_total_payment_for_checkout_core_1101(
         gift_card_code,
     )
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-    assert total_gross_amount == 0
+
+    # Gift cards do not reduce total amount for transaction flow.
+    assert total_gross_amount == expected_total_gross_amount
+
     assert checkout_data["giftCards"][0]["id"] == gift_card_id
     assert checkout_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]
 
@@ -142,6 +155,12 @@ def test_gift_card_total_payment_for_checkout_core_1101(
         checkout_id,
     )
     assert order_data["status"] == "UNFULFILLED"
-    assert order_data["total"]["gross"]["amount"] == 0
+    assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["giftCards"][0]["id"] == gift_card_id
     assert order_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]
+
+    staff_order_data = order_query(e2e_staff_api_client, order_data["id"])
+
+    # Check if transaction for gift card has been correctly created but only for
+    # transaction flow.
+    assert len(staff_order_data["transactions"]) == expected_transactions_count

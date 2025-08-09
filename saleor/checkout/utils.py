@@ -63,6 +63,7 @@ from . import AddressType, base_calculations, calculations
 from .error_codes import CheckoutErrorCode
 from .lock_objects import checkout_lines_qs_select_for_update
 from .models import Checkout, CheckoutLine, CheckoutMetadata
+from .payment_utils import update_checkout_payment_statuses
 
 if TYPE_CHECKING:
     from measurement.measures import Weight
@@ -807,6 +808,11 @@ def add_promo_code_to_checkout(
             promo_code,
             checkout_info.channel.currency_code,
         )
+        update_checkout_payment_statuses(
+            checkout=checkout_info.checkout,
+            checkout_total_gross=checkout_info.checkout.total.gross,
+            checkout_has_lines=bool(lines),
+        )
     else:
         raise InvalidPromoCode()
 
@@ -1055,12 +1061,17 @@ def is_fully_paid(
     checkout = checkout_info.checkout
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
-    address = checkout_info.shipping_address or checkout_info.billing_address
-    checkout_total = calculations.calculate_checkout_total_with_gift_cards(
+    checkout_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
+        address=checkout.shipping_address or checkout.billing_address,
+        database_connection_name=database_connection_name,
+    )
+
+    checkout_total = calculations.subtract_gift_cards_from_total(
+        total=checkout_total,
+        checkout_info=checkout_info,
         database_connection_name=database_connection_name,
     )
     checkout_total = max(
