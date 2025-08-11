@@ -843,15 +843,10 @@ class AssignedSinglePageReferenceAttribute(BaseObjectType):
         channel_slug = root.attribute.channel_slug
         attr_value = root.values[0].node
 
-        def _wrap_with_channel_context(
-            page: page_models.Page,
-        ) -> ChannelContext[page_models.Page]:
-            return ChannelContext(node=page, channel_slug=channel_slug)
-
         return (
             PageByIdLoader(info.context)
             .load(attr_value.reference_page_id)
-            .then(_wrap_with_channel_context)
+            .then(lambda page: ChannelContext(node=page, channel_slug=channel_slug))
         )
 
 
@@ -876,15 +871,12 @@ class AssignedSingleProductReferenceAttribute(BaseObjectType):
         channel_slug = root.attribute.channel_slug
         attr_value = root.values[0].node
 
-        def _wrap_with_channel_context(
-            product: product_models.Product,
-        ) -> ChannelContext[product_models.Product]:
-            return ChannelContext(node=product, channel_slug=channel_slug)
-
         return (
             ProductByIdLoader(info.context)
             .load(attr_value.reference_product_id)
-            .then(_wrap_with_channel_context)
+            .then(
+                lambda product: ChannelContext(node=product, channel_slug=channel_slug)
+            )
         )
 
 
@@ -911,15 +903,14 @@ class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
         channel_slug = root.attribute.channel_slug
         attr_value = root.values[0].node
 
-        def _wrap_with_channel_context(
-            product_variant: product_models.ProductVariant,
-        ) -> ChannelContext[product_models.ProductVariant]:
-            return ChannelContext(node=product_variant, channel_slug=channel_slug)
-
         return (
             ProductVariantByIdLoader(info.context)
             .load(attr_value.reference_variant_id)
-            .then(_wrap_with_channel_context)
+            .then(
+                lambda product_variant: ChannelContext(
+                    node=product_variant, channel_slug=channel_slug
+                )
+            )
         )
 
 
@@ -973,7 +964,11 @@ class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
         return (
             CollectionByIdLoader(info.context)
             .load(attr_value.reference_collection_id)
-            .then(_wrap_with_channel_context)
+            .then(
+                lambda collection: ChannelContext(
+                    node=collection, channel_slug=channel_slug
+                )
+            )
         )
 
 
