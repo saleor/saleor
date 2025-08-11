@@ -1,5 +1,6 @@
 import graphene
 
+from .....attribute import AttributeInputType
 from .....attribute.models.base import AttributeValue, AttributeValueTranslation
 from .....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import get_graphql_content
@@ -378,3 +379,612 @@ def test_assigned_file_attribute(staff_api_client, page, file_attribute):
         content["data"]["page"]["attributes"][0]["value"]["contentType"]
         == attr_value.content_type
     )
+
+
+ASSIGNED_SINGLE_PAGE_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      __typename
+      ...on AssignedSinglePageReferenceAttribute{
+        value{
+          __typename
+          slug
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_single_page_reference_attribute(
+    staff_api_client,
+    page,
+    page_list,
+    page_type_page_reference_attribute,
+):
+    # given
+    referenced_page = page_list[0]
+    expected_reference_slug = "referenced-page-slug"
+    referenced_page.slug = expected_reference_slug
+    referenced_page.save(update_fields=["slug"])
+
+    page_type_page_reference_attribute.input_type = AttributeInputType.SINGLE_REFERENCE
+    page_type_page_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_page_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_page_reference_attribute,
+        name=referenced_page.title,
+        slug=f"{page.pk}_{referenced_page.pk}",
+        reference_page_id=referenced_page.pk,
+    )
+    associate_attribute_values_to_instance(
+        page, {page_type_page_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SINGLE_PAGE_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert data["__typename"] == "Page"
+    assert data["slug"] == expected_reference_slug
+
+
+ASSIGNED_SINGLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      __typename
+      ...on AssignedSingleProductReferenceAttribute{
+        value{
+          __typename
+          slug
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_single_product_reference_attribute(
+    staff_api_client,
+    page,
+    product,
+    page_type_product_reference_attribute,
+):
+    # given
+    referenced_product = product
+    expected_reference_slug = "referenced-product-slug"
+    referenced_product.slug = expected_reference_slug
+    referenced_product.save(update_fields=["slug"])
+
+    page_type_product_reference_attribute.input_type = (
+        AttributeInputType.SINGLE_REFERENCE
+    )
+    page_type_product_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_product_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_product_reference_attribute,
+        slug=f"{page.pk}_{referenced_product.pk}",
+        reference_product_id=referenced_product.pk,
+    )
+    associate_attribute_values_to_instance(
+        page, {page_type_product_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SINGLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert data["__typename"] == "Product"
+    assert data["slug"] == expected_reference_slug
+
+
+ASSIGNED_SINGLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      __typename
+      ...on AssignedSingleProductVariantReferenceAttribute{
+        value{
+          __typename
+          sku
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_single_product_variant_reference_attribute(
+    staff_api_client,
+    page,
+    variant,
+    page_type_variant_reference_attribute,
+):
+    # given
+    referenced_variant = variant
+    expected_reference_sku = "referenced-variant-sku"
+    referenced_variant.sku = expected_reference_sku
+    referenced_variant.save(update_fields=["sku"])
+
+    page_type_variant_reference_attribute.input_type = (
+        AttributeInputType.SINGLE_REFERENCE
+    )
+    page_type_variant_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_variant_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_variant_reference_attribute,
+        slug=f"{page.pk}_{referenced_variant.pk}",
+        reference_variant_id=referenced_variant.pk,
+    )
+    associate_attribute_values_to_instance(
+        page, {page_type_variant_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SINGLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert data["__typename"] == "ProductVariant"
+    assert data["sku"] == expected_reference_sku
+
+
+ASSIGNED_SINGLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      __typename
+      ...on AssignedSingleCategoryReferenceAttribute{
+        value{
+          __typename
+          slug
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_single_category_reference_attribute(
+    staff_api_client,
+    page,
+    category,
+    page_type_category_reference_attribute,
+):
+    # given
+    referenced_category = category
+    expected_reference_slug = "referenced-category-slug"
+    referenced_category.slug = expected_reference_slug
+    referenced_category.save(update_fields=["slug"])
+
+    page_type_category_reference_attribute.input_type = (
+        AttributeInputType.SINGLE_REFERENCE
+    )
+    page_type_category_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_category_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_category_reference_attribute,
+        slug=f"{page.pk}_{referenced_category.pk}",
+        reference_category_id=referenced_category.pk,
+    )
+    associate_attribute_values_to_instance(
+        page, {page_type_category_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SINGLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert data["__typename"] == "Category"
+    assert data["slug"] == expected_reference_slug
+
+
+ASSIGNED_SINGLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      __typename
+      ...on AssignedSingleCollectionReferenceAttribute{
+        value{
+          __typename
+          slug
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_single_collection_reference_attribute(
+    staff_api_client,
+    page,
+    collection,
+    page_type_collection_reference_attribute,
+):
+    # given
+    referenced_collection = collection
+    expected_reference_slug = "referenced-collection-slug"
+    referenced_collection.slug = expected_reference_slug
+    referenced_collection.save(update_fields=["slug"])
+
+    page_type_collection_reference_attribute.input_type = (
+        AttributeInputType.SINGLE_REFERENCE
+    )
+    page_type_collection_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_collection_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_collection_reference_attribute,
+        slug=f"{page.pk}_{referenced_collection.pk}",
+        reference_collection_id=referenced_collection.pk,
+    )
+    associate_attribute_values_to_instance(
+        page, {page_type_collection_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SINGLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert data["__typename"] == "Collection"
+    assert data["slug"] == expected_reference_slug
+
+
+ASSIGNED_MULTIPLE_PAGE_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ...on AssignedMultiPageReferenceAttribute{
+        __typename
+        value{
+          __typename
+          slug
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_multi_page_reference_attribute(
+    staff_api_client,
+    page,
+    page_list,
+    page_type_page_reference_attribute,
+):
+    # given
+    referenced_page = page_list[0]
+    expected_reference_slug = "referenced-page-slug"
+    referenced_page.slug = expected_reference_slug
+    referenced_page.save(update_fields=["slug"])
+
+    page_type_page_reference_attribute.input_type = AttributeInputType.REFERENCE
+    page_type_page_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_page_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_page_reference_attribute,
+        name=referenced_page.title,
+        slug=f"{page.pk}_{referenced_page.pk}",
+        reference_page_id=referenced_page.pk,
+    )
+    associate_attribute_values_to_instance(
+        page, {page_type_page_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTIPLE_PAGE_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(data) == 1
+    single_page_data = data[0]
+    assert single_page_data["__typename"] == "Page"
+    assert single_page_data["slug"] == expected_reference_slug
+
+
+ASSIGNED_MULTIPLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ...on AssignedMultiProductReferenceAttribute{
+        __typename
+        value{
+          __typename
+          slug
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_multi_product_reference_attribute(
+    staff_api_client,
+    page,
+    product,
+    page_type_product_reference_attribute,
+):
+    # given
+    referenced_product = product
+    expected_reference_slug = "referenced-product-slug"
+    referenced_product.slug = expected_reference_slug
+    referenced_product.save(update_fields=["slug"])
+
+    page_type_product_reference_attribute.input_type = AttributeInputType.REFERENCE
+    page_type_product_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_product_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_product_reference_attribute,
+        slug=f"{page.pk}_{referenced_product.pk}",
+        reference_product_id=referenced_product.pk,
+    )
+
+    associate_attribute_values_to_instance(
+        page, {page_type_product_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTIPLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(data) == 1
+    single_page_data = data[0]
+    assert single_page_data["__typename"] == "Product"
+    assert single_page_data["slug"] == expected_reference_slug
+
+
+ASSIGNED_MULTIPLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ...on AssignedMultiProductVariantReferenceAttribute{
+        __typename
+        value{
+          __typename
+          sku
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_multi_product_variant_reference_attribute(
+    staff_api_client,
+    page,
+    variant,
+    page_type_variant_reference_attribute,
+):
+    # given
+    referenced_variant = variant
+    expected_reference_sku = "referenced-variant-sku"
+    referenced_variant.sku = expected_reference_sku
+    referenced_variant.save(update_fields=["sku"])
+
+    page_type_variant_reference_attribute.input_type = AttributeInputType.REFERENCE
+    page_type_variant_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_variant_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_variant_reference_attribute,
+        slug=f"{page.pk}_{referenced_variant.pk}",
+        reference_variant_id=referenced_variant.pk,
+    )
+
+    associate_attribute_values_to_instance(
+        page, {page_type_variant_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTIPLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(data) == 1
+    single_page_data = data[0]
+    assert single_page_data["__typename"] == "ProductVariant"
+    assert single_page_data["sku"] == expected_reference_sku
+
+
+ASSIGNED_MULTIPLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ...on AssignedMultiCategoryReferenceAttribute{
+        __typename
+        value{
+          __typename
+          slug
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_multi_category_reference_attribute(
+    staff_api_client,
+    page,
+    category,
+    page_type_category_reference_attribute,
+):
+    # given
+    referenced_category = category
+    expected_reference_slug = "referenced-category-slug"
+    referenced_category.slug = expected_reference_slug
+    referenced_category.save(update_fields=["slug"])
+
+    page_type_category_reference_attribute.input_type = AttributeInputType.REFERENCE
+    page_type_category_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_category_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_category_reference_attribute,
+        slug=f"{page.pk}_{referenced_category.pk}",
+        reference_category_id=referenced_category.pk,
+    )
+
+    associate_attribute_values_to_instance(
+        page, {page_type_category_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTIPLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(data) == 1
+    single_page_data = data[0]
+    assert single_page_data["__typename"] == "Category"
+    assert single_page_data["slug"] == expected_reference_slug
+
+
+ASSIGNED_MULTIPLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ...on AssignedMultiCollectionReferenceAttribute{
+        __typename
+        value{
+          __typename
+          slug
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_multi_collection_reference_attribute(
+    staff_api_client,
+    page,
+    collection,
+    page_type_collection_reference_attribute,
+):
+    # given
+    referenced_collection = collection
+    expected_reference_slug = "referenced-collection-slug"
+    referenced_collection.slug = expected_reference_slug
+    referenced_collection.save(update_fields=["slug"])
+
+    page_type_collection_reference_attribute.input_type = AttributeInputType.REFERENCE
+    page_type_collection_reference_attribute.save()
+    page_type = page.page_type
+    page_type.page_attributes.set([page_type_collection_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_collection_reference_attribute,
+        slug=f"{page.pk}_{referenced_collection.pk}",
+        reference_collection_id=referenced_collection.pk,
+    )
+
+    associate_attribute_values_to_instance(
+        page, {page_type_collection_reference_attribute.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTIPLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["attributes"]) == 1
+
+    data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(data) == 1
+    single_page_data = data[0]
+    assert single_page_data["__typename"] == "Collection"
+    assert single_page_data["slug"] == expected_reference_slug
