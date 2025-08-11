@@ -11,7 +11,9 @@ from ..types import RefundSettings
 
 class RefundReasonReferenceTypeClear(BaseMutation):
     # Do we need this line?
-    refund_settings = graphene.Field(RefundSettings, description="Refund settings.")
+    refund_settings = graphene.Field(
+        RefundSettings, description="Refund settings.", required=True
+    )
 
     class Meta:
         description = "todo"

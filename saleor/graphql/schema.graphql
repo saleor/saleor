@@ -20720,7 +20720,7 @@ Requires one of the following permissions: MANAGE_SETTINGS.
 """
 type RefundSettingsUpdate @doc(category: "Orders") {
   """Refund settings."""
-  refundSettings: RefundSettings
+  refundSettings: RefundSettings!
   refundSettingsErrors: [RefundSettingsError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [RefundSettingsError!]!
 }
@@ -20760,7 +20760,7 @@ Requires one of the following permissions: MANAGE_SETTINGS.
 """
 type RefundReasonReferenceTypeClear @doc(category: "Orders") {
   """Refund settings."""
-  refundSettings: RefundSettings
+  refundSettings: RefundSettings!
   refundSettingsErrors: [RefundSettingsError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [RefundSettingsError!]!
 }
