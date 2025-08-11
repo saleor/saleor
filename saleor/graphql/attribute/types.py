@@ -956,11 +956,6 @@ class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
         channel_slug = root.attribute.channel_slug
         attr_value = root.values[0].node
 
-        def _wrap_with_channel_context(
-            collection: product_models.Collection,
-        ) -> ChannelContext[product_models.Collection]:
-            return ChannelContext(node=collection, channel_slug=channel_slug)
-
         return (
             CollectionByIdLoader(info.context)
             .load(attr_value.reference_collection_id)
@@ -976,7 +971,7 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.page.types.Page",
         description="List of referenced pages.",
-        required=False,
+        required=True,
     )
 
     class Meta:
@@ -1013,7 +1008,7 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.product.types.Product",
         description="List of referenced products.",
-        required=False,
+        required=True,
     )
 
     class Meta:
@@ -1051,7 +1046,7 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.product.types.ProductVariant",
         description="List of referenced product variants.",
-        required=False,
+        required=True,
     )
 
     class Meta:
@@ -1091,7 +1086,7 @@ class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.product.types.Category",
         description="List of referenced categories.",
-        required=False,
+        required=True,
     )
 
     class Meta:
@@ -1115,7 +1110,7 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.product.types.Collection",
         description="List of referenced collections.",
-        required=False,
+        required=True,
     )
 
     class Meta:

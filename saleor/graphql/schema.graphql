@@ -34630,7 +34630,7 @@ type AssignedMultiPageReferenceAttribute implements SelectedAttribute {
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
   """List of referenced pages."""
-  value: [Page!]
+  value: [Page!]!
 }
 
 """
@@ -34646,7 +34646,7 @@ type AssignedMultiProductReferenceAttribute implements SelectedAttribute {
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
   """List of referenced products."""
-  value: [Product!]
+  value: [Product!]!
 }
 
 """
@@ -34662,7 +34662,7 @@ type AssignedMultiProductVariantReferenceAttribute implements SelectedAttribute 
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
   """List of referenced product variants."""
-  value: [ProductVariant!]
+  value: [ProductVariant!]!
 }
 
 """
@@ -34678,7 +34678,7 @@ type AssignedMultiCategoryReferenceAttribute implements SelectedAttribute {
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
   """List of referenced categories."""
-  value: [Category!]
+  value: [Category!]!
 }
 
 """
@@ -34694,7 +34694,7 @@ type AssignedMultiCollectionReferenceAttribute implements SelectedAttribute {
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
   """List of referenced collections."""
-  value: [Collection!]
+  value: [Collection!]!
 }
 
 """_Any value scalar as defined by Federation spec."""
