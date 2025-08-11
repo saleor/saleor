@@ -16,6 +16,7 @@ from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     GiftCardSettingsUpdate,
     OrderSettingsUpdate,
+    RefundReasonReferenceTypeClear,
     RefundSettingsUpdate,
     ShopAddressUpdate,
     ShopDomainUpdate,
@@ -113,3 +114,4 @@ class ShopMutations(graphene.ObjectType):
     )
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
     refund_settings_update = RefundSettingsUpdate.Field()
+    refund_reason_reference_clear = RefundReasonReferenceTypeClear.Field()

@@ -15295,6 +15295,13 @@ type Mutation {
   ): RefundSettingsUpdate @doc(category: "Orders")
 
   """
+  todo 
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  refundReasonReferenceClear: RefundReasonReferenceTypeClear @doc(category: "Orders")
+
+  """
   Manage shipping method's availability in channels. 
   
   Requires one of the following permissions: MANAGE_SHIPPING.
@@ -20744,6 +20751,18 @@ input RefundSettingsUpdateInput @doc(category: "Orders") {
   Added in Saleor 3.22.
   """
   refundReasonReferenceType: ID
+}
+
+"""
+todo 
+
+Requires one of the following permissions: MANAGE_SETTINGS.
+"""
+type RefundReasonReferenceTypeClear @doc(category: "Orders") {
+  """Refund settings."""
+  refundSettings: RefundSettings
+  refundSettingsErrors: [RefundSettingsError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [RefundSettingsError!]!
 }
 
 """
