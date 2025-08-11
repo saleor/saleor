@@ -145,6 +145,7 @@ COST_MAP = {
         "choices": {"complexity": 1, "multipliers": ["first", "last"]},
         "productTypes": {"complexity": 1, "multipliers": ["first", "last"]},
         "productVariantTypes": {"complexity": 1, "multipliers": ["first", "last"]},
+        "referenceTypes": {"complexity": 1, "multipliers": ["limit"]},
     },
     "Category": {
         "ancestors": {"complexity": 1, "multipliers": ["first", "last"]},
