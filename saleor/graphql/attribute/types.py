@@ -790,8 +790,26 @@ class AssignedPlainTextAttribute(BaseObjectType):
         )
 
 
+class AssignedFileAttribute(BaseObjectType):
+    value = graphene.Field(
+        File, description=AttributeValueDescriptions.FILE, required=False
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents file attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> File | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return File(url=attr_value.file_url, content_type=attr_value.content_type)
+
+
 SELECTED_ATTRIBUTE_MAP = {
     AttributeInputType.NUMERIC: AssignedNumericAttribute,
     AttributeInputType.RICH_TEXT: AssignedTextAttribute,
     AttributeInputType.PLAIN_TEXT: AssignedPlainTextAttribute,
+    AttributeInputType.FILE: AssignedFileAttribute,
 }
