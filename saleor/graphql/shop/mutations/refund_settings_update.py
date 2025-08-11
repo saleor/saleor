@@ -19,7 +19,8 @@ class RefundSettingsUpdateInput(BaseInputObjectType):
             "The ID of a model type, that will be used to reference refund reasons. "
             "All models with of this type will be accepted as refund reasons. "
             f"{ADDED_IN_322}"
-        )
+        ),
+        required=False,
     )
 
     class Meta:
@@ -69,8 +70,6 @@ class RefundSettingsUpdate(BaseMutation):
                         )
                     }
                 ) from None
-        else:
-            settings.refund_reason_reference_type = None
 
         settings.save()
 
