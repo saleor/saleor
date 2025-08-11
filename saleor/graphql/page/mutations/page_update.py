@@ -58,10 +58,6 @@ class PageUpdate(PageCreate):
 
     @classmethod
     def update_products_search_index(cls, instance):
-        # Update `name` of AttributeValue instances
-        attribute_values_qs = instance.references.all()
-        attribute_values_qs.update(name=instance.title)
-
         # Mark products that use this instance as reference as dirty
         Product.objects.filter(attributevalues__value__reference_page=instance).update(
             search_index_dirty=True
