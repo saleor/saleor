@@ -742,7 +742,74 @@ class AssignedTextAttribute(BaseObjectType):
         )
 
 
+class AssignedPlainTextAttribute(BaseObjectType):
+    value = graphene.String(
+        description="Plain text content.",
+        required=False,
+    )
+
+    translation = graphene.Field(
+        graphene.String,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            required=True,
+        ),
+        description="Translation of the plain text content.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents plain text attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> str | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.plain_text
+
+    @staticmethod
+    def resolve_translation(
+        root: SelectedAttributeData, info: ResolveInfo, *, language_code
+    ) -> Promise[str | None] | None:
+        if not root.values:
+            return None
+
+        def _wrap_translation(
+            translation: AttributeValueTranslation | None,
+        ) -> str | None:
+            if translation is None:
+                return None
+            return translation.plain_text
+
+        return (
+            AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
+            .load((root.values[0].node.id, language_code))
+            .then(_wrap_translation)
+        )
+
+
+class AssignedFileAttribute(BaseObjectType):
+    value = graphene.Field(
+        File, description=AttributeValueDescriptions.FILE, required=False
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents file attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> File | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return File(url=attr_value.file_url, content_type=attr_value.content_type)
+
+
 SELECTED_ATTRIBUTE_MAP = {
     AttributeInputType.NUMERIC: AssignedNumericAttribute,
     AttributeInputType.RICH_TEXT: AssignedTextAttribute,
+    AttributeInputType.PLAIN_TEXT: AssignedPlainTextAttribute,
+    AttributeInputType.FILE: AssignedFileAttribute,
 }

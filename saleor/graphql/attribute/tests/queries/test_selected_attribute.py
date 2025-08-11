@@ -1,6 +1,6 @@
 import graphene
 
-from .....attribute.models.base import AttributeValue
+from .....attribute.models.base import AttributeValue, AttributeValueTranslation
 from .....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import get_graphql_content
 
@@ -249,3 +249,132 @@ def test_assigned_text_attribute(staff_api_client, page, rich_text_attribute):
 
     assert len(content["data"]["page"]["attributes"]) == 1
     assert content["data"]["page"]["attributes"][0]["value"] == attr_value.rich_text
+
+
+ASSIGNED_PLAIN_TEXT_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ...on AssignedPlainTextAttribute{
+        value
+        translation(languageCode:FR)
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_plain_text_attribute_translation(
+    staff_api_client,
+    page,
+    plain_text_attribute_page_type,
+    translated_page_unique_attribute_value,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([plain_text_attribute_page_type])
+
+    attr_value = plain_text_attribute_page_type.values.first()
+    translation = AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=attr_value,
+        plain_text="French description.",
+    )
+
+    assert attr_value.id == translation.attribute_value_id
+
+    associate_attribute_values_to_instance(
+        page, {plain_text_attribute_page_type.pk: [attr_value]}
+    )
+
+    assert attr_value.plain_text is not None
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_PLAIN_TEXT_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    assert (
+        content["data"]["page"]["attributes"][0]["translation"]
+        == translation.plain_text
+    )
+
+
+def test_assigned_plain_text_attribute(staff_api_client, page, plain_text_attribute):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([plain_text_attribute])
+
+    attr_value = plain_text_attribute.values.first()
+
+    associate_attribute_values_to_instance(
+        page, {plain_text_attribute.pk: [attr_value]}
+    )
+
+    assert attr_value.plain_text is not None
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_PLAIN_TEXT_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    assert content["data"]["page"]["attributes"][0]["value"] == attr_value.plain_text
+
+
+ASSIGNED_FILE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ...on AssignedFileAttribute{
+        value {
+          url
+          contentType
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_file_attribute(staff_api_client, page, file_attribute):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([file_attribute])
+
+    attr_value = file_attribute.values.first()
+    attr_value.file_url = "https://example.com/file.pdf"
+    attr_value.save()
+
+    associate_attribute_values_to_instance(page, {file_attribute.pk: [attr_value]})
+
+    assert attr_value.file_url is not None
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_FILE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    assert (
+        content["data"]["page"]["attributes"][0]["value"]["url"] == attr_value.file_url
+    )
+    assert (
+        content["data"]["page"]["attributes"][0]["value"]["contentType"]
+        == attr_value.content_type
+    )
