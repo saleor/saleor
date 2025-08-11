@@ -61,6 +61,14 @@ class TransactionRequestAction(BaseMutation):
             ),
             required=False,
         )
+        reason = graphene.String(
+            description="reason todo",
+            required=False,
+        )
+        reason_reference = graphene.ID(
+            description="reason ref todo",
+            required=False,
+        )
 
     class Meta:
         description = "Request an action for payment transaction."
@@ -76,7 +84,11 @@ class TransactionRequestAction(BaseMutation):
         action_value: Decimal | None,
         user: Optional["User"],
         app: App | None,
+        reason: str | None = None,
+        reason_reference: str | None = None,  # ID
     ):
+        # TODO Extract reason from mutation
+
         if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value
@@ -105,7 +117,12 @@ class TransactionRequestAction(BaseMutation):
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
             request_event = cls.create_transaction_event_requested(
-                transaction, action_value, TransactionAction.REFUND, user=user, app=app
+                transaction,
+                action_value,
+                TransactionAction.REFUND,
+                user=user,
+                app=app,
+                reason=reason,
             )
             request_refund_action(
                 **action_kwargs, refund_value=action_value, request_event=request_event
@@ -113,14 +130,17 @@ class TransactionRequestAction(BaseMutation):
 
     @classmethod
     def create_transaction_event_requested(
-        cls, transaction, action_value, action, user=None, app=None
+        cls, transaction, action_value, action, user=None, app=None, reason=None
     ):
+        message: str | None = None
+
         if action == TransactionAction.CANCEL:
             type = TransactionEventType.CANCEL_REQUEST
         elif action == TransactionAction.CHARGE:
             type = TransactionEventType.CHARGE_REQUEST
         elif action == TransactionAction.REFUND:
             type = TransactionEventType.REFUND_REQUEST
+            message = reason or None
         else:
             raise ValidationError(
                 {
@@ -138,6 +158,7 @@ class TransactionRequestAction(BaseMutation):
             app=app,
             app_identifier=app.identifier if app else None,
             idempotency_key=str(uuid.uuid4()),
+            message=message,
         )
 
     @classmethod
@@ -146,6 +167,11 @@ class TransactionRequestAction(BaseMutation):
         token = data.get("token")
         action_type = data["action_type"]
         action_value = data.get("amount")
+        reason = data.get("reason")
+        reason_reference = data.get("reason_reference")
+
+        # TODO Validate if reason reference is instance of valid model type
+
         validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction = get_transaction_item(id, token)
         if transaction.order_id:
@@ -175,7 +201,13 @@ class TransactionRequestAction(BaseMutation):
 
         try:
             cls.handle_transaction_action(
-                action_type, action_kwargs, action_value, user, app
+                action_type,
+                action_kwargs,
+                action_value,
+                user,
+                app,
+                reason,
+                reason_reference,
             )
         except PaymentError as e:
             error_enum = TransactionRequestActionErrorCode

@@ -340,14 +340,10 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
     psp_reference = graphene.String(
         description="PSP reference of transaction.", required=True
     )
+    # TODO Propagate reason here
     message = graphene.String(
         description="Message related to the transaction's event.",
         required=True,
-    )
-    # TODO Maybe this can be merged with "message"
-    reason = graphene.String(
-        description="Reason of the transaction refund",
-        required=False,
     )
     # TODO Resolver
     reason_reference = graphene.Field(

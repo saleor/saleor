@@ -12378,9 +12378,6 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   """Message related to the transaction's event."""
   message: String!
 
-  """Reason of the transaction refund"""
-  reason: String
-
   """Reason model of the transaction refund."""
   reasonReference: Page
 
@@ -16308,6 +16305,12 @@ type Mutation {
 
     """The ID of the transaction. One of field id or token is required."""
     id: ID
+
+    """reason todo"""
+    reason: String
+
+    """reason ref todo"""
+    reasonReference: ID
 
     """The token of the transaction. One of field id or token is required."""
     token: UUID
