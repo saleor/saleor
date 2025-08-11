@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from promise import Promise
 
 from ...attribute import AttributeInputType, models
@@ -23,6 +24,7 @@ from ..core.descriptions import (
     ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
+    NESTED_QUERY_LIMIT_DESCRIPTION,
 )
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
@@ -44,7 +46,11 @@ from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import AttributesByAttributeId
+from .dataloaders import (
+    AttributeReferencePageTypesByAttributeIdLoader,
+    AttributeReferenceProductTypesByAttributeIdLoader,
+    AttributesByAttributeId,
+)
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import (
@@ -253,6 +259,18 @@ class Attribute(ChannelContextType[models.Attribute]):
     entity_type = AttributeEntityTypeEnum(
         description=AttributeDescriptions.ENTITY_TYPE, required=False
     )
+    reference_types = NonNullList(
+        "saleor.graphql.attribute.unions.ReferenceType",
+        description=(
+            "The reference types (product or page type) that are used to narrow down "
+            "the choices of reference objects." + ADDED_IN_322
+        ),
+        required=False,
+        limit=graphene.Int(
+            description=NESTED_QUERY_LIMIT_DESCRIPTION,
+            default_value=settings.NESTED_QUERY_LIMIT,
+        ),
+    )
 
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
@@ -376,6 +394,24 @@ class Attribute(ChannelContextType[models.Attribute]):
         )
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Attribute
+
+    @staticmethod
+    def resolve_reference_types(
+        root: ChannelContext[models.Attribute], info: ResolveInfo, limit: int, **kwargs
+    ):
+        attr = root.node
+        if attr.entity_type in [
+            AttributeEntityTypeEnum.PRODUCT.value,
+            AttributeEntityTypeEnum.PRODUCT_VARIANT.value,
+        ]:
+            return AttributeReferenceProductTypesByAttributeIdLoader(
+                info.context, limit=limit
+            ).load(attr.id)
+        if attr.entity_type == AttributeEntityTypeEnum.PAGE.value:
+            return AttributeReferencePageTypesByAttributeIdLoader(
+                info.context, limit=limit
+            ).load(attr.id)
+        return []
 
     @staticmethod
     def resolve_choices(
