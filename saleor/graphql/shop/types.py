@@ -81,8 +81,7 @@ class OrderSettings(ModelObjectType[site_models.SiteSettings]):
 
 
 class RefundSettings(ModelObjectType[site_models.SiteSettings]):
-    allow_custom_refund_reasons = graphene.Boolean(required=True, default_value=True)
-    model_type = graphene.Field(
+    reason_reference_type = graphene.Field(
         PageType, description="Model type used for refund reasons."
     )
 
@@ -91,8 +90,8 @@ class RefundSettings(ModelObjectType[site_models.SiteSettings]):
         doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
 
-    def resolve_model_type(root, info):
-        return root.refund_reason_model_type
+    def resolve_reason_reference_type(root, info):
+        return root.refund_reason_reference_type
 
 
 class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):

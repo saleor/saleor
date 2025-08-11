@@ -14,13 +14,7 @@ from ..types import RefundSettings
 
 
 class RefundSettingsUpdateInput(BaseInputObjectType):
-    allow_custom_refund_reasons = graphene.Boolean(
-        description=(
-            f"Allow to set a custom reason for a refund. When set to false, only referenced models will be accepted"
-            f"{ADDED_IN_322}"
-        )
-    )
-    refund_reason_model_type = graphene.ID(
+    refund_reason_reference_type = graphene.ID(
         description=(
             "The ID of a model type, that will be used to reference refund reasons. "
             "All models with of this type will be accepted as refund reasons. "
@@ -34,6 +28,7 @@ class RefundSettingsUpdateInput(BaseInputObjectType):
 
 
 class RefundSettingsUpdate(BaseMutation):
+    # Do we need this line?
     refund_settings = graphene.Field(RefundSettings, description="Refund settings.")
 
     class Arguments:
@@ -52,37 +47,20 @@ class RefundSettingsUpdate(BaseMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         input = data.get("input")
 
-        allow_custom_refund_reasons = input.get("allow_custom_refund_reasons")
-        refund_reason_model_type = input.get("refund_reason_model_type")
-
-        if not allow_custom_refund_reasons and refund_reason_model_type is None:
-            raise ValidationError(
-                {
-                    "allow_custom_refund_reasons": ValidationError(
-                        "When allowCustomRefundReasons is false, model type must be provided",
-                        # TODO What code?
-                        code="required",
-                    )
-                }
-            ) from None
+        refund_reason_reference_type = input.get("refund_reason_reference_type")
 
         # TODO Check permissions
 
         # todo site loader
         settings = SiteSettings.objects.get()
 
-        if allow_custom_refund_reasons is not None:
-            settings.allow_custom_refund_reasons = allow_custom_refund_reasons
-
-        # Handle refund_reason_type - validate PageType exists and create one-to-one reference
-        if refund_reason_model_type:
+        if refund_reason_reference_type:
             try:
-                # Decode the global ID to get the actual database ID
                 page_type_id = cls.get_global_id_or_error(
-                    refund_reason_model_type, "PageType"
+                    refund_reason_reference_type, "PageType"
                 )
                 model_type = PageType.objects.get(pk=page_type_id)
-                settings.refund_reason_model_type = model_type
+                settings.refund_reason_reference_type = model_type
             except PageType.DoesNotExist:
                 raise ValidationError(
                     {
@@ -92,8 +70,7 @@ class RefundSettingsUpdate(BaseMutation):
                     }
                 ) from None
         else:
-            # Set to None when refund_reason_type is null/None
-            settings.refund_reason_model_type = None
+            settings.refund_reason_reference_type = None
 
         settings.save()
 

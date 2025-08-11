@@ -12808,10 +12808,8 @@ enum TimePeriodTypeEnum {
 
 """Refund related settings from site settings."""
 type RefundSettings @doc(category: "Orders") {
-  allowCustomRefundReasons: Boolean!
-
   """Model type used for refund reasons."""
-  modelType: PageType
+  reasonReferenceType: PageType
 }
 
 input ShippingZoneFilterInput @doc(category: "Shipping") {
@@ -20741,18 +20739,11 @@ enum RefundSettingsErrorCode @doc(category: "Shop") {
 
 input RefundSettingsUpdateInput @doc(category: "Orders") {
   """
-  Allow to set a custom reason for a refund. When set to false, only referenced models will be accepted
-  
-  Added in Saleor 3.22.
-  """
-  allowCustomRefundReasons: Boolean
-
-  """
   The ID of a model type, that will be used to reference refund reasons. All models with of this type will be accepted as refund reasons. 
   
   Added in Saleor 3.22.
   """
-  refundReasonModelType: ID
+  refundReasonReferenceType: ID
 }
 
 """
