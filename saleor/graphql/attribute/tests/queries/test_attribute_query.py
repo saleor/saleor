@@ -71,6 +71,17 @@ query ($id: ID!, $query: String) {
     name
     inputType
     entityType
+    referenceTypes {
+        __typename
+        ... on ProductType {
+            id
+            slug
+        }
+        ... on PageType {
+            id
+            slug
+        }
+    }
     type
     unit
     choices(first: 10, filter: {search: $query}) {
@@ -448,6 +459,423 @@ def test_get_single_swatch_attribute_by_staff(
 
     for data in attribute_value_data:
         assert data in content["data"]["attribute"]["choices"]["edges"]
+
+
+def test_get_single_reference_product_attribute_with_reference_types(
+    staff_api_client,
+    product_type_product_single_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    product_type_with_variant_attributes,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_product_single_reference_attribute
+    reference_product_types = [product_type, product_type_with_product_attributes]
+    attribute.reference_product_types.add(*reference_product_types)
+
+    query = QUERY_ATTRIBUTE
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    reference_types = attribute_data["referenceTypes"]
+    assert len(reference_types) == len(reference_product_types)
+    assert {type["slug"] for type in reference_types} == {
+        product_type.slug for product_type in reference_product_types
+    }
+
+
+def test_get_single_reference_variant_attribute_with_reference_types(
+    staff_api_client,
+    product_type_variant_single_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    product_type_with_variant_attributes,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_variant_single_reference_attribute
+    reference_product_types = [product_type, product_type_with_product_attributes]
+    attribute.reference_product_types.add(*reference_product_types)
+
+    query = QUERY_ATTRIBUTE
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    reference_types = attribute_data["referenceTypes"]
+    assert len(reference_types) == len(reference_product_types)
+    assert {ref_type["slug"] for ref_type in reference_types} == {
+        product_type.slug for product_type in reference_product_types
+    }
+
+
+def test_get_single_reference_page_attribute_with_reference_types(
+    staff_api_client,
+    product_type_page_single_reference_attribute,
+    page_type_list,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_page_single_reference_attribute
+    reference_page_types = page_type_list[:2]
+    attribute.reference_page_types.add(*reference_page_types)
+
+    query = QUERY_ATTRIBUTE
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    reference_types = attribute_data["referenceTypes"]
+    assert len(reference_types) == len(reference_page_types)
+    assert {type["slug"] for type in reference_types} == {
+        product_type.slug for product_type in reference_page_types
+    }
+
+
+def test_get_reference_product_attribute_with_reference_types(
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    product_type_with_variant_attributes,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_product_reference_attribute
+    reference_product_types = [product_type, product_type_with_product_attributes]
+    attribute.reference_product_types.add(*reference_product_types)
+
+    query = QUERY_ATTRIBUTE
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    reference_types = attribute_data["referenceTypes"]
+    assert len(reference_types) == len(reference_product_types)
+    assert {type["slug"] for type in reference_types} == {
+        product_type.slug for product_type in reference_product_types
+    }
+
+
+def test_get_reference_variant_attribute_with_reference_types(
+    staff_api_client,
+    product_type_variant_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    product_type_with_variant_attributes,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_variant_reference_attribute
+    reference_product_types = [product_type, product_type_with_product_attributes]
+    attribute.reference_product_types.add(*reference_product_types)
+
+    query = QUERY_ATTRIBUTE
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    reference_types = attribute_data["referenceTypes"]
+    assert len(reference_types) == len(reference_product_types)
+    assert {type["slug"] for type in reference_types} == {
+        product_type.slug for product_type in reference_product_types
+    }
+
+
+def test_get_reference_page_attribute_with_reference_types(
+    staff_api_client,
+    product_type_page_reference_attribute,
+    page_type_list,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_page_reference_attribute
+    reference_page_types = page_type_list[:2]
+    attribute.reference_page_types.add(*reference_page_types)
+
+    query = QUERY_ATTRIBUTE
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    reference_types = attribute_data["referenceTypes"]
+    assert len(reference_types) == len(reference_page_types)
+    assert {type["slug"] for type in reference_types} == {
+        product_type.slug for product_type in reference_page_types
+    }
+
+
+def test_get_reference_collection_attribute(
+    staff_api_client,
+    product_type_collection_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_collection_reference_attribute
+    reference_product_types = [product_type, product_type_with_product_attributes]
+    attribute.reference_product_types.add(*reference_product_types)
+
+    query = QUERY_ATTRIBUTE
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    assert not attribute_data["referenceTypes"]
+
+
+def test_get_reference_category_attribute(
+    staff_api_client,
+    product_type_category_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_category_reference_attribute
+    reference_product_types = [product_type, product_type_with_product_attributes]
+    attribute.reference_product_types.add(*reference_product_types)
+
+    query = QUERY_ATTRIBUTE
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    assert not attribute_data["referenceTypes"]
+
+
+QUERY_ATTRIBUTE_REFERENCE_TYPES = """
+    query ($id: ID!, $limit: Int) {
+        attribute(id: $id) {
+            id
+            name
+            slug
+            referenceTypes(limit: $limit) {
+                ... on ProductType {
+                    id
+                    name
+                    slug
+                }
+                ... on PageType {
+                    id
+                    name
+                    slug
+                }
+            }
+        }
+    }
+"""
+
+
+def test_get_attribute_reference_product_types_with_limit(
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    product_type_with_variant_attributes,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_product_reference_attribute
+    reference_product_types = [
+        product_type,
+        product_type_with_product_attributes,
+        product_type_with_variant_attributes,
+    ]
+    attribute.reference_product_types.add(*reference_product_types)
+
+    query = QUERY_ATTRIBUTE_REFERENCE_TYPES
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    # limit smaller than the number of reference types
+    limit = 2
+    variables = {"id": attribute_id, "limit": limit}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    reference_types = attribute_data["referenceTypes"]
+    assert len(reference_types) == limit
+
+
+def test_get_attribute_reference_product_types_limit_exceeded(
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    product_type_with_variant_attributes,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_product_reference_attribute
+    reference_product_types = [
+        product_type,
+        product_type_with_product_attributes,
+        product_type_with_variant_attributes,
+    ]
+    attribute.reference_product_types.add(*reference_product_types)
+
+    query = QUERY_ATTRIBUTE_REFERENCE_TYPES
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id, "limit": 101}
+
+    # when
+    content = get_graphql_content_from_response(
+        staff_api_client.post_graphql(query, variables)
+    )
+
+    # then
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == (
+        "The limit for attribute values cannot be greater than 100."
+    )
+
+
+def test_get_attribute_reference_page_types_with_limit(
+    staff_api_client,
+    product_type_page_reference_attribute,
+    page_type_list,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_page_reference_attribute
+    attribute.reference_page_types.add(*page_type_list)
+
+    query = QUERY_ATTRIBUTE_REFERENCE_TYPES
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    # limit smaller than the number of reference types
+    limit = 2
+    variables = {"id": attribute_id, "limit": limit}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]["attribute"]
+    assert attribute_data["id"] == attribute_id
+    assert attribute_data["slug"] == attribute.slug
+
+    reference_types = attribute_data["referenceTypes"]
+    assert len(reference_types) == limit
+
+
+def test_get_attribute_reference_page_types_limit_exceeded(
+    staff_api_client,
+    product_type_page_reference_attribute,
+    page_type_list,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_page_reference_attribute
+    attribute.reference_page_types.add(*page_type_list)
+
+    query = QUERY_ATTRIBUTE_REFERENCE_TYPES
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": attribute_id, "limit": 101}
+
+    # when
+    content = get_graphql_content_from_response(
+        staff_api_client.post_graphql(query, variables)
+    )
+
+    # then
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == (
+        "The limit for attribute values cannot be greater than 100."
+    )
 
 
 QUERY_ATTRIBUTES = """
