@@ -33,6 +33,12 @@ PAGE_QUERY = """
                     id
                     slug
                 }
+                ... on AssignedNumericAttribute {
+                    attribute {
+                        id
+                    }
+                    value
+                }
             }
         }
     }
@@ -83,7 +89,11 @@ def test_query_published_page(user_api_client, page):
             else []
         )
         expected_attributes.append(
-            {"attribute": {"id": attr_id, "slug": attr.slug}, "values": values}
+            {
+                "attribute": {"id": attr_id, "slug": attr.slug},
+                "values": values,
+                "value": None,
+            }
         )
 
     for attr_data in page_data["attributes"]:
@@ -384,6 +394,7 @@ def test_page_attributes_visible_in_storefront_for_customer_is_returned(
         ):
             attr_data = attr
             attr_data.pop("values", None)
+            attr_data.pop("value", None)
             break
 
     assert attr_data == {
@@ -425,6 +436,7 @@ def test_page_attributes_visible_in_storefront_for_staff_is_always_returned(
         ):
             attr_data = attr
             attr_data.pop("values", None)
+            attr_data.pop("value", None)
             break
 
     assert attr_data == {

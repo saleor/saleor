@@ -50,6 +50,7 @@ from ...attribute.types import (
     AttributeCountableConnection,
     SelectedAttribute,
 )
+from ...attribute.utils.shared import SelectedAttributeData
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
@@ -590,10 +591,10 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     ):
         def apply_variant_selection_filter(
             selected_attributes,
-        ) -> list[SelectedAttribute]:
+        ) -> list[SelectedAttributeData]:
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
                 return [
-                    SelectedAttribute(
+                    SelectedAttributeData(
                         attribute=ChannelContext(
                             selected_att["attribute"], root.channel_slug
                         ),
@@ -627,7 +628,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                 ]
 
             return [
-                SelectedAttribute(
+                SelectedAttributeData(
                     attribute=ChannelContext(
                         selected_att["attribute"], root.channel_slug
                     ),
@@ -1345,7 +1346,7 @@ class Product(ChannelContextType[models.Product]):
                 ]
                 | None
             ),
-        ) -> SelectedAttribute | None:
+        ) -> SelectedAttributeData | None:
             if attributes is None:
                 return None
 
@@ -1355,7 +1356,7 @@ class Product(ChannelContextType[models.Product]):
                 if attribute.slug == slug:
                     values = atr["values"]
                     values = cast(list[attribute_models.AttributeValue], values)
-                    return SelectedAttribute(
+                    return SelectedAttributeData(
                         attribute=ChannelContext(attribute, root.channel_slug),
                         values=[
                             ChannelContext(value, root.channel_slug) for value in values
@@ -1393,7 +1394,7 @@ class Product(ChannelContextType[models.Product]):
                 ]
                 | None
             ),
-        ) -> list[SelectedAttribute] | None:
+        ) -> list[SelectedAttributeData] | None:
             if attributes is None:
                 return None
 
@@ -1404,7 +1405,7 @@ class Product(ChannelContextType[models.Product]):
                 values = attr_data["values"]
                 values = cast(list[attribute_models.AttributeValue], values)
                 response.append(
-                    SelectedAttribute(
+                    SelectedAttributeData(
                         attribute=ChannelContext(attribute, root.channel_slug),
                         values=[
                             ChannelContext(value, root.channel_slug) for value in values

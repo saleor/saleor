@@ -1,3 +1,5 @@
+from typing import cast
+
 import graphene
 
 from ...attribute import models as attribute_models
@@ -9,6 +11,7 @@ from ..attribute.filters import (
     filter_attribute_search,
 )
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
+from ..attribute.utils.shared import SelectedAttributeData
 from ..core import ResolveInfo
 from ..core.connection import (
     CountableConnection,
@@ -224,19 +227,26 @@ class Page(ChannelContextType[models.Page]):
 
         def wrap_with_channel_context(
             attributes: list[dict[str, list]] | None,
-        ) -> list[SelectedAttribute] | None:
+        ) -> list[SelectedAttributeData] | None:
             if attributes is None:
                 return None
-            return [
-                SelectedAttribute(
-                    attribute=ChannelContext(attribute["attribute"], root.channel_slug),
-                    values=[
-                        ChannelContext(value, root.channel_slug)
-                        for value in attribute["values"]
-                    ],
+            response: list[SelectedAttributeData] = []
+            for attribute_data in attributes:
+                attribute = cast(
+                    attribute_models.Attribute, attribute_data["attribute"]
                 )
-                for attribute in attributes
-            ]
+                values = cast(
+                    list[attribute_models.AttributeValue], attribute_data["values"]
+                )
+                response.append(
+                    SelectedAttributeData(
+                        attribute=ChannelContext(attribute, root.channel_slug),
+                        values=[
+                            ChannelContext(value, root.channel_slug) for value in values
+                        ],
+                    )
+                )
+            return response
 
         requestor = get_user_or_app_from_context(info.context)
         if (
@@ -263,17 +273,17 @@ class Page(ChannelContextType[models.Page]):
 
         def wrap_with_channel_context(
             attribute_data: dict[str, dict | list[dict]] | None,
-        ) -> SelectedAttribute | None:
+        ) -> SelectedAttributeData | None:
             if attribute_data is None:
                 return None
-            return SelectedAttribute(
-                attribute=ChannelContext(
-                    attribute_data["attribute"], root.channel_slug
-                ),
-                values=[
-                    ChannelContext(value, root.channel_slug)
-                    for value in attribute_data["values"]
-                ],
+            attribute = cast(attribute_models.Attribute, attribute_data["attribute"])
+            values = cast(
+                list[attribute_models.AttributeValue], attribute_data["values"]
+            )
+
+            return SelectedAttributeData(
+                attribute=ChannelContext(attribute, root.channel_slug),
+                values=[ChannelContext(value, root.channel_slug) for value in values],
             )
 
         requestor = get_user_or_app_from_context(info.context)

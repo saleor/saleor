@@ -270,6 +270,12 @@ PAGES_QUERY = """
                             id
                             slug
                         }
+                        ... on AssignedNumericAttribute {
+                            attribute {
+                                id
+                            }
+                            value
+                        }
                     }
                 }
             }

@@ -37,6 +37,12 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
               values {
                 slug
               }
+              ... on AssignedNumericAttribute {
+                attribute {
+                    id
+                }
+                value
+              }
             }
             variants {
               attributes {
@@ -46,6 +52,12 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                 }
                 values {
                   slug
+                }
+                ... on AssignedNumericAttribute {
+                  attribute {
+                    id
+                  }
+                  value
                 }
               }
             }
