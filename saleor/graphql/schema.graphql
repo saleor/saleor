@@ -34483,6 +34483,25 @@ type AssignedNumericAttribute implements SelectedAttribute {
   value: Float
 }
 
+"""
+Represents text attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedTextAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """Rich text content."""
+  value: JSON
+
+  """Translation of the rich text content."""
+  translation(languageCode: LanguageCodeEnum!): JSON
+}
+
 """_Any value scalar as defined by Federation spec."""
 scalar _Any
 
