@@ -231,6 +231,8 @@ def test_build_absolute_uri():
 
 
 def test_build_absolute_uri_with_host(settings):
+    settings.PUBLIC_URL = None
+    settings.ENABLE_SSL = True
     # given
     host = "test.com"
     location = "images/close.svg"
@@ -239,7 +241,7 @@ def test_build_absolute_uri_with_host(settings):
     url = build_absolute_uri(location, host)
 
     # then
-    assert url == f"https://example.com/{location}"
+    assert url == f"https://{host}/{location}"
 
 
 @pytest.mark.parametrize(
