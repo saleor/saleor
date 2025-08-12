@@ -265,6 +265,7 @@ class OrderGrantRefundCreate(BaseMutation):
             "lines": cleaned_input_lines,
             "grant_refund_for_shipping": grant_refund_for_shipping,
             "transaction_item": transaction_item,
+            "reason_reference": input.get("reason_reference")
         }
 
     @classmethod
@@ -308,7 +309,7 @@ class OrderGrantRefundCreate(BaseMutation):
                 app=info.context.app,
                 shipping_costs_included=grant_refund_for_shipping or False,
                 transaction_item=transaction_item,
-                reason_reference_instance=reason_reference_instance,
+                reason_reference=reason_reference_instance,
             )
             if cleaned_input_lines:
                 for line in cleaned_input_lines:
