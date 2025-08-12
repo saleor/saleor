@@ -26,6 +26,7 @@ from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
+from ..page.dataloaders import PageByIdLoader
 from ..page.types import Page
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
@@ -438,7 +439,15 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         return None
 
     @staticmethod
-    def resolve_reason_reference(root: models.TransactionItem, info):
+    def resolve_reason_reference(root: models.TransactionEvent, info):
+        print("resolver")
+        print(root.message)
+        print(root.reason_reference_id)
+        print("\n")
+
+        if not root.reason_reference_id:
+            return None
+        return PageByIdLoader(info.context).load(root.reason_reference_id)
 
 
 

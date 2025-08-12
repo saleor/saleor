@@ -160,6 +160,7 @@ class TransactionRequestAction(BaseMutation):
             app_identifier=app.identifier if app else None,
             idempotency_key=str(uuid.uuid4()),
             message=message,
+            reason_reference=reason_reference
         )
 
     @classmethod
