@@ -34479,7 +34479,7 @@ type AssignedNumericAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Numeric value of an attribute."""
+  """The assigned numeric value."""
   value: Float
 }
 
@@ -34495,10 +34495,10 @@ type AssignedTextAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Rich text content."""
+  """The assigned rich text content."""
   value: JSON
 
-  """Translation of the rich text content."""
+  """Translation of the rich text content in the specified language."""
   translation(languageCode: LanguageCodeEnum!): JSON
 }
 
@@ -34514,10 +34514,10 @@ type AssignedPlainTextAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Plain text content."""
+  """The assigned plain text content."""
   value: String
 
-  """Translation of the plain text content."""
+  """Translation of the plain text content in the specified language."""
   translation(languageCode: LanguageCodeEnum!): String
 }
 
@@ -34533,7 +34533,7 @@ type AssignedFileAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Represents file URL and content type (if attribute value is a file)."""
+  """The assigned file."""
   value: File
 }
 
@@ -34549,7 +34549,7 @@ type AssignedSingleChoiceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Selected value for the attribute."""
+  """The assigned choice value."""
   value: AssignedChoiceAttributeValue
 }
 
@@ -34581,7 +34581,7 @@ type AssignedMultiChoiceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Multiple selected values for the attribute."""
+  """List of assigned choice values."""
   value: [AssignedChoiceAttributeValue!]!
 }
 
@@ -34597,18 +34597,18 @@ type AssignedSwatchAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Selected value for the attribute."""
+  """The assigned swatch value."""
   value: AssignedSwatchAttributeValue
 }
 
 type AssignedSwatchAttributeValue {
-  """Name of a value displayed in the interface."""
+  """Name of the selected swatch value."""
   name: String
 
-  """Internal representation of a value (unique per attribute)."""
+  """Slug of the selected swatch value."""
   slug: String
 
-  """Hex color code of the attribute."""
+  """Hex color code."""
   hexColor: String
 
   """File associated with the attribute."""
@@ -34627,7 +34627,7 @@ type AssignedBooleanAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Represents the boolean value of the attribute value."""
+  """The assigned boolean value."""
   value: Boolean
 }
 
@@ -34643,7 +34643,7 @@ type AssignedDateAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Represents the date value of the attribute value."""
+  """The assigned date value."""
   value: Date
 }
 
@@ -34659,7 +34659,7 @@ type AssignedDateTimeAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Represents the date/time value of the attribute value."""
+  """The assigned date time value."""
   value: DateTime
 }
 
@@ -34675,7 +34675,7 @@ type AssignedSinglePageReferenceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Referenced page."""
+  """The assigned page reference."""
   value: Page
 }
 
@@ -34691,7 +34691,7 @@ type AssignedSingleProductReferenceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Referenced product."""
+  """The assigned product reference."""
   value: Product
 }
 
@@ -34707,7 +34707,7 @@ type AssignedSingleProductVariantReferenceAttribute implements SelectedAttribute
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Referenced product variant."""
+  """The assigned product variant reference."""
   value: ProductVariant
 }
 
@@ -34723,7 +34723,7 @@ type AssignedSingleCategoryReferenceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Referenced category."""
+  """The assigned category reference."""
   value: Category
 }
 
@@ -34739,7 +34739,7 @@ type AssignedSingleCollectionReferenceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """Referenced collection."""
+  """The assigned collection reference."""
   value: Collection
 }
 
@@ -34755,7 +34755,7 @@ type AssignedMultiPageReferenceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """List of referenced pages."""
+  """List of assigned page references."""
   value: [Page!]!
 }
 
@@ -34771,7 +34771,7 @@ type AssignedMultiProductReferenceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """List of referenced products."""
+  """List of assigned product references."""
   value: [Product!]!
 }
 
@@ -34787,7 +34787,7 @@ type AssignedMultiProductVariantReferenceAttribute implements SelectedAttribute 
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """List of referenced product variants."""
+  """List of assigned product variant references."""
   value: [ProductVariant!]!
 }
 
@@ -34803,7 +34803,7 @@ type AssignedMultiCategoryReferenceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """List of referenced categories."""
+  """List of assigned category references."""
   value: [Category!]!
 }
 
@@ -34819,7 +34819,7 @@ type AssignedMultiCollectionReferenceAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """List of referenced collections."""
+  """List of assigned collection references."""
   value: [Collection!]!
 }
 
