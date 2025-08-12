@@ -96,8 +96,7 @@ class SiteSettings(ModelWithMetadata):
     gift_card_expiry_period = models.PositiveIntegerField(null=True, blank=True)
 
     # refund settings
-    # TODO Probably it should not be OneToOne, check this later todo
-    refund_reason_reference_type = models.OneToOneField(
+    refund_reason_reference_type = models.ForeignKey(
         null=True, blank=True, on_delete=models.SET_NULL, to="page.PageType"
     )
 

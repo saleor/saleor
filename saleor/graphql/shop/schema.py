@@ -53,7 +53,6 @@ class ShopQueries(graphene.ObjectType):
         permissions=[GiftcardPermissions.MANAGE_GIFT_CARD],
         doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
-    # TODO Do we need custom resolver?
     refund_settings = PermissionsField(
         RefundSettings,
         description="Refunds related settings from site settings.",
@@ -89,6 +88,7 @@ class ShopQueries(graphene.ObjectType):
     def resolve_gift_card_settings(self, _info, site):
         return site.settings
 
+    # TODO What does it do? Should refund setting be available on Shop?
     @load_site_callback
     def resolve_refund_settings(self, _info, site):
         return site.settings
