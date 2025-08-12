@@ -19,6 +19,7 @@ from .....attribute.tests.model_helpers import (
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....page.error_codes import PageErrorCode
 from .....page.models import Page
+from .....product.search import update_products_search_vector
 from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core.utils import to_global_id_or_none
@@ -1463,3 +1464,66 @@ def test_update_page_with_numeric_attribute(
         name=numeric_name,
         numeric=numeric_value,
     ).exists()
+
+
+def test_page_update_reference_attribute_sets_search_index_dirty_in_product(
+    staff_api_client,
+    page,
+    product,
+    product_type_page_reference_attribute,
+    permission_manage_pages,
+):
+    # given
+    query = UPDATE_PAGE_MUTATION
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    old_title = "Brand"
+    page.title = old_title
+    page.save(update_fields=["title"])
+
+    # Set up page reference attribute
+    attribute = product_type_page_reference_attribute
+    attribute_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name=page.title,
+        slug=f"{page.pk}_{page.id}",
+        reference_page=page,
+    )
+    product.product_type.product_attributes.add(attribute)
+    associate_attribute_values_to_instance(product, {attribute.id: [attribute_value]})
+
+    # Ensure product search index is initially clean
+    product.search_index_dirty = False
+    product.save(update_fields=["search_index_dirty"])
+    update_products_search_vector([product.id])
+    product.refresh_from_db()
+    assert old_title.lower() in product.search_vector
+
+    # when
+    new_title = "Extra Brand"
+    variables = {
+        "id": page_id,
+        "input": {"title": new_title},
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    data = get_graphql_content(response)
+    assert not data["data"]["pageUpdate"]["errors"]
+
+    # Check that page was updated
+    page.refresh_from_db()
+    assert page.title == new_title
+
+    # Check that product search_index_dirty flag was set to True
+    product.refresh_from_db()
+    update_products_search_vector([product.id])
+    product.refresh_from_db()
+    updated_search_vector = str(product.search_vector)
+
+    # Verify search vector now contains the new page title
+    assert "extra" in updated_search_vector
+    # Verify search index dirty flag is reset
+    assert product.search_index_dirty is False
