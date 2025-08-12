@@ -24,7 +24,6 @@ class RefundReasonReferenceTypeClear(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        # TODO Check permissions
 
         settings = SiteSettings.objects.get()
 

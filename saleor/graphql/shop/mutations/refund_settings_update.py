@@ -51,7 +51,15 @@ class RefundSettingsUpdate(BaseMutation):
 
         refund_reason_reference_type = input.get("refund_reason_reference_type")
 
-        # TODO Check permissions
+        if len(refund_reason_reference_type) == 0:
+            raise ValidationError(
+                {
+                    "refund_reason_model_type": ValidationError(
+                        "Field should be a valid ID", code="invalid"
+                    )
+                }
+            ) from None
+
 
         settings = SiteSettings.objects.get()
 
