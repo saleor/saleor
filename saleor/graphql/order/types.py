@@ -394,7 +394,7 @@ class OrderGrantedRefund(
 
     @staticmethod
     def resolve_reason_reference(root: models.OrderGrantedRefund, info):
-        if not root.reason_reference:
+        if not root.node.reason_reference:
             return None
 
         def wrap_page_with_context(page):
@@ -404,7 +404,7 @@ class OrderGrantedRefund(
             # It works but is it a valid solution?
             return ChannelContext(node=page, channel_slug=None)
 
-        return PageByIdLoader(info.context).load(root.reason_reference).then(wrap_page_with_context)
+        return PageByIdLoader(info.context).load(root.node.reason_reference).then(wrap_page_with_context)
 
 
 class OrderDiscount(BaseObjectType):
