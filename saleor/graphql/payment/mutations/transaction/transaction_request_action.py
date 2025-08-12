@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from graphql.error import GraphQLError
 
 from .....app.models import App
 from .....core.prices import quantize_price
@@ -24,7 +25,7 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.scalars import UUID, PositiveDecimal
 from ....core.types import common as common_types
-from ....core.utils import from_global_id_or_none
+from ....core.utils import from_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum
@@ -177,14 +178,10 @@ class TransactionRequestAction(BaseMutation):
         # TODO Validate if reason reference is instance of valid model type
         reason_reference_instance = None
         if reason_reference:
-            print("reason_reference", reason_reference)
-
             try:
-                _, reason_reference_pk = from_global_id_or_none(reason_reference)
-                print("reason_reference_pk", reason_reference_pk)
+                type_, reason_reference_pk = from_global_id_or_error(reason_reference, only_type="Page")
                 if reason_reference_pk:
                     reason_reference_instance = Page.objects.get(pk=reason_reference_pk)
-                    print("reason_reference_instance", reason_reference_instance)
             except (Page.DoesNotExist, ValueError):
                 raise ValidationError(
                     {
