@@ -440,14 +440,16 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
     @staticmethod
     def resolve_reason_reference(root: models.TransactionEvent, info):
-        print("resolver")
-        print(root.message)
-        print(root.reason_reference_id)
-        print("\n")
-
         if not root.reason_reference_id:
             return None
-        return PageByIdLoader(info.context).load(root.reason_reference_id)
+        
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+            from ..core.context import ChannelContext
+            return ChannelContext(node=page, channel_slug=None)
+            
+        return PageByIdLoader(info.context).load(root.reason_reference_id).then(wrap_page_with_context)
 
 
 
