@@ -441,6 +441,9 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
     @staticmethod
     def resolve_reason_reference(root: models.TransactionEvent, info):
+        from pprint import pprint
+        pprint(root.__dict__)
+
         if not root.reason_reference_id:
             return None
 

@@ -152,7 +152,7 @@ class TransactionRequestAction(BaseMutation):
         elif action == TransactionAction.REFUND:
             type = TransactionEventType.REFUND_REQUEST
             message = reason or None
-            reason_reference_to_set = reason_reference_to_set or None
+            reason_reference_to_set = reason_reference or None
         else:
             raise ValidationError(
                 {
@@ -184,6 +184,7 @@ class TransactionRequestAction(BaseMutation):
         reason_reference = data.get("reason_reference")
 
         reason_reference_instance = None
+
 
         if reason_reference:
             try:
@@ -228,6 +229,7 @@ class TransactionRequestAction(BaseMutation):
             "transaction": transaction,
             "manager": manager,
         }
+
 
         try:
             cls.handle_transaction_action(
