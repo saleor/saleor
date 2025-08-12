@@ -388,7 +388,7 @@ class DraftOrderCreate(
             )
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
 

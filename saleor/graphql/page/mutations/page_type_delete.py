@@ -6,6 +6,7 @@ from ....attribute import models as attribute_models
 from ....core.tracing import traced_atomic_transaction
 from ....page import models
 from ....permission.enums import PageTypePermissions
+from ....product.models import Product
 from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import PageError
@@ -32,7 +33,18 @@ class PageTypeDelete(ModelDeleteMutation):
         page_type_pk = cls.get_global_id_or_error(id, only_type=PageType, field="pk")
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(page_type_pk)
+            cls.update_products_search_index(page_type_pk)
             return super().perform_mutation(_root, info, id=id)
+
+    @classmethod
+    def update_products_search_index(cls, instance):
+        # Mark products that use pages belonging to this page type as reference as dirty
+        page_ids = models.Page.objects.filter(page_type=instance).values_list(
+            "id", flat=True
+        )
+        Product.objects.filter(
+            attributevalues__value__reference_page__id__in=page_ids
+        ).update(search_index_dirty=True)
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pk):

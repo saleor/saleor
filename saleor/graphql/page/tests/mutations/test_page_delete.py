@@ -8,6 +8,7 @@ from django.utils.functional import SimpleLazyObject
 
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....product.search import update_products_search_vector
 from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import get_graphql_content
 
@@ -257,3 +258,64 @@ def test_page_delete_removes_reference_to_page(
         page_ref.refresh_from_db()
 
     assert not data["errors"]
+
+
+def test_page_delete_reference_attribute_sets_search_index_dirty_in_product(
+    product_type_page_reference_attribute,
+    page,
+    product,
+    staff_api_client,
+    permission_manage_pages,
+):
+    # given
+    query = PAGE_DELETE_MUTATION
+
+    # Set up page reference attribute
+    attribute = product_type_page_reference_attribute
+    product.product_type.product_attributes.add(attribute)
+    page.title = "Brand"
+    page.save(update_fields=["title"])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name=page.title,
+        slug=f"{product.pk}_{page.pk}",
+        reference_page=page,
+    )
+
+    associate_attribute_values_to_instance(product, {attribute.pk: [attr_value]})
+
+    # Ensure product search index is initially clean
+    product.search_index_dirty = False
+    product.save(update_fields=["search_index_dirty"])
+    update_products_search_vector([product.id])
+    product.refresh_from_db()
+    assert page.title.lower() in product.search_vector
+
+    # when
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+    variables = {"id": page_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageDelete"]
+
+    # Check that page was deleted
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()
+
+    # Check that attribute value was deleted
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+
+    # Check that product search_index_dirty flag was set to True
+    product.refresh_from_db(fields=["search_index_dirty"])
+    assert product.search_index_dirty is True
+    assert not data["errors"]
+
+    update_products_search_vector([product.id])
+    product.refresh_from_db()
+    assert page.title.lower() not in product.search_vector

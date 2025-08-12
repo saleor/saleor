@@ -6,6 +6,7 @@ from ....attribute import models as attribute_models
 from ....core.tracing import traced_atomic_transaction
 from ....page import models
 from ....permission.enums import PagePermissions
+from ....product.models import Product
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
 from ...core.mutations import ModelDeleteMutation
@@ -33,11 +34,19 @@ class PageDelete(ModelDeleteMutation):
         page_type = page.page_type
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(page)
+            cls.update_products_search_index(page)
             response = super().perform_mutation(_root, info, **data)
             page.page_type = page_type
             cls.call_event(manager.page_deleted, page)
         response.page = ChannelContext(page, channel_slug=None)
         return response
+
+    @classmethod
+    def update_products_search_index(cls, instance):
+        # Mark products that use this instance as reference as dirty
+        Product.objects.filter(attributevalues__value__reference_page=instance).update(
+            search_index_dirty=True
+        )
 
     @staticmethod
     def delete_assigned_attribute_values(instance):

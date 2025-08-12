@@ -89,7 +89,7 @@ class WebhookUpdate(WebhookCreate, NotifyUserEventValidationMixin):
         error_type_field = "webhook_errors"
 
     @classmethod
-    def save(cls, _info: ResolveInfo, instance, cleaned_input):
+    def save(cls, _info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         instance.save()
         events = set(cleaned_input.get("events", []))
         cls.validate_events(events)
