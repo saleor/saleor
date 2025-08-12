@@ -123,6 +123,7 @@ class TransactionRequestAction(BaseMutation):
                 user=user,
                 app=app,
                 reason=reason,
+                reason_reference=reason_reference
             )
             request_refund_action(
                 **action_kwargs, refund_value=action_value, request_event=request_event
@@ -130,7 +131,7 @@ class TransactionRequestAction(BaseMutation):
 
     @classmethod
     def create_transaction_event_requested(
-        cls, transaction, action_value, action, user=None, app=None, reason=None
+        cls, transaction, action_value, action, user=None, app=None, reason=None,reason_reference: str|None = None
     ):
         message: str | None = None
 

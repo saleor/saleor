@@ -437,6 +437,10 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None
 
+    @staticmethod
+    def resolve_reason_reference(root: models.TransactionItem, info):
+
+
 
 class GenericPaymentMethodDetails(graphene.Interface):
     name = graphene.String(required=True, description="Name of the payment method.")
