@@ -402,7 +402,7 @@ class ShippingPriceMixin:
             )
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         with traced_atomic_transaction():
             super().save(info, instance, cleaned_input)  # type: ignore[misc] # mixin
 
