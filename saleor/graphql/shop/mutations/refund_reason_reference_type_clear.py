@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.descriptions import ADDED_IN_322
 from ....permission.enums import SitePermissions
 from ....site.models import SiteSettings
 from ...core import ResolveInfo
@@ -10,13 +11,12 @@ from ..types import RefundSettings
 
 
 class RefundReasonReferenceTypeClear(BaseMutation):
-    # Do we need this line?
     refund_settings = graphene.Field(
         RefundSettings, description="Refund settings.", required=True
     )
 
     class Meta:
-        description = "todo"
+        description = "Clear refundReasonReference setting" + ADDED_IN_322
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = RefundSettingsError
@@ -26,7 +26,6 @@ class RefundReasonReferenceTypeClear(BaseMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         # TODO Check permissions
 
-        # todo site loader
         settings = SiteSettings.objects.get()
 
         settings.refund_reason_reference_type = None

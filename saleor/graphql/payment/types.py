@@ -342,12 +342,10 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
     psp_reference = graphene.String(
         description="PSP reference of transaction.", required=True
     )
-    # TODO Propagate reason here
     message = graphene.String(
         description="Message related to the transaction's event.",
         required=True,
     )
-    # TODO Resolver
     reason_reference = graphene.Field(
         Page,
         required=False,
@@ -441,9 +439,6 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
     @staticmethod
     def resolve_reason_reference(root: models.TransactionEvent, info):
-        from pprint import pprint
-        pprint(root.__dict__)
-
         if not root.reason_reference_id:
             return None
 
@@ -628,10 +623,8 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         description="The payment method used for this transaction." + ADDED_IN_322,
     )
 
-    # TODO Resolvers
     reason = graphene.String(description="Reason of the refund.")
-    # TODO Resolvers
-    reasonReference = graphene.Field(
+    reason_reference = graphene.Field(
         Page, required=False, description="Reason model for refund."
     )
 

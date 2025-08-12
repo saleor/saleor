@@ -6,7 +6,7 @@ from ....permission.enums import SitePermissions
 from ....site.models import SiteSettings
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
-from ...core.doc_category import DOC_CATEGORY_ORDERS
+from ...core.doc_category import  DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
 from ...core.types.common import RefundSettingsError
@@ -25,23 +25,22 @@ class RefundSettingsUpdateInput(BaseInputObjectType):
 
     class Meta:
         # Orders or Shop?
-        doc_category = DOC_CATEGORY_ORDERS
+        doc_category = DOC_CATEGORY_SHOP
 
 
 class RefundSettingsUpdate(BaseMutation):
-    # Do we need this line?
     refund_settings = graphene.Field(
         RefundSettings, description="Refund settings.", required=True
     )
 
     class Arguments:
         input = RefundSettingsUpdateInput(
-            required=True, description="Fields required to update shop refund settings."
+            required=True, description="Fields required to update refund settings."
         )
 
     class Meta:
-        description = "Update shop refund settings across all channels. "
-        doc_category = DOC_CATEGORY_ORDERS
+        description = "Update refund settings across all channels." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = RefundSettingsError
         error_type_field = "refund_settings_errors"
@@ -54,7 +53,6 @@ class RefundSettingsUpdate(BaseMutation):
 
         # TODO Check permissions
 
-        # todo site loader
         settings = SiteSettings.objects.get()
 
         if refund_reason_reference_type:

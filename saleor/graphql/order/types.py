@@ -77,6 +77,7 @@ from ..core.descriptions import (
     ADDED_IN_321,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
+    ADDED_IN_322,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import LanguageCodeEnum
@@ -271,7 +272,7 @@ class OrderGrantedRefund(
     amount = graphene.Field(Money, required=True, description="Refund amount.")
     reason = graphene.String(description="Reason of the refund.")
     reason_reference = graphene.Field(
-        Page, required=False, description="Reason model for refund."
+        Page, required=False, description="Reason Model (Page) reference for refund." + ADDED_IN_322
     )
     user = graphene.Field(
         User,

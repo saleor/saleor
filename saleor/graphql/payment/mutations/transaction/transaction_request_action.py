@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional, cast
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....core.descriptions import ADDED_IN_322
 from .....app.models import App
 from .....core.prices import quantize_price
 from .....order.models import Order
@@ -34,7 +35,7 @@ from .utils import get_transaction_item
 if TYPE_CHECKING:
     from .....account.models import User
 
-
+# TODO If refund settings are set, reference should be required
 class TransactionRequestAction(BaseMutation):
     transaction = graphene.Field(TransactionItem)
 
@@ -64,11 +65,11 @@ class TransactionRequestAction(BaseMutation):
             required=False,
         )
         reason = graphene.String(
-            description="reason todo",
+            description="Reason of the refund" + ADDED_IN_322,
             required=False,
         )
         reason_reference = graphene.ID(
-            description="reason ref todo",
+            description="ID of Model to reference in reason." + ADDED_IN_322,
             required=False,
         )
 
@@ -89,7 +90,6 @@ class TransactionRequestAction(BaseMutation):
         reason: str | None = None,
         reason_reference: Page | None = None,
     ):
-        # TODO Extract reason from mutation
 
         if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]

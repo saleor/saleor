@@ -11,7 +11,7 @@ from ....page.models import Page
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_320, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_320, PREVIEW_FEATURE, ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -70,7 +70,7 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
         )
     )
     reason = graphene.String(description="Reason of the granted refund.")
-    reason_reference = graphene.ID(description="ID of Model to reference in reason.")
+    reason_reference = graphene.ID(description="ID of Model to reference in reason." + ADDED_IN_322)
     lines = NonNullList(
         OrderGrantRefundCreateLineInput,
         description="Lines to assign to granted refund.",
@@ -96,7 +96,7 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
 
-
+# TODO If refund settings are set, reference should be required
 class OrderGrantRefundCreate(BaseMutation):
     order = graphene.Field(
         Order, description="Order which has assigned new grant refund."
@@ -197,8 +197,6 @@ class OrderGrantRefundCreate(BaseMutation):
         transaction_id = input.get("transaction_id")
         input_lines = input.get("lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", False)
-
-        # todo Find model and verify it's type is right
 
         cls.validate_input(input)
 
