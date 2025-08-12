@@ -75,6 +75,7 @@ class OrderGrantRefundUpdateInput(BaseInputObjectType):
         )
     )
     reason = graphene.String(description="Reason of the granted refund.")
+    reason_reference = graphene.ID(description="ID of Model to reference in reason.")
     add_lines = NonNullList(
         OrderGrantRefundUpdateLineAddInput,
         description="Lines to assign to granted refund.",
@@ -346,6 +347,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         cleaned_input = {
             "amount": amount,
             "reason": reason,
+            "reason_reference": input.get("reason_reference")
             "add_lines": lines_to_add,
             "remove_lines": line_ids_to_remove,
             "grant_refund_for_shipping": grant_refund_for_shipping,
