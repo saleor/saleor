@@ -12,7 +12,7 @@ from ....permission.enums import OrderPermissions
 from ....site.models import SiteSettings
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_320, PREVIEW_FEATURE, ADDED_IN_322
+from ...core.descriptions import ADDED_IN_320, ADDED_IN_322, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -71,7 +71,9 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
         )
     )
     reason = graphene.String(description="Reason of the granted refund.")
-    reason_reference = graphene.ID(description="ID of Model to reference in reason." + ADDED_IN_322)
+    reason_reference = graphene.ID(
+        description="ID of Model to reference in reason." + ADDED_IN_322
+    )
     lines = NonNullList(
         OrderGrantRefundCreateLineInput,
         description="Lines to assign to granted refund.",
@@ -97,7 +99,7 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
 
-# TODO If refund settings are set, reference should be required
+
 class OrderGrantRefundCreate(BaseMutation):
     order = graphene.Field(
         Order, description="Order which has assigned new grant refund."
@@ -264,7 +266,7 @@ class OrderGrantRefundCreate(BaseMutation):
             "lines": cleaned_input_lines,
             "grant_refund_for_shipping": grant_refund_for_shipping,
             "transaction_item": transaction_item,
-            "reason_reference": input.get("reason_reference")
+            "reason_reference": input.get("reason_reference"),
         }
 
     @classmethod
@@ -292,9 +294,11 @@ class OrderGrantRefundCreate(BaseMutation):
         # It's never required for the app
         is_passing_reason_reference_required = refund_reason_reference_type is not None
 
-        if (is_passing_reason_reference_required and
-            reason_reference_id is None and
-            requestor_is_user):
+        if (
+            is_passing_reason_reference_required
+            and reason_reference_id is None
+            and requestor_is_user
+        ):
             raise ValidationError(
                 {
                     "reason_reference": ValidationError(
@@ -302,7 +306,7 @@ class OrderGrantRefundCreate(BaseMutation):
                         code=OrderGrantRefundCreateErrorCode.REQUIRED.value,
                     )
                 }
-            )
+            ) from None
 
         # If feature is not enabled, ignore it from the input
         if not is_passing_reason_reference_required:
@@ -325,7 +329,7 @@ class OrderGrantRefundCreate(BaseMutation):
                             code=OrderGrantRefundCreateErrorCode.INVALID.value,
                         )
                     }
-                )
+                ) from None
 
         with transaction.atomic():
             granted_refund = order.granted_refunds.create(

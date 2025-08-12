@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Optional, cast
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.descriptions import ADDED_IN_322
 from .....app.models import App
 from .....core.prices import quantize_price
 from .....order.models import Order
@@ -18,9 +17,11 @@ from .....payment.gateway import (
     request_refund_action,
 )
 from .....permission.enums import PaymentPermissions
+from .....site.models import SiteSettings
 from ....app.dataloaders import get_app_promise
 from ....checkout.types import Checkout
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_322
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.scalars import UUID, PositiveDecimal
@@ -35,7 +36,7 @@ from .utils import get_transaction_item
 if TYPE_CHECKING:
     from .....account.models import User
 
-# TODO If refund settings are set, reference should be required
+
 class TransactionRequestAction(BaseMutation):
     transaction = graphene.Field(TransactionItem)
 
@@ -90,7 +91,6 @@ class TransactionRequestAction(BaseMutation):
         reason: str | None = None,
         reason_reference: Page | None = None,
     ):
-
         if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value
@@ -181,15 +181,46 @@ class TransactionRequestAction(BaseMutation):
         action_type = data["action_type"]
         action_value = data.get("amount")
         reason = data.get("reason")
-        reason_reference = data.get("reason_reference")
+        reason_reference_id = data.get("reason_reference")
+        if len(reason_reference_id) == 0:
+            reason_reference_id = None
+
+        requestor_is_app = info.context.app is not None
+        requestor_is_user = info.context.user is not None and not requestor_is_app
+
+        settings = SiteSettings.objects.get()
+        refund_reason_reference_type = settings.refund_reason_reference_type
+
+        # It works as following:
+        # If it's not configured, it's optional
+        # If it's configured, it's required for staff user
+        # It's never required for the app
+        is_passing_reason_reference_required = refund_reason_reference_type is not None
+
+        if (
+            is_passing_reason_reference_required
+            and reason_reference_id is None
+            and requestor_is_user
+        ):
+            raise ValidationError(
+                {
+                    "reason_reference": ValidationError(
+                        "Reason reference is required when refund reason reference type is configured.",
+                        code=TransactionRequestActionErrorCode.REQUIRED.value,
+                    )
+                }
+            ) from None
+
+        # If feature is not enabled, ignore it from the input
+        if not is_passing_reason_reference_required:
+            reason_reference_id = None
 
         reason_reference_instance = None
 
-
-        if reason_reference:
+        if reason_reference_id:
             try:
                 type_, reason_reference_pk = from_global_id_or_error(
-                    reason_reference, only_type="Page"
+                    reason_reference_id, only_type="Page"
                 )
                 if reason_reference_pk:
                     reason_reference_instance = Page.objects.get(pk=reason_reference_pk)
@@ -201,7 +232,7 @@ class TransactionRequestAction(BaseMutation):
                             code=TransactionRequestActionErrorCode.INVALID.value,
                         )
                     }
-                )
+                ) from None
 
         validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction = get_transaction_item(id, token)
@@ -229,7 +260,6 @@ class TransactionRequestAction(BaseMutation):
             "transaction": transaction,
             "manager": manager,
         }
-
 
         try:
             cls.handle_transaction_action(

@@ -16,7 +16,6 @@ from ..checkout.models import Checkout
 from ..core.db.fields import MoneyField
 from ..core.models import ModelWithMetadata
 from ..core.taxes import zero_money
-from ..page.models import Page
 from ..permission.enums import PaymentPermissions
 from . import (
     ChargeStatus,
@@ -241,7 +240,9 @@ class TransactionEvent(models.Model):
         on_delete=models.SET_NULL,
     )
 
-    reason_reference = models.ForeignKey("page.Page", related_name="+", on_delete=models.SET_NULL, blank=True, null=True)
+    reason_reference = models.ForeignKey(
+        "page.Page", related_name="+", on_delete=models.SET_NULL, blank=True, null=True
+    )
 
     class Meta:
         ordering = ("pk",)

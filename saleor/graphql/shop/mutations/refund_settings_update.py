@@ -6,7 +6,7 @@ from ....permission.enums import SitePermissions
 from ....site.models import SiteSettings
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
-from ...core.doc_category import  DOC_CATEGORY_SHOP
+from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
 from ...core.types.common import RefundSettingsError
@@ -59,7 +59,6 @@ class RefundSettingsUpdate(BaseMutation):
                     )
                 }
             ) from None
-
 
         settings = SiteSettings.objects.get()
 

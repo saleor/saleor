@@ -15,7 +15,7 @@ from ..app.dataloaders import ActiveAppsByAppIdentifierLoader, AppByIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
-from ..core.context import SyncWebhookControlContext
+from ..core.context import ChannelContext, SyncWebhookControlContext
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import JSONString, PermissionsField
 from ..core.scalars import JSON, DateTime
@@ -41,7 +41,6 @@ from .enums import (
     TransactionEventTypeEnum,
     TransactionKindEnum,
 )
-from ..core.context import ChannelContext
 
 
 class Transaction(ModelObjectType[models.Transaction]):
@@ -449,8 +448,11 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
             # It works but is it a valid solution?
             return ChannelContext(node=page, channel_slug=None)
 
-        return PageByIdLoader(info.context).load(root.reason_reference_id).then(wrap_page_with_context)
-
+        return (
+            PageByIdLoader(info.context)
+            .load(root.reason_reference_id)
+            .then(wrap_page_with_context)
+        )
 
 
 class GenericPaymentMethodDetails(graphene.Interface):

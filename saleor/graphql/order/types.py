@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
-from ..page.dataloaders import PageByIdLoader
 from ...account.models import Address
 from ...account.models import User as UserModel
 from ...checkout.utils import get_external_shipping_id
@@ -75,9 +74,9 @@ from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_320,
     ADDED_IN_321,
+    ADDED_IN_322,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
-    ADDED_IN_322,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import LanguageCodeEnum
@@ -112,6 +111,7 @@ from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
 from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
+from ..page.dataloaders import PageByIdLoader
 from ..page.types import Page
 from ..payment.dataloaders import (
     TransactionByPaymentIdLoader,
@@ -272,7 +272,9 @@ class OrderGrantedRefund(
     amount = graphene.Field(Money, required=True, description="Refund amount.")
     reason = graphene.String(description="Reason of the refund.")
     reason_reference = graphene.Field(
-        Page, required=False, description="Reason Model (Page) reference for refund." + ADDED_IN_322
+        Page,
+        required=False,
+        description="Reason Model (Page) reference for refund." + ADDED_IN_322,
     )
     user = graphene.Field(
         User,
@@ -405,7 +407,11 @@ class OrderGrantedRefund(
             # It works but is it a valid solution?
             return ChannelContext(node=page, channel_slug=None)
 
-        return PageByIdLoader(info.context).load(root.node.reason_reference.id).then(wrap_page_with_context)
+        return (
+            PageByIdLoader(info.context)
+            .load(root.node.reason_reference.id)
+            .then(wrap_page_with_context)
+        )
 
 
 class OrderDiscount(BaseObjectType):
