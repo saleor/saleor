@@ -7,6 +7,7 @@ from ...attribute import models as attribute_models
 from ...core.tracing import traced_atomic_transaction
 from ...page import models
 from ...permission.enums import PagePermissions, PageTypePermissions
+from ...product.models import Product
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..core import ResolveInfo
@@ -40,10 +41,18 @@ class PageBulkDelete(ModelBulkDeleteMutation):
         except ValidationError as error:
             return 0, error
         cls.delete_assigned_attribute_values(pks)
+        cls.update_products_search_index(pks)
         return super().perform_mutation(_root, info, ids=ids)
 
-    @staticmethod
-    def delete_assigned_attribute_values(instance_pks):
+    @classmethod
+    def update_products_search_index(cls, instance_pks):
+        # Mark products that use these page instances as references as dirty
+        Product.objects.filter(
+            attributevalues__value__reference_page__id__in=instance_pks
+        ).update(search_index_dirty=True)
+
+    @classmethod
+    def delete_assigned_attribute_values(cls, instance_pks):
         assigned_values = attribute_models.AssignedPageAttributeValue.objects.filter(
             page_id__in=instance_pks
         )
@@ -106,8 +115,17 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
             pks = cls.get_global_ids_or_error(ids, only_type=PageType, field="pk")
         except ValidationError as error:
             return 0, error
+        cls.update_products_search_index(pks)
         cls.delete_assigned_attribute_values(pks)
         return super().perform_mutation(_root, info, ids=ids)
+
+    @classmethod
+    def update_products_search_index(cls, instance_pks):
+        # Mark products that use pages belonging to these page types as reference as
+        # dirty
+        Product.objects.filter(
+            attributevalues__value__reference_page__page_type_id__in=instance_pks
+        ).update(search_index_dirty=True)
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
