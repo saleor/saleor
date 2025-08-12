@@ -283,7 +283,7 @@ class Attribute(ChannelContextType[models.Attribute]):
         required=False,
         limit=graphene.Int(
             description=NESTED_QUERY_LIMIT_DESCRIPTION,
-            default_value=settings.NESTED_QUERY_LIMIT,
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
     )
 
