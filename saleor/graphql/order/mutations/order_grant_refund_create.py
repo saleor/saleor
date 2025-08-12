@@ -7,6 +7,7 @@ from django.db import transaction
 
 from ....order import models
 from ....order.utils import update_order_charge_data
+from ....page.models import Page
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
@@ -16,6 +17,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
+from ...core.utils import from_global_id_or_error
 from ...payment.mutations.transaction.utils import get_transaction_item
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
@@ -273,9 +275,29 @@ class OrderGrantRefundCreate(BaseMutation):
         cleaned_input = cls.clean_input(info, order, input)
         amount = cleaned_input["amount"]
         reason = cleaned_input["reason"]
+        reason_reference_id = cleaned_input["reason_reference"]
         cleaned_input_lines = cleaned_input["lines"]
         grant_refund_for_shipping = cleaned_input["grant_refund_for_shipping"]
         transaction_item = cleaned_input["transaction_item"]
+
+        reason_reference_instance = None
+
+        if reason_reference_id:
+            try:
+                type_, reason_reference_pk = from_global_id_or_error(
+                    reason_reference_id, only_type="Page"
+                )
+                if reason_reference_pk:
+                    reason_reference_instance = Page.objects.get(pk=reason_reference_pk)
+            except (Page.DoesNotExist, ValueError):
+                raise ValidationError(
+                    {
+                        "reason_reference": ValidationError(
+                            "Invalid reason reference. Must be an ID of a Model (Page)",
+                            code=OrderGrantRefundCreateErrorCode.INVALID.value,
+                        )
+                    }
+                )
 
         with transaction.atomic():
             granted_refund = order.granted_refunds.create(
@@ -286,6 +308,7 @@ class OrderGrantRefundCreate(BaseMutation):
                 app=info.context.app,
                 shipping_costs_included=grant_refund_for_shipping or False,
                 transaction_item=transaction_item,
+                reason_reference_instance=reason_reference_instance,
             )
             if cleaned_input_lines:
                 for line in cleaned_input_lines:

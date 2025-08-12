@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Optional, cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from graphql.error import GraphQLError
 
 from .....app.models import App
 from .....core.prices import quantize_price
@@ -126,7 +125,7 @@ class TransactionRequestAction(BaseMutation):
                 user=user,
                 app=app,
                 reason=reason,
-                reason_reference=reason_reference
+                reason_reference=reason_reference,
             )
             request_refund_action(
                 **action_kwargs, refund_value=action_value, request_event=request_event
@@ -134,9 +133,17 @@ class TransactionRequestAction(BaseMutation):
 
     @classmethod
     def create_transaction_event_requested(
-        cls, transaction, action_value, action, user=None, app=None, reason=None, reason_reference: Page | None = None
+        cls,
+        transaction,
+        action_value,
+        action,
+        user=None,
+        app=None,
+        reason=None,
+        reason_reference: Page | None = None,
     ):
         message: str | None = None
+        reason_reference_to_set = None
 
         if action == TransactionAction.CANCEL:
             type = TransactionEventType.CANCEL_REQUEST
@@ -145,6 +152,7 @@ class TransactionRequestAction(BaseMutation):
         elif action == TransactionAction.REFUND:
             type = TransactionEventType.REFUND_REQUEST
             message = reason or None
+            reason_reference_to_set = reason_reference_to_set or None
         else:
             raise ValidationError(
                 {
@@ -163,7 +171,7 @@ class TransactionRequestAction(BaseMutation):
             app_identifier=app.identifier if app else None,
             idempotency_key=str(uuid.uuid4()),
             message=message,
-            reason_reference=reason_reference
+            reason_reference=reason_reference_to_set,
         )
 
     @classmethod
@@ -175,11 +183,13 @@ class TransactionRequestAction(BaseMutation):
         reason = data.get("reason")
         reason_reference = data.get("reason_reference")
 
-        # TODO Validate if reason reference is instance of valid model type
         reason_reference_instance = None
+
         if reason_reference:
             try:
-                type_, reason_reference_pk = from_global_id_or_error(reason_reference, only_type="Page")
+                type_, reason_reference_pk = from_global_id_or_error(
+                    reason_reference, only_type="Page"
+                )
                 if reason_reference_pk:
                     reason_reference_instance = Page.objects.get(pk=reason_reference_pk)
             except (Page.DoesNotExist, ValueError):
