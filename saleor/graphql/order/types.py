@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
+from ..page.dataloaders import PageByIdLoader
 from ...account.models import Address
 from ...account.models import User as UserModel
 from ...checkout.utils import get_external_shipping_id
@@ -269,8 +270,7 @@ class OrderGrantedRefund(
     updated_at = DateTime(required=True, description="Time of last update.")
     amount = graphene.Field(Money, required=True, description="Refund amount.")
     reason = graphene.String(description="Reason of the refund.")
-    # TODO Resolvers
-    reasonReference = graphene.Field(
+    reason_reference = graphene.Field(
         Page, required=False, description="Reason model for refund."
     )
     user = graphene.Field(
@@ -391,6 +391,20 @@ class OrderGrantedRefund(
         return TransactionItemByIDLoader(info.context).load(
             granted_refund.transaction_item_id
         )
+
+    @staticmethod
+    def resolve_reason_reference(root: models.OrderGrantedRefund, info):
+        if not root.reason_reference:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+
+            # It works but is it a valid solution?
+            return ChannelContext(node=page, channel_slug=None)
+
+        return PageByIdLoader(info.context).load(root.reason_reference).then(wrap_page_with_context)
 
 
 class OrderDiscount(BaseObjectType):
