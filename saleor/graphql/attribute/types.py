@@ -1,13 +1,17 @@
+from typing import cast
+
 import graphene
 from promise import Promise
 
-from ...attribute import AttributeInputType, models
+from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...page import models as page_models
 from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
 )
+from ...product import models as product_models
 from ..core import ResolveInfo
 from ..core.connection import (
     CountableConnection,
@@ -41,7 +45,12 @@ from ..core.types.context import ChannelContextType
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
-from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
+from ..product.dataloaders.products import (
+    CategoryByIdLoader,
+    CollectionByIdLoader,
+    ProductByIdLoader,
+    ProductVariantByIdLoader,
+)
 from ..translations.dataloaders import (
     AttributeValueTranslationByIdAndLanguageCodeLoader,
 )
@@ -665,7 +674,13 @@ class SelectedAttribute(graphene.Interface):
 
     @staticmethod
     def resolve_type(instance: SelectedAttributeData, _info):
-        attr_type = SELECTED_ATTRIBUTE_MAP.get(
+        if instance.attribute.node.input_type == AttributeInputType.SINGLE_REFERENCE:
+            entity_type = cast(str, instance.attribute.node.entity_type)
+            return ASSIGNED_SINGLE_REFERENCE_MAP.get(entity_type)
+        if instance.attribute.node.input_type == AttributeInputType.REFERENCE:
+            entity_type = cast(str, instance.attribute.node.entity_type)
+            return ASSIGNED_MULTI_REFERENCE_MAP.get(entity_type)
+        attr_type = ASSIGNED_ATTRIBUTE_MAP.get(
             instance.attribute.node.input_type,
         )
         if not attr_type:
@@ -807,9 +822,350 @@ class AssignedFileAttribute(BaseObjectType):
         return File(url=attr_value.file_url, content_type=attr_value.content_type)
 
 
-SELECTED_ATTRIBUTE_MAP = {
+class AssignedSinglePageReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.page.types.Page",
+        description="Referenced page.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents single page reference attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[ChannelContext[page_models.Page]] | None:
+        if not root.values:
+            return None
+
+        channel_slug = root.attribute.channel_slug
+        attr_value = root.values[0].node
+
+        return (
+            PageByIdLoader(info.context)
+            .load(attr_value.reference_page_id)
+            .then(lambda page: ChannelContext(node=page, channel_slug=channel_slug))
+        )
+
+
+class AssignedSingleProductReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.product.types.Product",
+        description="Referenced product.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents single product reference attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[ChannelContext[product_models.Product]] | None:
+        if not root.values:
+            return None
+
+        channel_slug = root.attribute.channel_slug
+        attr_value = root.values[0].node
+
+        return (
+            ProductByIdLoader(info.context)
+            .load(attr_value.reference_product_id)
+            .then(
+                lambda product: ChannelContext(node=product, channel_slug=channel_slug)
+            )
+        )
+
+
+class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant",
+        description="Referenced product variant.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = (
+            "Represents single product variant reference attribute." + ADDED_IN_322
+        )
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[ChannelContext[product_models.ProductVariant]] | None:
+        if not root.values:
+            return None
+
+        channel_slug = root.attribute.channel_slug
+        attr_value = root.values[0].node
+
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(attr_value.reference_variant_id)
+            .then(
+                lambda product_variant: ChannelContext(
+                    node=product_variant, channel_slug=channel_slug
+                )
+            )
+        )
+
+
+class AssignedSingleCategoryReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.product.types.Category",
+        description="Referenced category.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents single category reference attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[product_models.Category] | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return CategoryByIdLoader(info.context).load(attr_value.reference_category_id)
+
+
+class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.product.types.Collection",
+        description="Referenced collection.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents single collection reference attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[ChannelContext[product_models.Collection]] | None:
+        if not root.values:
+            return None
+
+        channel_slug = root.attribute.channel_slug
+        attr_value = root.values[0].node
+
+        return (
+            CollectionByIdLoader(info.context)
+            .load(attr_value.reference_collection_id)
+            .then(
+                lambda collection: ChannelContext(
+                    node=collection, channel_slug=channel_slug
+                )
+            )
+        )
+
+
+class AssignedMultiPageReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.page.types.Page",
+        description="List of referenced pages.",
+        required=True,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents multi page reference attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[list[ChannelContext[page_models.Page]]]:
+        if not root.values:
+            return Promise.resolve([])
+
+        channel_slug = root.attribute.channel_slug
+        attr_values = [value.node for value in root.values]
+
+        def _wrap_with_channel_context(
+            pages: list[page_models.Page],
+        ) -> list[ChannelContext[page_models.Page]]:
+            if not pages:
+                return []
+            return [
+                ChannelContext(node=page, channel_slug=channel_slug) for page in pages
+            ]
+
+        return (
+            PageByIdLoader(info.context)
+            .load_many([value.reference_page_id for value in attr_values])
+            .then(_wrap_with_channel_context)
+        )
+
+
+class AssignedMultiProductReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.product.types.Product",
+        description="List of referenced products.",
+        required=True,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents multi product reference attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[list[ChannelContext[product_models.Product]]]:
+        if not root.values:
+            return Promise.resolve([])
+
+        channel_slug = root.attribute.channel_slug
+        attr_values = [value.node for value in root.values]
+
+        def _wrap_with_channel_context(
+            products: list[product_models.Product],
+        ) -> list[ChannelContext[product_models.Product]]:
+            if not products:
+                return []
+            return [
+                ChannelContext(node=product, channel_slug=channel_slug)
+                for product in products
+            ]
+
+        return (
+            ProductByIdLoader(info.context)
+            .load_many([value.reference_product_id for value in attr_values])
+            .then(_wrap_with_channel_context)
+        )
+
+
+class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.product.types.ProductVariant",
+        description="List of referenced product variants.",
+        required=True,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = (
+            "Represents multi product variant reference attribute." + ADDED_IN_322
+        )
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[list[ChannelContext[product_models.ProductVariant]]]:
+        if not root.values:
+            return Promise.resolve([])
+
+        channel_slug = root.attribute.channel_slug
+        attr_values = [value.node for value in root.values]
+
+        def _wrap_with_channel_context(
+            variants: list[product_models.ProductVariant],
+        ) -> list[ChannelContext[product_models.ProductVariant]]:
+            if not variants:
+                return []
+            return [
+                ChannelContext(node=variant, channel_slug=channel_slug)
+                for variant in variants
+            ]
+
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load_many([value.reference_variant_id for value in attr_values])
+            .then(_wrap_with_channel_context)
+        )
+
+
+class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.product.types.Category",
+        description="List of referenced categories.",
+        required=True,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents multi category reference attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[list[product_models.Category]]:
+        if not root.values:
+            return Promise.resolve([])
+        attr_values = [value.node for value in root.values]
+
+        return CategoryByIdLoader(info.context).load_many(
+            [value.reference_category_id for value in attr_values]
+        )
+
+
+class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.product.types.Collection",
+        description="List of referenced collections.",
+        required=True,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents multi collection reference attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> Promise[list[ChannelContext[product_models.Collection]]]:
+        if not root.values:
+            return Promise.resolve([])
+
+        channel_slug = root.attribute.channel_slug
+        attr_values = [value.node for value in root.values]
+
+        def _wrap_with_channel_context(
+            collections: list[product_models.Collection],
+        ) -> list[ChannelContext[product_models.Collection]]:
+            if not collections:
+                return []
+            return [
+                ChannelContext(node=collection, channel_slug=channel_slug)
+                for collection in collections
+            ]
+
+        return (
+            CollectionByIdLoader(info.context)
+            .load_many([value.reference_collection_id for value in attr_values])
+            .then(_wrap_with_channel_context)
+        )
+
+
+ASSIGNED_SINGLE_REFERENCE_MAP = {
+    AttributeEntityType.PAGE: AssignedSinglePageReferenceAttribute,
+    AttributeEntityType.PRODUCT: AssignedSingleProductReferenceAttribute,
+    AttributeEntityType.PRODUCT_VARIANT: AssignedSingleProductVariantReferenceAttribute,
+    AttributeEntityType.CATEGORY: AssignedSingleCategoryReferenceAttribute,
+    AttributeEntityType.COLLECTION: AssignedSingleCollectionReferenceAttribute,
+}
+ASSIGNED_MULTI_REFERENCE_MAP = {
+    AttributeEntityType.PAGE: AssignedMultiPageReferenceAttribute,
+    AttributeEntityType.PRODUCT: AssignedMultiProductReferenceAttribute,
+    AttributeEntityType.PRODUCT_VARIANT: AssignedMultiProductVariantReferenceAttribute,
+    AttributeEntityType.CATEGORY: AssignedMultiCategoryReferenceAttribute,
+    AttributeEntityType.COLLECTION: AssignedMultiCollectionReferenceAttribute,
+}
+ASSIGNED_ATTRIBUTE_MAP = {
     AttributeInputType.NUMERIC: AssignedNumericAttribute,
     AttributeInputType.RICH_TEXT: AssignedTextAttribute,
     AttributeInputType.PLAIN_TEXT: AssignedPlainTextAttribute,
     AttributeInputType.FILE: AssignedFileAttribute,
 }
+ASSIGNED_ATTRIBUTE_TYPES = (
+    list(ASSIGNED_ATTRIBUTE_MAP.values())
+    + list(ASSIGNED_SINGLE_REFERENCE_MAP.values())
+    + list(ASSIGNED_MULTI_REFERENCE_MAP.values())
+)

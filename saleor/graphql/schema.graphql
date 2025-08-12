@@ -34537,6 +34537,166 @@ type AssignedFileAttribute implements SelectedAttribute {
   value: File
 }
 
+"""
+Represents single page reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSinglePageReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """Referenced page."""
+  value: Page
+}
+
+"""
+Represents single product reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleProductReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """Referenced product."""
+  value: Product
+}
+
+"""
+Represents single product variant reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleProductVariantReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """Referenced product variant."""
+  value: ProductVariant
+}
+
+"""
+Represents single category reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleCategoryReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """Referenced category."""
+  value: Category
+}
+
+"""
+Represents single collection reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleCollectionReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """Referenced collection."""
+  value: Collection
+}
+
+"""
+Represents multi page reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiPageReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """List of referenced pages."""
+  value: [Page!]!
+}
+
+"""
+Represents multi product reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiProductReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """List of referenced products."""
+  value: [Product!]!
+}
+
+"""
+Represents multi product variant reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiProductVariantReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """List of referenced product variants."""
+  value: [ProductVariant!]!
+}
+
+"""
+Represents multi category reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiCategoryReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """List of referenced categories."""
+  value: [Category!]!
+}
+
+"""
+Represents multi collection reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiCollectionReferenceAttribute implements SelectedAttribute {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
+
+  """List of referenced collections."""
+  value: [Collection!]!
+}
+
 """_Any value scalar as defined by Federation spec."""
 scalar _Any
 

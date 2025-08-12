@@ -56,6 +56,71 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                   contentType
                 }
               }
+              ...on AssignedSinglePageReferenceAttribute{
+                page_ref: value{
+                  __typename
+                  slug
+                }
+              }
+              ...on AssignedSingleProductReferenceAttribute{
+                product_ref: value{
+                __typename
+                slug
+                }
+              }
+              ...on AssignedSingleProductVariantReferenceAttribute{
+                variant_ref: value{
+                  __typename
+                  sku
+                }
+              }
+              ...on AssignedSingleCategoryReferenceAttribute{
+                category_ref: value{
+                  __typename
+                  slug
+                }
+              }
+              ...on AssignedSingleCollectionReferenceAttribute{
+                collection_ref: value{
+                  __typename
+                  slug
+                }
+              }
+              ...on AssignedMultiPageReferenceAttribute{
+                __typename
+                pages: value{
+                  __typename
+                  slug
+                }
+              }
+              ...on AssignedMultiProductReferenceAttribute{
+                __typename
+                producs: value{
+                  __typename
+                  slug
+                }
+              }
+              ...on AssignedMultiProductVariantReferenceAttribute{
+                __typename
+                variants: value{
+                  __typename
+                  sku
+                }
+              }
+              ...on AssignedMultiCategoryReferenceAttribute{
+                __typename
+                categories: value{
+                  __typename
+                  slug
+                }
+              }
+              ...on AssignedMultiCollectionReferenceAttribute{
+                __typename
+                collections: value{
+                  __typename
+                  slug
+                }
+              }
             }
             variants {
               attributes {
@@ -83,6 +148,71 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                 ...on AssignedFileAttribute{
                   file: value {
                     contentType
+                  }
+                }
+                ...on AssignedSinglePageReferenceAttribute{
+                  page_ref: value{
+                    __typename
+                    slug
+                  }
+                }
+                ...on AssignedSingleProductReferenceAttribute{
+                  product_ref: value{
+                  __typename
+                  slug
+                  }
+                }
+                ...on AssignedSingleProductVariantReferenceAttribute{
+                  variant_ref: value{
+                    __typename
+                    sku
+                  }
+                }
+                ...on AssignedSingleCategoryReferenceAttribute{
+                  category_ref: value{
+                    __typename
+                    slug
+                  }
+                }
+                ...on AssignedSingleCollectionReferenceAttribute{
+                  collection_ref: value{
+                    __typename
+                    slug
+                  }
+                }
+                ...on AssignedMultiPageReferenceAttribute{
+                  __typename
+                  pages: value{
+                    __typename
+                    slug
+                  }
+                }
+                ...on AssignedMultiProductReferenceAttribute{
+                  __typename
+                  producs: value{
+                    __typename
+                    slug
+                  }
+                }
+                ...on AssignedMultiProductVariantReferenceAttribute{
+                  __typename
+                  variants: value{
+                    __typename
+                    sku
+                  }
+                }
+                ...on AssignedMultiCategoryReferenceAttribute{
+                  __typename
+                  categories: value{
+                    __typename
+                    slug
+                  }
+                }
+                ...on AssignedMultiCollectionReferenceAttribute{
+                  __typename
+                  collections: value{
+                    __typename
+                    slug
                   }
                 }
               }
