@@ -404,7 +404,7 @@ class OrderGrantedRefund(
             # It works but is it a valid solution?
             return ChannelContext(node=page, channel_slug=None)
 
-        return PageByIdLoader(info.context).load(root.node.reason_reference).then(wrap_page_with_context)
+        return PageByIdLoader(info.context).load(root.node.reason_reference.id).then(wrap_page_with_context)
 
 
 class OrderDiscount(BaseObjectType):
