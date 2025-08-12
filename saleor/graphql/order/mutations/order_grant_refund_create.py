@@ -9,6 +9,7 @@ from ....order import models
 from ....order.utils import update_order_charge_data
 from ....page.models import Page
 from ....permission.enums import OrderPermissions
+from ....site.models import SiteSettings
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_320, PREVIEW_FEATURE, ADDED_IN_322
@@ -278,6 +279,34 @@ class OrderGrantRefundCreate(BaseMutation):
         cleaned_input_lines = cleaned_input["lines"]
         grant_refund_for_shipping = cleaned_input["grant_refund_for_shipping"]
         transaction_item = cleaned_input["transaction_item"]
+
+        requestor_is_app = info.context.app is not None
+        requestor_is_user = info.context.user is not None and not requestor_is_app
+
+        settings = SiteSettings.objects.get()
+        refund_reason_reference_type = settings.refund_reason_reference_type
+
+        # It works as following:
+        # If it's not configured, it's optional
+        # If it's configured, it's required for staff user
+        # It's never required for the app
+        is_passing_reason_reference_required = refund_reason_reference_type is not None
+
+        if (is_passing_reason_reference_required and
+            reason_reference_id is None and
+            requestor_is_user):
+            raise ValidationError(
+                {
+                    "reason_reference": ValidationError(
+                        "Reason reference is required when refund reason reference type is configured.",
+                        code=OrderGrantRefundCreateErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
+        # If feature is not enabled, ignore it from the input
+        if not is_passing_reason_reference_required:
+            reason_reference_id = None
 
         reason_reference_instance = None
 
