@@ -2,12 +2,20 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from text_unidecode import unidecode
 
-from ....attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
+from ....attribute import (
+    ATTRIBUTE_PROPERTIES_CONFIGURATION,
+    AttributeEntityType,
+    AttributeInputType,
+)
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.utils import prepare_unique_slug
+from ....page import models as page_models
+from ....product import models as product_models
 from ...core import ResolveInfo
 from ...core.validators import validate_slug_and_generate_if_needed
+
+REFERENCE_TYPES_LIMIT = 100
 
 
 class AttributeMixin:
@@ -163,6 +171,7 @@ class AttributeMixin:
             e.code = AttributeErrorCode.REQUIRED.value
             raise ValidationError({"slug": e}) from e
         cls._clean_attribute_settings(instance, cleaned_input)
+        cls.clean_reference_types(cleaned_input, instance)
 
         return cleaned_input
 
@@ -185,6 +194,105 @@ class AttributeMixin:
                 )
         if errors:
             raise ValidationError(errors)
+
+    @classmethod
+    def clean_reference_types(cls, cleaned_input, attribute):
+        """Validate reference types for reference attributes."""
+        reference_types = cleaned_input.pop("reference_types", None)
+        if not reference_types:
+            return
+
+        attribute_input_type = cleaned_input.get("input_type") or attribute.input_type
+        entity_type = cleaned_input.get("entity_type") or attribute.entity_type
+
+        cls._validate_reference_input_type(attribute_input_type)
+        cls._validate_reference_entity_type(entity_type)
+        cls._validate_reference_types(reference_types, entity_type)
+        cls._validate_reference_types_limit(reference_types)
+
+        if entity_type == AttributeEntityType.PAGE:
+            cleaned_input["reference_page_types"] = reference_types
+        else:
+            cleaned_input["reference_product_types"] = reference_types
+
+    @staticmethod
+    def _validate_reference_input_type(attribute_input_type):
+        if attribute_input_type not in [
+            AttributeInputType.REFERENCE,
+            AttributeInputType.SINGLE_REFERENCE,
+        ]:
+            raise ValidationError(
+                {
+                    "reference_types": ValidationError(
+                        "Reference types can only be specified for `REFERENCE` "
+                        "and `SINGLE_REFERENCE` attributes.",
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+    @staticmethod
+    def _validate_reference_entity_type(entity_type):
+        if entity_type not in [
+            AttributeEntityType.PRODUCT,
+            AttributeEntityType.PRODUCT_VARIANT,
+            AttributeEntityType.PAGE,
+        ]:
+            raise ValidationError(
+                {
+                    "reference_types": ValidationError(
+                        "Reference types can only be specified for attributes with "
+                        f"{AttributeEntityType.PRODUCT}, "
+                        f"{AttributeEntityType.PRODUCT_VARIANT}, or "
+                        f"{AttributeEntityType.PAGE} entity types.",
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+    @staticmethod
+    def _validate_reference_types(reference_types, entity_type):
+        if entity_type in [
+            AttributeEntityType.PRODUCT,
+            AttributeEntityType.PRODUCT_VARIANT,
+        ]:
+            if not all(
+                isinstance(ref_type, product_models.ProductType)
+                for ref_type in reference_types
+            ):
+                raise ValidationError(
+                    {
+                        "reference_types": ValidationError(
+                            "Expecting a list of ProductType IDs.",
+                            code=AttributeErrorCode.INVALID.value,
+                        )
+                    }
+                )
+
+        elif not all(
+            isinstance(ref_type, page_models.PageType) for ref_type in reference_types
+        ):
+            raise ValidationError(
+                {
+                    "reference_types": ValidationError(
+                        "Expecting a list of PageType IDs.",
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+    @staticmethod
+    def _validate_reference_types_limit(reference_types):
+        if len(reference_types) > REFERENCE_TYPES_LIMIT:
+            raise ValidationError(
+                {
+                    "reference_types": ValidationError(
+                        f"A maximum of {REFERENCE_TYPES_LIMIT} reference types "
+                        "can be specified.",
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                }
+            )
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, attribute, cleaned_data):
