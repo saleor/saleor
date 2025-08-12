@@ -41,6 +41,7 @@ from .enums import (
     TransactionEventTypeEnum,
     TransactionKindEnum,
 )
+from ..core.context import ChannelContext
 
 
 class Transaction(ModelObjectType[models.Transaction]):
@@ -442,13 +443,14 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
     def resolve_reason_reference(root: models.TransactionEvent, info):
         if not root.reason_reference_id:
             return None
-        
+
         def wrap_page_with_context(page):
             if not page:
                 return None
-            from ..core.context import ChannelContext
+
+            # It works but is it a valid solution?
             return ChannelContext(node=page, channel_slug=None)
-            
+
         return PageByIdLoader(info.context).load(root.reason_reference_id).then(wrap_page_with_context)
 
 
