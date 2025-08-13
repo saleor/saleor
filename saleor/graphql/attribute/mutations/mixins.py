@@ -1,3 +1,5 @@
+from typing import cast
+
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from text_unidecode import unidecode
@@ -16,6 +18,8 @@ from ...core import ResolveInfo
 from ...core.validators import validate_slug_and_generate_if_needed
 
 REFERENCE_TYPES_LIMIT = 100
+
+T_REFERENCE_TYPES = list[product_models.ProductType] | list[page_models.PageType]
 
 
 class AttributeMixin:
@@ -196,7 +200,7 @@ class AttributeMixin:
             raise ValidationError(errors)
 
     @classmethod
-    def clean_reference_types(cls, cleaned_input, attribute):
+    def clean_reference_types(cls, cleaned_input: dict, attribute: models.Attribute):
         """Validate reference types for reference attributes."""
         reference_types = cleaned_input.get("reference_types")
 
@@ -205,6 +209,7 @@ class AttributeMixin:
 
         entity_type = cleaned_input.get("entity_type") or attribute.entity_type
         attribute_input_type = cleaned_input.get("input_type") or attribute.input_type
+        entity_type = cast(str, entity_type)
 
         cls._validate_reference_input_type(attribute_input_type)
         cls._validate_reference_entity_type(entity_type)
@@ -212,7 +217,7 @@ class AttributeMixin:
         cls._validate_reference_types_limit(reference_types)
 
     @staticmethod
-    def _validate_reference_input_type(attribute_input_type):
+    def _validate_reference_input_type(attribute_input_type: str):
         if attribute_input_type not in [
             AttributeInputType.REFERENCE,
             AttributeInputType.SINGLE_REFERENCE,
@@ -228,7 +233,7 @@ class AttributeMixin:
             )
 
     @staticmethod
-    def _validate_reference_entity_type(entity_type):
+    def _validate_reference_entity_type(entity_type: str):
         if entity_type not in [
             AttributeEntityType.PRODUCT,
             AttributeEntityType.PRODUCT_VARIANT,
@@ -247,7 +252,7 @@ class AttributeMixin:
             )
 
     @staticmethod
-    def _validate_reference_types(reference_types, entity_type):
+    def _validate_reference_types(reference_types: T_REFERENCE_TYPES, entity_type: str):
         if entity_type in [
             AttributeEntityType.PRODUCT,
             AttributeEntityType.PRODUCT_VARIANT,
@@ -278,7 +283,7 @@ class AttributeMixin:
             )
 
     @staticmethod
-    def _validate_reference_types_limit(reference_types):
+    def _validate_reference_types_limit(reference_types: T_REFERENCE_TYPES):
         if len(reference_types) > REFERENCE_TYPES_LIMIT:
             raise ValidationError(
                 {
