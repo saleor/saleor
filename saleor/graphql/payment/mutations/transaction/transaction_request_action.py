@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
 import graphene
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 
 from .....app.models import App
@@ -17,7 +18,6 @@ from .....payment.gateway import (
     request_refund_action,
 )
 from .....permission.enums import PaymentPermissions
-from .....site.models import SiteSettings
 from ....app.dataloaders import get_app_promise
 from ....checkout.types import Checkout
 from ....core import ResolveInfo
@@ -188,7 +188,7 @@ class TransactionRequestAction(BaseMutation):
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
-        settings = SiteSettings.objects.get()
+        settings = Site.objects.get_current().settings
         refund_reason_reference_type = settings.refund_reason_reference_type
 
         # It works as following:
