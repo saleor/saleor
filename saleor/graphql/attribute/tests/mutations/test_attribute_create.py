@@ -33,6 +33,16 @@ CREATE_ATTRIBUTE_MUTATION = """
                 unit
                 inputType
                 entityType
+                referenceTypes {
+                    ... on ProductType {
+                        id
+                        slug
+                    }
+                    ... on PageType {
+                        id
+                        slug
+                    }
+                }
                 filterableInStorefront
                 filterableInDashboard
                 availableInGrid
@@ -1444,3 +1454,413 @@ def test_create_attribute_similar_names(
     assert len(values_edges) == 2
     slugs = [node["node"]["slug"] for node in values_edges]
     assert set(slugs) == {"15", "15-2"}
+
+
+@pytest.mark.parametrize(
+    "input_type",
+    [
+        AttributeInputTypeEnum.SINGLE_REFERENCE.name,
+        AttributeInputTypeEnum.REFERENCE.name,
+    ],
+)
+def test_create_product_reference_attribute_with_reference_types(
+    input_type,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+    product_type,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Reference attribute"
+    product_reference_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type.id
+    )
+    type = AttributeTypeEnum.PRODUCT_TYPE.name
+    entity_type = AttributeEntityTypeEnum.PRODUCT.name
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": type,
+            "inputType": input_type,
+            "entityType": entity_type,
+            "referenceTypes": [product_reference_type_id],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["errors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(attribute_name)
+    assert data["attribute"]["productTypes"]["edges"] == []
+    assert data["attribute"]["type"] == type
+    assert data["attribute"]["inputType"] == input_type
+    assert data["attribute"]["entityType"] == entity_type
+    assert len(data["attribute"]["referenceTypes"]) == 1
+    assert data["attribute"]["referenceTypes"][0]["id"] == product_reference_type_id
+    assert data["attribute"]["referenceTypes"][0]["slug"] == product_type.slug
+
+
+@pytest.mark.parametrize(
+    "input_type",
+    [
+        AttributeInputTypeEnum.SINGLE_REFERENCE.name,
+        AttributeInputTypeEnum.REFERENCE.name,
+    ],
+)
+def test_create_variant_reference_attribute_with_reference_types(
+    input_type,
+    staff_api_client,
+    permission_manage_page_types_and_attributes,
+    permission_manage_products,
+    product_type,
+    product_type_with_product_attributes,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Reference attribute"
+    type = AttributeTypeEnum.PAGE_TYPE.name
+    entity_type = AttributeEntityTypeEnum.PRODUCT_VARIANT.name
+    product_type_ids = [
+        graphene.Node.to_global_id("ProductType", ref_type.id)
+        for ref_type in [product_type_with_product_attributes, product_type]
+    ]
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": type,
+            "inputType": input_type,
+            "entityType": entity_type,
+            "referenceTypes": product_type_ids,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_page_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["errors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(attribute_name)
+    assert data["attribute"]["productTypes"]["edges"] == []
+    assert data["attribute"]["type"] == type
+    assert data["attribute"]["inputType"] == input_type
+    assert data["attribute"]["entityType"] == entity_type
+    assert len(data["attribute"]["referenceTypes"]) == len(product_type_ids)
+    assert {ref_type["id"] for ref_type in data["attribute"]["referenceTypes"]} == set(
+        product_type_ids
+    )
+
+
+@pytest.mark.parametrize(
+    "input_type",
+    [
+        AttributeInputTypeEnum.SINGLE_REFERENCE.name,
+        AttributeInputTypeEnum.REFERENCE.name,
+    ],
+)
+def test_create_page_reference_attribute_with_reference_types(
+    input_type,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+    page_type_list,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Reference attribute"
+    type = AttributeTypeEnum.PRODUCT_TYPE.name
+    entity_type = AttributeEntityTypeEnum.PAGE.name
+    page_type_ids = [
+        graphene.Node.to_global_id("PageType", ref_type.id)
+        for ref_type in page_type_list
+    ]
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": type,
+            "inputType": input_type,
+            "entityType": entity_type,
+            "referenceTypes": page_type_ids,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["errors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(attribute_name)
+    assert data["attribute"]["productTypes"]["edges"] == []
+    assert data["attribute"]["type"] == type
+    assert data["attribute"]["inputType"] == input_type
+    assert data["attribute"]["entityType"] == entity_type
+    assert len(data["attribute"]["referenceTypes"]) == len(page_type_ids)
+    assert {ref_type["id"] for ref_type in data["attribute"]["referenceTypes"]} == set(
+        page_type_ids
+    )
+
+
+@pytest.mark.parametrize(
+    "entity_type",
+    [
+        AttributeEntityTypeEnum.COLLECTION.name,
+        AttributeEntityTypeEnum.CATEGORY.name,
+    ],
+)
+def test_create_reference_attribute_with_reference_types_not_valid_entity_type(
+    entity_type,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+    product_type,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Reference attribute"
+    type = AttributeTypeEnum.PRODUCT_TYPE.name
+    input_type = AttributeInputTypeEnum.REFERENCE.name
+    product_reference_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type.id
+    )
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": type,
+            "inputType": input_type,
+            "entityType": entity_type,
+            "referenceTypes": [product_reference_type_id],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["attribute"]
+    errors = content["data"]["attributeCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "referenceTypes"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+def test_create_attribute_with_reference_types_invalid_input_type(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+    product_type,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Reference attribute"
+    input_type = AttributeInputTypeEnum.DROPDOWN.name
+    product_reference_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type.id
+    )
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": input_type,
+            "referenceTypes": [product_reference_type_id],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["attribute"]
+    errors = content["data"]["attributeCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "referenceTypes"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+@mock.patch("saleor.graphql.attribute.mutations.mixins.REFERENCE_TYPES_LIMIT", 1)
+def test_create_attribute_with_reference_types_limit_exceeded(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+    product_type,
+    product_type_with_product_attributes,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Single variant reference attribute"
+    input_type = AttributeInputTypeEnum.REFERENCE.name
+    product_type_ids = [
+        graphene.Node.to_global_id("ProductType", ref_type.id)
+        for ref_type in [product_type_with_product_attributes, product_type]
+    ]
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "entityType": AttributeEntityTypeEnum.PRODUCT_VARIANT.name,
+            "inputType": input_type,
+            "referenceTypes": product_type_ids,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["attribute"]
+    errors = content["data"]["attributeCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "referenceTypes"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+def test_create_attribute_with_reference_types_page_types_provided_for_variant_ref(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+    page_type_list,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Single variant reference attribute"
+    input_type = AttributeInputTypeEnum.REFERENCE.name
+    page_type_ids = [
+        graphene.Node.to_global_id("PageType", ref_type.id)
+        for ref_type in page_type_list
+    ]
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "entityType": AttributeEntityTypeEnum.PRODUCT_VARIANT.name,
+            "inputType": input_type,
+            "referenceTypes": page_type_ids,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["attribute"]
+    errors = content["data"]["attributeCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "referenceTypes"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+def test_create_attribute_with_reference_types_product_types_provided_for_page_ref(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+    product_type,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Single variant reference attribute"
+    input_type = AttributeInputTypeEnum.REFERENCE.name
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "entityType": AttributeEntityTypeEnum.PAGE.name,
+            "inputType": input_type,
+            "referenceTypes": [product_type_id],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["attribute"]
+    errors = content["data"]["attributeCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "referenceTypes"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
