@@ -17,6 +17,7 @@ def site_settings(db, settings) -> SiteSettings:
         site=site,
         default_mail_sender_name="Mirumee Labs",
         default_mail_sender_address="mirumee@example.com",
+        refund_reason_reference_type=None,
     )[0]
     settings.SITE_ID = site.pk
     settings.ALLOWED_HOSTS += [site.domain]

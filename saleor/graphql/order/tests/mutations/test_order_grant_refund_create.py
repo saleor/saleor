@@ -63,6 +63,7 @@ mutation OrderGrantRefundCreate(
         createdAt
         updatedAt
         reason
+        reasonReference { id }
         app{
           id
         }
@@ -1148,6 +1149,7 @@ def test_grant_refund_with_transaction_item_and_amount(
     assert granted_refund_line.quantity == 1
     assert granted_refund_line.reason == expected_reason
 
+
 def test_grant_refund_with_reference_required_created_by_user(
     staff_api_client,
     permission_manage_orders,
@@ -1163,7 +1165,7 @@ def test_grant_refund_with_reference_required_created_by_user(
         slug="damaged-product",
         title="Damaged Product",
         page_type=page_type,
-        is_published=True
+        is_published=True,
     )
 
     # Settings RefundSettings refundReasonReferenceType set to {ID}
