@@ -6,11 +6,13 @@ import pytest
 
 from .....app.models import App
 from .....order import OrderEvents
+from .....page.models import Page, PageType
 from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionEvent, TransactionItem
 from .....webhook.event_types import WebhookEventSyncType
 from ....core.enums import TransactionRequestActionErrorCode
+from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum
 
@@ -19,11 +21,15 @@ mutation TransactionRequestAction(
     $id: ID
     $action_type: TransactionActionEnum!
     $amount: PositiveDecimal
+    $reason: String
+    $reason_reference: ID
     ){
     transactionRequestAction(
             id: $id,
             actionType: $action_type,
-            amount: $amount
+            amount: $amount,
+            reason: $reason,
+            reasonReference: $reason_reference
         ){
         transaction{
                 id
@@ -58,11 +64,15 @@ mutation TransactionRequestAction(
     $token: UUID
     $action_type: TransactionActionEnum!
     $amount: PositiveDecimal
+    $reason: String
+    $reason_reference: ID
     ){
     transactionRequestAction(
             token: $token,
             actionType: $action_type,
-            amount: $amount
+            amount: $amount,
+            reason: $reason,
+            reasonReference: $reason_reference
         ){
         transaction{
                 id
@@ -1308,3 +1318,456 @@ def test_transaction_request_cancel_sets_user_to_request_event(
     assert request_event.app is None
     assert request_event.app_identifier is None
     assert request_event.user == staff_api_client.user
+
+
+
+# Reason reference tests for refund actions
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_with_reason_reference_required_created_by_user(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+    site_settings,
+):
+    # Given
+    mocked_is_active.return_value = False
+
+    # Create page type and page for refund reasons
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    page = Page.objects.create(
+        slug="damaged-product",
+        title="Damaged Product",
+        page_type=page_type,
+        is_published=True,
+    )
+
+    # Configure site settings to require reason reference
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+
+    page_id = to_global_id_or_none(page)
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "reason": "Product was damaged during shipping",
+        "reason_reference": page_id,
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # When
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # Then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert not errors
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.user == staff_api_client.user
+    assert request_event.message == "Product was damaged during shipping"
+    assert request_event.reason_reference == page
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_with_reason_reference_required_but_not_provided_created_by_user(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+    site_settings,
+):
+    # Given
+    mocked_is_active.return_value = False
+
+    # Create page type for refund reasons and configure site settings
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "reason": "Product was damaged during shipping",
+        # "reason_reference": page_id,  # Not provided
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # When
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # Then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "reasonReference"
+    assert error["code"] == TransactionRequestActionErrorCode.REQUIRED.name
+
+    # Check that no transaction event was created
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+    assert request_event is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_with_reason_reference_required_but_not_provided_created_by_app(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    app_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    site_settings,
+):
+    # Given
+    mocked_is_active.return_value = False
+
+    # Create page type for refund reasons and configure site settings
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "reason": "Product was damaged during shipping",
+        # "reason_reference": page_id,  # Not provided
+    }
+    app_api_client.app.permissions.add(permission_manage_payments)
+
+    # When
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # Then
+    # For apps, reason reference is not required even when configured
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert not errors
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.app == app_api_client.app
+    assert request_event.message == "Product was damaged during shipping"
+    assert request_event.reason_reference is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_with_reason_reference_not_configured_created_by_app(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    app_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    site_settings,
+):
+    # Given
+    mocked_is_active.return_value = False
+
+    # Create page type and page but dont configure site settings
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    page = Page.objects.create(
+        slug="damaged-product",
+        title="Damaged Product",
+        page_type=page_type,
+        is_published=True,
+    )
+
+    # site_settings.refund_reason_reference_type is already None from fixture
+    assert site_settings.refund_reason_reference_type is None
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+
+    page_id = to_global_id_or_none(page)
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "reason": "Product was damaged during shipping",
+        "reason_reference": page_id,  # Provided but should be ignored
+    }
+    app_api_client.app.permissions.add(permission_manage_payments)
+
+    # When
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # Then
+    # When not configured, reason reference should be ignored
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert not errors
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.app == app_api_client.app
+    assert request_event.message == "Product was damaged during shipping"
+    assert request_event.reason_reference is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_with_reason_reference_required_created_by_user_throws_for_invalid_id(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+    site_settings,
+):
+    # Given
+    mocked_is_active.return_value = False
+
+    # Create page type and configure site settings
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+
+    # Use an invalid page ID (non-existent)
+    invalid_page_id = graphene.Node.to_global_id("Page", 99999)
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "reason": "Product was damaged during shipping",
+        "reason_reference": invalid_page_id,  # Invalid ID provided
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # When
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # Then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "reasonReference"
+    assert error["code"] == TransactionRequestActionErrorCode.INVALID.name
+
+    # Check that no transaction event was created
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+    assert request_event is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_with_reason_only_no_reference(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+    site_settings,
+):
+    # Given
+    mocked_is_active.return_value = False
+
+    # site_settings.refund_reason_reference_type is already None from fixture
+    assert site_settings.refund_reason_reference_type is None
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "reason": "Product was damaged during shipping",
+        # No reason_reference provided
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # When
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # Then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert not errors
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.user == staff_api_client.user
+    assert request_event.message == "Product was damaged during shipping"
+    assert request_event.reason_reference is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_transaction_request_charge_ignores_reason_and_reference(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+    site_settings,
+):
+    # Given
+    mocked_is_active.return_value = False
+
+    # Create page type and page
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    page = Page.objects.create(
+        slug="damaged-product",
+        title="Damaged Product",
+        page_type=page_type,
+        is_published=True,
+    )
+
+    # Configure site settings
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        authorized_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+
+    page_id = to_global_id_or_none(page)
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CHARGE.name,
+        "reason": "Some reason that should be ignored",
+        "reason_reference": page_id,  # Should be ignored for charge actions
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # When
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # Then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert not errors
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.user == staff_api_client.user
+    # For charge actions, reason and reason_reference should not be set
+    assert request_event.message is None
+    assert request_event.reason_reference is None
+

@@ -182,7 +182,7 @@ class TransactionRequestAction(BaseMutation):
         action_value = data.get("amount")
         reason = data.get("reason")
         reason_reference_id = data.get("reason_reference")
-        if len(reason_reference_id) == 0:
+        if reason_reference_id and len(reason_reference_id) == 0:
             reason_reference_id = None
 
         requestor_is_app = info.context.app is not None
