@@ -2,6 +2,7 @@ import decimal
 from typing import Any
 
 import graphene
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
@@ -9,7 +10,6 @@ from ....order import models
 from ....order.utils import update_order_charge_data
 from ....page.models import Page
 from ....permission.enums import OrderPermissions
-from ....site.models import SiteSettings
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_320, ADDED_IN_322, PREVIEW_FEATURE
@@ -285,7 +285,8 @@ class OrderGrantRefundCreate(BaseMutation):
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
-        settings = SiteSettings.objects.get()
+
+        settings = Site.objects.get_current().settings
         refund_reason_reference_type = settings.refund_reason_reference_type
 
         # It works as following:
