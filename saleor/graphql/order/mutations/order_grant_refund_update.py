@@ -1,6 +1,7 @@
 from typing import Any, cast
 
 import graphene
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphql import GraphQLError
@@ -9,7 +10,6 @@ from ....order import OrderGrantedRefundStatus, models
 from ....order.utils import update_order_charge_data
 from ....page.models import Page
 from ....permission.enums import OrderPermissions
-from ....site.models import SiteSettings
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_320, ADDED_IN_322, PREVIEW_FEATURE
@@ -349,7 +349,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         if errors:
             raise ValidationError(errors)
 
-        if len(reason_reference) == 0:
+        if reason_reference is not None and len(reason_reference) == 0:
             reason_reference = None
 
         cleaned_input = {
@@ -414,7 +414,7 @@ class OrderGrantRefundUpdate(BaseMutation):
             requestor_is_app = info.context.app is not None
             requestor_is_user = info.context.user is not None and not requestor_is_app
 
-            settings = SiteSettings.objects.get()
+            settings = Site.objects.get_current().settings
             refund_reason_reference_type = settings.refund_reason_reference_type
 
             # It works as following:
