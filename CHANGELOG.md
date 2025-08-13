@@ -92,6 +92,7 @@ Like `reference`, the `single-reference` type can target entities defined in the
   - Added support for filtering by associated reference objects (e.g., `products`, `pages`, `variants`)
 - Added `fractionalAmount` and `fractionDigits` fields to the `Money` type. These fields allow monetary values to be represented as a pair of integers, which is often required when integrating with payment service providers.
 - Add support for filtering `productVariants` by associated attributes
+- Refunds are now more powerful. You can configure new `RefundSettings` to accept a `reasonReferenceType`. Once assigned, creating refunds (both manual and with grant refunds) will require a reason type to be specified. `refundReasonReferenceTypeClear` clears the settings. Read more in [docs](todo) and check the [announcement post](todo)
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
