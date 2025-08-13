@@ -11550,7 +11550,7 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 }
 
 """
-Nonnegative Decimal scalar implementation.
+Non-negative Decimal scalar implementation.
 
 Should be used in places where value must be nonnegative (0 or greater).
 """
