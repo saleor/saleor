@@ -198,22 +198,18 @@ class AttributeMixin:
     @classmethod
     def clean_reference_types(cls, cleaned_input, attribute):
         """Validate reference types for reference attributes."""
-        reference_types = cleaned_input.pop("reference_types", None)
+        reference_types = cleaned_input.get("reference_types")
+
         if not reference_types:
             return
 
-        attribute_input_type = cleaned_input.get("input_type") or attribute.input_type
         entity_type = cleaned_input.get("entity_type") or attribute.entity_type
+        attribute_input_type = cleaned_input.get("input_type") or attribute.input_type
 
         cls._validate_reference_input_type(attribute_input_type)
         cls._validate_reference_entity_type(entity_type)
         cls._validate_reference_types(reference_types, entity_type)
         cls._validate_reference_types_limit(reference_types)
-
-        if entity_type == AttributeEntityType.PAGE:
-            cleaned_input["reference_page_types"] = reference_types
-        else:
-            cleaned_input["reference_product_types"] = reference_types
 
     @staticmethod
     def _validate_reference_input_type(attribute_input_type):
@@ -297,6 +293,13 @@ class AttributeMixin:
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, attribute, cleaned_data):
         super()._save_m2m(info, attribute, cleaned_data)  # type: ignore[misc] # mixin
+
+        if "reference_types" in cleaned_data:
+            if attribute.entity_type == AttributeEntityType.PAGE:
+                attribute.reference_page_types.set(cleaned_data["reference_types"])
+            else:
+                attribute.reference_product_types.set(cleaned_data["reference_types"])
+
         values = cleaned_data.get(cls.ATTRIBUTE_VALUES_FIELD) or []
         for value in values:
             attribute.values.create(**value)
