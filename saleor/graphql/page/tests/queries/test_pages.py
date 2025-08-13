@@ -250,6 +250,7 @@ def test_query_pages_with_sort(
 
 
 PAGES_QUERY = """
+
     query {
         pages(first: 10) {
             edges {
