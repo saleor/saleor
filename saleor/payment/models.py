@@ -240,6 +240,10 @@ class TransactionEvent(models.Model):
         on_delete=models.SET_NULL,
     )
 
+    reason_reference = models.ForeignKey(
+        "page.Page", related_name="+", on_delete=models.SET_NULL, blank=True, null=True
+    )
+
     class Meta:
         ordering = ("pk",)
         constraints = [

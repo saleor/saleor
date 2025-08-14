@@ -68,6 +68,7 @@ from ..enums import (
     ProductTranslateErrorCode,
     ProductVariantBulkErrorCode,
     ProductVariantTranslateErrorCode,
+    RefundSettingsErrorCode,
     SendConfirmationEmailErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
@@ -353,6 +354,13 @@ class GiftCardSettingsError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_GIFT_CARDS
+
+
+class RefundSettingsError(Error):
+    code = RefundSettingsErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
 
 
 class MetadataError(Error):
