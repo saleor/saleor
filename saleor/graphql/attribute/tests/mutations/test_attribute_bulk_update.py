@@ -23,6 +23,17 @@ ATTRIBUTE_BULK_UPDATE_MUTATION = """
                     id
                     name
                     slug
+                    entityType
+                    referenceTypes {
+                        ... on ProductType {
+                            id
+                            slug
+                        }
+                        ... on PageType {
+                            id
+                            slug
+                        }
+                    }
                     choices(first: 10) {
                         edges {
                             node {
@@ -880,3 +891,93 @@ def test_attribute_bulk_update_add_value_missing_name(
     assert errors[0]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name
     assert errors[1]["path"] == "addValues.1.name"
     assert errors[1]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name
+
+
+def test_attribute_bulk_update_reference_types(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_page_types_and_attributes,
+    product_type_product_single_reference_attribute,
+    product_type_variant_single_reference_attribute,
+    product_type_page_reference_attribute,
+    page_type_page_reference_attribute,
+    page_type_list,
+    product_type,
+):
+    # given
+    product_type_variant_single_reference_attribute.reference_product_types.add(
+        product_type
+    )
+    product_type_page_reference_attribute.reference_page_types.add(page_type_list[0])
+    page_type_page_reference_attribute.reference_page_types.add(page_type_list[1])
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    page_type_ids = [
+        graphene.Node.to_global_id("PageType", page_type.id)
+        for page_type in page_type_list
+    ]
+    attributes = [
+        # set reference types
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", product_type_product_single_reference_attribute.id
+            ),
+            "fields": {"referenceTypes": [product_type_id]},
+        },
+        # clear product reference types
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", product_type_variant_single_reference_attribute.id
+            ),
+            "fields": {"referenceTypes": []},
+        },
+        # change reference types
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", product_type_page_reference_attribute.id
+            ),
+            "fields": {"referenceTypes": page_type_ids[1:]},
+        },
+        # clear page reference types
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", page_type_page_reference_attribute.id
+            ),
+            "fields": {"referenceTypes": []},
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes,
+        permission_manage_page_types_and_attributes,
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    assert len(attributes) == 4
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert not data["results"][2]["errors"]
+    assert not data["results"][3]["errors"]
+    assert data["count"] == 4
+    assert len(data["results"][0]["attribute"]["referenceTypes"]) == 1
+    assert len(data["results"][1]["attribute"]["referenceTypes"]) == 0
+    assert (
+        len(data["results"][2]["attribute"]["referenceTypes"])
+        == len(page_type_list) - 1
+    )
+    assert len(data["results"][3]["attribute"]["referenceTypes"]) == 0
+
+    assert data["results"][0]["attribute"]["referenceTypes"][0]["id"] == product_type_id
+    assert {
+        ref_type["id"] for ref_type in data["results"][2]["attribute"]["referenceTypes"]
+    } == set(page_type_ids[1:])
+
+
+# TODO: add test with invalid reference types
