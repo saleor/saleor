@@ -34,7 +34,6 @@ RUN apt-get update \
   # Required by celery[sqs] which uses pycurl for AWS SQS support
   libcurl4 \
   shared-mime-info \
-  media-types \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
