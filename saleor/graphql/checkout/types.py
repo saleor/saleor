@@ -1094,7 +1094,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 excluded_payloads
             )
 
-            taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+            taxed_total = calculations.calculate_checkout_total(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
@@ -1539,6 +1539,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     def resolve_total_balance(root: SyncWebhookControlContext[models.Checkout], info):
         database_connection_name = get_database_connection_name(info.context)
 
+        @allow_writer_in_context(info.context)
         def _calculate_total_balance_for_transactions(data):
             (
                 address,

@@ -76,7 +76,12 @@ def test_add_gift_card_before_email_in_checkout_core_1104(
         gift_card_code,
     )
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-    assert total_gross_amount == calculated_subtotal - gift_card_balance
+    assert total_gross_amount == calculated_subtotal
+
+    total_balance_amount = checkout_data["totalBalance"]["amount"]
+    assert total_balance_amount <= 0
+    total_to_pay = -total_balance_amount
+
     assert checkout_data["giftCards"][0]["id"] == gift_card_id
     assert checkout_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]
 
@@ -96,14 +101,15 @@ def test_add_gift_card_before_email_in_checkout_core_1104(
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
     assert shipping_price == 10
-    calculated_total = calculated_subtotal + shipping_price - gift_card_balance
+    calculated_total = calculated_subtotal + shipping_price
     assert total_gross_amount == calculated_total
+    total_to_pay += shipping_price
 
     # Step 5 - Create payment for checkout.
     create_payment = raw_checkout_dummy_payment_create(
         e2e_not_logged_api_client,
         checkout_id,
-        total_gross_amount,
+        total_to_pay,
         token="fully_charged",
     )
     assert create_payment["errors"] == []
@@ -115,6 +121,8 @@ def test_add_gift_card_before_email_in_checkout_core_1104(
         checkout_id,
     )
     assert order_data["status"] == "UNFULFILLED"
-    assert order_data["total"]["gross"]["amount"] == calculated_total
+    assert (
+        order_data["total"]["gross"]["amount"] == calculated_total - gift_card_balance
+    )
     assert order_data["giftCards"][0]["id"] == gift_card_id
     assert order_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]

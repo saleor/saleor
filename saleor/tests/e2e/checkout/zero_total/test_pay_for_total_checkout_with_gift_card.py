@@ -132,7 +132,7 @@ def test_gift_card_total_payment_for_checkout_core_1101(
         gift_card_code,
     )
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-    assert total_gross_amount == 0
+    assert total_gross_amount == calculated_subtotal + shipping_price
     assert checkout_data["giftCards"][0]["id"] == gift_card_id
     assert checkout_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]
 
