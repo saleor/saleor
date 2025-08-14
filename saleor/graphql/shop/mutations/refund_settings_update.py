@@ -3,13 +3,13 @@ from django.core.exceptions import ValidationError
 
 from ....page.models import PageType
 from ....permission.enums import SitePermissions
-from ....site.models import SiteSettings
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
 from ...core.types.common import RefundSettingsError
+from ...site.dataloaders import get_site_promise
 from ..types import RefundSettings
 
 
@@ -51,7 +51,7 @@ class RefundSettingsUpdate(BaseMutation):
 
         refund_reason_reference_type = input.get("refund_reason_reference_type")
 
-        if len(refund_reason_reference_type) == 0:
+        if refund_reason_reference_type and len(refund_reason_reference_type) == 0:
             raise ValidationError(
                 {
                     "refund_reason_model_type": ValidationError(
@@ -60,7 +60,9 @@ class RefundSettingsUpdate(BaseMutation):
                 }
             ) from None
 
-        settings = SiteSettings.objects.get()
+        # todo should we use this loader, or get_current?
+        site = get_site_promise(info.context).get()
+        settings = site.settings
 
         if refund_reason_reference_type:
             try:
