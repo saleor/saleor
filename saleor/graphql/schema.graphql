@@ -34597,8 +34597,8 @@ type AssignedSwatchAttribute implements SelectedAttribute {
   """Values of an attribute."""
   values: [AttributeValue!]! @deprecated(reason: "Use type-specific fields instead.")
 
-  """The assigned swatch values."""
-  value: [AssignedSwatchAttributeValue!]!
+  """The assigned swatch value."""
+  value: AssignedSwatchAttributeValue
 }
 
 type AssignedSwatchAttributeValue {

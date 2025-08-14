@@ -1235,10 +1235,10 @@ class AssignedSwatchAttributeValue(BaseObjectType):
 
 
 class AssignedSwatchAttribute(BaseObjectType):
-    value = NonNullList(
+    value = graphene.Field(
         AssignedSwatchAttributeValue,
-        required=True,
-        description="The assigned swatch values.",
+        required=False,
+        description="The assigned swatch value.",
     )
 
     class Meta:
@@ -1248,10 +1248,11 @@ class AssignedSwatchAttribute(BaseObjectType):
     @staticmethod
     def resolve_value(
         root: SelectedAttributeData, _info: ResolveInfo
-    ) -> list[models.AttributeValue]:
+    ) -> models.AttributeValue | None:
         if not root.values:
-            return []
-        return [value.node for value in root.values]
+            return None
+        attr_value = root.values[0].node
+        return attr_value
 
 
 class AssignedBooleanAttribute(BaseObjectType):

@@ -1227,8 +1227,7 @@ def test_assigned_swatch_attribute(
     content = get_graphql_content(response)
 
     assert len(content["data"]["page"]["attributes"]) == 1
-    assert len(content["data"]["page"]["attributes"][0]["value"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"][0]
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
     assert attr_value_data["name"] == expected_attr_value_name
     assert attr_value_data["slug"] == expected_attr_value_slug
     assert attr_value_data["hexColor"] == expected_attr_hex_value
@@ -1262,8 +1261,7 @@ def test_assigned_swatch_file_attribute(staff_api_client, page, swatch_attribute
     content = get_graphql_content(response)
 
     assert len(content["data"]["page"]["attributes"]) == 1
-    assert len(content["data"]["page"]["attributes"][0]["value"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"][0]
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
     assert attr_value_data["name"] == attr_value.name
     assert attr_value_data["slug"] == attr_value.slug
     assert attr_value_data["file"]["url"] == attr_value.file_url
