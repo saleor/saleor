@@ -207,9 +207,7 @@ def test_order_cancel_skip_trigger_webhooks(
             call(
                 kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-                bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
+                MessageGroupId="example.com:saleor.app.additional",
             )
             for delivery in order_deliveries
         ],

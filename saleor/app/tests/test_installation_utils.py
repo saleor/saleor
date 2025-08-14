@@ -90,9 +90,9 @@ def test_install_app_created_app(
         headers={
             "Content-Type": "application/json",
             # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
-            "X-Saleor-Domain": "mirumee.com",
-            "Saleor-Domain": "mirumee.com",
-            "Saleor-Api-Url": "http://mirumee.com/graphql/",
+            "X-Saleor-Domain": "example.com",
+            "Saleor-Domain": "example.com",
+            "Saleor-Api-Url": "https://example.com/graphql/",
             "Saleor-Schema-Version": schema_version,
         },
         json={"auth_token": ANY},

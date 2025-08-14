@@ -293,7 +293,7 @@ def test_query_company_address(user_api_client, site_settings, address):
     assert company_address["postalCode"] == address.postal_code
 
 
-def test_query_domain(user_api_client, site_settings, settings):
+def test_query_domain(user_api_client, settings):
     # given
     query = """
     query {
@@ -313,8 +313,8 @@ def test_query_domain(user_api_client, site_settings, settings):
     # then
     content = get_graphql_content(response)
     data = content["data"]["shop"]
-    assert data["domain"]["host"] == site_settings.site.domain
-    assert data["domain"]["sslEnabled"] == settings.ENABLE_SSL
+    assert data["domain"]["host"] == "example.com"
+    assert data["domain"]["sslEnabled"] is True
     assert data["domain"]["url"]
 
 

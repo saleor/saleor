@@ -14,9 +14,9 @@ interactions:
       Content-Type:
       - application/json
       Saleor-Api-Url:
-      - http://mirumee.com/graphql/
+      - https://example.com/graphql/
       Saleor-Domain:
-      - mirumee.com
+      - example.com
       Saleor-Event:
       - shipping_list_methods_for_checkout
       Saleor-Signature:
@@ -63,9 +63,9 @@ interactions:
       Content-Type:
       - application/json
       Saleor-Api-Url:
-      - http://mirumee.com/graphql/
+      - https://example.com/graphql/
       Saleor-Domain:
-      - mirumee.com
+      - example.com
       Saleor-Event:
       - shipping_list_methods_for_checkout
       Saleor-Signature:

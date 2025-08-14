@@ -20,7 +20,7 @@ from ...core.models import EventDelivery
 from ...core.notify import NotifyEventType
 from ...core.taxes import TAX_ERROR_FIELD_LENGTH, TaxData, TaxDataError, TaxType
 from ...core.telemetry import get_task_context
-from ...core.utils import build_absolute_uri
+from ...core.utils import build_absolute_uri, get_domain
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
@@ -98,6 +98,7 @@ from ...webhook.response_schemas.transaction import (
 from ...webhook.response_schemas.utils.helpers import parse_validation_error
 from ...webhook.transport.asynchronous.transport import (
     WebhookPayloadData,
+    get_queue_name_for_webhook,
     send_webhook_request_async,
     trigger_webhooks_async,
     trigger_webhooks_async_for_multiple_objects,
@@ -2723,8 +2724,20 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
-        send_webhook_request_async.delay(
-            delivery.pk, telemetry_context=get_task_context().to_dict()
+        domain = get_domain()
+        webhook = delivery.webhook
+        app = webhook.app
+        message_group_id = f"{domain}:{app.identifier or app.id}"
+        send_webhook_request_async.apply_async(
+            kwargs={
+                "event_delivery_id": delivery.pk,
+                "telemetry_context": get_task_context().to_dict(),
+            },
+            queue=get_queue_name_for_webhook(
+                webhook,
+                default_queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
+            ),
+            MessageGroupId=message_group_id,  # for AWS SQS fair queues
         )
         return previous_value
 

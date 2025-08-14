@@ -500,7 +500,6 @@ def test_update_product_with_file_attribute_value(
     product,
     product_type,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -511,7 +510,7 @@ def test_update_product_with_file_attribute_value(
     product_type.product_attributes.add(file_attribute)
 
     file_name = "new_test.jpg"
-    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{file_name}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{file_name}"
 
     variables = {
         "productId": product_id,
@@ -561,7 +560,6 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
     product,
     product_type,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -578,8 +576,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
     )
 
     values_count = len(attribute_values)
-    domain = site_settings.site.domain
-    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{existing_value.file_url}"
 
     variables = {
         "productId": product_id,
@@ -2517,7 +2514,6 @@ def test_update_product_with_dropdown_attribute_non_existing_value(
     product,
     product_type,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -2563,7 +2559,6 @@ def test_update_product_with_dropdown_attribute_existing_value(
     product,
     product_type,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -2615,7 +2610,6 @@ def test_update_product_with_dropdown_attribute_existing_value_passed_as_new_val
     product,
     product_type,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -2670,7 +2664,6 @@ def test_update_product_with_dropdown_attribute_null_value(
     product,
     product_type,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -2714,7 +2707,6 @@ def test_update_product_with_multiselect_attribute_non_existing_values(
     staff_api_client,
     product_with_multiple_values_attributes,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -2764,7 +2756,6 @@ def test_update_product_with_multiselect_attribute_existing_values(
     staff_api_client,
     product_with_multiple_values_attributes,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -2886,7 +2877,6 @@ def test_update_product_with_selectable_attribute_by_both_id_and_value(
     product,
     product_type,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -2940,7 +2930,6 @@ def test_update_product_with_selectable_attribute_value_required(
     product,
     product_type,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -2987,7 +2976,6 @@ def test_update_product_with_selectable_attribute_exceed_max_length(
     product,
     product_type,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
@@ -3029,7 +3017,6 @@ def test_update_product_with_multiselect_attribute_by_both_id_and_value(
     staff_api_client,
     product_with_multiple_values_attributes,
     permission_manage_products,
-    site_settings,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT

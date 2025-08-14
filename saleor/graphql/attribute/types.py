@@ -1,7 +1,7 @@
 import graphene
-from django.conf import settings
+from promise import Promise
 
-from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...attribute import AttributeInputType, models
 from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
@@ -46,7 +46,6 @@ from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import (
     AttributesByAttributeId,
-    AttributeValuesByAttributeIdWithLimitLoader,
 )
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
@@ -73,6 +72,50 @@ def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
     return reference_pk
 
 
+def _resolve_referenced_product_name(
+    reference_product_id: int | None, info: ResolveInfo
+) -> Promise[None | str]:
+    if not reference_product_id:
+        return Promise.resolve(None)
+    return (
+        ProductByIdLoader(info.context)
+        .load(reference_product_id)
+        .then(lambda product: product.name if product else None)
+    )
+
+
+def _resolve_referenced_product_variant_name(
+    reference_variant_id: int | None, info: ResolveInfo
+) -> Promise[None | str]:
+    if not reference_variant_id:
+        return Promise.resolve(None)
+
+    def resolve_variant_name(variant):
+        if variant is None:
+            return None
+        return _resolve_referenced_product_name(variant.product_id, info).then(
+            lambda product_name: f"{product_name}: {variant.name}"
+        )
+
+    return (
+        ProductVariantByIdLoader(info.context)
+        .load(reference_variant_id)
+        .then(resolve_variant_name)
+    )
+
+
+def _resolve_referenced_page_name(
+    reference_page_id: int | None, info: ResolveInfo
+) -> Promise[None | str]:
+    if not reference_page_id:
+        return Promise.resolve(None)
+    return (
+        PageByIdLoader(info.context)
+        .load(reference_page_id)
+        .then(lambda page: page.title if page else None)
+    )
+
+
 class AttributeValue(ChannelContextType[models.AttributeValue]):
     id = graphene.GlobalID(required=True, description="The ID of the attribute value.")
     name = graphene.String(description=AttributeValueDescriptions.NAME)
@@ -85,10 +128,6 @@ class AttributeValue(ChannelContextType[models.AttributeValue]):
     )
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     reference = graphene.ID(description="The ID of the referenced object.")
-    referenced_object = graphene.Field(
-        "saleor.graphql.attribute.unions.AttributeValueReferencedObject",
-        description="The object referenced by the attribute value." + ADDED_IN_322,
-    )
 
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
@@ -118,48 +157,22 @@ class AttributeValue(ChannelContextType[models.AttributeValue]):
         model = models.AttributeValue
 
     @staticmethod
-    def resolve_referenced_object(
-        root: ChannelContext[models.AttributeValue], info: ResolveInfo
-    ):
+    def resolve_name(root: ChannelContext[models.AttributeValue], info: ResolveInfo):
         attr_value = root.node
 
-        def prepare_referenced_object(attribute):
-            if not attribute:
-                return None
-            reference_pk = get_reference_pk(attribute, attr_value)
+        if attr_value.reference_product_id:
+            return _resolve_referenced_product_name(
+                attr_value.reference_product_id, info
+            )
+        if attr_value.reference_variant_id:
+            return _resolve_referenced_product_variant_name(
+                attr_value.reference_variant_id, info
+            )
+        if attr_value.reference_page_id:
+            return _resolve_referenced_page_name(attr_value.reference_page_id, info)
+        return attr_value.name
 
-            if reference_pk is None:
-                return None
-
-            def wrap_with_channel_context(_object):
-                return ChannelContext(node=_object, channel_slug=root.channel_slug)
-
-            if attribute.entity_type == AttributeEntityType.PRODUCT:
-                return (
-                    ProductByIdLoader(info.context)
-                    .load(reference_pk)
-                    .then(wrap_with_channel_context)
-                )
-            if attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
-                return (
-                    ProductVariantByIdLoader(info.context)
-                    .load(reference_pk)
-                    .then(wrap_with_channel_context)
-                )
-            if attribute.entity_type == AttributeEntityType.PAGE:
-                return (
-                    PageByIdLoader(info.context)
-                    .load(reference_pk)
-                    .then(wrap_with_channel_context)
-                )
-            return None
-
-        return (
-            AttributesByAttributeId(info.context)
-            .load(attr_value.attribute_id)
-            .then(prepare_referenced_object)
-        )
-
+    @staticmethod
     def resolve_input_type(
         root: ChannelContext[models.AttributeValue], info: ResolveInfo
     ):
@@ -263,21 +276,6 @@ class Attribute(ChannelContextType[models.Attribute]):
         description=(
             "A list of predefined attribute choices available for selection. "
             "Available only for attributes with predefined choices."
-        ),
-    )
-    values = NonNullList(
-        AttributeValue,
-        description=(
-            "List of all existing attribute values. This includes all values"
-            " that have been assigned to attributes." + ADDED_IN_322
-        ),
-        limit=graphene.Int(
-            description=(
-                "Maximum number of attribute values to return. "
-                "The default value is also the maximum number of values "
-                "that can be fetched."
-            ),
-            default_value=settings.NESTED_QUERY_LIMIT,
         ),
     )
 
@@ -400,24 +398,6 @@ class Attribute(ChannelContextType[models.Attribute]):
         )
         return create_connection_slice(
             channel_context_qs, info, kwargs, AttributeValueCountableConnection
-        )
-
-    @staticmethod
-    def resolve_values(
-        root: ChannelContext[models.Attribute], info: ResolveInfo, limit: int, **kwargs
-    ):
-        attr = root.node
-
-        def map_channel_context(values):
-            return [
-                ChannelContext(node=value, channel_slug=root.channel_slug)
-                for value in values
-            ]
-
-        return (
-            AttributeValuesByAttributeIdWithLimitLoader(info.context, limit=limit)
-            .load(attr.id)
-            .then(map_channel_context)
         )
 
     @staticmethod

@@ -17,14 +17,13 @@ def test_create_access_token_for_app(
     staff_user,
     permission_manage_apps,
     permission_manage_products,
-    site_settings,
 ):
     # given
     staff_user.user_permissions.set(
         [permission_manage_apps, permission_manage_products]
     )
     app.permissions.add(permission_manage_products)
-    audience = f"https://{site_settings.site.domain}.com/app-123"
+    audience = "https://example.com/app-123"
     app.audience = audience
     app.save()
 
@@ -47,13 +46,12 @@ def test_create_access_token_for_app_extension_staff_user_with_more_permissions(
     permission_manage_apps,
     permission_manage_products,
     permission_manage_channels,
-    site_settings,
 ):
     # given
     staff_user.user_permissions.set(
         [permission_manage_channels, permission_manage_apps, permission_manage_products]
     )
-    audience = f"https://{site_settings.site.domain}.com/app-123"
+    audience = "https://example.com/app-123"
     app, extensions = app_with_extensions
     app.audience = audience
     app.save()
@@ -93,12 +91,11 @@ def test_create_access_token_for_app_extension_with_more_permissions(
     permission_manage_apps,
     permission_manage_products,
     permission_manage_channels,
-    site_settings,
 ):
     # given
     staff_user.user_permissions.set([permission_manage_products])
 
-    audience = f"https://{site_settings.site.domain}.com/app-123"
+    audience = "https://example.com/app-123"
     app, extensions = app_with_extensions
     app.audience = audience
     app.save()

@@ -720,9 +720,7 @@ def test_order_update_shipping_triggers_webhooks(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.additional",
     )
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
@@ -803,9 +801,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.additional",
     )
 
     assert wrapped_call_order_event.called
@@ -858,9 +854,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_sh
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.additional",
     )
 
     assert wrapped_call_order_event.called
@@ -915,9 +909,7 @@ def test_editable_order_update_shipping_triggers_proper_updated_webhook_for_null
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.additional",
     )
 
     assert wrapped_call_order_event.called

@@ -664,9 +664,7 @@ def test_change_in_public_metadata_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.additional",
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -742,9 +740,7 @@ def test_change_in_private_metadata_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="example.com:saleor.app.additional",
     )
 
     # confirm each sync webhook was called without saving event delivery

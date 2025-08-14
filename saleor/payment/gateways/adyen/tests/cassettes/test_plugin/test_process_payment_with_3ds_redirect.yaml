@@ -3,7 +3,7 @@ interactions:
     body: '{"amount": {"value": "8000", "currency": "USD"}, "reference": "UGF5bWVudDoxMDM=",
       "paymentMethod": {"type": "scheme", "encryptedCardNumber": "test_4917610000000000",
       "encryptedExpiryMonth": "test_03", "encryptedExpiryYear": "test_2030", "encryptedSecurityCode":
-      "test_737", "brand": "visa"}, "returnUrl": "http://mirumee.com/plugins/mirumee.payments.adyen/additional-actions?payment=UGF5bWVudDoxMDM%3D&checkout=08546530-4718-422c-a912-9a1642a9031c",
+      "test_737", "brand": "visa"}, "returnUrl": "https://example.com/plugins/mirumee.payments.adyen/additional-actions?payment=UGF5bWVudDoxMDM%3D&checkout=08546530-4718-422c-a912-9a1642a9031c",
       "merchantAccount": "SaleorECOM", "browserInfo": {"acceptHeader": "*/*", "colorDepth":
       24, "language": "en-US", "javaEnabled": false, "screenHeight": 1080, "screenWidth":
       1920, "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML,

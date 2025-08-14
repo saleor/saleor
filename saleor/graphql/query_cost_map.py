@@ -143,17 +143,8 @@ COST_MAP = {
     },
     "Attribute": {
         "choices": {"complexity": 1, "multipliers": ["first", "last"]},
-        "values": {
-            "complexity": 1,
-            "multipliers": [
-                "limit",
-            ],
-        },
         "productTypes": {"complexity": 1, "multipliers": ["first", "last"]},
         "productVariantTypes": {"complexity": 1, "multipliers": ["first", "last"]},
-    },
-    "AttributeValue": {
-        "referencedObject": {"complexity": 1},
     },
     "Category": {
         "ancestors": {"complexity": 1, "multipliers": ["first", "last"]},
@@ -242,11 +233,11 @@ COST_MAP = {
         "variant": {"complexity": 1},
     },
     "Page": {
-        "attributes": {"complexity": 100},
+        "attributes": {"complexity": 1},
         "pageType": {"complexity": 1},
     },
     "PageType": {
-        "attributes": {"complexity": 100},
+        "attributes": {"complexity": 1},
         "availableAttributes": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "Payment": {
@@ -254,7 +245,7 @@ COST_MAP = {
         "transactions": {"complexity": 1},
     },
     "Product": {
-        "attributes": {"complexity": 100},
+        "attributes": {"complexity": 1},
         "category": {"complexity": 1},
         "channelListings": {"complexity": 1},
         "collections": {"complexity": 1},
@@ -267,7 +258,7 @@ COST_MAP = {
         "pricing": {"complexity": 1},
         "productType": {"complexity": 1},
         "thumbnail": {"complexity": 1},
-        "variants": {"complexity": 100},
+        "variants": {"complexity": 1},
         "productVariants": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "ProductChannelListing": {
@@ -286,7 +277,7 @@ COST_MAP = {
         "products": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "ProductVariant": {
-        "attributes": {"complexity": 100},
+        "attributes": {"complexity": 1},
         "channelListings": {"complexity": 1},
         "images": {"complexity": 1},
         "media": {"complexity": 1},

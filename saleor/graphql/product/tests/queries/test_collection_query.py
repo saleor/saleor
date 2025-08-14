@@ -389,7 +389,7 @@ FETCH_COLLECTION_IMAGE_QUERY = """
 
 
 def test_collection_image_query_with_size_and_format_proxy_url_returned(
-    user_api_client, published_collection, media_root, channel_USD, site_settings
+    user_api_client, published_collection, media_root, channel_USD
 ):
     # given
     alt_text = "Alt text for an image."
@@ -419,13 +419,14 @@ def test_collection_image_query_with_size_and_format_proxy_url_returned(
 
     data = content["data"]["collection"]
     assert data["backgroundImage"]["alt"] == alt_text
-    domain = site_settings.site.domain
-    expected_url = f"http://{domain}/thumbnail/{collection_id}/128/{format.lower()}/"
+    expected_url = (
+        f"https://example.com/thumbnail/{collection_id}/128/{format.lower()}/"
+    )
     assert data["backgroundImage"]["url"] == expected_url
 
 
 def test_collection_image_query_with_size_proxy_url_returned(
-    user_api_client, published_collection, media_root, channel_USD, site_settings
+    user_api_client, published_collection, media_root, channel_USD
 ):
     # given
     alt_text = "Alt text for an image."
@@ -454,12 +455,12 @@ def test_collection_image_query_with_size_proxy_url_returned(
     assert data["backgroundImage"]["alt"] == alt_text
     assert (
         data["backgroundImage"]["url"]
-        == f"http://{site_settings.site.domain}/thumbnail/{collection_id}/{size}/"
+        == f"https://example.com/thumbnail/{collection_id}/{size}/"
     )
 
 
 def test_collection_image_query_with_size_thumbnail_url_returned(
-    user_api_client, published_collection, media_root, channel_USD, site_settings
+    user_api_client, published_collection, media_root, channel_USD
 ):
     # given
     alt_text = "Alt text for an image."
@@ -492,12 +493,12 @@ def test_collection_image_query_with_size_thumbnail_url_returned(
     assert data["backgroundImage"]["alt"] == alt_text
     assert (
         data["backgroundImage"]["url"]
-        == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
+        == f"https://example.com/media/thumbnails/{thumbnail_mock.name}"
     )
 
 
 def test_collection_image_query_zero_size_custom_format_provided(
-    user_api_client, published_collection, media_root, channel_USD, site_settings
+    user_api_client, published_collection, media_root, channel_USD
 ):
     # given
     alt_text = "Alt text for an image."
@@ -527,14 +528,13 @@ def test_collection_image_query_zero_size_custom_format_provided(
     data = content["data"]["collection"]
     assert data["backgroundImage"]["alt"] == alt_text
     expected_url = (
-        f"http://{site_settings.site.domain}"
-        f"/media/collection-backgrounds/{background_mock.name}"
+        f"https://example.com/media/collection-backgrounds/{background_mock.name}"
     )
     assert data["backgroundImage"]["url"] == expected_url
 
 
 def test_collection_image_query_zero_size_value_original_image_returned(
-    user_api_client, published_collection, media_root, channel_USD, site_settings
+    user_api_client, published_collection, media_root, channel_USD
 ):
     # given
     alt_text = "Alt text for an image."
@@ -561,8 +561,7 @@ def test_collection_image_query_zero_size_value_original_image_returned(
     data = content["data"]["collection"]
     assert data["backgroundImage"]["alt"] == alt_text
     expected_url = (
-        f"http://{site_settings.site.domain}"
-        f"/media/collection-backgrounds/{background_mock.name}"
+        f"https://example.com/media/collection-backgrounds/{background_mock.name}"
     )
     assert data["backgroundImage"]["url"] == expected_url
 

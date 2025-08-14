@@ -2,7 +2,8 @@ from .....site.models import Site
 from ....tests.utils import get_graphql_content
 
 
-def test_shop_domain_update(staff_api_client, permission_manage_settings):
+def test_shop_domain_update(staff_api_client, permission_manage_settings, settings):
+    settings.PUBLIC_URL = None
     # given
     query = """
         mutation updateSettings($input: SiteDomainInput!) {

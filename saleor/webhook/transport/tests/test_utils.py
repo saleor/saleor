@@ -169,7 +169,7 @@ def test_send_webhook_using_aws_sqs(
             "SaleorDomain": {"DataType": "String", "StringValue": domain},
             "SaleorApiUrl": {
                 "DataType": "String",
-                "StringValue": f"http://{domain}/graphql/",
+                "StringValue": f"https://{domain}/graphql/",
             },
             "EventType": {"DataType": "String", "StringValue": event_type},
             "Signature": {"DataType": "String", "StringValue": signature},

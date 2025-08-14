@@ -389,7 +389,6 @@ def test_create_page_with_file_attribute(
     permission_manage_pages,
     page_type,
     page_file_attribute,
-    site_settings,
 ):
     # given
     page_slug = "test-slug"
@@ -406,9 +405,7 @@ def test_create_page_with_file_attribute(
     attr_value = page_file_attribute.values.first()
 
     values_count = page_file_attribute.values.count()
-    file_url = (
-        f"http://{site_settings.site.domain}{settings.MEDIA_URL}{attr_value.file_url}"
-    )
+    file_url = f"https://example.com{settings.MEDIA_URL}{attr_value.file_url}"
 
     # test creating root page
     variables = {
@@ -467,7 +464,6 @@ def test_create_page_with_file_attribute_new_attribute_value(
     permission_manage_pages,
     page_type,
     page_file_attribute,
-    site_settings,
 ):
     # given
     page_slug = "test-slug"
@@ -482,7 +478,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
     file_attribute_id = graphene.Node.to_global_id("Attribute", page_file_attribute.pk)
     page_type.page_attributes.add(page_file_attribute)
     new_value = "new_test_value.txt"
-    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{new_value}"
+    file_url = f"https://example.com{settings.MEDIA_URL}{new_value}"
     new_value_content_type = "text/plain"
 
     values_count = page_file_attribute.values.count()

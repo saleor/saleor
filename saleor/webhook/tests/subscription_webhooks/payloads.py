@@ -31,7 +31,7 @@ def generate_account_requested_events_payload(customer_user, channel, new_email=
         }
         if channel
         else None,
-        "shop": {"domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}},
+        "shop": {"domain": {"host": "example.com", "url": "https://example.com/"}},
     }
     if new_email:
         payload["newEmail"] = new_email

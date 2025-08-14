@@ -79,7 +79,6 @@ def test_apps_installations_query_logo_thumbnail_with_size_and_format_url_return
     app_installation,
     staff_api_client,
     permission_manage_apps,
-    site_settings,
     icon_image,
     media_root,
 ):
@@ -87,7 +86,6 @@ def test_apps_installations_query_logo_thumbnail_with_size_and_format_url_return
     app_installation.brand_logo_default = icon_image
     app_installation.save()
     media_id = graphene.Node.to_global_id("AppInstallation", app_installation.uuid)
-    domain = site_settings.site.domain
     if thumbnail_exists:
         thumbnail = Thumbnail.objects.create(
             app_installation=app_installation,
@@ -95,9 +93,9 @@ def test_apps_installations_query_logo_thumbnail_with_size_and_format_url_return
             format=format or IconThumbnailFormat.ORIGINAL,
             image=icon_image,
         )
-        expected_url = f"http://{domain}/media/{thumbnail.image.name}"
+        expected_url = f"https://example.com/media/{thumbnail.image.name}"
     else:
-        expected_url = f"http://{domain}/thumbnail/{media_id}/128/"
+        expected_url = f"https://example.com/thumbnail/{media_id}/128/"
         if format not in [None, IconThumbnailFormat.ORIGINAL]:
             expected_url += f"{format}/"
     variables = {"size": 120, "format": format.upper() if format else None}
@@ -128,15 +126,15 @@ def test_apps_installations_query_logo_thumbnail_original_image_url_returned(
     app_installation,
     staff_api_client,
     permission_manage_apps,
-    site_settings,
     icon_image,
     media_root,
 ):
     # given
     app_installation.brand_logo_default = icon_image
     app_installation.save()
-    domain = site_settings.site.domain
-    expected_url = f"http://{domain}/media/{app_installation.brand_logo_default.name}"
+    expected_url = (
+        f"https://example.com/media/{app_installation.brand_logo_default.name}"
+    )
     variables = {"size": 0, "format": format.upper() if format else None}
     # when
     response = staff_api_client.post_graphql(

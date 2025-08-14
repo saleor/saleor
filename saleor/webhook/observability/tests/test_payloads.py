@@ -245,7 +245,7 @@ def test_serialize_headers(headers, expected):
     assert serialize_headers(headers) == expected
 
 
-def test_generate_api_call_payload(app, rf, gql_operation_factory, site_settings):
+def test_generate_api_call_payload(app, rf, gql_operation_factory):
     request = rf.post(
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
@@ -271,7 +271,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory, site_settings
             request=ApiCallRequest(
                 id=request_id,
                 method="POST",
-                url=f"http://{site_settings.site.domain}/graphql",
+                url="https://example.com/graphql",
                 time=request.request_time.timestamp(),
                 headers=[
                     ("Cookie", "***"),

@@ -19,7 +19,6 @@ def test_create_page_with_each_of_attribute_types_core_0701(
     permission_manage_pages,
     shop_permissions,
     permission_manage_product_types_and_attributes,
-    site_settings,
 ):
     # Before
     permissions = [
@@ -87,7 +86,7 @@ def test_create_page_with_each_of_attribute_types_core_0701(
     expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
 
     new_value = "new_test_value.txt"
-    file_url = f"http://{site_settings.site.domain}{settings.MEDIA_URL}{new_value}"
+    file_url = f"{settings.PUBLIC_URL}{settings.MEDIA_URL}{new_value}"
     file_content_type = "text/plain"
 
     attributes = [

@@ -5,7 +5,10 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.22.0 [Unreleased]
 
 ### Breaking changes
-- Increased query cost for attribute-related operations due to the addition of `AttributeValue.referencedObject`.
+- The following changes were implemented to orders with a zero total amount:
+  - No manual charge (`Transaction` or `Payment`) object will be created.
+  - The `OrderEvents.ORDER_MARKED_AS_PAID` event will no longer be emitted.
+- Logic associated with `WebhookEventAsyncType.CHECKOUT_FULLY_PAID` event will no longer be triggered when creating a transaction event from webhook response for checkouts with having total gross being 0. At the point of creating the transaction event checkout is already considered fully paid.
 
 ### GraphQL API
 - You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
@@ -80,11 +83,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - `collection.products`
   - `pageType.availableAttributes`
 - Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign category and collection as a attribute reference.
-- Attribute values now expose the `referencedObject`, allowing for easier access to the linked entity.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
 - Filtering products by `category` now also includes subcategories. The filter will return products that belong to the specified categories as well as their subcategories.
 - Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.
-- Extend the `Attribute` type with a `values` field, allowing you to retrieve all values assigned to a specific attribute.
 - Add new `single-reference` attribute. You can now create a reference attribute that points to only one object (unlike the existing `reference` type, which supports multiple references).
 Like `reference`, the `single-reference` type can target entities defined in the `AttributeEntityTypeEnum`.
 - Extended support for filtering `products` by associated attributes
@@ -130,6 +131,8 @@ Like `reference`, the `single-reference` type can target entities defined in the
 - Fixed bug when not-authenticated staff user couldn't fetch `appExtension.app` without `MANAGE_APPS`. Now apps access is available by staff users and the app itself (for app and extension it owns)
 
 - Fixed bug in user email filtering to make it case-insensitive.
+
+- Checkouts having total gross amount equal to 0 will get their authorization statuses updated to `CheckoutAuthorizeStatus.FULL` upon fetching checkout data.
 
 ### Deprecations
 

@@ -1280,7 +1280,7 @@ def test_product_media_created(
         {
             "productMedia": {
                 "id": media_id,
-                "url": f"http://mirumee.com{media.image.url}",
+                "url": f"https://example.com{media.image.url}",
                 "productId": graphene.Node.to_global_id("Product", media.product_id),
             }
         }
@@ -1303,7 +1303,7 @@ def test_product_media_updated(
         {
             "productMedia": {
                 "id": media_id,
-                "url": f"http://mirumee.com{media.image.url}",
+                "url": f"https://example.com{media.image.url}",
                 "productId": graphene.Node.to_global_id("Product", media.product_id),
             }
         }
@@ -1326,7 +1326,7 @@ def test_product_media_deleted(
         {
             "productMedia": {
                 "id": media_id,
-                "url": f"http://mirumee.com{media.image.url}",
+                "url": f"https://example.com{media.image.url}",
                 "productId": graphene.Node.to_global_id("Product", media.product_id),
             }
         }

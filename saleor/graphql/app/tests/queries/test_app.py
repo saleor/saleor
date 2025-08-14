@@ -483,11 +483,10 @@ def test_app_query_access_token_with_audience(
     permission_manage_staff,
     external_app,
     webhook,
-    site_settings,
 ):
     app = external_app
     app.permissions.add(permission_manage_staff)
-    app.audience = f"https://{site_settings.site.domain}.com/app-123"
+    app.audience = "https://example.com/app-123"
     app.save()
 
     webhook = webhook
@@ -522,7 +521,6 @@ def test_app_query_logo_thumbnail_with_size_and_format_url_returned(
     format,
     staff_api_client,
     app,
-    site_settings,
     icon_image,
     media_root,
 ):
@@ -531,7 +529,6 @@ def test_app_query_logo_thumbnail_with_size_and_format_url_returned(
     app.save()
     id = graphene.Node.to_global_id("App", app.id)
     media_id = graphene.Node.to_global_id("App", app.uuid)
-    domain = site_settings.site.domain
     if thumbnail_exists:
         thumbnail = Thumbnail.objects.create(
             app=app,
@@ -539,9 +536,9 @@ def test_app_query_logo_thumbnail_with_size_and_format_url_returned(
             format=format or IconThumbnailFormat.ORIGINAL,
             image=icon_image,
         )
-        expected_url = f"http://{domain}/media/{thumbnail.image.name}"
+        expected_url = f"https://example.com/media/{thumbnail.image.name}"
     else:
-        expected_url = f"http://{domain}/thumbnail/{media_id}/128/"
+        expected_url = f"https://example.com/thumbnail/{media_id}/128/"
         if format not in [None, IconThumbnailFormat.ORIGINAL]:
             expected_url += f"{format}/"
     variables = {"id": id, "size": 120, "format": format.upper() if format else None}
@@ -565,14 +562,13 @@ def test_app_query_logo_thumbnail_with_size_and_format_url_returned(
     ],
 )
 def test_app_query_logo_thumbnail_with_zero_size_value_original_image_url_returned(
-    format, staff_api_client, app, site_settings, icon_image, media_root
+    format, staff_api_client, app, icon_image, media_root
 ):
     # given
     app.brand_logo_default = icon_image
     app.save()
     id = graphene.Node.to_global_id("App", app.id)
-    domain = site_settings.site.domain
-    expected_url = f"http://{domain}/media/{app.brand_logo_default.name}"
+    expected_url = f"https://example.com/media/{app.brand_logo_default.name}"
     variables = {"id": id, "size": 0, "format": format.upper() if format else None}
     # when
     response = staff_api_client.post_graphql(

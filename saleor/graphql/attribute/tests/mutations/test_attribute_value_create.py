@@ -258,7 +258,7 @@ def test_create_swatch_attribute_value_with_file(
     query = CREATE_ATTRIBUTE_VALUE_MUTATION
     attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
     name = "test name"
-    file = "http://mirumee.com/test_media/test_file.jpeg"
+    file = "https://example.com/test_media/test_file.jpeg"
     content_type = "image/jpeg"
     variables = {
         "name": name,
@@ -297,7 +297,7 @@ def test_create_swatch_attribute_value_with_value_and_file(
     attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
     name = "test name"
     value = "#ffffff"
-    file_url = "http://mirumee.com/test_media/test_file.jpeg"
+    file_url = "https://example.com/test_media/test_file.jpeg"
     variables = {
         "name": name,
         "value": value,
@@ -326,7 +326,7 @@ def test_create_swatch_attribute_value_with_value_and_file(
 @pytest.mark.parametrize(
     ("field", "value"),
     [
-        ("fileUrl", "http://mirumee.com/test_media/test_file.jpeg"),
+        ("fileUrl", "https://example.com/test_media/test_file.jpeg"),
         ("contentType", "jpeg"),
     ],
 )

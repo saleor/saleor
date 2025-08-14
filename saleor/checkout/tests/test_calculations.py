@@ -9,6 +9,7 @@ from freezegun import freeze_time
 from graphene import Node
 from prices import Money, TaxedMoney
 
+from ...checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ...checkout.utils import (
     add_promo_code_to_checkout,
     assign_external_shipping_to_checkout,
@@ -19,6 +20,7 @@ from ...core.taxes import (
     TaxDataError,
     TaxDataErrorMessage,
     TaxLineData,
+    zero_money,
     zero_taxed_money,
 )
 from ...graphql.core.utils import to_global_id_or_none
@@ -1265,3 +1267,36 @@ def test_fetch_checkout_with_prior_price_none(
     line.refresh_from_db()
     assert line.prior_unit_price_amount is None
     assert line.currency is not None
+
+
+def test_fetch_checkout_data_updates_status_for_zero_amount_checkout_with_lines(
+    checkout_with_item_total_0,
+):
+    # given
+    lines, _ = fetch_checkout_lines(checkout_with_item_total_0)
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout_with_item_total_0, lines, manager)
+    address = (
+        checkout_with_item_total_0.shipping_address
+        or checkout_with_item_total_0.billing_address,
+    )
+
+    assert checkout_with_item_total_0.total.gross == zero_money(
+        checkout_with_item_total_0.total.currency
+    )
+    assert checkout_with_item_total_0.authorize_status == CheckoutAuthorizeStatus.NONE
+    assert checkout_with_item_total_0.charge_status == CheckoutChargeStatus.NONE
+    assert bool(lines) is True
+
+    # when
+    fetch_checkout_data(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        address=address,
+    )
+
+    # then
+    checkout_with_item_total_0.refresh_from_db()
+    assert checkout_with_item_total_0.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert checkout_with_item_total_0.charge_status == CheckoutChargeStatus.FULL
