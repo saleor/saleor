@@ -486,7 +486,7 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
             amount=Decimal(1000000),
             channel_slug=payment_dummy.order.channel.slug,
         )
-    assert exc.value.message == ("Unable to charge more than un-captured amount.")
+    assert exc.value.message == "Unable to charge more than un-captured amount."
 
 
 def test_gateway_refund_errors(payment_txn_captured):

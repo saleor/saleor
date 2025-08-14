@@ -70,22 +70,22 @@ DEFAULT_EMAIL_CONFIGURATION = [
 DEFAULT_EMAIL_CONFIG_STRUCTURE = {
     "host": {
         "type": ConfigurationTypeField.STRING,
-        "help_text": ("The host to use for sending email."),
+        "help_text": "The host to use for sending email.",
         "label": "SMTP host",
     },
     "port": {
         "type": ConfigurationTypeField.STRING,
-        "help_text": ("Port to use for the SMTP server."),
+        "help_text": "Port to use for the SMTP server.",
         "label": "SMTP port",
     },
     "username": {
         "type": ConfigurationTypeField.STRING,
-        "help_text": ("Username to use for the SMTP server."),
+        "help_text": "Username to use for the SMTP server.",
         "label": "SMTP user",
     },
     "password": {
         "type": ConfigurationTypeField.PASSWORD,
-        "help_text": ("Password to use for the SMTP server."),
+        "help_text": "Password to use for the SMTP server.",
         "label": "Password",
     },
     "sender_name": {

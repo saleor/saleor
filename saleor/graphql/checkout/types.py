@@ -611,7 +611,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     )
     updated_at = DateTime(
         required=True,
-        description=("Time of last modification of the given checkout."),
+        description="Time of last modification of the given checkout.",
     )
     last_change = DateTime(
         required=True,
@@ -720,7 +720,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     available_collection_points = NonNullList(
         Warehouse,
         required=True,
-        description=("Collection points that can be used for this order."),
+        description="Collection points that can be used for this order.",
     )
     available_payment_gateways = BaseField(
         NonNullList(PaymentGateway),
@@ -794,7 +794,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     )
     delivery_method = BaseField(
         DeliveryMethod,
-        description=("The delivery method selected for this checkout."),
+        description="The delivery method selected for this checkout.",
         webhook_events_info=[
             WebhookEventInfo(
                 type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
@@ -824,7 +824,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         ],
     )
     tax_exemption = graphene.Boolean(
-        description=("Returns True if checkout has to be exempt from taxes."),
+        description="Returns True if checkout has to be exempt from taxes.",
         required=True,
     )
     token = graphene.Field(UUID, description="The checkout's token.", required=True)
@@ -845,7 +845,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
 
     total_balance = BaseField(
         Money,
-        description=("The difference between the paid and the checkout total amount."),
+        description="The difference between the paid and the checkout total amount.",
         required=True,
         webhook_events_info=[
             WebhookEventInfo(
@@ -866,12 +866,12 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         ),
     )
     display_gross_prices = graphene.Boolean(
-        description=("Determines whether displayed prices should include taxes."),
+        description="Determines whether displayed prices should include taxes.",
         required=True,
     )
     authorize_status = BaseField(
         CheckoutAuthorizeStatusEnum,
-        description=("The authorize status of the checkout."),
+        description="The authorize status of the checkout.",
         required=True,
         webhook_events_info=[
             WebhookEventInfo(
@@ -882,7 +882,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     )
     charge_status = BaseField(
         CheckoutChargeStatusEnum,
-        description=("The charge status of the checkout."),
+        description="The charge status of the checkout.",
         required=True,
         webhook_events_info=[
             WebhookEventInfo(
@@ -906,7 +906,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
 
     problems = NonNullList(
         CheckoutProblem,
-        description=("List of problems with the checkout."),
+        description="List of problems with the checkout.",
     )
 
     class Meta:

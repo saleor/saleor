@@ -100,12 +100,12 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ORDER_REFUNDED: (
         "The order received a refund. The order may be partially or fully refunded."
     ),
-    WebhookEventAsyncType.ORDER_FULLY_REFUNDED: ("The order is fully refunded."),
+    WebhookEventAsyncType.ORDER_FULLY_REFUNDED: "The order is fully refunded.",
     WebhookEventAsyncType.ORDER_UPDATED: order_updated_event_enum_description,
     WebhookEventAsyncType.ORDER_CANCELLED: "An order is cancelled.",
     WebhookEventAsyncType.ORDER_EXPIRED: "An order is expired.",
     WebhookEventAsyncType.ORDER_FULFILLED: "An order is fulfilled.",
-    WebhookEventAsyncType.ORDER_METADATA_UPDATED: ("An order metadata is updated."),
+    WebhookEventAsyncType.ORDER_METADATA_UPDATED: "An order metadata is updated.",
     WebhookEventAsyncType.ORDER_BULK_CREATED: "Orders are imported.",
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: "A draft order is created.",
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: "A draft order is updated.",
@@ -142,7 +142,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PRODUCT_CREATED: "A new product is created.",
     WebhookEventAsyncType.PRODUCT_UPDATED: "A product is updated.",
     WebhookEventAsyncType.PRODUCT_DELETED: "A product is deleted.",
-    WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: ("A product metadata is updated."),
+    WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: "A product metadata is updated.",
     WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: "A new product media is created.",
     WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: "A product media is updated.",
     WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: "A product media is deleted.",
@@ -161,7 +161,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: (
         "A product variant stock is updated"
     ),
-    WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED: ("A product export is completed."),
+    WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED: "A product export is completed.",
     WebhookEventAsyncType.SHIPPING_PRICE_CREATED: "A new shipping price is created.",
     WebhookEventAsyncType.SHIPPING_PRICE_UPDATED: "A shipping price is updated.",
     WebhookEventAsyncType.SHIPPING_PRICE_DELETED: "A shipping price is deleted.",
@@ -191,7 +191,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_CREATED: "A new voucher created.",
     WebhookEventAsyncType.VOUCHER_UPDATED: "A voucher is updated.",
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
-    WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: ("A voucher metadata is updated."),
+    WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: "A voucher metadata is updated.",
     WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: (
         "A voucher code export is completed." + ADDED_IN_318
     ),

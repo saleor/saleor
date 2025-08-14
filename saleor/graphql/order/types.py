@@ -277,7 +277,7 @@ class OrderGrantedRefund(
             f"{AuthorizationFilters.OWNER.name}."
         ),
     )
-    app = graphene.Field(App, description=("App that performed the action."))
+    app = graphene.Field(App, description="App that performed the action.")
     shipping_costs_included = graphene.Boolean(
         required=True,
         description=(
@@ -1059,7 +1059,7 @@ class OrderLine(
     )
     tax_class = PermissionsField(
         TaxClass,
-        description=("Denormalized tax class of the product in this order line."),
+        description="Denormalized tax class of the product in this order line.",
         required=False,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
@@ -1553,7 +1553,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     )
     available_collection_points = NonNullList(
         Warehouse,
-        description=("Collection points that can be used for this order."),
+        description="Collection points that can be used for this order.",
         required=True,
     )
     invoices = NonNullList(
@@ -1582,15 +1582,15 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         description="User-friendly payment status.", required=True
     )
     authorize_status = OrderAuthorizeStatusEnum(
-        description=("The authorize status of the order."),
+        description="The authorize status of the order.",
         required=True,
     )
     charge_status = OrderChargeStatusEnum(
-        description=("The charge status of the order."),
+        description="The charge status of the order.",
         required=True,
     )
     tax_exemption = graphene.Boolean(
-        description=("Returns True if order has to be exempt from taxes."),
+        description="Returns True if order has to be exempt from taxes.",
         required=True,
     )
     transactions = NonNullList(
@@ -1736,7 +1736,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     )
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description=("The delivery method selected for this order."),
+        description="The delivery method selected for this order.",
     )
     language_code = graphene.String(
         deprecation_reason="Use the `languageCodeEnum` field to fetch the language code.",
@@ -1770,14 +1770,14 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         required=True,
     )
     display_gross_prices = graphene.Boolean(
-        description=("Determines whether displayed prices should include taxes."),
+        description="Determines whether displayed prices should include taxes.",
         required=True,
     )
     external_reference = graphene.String(
         description="External ID of this order.", required=False
     )
     checkout_id = graphene.ID(
-        description=("ID of the checkout that the order was created from."),
+        description="ID of the checkout that the order was created from.",
         required=False,
     )
 

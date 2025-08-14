@@ -47,7 +47,7 @@ class MenuQueries(graphene.ObjectType):
         ),
         sort_by=MenuSortingInput(description="Sort menus."),
         filter=MenuFilterInput(
-            description=("Filtering options for menus.\n\n`slug`: Use `slugs` instead.")
+            description="Filtering options for menus.\n\n`slug`: Use `slugs` instead."
         ),
         description="List of the storefront's menus.",
     )

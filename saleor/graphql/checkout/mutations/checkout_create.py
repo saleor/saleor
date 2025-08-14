@@ -179,7 +179,7 @@ class CheckoutCreateInput(BaseInputObjectType):
     )
     validation_rules = CheckoutValidationRules(
         required=False,
-        description=("The checkout validation rules that can be changed."),
+        description="The checkout validation rules that can be changed.",
     )
 
     metadata = NonNullList(

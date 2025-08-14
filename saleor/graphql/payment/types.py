@@ -362,7 +362,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
     created_by = graphene.Field(
         "saleor.graphql.core.types.user_or_app.UserOrApp",
-        description=("User or App that created the transaction event."),
+        description="User or App that created the transaction event.",
     )
 
     idempotency_key = graphene.String(
@@ -585,7 +585,7 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     )
     created_by = graphene.Field(
         "saleor.graphql.core.types.user_or_app.UserOrApp",
-        description=("User or App that created the transaction."),
+        description="User or App that created the transaction.",
     )
     external_url = graphene.String(
         description=(

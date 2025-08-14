@@ -17,10 +17,10 @@ from ..utils import (
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("mark_as_paid_strategy"),
+    "mark_as_paid_strategy",
     [
-        ("TRANSACTION_FLOW"),
-        ("PAYMENT_FLOW"),
+        "TRANSACTION_FLOW",
+        "PAYMENT_FLOW",
     ],
 )
 def test_complete_0_total_checkout_with_lines_voucher_and_click_and_collect_CORE_0125(

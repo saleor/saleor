@@ -542,7 +542,7 @@ class ProductVariantChannelListing(models.Model):
     )
     promotion_rules = models.ManyToManyField(
         PromotionRule,
-        help_text=("Promotion rules that were included in the discounted price."),
+        help_text="Promotion rules that were included in the discounted price.",
         through="product.VariantChannelListingPromotionRule",
         blank=True,
     )

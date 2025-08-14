@@ -269,9 +269,9 @@ def test_shop_customer_set_password_url_update(
 @pytest.mark.parametrize(
     "customer_set_password_url",
     [
-        ("http://not-allowed-storefron.com/pass"),
-        ("http://[value-error-in-urlparse@test/pass"),
-        ("without-protocole.com/pass"),
+        "http://not-allowed-storefron.com/pass",
+        "http://[value-error-in-urlparse@test/pass",
+        "without-protocole.com/pass",
     ],
 )
 def test_shop_customer_set_password_url_update_invalid_url(

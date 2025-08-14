@@ -1317,7 +1317,7 @@ class FulfillmentTrackingNumberUpdated(SubscriptionObjectType, FulfillmentBase):
 
 class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
     notify_customer = graphene.Boolean(
-        description=("If true, the app should send a notification to the customer."),
+        description="If true, the app should send a notification to the customer.",
         required=True,
     )
 
@@ -1975,7 +1975,7 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
 
 class TransactionInitializeSession(TransactionSessionBase):
     idempotency_key = graphene.String(
-        description=("Idempotency key assigned to the transaction initialize."),
+        description="Idempotency key assigned to the transaction initialize.",
         required=True,
     )
 

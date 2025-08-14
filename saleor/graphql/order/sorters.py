@@ -42,8 +42,8 @@ class OrderSortField(BaseEnum):
     @property
     def deprecation_reason(self):
         deprecations = {
-            OrderSortField.CREATION_DATE.name: ("Use `CREATED_AT` instead."),  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            OrderSortField.FULFILLMENT_STATUS.name: ("Use `STATUS` instead."),  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.CREATION_DATE.name: "Use `CREATED_AT` instead.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.FULFILLMENT_STATUS.name: "Use `STATUS` instead.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in deprecations:
             return deprecations[self.name]

@@ -4,7 +4,7 @@
     {
       "properties": {
         "pspReference": {
-          "description": "Psp reference received from payment provider.",
+          "description": "PSP reference received from payment provider.",
           "title": "Pspreference",
           "type": "string"
         },
@@ -118,7 +118,7 @@
       "properties": {
         "pspReference": {
           "default": null,
-          "description": "Psp reference received from payment provider.",
+          "description": "PSP reference received from payment provider.",
           "title": "Pspreference",
           "type": "string"
         },
@@ -229,7 +229,7 @@
       "properties": {
         "pspReference": {
           "default": null,
-          "description": "Psp reference received from payment provider.",
+          "description": "PSP reference received from payment provider.",
           "title": "Pspreference",
           "type": "string"
         },

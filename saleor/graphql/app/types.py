@@ -333,7 +333,7 @@ class AppManifestRequiredSaleorVersion(BaseObjectType):
         required=True,
     )
     satisfied = graphene.Boolean(
-        description=("Informs if the Saleor version matches the required one."),
+        description="Informs if the Saleor version matches the required one.",
         required=True,
     )
 

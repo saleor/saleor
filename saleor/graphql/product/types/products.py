@@ -223,7 +223,7 @@ class VariantPricingInfo(BasePricingInfo):
 
 class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
-        description=("Determines whether displayed prices should include taxes."),
+        description="Determines whether displayed prices should include taxes.",
         required=True,
     )
     price_range = graphene.Field(
@@ -412,7 +412,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     preorder = graphene.Field(
         PreorderData,
         required=False,
-        description=("Preorder data for product variant."),
+        description="Preorder data for product variant.",
     )
     created = DateTime(
         required=True,
