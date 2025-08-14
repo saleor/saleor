@@ -94,7 +94,9 @@ def test_refund_settings_update_change_page_type(
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
 
-    initial_page_type = PageType.objects.create(name="Initial Type", slug="initial-type")
+    initial_page_type = PageType.objects.create(
+        name="Initial Type", slug="initial-type"
+    )
     site_settings.refund_reason_reference_type = initial_page_type
     site_settings.save()
 
@@ -209,69 +211,53 @@ def test_refund_settings_update_wrong_model_type(
     assert "errors" in content
 
 
-def test_refund_settings_update_no_permission_staff(
-    staff_api_client, page_type
-):
+def test_refund_settings_update_no_permission_staff(staff_api_client, page_type):
     """Test permission denied for staff without proper permissions."""
     # given
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}
 
     # when
-    response = staff_api_client.post_graphql(
-        REFUND_SETTINGS_UPDATE_MUTATION, variables
-    )
+    response = staff_api_client.post_graphql(REFUND_SETTINGS_UPDATE_MUTATION, variables)
 
     # then
     assert_no_permission(response)
 
 
-def test_refund_settings_update_no_permission_customer(
-    user_api_client, page_type
-):
+def test_refund_settings_update_no_permission_customer(user_api_client, page_type):
     """Test permission denied for customer users."""
     # given
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}
 
     # when
-    response = user_api_client.post_graphql(
-        REFUND_SETTINGS_UPDATE_MUTATION, variables
-    )
+    response = user_api_client.post_graphql(REFUND_SETTINGS_UPDATE_MUTATION, variables)
 
     # then
     assert_no_permission(response)
 
 
-def test_refund_settings_update_no_permission_anonymous(
-    api_client, page_type
-):
+def test_refund_settings_update_no_permission_anonymous(api_client, page_type):
     """Test permission denied for anonymous users."""
     # given
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}
 
     # when
-    response = api_client.post_graphql(
-        REFUND_SETTINGS_UPDATE_MUTATION, variables
-    )
+    response = api_client.post_graphql(REFUND_SETTINGS_UPDATE_MUTATION, variables)
 
     # then
     assert_no_permission(response)
 
 
-def test_refund_settings_update_app_no_permission(
-    app_api_client, page_type
-):
+def test_refund_settings_update_app_no_permission(app_api_client, page_type):
     """Test permission denied for app without proper permissions."""
     # given
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}
 
     # when
-    response = app_api_client.post_graphql(
-        REFUND_SETTINGS_UPDATE_MUTATION, variables
-    )
+    response = app_api_client.post_graphql(REFUND_SETTINGS_UPDATE_MUTATION, variables)
 
     # then
     assert_no_permission(response)
