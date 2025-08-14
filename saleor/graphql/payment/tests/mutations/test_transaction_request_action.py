@@ -1320,7 +1320,6 @@ def test_transaction_request_cancel_sets_user_to_request_event(
     assert request_event.user == staff_api_client.user
 
 
-
 # Reason reference tests for refund actions
 
 
@@ -1770,4 +1769,3 @@ def test_transaction_request_charge_ignores_reason_and_reference(
     # For charge actions, reason and reason_reference should not be set
     assert request_event.message is None
     assert request_event.reason_reference is None
-

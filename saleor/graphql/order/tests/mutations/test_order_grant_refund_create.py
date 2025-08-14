@@ -1149,6 +1149,7 @@ def test_grant_refund_with_transaction_item_and_amount(
     assert granted_refund_line.quantity == 1
     assert granted_refund_line.reason == expected_reason
 
+
 # Reason reference tests
 
 
@@ -1159,7 +1160,6 @@ def test_grant_refund_with_reference_required_created_by_user(
     transaction_item_generator,
     site_settings,
 ):
-
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     page = Page.objects.create(
@@ -1216,6 +1216,7 @@ def test_grant_refund_with_reference_required_created_by_user(
     )
     assert granted_refund_from_db.reason_reference == page
 
+
 def test_grant_refund_with_reference_required_but_not_provided_created_by_user(
     staff_api_client,
     permission_manage_orders,
@@ -1266,9 +1267,10 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_user(
     error = errors[0]
     assert error["field"] == "reasonReference"
     assert error["code"] == OrderGrantRefundCreateErrorCode.REQUIRED.name
-    
+
     # Check that no granted refund was created
     assert order.granted_refunds.count() == 0
+
 
 def test_grant_refund_with_reference_required_but_not_provided_created_by_app(
     app_api_client,
@@ -1323,10 +1325,11 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_app(
     granted_refund_from_db = order.granted_refunds.first()
     granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
     assert granted_refund_assigned_to_order == data["grantedRefund"]
-    
+
     # reasonReference should be None for apps
     assert granted_refund_assigned_to_order["reasonReference"] is None
     assert granted_refund_from_db.reason_reference is None
+
 
 def test_grant_refund_with_reference_not_required_created_by_user_ignores_reference(
     staff_api_client,
@@ -1344,7 +1347,7 @@ def test_grant_refund_with_reference_not_required_created_by_user_ignores_refere
         page_type=page_type,
         is_published=True,
     )
-    
+
     # site_settings.refund_reason_reference_type is already None from fixture
     assert site_settings.refund_reason_reference_type is None
 
@@ -1389,10 +1392,11 @@ def test_grant_refund_with_reference_not_required_created_by_user_ignores_refere
     granted_refund_from_db = order.granted_refunds.first()
     granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
     assert granted_refund_assigned_to_order == data["grantedRefund"]
-    
+
     # reasonReference should be None even though it was provided
     assert granted_refund_assigned_to_order["reasonReference"] is None
     assert granted_refund_from_db.reason_reference is None
+
 
 def test_grant_refund_with_reference_not_required_created_by_app_ignores_reference(
     app_api_client,
@@ -1410,7 +1414,7 @@ def test_grant_refund_with_reference_not_required_created_by_app_ignores_referen
         page_type=page_type,
         is_published=True,
     )
-    
+
     # site_settings.refund_reason_reference_type is already None from fixture
     assert site_settings.refund_reason_reference_type is None
 
@@ -1455,10 +1459,11 @@ def test_grant_refund_with_reference_not_required_created_by_app_ignores_referen
     granted_refund_from_db = order.granted_refunds.first()
     granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
     assert granted_refund_assigned_to_order == data["grantedRefund"]
-    
+
     # reasonReference should be None even though it was provided
     assert granted_refund_assigned_to_order["reasonReference"] is None
     assert granted_refund_from_db.reason_reference is None
+
 
 def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid_id(
     staff_api_client,
@@ -1513,6 +1518,6 @@ def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid
     error = errors[0]
     assert error["field"] == "reasonReference"
     assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
-    
+
     # Check that no granted refund was created
     assert order.granted_refunds.count() == 0

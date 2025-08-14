@@ -285,7 +285,6 @@ class OrderGrantRefundCreate(BaseMutation):
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
-
         settings = Site.objects.get_current().settings
         refund_reason_reference_type = settings.refund_reason_reference_type
 
