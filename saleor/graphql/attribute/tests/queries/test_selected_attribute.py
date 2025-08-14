@@ -151,7 +151,7 @@ def test_attribute_value_name_when_referenced_page_was_changed(
 ASSIGNED_NUMERIC_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ... on AssignedNumericAttribute {
         attribute {
           id
@@ -182,14 +182,16 @@ def test_assigned_numeric_attribute(staff_api_client, page, numeric_attribute):
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    assert content["data"]["page"]["attributes"][0]["value"] == attr_value.numeric
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["value"] == attr_value.numeric
+    )
 
 
 ASSIGNED_TEXT_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ...on AssignedTextAttribute{
         value
         translation(languageCode:FR)
@@ -228,9 +230,9 @@ def test_assigned_text_attribute_translation(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
     assert (
-        content["data"]["page"]["attributes"][0]["translation"]
+        content["data"]["page"]["assignedAttributes"][0]["translation"]
         == translated_page_unique_attribute_value.rich_text
     )
 
@@ -255,14 +257,17 @@ def test_assigned_text_attribute(staff_api_client, page, rich_text_attribute):
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    assert content["data"]["page"]["attributes"][0]["value"] == attr_value.rich_text
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["value"]
+        == attr_value.rich_text
+    )
 
 
 ASSIGNED_PLAIN_TEXT_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ...on AssignedPlainTextAttribute{
         value
         translation(languageCode:FR)
@@ -307,9 +312,9 @@ def test_assigned_plain_text_attribute_translation(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
     assert (
-        content["data"]["page"]["attributes"][0]["translation"]
+        content["data"]["page"]["assignedAttributes"][0]["translation"]
         == translation.plain_text
     )
 
@@ -336,14 +341,17 @@ def test_assigned_plain_text_attribute(staff_api_client, page, plain_text_attrib
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    assert content["data"]["page"]["attributes"][0]["value"] == attr_value.plain_text
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["value"]
+        == attr_value.plain_text
+    )
 
 
 ASSIGNED_FILE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ...on AssignedFileAttribute{
         value {
           url
@@ -378,12 +386,13 @@ def test_assigned_file_attribute(staff_api_client, page, file_attribute):
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
     assert (
-        content["data"]["page"]["attributes"][0]["value"]["url"] == attr_value.file_url
+        content["data"]["page"]["assignedAttributes"][0]["value"]["url"]
+        == attr_value.file_url
     )
     assert (
-        content["data"]["page"]["attributes"][0]["value"]["contentType"]
+        content["data"]["page"]["assignedAttributes"][0]["value"]["contentType"]
         == attr_value.content_type
     )
 
@@ -391,7 +400,7 @@ def test_assigned_file_attribute(staff_api_client, page, file_attribute):
 ASSIGNED_SINGLE_PAGE_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       __typename
       ...on AssignedSinglePageReferenceAttribute{
         value{
@@ -441,9 +450,9 @@ def test_assigned_single_page_reference_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert data["__typename"] == "Page"
     assert data["slug"] == expected_reference_slug
 
@@ -451,7 +460,7 @@ def test_assigned_single_page_reference_attribute(
 ASSIGNED_SINGLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       __typename
       ...on AssignedSingleProductReferenceAttribute{
         value{
@@ -502,9 +511,9 @@ def test_assigned_single_product_reference_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert data["__typename"] == "Product"
     assert data["slug"] == expected_reference_slug
 
@@ -512,7 +521,7 @@ def test_assigned_single_product_reference_attribute(
 ASSIGNED_SINGLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       __typename
       ...on AssignedSingleProductVariantReferenceAttribute{
         value{
@@ -563,9 +572,9 @@ def test_assigned_single_product_variant_reference_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert data["__typename"] == "ProductVariant"
     assert data["sku"] == expected_reference_sku
 
@@ -573,7 +582,7 @@ def test_assigned_single_product_variant_reference_attribute(
 ASSIGNED_SINGLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       __typename
       ...on AssignedSingleCategoryReferenceAttribute{
         value{
@@ -624,9 +633,9 @@ def test_assigned_single_category_reference_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert data["__typename"] == "Category"
     assert data["slug"] == expected_reference_slug
 
@@ -634,7 +643,7 @@ def test_assigned_single_category_reference_attribute(
 ASSIGNED_SINGLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       __typename
       ...on AssignedSingleCollectionReferenceAttribute{
         value{
@@ -685,9 +694,9 @@ def test_assigned_single_collection_reference_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert data["__typename"] == "Collection"
     assert data["slug"] == expected_reference_slug
 
@@ -695,7 +704,7 @@ def test_assigned_single_collection_reference_attribute(
 ASSIGNED_MULTIPLE_PAGE_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ...on AssignedMultiPageReferenceAttribute{
         __typename
         value{
@@ -744,9 +753,9 @@ def test_assigned_multi_page_reference_attribute(
 
     # then
     content = get_graphql_content(response)
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert len(data) == 1
     single_page_data = data[0]
     assert single_page_data["__typename"] == "Page"
@@ -756,7 +765,7 @@ def test_assigned_multi_page_reference_attribute(
 ASSIGNED_MULTIPLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ...on AssignedMultiProductReferenceAttribute{
         __typename
         value{
@@ -805,9 +814,9 @@ def test_assigned_multi_product_reference_attribute(
 
     # then
     content = get_graphql_content(response)
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert len(data) == 1
     single_page_data = data[0]
     assert single_page_data["__typename"] == "Product"
@@ -817,7 +826,7 @@ def test_assigned_multi_product_reference_attribute(
 ASSIGNED_MULTIPLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ...on AssignedMultiProductVariantReferenceAttribute{
         __typename
         value{
@@ -866,9 +875,9 @@ def test_assigned_multi_product_variant_reference_attribute(
 
     # then
     content = get_graphql_content(response)
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert len(data) == 1
     single_page_data = data[0]
     assert single_page_data["__typename"] == "ProductVariant"
@@ -878,7 +887,7 @@ def test_assigned_multi_product_variant_reference_attribute(
 ASSIGNED_MULTIPLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ...on AssignedMultiCategoryReferenceAttribute{
         __typename
         value{
@@ -927,9 +936,9 @@ def test_assigned_multi_category_reference_attribute(
 
     # then
     content = get_graphql_content(response)
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert len(data) == 1
     single_page_data = data[0]
     assert single_page_data["__typename"] == "Category"
@@ -939,7 +948,7 @@ def test_assigned_multi_category_reference_attribute(
 ASSIGNED_MULTIPLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ...on AssignedMultiCollectionReferenceAttribute{
         __typename
         value{
@@ -988,9 +997,9 @@ def test_assigned_multi_collection_reference_attribute(
 
     # then
     content = get_graphql_content(response)
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
 
-    data = content["data"]["page"]["attributes"][0]["value"]
+    data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert len(data) == 1
     single_page_data = data[0]
     assert single_page_data["__typename"] == "Collection"
@@ -1000,7 +1009,7 @@ def test_assigned_multi_collection_reference_attribute(
 ASSIGNED_SINGLE_CHOICE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ...on AssignedSingleChoiceAttribute{
         __typename
         value{
@@ -1042,9 +1051,9 @@ def test_assigned_single_choice_attribute_translation(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
     assert (
-        content["data"]["page"]["attributes"][0]["value"]["translation"]
+        content["data"]["page"]["assignedAttributes"][0]["value"]["translation"]
         == translation.name
     )
 
@@ -1076,8 +1085,8 @@ def test_assigned_single_choice_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert attr_value_data["name"] == expected_attr_value_name
     assert attr_value_data["slug"] == expected_attr_value_slug
 
@@ -1085,7 +1094,7 @@ def test_assigned_single_choice_attribute(
 ASSIGNED_MULTI_CHOICE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ... on AssignedMultiChoiceAttribute {
         __typename
         value {
@@ -1130,9 +1139,9 @@ def test_assigned_multi_choice_attribute_translation(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    assert len(content["data"]["page"]["attributes"][0]["value"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"][0]
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"][0]["value"]) == 1
+    attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"][0]
     assert attr_value_data["translation"] == translation.name
 
 
@@ -1166,9 +1175,9 @@ def test_assigned_multi_choice_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    assert len(content["data"]["page"]["attributes"][0]["value"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"][0]
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert len(content["data"]["page"]["assignedAttributes"][0]["value"]) == 1
+    attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"][0]
     assert attr_value_data["name"] == expected_attr_value_name
     assert attr_value_data["slug"] == expected_attr_value_slug
 
@@ -1176,7 +1185,7 @@ def test_assigned_multi_choice_attribute(
 ASSIGNED_SWATCH_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ... on AssignedSwatchAttribute {
         value {
           name
@@ -1226,8 +1235,8 @@ def test_assigned_swatch_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert attr_value_data["name"] == expected_attr_value_name
     assert attr_value_data["slug"] == expected_attr_value_slug
     assert attr_value_data["hexColor"] == expected_attr_hex_value
@@ -1260,8 +1269,8 @@ def test_assigned_swatch_file_attribute(staff_api_client, page, swatch_attribute
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert attr_value_data["name"] == attr_value.name
     assert attr_value_data["slug"] == attr_value.slug
     assert attr_value_data["file"]["url"] == attr_value.file_url
@@ -1271,7 +1280,7 @@ def test_assigned_swatch_file_attribute(staff_api_client, page, swatch_attribute
 ASSIGNED_BOOLEAN_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ... on AssignedBooleanAttribute {
         value
       }
@@ -1309,15 +1318,15 @@ def test_assigned_boolean_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert attr_value_data is expected_attr_value
 
 
 ASSIGNED_DATE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ... on AssignedDateAttribute {
         value
       }
@@ -1355,15 +1364,15 @@ def test_assigned_date_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert attr_value_data == str(expected_attr_datetime_value.date())
 
 
 ASSIGNED_DATETIME_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    attributes {
+    assignedAttributes {
       ... on AssignedDateTimeAttribute {
         value
       }
@@ -1401,8 +1410,8 @@ def test_assigned_datetime_attribute(
     # then
     content = get_graphql_content(response)
 
-    assert len(content["data"]["page"]["attributes"]) == 1
-    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert attr_value_data == str(expected_attr_datetime_value.isoformat())
 
 

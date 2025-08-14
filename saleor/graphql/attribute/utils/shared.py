@@ -29,7 +29,7 @@ T_REFERENCE = (
 
 
 @dataclass
-class SelectedAttributeData:
+class AssignedAttributeData:
     attribute: ChannelContext[attribute_models.Attribute]
     values: list[ChannelContext[attribute_models.AttributeValue]]
 
