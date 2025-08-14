@@ -143,24 +143,87 @@ COST_MAP = {
     },
     "AssignedNumericAttribute": {
         "attribute": {"complexity": 1},
-        "values": {"complexity": 1},
         "value": {"complexity": 1},
     },
     "AssignedTextAttribute": {
         "attribute": {"complexity": 1},
-        "values": {"complexity": 1},
         "value": {"complexity": 1},
         "translation": {"complexity": 1},
     },
     "AssignedPlainTextAttribute": {
         "attribute": {"complexity": 1},
-        "values": {"complexity": 1},
         "value": {"complexity": 1},
         "translation": {"complexity": 1},
     },
     "AssignedFileAttribute": {
         "attribute": {"complexity": 1},
-        "values": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedChoiceAttributeValue": {
+        "name": {"complexity": 1},
+        "slug": {"complexity": 1},
+        "translation": {"complexity": 1},
+    },
+    "AssignedSingleChoiceAttribute": {
+        "value": {"complexity": 1},
+    },
+    "AssignedMultiChoiceAttribute": {
+        "value": {"complexity": 1},
+    },
+    "AssignedSwatchAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedBooleanAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedDateAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedDateTimeAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedMultiPageReferenceAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedMultiProductReferenceAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedMultiProductVariantReferenceAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedMultiCategoryReferenceAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedMultiCollectionReferenceAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedSinglePageReferenceAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedSingleProductReferenceAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedSingleProductVariantReferenceAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedSingleCategoryReferenceAttribute": {
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1},
+    },
+    "AssignedSingleCollectionReferenceAttribute": {
+        "attribute": {"complexity": 1},
         "value": {"complexity": 1},
     },
     "Attribute": {
