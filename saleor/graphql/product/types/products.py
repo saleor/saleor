@@ -45,12 +45,13 @@ from ...attribute.filters import (
 )
 from ...attribute.resolvers import resolve_attributes
 from ...attribute.types import (
+    AssignedAttribute,
     AssignedVariantAttribute,
     Attribute,
     AttributeCountableConnection,
     SelectedAttribute,
 )
-from ...attribute.utils.shared import SelectedAttributeData
+from ...attribute.utils.shared import AssignedAttributeData
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
@@ -63,7 +64,12 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import (
+    ADDED_IN_321,
+    ADDED_IN_322,
+    DEPRECATED_IN_3X_INPUT,
+    RICH_CONTENT,
+)
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ReportingPeriod
 from ...core.federation import federated_entity, resolve_federation_references
@@ -122,6 +128,9 @@ from ...warehouse.dataloaders import (
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
+    AssignedAttributesAllByProductIdLoader,
+    AssignedAttributesByProductVariantIdLoader,
+    AssignedAttributesVisibleInStorefrontByProductIdLoader,
     CategoryByIdLoader,
     CollectionChannelListingByCollectionIdAndChannelSlugLoader,
     CollectionsByProductIdLoader,
@@ -137,9 +146,6 @@ from ..dataloaders import (
     ProductTypeByIdLoader,
     ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
-    SelectedAttributesAllByProductIdLoader,
-    SelectedAttributesByProductVariantIdLoader,
-    SelectedAttributesVisibleInStorefrontByProductIdLoader,
     ThumbnailByProductMediaIdSizeAndFormatLoader,
     VariantAttributesAllByProductTypeIdLoader,
     VariantAttributesVisibleInStorefrontByProductTypeIdLoader,
@@ -328,6 +334,15 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         description=(
             "Lists the storefront variant's pricing, the current price and discounts, "
             "only meant for displaying."
+        ),
+    )
+    assigned_attributes = NonNullList(
+        AssignedAttribute,
+        required=True,
+        description="List of attributes assigned to this variant." + ADDED_IN_322,
+        variant_selection=graphene.Argument(
+            VariantAttributeScope,
+            description="Define scope of returned attributes.",
         ),
     )
     attributes = NonNullList(
@@ -583,18 +598,37 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     def resolve_digital_content(root: ChannelContext[models.ProductVariant], _info):
         return getattr(root.node, "digital_content", None)
 
-    @staticmethod
+    @classmethod
     def resolve_attributes(
+        cls,
+        root: ChannelContext[models.ProductVariant],
+        info,
+        variant_selection: VariantAttributeScope | None = None,
+    ):
+        return cls._resolve_attributes(root, info, variant_selection)
+
+    @classmethod
+    def resolve_assigned_attributes(
+        cls,
+        root: ChannelContext[models.ProductVariant],
+        info,
+        variant_selection: str | None = None,
+    ):
+        return cls._resolve_attributes(root, info, variant_selection)
+
+    @classmethod
+    def _resolve_attributes(
+        cls,
         root: ChannelContext[models.ProductVariant],
         info,
         variant_selection: str | None = None,
     ):
         def apply_variant_selection_filter(
             selected_attributes,
-        ) -> list[SelectedAttributeData]:
+        ) -> list[AssignedAttributeData]:
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
                 return [
-                    SelectedAttributeData(
+                    AssignedAttributeData(
                         attribute=ChannelContext(
                             selected_att["attribute"], root.channel_slug
                         ),
@@ -628,7 +662,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                 ]
 
             return [
-                SelectedAttributeData(
+                AssignedAttributeData(
                     attribute=ChannelContext(
                         selected_att["attribute"], root.channel_slug
                     ),
@@ -641,7 +675,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             ]
 
         return (
-            SelectedAttributesByProductVariantIdLoader(info.context)
+            AssignedAttributesByProductVariantIdLoader(info.context)
             .load(root.node.id)
             .then(apply_variant_selection_filter)
         )
@@ -947,6 +981,22 @@ class Product(ChannelContextType[models.Product]):
         description="A type of tax. Assigned by enabled tax gateway",
         deprecation_reason="Use `taxClass` field instead.",
     )
+    assigned_attribute = graphene.Field(
+        AssignedAttribute,
+        slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the attribute",
+            required=True,
+        ),
+        description="Get a single attribute attached to product by attribute slug."
+        + ADDED_IN_322,
+    )
+    assigned_attributes = NonNullList(
+        AssignedAttribute,
+        required=True,
+        description="List of attributes assigned to this product." + ADDED_IN_322,
+    )
+
     attribute = graphene.Field(
         SelectedAttribute,
         slug=graphene.Argument(
@@ -1333,8 +1383,18 @@ class Product(ChannelContextType[models.Product]):
             .then(check_is_available_for_purchase)
         )
 
-    @staticmethod
-    def resolve_attribute(root: ChannelContext[models.Product], info, slug):
+    @classmethod
+    def resolve_assigned_attribute(
+        cls, root: ChannelContext[models.Product], info, slug
+    ):
+        return cls._resolve_attribute(root, info, slug)
+
+    @classmethod
+    def resolve_attribute(cls, root: ChannelContext[models.Product], info, slug):
+        return cls._resolve_attribute(root, info, slug)
+
+    @classmethod
+    def _resolve_attribute(cls, root: ChannelContext[models.Product], info, slug):
         def get_selected_attribute_by_slug(
             attributes: (
                 list[
@@ -1346,7 +1406,7 @@ class Product(ChannelContextType[models.Product]):
                 ]
                 | None
             ),
-        ) -> SelectedAttributeData | None:
+        ) -> AssignedAttributeData | None:
             if attributes is None:
                 return None
 
@@ -1356,7 +1416,7 @@ class Product(ChannelContextType[models.Product]):
                 if attribute.slug == slug:
                     values = atr["values"]
                     values = cast(list[attribute_models.AttributeValue], values)
-                    return SelectedAttributeData(
+                    return AssignedAttributeData(
                         attribute=ChannelContext(attribute, root.channel_slug),
                         values=[
                             ChannelContext(value, root.channel_slug) for value in values
@@ -1371,18 +1431,26 @@ class Product(ChannelContextType[models.Product]):
             and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
         ):
             return (
-                SelectedAttributesAllByProductIdLoader(info.context)
+                AssignedAttributesAllByProductIdLoader(info.context)
                 .load(root.node.id)
                 .then(get_selected_attribute_by_slug)
             )
         return (
-            SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+            AssignedAttributesVisibleInStorefrontByProductIdLoader(info.context)
             .load(root.node.id)
             .then(get_selected_attribute_by_slug)
         )
 
-    @staticmethod
-    def resolve_attributes(root: ChannelContext[models.Product], info):
+    @classmethod
+    def resolve_assigned_attributes(cls, root: ChannelContext[models.Product], info):
+        return cls._resolve_attributes(root, info)
+
+    @classmethod
+    def resolve_attributes(cls, root: ChannelContext[models.Product], info):
+        return cls._resolve_attributes(root, info)
+
+    @classmethod
+    def _resolve_attributes(cls, root: ChannelContext[models.Product], info):
         def wrap_with_channel_context(
             attributes: (
                 list[
@@ -1394,7 +1462,7 @@ class Product(ChannelContextType[models.Product]):
                 ]
                 | None
             ),
-        ) -> list[SelectedAttributeData] | None:
+        ) -> list[AssignedAttributeData] | None:
             if attributes is None:
                 return None
 
@@ -1405,7 +1473,7 @@ class Product(ChannelContextType[models.Product]):
                 values = attr_data["values"]
                 values = cast(list[attribute_models.AttributeValue], values)
                 response.append(
-                    SelectedAttributeData(
+                    AssignedAttributeData(
                         attribute=ChannelContext(attribute, root.channel_slug),
                         values=[
                             ChannelContext(value, root.channel_slug) for value in values
@@ -1421,12 +1489,12 @@ class Product(ChannelContextType[models.Product]):
             and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
         ):
             return (
-                SelectedAttributesAllByProductIdLoader(info.context)
+                AssignedAttributesAllByProductIdLoader(info.context)
                 .load(root.node.id)
                 .then(wrap_with_channel_context)
             )
         return (
-            SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+            AssignedAttributesVisibleInStorefrontByProductIdLoader(info.context)
             .load(root.node.id)
             .then(wrap_with_channel_context)
         )

@@ -270,6 +270,13 @@ PAGES_QUERY = """
             id
             slug
           }
+        }
+        assignedAttributes {
+          ... on AssignedAttributeInterface {
+            attr: attribute {
+              slug
+            }
+          }
           ... on AssignedNumericAttribute {
             attribute {
               id

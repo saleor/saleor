@@ -37,6 +37,14 @@ query ($channel: String) {
           values {
             slug
           }
+        }
+        assignedAttributes {
+          ... on AssignedAttributeInterface {
+            attr: attribute {
+                slug
+                type
+            }
+          }
           ... on AssignedNumericAttribute {
             attribute {
               id
@@ -167,6 +175,8 @@ query ($channel: String) {
             values {
               slug
             }
+          }
+          assignedAttributes {
             ... on AssignedNumericAttribute {
               attribute {
                 id
