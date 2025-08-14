@@ -102,8 +102,10 @@ def test_use_multiple_gift_cards_in_checkout_core_1105(
         first_code,
     )
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-    total_with__first_gift_card = calculated_subtotal - balance_amount
-    assert total_gross_amount == total_with__first_gift_card
+    assert total_gross_amount == calculated_subtotal
+    total_balance_amount = checkout_data["totalBalance"]["amount"]
+    assert total_balance_amount <= 0
+    assert total_balance_amount == -calculated_subtotal + balance_amount
     assert checkout_data["giftCards"][0]["last4CodeChars"] == first_code[-4:]
 
     # Step 3 Add second gift card to checkout
@@ -113,8 +115,10 @@ def test_use_multiple_gift_cards_in_checkout_core_1105(
         second_code,
     )
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-    total_with_both_gift_cards = total_with__first_gift_card - balance_amount
-    assert total_gross_amount == total_with_both_gift_cards
+    assert total_gross_amount == calculated_subtotal
+    total_balance_amount = checkout_data["totalBalance"]["amount"]
+    assert total_balance_amount <= 0
+    assert total_balance_amount == -calculated_subtotal + (2 * balance_amount)
     assert checkout_data["giftCards"][0]["last4CodeChars"] == first_code[-4:]
     assert checkout_data["giftCards"][1]["last4CodeChars"] == second_code[-4:]
 
@@ -125,8 +129,10 @@ def test_use_multiple_gift_cards_in_checkout_core_1105(
         third_code,
     )
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-    total_with_all_gift_cards = total_with_both_gift_cards - balance_amount
-    assert total_gross_amount == total_with_all_gift_cards
+    assert total_gross_amount == calculated_subtotal
+    total_balance_amount = checkout_data["totalBalance"]["amount"]
+    assert total_balance_amount <= 0
+    assert total_balance_amount == -calculated_subtotal + (3 * balance_amount)
     assert checkout_data["giftCards"][0]["last4CodeChars"] == first_code[-4:]
     assert checkout_data["giftCards"][1]["last4CodeChars"] == second_code[-4:]
     assert checkout_data["giftCards"][2]["last4CodeChars"] == third_code[-4:]
@@ -141,14 +147,15 @@ def test_use_multiple_gift_cards_in_checkout_core_1105(
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
     assert shipping_price == 10
-    calculated_total = total_with_all_gift_cards + shipping_price
+    calculated_total = calculated_subtotal + shipping_price
     assert total_gross_amount == calculated_total
 
     # Step 4 - Create payment for checkout.
+    total_to_pay = -total_balance_amount + shipping_price
     create_payment = raw_checkout_dummy_payment_create(
         e2e_logged_api_client,
         checkout_id,
-        total_gross_amount,
+        total_to_pay,
         token="fully_charged",
     )
     assert create_payment["errors"] == []
@@ -161,7 +168,9 @@ def test_use_multiple_gift_cards_in_checkout_core_1105(
     )
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
-    assert order_data["total"]["gross"]["amount"] == calculated_total
+    assert order_data["total"]["gross"]["amount"] == calculated_total - (
+        3 * balance_amount
+    )
     assert len(order_data["giftCards"]) == 3
 
     for i in range(3):

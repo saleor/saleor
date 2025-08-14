@@ -77,11 +77,10 @@ def test_gift_card_partial_payment_for_checkout_core_1103(
         shipping_method_id,
     )
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
-    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
     assert shipping_price == 10
     calculated_total = calculated_subtotal + shipping_price
-    assert total_gross_amount == calculated_total
+    assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_total
 
     # Step 3 Add gift card to checkout
     checkout_data = checkout_add_promo_code(
@@ -89,19 +88,19 @@ def test_gift_card_partial_payment_for_checkout_core_1103(
         checkout_id,
         gift_card_code,
     )
-    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-    total_with_gift_card = round(
-        calculated_subtotal + shipping_price - gift_card_amount, 2
-    )
-    assert total_gross_amount == total_with_gift_card
+    assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_total
     assert checkout_data["giftCards"][0]["id"] == gift_card_id
     assert checkout_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]
+
+    total_balance = checkout_data["totalBalance"]["amount"]
+    assert total_balance <= 0
+    total_to_pay = -total_balance
 
     # Step 4 - Create payment for checkout.
     create_payment = raw_checkout_dummy_payment_create(
         e2e_logged_api_client,
         checkout_id,
-        total_gross_amount,
+        total_to_pay,
         token="fully_charged",
     )
     assert create_payment["errors"] == []
@@ -114,6 +113,9 @@ def test_gift_card_partial_payment_for_checkout_core_1103(
     )
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
+    total_with_gift_card = round(
+        calculated_subtotal + shipping_price - gift_card_amount, 2
+    )
     assert order_data["total"]["gross"]["amount"] == total_with_gift_card
     assert order_data["giftCards"][0]["id"] == gift_card_id
     assert order_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]

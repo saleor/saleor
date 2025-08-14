@@ -60,6 +60,9 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                         amount
                     }
                 }
+                totalBalance {
+                    amount
+                }
                 availableShippingMethods {
                     id
                     price {
@@ -946,73 +949,109 @@ def test_checkout_add_used_gift_card_code(
 
 
 def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_card):
+    # given
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    taxed_total = calculations.calculate_checkout_total(
+    checkout_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
     )
-    total_with_gift_card = taxed_total.gross.amount - gift_card.current_balance_amount
 
+    # when
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
         "promoCode": gift_card.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
+    # then
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert not data["checkout"]["giftCards"] == []
-    assert data["checkout"]["totalPrice"]["gross"]["amount"] == total_with_gift_card
+    assert (
+        data["checkout"]["totalPrice"]["gross"]["amount"] == checkout_total.gross.amount
+    )
+
+    total_balance = (
+        -checkout_total.gross.amount
+        + checkout_info.checkout.get_total_gift_cards_balance().amount
+    )
+    assert total_balance <= 0
+    assert data["checkout"]["totalBalance"]["amount"] == total_balance
 
 
 def test_checkout_get_total_with_many_gift_card(
     api_client, checkout_with_gift_card, gift_card_created_by_staff
 ):
+    # given
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_gift_card)
     checkout_info = fetch_checkout_info(checkout_with_gift_card, lines, manager)
-    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+    checkout_total = calculations.calculate_checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_gift_card.shipping_address,
     )
-    total_with_gift_card = (
-        taxed_total.gross.amount - gift_card_created_by_staff.current_balance_amount
-    )
-
     assert checkout_with_gift_card.gift_cards.count() > 0
+
+    # when
     variables = {
         "id": to_global_id_or_none(checkout_with_gift_card),
         "promoCode": gift_card_created_by_staff.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
+    # then
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
-    assert data["checkout"]["totalPrice"]["gross"]["amount"] == total_with_gift_card
+    assert (
+        data["checkout"]["totalPrice"]["gross"]["amount"] == checkout_total.gross.amount
+    )
+
+    total_balance = (
+        -checkout_total.gross.amount
+        + checkout_info.checkout.get_total_gift_cards_balance().amount
+    )
+    assert total_balance <= 0
+    assert data["checkout"]["totalBalance"]["amount"] == total_balance
 
 
 def test_checkout_get_total_with_more_money_on_gift_card(
     api_client, checkout_with_item, gift_card_used, customer_user
 ):
+    # given
     checkout_with_item.email = gift_card_used.used_by_email
     checkout_with_item.save(update_fields=["email"])
 
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+    checkout_total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
+    )
+
+    # when
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
         "promoCode": gift_card_used.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
+    # then
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert not data["checkout"]["giftCards"] == []
-    assert data["checkout"]["totalPrice"]["gross"]["amount"] == 0
+    assert (
+        data["checkout"]["totalPrice"]["gross"]["amount"] == checkout_total.gross.amount
+    )
+    assert data["checkout"]["totalBalance"]["amount"] == 0
 
 
 def test_checkout_add_same_gift_card_code(api_client, checkout_with_gift_card):
