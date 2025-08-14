@@ -28,6 +28,9 @@ def test_refund_settings_update_by_staff_success(
 ):
     """Test successful refund settings update by staff user."""
     # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_settings)
+
     assert site_settings.refund_reason_reference_type is None
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}
@@ -36,7 +39,6 @@ def test_refund_settings_update_by_staff_success(
     response = staff_api_client.post_graphql(
         REFUND_SETTINGS_UPDATE_MUTATION,
         variables,
-        permissions=(permission_manage_settings,),
     )
 
     # then
@@ -59,6 +61,8 @@ def test_refund_settings_update_by_app_success(
 ):
     """Test successful refund settings update by app."""
     # given
+    app_api_client.app.permissions.add(permission_manage_settings)
+
     assert site_settings.refund_reason_reference_type is None
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}
@@ -67,7 +71,6 @@ def test_refund_settings_update_by_app_success(
     response = app_api_client.post_graphql(
         REFUND_SETTINGS_UPDATE_MUTATION,
         variables,
-        permissions=(permission_manage_settings,),
     )
 
     # then
@@ -88,6 +91,9 @@ def test_refund_settings_update_change_page_type(
 ):
     """Test updating refund settings to a different page type."""
     # given - set initial page type
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_settings)
+
     initial_page_type = PageType.objects.create(name="Initial Type", slug="initial-type")
     site_settings.refund_reason_reference_type = initial_page_type
     site_settings.save()
@@ -99,7 +105,6 @@ def test_refund_settings_update_change_page_type(
     response = staff_api_client.post_graphql(
         REFUND_SETTINGS_UPDATE_MUTATION,
         variables,
-        permissions=(permission_manage_settings,),
     )
 
     # then
@@ -119,13 +124,15 @@ def test_refund_settings_update_empty_id_success(
 ):
     """Test successful update when providing empty ID (clears the setting)."""
     # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_settings)
+
     variables = {"input": {"refundReasonReferenceType": ""}}
 
     # when
     response = staff_api_client.post_graphql(
         REFUND_SETTINGS_UPDATE_MUTATION,
         variables,
-        permissions=(permission_manage_settings,),
     )
 
     # then
@@ -142,13 +149,15 @@ def test_refund_settings_update_invalid_id_format(
 ):
     """Test validation error when providing invalid ID format."""
     # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_settings)
+
     variables = {"input": {"refundReasonReferenceType": "invalid-id-format"}}
 
     # when
     response = staff_api_client.post_graphql(
         REFUND_SETTINGS_UPDATE_MUTATION,
         variables,
-        permissions=(permission_manage_settings,),
     )
 
     # then
@@ -161,6 +170,9 @@ def test_refund_settings_update_nonexistent_page_type(
 ):
     """Test validation error when PageType doesn't exist."""
     # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_settings)
+
     nonexistent_id = graphene.Node.to_global_id("PageType", 99999)
     variables = {"input": {"refundReasonReferenceType": nonexistent_id}}
 
@@ -168,7 +180,6 @@ def test_refund_settings_update_nonexistent_page_type(
     response = staff_api_client.post_graphql(
         REFUND_SETTINGS_UPDATE_MUTATION,
         variables,
-        permissions=(permission_manage_settings,),
     )
 
     # then
@@ -181,6 +192,9 @@ def test_refund_settings_update_wrong_model_type(
 ):
     """Test validation error when providing ID of wrong model type."""
     # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_settings)
+
     product_id = graphene.Node.to_global_id("Product", product.id)
     variables = {"input": {"refundReasonReferenceType": product_id}}
 
@@ -188,7 +202,6 @@ def test_refund_settings_update_wrong_model_type(
     response = staff_api_client.post_graphql(
         REFUND_SETTINGS_UPDATE_MUTATION,
         variables,
-        permissions=(permission_manage_settings,),
     )
 
     # then
