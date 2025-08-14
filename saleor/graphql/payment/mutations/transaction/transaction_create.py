@@ -50,7 +50,7 @@ class TransactionCreateInput(BaseInputObjectType):
     name = graphene.String(description="Payment name of the transaction.")
     message = graphene.String(description="The message of the transaction.")
 
-    psp_reference = graphene.String(description=("PSP Reference of the transaction. "))
+    psp_reference = graphene.String(description="PSP Reference of the transaction.")
     available_actions = graphene.List(
         graphene.NonNull(TransactionActionEnum),
         description="List of all possible actions for the transaction",
@@ -90,9 +90,7 @@ class TransactionCreateInput(BaseInputObjectType):
 
 
 class TransactionEventInput(BaseInputObjectType):
-    psp_reference = graphene.String(
-        description=("PSP Reference related to this action.")
-    )
+    psp_reference = graphene.String(description="PSP Reference related to this action.")
 
     message = graphene.String(description="The message related to the event.")
 

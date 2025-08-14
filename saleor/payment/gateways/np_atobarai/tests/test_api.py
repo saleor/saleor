@@ -497,7 +497,7 @@ def test_tracking_number_updated_no_payments(
     )
     assert len(caplog.records) == 1
     assert caplog.records[0].levelno == logging.WARNING
-    assert caplog.records[0].message == ("No active payments for this order")
+    assert caplog.records[0].message == "No active payments for this order"
 
 
 @patch.object(HTTPSession, "request")
