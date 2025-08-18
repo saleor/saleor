@@ -342,6 +342,19 @@ class AttributeBulkCreate(BaseMutation):
                 cleaned_inputs_map[attribute_index] = None
                 continue
 
+            try:
+                AttributeMixin.validate_reference_types_limit(attribute_data)
+            except ValidationError as e:
+                index_error_map[attribute_index].append(
+                    AttributeBulkCreateError(
+                        path="referenceTypes",
+                        message=e.messages[0],
+                        code=AttributeBulkCreateErrorCode.INVALID.value,
+                    )
+                )
+                cleaned_inputs_map[attribute_index] = None
+                continue
+
             cleaned_input = cls.clean_attribute_input(
                 info,
                 attribute_data,
