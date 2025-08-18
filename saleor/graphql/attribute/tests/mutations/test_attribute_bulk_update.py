@@ -980,4 +980,87 @@ def test_attribute_bulk_update_reference_types(
     } == set(page_type_ids[1:])
 
 
-# TODO: add test with invalid reference types
+@patch("saleor.graphql.attribute.mutations.mixins.REFERENCE_TYPES_LIMIT", 1)
+def test_attribute_bulk_update_invalid_reference_types(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_page_types_and_attributes,
+    product_type_variant_single_reference_attribute,
+    product_type_collection_single_reference_attribute,
+    product_type_page_reference_attribute,
+    color_attribute,
+    page_type_page_reference_attribute,
+    page_type_list,
+    product_type,
+):
+    # given
+    product_type_variant_single_reference_attribute.reference_product_types.add(
+        product_type
+    )
+    product_type_page_reference_attribute.reference_page_types.add(page_type_list[0])
+    page_type_page_reference_attribute.reference_page_types.add(page_type_list[1])
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    page_type_ids = [
+        graphene.Node.to_global_id("PageType", page_type.id)
+        for page_type in page_type_list
+    ]
+    input_attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
+            # invalid input type
+            "fields": {"referenceTypes": [product_type_id]},
+        },
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", product_type_collection_single_reference_attribute.id
+            ),
+            # invalid entity type of attribute
+            "fields": {"referenceTypes": [product_type_id]},
+        },
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", product_type_variant_single_reference_attribute.id
+            ),
+            # should be a list of product types
+            "fields": {"referenceTypes": [page_type_ids[1]]},
+        },
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", product_type_page_reference_attribute.id
+            ),
+            # # limit exceeded
+            "fields": {"referenceTypes": page_type_ids[1:]},
+        },
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", page_type_page_reference_attribute.id
+            ),
+            # should be a list of page types
+            "fields": {"referenceTypes": [product_type_id]},
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes,
+        permission_manage_page_types_and_attributes,
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": input_attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    assert data["results"][0]["errors"]
+    assert data["results"][1]["errors"]
+    assert data["results"][2]["errors"]
+    assert data["results"][3]["errors"]
+    assert data["results"][4]["errors"]
+    assert data["count"] == 0
+    for result in data["results"]:
+        assert len(result["errors"]) == 1
+        assert result["errors"][0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
+        assert result["errors"][0]["path"] == "referenceTypes"
