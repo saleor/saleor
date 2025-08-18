@@ -23,17 +23,17 @@ RUN groupadd -r saleor && useradd -r -g saleor saleor
 RUN apt-get update \
   && apt-get install -y \
   libffi8 \
-  libgdk-pixbuf2.0-0 \
+  libgdk-pixbuf-2.0-0 \
   liblcms2-2 \
   libopenjp2-7 \
   libssl3 \
   libtiff6 \
   libwebp7 \
   libpq5 \
+  libmagic1 \
   # Required by celery[sqs] which uses pycurl for AWS SQS support
   libcurl4 \
   shared-mime-info \
-  mime-support \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
