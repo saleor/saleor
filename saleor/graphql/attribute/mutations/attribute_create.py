@@ -176,6 +176,7 @@ class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
         if not cls.check_permissions(info.context, permissions):
             raise PermissionDenied(permissions=permissions)
 
+        cls.validate_reference_types_limit(input)
         instance = models.Attribute()
 
         # Do cleaning and uniqueness checks

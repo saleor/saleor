@@ -152,6 +152,7 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     ):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
 
+        cls.validate_reference_types_limit(input)
         # Do cleaning and uniqueness checks
         cleaned_input = cls.clean_input(info, instance, input)
         cls.clean_attribute(instance, cleaned_input)
