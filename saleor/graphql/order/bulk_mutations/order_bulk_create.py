@@ -603,7 +603,7 @@ class OrderBulkCreateInput(BaseInputObjectType):
         LanguageCodeEnum, required=True, description="Order language code."
     )
     display_gross_prices = graphene.Boolean(
-        description=("Determines whether displayed prices should include taxes."),
+        description="Determines whether displayed prices should include taxes.",
     )
     weight = WeightScalar(description="Weight of the order in kg.")
     redirect_url = graphene.String(

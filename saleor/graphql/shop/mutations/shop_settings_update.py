@@ -36,7 +36,7 @@ class ShopSettingsInput(graphene.InputObjectType):
         description="Enable automatic approval of all new fulfillments."
     )
     fulfillment_allow_unpaid = graphene.Boolean(
-        description=("Enable ability to approve fulfillments which are unpaid.")
+        description="Enable ability to approve fulfillments which are unpaid."
     )
     default_digital_max_downloads = graphene.Int(
         description="Default number of max downloads per digital content URL."
@@ -77,7 +77,7 @@ class ShopSettingsInput(graphene.InputObjectType):
         description="Enable automatic account confirmation by email."
     )
     allow_login_without_confirmation = graphene.Boolean(
-        description=("Enable possibility to login without account confirmation.")
+        description="Enable possibility to login without account confirmation."
     )
     metadata = common_types.NonNullList(
         MetadataInput,

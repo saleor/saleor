@@ -203,10 +203,10 @@ def test_export_valid_voucher_code_ids_CORE_0925(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("file_type"),
+    "file_type",
     [
-        ("XLSX"),
-        ("CSV"),
+        "XLSX",
+        "CSV",
     ],
 )
 def test_export_voucher_codes_with_invalid_voucher_id_CORE_0925(
@@ -239,10 +239,10 @@ def test_export_voucher_codes_with_invalid_voucher_id_CORE_0925(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("file_type"),
+    "file_type",
     [
-        ("XLSX"),
-        ("CSV"),
+        "XLSX",
+        "CSV",
     ],
 )
 def test_export_voucher_codes_with_invalid_voucher_codes_CORE_0925(
@@ -274,10 +274,10 @@ def test_export_voucher_codes_with_invalid_voucher_codes_CORE_0925(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("file_type"),
+    "file_type",
     [
-        ("XLSX"),
-        ("CSV"),
+        "XLSX",
+        "CSV",
     ],
 )
 def test_export_voucher_codes_without_voucher_id_nor_codes_CORE_0925(

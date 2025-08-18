@@ -53,4 +53,4 @@ def test_unassign_not_assigned_variant_media_image(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["variantMediaUnassign"]["errors"][0]["field"] == ("mediaId")
+    assert content["data"]["variantMediaUnassign"]["errors"][0]["field"] == "mediaId"

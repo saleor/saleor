@@ -41,7 +41,7 @@ class PaymentMethodDetailsBase(BaseModel):
     name: Annotated[
         str,
         Field(
-            description=("Name of the payment method used for the transaction."),
+            description="Name of the payment method used for the transaction.",
             max_length=256,
         ),
     ]
@@ -119,7 +119,7 @@ class TransactionBaseSchema(BaseModel):
             validation_alias="pspReference",
             default=None,
             description=(
-                "Psp reference received from payment provider. Optional for the following results: "
+                "PSP reference received from payment provider. Optional for the following results: "
                 + ", ".join([event.upper() for event in OPTIONAL_PSP_REFERENCE_EVENTS])
             ),
         ),
@@ -240,7 +240,7 @@ class TransactionAsyncSchema(BaseModel):
         str,
         Field(
             validation_alias="pspReference",
-            description=("Psp reference received from payment provider."),
+            description="PSP reference received from payment provider.",
         ),
     ]
     actions: (  # type: ignore[name-defined]
@@ -266,7 +266,7 @@ class TransactionSyncFailureSchema(TransactionBaseSchema):
         Field(
             validation_alias="pspReference",
             default=None,
-            description=("Psp reference received from payment provider."),
+            description="PSP reference received from payment provider.",
         ),
     ]
 
@@ -276,7 +276,7 @@ class TransactionSyncSuccessSchema(TransactionBaseSchema):
         str,
         Field(
             validation_alias="pspReference",
-            description=("Psp reference received from payment provider."),
+            description="PSP reference received from payment provider.",
         ),
     ]
 
@@ -374,7 +374,7 @@ class TransactionSessionFailureSchema(TransactionSessionBaseSchema):
         Field(
             validation_alias="pspReference",
             default=None,
-            description=("Psp reference received from payment provider."),
+            description="PSP reference received from payment provider.",
         ),
     ]
 
@@ -392,7 +392,7 @@ class TransactionSessionActionRequiredSchema(TransactionSessionBaseSchema):
         Field(
             validation_alias="pspReference",
             default=None,
-            description=("Psp reference received from payment provider."),
+            description="PSP reference received from payment provider.",
         ),
     ]
 
@@ -411,7 +411,7 @@ class TransactionSessionSuccessSchema(TransactionSessionBaseSchema):
         str,
         Field(
             validation_alias="pspReference",
-            description=("Psp reference received from payment provider."),
+            description="PSP reference received from payment provider.",
         ),
     ]
 

@@ -3031,7 +3031,7 @@ def test_transaction_update_for_order_triggers_webhooks_when_fully_paid(
 
 
 @pytest.mark.parametrize(
-    ("auto_order_confirmation"),
+    "auto_order_confirmation",
     [True, False],
 )
 @patch("saleor.plugins.manager.PluginsManager.order_paid")

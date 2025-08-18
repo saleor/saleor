@@ -33,7 +33,7 @@ class SendConfirmationEmail(BaseMutation):
         )
         channel = graphene.String(
             required=True,
-            description=("Slug of a channel which will be used for notify user."),
+            description="Slug of a channel which will be used for notify user.",
         )
 
     class Meta:

@@ -63,7 +63,7 @@ class ProductVariantInput(BaseInputObjectType):
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
-        description=("Determines if variant is in preorder.")
+        description="Determines if variant is in preorder."
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,

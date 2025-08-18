@@ -886,7 +886,7 @@ class AddressValidationData(BaseObjectType):
     postal_code_matchers = NonNullList(
         graphene.String,
         required=True,
-        description=("The regular expression for postal code validation."),
+        description="The regular expression for postal code validation.",
     )
     postal_code_examples = NonNullList(
         graphene.String,

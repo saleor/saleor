@@ -218,7 +218,7 @@ def test_get_response_for_stored_payment_method_request_delete_response_is_none(
 
 
 @pytest.mark.parametrize(
-    ("response_data"),
+    "response_data",
     [
         # Response with SUCCESSFULLY_INITIALIZED result and data
         {
