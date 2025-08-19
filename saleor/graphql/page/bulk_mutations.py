@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models.expressions import Exists, OuterRef
+from django.db.models import Exists, OuterRef
 
 from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
@@ -9,6 +9,7 @@ from ...attribute.lock_objects import attribute_value_qs_select_for_update
 from ...core.tracing import traced_atomic_transaction
 from ...page import models
 from ...permission.enums import PagePermissions, PageTypePermissions
+from ...product.lock_objects import product_qs_select_for_update
 from ...product.models import Product
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
@@ -49,9 +50,20 @@ class PageBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def update_products_search_index(cls, instance_pks):
         # Mark products that use these page instances as references as dirty
-        Product.objects.filter(
-            attributevalues__value__reference_page__id__in=instance_pks
-        ).update(search_index_dirty=True)
+        with transaction.atomic():
+            locked_ids = (
+                product_qs_select_for_update()
+                .filter(
+                    Exists(
+                        attribute_models.AssignedProductAttributeValue.objects.filter(
+                            product_id=OuterRef("id"),
+                            value__reference_page_id__in=instance_pks,
+                        )
+                    )
+                )
+                .values_list("id", flat=True)
+            )
+            Product.objects.filter(id__in=locked_ids).update(search_index_dirty=True)
 
     @classmethod
     def delete_assigned_attribute_values(cls, instance_pks):
@@ -133,9 +145,20 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
     def update_products_search_index(cls, instance_pks):
         # Mark products that use pages belonging to these page types as reference as
         # dirty
-        Product.objects.filter(
-            attributevalues__value__reference_page__page_type_id__in=instance_pks
-        ).update(search_index_dirty=True)
+        with transaction.atomic():
+            locked_ids = (
+                product_qs_select_for_update()
+                .filter(
+                    Exists(
+                        attribute_models.AssignedProductAttributeValue.objects.filter(
+                            product_id=OuterRef("id"),
+                            value__reference_page__page_type_id__in=instance_pks,
+                        )
+                    )
+                )
+                .values_list("id", flat=True)
+            )
+            Product.objects.filter(id__in=locked_ids).update(search_index_dirty=True)
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
