@@ -1,7 +1,6 @@
 import json
 import logging
 import timeit
-
 from collections.abc import Callable
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -39,8 +38,7 @@ from ....payment.utils import (
 from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
-from ... import const
-from ... import observability
+from ... import const, observability
 from ...event_types import WebhookEventSyncType
 from ...payloads import generate_transaction_action_request_payload
 from ...utils import get_webhooks_for_event
