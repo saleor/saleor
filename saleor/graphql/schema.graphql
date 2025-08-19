@@ -28793,6 +28793,15 @@ input AttributeCreateInput @doc(category: "Attributes") {
 
   """External ID of this attribute."""
   externalReference: String
+
+  """
+  Specifies reference types to narrow down the choices of reference objects. Applicable only for `REFERENCE` and `SINGLE_REFERENCE` attributes with `PRODUCT`, `PRODUCT_VARIANT` and `PAGE` entity types. Accepts `ProductType` IDs for `PRODUCT` and `PRODUCT_VARIANT` entity types, and `PageType` IDs for `PAGE` entity type. If omitted, all objects of the selected entity type are available as attribute values.
+  
+  A maximum of 100 reference types can be specified.
+  
+  Added in Saleor 3.22.
+  """
+  referenceTypes: [ID!]
 }
 
 input AttributeValueCreateInput @doc(category: "Attributes") {
@@ -28900,6 +28909,15 @@ input AttributeUpdateInput @doc(category: "Attributes") {
 
   """External ID of this product."""
   externalReference: String
+
+  """
+  Specifies reference types to narrow down the choices of reference objects. Applicable only for `REFERENCE` and `SINGLE_REFERENCE` attributes with `PRODUCT`, `PRODUCT_VARIANT` and `PAGE` entity types. Accepts `ProductType` IDs for `PRODUCT` and `PRODUCT_VARIANT` entity types, and `PageType` IDs for `PAGE` entity type. If omitted, all objects of the selected entity type are available as attribute values.
+  
+  A maximum of 100 reference types can be specified.
+  
+  Added in Saleor 3.22.
+  """
+  referenceTypes: [ID!]
 }
 
 input AttributeValueUpdateInput @doc(category: "Attributes") {
