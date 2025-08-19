@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import cast
 
 import graphene
@@ -680,19 +681,14 @@ class SelectedAttribute(graphene.Interface):
         if instance.attribute.node.input_type == AttributeInputType.REFERENCE:
             entity_type = cast(str, instance.attribute.node.entity_type)
             return ASSIGNED_MULTI_REFERENCE_MAP.get(entity_type)
-        attr_type = ASSIGNED_ATTRIBUTE_MAP.get(
-            instance.attribute.node.input_type,
-        )
-        if not attr_type:
-            # It is only a temporary until introducing the rest of the types.
-            return AssignedNumericAttribute
+        attr_type = ASSIGNED_ATTRIBUTE_MAP[instance.attribute.node.input_type]
         return attr_type
 
 
 class AssignedNumericAttribute(BaseObjectType):
     value = graphene.Float(
         required=False,
-        description="Numeric value of an attribute.",
+        description="The assigned numeric value.",
     )
 
     class Meta:
@@ -711,7 +707,7 @@ class AssignedNumericAttribute(BaseObjectType):
 class AssignedTextAttribute(BaseObjectType):
     value = graphene.Field(
         JSON,
-        description="Rich text content.",
+        description="The assigned rich text content.",
         required=False,
     )
 
@@ -721,7 +717,7 @@ class AssignedTextAttribute(BaseObjectType):
             LanguageCodeEnum,
             required=True,
         ),
-        description="Translation of the rich text content.",
+        description="Translation of the rich text content in the specified language.",
         required=False,
     )
 
@@ -759,7 +755,7 @@ class AssignedTextAttribute(BaseObjectType):
 
 class AssignedPlainTextAttribute(BaseObjectType):
     value = graphene.String(
-        description="Plain text content.",
+        description="The assigned plain text content.",
         required=False,
     )
 
@@ -769,7 +765,7 @@ class AssignedPlainTextAttribute(BaseObjectType):
             LanguageCodeEnum,
             required=True,
         ),
-        description="Translation of the plain text content.",
+        description="Translation of the plain text content in the specified language.",
         required=False,
     )
 
@@ -806,9 +802,7 @@ class AssignedPlainTextAttribute(BaseObjectType):
 
 
 class AssignedFileAttribute(BaseObjectType):
-    value = graphene.Field(
-        File, description=AttributeValueDescriptions.FILE, required=False
-    )
+    value = graphene.Field(File, description="The assigned file.", required=False)
 
     class Meta:
         interfaces = [SelectedAttribute]
@@ -825,7 +819,7 @@ class AssignedFileAttribute(BaseObjectType):
 class AssignedSinglePageReferenceAttribute(BaseObjectType):
     value = graphene.Field(
         "saleor.graphql.page.types.Page",
-        description="Referenced page.",
+        description="The assigned page reference.",
         required=False,
     )
 
@@ -853,7 +847,7 @@ class AssignedSinglePageReferenceAttribute(BaseObjectType):
 class AssignedSingleProductReferenceAttribute(BaseObjectType):
     value = graphene.Field(
         "saleor.graphql.product.types.Product",
-        description="Referenced product.",
+        description="The assigned product reference.",
         required=False,
     )
 
@@ -883,7 +877,7 @@ class AssignedSingleProductReferenceAttribute(BaseObjectType):
 class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
     value = graphene.Field(
         "saleor.graphql.product.types.ProductVariant",
-        description="Referenced product variant.",
+        description="The assigned product variant reference.",
         required=False,
     )
 
@@ -917,7 +911,7 @@ class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
 class AssignedSingleCategoryReferenceAttribute(BaseObjectType):
     value = graphene.Field(
         "saleor.graphql.product.types.Category",
-        description="Referenced category.",
+        description="The assigned category reference.",
         required=False,
     )
 
@@ -938,7 +932,7 @@ class AssignedSingleCategoryReferenceAttribute(BaseObjectType):
 class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
     value = graphene.Field(
         "saleor.graphql.product.types.Collection",
-        description="Referenced collection.",
+        description="The assigned collection reference.",
         required=False,
     )
 
@@ -970,7 +964,7 @@ class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
 class AssignedMultiPageReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.page.types.Page",
-        description="List of referenced pages.",
+        description="List of assigned page references.",
         required=True,
     )
 
@@ -1007,7 +1001,7 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
 class AssignedMultiProductReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.product.types.Product",
-        description="List of referenced products.",
+        description="List of assigned product references.",
         required=True,
     )
 
@@ -1045,7 +1039,7 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
 class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.product.types.ProductVariant",
-        description="List of referenced product variants.",
+        description="List of assigned product variant references.",
         required=True,
     )
 
@@ -1085,7 +1079,7 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
 class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.product.types.Category",
-        description="List of referenced categories.",
+        description="List of assigned category references.",
         required=True,
     )
 
@@ -1109,7 +1103,7 @@ class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
 class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
     value = NonNullList(
         "saleor.graphql.product.types.Collection",
-        description="List of referenced collections.",
+        description="List of assigned collection references.",
         required=True,
     )
 
@@ -1144,6 +1138,181 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
         )
 
 
+class AssignedChoiceAttributeValue(BaseObjectType):
+    name = graphene.String(description=AttributeValueDescriptions.NAME)
+    slug = graphene.String(description=AttributeValueDescriptions.SLUG)
+    translation = graphene.String(
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            required=True,
+        ),
+        description="Translation of the name.",
+        required=False,
+    )
+
+    class Meta:
+        description = (
+            "Represents a single choice value of the attribute." + ADDED_IN_322
+        )
+
+    @staticmethod
+    def resolve_translation(
+        root: AttributeValue, info: ResolveInfo, *, language_code
+    ) -> Promise[str | None] | None:
+        return (
+            AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
+            .load((root.id, language_code))
+            .then(lambda translation: translation.name if translation else None)
+        )
+
+
+class AssignedSingleChoiceAttribute(BaseObjectType):
+    value = graphene.Field(
+        AssignedChoiceAttributeValue,
+        required=False,
+        description="The assigned choice value.",
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents a single choice attribute." + ADDED_IN_322
+
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> models.AttributeValue | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value
+
+
+class AssignedMultiChoiceAttribute(BaseObjectType):
+    value = NonNullList(
+        AssignedChoiceAttributeValue,
+        required=True,
+        description="List of assigned choice values.",
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents a multi choice attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, info: ResolveInfo
+    ) -> list[models.AttributeValue]:
+        return [value.node for value in root.values]
+
+
+class AssignedSwatchAttributeValue(BaseObjectType):
+    name = graphene.String(
+        description="Name of the selected swatch value. ",
+        required=False,
+    )
+    slug = graphene.String(
+        description="Slug of the selected swatch value.",
+        required=False,
+    )
+    hex_color = graphene.String(
+        required=False,
+        description="Hex color code.",
+    )
+    file = graphene.Field(
+        File, description="File associated with the attribute.", required=False
+    )
+
+    @staticmethod
+    def resolve_hex_color(
+        root: models.AttributeValue, _info: ResolveInfo
+    ) -> str | None:
+        return root.value
+
+    @staticmethod
+    def resolve_file(root: models.AttributeValue, _info: ResolveInfo) -> File | None:
+        if not root.file_url:
+            return None
+        return File(url=root.file_url, content_type=root.content_type)
+
+
+class AssignedSwatchAttribute(BaseObjectType):
+    value = graphene.Field(
+        AssignedSwatchAttributeValue,
+        required=False,
+        description="The assigned swatch value.",
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents a swatch attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, _info: ResolveInfo
+    ) -> models.AttributeValue | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value
+
+
+class AssignedBooleanAttribute(BaseObjectType):
+    value = graphene.Boolean(
+        description="The assigned boolean value.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents a boolean attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> bool | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.boolean
+
+
+class AssignedDateAttribute(BaseObjectType):
+    value = graphene.Field(
+        Date,
+        description="The assigned date value.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents a date attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> date | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.date_time.date() if attr_value.date_time else None
+
+
+class AssignedDateTimeAttribute(BaseObjectType):
+    value = graphene.Field(
+        DateTime,
+        description="The assigned date time value.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [SelectedAttribute]
+        description = "Represents a date time attribute." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_value(
+        root: SelectedAttributeData, _info: ResolveInfo
+    ) -> datetime | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.date_time
+
+
 ASSIGNED_SINGLE_REFERENCE_MAP = {
     AttributeEntityType.PAGE: AssignedSinglePageReferenceAttribute,
     AttributeEntityType.PRODUCT: AssignedSingleProductReferenceAttribute,
@@ -1163,6 +1332,12 @@ ASSIGNED_ATTRIBUTE_MAP = {
     AttributeInputType.RICH_TEXT: AssignedTextAttribute,
     AttributeInputType.PLAIN_TEXT: AssignedPlainTextAttribute,
     AttributeInputType.FILE: AssignedFileAttribute,
+    AttributeInputType.DROPDOWN: AssignedSingleChoiceAttribute,
+    AttributeInputType.MULTISELECT: AssignedMultiChoiceAttribute,
+    AttributeInputType.SWATCH: AssignedSwatchAttribute,
+    AttributeInputType.BOOLEAN: AssignedBooleanAttribute,
+    AttributeInputType.DATE: AssignedDateAttribute,
+    AttributeInputType.DATE_TIME: AssignedDateTimeAttribute,
 }
 ASSIGNED_ATTRIBUTE_TYPES = (
     list(ASSIGNED_ATTRIBUTE_MAP.values())

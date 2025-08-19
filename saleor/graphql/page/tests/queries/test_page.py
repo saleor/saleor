@@ -33,12 +33,6 @@ PAGE_QUERY = """
                     id
                     slug
                 }
-                ... on AssignedNumericAttribute {
-                    attribute {
-                        id
-                    }
-                    value
-                }
             }
         }
     }
@@ -92,7 +86,6 @@ def test_query_published_page(user_api_client, page):
             {
                 "attribute": {"id": attr_id, "slug": attr.slug},
                 "values": values,
-                "value": None,
             }
         )
 

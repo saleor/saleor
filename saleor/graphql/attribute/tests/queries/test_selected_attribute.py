@@ -1,9 +1,16 @@
+from datetime import UTC, datetime
+
 import graphene
 
-from .....attribute import AttributeInputType
+from .....attribute import AttributeEntityType, AttributeInputType, AttributeType
 from .....attribute.models.base import AttributeValue, AttributeValueTranslation
 from .....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import get_graphql_content
+from ...types import (
+    ASSIGNED_ATTRIBUTE_MAP,
+    ASSIGNED_MULTI_REFERENCE_MAP,
+    ASSIGNED_SINGLE_REFERENCE_MAP,
+)
 
 PAGE_QUERY = """
     query PageQuery($id: ID) {
@@ -988,3 +995,443 @@ def test_assigned_multi_collection_reference_attribute(
     single_page_data = data[0]
     assert single_page_data["__typename"] == "Collection"
     assert single_page_data["slug"] == expected_reference_slug
+
+
+ASSIGNED_SINGLE_CHOICE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ...on AssignedSingleChoiceAttribute{
+        __typename
+        value{
+          name
+          slug
+          translation(languageCode:FR)
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_single_choice_attribute_translation(
+    staff_api_client,
+    page,
+    size_page_attribute,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([size_page_attribute])
+
+    attr_value = size_page_attribute.values.first()
+    translation = AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=attr_value,
+        name="French Size Name",
+    )
+
+    associate_attribute_values_to_instance(page, {size_page_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SINGLE_CHOICE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    assert (
+        content["data"]["page"]["attributes"][0]["value"]["translation"]
+        == translation.name
+    )
+
+
+def test_assigned_single_choice_attribute(
+    staff_api_client,
+    page,
+    size_page_attribute,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([size_page_attribute])
+
+    attr_value = size_page_attribute.values.first()
+    expected_attr_value_name = "Size M"
+    expected_attr_value_slug = "size-m"
+    attr_value.slug = expected_attr_value_slug
+    attr_value.name = expected_attr_value_name
+    attr_value.save()
+
+    associate_attribute_values_to_instance(page, {size_page_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SINGLE_CHOICE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert attr_value_data["name"] == expected_attr_value_name
+    assert attr_value_data["slug"] == expected_attr_value_slug
+
+
+ASSIGNED_MULTI_CHOICE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ... on AssignedMultiChoiceAttribute {
+        __typename
+        value {
+          name
+          slug
+          translation(languageCode: FR)
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_multi_choice_attribute_translation(
+    staff_api_client,
+    page,
+    size_page_attribute,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([size_page_attribute])
+
+    size_page_attribute.input_type = AttributeInputType.MULTISELECT
+    size_page_attribute.save()
+
+    attr_value = size_page_attribute.values.first()
+    translation = AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=attr_value,
+        name="French Size Name",
+    )
+
+    associate_attribute_values_to_instance(page, {size_page_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTI_CHOICE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["attributes"][0]["value"]) == 1
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"][0]
+    assert attr_value_data["translation"] == translation.name
+
+
+def test_assigned_multi_choice_attribute(
+    staff_api_client,
+    page,
+    size_page_attribute,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([size_page_attribute])
+
+    size_page_attribute.input_type = AttributeInputType.MULTISELECT
+    size_page_attribute.save()
+
+    attr_value = size_page_attribute.values.first()
+    expected_attr_value_name = "Size M"
+    expected_attr_value_slug = "size-m"
+    attr_value.slug = expected_attr_value_slug
+    attr_value.name = expected_attr_value_name
+    attr_value.save()
+
+    associate_attribute_values_to_instance(page, {size_page_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTI_CHOICE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    assert len(content["data"]["page"]["attributes"][0]["value"]) == 1
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"][0]
+    assert attr_value_data["name"] == expected_attr_value_name
+    assert attr_value_data["slug"] == expected_attr_value_slug
+
+
+ASSIGNED_SWATCH_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ... on AssignedSwatchAttribute {
+        value {
+          name
+          slug
+          hexColor
+          file {
+            url
+            contentType
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_swatch_attribute(
+    staff_api_client,
+    page,
+    swatch_attribute,
+):
+    # given
+    swatch_attribute.type = AttributeType.PAGE_TYPE
+    swatch_attribute.save()
+
+    page_type = page.page_type
+    page_type.page_attributes.set([swatch_attribute])
+
+    attr_value = swatch_attribute.values.first()
+    expected_attr_value_name = "Red"
+    expected_attr_value_slug = "red"
+    expected_attr_hex_value = "#5C3030"
+    attr_value.slug = expected_attr_value_slug
+    attr_value.name = expected_attr_value_name
+    attr_value.value = expected_attr_hex_value
+    attr_value.save()
+
+    associate_attribute_values_to_instance(page, {swatch_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SWATCH_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert attr_value_data["name"] == expected_attr_value_name
+    assert attr_value_data["slug"] == expected_attr_value_slug
+    assert attr_value_data["hexColor"] == expected_attr_hex_value
+
+
+def test_assigned_swatch_file_attribute(staff_api_client, page, swatch_attribute):
+    # given
+    swatch_attribute.type = AttributeType.PAGE_TYPE
+    swatch_attribute.save()
+
+    page_type = page.page_type
+    page_type.page_attributes.set([swatch_attribute])
+
+    attr_value = swatch_attribute.values.first()
+
+    attr_value.file_url = "https://example.com/file.pdf"
+    attr_value.content_type = "application/pdf"
+    attr_value.save()
+
+    associate_attribute_values_to_instance(page, {swatch_attribute.pk: [attr_value]})
+
+    assert attr_value.file_url is not None
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SWATCH_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert attr_value_data["name"] == attr_value.name
+    assert attr_value_data["slug"] == attr_value.slug
+    assert attr_value_data["file"]["url"] == attr_value.file_url
+    assert attr_value_data["file"]["contentType"] == attr_value.content_type
+
+
+ASSIGNED_BOOLEAN_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ... on AssignedBooleanAttribute {
+        value
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_boolean_attribute(
+    staff_api_client,
+    page,
+    boolean_attribute,
+):
+    # given
+    boolean_attribute.type = AttributeType.PAGE_TYPE
+    boolean_attribute.save()
+
+    page_type = page.page_type
+    page_type.page_attributes.set([boolean_attribute])
+
+    attr_value = boolean_attribute.values.first()
+    expected_attr_value = True
+    attr_value.boolean = expected_attr_value
+    attr_value.save()
+
+    associate_attribute_values_to_instance(page, {boolean_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_BOOLEAN_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert attr_value_data is expected_attr_value
+
+
+ASSIGNED_DATE_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ... on AssignedDateAttribute {
+        value
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_date_attribute(
+    staff_api_client,
+    page,
+    date_attribute,
+):
+    # given
+    date_attribute.type = AttributeType.PAGE_TYPE
+    date_attribute.save()
+
+    page_type = page.page_type
+    page_type.page_attributes.set([date_attribute])
+
+    attr_value = date_attribute.values.first()
+    expected_attr_datetime_value = datetime.now(UTC)
+    attr_value.date_time = expected_attr_datetime_value
+    attr_value.save()
+
+    associate_attribute_values_to_instance(page, {date_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_DATE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert attr_value_data == str(expected_attr_datetime_value.date())
+
+
+ASSIGNED_DATETIME_ATTRIBUTE_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    attributes {
+      ... on AssignedDateTimeAttribute {
+        value
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_datetime_attribute(
+    staff_api_client,
+    page,
+    date_time_attribute,
+):
+    # given
+    date_time_attribute.type = AttributeType.PAGE_TYPE
+    date_time_attribute.save()
+
+    page_type = page.page_type
+    page_type.page_attributes.set([date_time_attribute])
+
+    attr_value = date_time_attribute.values.first()
+    expected_attr_datetime_value = datetime.now(UTC)
+    attr_value.date_time = expected_attr_datetime_value
+    attr_value.save()
+
+    associate_attribute_values_to_instance(page, {date_time_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_DATETIME_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["attributes"]) == 1
+    attr_value_data = content["data"]["page"]["attributes"][0]["value"]
+    assert attr_value_data == str(expected_attr_datetime_value.isoformat())
+
+
+def test_all_non_reference_attribute_type_has_own_assigned_types():
+    expected_attribute_types = [value for (value, _) in AttributeInputType.CHOICES]
+    expected_attribute_types.remove(
+        AttributeInputType.SINGLE_REFERENCE,
+    )
+    expected_attribute_types.remove(
+        AttributeInputType.REFERENCE,
+    )
+
+    assert all(ASSIGNED_ATTRIBUTE_MAP.values())
+    assert set(ASSIGNED_ATTRIBUTE_MAP.keys()) == set(expected_attribute_types)
+
+
+def test_all_single_reference_attribute_type_has_own_assigned_types():
+    expected_entity_names = [
+        entity_name for (entity_name, _) in AttributeEntityType.CHOICES
+    ]
+
+    assert all(ASSIGNED_SINGLE_REFERENCE_MAP.values())
+    assert set(ASSIGNED_SINGLE_REFERENCE_MAP.keys()) == set(expected_entity_names)
+
+
+def test_all_multi_reference_attribute_type_has_own_assigned_types():
+    expected_entity_names = [
+        entity_name for (entity_name, _) in AttributeEntityType.CHOICES
+    ]
+
+    assert all(ASSIGNED_MULTI_REFERENCE_MAP.values())
+    assert set(ASSIGNED_MULTI_REFERENCE_MAP.keys()) == set(expected_entity_names)
