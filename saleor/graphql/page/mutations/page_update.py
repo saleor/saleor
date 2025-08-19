@@ -69,7 +69,10 @@ class PageUpdate(PageCreate):
                 .filter(
                     Exists(
                         attribute_models.AssignedProductAttributeValue.objects.filter(
-                            value__reference_page=instance, product_id=OuterRef("id")
+                            value__in=attribute_models.AttributeValue.objects.filter(
+                                reference_page=instance
+                            ),
+                            product_id=OuterRef("id"),
                         )
                     )
                 )

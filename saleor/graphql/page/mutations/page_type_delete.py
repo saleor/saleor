@@ -50,8 +50,10 @@ class PageTypeDelete(ModelDeleteMutation):
                 .filter(
                     Exists(
                         attribute_models.AssignedProductAttributeValue.objects.filter(
-                            value__reference_page_id__in=page_ids,
                             product_id=OuterRef("id"),
+                            value__in=attribute_models.AttributeValue.objects.filter(
+                                reference_page_id__in=page_ids
+                            ),
                         )
                     )
                 )
