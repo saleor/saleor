@@ -56,7 +56,9 @@ class PageBulkDelete(ModelBulkDeleteMutation):
                     Exists(
                         attribute_models.AssignedProductAttributeValue.objects.filter(
                             product_id=OuterRef("id"),
-                            value__reference_page_id__in=instance_pks,
+                            value__in=attribute_models.AttributeValue.objects.filter(
+                                reference_page__in=instance_pks
+                            ),
                         )
                     )
                 )
@@ -136,6 +138,9 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
     def update_products_search_index(cls, instance_pks):
         # Mark products that use pages belonging to these page types as reference as
         # dirty
+        page_ids = models.Page.objects.filter(page_type__in=instance_pks).values_list(
+            "id", flat=True
+        )
         with transaction.atomic():
             locked_ids = (
                 product_qs_select_for_update()
@@ -143,7 +148,9 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
                     Exists(
                         attribute_models.AssignedProductAttributeValue.objects.filter(
                             product_id=OuterRef("id"),
-                            value__reference_page__page_type_id__in=instance_pks,
+                            value__in=attribute_models.AttributeValue.objects.filter(
+                                reference_page_id__in=page_ids
+                            ),
                         )
                     )
                 )
