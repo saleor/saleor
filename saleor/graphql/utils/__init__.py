@@ -104,6 +104,7 @@ def get_nodes(
     qs=None,
     schema=None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    prefetch_related: Iterable[str] | None = None,
 ):
     """Return a list of nodes.
 
@@ -131,11 +132,15 @@ def get_nodes(
     elif model is not None:
         qs = model.objects.using(database_connection_name)
 
+    if prefetch_related is None:
+        prefetch_related = []
     is_object_type_with_double_id = str(graphene_type) in TYPES_WITH_DOUBLE_ID_AVAILABLE
     if is_object_type_with_double_id:
-        nodes = _get_node_for_types_with_double_id(qs, pks, graphene_type)
+        nodes = _get_node_for_types_with_double_id(
+            qs, pks, graphene_type, prefetch_related
+        )
     else:
-        nodes = list(qs.filter(pk__in=pks))
+        nodes = list(qs.filter(pk__in=pks).prefetch_related(*prefetch_related))
         nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
 
     if not nodes:
@@ -152,7 +157,7 @@ def get_nodes(
     return nodes
 
 
-def _get_node_for_types_with_double_id(qs, pks, graphene_type):
+def _get_node_for_types_with_double_id(qs, pks, graphene_type, prefetch_related):
     uuid_pks = []
     old_pks = []
     is_order_type = str(graphene_type) == "Order"
@@ -166,7 +171,7 @@ def _get_node_for_types_with_double_id(qs, pks, graphene_type):
         lookup = Q(id__in=uuid_pks) | (Q(use_old_id=True) & Q(number__in=old_pks))
     else:
         lookup = Q(id__in=uuid_pks) | (Q(old_id__isnull=False) & Q(old_id__in=old_pks))
-    nodes = list(qs.filter(lookup))
+    nodes = list(qs.filter(lookup).prefetch_related(*prefetch_related))
     old_id_field = "number" if is_order_type else "old_id"
     return sorted(
         nodes,
