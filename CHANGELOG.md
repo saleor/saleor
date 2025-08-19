@@ -133,6 +133,8 @@ Like `reference`, the `single-reference` type can target entities defined in the
 
 - Checkouts having total gross amount equal to 0 will get their authorization statuses updated to `CheckoutAuthorizeStatus.FULL` upon fetching checkout data.
 
+- Fixed a bug that could prevent rich text attributes written in scripts using combining diacritical marks (for example, Arabic) from being saved properly.
+
 ### Deprecations
 
 Following plugins are now marked as deprecated:
