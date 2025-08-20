@@ -72,6 +72,7 @@ jobs:
         with:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
+          env: ${{ env.GITHUB_HEAD_REF_SLUG_URL }}
           status: ${{ job.status }}
           env_url: https://${{ steps.set-domain.outputs.domain }}/graphql/
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
