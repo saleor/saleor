@@ -2753,7 +2753,7 @@ class WebhookPlugin(BasePlugin):
             }
         )
 
-        response_data = trigger_webhook_sync(
+        _, response_data = trigger_webhook_sync(
             event_type,
             payload,
             webhook,
@@ -2830,7 +2830,7 @@ class WebhookPlugin(BasePlugin):
             payload_data.update(additional_legacy_payload_data)
 
         payload = self._serialize_payload(payload_data)
-        response_data = trigger_webhook_sync(
+        _, response_data = trigger_webhook_sync(
             event_type,
             payload,
             webhook,
@@ -3060,7 +3060,7 @@ class WebhookPlugin(BasePlugin):
             webhook = get_webhooks_for_event(event_type, app.webhooks.all()).first()
             if not webhook:
                 raise PaymentError(f"No payment webhook found for event: {event_type}.")
-            response_data = trigger_webhook_sync(
+            _, response_data = trigger_webhook_sync(
                 event_type,
                 webhook_payload,
                 webhook,
@@ -3121,7 +3121,7 @@ class WebhookPlugin(BasePlugin):
         pregenerated_subscription_payload = get_pregenerated_subscription_payload(
             webhook, pregenerated_subscription_payloads
         )
-        response_data = trigger_webhook_sync(
+        _, response_data = trigger_webhook_sync(
             event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION,
             payload=json.dumps(payload, cls=CustomJsonEncoder),
             webhook=webhook,
@@ -3272,7 +3272,7 @@ class WebhookPlugin(BasePlugin):
             if promise_payload:
                 pregenerated_subscription_payload = promise_payload.get() or {}
 
-        response_data = trigger_webhook_sync(
+        _, response_data = trigger_webhook_sync(
             event_type=webhook_event,
             payload=payload,
             webhook=webhook,
@@ -3330,7 +3330,7 @@ class WebhookPlugin(BasePlugin):
             if not webhook:
                 raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
-            response_data = trigger_webhook_sync(
+            _, response_data = trigger_webhook_sync(
                 event_type=event_type,
                 payload=generate_list_gateways_payload(currency, checkout),
                 webhook=webhook,
@@ -3485,7 +3485,7 @@ class WebhookPlugin(BasePlugin):
         pregenerated_subscription_payload = get_pregenerated_subscription_payload(
             webhook, pregenerated_subscription_payloads
         )
-        response = trigger_webhook_sync(
+        _, response_data = trigger_webhook_sync(
             event_type=event_type,
             webhook=webhook,
             payload=payload_gen(),
@@ -3496,7 +3496,7 @@ class WebhookPlugin(BasePlugin):
             pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
         try:
-            tax_data = parse_tax_data(response, expected_lines_count)
+            tax_data = parse_tax_data(response_data, expected_lines_count)
         except ValidationError as e:
             errors = e.errors()
             logger.warning(

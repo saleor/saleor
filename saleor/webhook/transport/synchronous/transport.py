@@ -1,6 +1,5 @@
 import json
 import logging
-import timeit
 from collections.abc import Callable
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -182,9 +181,11 @@ def _send_webhook_request_sync(
 
 def send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
-) -> dict[Any, Any] | None:
+) -> tuple[WebhookResponse, dict[Any, Any] | None]:
     response, response_data = _send_webhook_request_sync(delivery, timeout)
-    return response_data if response.status == EventDeliveryStatus.SUCCESS else None
+    if response.status != EventDeliveryStatus.SUCCESS:
+        response_data = None
+    return response, response_data
 
 
 def trigger_webhook_sync_if_not_cached(
@@ -220,8 +221,7 @@ def trigger_webhook_sync_if_not_cached(
         )
         return None
     if response_data is None:
-        time_start = timeit.default_timer()
-        response_data = trigger_webhook_sync(
+        response, response_data = trigger_webhook_sync(
             event_type,
             payload,
             webhook,
@@ -232,10 +232,10 @@ def trigger_webhook_sync_if_not_cached(
             requestor=requestor,
             pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
-        elapsed = timeit.default_timer() - time_start
         if (
-            response_data is None
-            and elapsed > settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
+            response.status == EventDeliveryStatus.FAILED
+            and response.response_status_code is None
+            and "timed out" in response.content
         ):
             logger.warning(
                 "[Webhook] Request timeout from %s for event %s.",
@@ -245,13 +245,13 @@ def trigger_webhook_sync_if_not_cached(
             cache.set(
                 cache_key,
                 const.SYNC_WEBHOOK_TIMEOUT_SENTINEL,
-                timeout=cache_timeout or const.WEBHOOK_CACHE_DEFAULT_TTL,
+                timeout=cache_timeout or const.SYNC_WEBHOOK_TIMEOUT_CACHE_TTL,
             )
         if response_data is not None:
             cache.set(
                 cache_key,
                 response_data,
-                timeout=cache_timeout or const.SYNC_WEBHOOK_TIMEOUT_CACHE_TTL,
+                timeout=cache_timeout or const.WEBHOOK_CACHE_DEFAULT_TTL,
             )
     return response_data
 
@@ -337,7 +337,7 @@ def trigger_webhook_sync(
     request=None,
     requestor=None,
     pregenerated_subscription_payload: dict | None = None,
-) -> dict[Any, Any] | None:
+) -> tuple[WebhookResponse, dict[Any, Any] | None]:
     """Send a synchronous webhook request."""
     if webhook.subscription_query:
         delivery = create_delivery_for_subscription_sync_event(
@@ -427,7 +427,7 @@ def trigger_taxes_all_webhooks_sync(
                 webhook=webhook,
             )
 
-        response_data = send_webhook_request_sync(delivery)
+        _, response_data = send_webhook_request_sync(delivery)
         try:
             parsed_response = parse_tax_data(response_data, expected_lines_count)
         except ValidationError as e:

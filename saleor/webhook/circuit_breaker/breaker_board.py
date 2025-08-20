@@ -180,13 +180,13 @@ class BreakerBoard:
                     # Dry-run: execute webhook, but ignore result (pretend it's skipped)
                     return func(*args, **kwargs)
 
-            response = func(*args, **kwargs)
+            response, response_data = func(*args, **kwargs)
             if response is None:
                 self.register_error(app.id)
             else:
                 self.register_success(app.id)
 
-            return response
+            return response, response_data
 
         inner.__wrapped__ = func  # type: ignore[attr-defined]
 
