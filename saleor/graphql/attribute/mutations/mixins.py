@@ -194,7 +194,6 @@ class AttributeMixin:
             e.code = AttributeErrorCode.REQUIRED.value
             raise ValidationError({"slug": e}) from e
         cls._clean_attribute_settings(instance, cleaned_input)
-
         entity_type = cleaned_input.get("entity_type") or instance.entity_type
         input_type = cleaned_input.get("input_type") or instance.input_type
         entity_type = cast(str, entity_type)
