@@ -452,6 +452,7 @@ LOGGING = {
     },
 }
 
+
 AUTH_USER_MODEL = "account.User"
 
 AUTH_PASSWORD_VALIDATORS = [
