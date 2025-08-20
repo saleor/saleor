@@ -16,8 +16,8 @@ jobs:
       contents: read
       deployments: write
     steps:
-      - uses: actions/checkout@v2
-      - uses: rlespinasse/github-slug-action@3.1.0
+      - uses: actions/checkout@v4
+      - uses: rlespinasse/github-slug-action@955b5ba4560860f8a633bd24190941f16016e42c # v5.1.0
 
       - name: Set domain
         id: set-domain
@@ -26,7 +26,7 @@ jobs:
           echo "domain=${{ env.GITHUB_HEAD_REF_SLUG_URL }}.api.saleor.rocks" >> $GITHUB_OUTPUT
 
       - name: Start deployment
-        uses: bobheadxi/deployments@v0.4.2
+        uses: bobheadxi/deployments@648679e8e4915b27893bd7dbc35cb504dc915bc8 # v1.5.0
         id: deployment
         with:
           step: start
@@ -51,7 +51,7 @@ jobs:
           tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
 
       - name: Invoke deployment lambda
-        uses: gagoar/invoke-aws-lambda@v3.3.0
+        uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
@@ -67,7 +67,7 @@ jobs:
           LogType: Tail
 
       - name: Update deployment status
-        uses: bobheadxi/deployments@v0.4.2
+        uses: bobheadxi/deployments@648679e8e4915b27893bd7dbc35cb504dc915bc8 # v1.5.0
         if: always()
         with:
           step: finish
