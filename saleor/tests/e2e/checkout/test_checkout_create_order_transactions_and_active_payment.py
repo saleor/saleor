@@ -1,17 +1,16 @@
 import pytest
 
+from ....payment.error_codes import PaymentErrorCode
 from ..apps.utils import add_app
-from ..orders.utils import order_query
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
 from ..transactions.utils import transaction_initialize
 from ..utils import assign_permissions
 from .utils import (
-    checkout_complete,
     checkout_create,
     checkout_delivery_method_update,
-    checkout_dummy_payment_create,
 )
+from .utils.checkout_payment_create import raw_checkout_dummy_payment_create
 
 
 @pytest.mark.e2e
@@ -97,7 +96,6 @@ def test_complete_checkout_with_transaction_and_active_payment_CORE_1601(
     )
     # Step 2 - Set DeliveryMethod for checkout.
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-    subtotal_gross_amount = checkout_data["subtotalPrice"]["gross"]["amount"]
 
     # Step 3 - Initialize transaction
     transaction_initialize(
@@ -109,24 +107,14 @@ def test_complete_checkout_with_transaction_and_active_payment_CORE_1601(
     )
 
     # Step 4 - Create payment for checkout
-    checkout_dummy_payment_create(
-        e2e_not_logged_api_client, checkout_id, total_gross_amount
+    checkout_payment_create_response = raw_checkout_dummy_payment_create(
+        e2e_not_logged_api_client,
+        checkout_id,
+        total_gross_amount,
+        token="fully_charged",
     )
 
-    # Step 5 - Complete checkout.
-    order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
-
-    order_id = order_data["id"]
-
-    order_line = order_data["lines"][0]
-    assert order_data["status"] == "UNFULFILLED"
-    assert order_data["total"]["gross"]["amount"] == total_gross_amount
-    assert order_data["subtotal"]["gross"]["amount"] == subtotal_gross_amount
-    assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
-        product_variant_price
-    )
-
-    # Step 6gst - check if order has transactions and payments objects
-    order_data = order_query(e2e_staff_api_client, order_id)
-    assert order_data["transactions"]
-    assert order_data["payments"]
+    errors = checkout_payment_create_response["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] is None
+    assert errors[0]["code"] == PaymentErrorCode.CHECKOUT_HAS_TRANSACTION.name
