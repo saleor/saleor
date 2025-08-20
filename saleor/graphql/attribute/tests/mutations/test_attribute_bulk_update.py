@@ -979,6 +979,23 @@ def test_attribute_bulk_update_reference_types(
         ref_type["id"] for ref_type in data["results"][2]["attribute"]["referenceTypes"]
     } == set(page_type_ids[1:])
 
+    product_type_product_single_reference_attribute.refresh_from_db()
+    assert (
+        product_type_product_single_reference_attribute.reference_product_types.count()
+        == 1
+    )
+    product_type_variant_single_reference_attribute.refresh_from_db()
+    assert (
+        product_type_variant_single_reference_attribute.reference_product_types.count()
+        == 0
+    )
+    product_type_page_reference_attribute.refresh_from_db()
+    assert product_type_page_reference_attribute.reference_page_types.count() == len(
+        page_type_ids[1:]
+    )
+    page_type_page_reference_attribute.refresh_from_db()
+    assert page_type_page_reference_attribute.reference_page_types.count() == 0
+
 
 @patch("saleor.graphql.attribute.mutations.mixins.REFERENCE_TYPES_LIMIT", 1)
 def test_attribute_bulk_update_invalid_reference_types(

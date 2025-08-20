@@ -781,19 +781,23 @@ class AttributeBulkUpdate(BaseMutation):
             ModelPageReferenceType.objects.bulk_create(create_page_reference_types)
 
         if delete_product_reference_types_lookup:
-            locked_ref_product_types = (
+            _locked_ref_product_types = list(
                 attribute_reference_product_types_qs_select_for_update().filter(
                     delete_product_reference_types_lookup
                 )
             )
-            locked_ref_product_types.delete()
+            ModelProductReferenceType.objects.filter(
+                delete_product_reference_types_lookup
+            ).delete()
         if delete_page_reference_types_lookup:
-            locked_ref_page_types = (
+            _locked_ref_page_types = list(
                 attribute_reference_page_types_qs_select_for_update().filter(
                     delete_page_reference_types_lookup
                 )
             )
-            locked_ref_page_types.delete()
+            ModelPageReferenceType.objects.filter(
+                delete_page_reference_types_lookup
+            ).delete()
 
     @classmethod
     def post_save_actions(
