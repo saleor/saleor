@@ -194,7 +194,11 @@ class AttributeMixin:
             e.code = AttributeErrorCode.REQUIRED.value
             raise ValidationError({"slug": e}) from e
         cls._clean_attribute_settings(instance, cleaned_input)
-        cls.clean_reference_types(cleaned_input, instance)
+
+        entity_type = cleaned_input.get("entity_type") or instance.entity_type
+        input_type = cleaned_input.get("input_type") or instance.input_type
+        entity_type = cast(str, entity_type)
+        cls.clean_reference_types(cleaned_input, entity_type, input_type)
 
         return cleaned_input
 
@@ -219,18 +223,16 @@ class AttributeMixin:
             raise ValidationError(errors)
 
     @classmethod
-    def clean_reference_types(cls, cleaned_input: dict, attribute: models.Attribute):
+    def clean_reference_types(
+        cls, cleaned_input: dict, entity_type: str, input_type: str
+    ):
         """Validate reference types for reference attributes."""
         reference_types = cleaned_input.get("reference_types")
 
         if not reference_types:
             return
 
-        entity_type = cleaned_input.get("entity_type") or attribute.entity_type
-        attribute_input_type = cleaned_input.get("input_type") or attribute.input_type
-        entity_type = cast(str, entity_type)
-
-        cls._validate_reference_input_type(attribute_input_type)
+        cls._validate_reference_input_type(input_type)
         cls._validate_reference_entity_type(entity_type)
         cls._validate_reference_types(reference_types, entity_type)
 
