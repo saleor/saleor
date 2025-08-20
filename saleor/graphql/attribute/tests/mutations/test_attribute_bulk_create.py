@@ -745,7 +745,7 @@ def test_attribute_bulk_create_with_invalid_reference_types(
             "type": AttributeTypeEnum.PRODUCT_TYPE.name,
             "inputType": AttributeInputTypeEnum.REFERENCE.name,
             "entityType": AttributeEntityTypeEnum.PRODUCT.name,
-            # should be a list of page types
+            # should be a list of product types
             "referenceTypes": [ref_page_type_id],
         },
         {
@@ -753,7 +753,7 @@ def test_attribute_bulk_create_with_invalid_reference_types(
             "type": AttributeTypeEnum.PRODUCT_TYPE.name,
             "inputType": AttributeInputTypeEnum.SINGLE_REFERENCE.name,
             "entityType": AttributeEntityTypeEnum.PAGE.name,
-            # should be a list of product types
+            # should be a list of page types
             "referenceTypes": [ref_product_type_id],
         },
         {
