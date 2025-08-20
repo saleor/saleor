@@ -125,3 +125,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixes incorrect stock deallocation when multiple order lines share the same ProductVariant - #17657 by @korycins
 - Decrease allocations for lines with inventory tracking disabled, if allocations exist - #17657 by @korycins
 - Make token generator class configurable - #17701 by @wcislo-saleor
+- Fixed a bug that could prevent rich text attributes written in scripts using combining diacritical marks (for example, Arabic) from being saved properly.
