@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
+import graphene
+
 from .....attribute.error_codes import AttributeBulkCreateErrorCode
 from .....attribute.models import Attribute, AttributeValue
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
-from ...enums import AttributeInputTypeEnum, AttributeTypeEnum
+from ...enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 ATTRIBUTE_BULK_CREATE_MUTATION = """
     mutation AttributeBulkCreate(
@@ -22,6 +24,17 @@ ATTRIBUTE_BULK_CREATE_MUTATION = """
                     id
                     name
                     slug
+                    entityType
+                    referenceTypes {
+                        ... on ProductType {
+                            id
+                            slug
+                        }
+                        ... on PageType {
+                            id
+                            slug
+                        }
+                    }
                     choices(first: 10) {
                         edges {
                             node {
@@ -646,3 +659,153 @@ def test_attribute_bulk_create_dropdown_with_invalid_row_and_reject_failed_rows(
     choices = data["results"][0]["attribute"]["choices"]["edges"]
     assert choices[0]["node"]["name"] == value_1
     assert choices[0]["node"]["value"] == ""
+
+
+def test_attribute_bulk_create_with_reference_types(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    product_type,
+    page_type,
+):
+    # given
+    attribute_1_name = "Example name 1"
+    attribute_2_name = "Example name 2"
+    ref_product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    ref_page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
+    entity_type_1 = AttributeEntityTypeEnum.PRODUCT.name
+    entity_type_2 = AttributeEntityTypeEnum.PAGE.name
+
+    attributes = [
+        {
+            "name": attribute_1_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.REFERENCE.name,
+            "entityType": entity_type_1,
+            "referenceTypes": [ref_product_type_id],
+        },
+        {
+            "name": attribute_2_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SINGLE_REFERENCE.name,
+            "entityType": entity_type_2,
+            "referenceTypes": [ref_page_type_id],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+
+    # then
+    attributes = Attribute.objects.all()
+
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
+    assert data["results"][0]["attribute"]["name"] == attribute_1_name
+    assert data["results"][1]["attribute"]["name"] == attribute_2_name
+    assert data["results"][0]["attribute"]["entityType"] == entity_type_1
+    assert data["results"][1]["attribute"]["entityType"] == entity_type_2
+    assert len(data["results"][0]["attribute"]["referenceTypes"]) == 1
+    assert len(data["results"][1]["attribute"]["referenceTypes"]) == 1
+
+    assert (
+        data["results"][0]["attribute"]["referenceTypes"][0]["id"]
+        == ref_product_type_id
+    )
+    assert (
+        data["results"][1]["attribute"]["referenceTypes"][0]["id"] == ref_page_type_id
+    )
+
+
+@patch("saleor.graphql.attribute.mutations.mixins.REFERENCE_TYPES_LIMIT", 1)
+def test_attribute_bulk_create_with_invalid_reference_types(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    product_type,
+    page_type,
+    page_type_list,
+):
+    # given
+    attribute_1_name = "Example name 1"
+    attribute_2_name = "Example name 2"
+    ref_product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    ref_page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
+
+    attributes = [
+        {
+            "name": attribute_1_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.REFERENCE.name,
+            "entityType": AttributeEntityTypeEnum.PRODUCT.name,
+            # should be a list of product types
+            "referenceTypes": [ref_page_type_id],
+        },
+        {
+            "name": attribute_2_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SINGLE_REFERENCE.name,
+            "entityType": AttributeEntityTypeEnum.PAGE.name,
+            # should be a list of page types
+            "referenceTypes": [ref_product_type_id],
+        },
+        {
+            "name": attribute_2_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SINGLE_REFERENCE.name,
+            "entityType": AttributeEntityTypeEnum.PAGE.name,
+            # limit exceeded
+            "referenceTypes": [
+                graphene.Node.to_global_id("PageType", p_type.id)
+                for p_type in page_type_list
+            ],
+        },
+        {
+            "name": attribute_2_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SINGLE_REFERENCE.name,
+            # invalid entity type
+            "entityType": AttributeEntityTypeEnum.COLLECTION.name,
+            "referenceTypes": [ref_product_type_id],
+        },
+        {
+            "name": attribute_2_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            # invalid input type
+            "inputType": AttributeInputTypeEnum.DROPDOWN.name,
+            "referenceTypes": [ref_product_type_id],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+
+    # then
+    attributes = Attribute.objects.all()
+
+    assert data["count"] == 0
+    assert data["results"][0]["errors"]
+    assert data["results"][1]["errors"]
+    assert data["results"][2]["errors"]
+    assert data["results"][3]["errors"]
+    assert data["results"][4]["errors"]
+
+    for result in data["results"]:
+        assert len(result["errors"]) == 1
+        assert result["errors"][0]["code"] == AttributeBulkCreateErrorCode.INVALID.name
+        assert result["errors"][0]["path"] == "referenceTypes"
