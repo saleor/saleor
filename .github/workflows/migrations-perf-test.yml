@@ -13,8 +13,8 @@ jobs:
       id-token: write # needed by aws-actions/configure-aws-credentials
       contents: read
     steps:
-      - uses: actions/checkout@v2
-      - uses: rlespinasse/github-slug-action@e4699e49fcf890a3172a02c56ba78d867dbb9fd5
+      - uses: actions/checkout@v4
+      - uses: rlespinasse/github-slug-action@955b5ba4560860f8a633bd24190941f16016e42c # v5.1.0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
@@ -37,7 +37,7 @@ jobs:
           echo "PULL_ID=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
       - name: Invoke deployment lambda
-        uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
+        uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
@@ -62,8 +62,8 @@ jobs:
       id-token: write # needed by aws-actions/configure-aws-credentials
       contents: read
     steps:
-      - uses: actions/checkout@v2
-      - uses: rlespinasse/github-slug-action@e4699e49fcf890a3172a02c56ba78d867dbb9fd5
+      - uses: actions/checkout@v4
+      - uses: rlespinasse/github-slug-action@955b5ba4560860f8a633bd24190941f16016e42c # v5.1.0
 
       - name: Get pull number
         run: |
@@ -76,7 +76,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Invoke deployment lambda
-        uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
+        uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
