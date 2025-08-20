@@ -9,7 +9,6 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Model, Q
 from django.db.models.expressions import Exists, OuterRef
-from django.template.defaultfilters import truncatechars
 from django.utils.text import slugify
 from graphql.error import GraphQLError
 from text_unidecode import unidecode
@@ -24,6 +23,7 @@ from ...core.utils import (
     prepare_unique_slug,
 )
 from ...core.utils.editorjs import clean_editor_js
+from ...core.utils.text import safe_truncate
 from ...core.utils.url import get_default_storage_root_url
 from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
@@ -636,7 +636,7 @@ class AttributeAssignmentMixin:
             return ()
         defaults = {
             "rich_text": attr_values.rich_text,
-            "name": truncatechars(
+            "name": safe_truncate(
                 clean_editor_js(attr_values.rich_text, to_string=True), 200
             ),
         }
@@ -653,7 +653,7 @@ class AttributeAssignmentMixin:
             return ()
         defaults = {
             "plain_text": attr_values.plain_text,
-            "name": truncatechars(attr_values.plain_text, 200),
+            "name": safe_truncate(attr_values.plain_text, 200),
         }
         return cls._update_or_create_value(instance, attribute, defaults)
 

@@ -1,10 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.template.defaultfilters import truncatechars
 from graphql.error import GraphQLError
 
 from ....attribute import AttributeInputType, models
 from ....core.utils.editorjs import clean_editor_js
+from ....core.utils.text import safe_truncate
 from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeValueTranslation
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
@@ -137,11 +137,11 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
         if input_data.get("name") is None:
             attribute = instance.attribute_value.attribute
             if attribute.input_type == AttributeInputType.RICH_TEXT:
-                input_data["name"] = truncatechars(
+                input_data["name"] = safe_truncate(
                     clean_editor_js(input_data["rich_text"], to_string=True), 250
                 )
             elif attribute.input_type == AttributeInputType.PLAIN_TEXT:
-                input_data["name"] = truncatechars(input_data["plain_text"], 250)
+                input_data["name"] = safe_truncate(input_data["plain_text"], 250)
 
             # Set this value on the instance too as at this point it was already created
             # input_data will be used for validation
