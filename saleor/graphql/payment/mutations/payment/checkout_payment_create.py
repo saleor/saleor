@@ -209,7 +209,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     ):
         if TransactionItem.objects.filter(checkout=checkout).exists():
             raise ValidationError(
-                "Cannot create payment for checkout with a transaction.",
+                "Mixing Payments and Transactions within one Checkout object is not allowed.",
                 code=PaymentErrorCode.CHECKOUT_HAS_TRANSACTION.value,
             )
 
