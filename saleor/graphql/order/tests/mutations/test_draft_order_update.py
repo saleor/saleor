@@ -2502,7 +2502,7 @@ def test_draft_order_update_triggers_webhooks(
     settings,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -2600,7 +2600,7 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     settings,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,

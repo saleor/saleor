@@ -14,7 +14,7 @@ from freezegun import freeze_time
 from PIL import Image
 
 from ..account.models import Address, Group, StaffNotificationRecipient
-from ..core import JobStatus
+from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.telemetry import initialize_telemetry, meter, tracer
@@ -37,7 +37,7 @@ from ..product.models import (
 )
 from ..tax import TaxCalculationStrategy
 from ..webhook.event_types import WebhookEventAsyncType
-from ..webhook.transport.utils import to_payment_app_id
+from ..webhook.transport.utils import WebhookResponse, to_payment_app_id
 from .utils import dummy_editorjs
 
 
@@ -704,6 +704,16 @@ def other_description_json():
         ],
         "entityMap": {},
     }
+
+
+@pytest.fixture
+def failed_webhook_response():
+    return WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
+
+
+@pytest.fixture
+def successful_webhook_response():
+    return WebhookResponse(content="", status=EventDeliveryStatus.SUCCESS)
 
 
 @pytest.fixture

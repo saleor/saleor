@@ -580,13 +580,14 @@ def test_call_checkout_event_incorrect_webhook_event(
     checkout_with_items,
     setup_checkout_webhooks,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
 
     incorrect_event = WebhookEventAsyncType.ORDER_UPDATED
@@ -627,6 +628,7 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
     settings,
     django_capture_on_commit_callbacks,
     address,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -640,7 +642,7 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
         update_fields=["price_expiration", "billing_address", "shipping_address"]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,
@@ -725,6 +727,7 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
     settings,
     django_capture_on_commit_callbacks,
     address,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -738,7 +741,7 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
         update_fields=["price_expiration", "shipping_address", "billing_address"]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,
@@ -812,13 +815,14 @@ def test_call_checkout_event_skip_sync_webhooks_when_async_missing(
     checkout_with_items,
     setup_checkout_webhooks,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
 
     # setup sync webhooks with async that is not going to be called
     setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
@@ -908,13 +912,14 @@ def test_call_checkout_info_event_incorrect_webhook_event(
     checkout_with_items,
     setup_checkout_webhooks,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
 
     lines_info, _ = fetch_checkout_lines(
@@ -964,6 +969,7 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
     settings,
     django_capture_on_commit_callbacks,
     address,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -977,7 +983,7 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
         update_fields=["price_expiration", "billing_address", "shipping_address"]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,
@@ -1073,6 +1079,7 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
     settings,
     django_capture_on_commit_callbacks,
     address,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -1086,7 +1093,7 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
         update_fields=["price_expiration", "billing_address", "shipping_address"]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,
@@ -1239,13 +1246,14 @@ def test_call_checkout_info_event_skip_sync_webhooks_when_async_missing(
     checkout_with_items,
     setup_checkout_webhooks,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
 
     # setup sync webhooks with async that is not going to be called
     setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
@@ -1300,6 +1308,7 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
     transaction_item_generator,
     django_capture_on_commit_callbacks,
     address,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -1313,7 +1322,7 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
         update_fields=["price_expiration", "billing_address", "shipping_address"]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,
@@ -1397,13 +1406,14 @@ def test_call_checkout_events_incorrect_webhook_event(
     checkout_with_items,
     setup_checkout_webhooks,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
 
     incorrect_event = WebhookEventAsyncType.ORDER_UPDATED
@@ -1444,6 +1454,7 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
     settings,
     django_capture_on_commit_callbacks,
     address,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -1457,7 +1468,7 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
         update_fields=["price_expiration", "shipping_address", "billing_address"]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,
@@ -1550,6 +1561,7 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
     settings,
     django_capture_on_commit_callbacks,
     address,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -1563,7 +1575,7 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
         update_fields=["price_expiration", "billing_address", "shipping_address"]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,
@@ -1645,13 +1657,14 @@ def test_call_checkout_events_skip_sync_webhooks_when_async_missing(
     checkout_with_items,
     setup_checkout_webhooks,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
 
     # setup sync webhooks with async that is not going to be called
     setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)

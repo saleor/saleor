@@ -689,7 +689,7 @@ def test_order_update_shipping_triggers_webhooks(
     settings,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -775,7 +775,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook(
     settings,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         _tax_webhook,
         _shipping_filter_webhook,
@@ -831,7 +831,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_sh
     settings,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         _tax_webhook,
         _shipping_filter_webhook,
@@ -888,7 +888,7 @@ def test_editable_order_update_shipping_triggers_proper_updated_webhook_for_null
     settings,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         _tax_webhook,
         _shipping_filter_webhook,

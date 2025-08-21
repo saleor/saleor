@@ -807,7 +807,7 @@ def test_checkout_remove_triggers_webhooks(
 ):
     # given
     mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,

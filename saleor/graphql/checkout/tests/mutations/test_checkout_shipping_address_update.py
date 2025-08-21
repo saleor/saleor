@@ -1147,7 +1147,7 @@ def test_checkout_shipping_address_update_triggers_webhooks(
     graphql_address_data,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,

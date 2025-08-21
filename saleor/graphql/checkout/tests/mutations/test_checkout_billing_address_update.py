@@ -677,7 +677,7 @@ def test_checkout_billing_address_triggers_webhooks(
     address,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,

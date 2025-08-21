@@ -124,7 +124,7 @@ def test_send_webhook_request_sync_failed_attempt(
     mock_post().status_code = expected_data["status_code"]
     mock_post().elapsed = expected_data["duration"]
     # when
-    response_data = send_webhook_request_sync(event_delivery)
+    _, response_data = send_webhook_request_sync(event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
 
     # then
@@ -157,7 +157,7 @@ def test_send_webhook_request_sync_successful_attempt(
     mock_post().status_code = expected_data["status_code"]
     mock_post().elapsed = expected_data["duration"]
     # when
-    response_data = send_webhook_request_sync(event_delivery)
+    _, response_data = send_webhook_request_sync(event_delivery)
 
     # then
     mock_clear_delivery.assert_called_once_with(event_delivery)
@@ -192,7 +192,7 @@ def test_send_webhook_request_sync_request_exception(
     )
 
     # when
-    response_data = send_webhook_request_sync(event_delivery)
+    _, response_data = send_webhook_request_sync(event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
 
     # then
@@ -246,7 +246,7 @@ def test_send_webhook_request_sync_json_parsing_error(
     mock_post().status_code = expected_data["status_code"]
 
     # when
-    response_data = send_webhook_request_sync(event_delivery)
+    _, response_data = send_webhook_request_sync(event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
 
     # then

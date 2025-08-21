@@ -388,7 +388,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     # Include item so shipping webhooks are emitted
     checkout = checkout_with_item
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,
@@ -484,7 +484,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     # Include item so shipping is also triggered
     checkout = checkout_with_item
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_webhook,

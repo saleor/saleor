@@ -1582,7 +1582,7 @@ def test_order_fulfill_triggers_webhooks(
     django_capture_on_commit_callbacks,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,

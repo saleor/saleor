@@ -373,7 +373,7 @@ def test_handle_fully_paid_order_triggers_webhooks(
 ):
     # given
     plugins_manager = get_plugins_manager(False)
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -661,7 +661,7 @@ def test_cancel_order_dont_trigger_webhooks(
 ):
     # given
     plugins_manager = get_plugins_manager(False)
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -824,7 +824,7 @@ def test_order_refunded_triggers_webhooks(
     app,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -953,7 +953,7 @@ def test_order_voided_triggers_webhooks(
     app,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -1048,7 +1048,7 @@ def test_order_fulfilled_dont_trigger_webhooks(
     # given
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment_lines = list(fulfillment.lines.all())
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -1154,7 +1154,7 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -1248,7 +1248,7 @@ def test_order_authorized_triggers_webhooks(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -1351,7 +1351,7 @@ def test_order_charged_triggers_webhooks(
     order.charge_status = OrderChargeStatus.FULL
     order.save(update_fields=["status", "should_refresh_prices", "charge_status"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -1729,7 +1729,7 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -1865,7 +1865,7 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -1973,7 +1973,7 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -2530,7 +2530,7 @@ def test_call_order_event_triggers_sync_webhook(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -2597,7 +2597,7 @@ def test_call_order_event_incorrect_webhook_event(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
 
     incorrect_event = WebhookEventAsyncType.CHECKOUT_UPDATED
@@ -2661,7 +2661,7 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -2747,7 +2747,7 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
         ]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -2837,7 +2837,7 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
         ]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -2892,7 +2892,7 @@ def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -2949,7 +2949,7 @@ def test_call_order_event_skips_when_async_webhooks_missing(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -3004,7 +3004,7 @@ def test_call_order_event_skips_when_sync_webhooks_missing(
 
     webhook.app.permissions.add(permission_manage_orders)
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
@@ -3070,7 +3070,7 @@ def test_call_order_events_triggers_sync_webhook(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -3154,7 +3154,7 @@ def test_call_order_events_incorrect_webhook_event(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
 
     incorrect_event = WebhookEventAsyncType.CHECKOUT_UPDATED
@@ -3221,7 +3221,7 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -3319,7 +3319,7 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
         ]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -3420,7 +3420,7 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
         ]
     )
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -3493,7 +3493,7 @@ def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -3562,7 +3562,7 @@ def test_call_order_events_skips_when_async_webhooks_missing(
     order.should_refresh_prices = True
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -3620,7 +3620,7 @@ def test_call_order_events_skips_when_sync_webhooks_missing(
 
     webhook.app.permissions.add(permission_manage_orders)
 
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
@@ -3680,10 +3680,11 @@ def test_order_created_triggers_webhooks(
     customer_user,
     settings,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -3833,7 +3834,7 @@ def test_order_confirmed_triggers_webhooks(
 ):
     # given
     plugins_manager = get_plugins_manager(False)
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,

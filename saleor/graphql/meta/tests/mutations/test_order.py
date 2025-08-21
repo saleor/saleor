@@ -633,7 +633,7 @@ def test_change_in_public_metadata_triggers_webhooks(
     permission_manage_orders,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
@@ -712,7 +712,7 @@ def test_change_in_private_metadata_triggers_webhooks(
     settings,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,

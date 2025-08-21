@@ -205,7 +205,7 @@ def test_order_note_add_user_triggers_webhooks(
     webhook_event,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = []
+    mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
     (
         tax_webhook,
         shipping_filter_webhook,
