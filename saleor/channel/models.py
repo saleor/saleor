@@ -64,6 +64,12 @@ class Channel(ModelWithMetadata):
     )
     checkout_release_funds_cut_off_date = models.DateTimeField(null=True, blank=True)
 
+    # Indicates a flow where:
+    # - checkout total price is not reduced by gift cards,
+    # - authorization transaction is created when gift card is assigned to checkout,
+    # - charge transaction is created when gift card is used during checkout completion.
+    create_transactions_for_gift_cards = models.BooleanField(default=False)
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"
