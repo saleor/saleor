@@ -1688,11 +1688,11 @@ def test_update_product_variant_with_duplicated_attribute(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]
-    assert data["errors"][0] == {
-        "field": "attributes",
-        "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
-        "message": ANY,
-    }
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert set(errors[0]["attributes"]) == {color_attribute_id, size_attribute_id}
 
 
 def test_update_product_variant_with_current_file_attribute(
@@ -1789,11 +1789,11 @@ def test_update_product_variant_with_duplicated_file_attribute(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]
-    assert data["errors"][0] == {
-        "field": "attributes",
-        "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
-        "message": ANY,
-    }
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert set(errors[0]["attributes"]) == {file_attribute_id}
 
 
 def test_update_product_variant_with_file_attribute_new_value_is_not_created(
@@ -2440,11 +2440,12 @@ def test_update_product_variant_requires_values(
     assert len(content["data"]["productVariantUpdate"]["errors"]) == 1, (
         f"expected: {message}"
     )
-    assert content["data"]["productVariantUpdate"]["errors"][0] == {
-        "field": "attributes",
-        "message": message,
-        "code": code,
-    }
+    errors = content["data"]["productVariantUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == code
+    assert errors[0]["message"] == message
+    assert set(errors[0]["attributes"]) == {attr_id}
     assert not variant.product.variants.filter(sku=sku).exists()
 
 
@@ -2477,12 +2478,12 @@ def test_update_product_variant_requires_attr_value_when_is_required(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    assert len(content["data"]["productVariantUpdate"]["errors"]) == 1
-    assert content["data"]["productVariantUpdate"]["errors"][0] == {
-        "field": "attributes",
-        "message": "Attribute expects a value but none were given.",
-        "code": "REQUIRED",
-    }
+    errors = content["data"]["productVariantUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["message"] == "Attribute expects a value but none were given."
+    assert set(errors[0]["attributes"]) == {attr_id}
     assert not variant.product.variants.filter(sku=sku).exists()
 
 
