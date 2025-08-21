@@ -15,8 +15,12 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: python -m pip install poetry pre-commit
-      - run: poetry lock
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - run: python -m pip install pre-commit
+      - run: uv lock
       - run: pre-commit autoupdate
       - run: git status
 

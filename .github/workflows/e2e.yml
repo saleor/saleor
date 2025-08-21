@@ -13,7 +13,7 @@ on:
       - "saleor/**"
       - ".github/workflows/e2e.yml"
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
 
 env:
   DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
@@ -44,33 +44,18 @@ jobs:
         run: |
           apt-get install -y libpq-dev
 
-      - name: Install and configure poetry
-        run: |
-          pip install poetry==2.1.1
-
-      - name: Cache the venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
+      - uses: astral-sh/setup-uv@v6
         with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          poetry env use python3.12
-          poetry sync
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-
-      - name: Add Python Virtual Environment to PATH
-        run: |
-          # Note: requires `poetry env use` to be ran, otherwise poetry
-          # may not be able to find which virtual environment is in use.
-          # Ticket: https://github.com/python-poetry/poetry/issues/7190
-          echo "$(poetry env info -p)"/bin >> $GITHUB_PATH
+          uv sync --locked
 
       - name: Run E2E tests
         run: |
-          pytest -m "e2e" --junit-xml=e2e-test-results.xml
+          uv run pytest -m "e2e" --junit-xml=e2e-test-results.xml
+
       - name: Surface failing tests
         if: always()
         uses: pmeier/pytest-results-action@4c22f3314dfc484aaad53353d3dd8dddf5de6b46 # v0.5.0

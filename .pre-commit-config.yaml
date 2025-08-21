@@ -55,11 +55,11 @@ repos:
         # Replace --quiet with --verbose to debug issues.
         - --quiet
 
-  - repo: https://github.com/python-poetry/poetry
-    rev: 2.1.3
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.8.12
     hooks:
-      - id: poetry-lock
-        files: "^pyproject.toml$"
+      - id: uv-lock
 
   - repo: local
     hooks:

@@ -14,13 +14,12 @@ RUN apt-get update \
   libwebp7 \
   libpq5 \
   shared-mime-info \
-  mime-support \
-  pipx
-
-RUN pipx ensurepath
+  mime-support
 
 WORKDIR /app
-RUN pipx install poetry==2.1.1
-RUN poetry config virtualenvs.create false
-COPY poetry.lock pyproject.toml /app/
-RUN poetry sync
+COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /uvx /bin/
+ENV UV_COMPILE_BYTECODE=1 UV_SYSTEM_PYTHON=1 UV_PROJECT_ENVIRONMENT=/usr/local
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-editable
