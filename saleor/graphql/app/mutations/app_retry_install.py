@@ -38,7 +38,9 @@ class AppRetryInstall(DeprecatedModelMutation):
         ]
 
     @classmethod
-    def save(cls, _info: ResolveInfo, instance, _cleaned_input, /):
+    def save(
+        cls, _info: ResolveInfo, instance, _cleaned_input, /, instance_tracker=None
+    ):
         instance.status = JobStatus.PENDING
         instance.save()
 

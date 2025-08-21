@@ -178,7 +178,7 @@ class WebhookCreate(DeprecatedModelMutation, NotifyUserEventValidationMixin):
         return instance
 
     @classmethod
-    def save(cls, _info: ResolveInfo, instance, cleaned_input):
+    def save(cls, _info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         instance.save()
         events = set(cleaned_input.get("events", []))
         models.WebhookEvent.objects.bulk_create(

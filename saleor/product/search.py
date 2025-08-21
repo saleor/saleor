@@ -7,7 +7,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..attribute import AttributeInputType
-from ..attribute.models import Attribute
+from ..attribute.models import Attribute, AttributeValue
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from ..core.utils.editorjs import clean_editor_js
 from ..product.models import Product
@@ -213,7 +213,28 @@ def get_search_vectors_for_values(
             )
             for value in values
         ]
+    elif input_type in [
+        AttributeInputType.REFERENCE,
+        AttributeInputType.SINGLE_REFERENCE,
+    ]:
+        # for now only AttributeEntityType.PAGE is supported
+        search_vectors += [
+            NoValidationSearchVector(
+                Value(get_reference_attribute_search_value(value)),
+                config="simple",
+                weight="B",
+            )
+            for value in values
+            if value.reference_page_id is not None
+        ]
     return search_vectors
+
+
+def get_reference_attribute_search_value(attribute_value: AttributeValue) -> str:
+    """Get search value for reference attribute."""
+    if attribute_value.reference_page:
+        return attribute_value.reference_page.title
+    return ""
 
 
 def search_products(qs, value):
