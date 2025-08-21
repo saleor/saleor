@@ -1,6 +1,5 @@
 import json
 import logging
-import timeit
 from collections.abc import Callable
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -210,17 +209,15 @@ def trigger_webhook_sync_if_not_cached(
         cache_data, webhook.target_url, event_type, webhook.app_id
     )
     response_data = cache.get(cache_key)
-    logger.info("Retrieving webhook response from cache: %s", response_data)
-    if response_data == const.SYNC_WEBHOOK_TIMEOUT_SENTINEL:
-        # Prevent sending webhook if the previous one timed out recently.
+    if response_data == const.SYNC_WEBHOOK_FAILURE_SENTINEL:
+        # Prevent sending webhook if the previous one failed recently.
         logger.warning(
-            "[Webhook] Skipping request to %s for event %s due to previous timeout.",
+            "[Webhook] Skipping request to %s for event %s due to previous failure.",
             sanitize_url_for_logging(webhook.target_url),
             event_type,
         )
         return None
     if response_data is None:
-        time_start = timeit.default_timer()
         response_data = trigger_webhook_sync(
             event_type,
             payload,
@@ -232,26 +229,17 @@ def trigger_webhook_sync_if_not_cached(
             requestor=requestor,
             pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
-        elapsed = timeit.default_timer() - time_start
-        if (
-            response_data is None
-            and elapsed > settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
-        ):
-            logger.warning(
-                "[Webhook] Request timeout from %s for event %s.",
-                sanitize_url_for_logging(webhook.target_url),
-                event_type,
-            )
-            cache.set(
-                cache_key,
-                const.SYNC_WEBHOOK_TIMEOUT_SENTINEL,
-                timeout=cache_timeout or const.WEBHOOK_CACHE_DEFAULT_TTL,
-            )
         if response_data is not None:
             cache.set(
                 cache_key,
                 response_data,
-                timeout=cache_timeout or const.SYNC_WEBHOOK_TIMEOUT_CACHE_TTL,
+                timeout=cache_timeout or const.WEBHOOK_CACHE_DEFAULT_TTL,
+            )
+        else:
+            cache.set(
+                cache_key,
+                const.SYNC_WEBHOOK_FAILURE_SENTINEL,
+                timeout=const.SYNC_WEBHOOK_FAILURE_CACHE_TTL,
             )
     return response_data
 

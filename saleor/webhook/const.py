@@ -1,8 +1,8 @@
 CACHE_EXCLUDED_SHIPPING_TIME = 60 * 3
 WEBHOOK_CACHE_DEFAULT_TTL: int = 5 * 60  # 5 minutes
-SYNC_WEBHOOK_TIMEOUT_CACHE_TTL: int = 1  # 1 second
-SYNC_WEBHOOK_TIMEOUT_SENTINEL = (
-    "TIMED_OUT"  # Arbitrary value to indicate webhook timeout in cache
+SYNC_WEBHOOK_FAILURE_CACHE_TTL: int = 1  # 1 second
+SYNC_WEBHOOK_FAILURE_SENTINEL = (
+    "WEBHOOK_FAILURE"  # Arbitrary value to indicate webhook failure in cache
 )
 APP_ID_PREFIX = "app"
 
