@@ -12,6 +12,7 @@ from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
     ADDED_IN_321,
+    ADDED_IN_322,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -80,6 +81,14 @@ class CheckoutSettingsInput(BaseInputObjectType):
             "checkout's total amount."
         )
         + ADDED_IN_320,
+    )
+    create_transactions_for_gift_cards = graphene.Boolean(
+        description=(
+            "Default `false`. Determines whether gift cards added to checkout should "
+            "create authorization and charge transactions instead of reducing checkout "
+            "total price."
+        )
+        + ADDED_IN_322,
     )
 
     class Meta:

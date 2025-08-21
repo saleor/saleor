@@ -476,6 +476,7 @@ QUERY_CHANNEL_CHECKOUT_SETTINGS = """
             checkoutSettings {
                 useLegacyErrorFlow
                 automaticallyCompleteFullyPaidCheckouts
+                createTransactionsForGiftCards
             }
         }
     }
@@ -488,10 +489,12 @@ def test_query_channel_checkout_settings_as_staff_user(
     # given
     channel_USD.use_legacy_error_flow_for_checkout = False
     channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.create_transactions_for_gift_cards = True
     channel_USD.save(
         update_fields=[
             "use_legacy_error_flow_for_checkout",
             "automatically_complete_fully_paid_checkouts",
+            "create_transactions_for_gift_cards",
         ]
     )
 
@@ -516,6 +519,10 @@ def test_query_channel_checkout_settings_as_staff_user(
     assert (
         channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
         == channel_USD.automatically_complete_fully_paid_checkouts
+    )
+    assert (
+        channel_data["checkoutSettings"]["createTransactionsForGiftCards"]
+        == channel_USD.create_transactions_for_gift_cards
     )
 
 
@@ -546,6 +553,10 @@ def test_query_channel_checkout_settings_as_app(
     assert (
         channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
         == channel_USD.automatically_complete_fully_paid_checkouts
+    )
+    assert (
+        channel_data["checkoutSettings"]["createTransactionsForGiftCards"]
+        == channel_USD.create_transactions_for_gift_cards
     )
 
 
