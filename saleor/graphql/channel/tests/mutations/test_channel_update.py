@@ -1291,6 +1291,7 @@ CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
                 checkoutSettings {
                     useLegacyErrorFlow
                     automaticallyCompleteFullyPaidCheckouts
+                    createTransactionsForGiftCards
                 }
             }
             errors{
@@ -1312,6 +1313,7 @@ def test_channel_update_channel_settings(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     use_legacy_error_flow = False
     automatically_complete_fully_paid_checkouts = True
+    create_transactions_for_gift_cards = True
 
     variables = {
         "id": channel_id,
@@ -1319,9 +1321,20 @@ def test_channel_update_channel_settings(
             "checkoutSettings": {
                 "useLegacyErrorFlow": use_legacy_error_flow,
                 "automaticallyCompleteFullyPaidCheckouts": automatically_complete_fully_paid_checkouts,
+                "createTransactionsForGiftCards": create_transactions_for_gift_cards,
             },
         },
     }
+
+    assert channel_USD.use_legacy_error_flow_for_checkout != use_legacy_error_flow
+    assert (
+        channel_USD.automatically_complete_fully_paid_checkouts
+        != automatically_complete_fully_paid_checkouts
+    )
+    assert (
+        channel_USD.create_transactions_for_gift_cards
+        != create_transactions_for_gift_cards
+    )
 
     # when
     response = staff_api_client.post_graphql(
@@ -1342,11 +1355,19 @@ def test_channel_update_channel_settings(
         channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
         == automatically_complete_fully_paid_checkouts
     )
+    assert (
+        channel_data["checkoutSettings"]["createTransactionsForGiftCards"]
+        == create_transactions_for_gift_cards
+    )
     channel_USD.refresh_from_db()
     assert channel_USD.use_legacy_error_flow_for_checkout == use_legacy_error_flow
     assert (
         channel_USD.automatically_complete_fully_paid_checkouts
         == automatically_complete_fully_paid_checkouts
+    )
+    assert (
+        channel_USD.create_transactions_for_gift_cards
+        == create_transactions_for_gift_cards
     )
 
 

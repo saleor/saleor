@@ -5422,6 +5422,13 @@ type CheckoutSettings {
   Added in Saleor 3.20.
   """
   automaticallyCompleteFullyPaidCheckouts: Boolean!
+
+  """
+  Default `false`. Determines whether gift cards added to checkout should create authorization and charge transactions instead of reducing checkout total price.
+  
+  Added in Saleor 3.22.
+  """
+  createTransactionsForGiftCards: Boolean!
 }
 
 """Represents the channel-specific payment settings."""
@@ -28815,6 +28822,13 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   Added in Saleor 3.20.
   """
   automaticallyCompleteFullyPaidCheckouts: Boolean
+
+  """
+  Default `false`. Determines whether gift cards added to checkout should create authorization and charge transactions instead of reducing checkout total price.
+  
+  Added in Saleor 3.22.
+  """
+  createTransactionsForGiftCards: Boolean
 }
 
 input PaymentSettingsInput @doc(category: "Payments") {
