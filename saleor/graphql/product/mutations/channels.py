@@ -282,7 +282,9 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         variant_channel_listings = []
         for variant in variants:
             variant_channel_listings.append(
-                ProductVariantChannelListing(channel=channel, variant=variant)
+                ProductVariantChannelListing(
+                    channel=channel, variant=variant, currency=channel.currency_code
+                )
             )
 
         try:
