@@ -53,6 +53,7 @@ CHANNEL_CREATE_MUTATION = """
                 checkoutSettings {
                     useLegacyErrorFlow
                     automaticallyCompleteFullyPaidCheckouts
+                    createTransactionsForGiftCards
                 }
                 paymentSettings {
                     defaultTransactionFlowStrategy
@@ -954,6 +955,52 @@ def test_channel_create_set_automatically_complete_fully_paid_checkouts(
         is True
     )
     assert channel.automatically_complete_fully_paid_checkouts is True
+
+
+@pytest.mark.parametrize("expected_create_transactions_for_gift_cards", [True, False])
+def test_channel_create_set_create_transactions_for_gift_cards(
+    permission_manage_channels,
+    staff_api_client,
+    expected_create_transactions_for_gift_cards,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {
+                "createTransactionsForGiftCards": expected_create_transactions_for_gift_cards
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert (
+        channel_data["checkoutSettings"]["createTransactionsForGiftCards"]
+        is expected_create_transactions_for_gift_cards
+    )
+    assert (
+        channel.create_transactions_for_gift_cards
+        is expected_create_transactions_for_gift_cards
+    )
 
 
 @pytest.mark.parametrize("allow_unpaid", [True, False])
