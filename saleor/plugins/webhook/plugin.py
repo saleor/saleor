@@ -62,7 +62,7 @@ from ...payment.utils import (
 )
 from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...thumbnail.models import Thumbnail
-from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
+from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TTL
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -2819,7 +2819,7 @@ class WebhookPlugin(BasePlugin):
                     self.allow_replica,
                     subscribable_object=list_payment_method_data,
                     request_timeout=WEBHOOK_SYNC_TIMEOUT,
-                    cache_timeout=WEBHOOK_CACHE_DEFAULT_TIMEOUT,
+                    cache_timeout=WEBHOOK_CACHE_DEFAULT_TTL,
                     requestor=self.requestor,
                 )
                 if response_data:
