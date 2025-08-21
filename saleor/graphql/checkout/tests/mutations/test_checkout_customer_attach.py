@@ -308,6 +308,7 @@ def test_checkout_customer_triggers_webhooks(
     customer_user2,
     permission_impersonate_user,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

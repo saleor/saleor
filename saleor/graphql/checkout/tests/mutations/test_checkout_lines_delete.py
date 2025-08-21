@@ -353,6 +353,7 @@ def test_checkout_lines_delete_triggers_webhooks(
     api_client,
     checkout_with_items,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

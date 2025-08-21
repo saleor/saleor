@@ -137,6 +137,7 @@ def test_checkout_customer_note_update_triggers_webhooks(
     user_api_client,
     checkout_with_item,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

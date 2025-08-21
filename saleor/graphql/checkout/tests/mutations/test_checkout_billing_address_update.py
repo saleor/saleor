@@ -675,6 +675,7 @@ def test_checkout_billing_address_triggers_webhooks(
     checkout_with_item,
     graphql_address_data,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

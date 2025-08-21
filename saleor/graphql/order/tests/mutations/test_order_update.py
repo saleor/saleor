@@ -557,6 +557,7 @@ def test_order_update_triggers_webhooks(
     order_with_lines,
     graphql_address_data,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

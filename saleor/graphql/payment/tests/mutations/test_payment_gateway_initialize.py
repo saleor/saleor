@@ -852,6 +852,7 @@ def test_for_checkout_with_shipping_app(
     shipping_app_with_subscription,
     payment_gateway_initialize_session_app,
     caplog,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -955,6 +956,7 @@ def test_for_checkout_with_tax_app(
     tax_app,
     payment_gateway_initialize_session_app,
     caplog,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -1035,6 +1037,7 @@ def test_for_order_with_tax_app(
     tax_app,
     payment_gateway_initialize_session_app,
     caplog,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

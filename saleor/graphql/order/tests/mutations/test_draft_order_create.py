@@ -3724,6 +3724,7 @@ def test_draft_order_create_triggers_webhooks(
     channel_PLN,
     graphql_address_data,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

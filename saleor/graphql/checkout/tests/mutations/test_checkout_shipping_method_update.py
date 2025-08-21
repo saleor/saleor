@@ -692,6 +692,7 @@ def test_checkout_shipping_method_update_triggers_webhooks(
     api_client,
     checkout_with_items,
     shipping_method,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -867,6 +868,7 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
     api_client,
     checkout_with_items,
     shipping_method,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

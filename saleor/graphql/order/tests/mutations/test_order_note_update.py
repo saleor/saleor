@@ -236,6 +236,7 @@ def test_order_note_update_user_triggers_webhooks(
     settings,
     status,
     webhook_event,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

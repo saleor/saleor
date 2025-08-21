@@ -625,6 +625,7 @@ def test_order_confirm_triggers_webhooks(
     permission_group_manage_orders,
     payment_txn_preauth,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

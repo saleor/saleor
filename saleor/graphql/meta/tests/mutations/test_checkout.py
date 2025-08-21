@@ -382,6 +382,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     checkout_with_item,
     address,
     shipping_method,
+    successful_webhook_response,
 ):
     # given
 
@@ -478,6 +479,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     checkout_with_item,
     address,
     shipping_method,
+    successful_webhook_response,
 ):
     # given
 

@@ -349,6 +349,7 @@ def test_checkout_line_delete_triggers_webhooks(
     checkout_with_items,
     product_with_single_variant,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

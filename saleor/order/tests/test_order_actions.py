@@ -370,6 +370,7 @@ def test_handle_fully_paid_order_triggers_webhooks(
     customer_user,
     settings,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -658,6 +659,7 @@ def test_cancel_order_dont_trigger_webhooks(
     order_with_lines,
     settings,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -822,6 +824,7 @@ def test_order_refunded_triggers_webhooks(
     settings,
     django_capture_on_commit_callbacks,
     app,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -951,6 +954,7 @@ def test_order_voided_triggers_webhooks(
     settings,
     django_capture_on_commit_callbacks,
     app,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -1044,6 +1048,7 @@ def test_order_fulfilled_dont_trigger_webhooks(
     site_settings,
     django_capture_on_commit_callbacks,
     app,
+    successful_webhook_response,
 ):
     # given
     fulfillment = fulfilled_order.fulfillments.first()
@@ -1142,6 +1147,7 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
     site_settings,
     django_capture_on_commit_callbacks,
     app,
+    successful_webhook_response,
 ):
     # given
     fulfillment = fulfilled_order.fulfillments.first()
@@ -1240,6 +1246,7 @@ def test_order_authorized_triggers_webhooks(
     settings,
     django_capture_on_commit_callbacks,
     app,
+    successful_webhook_response,
 ):
     # given
 
@@ -1342,6 +1349,7 @@ def test_order_charged_triggers_webhooks(
     settings,
     django_capture_on_commit_callbacks,
     app,
+    successful_webhook_response,
 ):
     # given
 
@@ -1726,6 +1734,7 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
     django_capture_on_commit_callbacks,
     app,
     settings,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -1862,6 +1871,7 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
     django_capture_on_commit_callbacks,
     app,
     settings,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -1970,6 +1980,7 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
     django_capture_on_commit_callbacks,
     app,
     settings,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -2522,6 +2533,7 @@ def test_call_order_event_triggers_sync_webhook(
     settings,
     django_capture_on_commit_callbacks,
     webhook_event,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -2589,6 +2601,7 @@ def test_call_order_event_incorrect_webhook_event(
     setup_order_webhooks,
     order_with_lines,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -2653,6 +2666,7 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
     settings,
     django_capture_on_commit_callbacks,
     webhook_event,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -2736,6 +2750,7 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
     settings,
     django_capture_on_commit_callbacks,
     webhook_event,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -2826,6 +2841,7 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
     settings,
     django_capture_on_commit_callbacks,
     webhook_event,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -2885,6 +2901,7 @@ def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
     order_with_lines,
     settings,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -2941,6 +2958,7 @@ def test_call_order_event_skips_when_async_webhooks_missing(
     order_with_lines,
     settings,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -2994,6 +3012,7 @@ def test_call_order_event_skips_when_sync_webhooks_missing(
     webhook,
     permission_manage_orders,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3062,6 +3081,7 @@ def test_call_order_events_triggers_sync_webhook(
     settings,
     django_capture_on_commit_callbacks,
     webhook_event,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3146,6 +3166,7 @@ def test_call_order_events_incorrect_webhook_event(
     setup_order_webhooks,
     order_with_lines,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3213,6 +3234,7 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
     settings,
     django_capture_on_commit_callbacks,
     webhook_event,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3308,6 +3330,7 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
     settings,
     django_capture_on_commit_callbacks,
     webhook_event,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3409,6 +3432,7 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
     settings,
     django_capture_on_commit_callbacks,
     webhook_event,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3486,6 +3510,7 @@ def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
     order_with_lines,
     settings,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3554,6 +3579,7 @@ def test_call_order_events_skips_when_async_webhooks_missing(
     order_with_lines,
     settings,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3610,6 +3636,7 @@ def test_call_order_events_skips_when_sync_webhooks_missing(
     webhook,
     permission_manage_orders,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3831,6 +3858,7 @@ def test_order_confirmed_triggers_webhooks(
     customer_user,
     settings,
     django_capture_on_commit_callbacks,
+    successful_webhook_response,
 ):
     # given
     plugins_manager = get_plugins_manager(False)

@@ -1385,6 +1385,7 @@ def test_checkout_add_voucher_triggers_webhooks(
     checkout_with_item,
     voucher,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

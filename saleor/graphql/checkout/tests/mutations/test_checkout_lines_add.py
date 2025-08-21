@@ -1997,6 +1997,7 @@ def test_checkout_lines_add_triggers_webhooks(
     checkout_with_item,
     stock,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")

@@ -804,6 +804,7 @@ def test_checkout_remove_triggers_webhooks(
     api_client,
     checkout_with_voucher,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")

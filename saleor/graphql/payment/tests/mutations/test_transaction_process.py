@@ -2388,9 +2388,13 @@ def test_for_checkout_with_shipping_app(
     transaction_item_generator,
     transaction_session_response,
     caplog,
+    successful_webhook_response,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = transaction_session_response
+    mocked_send_webhook_request_sync.return_value = (
+        successful_webhook_response,
+        transaction_session_response,
+    )
 
     shipping_webhook = shipping_app_with_subscription.webhooks.first()
     shipping_webhook.subscription_query = """
@@ -2466,9 +2470,13 @@ def test_for_checkout_with_tax_app(
     transaction_item_generator,
     transaction_session_response,
     caplog,
+    successful_webhook_response,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = transaction_session_response
+    mocked_send_webhook_request_sync.return_value = (
+        successful_webhook_response,
+        transaction_session_response,
+    )
 
     transaction_item = transaction_item_generator(
         checkout_id=checkout_with_prices.pk, app=transaction_process_session_app
@@ -2526,9 +2534,13 @@ def test_for_order_with_tax_app(
     transaction_item_generator,
     transaction_session_response,
     caplog,
+    successful_webhook_response,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = transaction_session_response
+    mocked_send_webhook_request_sync.return_value = (
+        successful_webhook_response,
+        transaction_session_response,
+    )
 
     order = draft_order
     order.should_refresh_prices = True

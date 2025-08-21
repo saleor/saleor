@@ -1517,6 +1517,7 @@ def test_checkout_lines_update_triggers_webhooks(
     checkout_with_items,
     product_with_single_variant,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")

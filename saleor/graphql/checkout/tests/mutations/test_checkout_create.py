@@ -2719,9 +2719,10 @@ def test_checkout_create_triggers_webhooks(
     channel_USD,
     setup_checkout_webhooks,
     settings,
+    failed_webhook_response,
 ):
     # given
-    mocked_send_webhook_request_sync.return_value = None
+    mocked_send_webhook_request_sync.return_value = failed_webhook_response, None
     (
         tax_webhook,
         shipping_webhook,

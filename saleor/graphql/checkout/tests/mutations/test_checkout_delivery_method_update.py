@@ -1244,6 +1244,7 @@ def test_checkout_delivery_method_update_triggers_webhooks(
     shipping_method,
     checkout_with_item,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -1333,6 +1334,7 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
     api_client,
     checkout_with_item_for_cc,
     warehouses_for_cc,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

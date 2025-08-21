@@ -152,6 +152,7 @@ def test_order_cancel_skip_trigger_webhooks(
     permission_group_manage_orders,
     order_with_lines,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

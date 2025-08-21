@@ -687,6 +687,7 @@ def test_order_update_shipping_triggers_webhooks(
     order_with_lines,
     shipping_method,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -773,6 +774,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook(
     order_with_lines,
     shipping_method,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -829,6 +831,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_sh
     permission_group_manage_orders,
     order_with_lines,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -886,6 +889,7 @@ def test_editable_order_update_shipping_triggers_proper_updated_webhook_for_null
     # must have shopping method. In such scenario validation will raise without webhook
     order_with_digital_line,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

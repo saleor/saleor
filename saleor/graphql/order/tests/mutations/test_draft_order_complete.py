@@ -1648,6 +1648,7 @@ def test_draft_order_complete_triggers_webhooks(
     permission_group_manage_orders,
     draft_order,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

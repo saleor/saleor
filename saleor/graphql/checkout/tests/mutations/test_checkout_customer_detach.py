@@ -177,6 +177,7 @@ def test_checkout_customer_detach_triggers_webhooks(
     checkout_with_item,
     customer_user,
     address,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

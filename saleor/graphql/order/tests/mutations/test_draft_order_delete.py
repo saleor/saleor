@@ -310,6 +310,7 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

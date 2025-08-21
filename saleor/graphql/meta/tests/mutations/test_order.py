@@ -631,6 +631,7 @@ def test_change_in_public_metadata_triggers_webhooks(
     order_with_lines,
     settings,
     permission_manage_orders,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -710,6 +711,7 @@ def test_change_in_private_metadata_triggers_webhooks(
     permission_manage_orders,
     order_with_lines,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []

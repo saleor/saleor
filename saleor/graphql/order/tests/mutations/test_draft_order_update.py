@@ -2500,6 +2500,7 @@ def test_draft_order_update_triggers_webhooks(
     permission_manage_orders,
     draft_order,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
@@ -2598,6 +2599,7 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     permission_manage_orders,
     draft_order,
     settings,
+    successful_webhook_response,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = successful_webhook_response, []
