@@ -16,6 +16,7 @@ from .....core.utils import get_client_ip
 from .....core.utils.url import validate_storefront_url
 from .....payment import StorePaymentMethod
 from .....payment.error_codes import PaymentErrorCode
+from .....payment.models import TransactionItem
 from .....payment.utils import create_payment, is_currency_supported
 from ....account.i18n import I18nMixin
 from ....checkout.mutations.utils import get_checkout
@@ -203,6 +204,16 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
+    def validate_checkout_has_no_transactions(
+        cls, checkout: "checkout_models.Checkout"
+    ):
+        if TransactionItem.objects.filter(checkout=checkout).exists():
+            raise ValidationError(
+                "Mixing Payments and Transactions within one Checkout object is not allowed.",
+                code=PaymentErrorCode.CHECKOUT_HAS_TRANSACTION.value,
+            )
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         _root,
@@ -215,6 +226,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
+        cls.validate_checkout_has_no_transactions(checkout)
 
         use_legacy_error_flow_for_checkout = (
             checkout.channel.use_legacy_error_flow_for_checkout

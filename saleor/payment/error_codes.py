@@ -20,6 +20,7 @@ class PaymentErrorCode(Enum):
     UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
     NO_CHECKOUT_LINES = "no_checkout_lines"
     CHECKOUT_COMPLETION_IN_PROGRESS = "checkout_completion_in_progress"
+    CHECKOUT_HAS_TRANSACTION = "checkout_has_transaction"
 
 
 class TransactionCreateErrorCode(Enum):

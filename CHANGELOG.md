@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - No manual charge (`Transaction` or `Payment`) object will be created.
   - The `OrderEvents.ORDER_MARKED_AS_PAID` event will no longer be emitted.
 - Logic associated with `WebhookEventAsyncType.CHECKOUT_FULLY_PAID` event will no longer be triggered when creating a transaction event from webhook response for checkouts with having total gross being 0. At the point of creating the transaction event checkout is already considered fully paid.
+- Creating a Payment (old API) for a Checkout object with an existing Transaction (new API) is no longer permitted as it leads to inconsistent behavior.
 
 ### GraphQL API
 - You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
