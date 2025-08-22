@@ -24,6 +24,24 @@ PAGE_QUERY = """
             }
             content
             contentJson
+            assignedAttributes {
+                ... on AssignedAttributeInterface {
+                    attribute {
+                        slug
+                    }
+                }
+                ... on AssignedSingleChoiceAttribute {
+                    choice: value {
+                        name
+                        slug
+                    }
+                }
+                ... on AssignedMultiProductReferenceAttribute {
+                    products: value {
+                        slug
+                    }
+                }
+            }
             attributes {
                 attribute {
                     id
@@ -91,6 +109,16 @@ def test_query_published_page(user_api_client, page):
 
     for attr_data in page_data["attributes"]:
         assert attr_data in expected_attributes
+
+    assigned_attributes = page_data["assignedAttributes"]
+    expected_assigned_choice_attribute = {
+        "attribute": {"slug": page_attr.slug},
+        "choice": {
+            "name": page_attr_value.name,
+            "slug": page_attr_value.slug,
+        },
+    }
+    assert expected_assigned_choice_attribute in assigned_attributes
 
     # query by slug
     variables = {"slug": page.slug}
@@ -291,18 +319,24 @@ def test_get_page_with_sorted_attribute_values(
         attribute=page_type_product_reference_attribute,
         name=product_list[0].name,
         slug=f"{page.pk}_{product_list[0].pk}",
+        reference_product=product_list[0],
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=page_type_product_reference_attribute,
         name=product_list[1].name,
         slug=f"{page.pk}_{product_list[1].pk}",
+        reference_product=product_list[1],
     )
     attr_value_3 = AttributeValue.objects.create(
         attribute=page_type_product_reference_attribute,
         name=product_list[2].name,
         slug=f"{page.pk}_{product_list[2].pk}",
+        reference_product=product_list[2],
     )
 
+    expected_first_product = product_list[1]
+    expected_second_product = product_list[0]
+    expected_third_product = product_list[2]
     attr_values = [attr_value_2, attr_value_1, attr_value_3]
     associate_attribute_values_to_instance(
         page, {page_type_product_reference_attribute.pk: attr_values}
@@ -324,6 +358,14 @@ def test_get_page_with_sorted_attribute_values(
     assert [value["id"] for value in values] == [
         graphene.Node.to_global_id("AttributeValue", val.pk) for val in attr_values
     ]
+
+    assigned_attributes = data["assignedAttributes"]
+    assert len(assigned_attributes) == 1
+    assigned_values = assigned_attributes[0]["products"]
+    assert len(assigned_values) == 3
+    assert assigned_values[0]["slug"] == expected_first_product.slug
+    assert assigned_values[1]["slug"] == expected_second_product.slug
+    assert assigned_values[2]["slug"] == expected_third_product.slug
 
 
 def test_page_attributes_not_visible_in_storefront_for_customer_is_not_returned(
@@ -349,16 +391,17 @@ def test_page_attributes_not_visible_in_storefront_for_customer_is_not_returned(
     # then
     content = get_graphql_content(response)
     assert len(content["data"]["page"]["attributes"]) == visible_attrs_count
-    attr_data = {}
-    for attr in content["data"]["page"]["attributes"]:
-        if attr["attribute"]["id"] == graphene.Node.to_global_id(
-            "Attribute", attribute.pk
-        ):
-            attr_data = attr
-            attr_data.pop("values", None)
-            break
-
-    assert attr_data == {}
+    assert len(content["data"]["page"]["assignedAttributes"]) == visible_attrs_count
+    not_visible_attr_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    not_visible_attr_slug = attribute.slug
+    assert not_visible_attr_id not in [
+        attr_data["attribute"]["id"]
+        for attr_data in content["data"]["page"]["attributes"]
+    ]
+    assert not_visible_attr_slug not in [
+        attr_data["attribute"]["slug"]
+        for attr_data in content["data"]["page"]["assignedAttributes"]
+    ]
 
 
 def test_page_attributes_visible_in_storefront_for_customer_is_returned(
@@ -380,22 +423,17 @@ def test_page_attributes_visible_in_storefront_for_customer_is_returned(
 
     # then
     content = get_graphql_content(response)
-    attr_data = {}
-    for attr in content["data"]["page"]["attributes"]:
-        if attr["attribute"]["id"] == graphene.Node.to_global_id(
-            "Attribute", attribute.pk
-        ):
-            attr_data = attr
-            attr_data.pop("values", None)
-            attr_data.pop("value", None)
-            break
 
-    assert attr_data == {
-        "attribute": {
-            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
-            "slug": attribute.slug,
-        }
-    }
+    visible_attr_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    visible_attr_slug = attribute.slug
+    assert visible_attr_id in [
+        attr_data["attribute"]["id"]
+        for attr_data in content["data"]["page"]["attributes"]
+    ]
+    assert visible_attr_slug in [
+        attr_data["attribute"]["slug"]
+        for attr_data in content["data"]["page"]["assignedAttributes"]
+    ]
 
 
 @pytest.mark.parametrize("visible_in_storefront", [False, True])
@@ -422,22 +460,17 @@ def test_page_attributes_visible_in_storefront_for_staff_is_always_returned(
 
     # then
     content = get_graphql_content(response)
-    attr_data = {}
-    for attr in content["data"]["page"]["attributes"]:
-        if attr["attribute"]["id"] == graphene.Node.to_global_id(
-            "Attribute", attribute.pk
-        ):
-            attr_data = attr
-            attr_data.pop("values", None)
-            attr_data.pop("value", None)
-            break
 
-    assert attr_data == {
-        "attribute": {
-            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
-            "slug": attribute.slug,
-        }
-    }
+    visible_attr_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    visible_attr_slug = attribute.slug
+    assert visible_attr_id in [
+        attr_data["attribute"]["id"]
+        for attr_data in content["data"]["page"]["attributes"]
+    ]
+    assert visible_attr_slug in [
+        attr_data["attribute"]["slug"]
+        for attr_data in content["data"]["page"]["assignedAttributes"]
+    ]
 
 
 def test_page_query_by_translated_slug(user_api_client, page, page_translation_fr):
@@ -465,6 +498,42 @@ def test_page_query_by_translated_slug(user_api_client, page, page_translation_f
 QUERY_PAGE_WITH_ATTRIBUTE = """
 query Page($id: ID!, $slug: String!) {
     page(id: $id) {
+        assignedAttributes {
+            ... on AssignedAttributeInterface {
+                attribute {
+                    slug
+                }
+            }
+            ... on AssignedSingleChoiceAttribute {
+                choice: value {
+                    name
+                    slug
+                }
+            }
+            ... on AssignedMultiProductReferenceAttribute {
+                products: value {
+                    slug
+                }
+            }
+        }
+        assignedAttribute(slug: $slug) {
+            ... on AssignedAttributeInterface {
+                attribute {
+                    slug
+                }
+            }
+            ... on AssignedSingleChoiceAttribute {
+                choice: value {
+                    name
+                    slug
+                }
+            }
+            ... on AssignedMultiProductReferenceAttribute {
+                products: value {
+                    slug
+                }
+            }
+        }
         attribute(slug: $slug) {
             attribute {
                 id
@@ -500,8 +569,12 @@ def test_page_attribute_field_filtering(staff_api_client, page):
     # then
     expected_slug = slug
     content = get_graphql_content(response)
-    queried_slug = content["data"]["page"]["attribute"]["attribute"]["slug"]
+    page_data = content["data"]["page"]
+    queried_slug = page_data["attribute"]["attribute"]["slug"]
     assert queried_slug == expected_slug
+
+    assigned_queried_slug = page_data["assignedAttribute"]["attribute"]["slug"]
+    assert assigned_queried_slug == expected_slug
 
 
 def test_page_attribute_field_filtering_not_found(staff_api_client, page):
@@ -522,6 +595,7 @@ def test_page_attribute_field_filtering_not_found(staff_api_client, page):
     # then
     content = get_graphql_content(response)
     assert content["data"]["page"]["attribute"] is None
+    assert content["data"]["page"]["assignedAttribute"] is None
 
 
 def test_page_attribute_not_visible_in_storefront_for_customer_is_not_returned(
@@ -549,13 +623,18 @@ def test_page_attribute_not_visible_in_storefront_for_customer_is_not_returned(
     content = get_graphql_content(response)
     assert content["data"]["page"]["attribute"] is None
     assert len(content["data"]["page"]["attributes"]) == visible_attrs_count
-    attr_data = {
-        "attribute": {
-            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
-            "slug": attribute.slug,
-        }
-    }
-    assert attr_data not in content["data"]["page"]["attributes"]
+    assert len(content["data"]["page"]["assignedAttributes"]) == visible_attrs_count
+
+    not_visible_attr_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    not_visible_attr_slug = attribute.slug
+    assert not_visible_attr_id not in [
+        attr_data["attribute"]["id"]
+        for attr_data in content["data"]["page"]["attributes"]
+    ]
+    assert not_visible_attr_slug not in [
+        attr_data["attribute"]["slug"]
+        for attr_data in content["data"]["page"]["assignedAttributes"]
+    ]
 
 
 def test_page_attribute_visible_in_storefront_for_customer_is_returned(
@@ -578,7 +657,10 @@ def test_page_attribute_visible_in_storefront_for_customer_is_returned(
 
     # then
     content = get_graphql_content(response)
-    assert content["data"]["page"]["attribute"]["attribute"]["slug"] == attribute.slug
+    page_data = content["data"]["page"]
+
+    assert page_data["attribute"]["attribute"]["slug"] == attribute.slug
+    assert page_data["assignedAttribute"]["attribute"]["slug"] == attribute.slug
 
 
 @pytest.mark.parametrize("visible_in_storefront", [False, True])
@@ -606,7 +688,10 @@ def test_page_attribute_visible_in_storefront_for_staff_is_always_returned(
 
     # then
     content = get_graphql_content(response)
-    assert content["data"]["page"]["attribute"]["attribute"]["slug"] == attribute.slug
+    page_data = content["data"]["page"]
+
+    assert page_data["attribute"]["attribute"]["slug"] == attribute.slug
+    assert page_data["assignedAttribute"]["attribute"]["slug"] == attribute.slug
 
 
 def test_page_channel_not_found(staff_api_client, page, permission_manage_pages):
