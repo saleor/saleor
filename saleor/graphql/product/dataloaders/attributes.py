@@ -262,15 +262,15 @@ class AttributeValuesVisibleInStorefrontByProductIdLoader(
         return ProductAttributesVisibleInStorefrontByProductTypeIdLoader(self.context)
 
 
-class SelectedAttributesAllByProductIdLoader(DataLoader):
-    context_key = "selectedattributes_all_by_product"
+class AssignedAttributesAllByProductIdLoader(DataLoader):
+    context_key = "assignedAttributes_all_by_product"
 
     def batch_load(self, product_ids):
         return AttributeValuesAllByProductIdLoader(self.context).load_many(product_ids)
 
 
-class SelectedAttributesVisibleInStorefrontByProductIdLoader(DataLoader):
-    context_key = "selectedattributes_visible_in_storefront_by_product"
+class AssignedAttributesVisibleInStorefrontByProductIdLoader(DataLoader):
+    context_key = "assignedattributes_visible_in_storefront_by_product"
 
     def batch_load(self, product_ids):
         return AttributeValuesVisibleInStorefrontByProductIdLoader(
@@ -278,8 +278,8 @@ class SelectedAttributesVisibleInStorefrontByProductIdLoader(DataLoader):
         ).load_many(product_ids)
 
 
-class SelectedAttributesByProductVariantIdLoader(DataLoader):
-    context_key = "selectedattributes_by_productvariant"
+class AssignedAttributesByProductVariantIdLoader(DataLoader):
+    context_key = "assignedattributes_by_productvariant"
 
     def batch_load(self, keys):
         def with_variants_and_assigned_attributed(results):

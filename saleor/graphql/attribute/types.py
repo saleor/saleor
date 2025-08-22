@@ -42,7 +42,7 @@ from ..core.types import (
     IntRangeInput,
     NonNullList,
 )
-from ..core.types.context import ChannelContextType
+from ..core.types.context import ChannelContextType, ChannelContextTypeForObjectType
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
@@ -67,7 +67,7 @@ from .filters import (
 )
 from .shared_filters import AssignedAttributeValueInput
 from .sorters import AttributeChoicesSortingInput
-from .utils.shared import ENTITY_TYPE_MAPPING, SelectedAttributeData
+from .utils.shared import ENTITY_TYPE_MAPPING, AssignedAttributeData
 
 
 def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
@@ -655,7 +655,7 @@ class AttributeValueInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
-class SelectedAttribute(graphene.Interface):
+class SelectedAttribute(ChannelContextTypeForObjectType):
     attribute = graphene.Field(
         Attribute,
         default_value=None,
@@ -663,26 +663,25 @@ class SelectedAttribute(graphene.Interface):
         required=True,
     )
     values = NonNullList(
-        AttributeValue,
-        description="Values of an attribute.",
-        required=True,
-        deprecation_reason="Use type-specific fields instead.",
+        AttributeValue, description="Values of an attribute.", required=True
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = "Represents an assigned attribute to an object."
+        description = "Represents a custom attribute."
 
-    @staticmethod
-    def resolve_type(instance: SelectedAttributeData, _info):
-        if instance.attribute.node.input_type == AttributeInputType.SINGLE_REFERENCE:
-            entity_type = cast(str, instance.attribute.node.entity_type)
-            return ASSIGNED_SINGLE_REFERENCE_MAP.get(entity_type)
-        if instance.attribute.node.input_type == AttributeInputType.REFERENCE:
-            entity_type = cast(str, instance.attribute.node.entity_type)
-            return ASSIGNED_MULTI_REFERENCE_MAP.get(entity_type)
-        attr_type = ASSIGNED_ATTRIBUTE_MAP[instance.attribute.node.input_type]
-        return attr_type
+
+class AssignedAttributeInterface(graphene.Interface):
+    attribute = graphene.Field(
+        Attribute,
+        default_value=None,
+        description="Attribute assigned to an object.",
+        required=True,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+        description = "Represents a single attribute assigned to an object."
 
 
 class AssignedNumericAttribute(BaseObjectType):
@@ -692,11 +691,11 @@ class AssignedNumericAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents a numeric value of an attribute." + ADDED_IN_322
 
     @staticmethod
-    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> float | None:
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> float | None:
         if not root.values:
             return None
 
@@ -722,11 +721,11 @@ class AssignedTextAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents text attribute." + ADDED_IN_322
 
     @staticmethod
-    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> JSON | None:
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> JSON | None:
         if not root.values:
             return None
         attr_value = root.values[0].node
@@ -734,7 +733,7 @@ class AssignedTextAttribute(BaseObjectType):
 
     @staticmethod
     def resolve_translation(
-        root: SelectedAttributeData, info: ResolveInfo, *, language_code
+        root: AssignedAttributeData, info: ResolveInfo, *, language_code
     ) -> Promise[JSON | None] | None:
         if not root.values:
             return None
@@ -770,11 +769,11 @@ class AssignedPlainTextAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents plain text attribute." + ADDED_IN_322
 
     @staticmethod
-    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> str | None:
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> str | None:
         if not root.values:
             return None
         attr_value = root.values[0].node
@@ -782,7 +781,7 @@ class AssignedPlainTextAttribute(BaseObjectType):
 
     @staticmethod
     def resolve_translation(
-        root: SelectedAttributeData, info: ResolveInfo, *, language_code
+        root: AssignedAttributeData, info: ResolveInfo, *, language_code
     ) -> Promise[str | None] | None:
         if not root.values:
             return None
@@ -805,11 +804,11 @@ class AssignedFileAttribute(BaseObjectType):
     value = graphene.Field(File, description="The assigned file.", required=False)
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents file attribute." + ADDED_IN_322
 
     @staticmethod
-    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> File | None:
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> File | None:
         if not root.values:
             return None
         attr_value = root.values[0].node
@@ -824,12 +823,12 @@ class AssignedSinglePageReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents single page reference attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[ChannelContext[page_models.Page]] | None:
         if not root.values:
             return None
@@ -852,12 +851,12 @@ class AssignedSingleProductReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents single product reference attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[ChannelContext[product_models.Product]] | None:
         if not root.values:
             return None
@@ -882,14 +881,14 @@ class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = (
             "Represents single product variant reference attribute." + ADDED_IN_322
         )
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[ChannelContext[product_models.ProductVariant]] | None:
         if not root.values:
             return None
@@ -916,12 +915,12 @@ class AssignedSingleCategoryReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents single category reference attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[product_models.Category] | None:
         if not root.values:
             return None
@@ -937,12 +936,12 @@ class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents single collection reference attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[ChannelContext[product_models.Collection]] | None:
         if not root.values:
             return None
@@ -969,12 +968,12 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents multi page reference attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[list[ChannelContext[page_models.Page]]]:
         if not root.values:
             return Promise.resolve([])
@@ -1006,12 +1005,12 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents multi product reference attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[list[ChannelContext[product_models.Product]]]:
         if not root.values:
             return Promise.resolve([])
@@ -1044,14 +1043,14 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = (
             "Represents multi product variant reference attribute." + ADDED_IN_322
         )
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[list[ChannelContext[product_models.ProductVariant]]]:
         if not root.values:
             return Promise.resolve([])
@@ -1084,12 +1083,12 @@ class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents multi category reference attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[list[product_models.Category]]:
         if not root.values:
             return Promise.resolve([])
@@ -1108,12 +1107,12 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents multi collection reference attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[list[ChannelContext[product_models.Collection]]]:
         if not root.values:
             return Promise.resolve([])
@@ -1174,11 +1173,11 @@ class AssignedSingleChoiceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents a single choice attribute." + ADDED_IN_322
 
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> models.AttributeValue | None:
         if not root.values:
             return None
@@ -1194,12 +1193,12 @@ class AssignedMultiChoiceAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents a multi choice attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData, info: ResolveInfo
     ) -> list[models.AttributeValue]:
         return [value.node for value in root.values]
 
@@ -1242,12 +1241,12 @@ class AssignedSwatchAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents a swatch attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, _info: ResolveInfo
+        root: AssignedAttributeData, _info: ResolveInfo
     ) -> models.AttributeValue | None:
         if not root.values:
             return None
@@ -1262,11 +1261,11 @@ class AssignedBooleanAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents a boolean attribute." + ADDED_IN_322
 
     @staticmethod
-    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> bool | None:
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> bool | None:
         if not root.values:
             return None
         attr_value = root.values[0].node
@@ -1281,11 +1280,11 @@ class AssignedDateAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents a date attribute." + ADDED_IN_322
 
     @staticmethod
-    def resolve_value(root: SelectedAttributeData, _info: ResolveInfo) -> date | None:
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> date | None:
         if not root.values:
             return None
         attr_value = root.values[0].node
@@ -1300,12 +1299,12 @@ class AssignedDateTimeAttribute(BaseObjectType):
     )
 
     class Meta:
-        interfaces = [SelectedAttribute]
+        interfaces = [AssignedAttributeInterface]
         description = "Represents a date time attribute." + ADDED_IN_322
 
     @staticmethod
     def resolve_value(
-        root: SelectedAttributeData, _info: ResolveInfo
+        root: AssignedAttributeData, _info: ResolveInfo
     ) -> datetime | None:
         if not root.values:
             return None
@@ -1344,3 +1343,20 @@ ASSIGNED_ATTRIBUTE_TYPES = (
     + list(ASSIGNED_SINGLE_REFERENCE_MAP.values())
     + list(ASSIGNED_MULTI_REFERENCE_MAP.values())
 )
+
+
+class AssignedAttribute(graphene.Union):
+    class Meta:
+        types = ASSIGNED_ATTRIBUTE_TYPES
+        description = "Represents an attribute assigned to an object." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_type(instance: AssignedAttributeData, _info):
+        if instance.attribute.node.input_type == AttributeInputType.SINGLE_REFERENCE:
+            entity_type = cast(str, instance.attribute.node.entity_type)
+            return ASSIGNED_SINGLE_REFERENCE_MAP.get(entity_type)
+        if instance.attribute.node.input_type == AttributeInputType.REFERENCE:
+            entity_type = cast(str, instance.attribute.node.entity_type)
+            return ASSIGNED_MULTI_REFERENCE_MAP.get(entity_type)
+        attr_type = ASSIGNED_ATTRIBUTE_MAP[instance.attribute.node.input_type]
+        return attr_type

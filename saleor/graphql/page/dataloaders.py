@@ -180,15 +180,15 @@ class AttributeValuesVisibleInStorefrontByPageIdLoader(
         return PageAttributesVisibleInStorefrontByPageTypeIdLoader(self.context)
 
 
-class SelectedAttributesAllByPageIdLoader(DataLoader[int, list[dict]]):
-    context_key = "selectedattributes_all_by_page"
+class AssignedAttributesAllByPageIdLoader(DataLoader[int, list[dict]]):
+    context_key = "assignedattributes_all_by_page"
 
     def batch_load(self, page_ids):
         return AttributeValuesAllByPageIdLoader(self.context).load_many(page_ids)
 
 
-class SelectedAttributesVisibleInStorefrontPageIdLoader(DataLoader[int, list[dict]]):
-    context_key = "selectedattributes_visible_in_storefront_by_page"
+class AssignedAttributesVisibleInStorefrontPageIdLoader(DataLoader[int, list[dict]]):
+    context_key = "assignedattributes_visible_in_storefront_by_page"
 
     def batch_load(self, page_ids):
         return AttributeValuesVisibleInStorefrontByPageIdLoader(self.context).load_many(
@@ -342,8 +342,8 @@ class AttributeValuesVisibleInStorefrontByPageIdAndAttributeSlugLoader(
         )
 
 
-class SelectedAttributeAllByPageIdAttributeSlugLoader(DataLoader[int, list[dict]]):
-    context_key = "selectedattributes_all_by_page_and_attribute_slug"
+class AssignedAttributeAllByPageIdAttributeSlugLoader(DataLoader[int, list[dict]]):
+    context_key = "assignedattributes_all_by_page_and_attribute_slug"
 
     def batch_load(self, page_ids):
         return AttributeValuesAllByPageIdAndAttributeSlugLoader(self.context).load_many(
@@ -351,10 +351,10 @@ class SelectedAttributeAllByPageIdAttributeSlugLoader(DataLoader[int, list[dict]
         )
 
 
-class SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader(
+class AssignedAttributeVisibleInStorefrontPageIdAttributeSlugLoader(
     DataLoader[int, list[dict]]
 ):
-    context_key = "selectedattributes_visible_in_storefront_by_page_and_attribute_slug"
+    context_key = "assignedattributes_visible_in_storefront_by_page_and_attribute_slug"
 
     def batch_load(self, page_ids):
         return AttributeValuesVisibleInStorefrontByPageIdAndAttributeSlugLoader(
