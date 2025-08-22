@@ -37,8 +37,7 @@ from ....payment.utils import (
 from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
-from ... import observability
-from ...const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
+from ... import const, observability
 from ...event_types import WebhookEventSyncType
 from ...payloads import generate_transaction_action_request_payload
 from ...utils import get_webhooks_for_event
@@ -210,6 +209,14 @@ def trigger_webhook_sync_if_not_cached(
         cache_data, webhook.target_url, event_type, webhook.app_id
     )
     response_data = cache.get(cache_key)
+    if response_data == const.SYNC_WEBHOOK_FAILURE_SENTINEL:
+        # Prevent sending webhook if the previous one failed recently.
+        logger.warning(
+            "[Webhook] Skipping request to %s for event %s due to previous failure.",
+            sanitize_url_for_logging(webhook.target_url),
+            event_type,
+        )
+        return None
     if response_data is None:
         response_data = trigger_webhook_sync(
             event_type,
@@ -226,7 +233,13 @@ def trigger_webhook_sync_if_not_cached(
             cache.set(
                 cache_key,
                 response_data,
-                timeout=cache_timeout or WEBHOOK_CACHE_DEFAULT_TIMEOUT,
+                timeout=cache_timeout or const.WEBHOOK_CACHE_DEFAULT_TTL,
+            )
+        else:
+            cache.set(
+                cache_key,
+                const.SYNC_WEBHOOK_FAILURE_SENTINEL,
+                timeout=const.SYNC_WEBHOOK_FAILURE_CACHE_TTL,
             )
     return response_data
 
