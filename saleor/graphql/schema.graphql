@@ -7654,7 +7654,7 @@ input MetadataInput {
 }
 
 """
-Represents an assigned attribute to an object.
+Represents an attribute assigned to an object.
 
 Added in Saleor 3.22.
 """
@@ -7673,7 +7673,7 @@ type AssignedNumericAttribute implements AssignedAttributeInterface {
   value: Float
 }
 
-"""Represents a single assigned attribute to an object."""
+"""Represents a single attribute assigned to an object."""
 interface AssignedAttributeInterface {
   """Attribute assigned to an object."""
   attribute: Attribute!

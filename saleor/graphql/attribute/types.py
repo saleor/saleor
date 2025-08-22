@@ -681,7 +681,7 @@ class AssignedAttributeInterface(graphene.Interface):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = "Represents a single assigned attribute to an object."
+        description = "Represents a single attribute assigned to an object."
 
 
 class AssignedNumericAttribute(BaseObjectType):
@@ -1348,7 +1348,7 @@ ASSIGNED_ATTRIBUTE_TYPES = (
 class AssignedAttribute(graphene.Union):
     class Meta:
         types = ASSIGNED_ATTRIBUTE_TYPES
-        description = "Represents an assigned attribute to an object." + ADDED_IN_322
+        description = "Represents an attribute assigned to an object." + ADDED_IN_322
 
     @staticmethod
     def resolve_type(instance: AssignedAttributeData, _info):
