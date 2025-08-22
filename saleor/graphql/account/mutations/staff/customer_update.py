@@ -166,7 +166,7 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         manager = get_plugin_manager_promise(info.context).get()
 
         cls.save_default_addresses(

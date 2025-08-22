@@ -462,7 +462,13 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance: models.Checkout, cleaned_input):
+    def save(
+        cls,
+        info: ResolveInfo,
+        instance: models.Checkout,
+        cleaned_input,
+        instance_tracker=None,
+    ):
         with traced_atomic_transaction():
             # Create the checkout object
             instance.save()

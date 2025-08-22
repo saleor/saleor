@@ -90,7 +90,7 @@ class AppCreate(DeprecatedModelMutation):
         return response
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info, instance, cleaned_input, instance_tracker=None):
         instance.save()
         if not instance.identifier:
             instance.identifier = graphene.Node.to_global_id("App", instance.pk)
