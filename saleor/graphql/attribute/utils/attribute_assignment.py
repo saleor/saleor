@@ -72,8 +72,11 @@ class AttributeAssignmentMixin:
         ext_ref_set: set[str],
     ):
         """Retrieve attributes nodes from given identifiers."""
+        nodes = qs.filter(
+            Q(pk__in=id_map.keys()) | Q(external_reference__in=ext_ref_set)
+        )
         nodes = list(
-            qs.filter(Q(pk__in=id_map.keys()) | Q(external_reference__in=ext_ref_set))
+            nodes.prefetch_related("reference_product_types", "reference_page_types")
         )
 
         resolved_pks = {node.pk for node in nodes}
