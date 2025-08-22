@@ -5,6 +5,28 @@ mutation AttributeCreate($input: AttributeCreateInput!) {
   attributeCreate(input: $input) {
     attribute {
       id
+      name
+      slug
+      unit
+      entityType
+      referenceTypes {
+          ... on ProductType {
+              id
+              slug
+          }
+          ... on PageType {
+              id
+              slug
+          }
+      }
+      externalReference
+      productTypes(first: 10) {
+          edges {
+              node {
+                  id
+              }
+          }
+      }
     }
     errors {
       code
@@ -26,7 +48,8 @@ def attribute_create(
     is_variant_only=False,
     values=None,
     unit=None,
-    entityType=None,
+    entity_type=None,
+    reference_types=None,
 ):
     variables = {
         "input": {
@@ -38,7 +61,8 @@ def attribute_create(
             "isVariantOnly": is_variant_only,
             "values": values,
             "unit": unit,
-            "entityType": entityType,
+            "entityType": entity_type,
+            "referenceTypes": reference_types,
         }
     }
 

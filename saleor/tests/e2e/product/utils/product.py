@@ -7,6 +7,7 @@ mutation createProduct($input: ProductCreateInput!) {
       field
       code
       message
+      attributes
     }
     product {
       id
