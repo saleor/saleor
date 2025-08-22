@@ -44,9 +44,7 @@ from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import (
-    AttributesByAttributeId,
-)
+from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import (
@@ -511,7 +509,7 @@ class SelectedAttribute(ChannelContextTypeForObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = "Represents a custom attribute."
+        description = "Represents an assigned attribute to an object."
 
 
 class AttributeInput(BaseInputObjectType):

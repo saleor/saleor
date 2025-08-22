@@ -7626,7 +7626,7 @@ input MetadataInput {
   value: String!
 }
 
-"""Represents a custom attribute."""
+"""Represents an assigned attribute to an object."""
 type SelectedAttribute @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
   attribute: Attribute!
