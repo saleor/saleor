@@ -36,45 +36,19 @@ jobs:
         run: |
           apt-get install -y libpq-dev
 
-      - name: Install and configure poetry
-        run: |
-          pip install poetry==2.1.1
-
-      - name: Restore venv from cache
-        id: cached-poetry-dependencies-restore
-        uses: actions/cache/restore@v4
+      - uses: astral-sh/setup-uv@v6
         with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
-          # If no cache hit occurs for the key, fall back to a partial match
-          # of the most recently created artifact from the default branch
-          restore-keys: ${{ runner.os }}-venv-
+          enable-cache: true
 
       # Sync dependencies if cache is not hit or there is a partial key match
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies-restore.outputs.cache-hit != 'true'
         run: |
-          poetry env use python3.12
-          poetry sync
-
-      - name: Add Python Virtual Environment to PATH
-        run: |
-          # Note: requires `poetry env use` to be ran, otherwise poetry
-          # may not be able to find which virtual environment is in use.
-          # Ticket: https://github.com/python-poetry/poetry/issues/7190
-          echo "$(poetry env info -p)"/bin >> $GITHUB_PATH
-
-      - name: Cache venv
-        uses: actions/cache/save@v4
-        if: steps.cached-poetry-dependencies-restore.outputs.cache-hit != 'true'
-        with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ steps.cached-poetry-dependencies-restore.outputs.cache-primary-key }}
+          uv sync --locked
 
       - name: Migrate
         run: |
           export DJANGO_SETTINGS_MODULE=saleor.tests.settings
-          python manage.py migrate
+          uv run python manage.py migrate
 
       - name: Checkout base
         uses: actions/checkout@v4
@@ -84,9 +58,9 @@ jobs:
       # Sync dependencies to ensure consistency with base branch
       - name: Synchronize dependencies
         run: |
-          poetry sync
+          uv sync --locked
 
       - name: Run tests
         run: |
           export PYTEST_DB_URL=$DATABASE_URL
-          pytest -n 0 --reuse-db
+          uv run pytest -n 0 --reuse-db

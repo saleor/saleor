@@ -9,7 +9,7 @@ on:
       - "saleor/**"
       - .github/workflows/tests-and-linters.yml
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
   push:
     branches:
       - main
@@ -20,7 +20,7 @@ on:
       - "saleor/**"
       - .github/workflows/tests-and-linters.yml
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
 
 env:
   BENCH_PATH: ./queries-results.json
@@ -58,35 +58,19 @@ jobs:
         run: |
           apt-get install -y libpq-dev
 
-      - name: Install and configure poetry
-        run: |
-          pip install poetry==2.1.1
-
-      - name: Cache the venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
+      - uses: astral-sh/setup-uv@v6
         with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          poetry env use python3.12
-          poetry sync
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-
-      - name: Add Python Virtual Environment to PATH
-        run: |
-          # Note: requires `poetry env use` to be ran, otherwise poetry
-          # may not be able to find which virtual environment is in use.
-          # Ticket: https://github.com/python-poetry/poetry/issues/7190
-          echo "$(poetry env info -p)"/bin >> $GITHUB_PATH
+          uv sync --locked
 
       - name: Run unit tests
         env:
           COVERAGE_CORE: sysmon
         run: |
-          pytest \
+          uv run pytest \
             -m "not e2e" \
             --cov \
             --cov-report= \
@@ -140,29 +124,13 @@ jobs:
         run: |
           apt-get install -y libpq-dev
 
-      - name: Install and configure poetry
-        run: |
-          pip install poetry==2.1.1
-
-      - name: Cache the venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
+      - uses: astral-sh/setup-uv@v6
         with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          poetry env use python3.12
-          poetry sync
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-
-      - name: Add Python Virtual Environment to PATH
-        run: |
-          # Note: requires `poetry env use` to be ran, otherwise poetry
-          # may not be able to find which virtual environment is in use.
-          # Ticket: https://github.com/python-poetry/poetry/issues/7190
-          echo "$(poetry env info -p)"/bin >> $GITHUB_PATH
+          uv sync --locked
 
       - uses: actions/cache@v4
         with:
@@ -176,5 +144,5 @@ jobs:
       - name: Run Linters and Checks
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pre-commit run --all --show-diff-on-failure
+          uv run pre-commit run --all --show-diff-on-failure
         if: ${{ always() }}

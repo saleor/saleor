@@ -22,7 +22,7 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.16.1
+    rev: v1.17.1
     hooks:
       - id: mypy
         args: [--cache-dir=/dev/null] # Disable cache to avoid issues with pre-commit
@@ -55,11 +55,11 @@ repos:
         # Replace --quiet with --verbose to debug issues.
         - --quiet
 
-  - repo: https://github.com/python-poetry/poetry
-    rev: 2.1.3
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.8.12
     hooks:
-      - id: poetry-lock
-        files: "^pyproject.toml$"
+      - id: uv-lock
 
   - repo: local
     hooks:
