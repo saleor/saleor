@@ -23,7 +23,7 @@ class Decimal(graphene.Float):
     def parse_literal(node) -> decimal.Decimal | None:
         if isinstance(node, ast.FloatValue | ast.IntValue):
             try:
-                return decimal.Decimal(node.value)
+                return Decimal.parse_value(decimal.Decimal(node.value))
             except decimal.DecimalException:
                 return None
         return None
@@ -46,29 +46,48 @@ class Decimal(graphene.Float):
             return None
 
 
+class InvalidPositiveDecimal(ValueError):
+    pass
+
+
 class PositiveDecimal(graphene.Float):
-    """Nonnegative Decimal scalar implementation.
+    """Non-negative Decimal scalar implementation.
 
     Should be used in places where value must be nonnegative (0 or greater).
     """
 
     @staticmethod
-    def parse_value(value) -> decimal.Decimal | None:
-        parsed_value = Decimal.parse_value(value)
-
-        if (parsed_value is not None) and parsed_value >= 0:
-            return parsed_value
+    def _get_positive_decimal_or_none(
+        value: decimal.Decimal | None,
+    ) -> decimal.Decimal | None:
+        if (value is not None) and value >= 0:
+            return value
 
         return None
 
     @staticmethod
+    def parse_value(value) -> decimal.Decimal | None:
+        parsed_decimal = Decimal.parse_value(value)
+
+        return PositiveDecimal._get_positive_decimal_or_none(parsed_decimal)
+
+    @staticmethod
     def parse_literal(node) -> decimal.Decimal | None:
-        parsed_value = Decimal.parse_literal(node)
+        parsed_decimal = Decimal.parse_literal(node)
 
-        if (parsed_value is not None) and parsed_value >= 0:
-            return parsed_value
+        return PositiveDecimal._get_positive_decimal_or_none(parsed_decimal)
 
-        return None
+    @staticmethod
+    def serialize(value) -> str:
+        parsed_value = PositiveDecimal.parse_value(value)
+
+        if parsed_value is None:
+            # Should throw, it means somewhere in business logic value was malformed
+            raise InvalidPositiveDecimal(
+                f"Received invalid value. Should be positive decimal, received {value}"
+            )
+
+        return str(parsed_value)
 
 
 class JSON(GenericScalar):

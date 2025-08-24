@@ -3,7 +3,7 @@ import decimal
 import pytest
 from graphql.language.ast import FloatValue, IntValue, ObjectValue, StringValue
 
-from ..scalars import Decimal, PositiveDecimal
+from ..scalars import Decimal, InvalidPositiveDecimal, PositiveDecimal
 
 # Decimals
 
@@ -92,3 +92,20 @@ def test_positive_decimal_scalar_invalid_literal(node):
     result = PositiveDecimal.parse_literal(node)
 
     assert result is None
+
+
+def test_positive_decimal_scalar_serialize():
+    result = PositiveDecimal.serialize(1.2)
+
+    assert result == "1.2"
+
+
+def test_positive_decimal_scalar_serialize_zero():
+    result = PositiveDecimal.serialize(0)
+
+    assert result == "0"
+
+
+def test_positive_decimal_scalar_serialize_invalid_value():
+    with pytest.raises(InvalidPositiveDecimal):
+        PositiveDecimal.serialize(-1)
