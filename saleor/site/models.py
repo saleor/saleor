@@ -95,6 +95,11 @@ class SiteSettings(ModelWithMetadata):
     )
     gift_card_expiry_period = models.PositiveIntegerField(null=True, blank=True)
 
+    # refund settings
+    refund_reason_reference_type = models.ForeignKey(
+        null=True, blank=True, on_delete=models.SET_NULL, to="page.PageType"
+    )
+
     # deprecated
     charge_taxes_on_shipping = models.BooleanField(default=True)
     include_taxes_in_prices = models.BooleanField(default=True)

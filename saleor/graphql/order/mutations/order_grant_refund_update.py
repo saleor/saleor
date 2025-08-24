@@ -1,16 +1,18 @@
 from typing import Any, cast
 
 import graphene
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphql import GraphQLError
 
 from ....order import OrderGrantedRefundStatus, models
 from ....order.utils import update_order_charge_data
+from ....page.models import Page
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_320, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_320, ADDED_IN_322, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -75,6 +77,9 @@ class OrderGrantRefundUpdateInput(BaseInputObjectType):
         )
     )
     reason = graphene.String(description="Reason of the granted refund.")
+    reason_reference = graphene.ID(
+        description="ID of Model to reference in reason." + ADDED_IN_322
+    )
     add_lines = NonNullList(
         OrderGrantRefundUpdateLineAddInput,
         description="Lines to assign to granted refund.",
@@ -261,6 +266,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         add_lines = input.get("add_lines", [])
         remove_lines = input.get("remove_lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", None)
+        reason_reference = input.get("reason_reference")
 
         line_ids_to_remove = []
         if remove_lines:
@@ -343,9 +349,13 @@ class OrderGrantRefundUpdate(BaseMutation):
         if errors:
             raise ValidationError(errors)
 
+        if reason_reference is not None and len(reason_reference) == 0:
+            reason_reference = None
+
         cleaned_input = {
             "amount": amount,
             "reason": reason,
+            "reason_reference": reason_reference,
             "add_lines": lines_to_add,
             "remove_lines": line_ids_to_remove,
             "grant_refund_for_shipping": grant_refund_for_shipping,
@@ -359,6 +369,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         order: models.Order,
         granted_refund: models.OrderGrantedRefund,
         cleaned_input: dict,
+        info: ResolveInfo,
     ):
         lines_to_remove = cleaned_input.get("remove_lines")
         lines_to_add = cleaned_input.get("add_lines")
@@ -398,6 +409,60 @@ class OrderGrantRefundUpdate(BaseMutation):
             if reason is not None:
                 granted_refund.reason = reason
 
+            reason_reference_id = cleaned_input["reason_reference"]
+
+            requestor_is_app = info.context.app is not None
+            requestor_is_user = info.context.user is not None and not requestor_is_app
+
+            settings = Site.objects.get_current().settings
+            refund_reason_reference_type = settings.refund_reason_reference_type
+
+            # It works as following:
+            # If it's not configured, it's optional
+            # If it's configured, it's required for staff user
+            # It's never required for the app
+            is_passing_reason_reference_required = (
+                refund_reason_reference_type is not None
+            )
+
+            if (
+                is_passing_reason_reference_required
+                and reason_reference_id is None
+                and requestor_is_user
+            ):
+                raise ValidationError(
+                    {
+                        "reason_reference": ValidationError(
+                            "Reason reference is required when refund reason reference type is configured.",
+                            code=OrderGrantRefundUpdateErrorCode.REQUIRED.value,
+                        )
+                    }
+                ) from None
+
+            # If feature is not enabled, ignore it from the input
+            if not is_passing_reason_reference_required:
+                reason_reference_id = None
+
+            if reason_reference_id:
+                try:
+                    type_, reason_reference_pk = from_global_id_or_error(
+                        reason_reference_id, only_type="Page"
+                    )
+                    if reason_reference_pk:
+                        reason_reference_instance = Page.objects.get(
+                            pk=reason_reference_pk
+                        )
+                        granted_refund.reason_reference = reason_reference_instance
+                except (Page.DoesNotExist, ValueError):
+                    raise ValidationError(
+                        {
+                            "reason_reference": ValidationError(
+                                "Invalid reason reference. Must be an ID of a Model (Page)",
+                                code=OrderGrantRefundUpdateErrorCode.INVALID.value,
+                            )
+                        }
+                    ) from None
+
             granted_refund.save(
                 update_fields=[
                     "amount_value",
@@ -405,6 +470,7 @@ class OrderGrantRefundUpdate(BaseMutation):
                     "shipping_costs_included",
                     "updated_at",
                     "transaction_item",
+                    "reason_reference",
                 ]
             )
 
@@ -421,7 +487,10 @@ class OrderGrantRefundUpdate(BaseMutation):
         order = granted_refund.order
 
         cleaned_input = cls.clean_input(info, granted_refund, input)
-        cls.process_update_for_granted_refund(order, granted_refund, cleaned_input)
+
+        cls.process_update_for_granted_refund(
+            order, granted_refund, cleaned_input, info
+        )
         update_order_charge_data(order)
         return cls(
             order=SyncWebhookControlContext(order),
