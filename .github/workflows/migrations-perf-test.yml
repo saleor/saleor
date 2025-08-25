@@ -20,7 +20,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_TESTENVS_REGION }}
 
       - name: Build and push
         uses: kciter/aws-ecr-action@79255b7c5aa03dbf6d7c46cff2bfd049874cd98d # v4
@@ -29,7 +29,7 @@ jobs:
           secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           account_id: ${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}
           repo: saleor-testenvs
-          region: us-east-1
+          region: ${{ vars.AWS_TESTENVS_REGION }}
           tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
 
       - name: Get pull number
@@ -42,13 +42,13 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          REGION: us-east-1
+          REGION: ${{ vars.AWS_TESTENVS_REGION }}
           FunctionName: migrations-perf-test-manager
           Payload: >-
             {
               "action": "${{ github.event.action }}",
               "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
-              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
+              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_TESTENVS_REGION }}.amazonaws.com/saleor-testenvs:${{ github.sha }}",
               "pr_id": "${{ env.PULL_ID }}",
               "commit_hash": "${{ github.sha }}"
             }
@@ -73,7 +73,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_TESTENVS_REGION }}
 
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
@@ -81,13 +81,13 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          REGION: us-east-1
+          REGION: ${{ vars.AWS_TESTENVS_REGION }}
           FunctionName: migrations-perf-test-manager
           Payload: >-
             {
               "action": "${{ github.event.action }}",
               "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
-              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
+              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_TESTENVS_REGION }}.amazonaws.com/saleor-testenvs:${{ github.sha }}",
               "pr_id": "${{ env.PULL_ID }}",
               "commit_hash": "${{ github.sha }}"
             }
