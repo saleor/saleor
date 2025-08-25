@@ -276,8 +276,14 @@ class Checkout(models.Model):
         matching_lines = (line for line in self if line.variant.pk == variant.pk)
         return next(matching_lines, None)
 
-    def get_last_active_payment(self) -> Optional["Payment"]:
-        payments = [payment for payment in self.payments.all() if payment.is_active]
+    def get_last_active_payment(
+        self, database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
+    ) -> Optional["Payment"]:
+        payments = [
+            payment
+            for payment in self.payments.using(database_connection_name)
+            if payment.is_active
+        ]
         return max(payments, default=None, key=attrgetter("pk"))
 
     def set_country(
