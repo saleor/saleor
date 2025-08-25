@@ -97,7 +97,7 @@ from .dataloaders import (
     TransactionItemsByCheckoutIDLoader,
 )
 from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
-from .utils import prevent_sync_event_circular_query
+from .utils import prevent_sync_event_circular_query, use_gift_card_transactions_flow
 
 if TYPE_CHECKING:
     from ...account.models import Address
@@ -1094,15 +1094,28 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 excluded_payloads
             )
 
-            taxed_total = calculations.calculate_checkout_total_with_gift_cards(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                database_connection_name=database_connection_name,
-                pregenerated_subscription_payloads=tax_payloads,
-                allow_sync_webhooks=root.allow_sync_webhooks,
-            )
+            if use_gift_card_transactions_flow(
+                checkout_info.channel, checkout_info.checkout, database_connection_name
+            ):
+                taxed_total = calculations.calculate_checkout_total(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    address=address,
+                    database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=tax_payloads,
+                    allow_sync_webhooks=root.allow_sync_webhooks,
+                )
+            else:
+                taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    address=address,
+                    database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=tax_payloads,
+                    allow_sync_webhooks=root.allow_sync_webhooks,
+                )
             return max(taxed_total, zero_taxed_money(root.node.currency))
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
@@ -1554,22 +1567,47 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 excluded_payloads
             )
 
-            taxed_total = calculations.calculate_checkout_total_with_gift_cards(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                database_connection_name=database_connection_name,
-                pregenerated_subscription_payloads=tax_payloads,
-                allow_sync_webhooks=root.allow_sync_webhooks,
-            )
+            if use_gift_card_transactions_flow(
+                checkout_info.channel, checkout_info.checkout, database_connection_name
+            ):
+                taxed_total = calculations.calculate_checkout_total(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    address=address,
+                    database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=tax_payloads,
+                    allow_sync_webhooks=root.allow_sync_webhooks,
+                )
+            else:
+                taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+                    manager=manager,
+                    checkout_info=checkout_info,
+                    lines=lines,
+                    address=address,
+                    database_connection_name=database_connection_name,
+                    pregenerated_subscription_payloads=tax_payloads,
+                    allow_sync_webhooks=root.allow_sync_webhooks,
+                )
+
             currency = root.node.currency
             checkout_total = max(taxed_total, zero_taxed_money(currency))
-            total_charged = zero_money(currency)
+            total_covered = zero_money(currency)
             for transaction in transactions:
-                total_charged += transaction.amount_charged
-                total_charged += transaction.amount_charge_pending
-            return total_charged - checkout_total.gross
+                if (
+                    use_gift_card_transactions_flow(
+                        checkout_info.channel,
+                        checkout_info.checkout,
+                        database_connection_name,
+                    )
+                    and transaction.gift_card
+                ):
+                    total_covered += transaction.amount_authorized
+                else:
+                    total_covered += transaction.amount_charged
+                    total_covered += transaction.amount_charge_pending
+
+            return total_covered - checkout_total.gross
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         dataloaders.append(
