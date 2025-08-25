@@ -42,6 +42,7 @@ from ....payment.interface import (
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
 )
+from ....payment.models import Payment
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import (
@@ -1889,6 +1890,10 @@ query getCheckout($id: ID) {
     token
     discount {
       amount
+    }
+    giftCards {
+      id
+      last4CodeChars
     }
     totalPrice {
       currency
@@ -4592,6 +4597,133 @@ def test_checkout_balance(
         == transaction.charged_value
         + transaction.charge_pending_value
         - checkout_with_prices.total.gross.amount
+    )
+
+
+def test_checkout_total_balance_with_gift_card_transaction_and_create_transactions_for_gift_cards_flow(
+    user_api_client, checkout_with_item, gift_card
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+
+    channel = checkout_info.checkout.channel
+    channel.create_transactions_for_gift_cards = True
+    channel.save(update_fields=["create_transactions_for_gift_cards"])
+
+    checkout_with_item.gift_cards.add(gift_card)
+
+    gift_card_transaction = checkout_with_item.payment_transactions.create(
+        name="Gift card",
+        psp_reference="123",
+        currency=channel.currency_code,
+        authorized_value=gift_card.current_balance_amount,
+        gift_card=gift_card,
+    )
+
+    # when
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    response = user_api_client.post_graphql(
+        QUERY_CHECKOUT_STATUSES_AND_BALANCE,
+        variables,
+    )
+
+    # then
+    checkout_with_item.refresh_from_db()
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["checkout"]["totalBalance"]["amount"]
+        == gift_card_transaction.authorized_value
+        - checkout_with_item.total.gross.amount
+    )
+
+
+def test_checkout_total_price_with_gift_card_and_create_transactions_for_gift_cards_flow(
+    api_client, checkout_with_item, gift_card
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+
+    channel = checkout_info.checkout.channel
+    channel.create_transactions_for_gift_cards = True
+    channel.save(update_fields=["create_transactions_for_gift_cards"])
+
+    checkout_with_item.gift_cards.add(gift_card)
+    checkout_with_item.payment_transactions.create(
+        name="Gift card",
+        psp_reference="123",
+        currency=channel.currency_code,
+        authorized_value=gift_card.current_balance_amount,
+        gift_card=gift_card,
+    )
+
+    taxed_total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
+    )
+
+    # when
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    response = api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["checkout"]["giftCards"] != []
+    assert data["checkout"]["totalPrice"]["gross"]["amount"] == taxed_total.gross.amount
+
+
+def test_checkout_total_price_with_gift_card_and_active_payment_and_create_transactions_for_gift_cards_flow(
+    api_client, checkout_with_item, gift_card
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+
+    channel = checkout_info.checkout.channel
+    channel.create_transactions_for_gift_cards = True
+    channel.save(update_fields=["create_transactions_for_gift_cards"])
+
+    checkout_with_item.gift_cards.add(gift_card)
+    checkout_with_item.payment_transactions.create(
+        name="Gift card",
+        psp_reference="123",
+        currency=channel.currency_code,
+        authorized_value=gift_card.current_balance_amount,
+        gift_card=gift_card,
+    )
+
+    taxed_total = calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
+    )
+    taxed_total_subtracted_by_gift_card_balance = (
+        taxed_total.gross.amount - gift_card.current_balance_amount
+    )
+
+    Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
+    )
+
+    # when
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    response = api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["checkout"]["giftCards"] != []
+    assert (
+        data["checkout"]["totalPrice"]["gross"]["amount"]
+        == taxed_total_subtracted_by_gift_card_balance
     )
 
 

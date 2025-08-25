@@ -1,6 +1,9 @@
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from ...channel.models import Channel
+from ...checkout.models import Checkout
 from ...core.exceptions import CircularSubscriptionSyncEvent
 from ...webhook.event_types import WebhookEventSyncType
 
@@ -44,3 +47,20 @@ def prevent_sync_event_circular_query(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def use_gift_card_transactions_flow(
+    channel: "Channel",
+    checkout: "Checkout",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
+    """Check whether gift card transactions flow should be used.
+
+    Despite channel having the flag enabled there is still a possibility where checkout can
+    have an active payment. Mixing payments and transaction is not allowed therefore in
+    this case the new flow is not applied.
+    """
+    return (
+        channel.create_transactions_for_gift_cards
+        and checkout.get_last_active_payment(database_connection_name) is None
+    )
