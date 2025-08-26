@@ -19,6 +19,7 @@ from .....checkout.utils import (
 )
 from .....core.models import EventDelivery
 from .....discount import DiscountValueType, VoucherType
+from .....giftcard.error_codes import GiftCardErrorCode
 from .....payment import PaymentMethodType, TransactionAction, TransactionEventType
 from .....payment.models import TransactionItem
 from .....plugins.manager import get_plugins_manager
@@ -1620,3 +1621,33 @@ def test_checkout_add_gift_card_to_other_checkout_for_create_transactions_for_gi
     assert events[0].type == TransactionEventType.AUTHORIZATION_SUCCESS
     assert events[0].amount_value == gift_card.initial_balance_amount
     assert other_checkout_gift_card_transaction.gift_card == gift_card
+
+
+def test_checkout_add_gift_card_to_checkout_with_zero_total_for_create_transactions_for_gift_cards_flow(
+    api_client,
+    checkout_with_item_total_0,
+    gift_card,
+):
+    # given
+    prepare_checkout_calculcations(checkout_with_item_total_0)
+
+    checkout_with_item_total_0.refresh_from_db()
+    assert checkout_with_item_total_0.total_gross_amount == 0
+    assert checkout_with_item_total_0.gift_cards.exists() is False
+
+    # when
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item_total_0),
+        "promoCode": gift_card.code,
+    }
+    response = api_client.post_graphql(MUTATION_CHECKOUT_ADD_PROMO_CODE, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+
+    # then
+    checkout_with_item_total_0.refresh_from_db()
+
+    errors = content["data"]["checkoutAddPromoCode"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "checkout"
+    assert errors[0]["code"] == GiftCardErrorCode.INVALID.name
+    assert checkout_with_item_total_0.gift_cards.exists() is False
