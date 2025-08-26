@@ -15,7 +15,7 @@ from ..app.dataloaders import ActiveAppsByAppIdentifierLoader, AppByIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
-from ..core.context import SyncWebhookControlContext
+from ..core.context import ChannelContext, SyncWebhookControlContext
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import JSONString, PermissionsField
 from ..core.scalars import JSON, DateTime
@@ -26,6 +26,8 @@ from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
+from ..page.dataloaders import PageByIdLoader
+from ..page.types import Page
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     TransactionByPaymentIdLoader,
@@ -343,6 +345,11 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         description="Message related to the transaction's event.",
         required=True,
     )
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason model of the transaction refund.",
+    )
     external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "
@@ -428,6 +435,24 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         if root.user_id:
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None
+
+    @staticmethod
+    def resolve_reason_reference(root: models.TransactionEvent, info):
+        if not root.reason_reference_id:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+
+            # It works but is it a valid solution?
+            return ChannelContext(node=page, channel_slug=None)
+
+        return (
+            PageByIdLoader(info.context)
+            .load(root.reason_reference_id)
+            .then(wrap_page_with_context)
+        )
 
 
 class GenericPaymentMethodDetails(graphene.Interface):
@@ -598,6 +623,11 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     payment_method_details = graphene.Field(
         PaymentMethodDetails,
         description="The payment method used for this transaction." + ADDED_IN_322,
+    )
+
+    reason = graphene.String(description="Reason of the refund.")
+    reason_reference = graphene.Field(
+        Page, required=False, description="Reason model for refund."
     )
 
     class Meta:

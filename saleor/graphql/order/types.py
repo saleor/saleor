@@ -74,6 +74,7 @@ from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_320,
     ADDED_IN_321,
+    ADDED_IN_322,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -110,6 +111,8 @@ from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
 from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
+from ..page.dataloaders import PageByIdLoader
+from ..page.types import Page
 from ..payment.dataloaders import (
     TransactionByPaymentIdLoader,
     TransactionItemByIDLoader,
@@ -268,6 +271,11 @@ class OrderGrantedRefund(
     updated_at = DateTime(required=True, description="Time of last update.")
     amount = graphene.Field(Money, required=True, description="Refund amount.")
     reason = graphene.String(description="Reason of the refund.")
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason Model (Page) reference for refund." + ADDED_IN_322,
+    )
     user = graphene.Field(
         User,
         description=(
@@ -385,6 +393,24 @@ class OrderGrantedRefund(
             return None
         return TransactionItemByIDLoader(info.context).load(
             granted_refund.transaction_item_id
+        )
+
+    @staticmethod
+    def resolve_reason_reference(root: models.OrderGrantedRefund, info):
+        if not root.node.reason_reference:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+
+            # It works but is it a valid solution?
+            return ChannelContext(node=page, channel_slug=None)
+
+        return (
+            PageByIdLoader(info.context)
+            .load(root.node.reason_reference.id)
+            .then(wrap_page_with_context)
         )
 
 
