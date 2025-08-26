@@ -41,10 +41,11 @@ from ..utils import (
 def test_add_gift_card_code_to_checkout(checkout, gift_card):
     # given
     assert checkout.gift_cards.count() == 0
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     add_gift_card_code_to_checkout(
-        checkout, "test@example.com", gift_card.code, gift_card.currency
+        checkout, "test@example.com", gift_card.code, gift_card.currency, manager
     )
 
     # then
@@ -54,9 +55,12 @@ def test_add_gift_card_code_to_checkout(checkout, gift_card):
 def test_add_gift_card_code_to_checkout_without_email(checkout, gift_card):
     # given
     assert checkout.gift_cards.count() == 0
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
-    add_gift_card_code_to_checkout(checkout, None, gift_card.code, gift_card.currency)
+    add_gift_card_code_to_checkout(
+        checkout, None, gift_card.code, gift_card.currency, manager
+    )
 
     # then
     assert checkout.gift_cards.count() == 1
@@ -68,12 +72,13 @@ def test_add_gift_card_code_to_checkout_inactive_card(checkout, gift_card):
     gift_card.save(update_fields=["is_active"])
 
     assert checkout.gift_cards.count() == 0
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     # then
     with pytest.raises(InvalidPromoCode):
         add_gift_card_code_to_checkout(
-            checkout, "test@example.com", gift_card.code, gift_card.currency
+            checkout, "test@example.com", gift_card.code, gift_card.currency, manager
         )
 
 
@@ -85,12 +90,13 @@ def test_add_gift_card_code_to_checkout_expired_card(checkout, gift_card):
     gift_card.save(update_fields=["expiry_date"])
 
     assert checkout.gift_cards.count() == 0
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     # then
     with pytest.raises(InvalidPromoCode):
         add_gift_card_code_to_checkout(
-            checkout, "test@example.com", gift_card.code, gift_card.currency
+            checkout, "test@example.com", gift_card.code, gift_card.currency, manager
         )
 
 
@@ -100,12 +106,13 @@ def test_add_gift_card_code_to_checkout_invalid_currency(checkout, gift_card):
 
     assert gift_card.currency != currency
     assert checkout.gift_cards.count() == 0
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     # then
     with pytest.raises(InvalidPromoCode):
         add_gift_card_code_to_checkout(
-            checkout, "test@example.com", gift_card.code, currency
+            checkout, "test@example.com", gift_card.code, currency, manager
         )
 
 
@@ -113,6 +120,7 @@ def test_add_gift_card_code_to_checkout_used_gift_card(checkout, gift_card_used)
     # given
     assert gift_card_used.used_by_email
     assert checkout.gift_cards.count() == 0
+    manager = get_plugins_manager(allow_replica=False)
 
     # when
     add_gift_card_code_to_checkout(
@@ -120,6 +128,7 @@ def test_add_gift_card_code_to_checkout_used_gift_card(checkout, gift_card_used)
         gift_card_used.used_by_email,
         gift_card_used.code,
         gift_card_used.currency,
+        manager,
     )
 
     # then
