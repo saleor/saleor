@@ -11,6 +11,9 @@ from django.db import transaction
 from django.db.models.expressions import Exists, OuterRef
 from django.utils import timezone
 
+from ..checkout.actions import (
+    transaction_amounts_for_checkout_updated_without_price_recalculation,
+)
 from ..checkout.error_codes import CheckoutErrorCode
 from ..checkout.models import Checkout
 from ..core.exceptions import GiftCardNotApplicable
@@ -43,7 +46,11 @@ if TYPE_CHECKING:
 
 
 def add_gift_card_code_to_checkout(
-    checkout: Checkout, email: str, promo_code: str, currency: str
+    checkout: Checkout,
+    email: str,
+    promo_code: str,
+    currency: str,
+    manager: "PluginsManager",
 ):
     """Add gift card data to checkout by code.
 
@@ -68,11 +75,13 @@ def add_gift_card_code_to_checkout(
         checkout.save(update_fields=["last_change"])
 
         if use_gift_card_transactions_flow(checkout.channel, checkout):
-            invalidate_previous_gift_card_transactions(checkout, gift_card)
-            create_gift_card_transaction(checkout, gift_card)
+            invalidate_previous_gift_card_transactions(checkout, gift_card, manager)
+            create_gift_card_transaction(checkout, gift_card, manager)
 
 
-def invalidate_previous_gift_card_transactions(checkout: Checkout, gift_card: GiftCard):
+def invalidate_previous_gift_card_transactions(
+    checkout: Checkout, gift_card: GiftCard, manager: "PluginsManager"
+):
     checkouts_to_remove = gift_card.checkouts.exclude(token=checkout.token)
     gift_card.checkouts.remove(*checkouts_to_remove)
 
@@ -90,9 +99,14 @@ def invalidate_previous_gift_card_transactions(checkout: Checkout, gift_card: Gi
             None,
         ).save()
         recalculate_transaction_amounts(transaction=previous_transaction)
+        transaction_amounts_for_checkout_updated_without_price_recalculation(
+            previous_transaction, checkout, manager, None, None
+        )
 
 
-def create_gift_card_transaction(checkout: Checkout, gift_card: GiftCard):
+def create_gift_card_transaction(
+    checkout: Checkout, gift_card: GiftCard, manager: "PluginsManager"
+):
     transaction_defaults = get_transaction_item_params(
         source_object=checkout,
         user=None,
@@ -114,6 +128,9 @@ def create_gift_card_transaction(checkout: Checkout, gift_card: GiftCard):
         None,
     ).save()
     recalculate_transaction_amounts(transaction=transaction_item)
+    transaction_amounts_for_checkout_updated_without_price_recalculation(
+        transaction_item, checkout, manager, None, None
+    )
 
 
 def remove_gift_card_code_from_checkout_or_error(

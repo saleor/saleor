@@ -826,6 +826,7 @@ def add_promo_code_to_checkout(
             user_email,
             promo_code,
             checkout_info.channel.currency_code,
+            manager,
         )
     else:
         raise InvalidPromoCode()
