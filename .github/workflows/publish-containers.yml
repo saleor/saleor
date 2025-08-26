@@ -85,9 +85,12 @@ jobs:
           context: .
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true,oci-mediatypes=true
+          # We set `push-by-digest=true` thus we cannot put any tag and thus we use
+          # the container repository name instead (ghcr.io/saleor/saleor)
+          # (we cannot push both by tags and by digest, only one or the other)
+          tags: ghcr.io/${{ steps.image.outputs.image_name }}
           platforms: ${{ matrix.platform }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
 
       - name: Export digest
         run: |
