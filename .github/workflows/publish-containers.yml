@@ -21,7 +21,7 @@ on:
     outputs:
       version:
         description: Docker image version
-        value: ${{ jobs.publish.outputs.version }}
+        value: ${{ jobs.merge-digests.outputs.version }}
 
 jobs:
   build-and-push:
@@ -106,7 +106,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  publish:
+  merge-digests:
     needs: build-and-push
 
     runs-on: ubuntu-24.04
@@ -132,6 +132,12 @@ jobs:
           path: ${{ runner.temp }}/digests
           pattern: digests-*
           merge-multiple: true
+
+      # Needed by `docker/metadata-action` (to fetch tags and other git information)
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Docker meta
         id: meta
