@@ -19,7 +19,11 @@ from ..checkout.models import Checkout
 from ..core.exceptions import GiftCardNotApplicable
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
-from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
+from ..core.utils.promo_code import (
+    CheckoutTotalPriceZeroException,
+    InvalidPromoCode,
+    generate_promo_code,
+)
 from ..graphql.checkout.utils import use_gift_card_transactions_flow
 from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ..order.models import OrderLine
@@ -75,8 +79,14 @@ def add_gift_card_code_to_checkout(
         checkout.save(update_fields=["last_change"])
 
         if use_gift_card_transactions_flow(checkout.channel, checkout):
+            raise_if_total_price_is_zero(checkout)
             invalidate_previous_gift_card_transactions(checkout, gift_card, manager)
             create_gift_card_transaction(checkout, gift_card, manager)
+
+
+def raise_if_total_price_is_zero(checkout: Checkout):
+    if checkout.total_gross_amount == Decimal(0):
+        raise CheckoutTotalPriceZeroException
 
 
 def invalidate_previous_gift_card_transactions(
