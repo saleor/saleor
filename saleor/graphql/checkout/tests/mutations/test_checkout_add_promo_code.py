@@ -19,6 +19,8 @@ from .....checkout.utils import (
 )
 from .....core.models import EventDelivery
 from .....discount import DiscountValueType, VoucherType
+from .....payment import PaymentMethodType, TransactionAction, TransactionEventType
+from .....payment.models import TransactionItem
 from .....plugins.manager import get_plugins_manager
 from .....product.models import (
     Collection,
@@ -1494,3 +1496,127 @@ def test_add_promo_code_with_price_override_set(
     assert data["checkout"]["voucherCode"] == voucher.code
     assert data["checkout"]["discount"]["amount"] == expected_discount
     assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == expected_subtotal
+
+
+@pytest.mark.parametrize(
+    ("gift_card_current_balance_amount", "expected_authorized_value"),
+    [
+        # Gift card has less funds than checkout total
+        (10, 10),
+        # Gift card equal funds to checkout total
+        (30, 30),
+        # Gift card has more funds than checkout total
+        (50, 30),
+    ],
+)
+def test_checkout_add_gift_card_for_create_transactions_for_gift_cards_flow(
+    api_client,
+    checkout_with_item,
+    gift_card,
+    gift_card_current_balance_amount,
+    expected_authorized_value,
+):
+    # given
+    checkout_info = prepare_checkout_calculcations(checkout_with_item)
+
+    gift_card.current_balance_amount = gift_card_current_balance_amount
+    gift_card.save(update_fields=["current_balance_amount"])
+
+    assert TransactionItem.objects.filter(checkout=checkout_with_item).exists() is False
+    assert checkout_info.checkout.total_gross_amount == 30
+
+    # when
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": gift_card.code,
+    }
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+
+    transaction = TransactionItem.objects.get(checkout=checkout_with_item)
+    assert transaction.gift_card == gift_card
+    assert transaction.psp_reference != ""
+    assert transaction.authorized_value == expected_authorized_value
+    assert transaction.available_actions == [TransactionAction.CANCEL]
+    assert transaction.payment_method_type == PaymentMethodType.OTHER
+    assert len(transaction.events.all()) == 1
+    transaction_event = transaction.events.get()
+    assert transaction_event.type == TransactionEventType.AUTHORIZATION_SUCCESS
+
+
+def prepare_checkout_calculcations(checkout):
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+
+    channel = checkout_info.checkout.channel
+    channel.create_transactions_for_gift_cards = True
+    channel.save(update_fields=["create_transactions_for_gift_cards"])
+
+    return checkout_info
+
+
+def test_checkout_add_gift_card_to_other_checkout_for_create_transactions_for_gift_cards_flow(
+    api_client,
+    checkout_with_item,
+    other_checkout_with_item,
+    gift_card,
+):
+    # given
+    prepare_checkout_calculcations(checkout_with_item)
+    prepare_checkout_calculcations(other_checkout_with_item)
+    assert TransactionItem.objects.filter(checkout=checkout_with_item).exists() is False
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": gift_card.code,
+    }
+    _mutate_checkout_add_promo_code(api_client, variables)
+
+    # when
+    variables = {
+        "id": to_global_id_or_none(other_checkout_with_item),
+        "promoCode": gift_card.code,
+    }
+    _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    checkout_with_item.refresh_from_db()
+    assert checkout_with_item.gift_cards.count() == 0
+    checkout_gift_card_transaction = TransactionItem.objects.get(
+        checkout=checkout_with_item
+    )
+    assert checkout_gift_card_transaction.authorized_value == 0
+    events = checkout_gift_card_transaction.events.all().order_by("created_at")
+    assert len(events) == 2
+    assert events[0].transaction == checkout_gift_card_transaction
+    assert events[0].type == TransactionEventType.AUTHORIZATION_SUCCESS
+    assert events[0].amount_value == gift_card.initial_balance_amount
+    assert events[1].transaction == checkout_gift_card_transaction
+    assert events[1].type == TransactionEventType.AUTHORIZATION_ADJUSTMENT
+    assert events[1].amount_value == 0
+    assert checkout_gift_card_transaction.gift_card is None
+
+    other_checkout_with_item.refresh_from_db()
+    assert other_checkout_with_item.gift_cards.count() == 1
+    other_checkout_gift_card_transaction = TransactionItem.objects.get(
+        checkout=other_checkout_with_item
+    )
+    assert (
+        other_checkout_gift_card_transaction.authorized_value
+        == gift_card.initial_balance_amount
+    )
+    events = other_checkout_gift_card_transaction.events.all().order_by("created_at")
+    assert len(events) == 1
+    assert events[0].transaction == other_checkout_gift_card_transaction
+    assert events[0].type == TransactionEventType.AUTHORIZATION_SUCCESS
+    assert events[0].amount_value == gift_card.initial_balance_amount
+    assert other_checkout_gift_card_transaction.gift_card == gift_card

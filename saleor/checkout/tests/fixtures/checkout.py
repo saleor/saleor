@@ -46,6 +46,26 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def other_checkout_with_item(db, channel_USD, settings, product):
+    checkout = Checkout.objects.create(
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+        price_expiration=timezone.now() + settings.CHECKOUT_PRICES_TTL,
+        email="user@email.com",
+    )
+    checkout.set_country("US", commit=True)
+    CheckoutMetadata.objects.create(checkout=checkout)
+
+    variant = product.variants.first()
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
+    add_variant_to_checkout(checkout_info, variant, 3)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_item_and_tax_exemption(checkout_with_item):
     checkout_with_item.tax_exemption = True
     checkout_with_item.save(update_fields=["tax_exemption"])
