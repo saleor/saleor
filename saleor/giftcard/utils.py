@@ -1,8 +1,9 @@
 import datetime
 from collections import defaultdict
 from collections.abc import Iterable
+from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
@@ -16,8 +17,16 @@ from ..core.exceptions import GiftCardNotApplicable
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
+from ..graphql.checkout.utils import use_gift_card_transactions_flow
 from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ..order.models import OrderLine
+from ..payment import PaymentMethodType, TransactionAction, TransactionEventType
+from ..payment.models import TransactionItem
+from ..payment.transaction_item_calculations import recalculate_transaction_amounts
+from ..payment.utils import (
+    _prepare_manual_event,
+    get_transaction_item_params,
+)
 from ..site import GiftCardSettingsExpiryType
 from . import GiftCardEvents, GiftCardLineData, events
 from .models import GiftCard, GiftCardEvent
@@ -41,18 +50,70 @@ def add_gift_card_code_to_checkout(
     Raise ValidationError if email is not provided.
     Raise InvalidPromoCode if gift card cannot be applied.
     """
-    try:
-        # only active gift card with currency the same as channel currency can be used
-        gift_card = (
-            GiftCard.objects.active(date=datetime.datetime.now(tz=datetime.UTC).date())
-            .filter(currency=currency)
-            .get(code=promo_code)
-        )
-    except GiftCard.DoesNotExist as e:
-        raise InvalidPromoCode() from e
+    with transaction.atomic():
+        try:
+            # only active gift card with currency the same as channel currency can be used
+            gift_card = (
+                GiftCard.objects.active(
+                    date=datetime.datetime.now(tz=datetime.UTC).date()
+                )
+                .filter(currency=currency)
+                .select_for_update()
+                .get(code=promo_code)
+            )
+        except GiftCard.DoesNotExist as e:
+            raise InvalidPromoCode() from e
 
-    checkout.gift_cards.add(gift_card)
-    checkout.save(update_fields=["last_change"])
+        checkout.gift_cards.add(gift_card)
+        checkout.save(update_fields=["last_change"])
+
+        if use_gift_card_transactions_flow(checkout.channel, checkout):
+            invalidate_previous_gift_card_transactions(checkout, gift_card)
+            create_gift_card_transaction(checkout, gift_card)
+
+
+def invalidate_previous_gift_card_transactions(checkout: Checkout, gift_card: GiftCard):
+    checkouts_to_remove = gift_card.checkouts.exclude(token=checkout.token)
+    gift_card.checkouts.remove(*checkouts_to_remove)
+
+    previous_transactions = TransactionItem.objects.filter(gift_card=gift_card)
+    for previous_transaction in previous_transactions:
+        previous_transaction.gift_card = None
+        previous_transaction.save(update_fields=["gift_card"])
+
+        _prepare_manual_event(
+            previous_transaction,
+            Decimal(0),
+            Decimal(0),
+            TransactionEventType.AUTHORIZATION_ADJUSTMENT,
+            None,
+            None,
+        ).save()
+        recalculate_transaction_amounts(transaction=previous_transaction)
+
+
+def create_gift_card_transaction(checkout: Checkout, gift_card: GiftCard):
+    transaction_defaults = get_transaction_item_params(
+        source_object=checkout,
+        user=None,
+        app=None,
+        psp_reference=str(uuid4()),
+        available_actions=[TransactionAction.CANCEL],
+    )
+    transaction_item = TransactionItem.objects.create(
+        **transaction_defaults,
+        gift_card=gift_card,
+        payment_method_type=PaymentMethodType.OTHER,
+    )
+    _prepare_manual_event(
+        transaction_item,
+        transaction_item.authorized_value,
+        min(checkout.total_gross_amount, gift_card.current_balance_amount),
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        None,
+        None,
+    ).save()
+    recalculate_transaction_amounts(transaction=transaction_item)
 
 
 def remove_gift_card_code_from_checkout_or_error(
