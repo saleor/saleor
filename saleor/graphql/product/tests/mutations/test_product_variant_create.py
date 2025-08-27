@@ -28,10 +28,8 @@ mutation createVariant($input: ProductVariantCreateInput!) {
       name
       sku
       assignedAttributes {
-        ... on AssignedAttributeInterface {
-          attribute {
-            slug
-          }
+        attribute {
+          slug
         }
         ... on AssignedNumericAttribute {
           value

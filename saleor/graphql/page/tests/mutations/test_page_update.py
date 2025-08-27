@@ -34,10 +34,8 @@ mutation updatePage($id: ID!, $input: PageInput!) {
       isPublished
       publishedAt
       assignedAttributes {
-        ... on AssignedAttributeInterface {
-          attribute {
-            slug
-          }
+        attribute {
+          slug
         }
         ... on AssignedSingleChoiceAttribute {
           choice: value {
@@ -1367,10 +1365,8 @@ UPDATE_PAGE_ATTRIBUTES_MUTATION = """
                 title
                 slug
                 assignedAttributes {
-                    ... on AssignedAttributeInterface {
-                        attribute {
-                            slug
-                        }
+                    attribute {
+                        slug
                     }
                     ... on AssignedMultiProductReferenceAttribute {
                         products: value {

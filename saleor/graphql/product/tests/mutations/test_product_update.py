@@ -70,10 +70,8 @@ mutation updateProduct($productId: ID!, $input: ProductInput!) {
         value
       }
       assignedAttributes {
-        ... on AssignedAttributeInterface {
-          attribute {
-            slug
-          }
+        attribute {
+          slug
         }
         ... on AssignedNumericAttribute {
           value

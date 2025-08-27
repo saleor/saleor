@@ -1182,10 +1182,8 @@ def test_products_with_variants_query_as_app(
                 id
                 name
                 assignedAttributes {
-                    ... on AssignedAttributeInterface {
-                        attribute {
-                            slug
-                        }
+                    attribute {
+                        slug
                     }
                 }
                 attributes {

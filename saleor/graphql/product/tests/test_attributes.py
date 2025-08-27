@@ -39,11 +39,9 @@ query ($channel: String) {
           }
         }
         assignedAttributes {
-          ... on AssignedAttributeInterface {
-            attr: attribute {
-                slug
-                type
-            }
+          attr: attribute {
+              slug
+              type
           }
           ... on AssignedNumericAttribute {
             attribute {

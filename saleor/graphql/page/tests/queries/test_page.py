@@ -25,10 +25,8 @@ PAGE_QUERY = """
             content
             contentJson
             assignedAttributes {
-                ... on AssignedAttributeInterface {
-                    attribute {
-                        slug
-                    }
+                attribute {
+                    slug
                 }
                 ... on AssignedSingleChoiceAttribute {
                     choice: value {
@@ -499,10 +497,8 @@ QUERY_PAGE_WITH_ATTRIBUTE = """
 query Page($id: ID!, $slug: String!) {
     page(id: $id) {
         assignedAttributes {
-            ... on AssignedAttributeInterface {
-                attribute {
-                    slug
-                }
+            attribute {
+                slug
             }
             ... on AssignedSingleChoiceAttribute {
                 choice: value {
@@ -517,10 +513,8 @@ query Page($id: ID!, $slug: String!) {
             }
         }
         assignedAttribute(slug: $slug) {
-            ... on AssignedAttributeInterface {
-                attribute {
-                    slug
-                }
+            attribute {
+                slug
             }
             ... on AssignedSingleChoiceAttribute {
                 choice: value {

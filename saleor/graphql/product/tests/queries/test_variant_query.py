@@ -29,10 +29,8 @@ query variant(
         sku
         externalReference
         assignedAttributes(variantSelection: $variantSelection) {
-            ... on AssignedAttributeInterface {
-                attribute {
-                    slug
-                }
+            attribute {
+                slug
             }
             ... on AssignedFileAttribute {
                 file: value {
