@@ -58,7 +58,7 @@ jobs:
 
       - name: Surface failing tests
         if: always()
-        uses: pmeier/pytest-results-action@4c22f3314dfc484aaad53353d3dd8dddf5de6b46 # v0.5.0
+        uses: pmeier/pytest-results-action@20b595761ba9bf89e115e875f8bc863f913bc8ad # v0.7.2
         with:
           path: e2e-test-results.xml
           summary: true
