@@ -125,7 +125,7 @@ dev = [
     "types-requests>=2.32.4,<3",
     "types-six>=1.17.0,<2",
     "vcrpy>=7.0.0,<8",
-    "poethepoet>=0.32.2,<0.33",
+    "poethepoet>=0.32.2,<0.38",
     "ipdb>=0.13.13,<0.14",
 ]
 
