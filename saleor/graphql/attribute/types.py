@@ -1224,6 +1224,8 @@ class AssignedSwatchAttributeValue(BaseObjectType):
     def resolve_hex_color(
         root: models.AttributeValue, _info: ResolveInfo
     ) -> str | None:
+        if not root.value:
+            return None
         return root.value
 
     @staticmethod
