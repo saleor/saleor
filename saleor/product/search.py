@@ -20,6 +20,7 @@ PRODUCT_FIELDS_TO_PREFETCH = [
     "variants__attributes__values",
     "variants__attributes__assignment__attribute",
     "attributevalues__value",
+    "attributevalues__value__reference_page",
     "product_type__attributeproduct__attribute",
 ]
 
