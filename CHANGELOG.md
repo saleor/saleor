@@ -136,6 +136,8 @@ Like `reference`, the `single-reference` type can target entities defined in the
 
 - Fixed a bug that could prevent rich text attributes written in scripts using combining diacritical marks (for example, Arabic) from being saved properly.
 
+- Fixed a bug where a Checkout partially paid by Transaction(s) and partially paid by Gift Card(s) could not be completed due to `CHECKOUT_NOT_FULLY_PAID` error.
+
 ### Deprecations
 
 Following plugins are now marked as deprecated:
