@@ -46,13 +46,15 @@ jobs:
 
       - name: Build Image Name
         id: image
+        env:
+          GH_REPO: ${{ github.repository }}
         run: |
           # The name of the owner and of the repository: owner/repository
-          IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ inputs.ref }}
 
@@ -121,9 +123,11 @@ jobs:
     steps:
       - name: Build Image Name
         id: image
+        env:
+          GH_REPO: ${{ github.repository }}
         run: |
           # The name of the owner and of the repository: owner/repository
-          IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
       - name: Download digests
@@ -135,7 +139,7 @@ jobs:
 
       # Needed by `docker/metadata-action` (to fetch tags and other git information)
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ inputs.ref }}
 
@@ -161,16 +165,39 @@ jobs:
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
+        env:
+          DOCKER_META_JSON: ${{ steps.meta.outputs.json }}
+          IMAGE_NAME: ${{ steps.image.outputs.image_name }}
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "${{steps.meta.outputs.json}}") \
-            $(printf 'ghcr.io/${{ steps.image.outputs.image_name }}@sha256:%s ' *)
+          set -x
+          tag_list=$(echo "$DOCKER_META_JSON" | jq -cr '.tags | map("-t " + .) | join(" ")')
+          image_digest_list=$(printf "ghcr.io/$IMAGE_NAME@sha256:%s " *)
+          docker buildx imagetools create $tag_list $image_digest_list
 
       - name: Inspect image
+        env:
+          IMAGE_VERSION: ${{ steps.meta.outputs.version }}
+          IMAGE_NAME: ${{ steps.image.outputs.image_name }}
         run: |
-          docker buildx imagetools inspect ghcr.io/${{ steps.image.outputs.image_name }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ghcr.io/"$IMAGE_NAME":"$IMAGE_VERSION"
+
+  notify:
+    if: ${{ failure() }}
+    needs: build-and-push
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+          sparse-checkout: |
+            ./.github/workflows/notify
 
       - name: Notify Slack
-        if: ${{ failure() }}
         env:
           JOB_STATUS: ${{ job.status }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
