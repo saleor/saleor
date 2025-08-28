@@ -69,7 +69,7 @@ mutation updateProduct($productId: ID!, $input: ProductInput!) {
         key
         value
       }
-      assignedAttributes {
+      assignedAttributes(limit:10) {
         attribute {
           slug
         }

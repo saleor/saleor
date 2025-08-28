@@ -59,6 +59,7 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ...core.const import DEFAULT_NESTED_LIST_LIMIT
 from ...core.context import (
     ChannelContext,
     ChannelQsContext,
@@ -94,7 +95,10 @@ from ...core.types import (
 )
 from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
-from ...core.validators import validate_one_of_args_is_in_query
+from ...core.validators import (
+    validate_limit_input_value,
+    validate_one_of_args_is_in_query,
+)
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -343,6 +347,13 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         variant_selection=graphene.Argument(
             VariantAttributeScope,
             description="Define scope of returned attributes.",
+        ),
+        limit=graphene.Int(
+            description=(
+                "Maximum number of attributes to return. "
+                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
     )
     attributes = NonNullList(
@@ -613,8 +624,10 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         root: ChannelContext[models.ProductVariant],
         info,
         variant_selection: str | None = None,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ):
-        return cls._resolve_attributes(root, info, variant_selection)
+        validate_limit_input_value(limit)
+        return cls._resolve_attributes(root, info, variant_selection, limit)
 
     @classmethod
     def _resolve_attributes(
@@ -622,6 +635,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         root: ChannelContext[models.ProductVariant],
         info,
         variant_selection: str | None = None,
+        limit: int | None = None,
     ):
         def apply_variant_selection_filter(
             selected_attributes,
@@ -660,6 +674,9 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                     for selected_att in selected_attributes
                     if selected_att["attribute"] not in variant_selection_attrs
                 ]
+            attributes_to_return = (
+                attributes_to_return[:limit] if limit else attributes_to_return
+            )
 
             return [
                 AssignedAttributeData(
@@ -995,6 +1012,13 @@ class Product(ChannelContextType[models.Product]):
         AssignedAttribute,
         required=True,
         description="List of attributes assigned to this product." + ADDED_IN_322,
+        limit=graphene.Int(
+            description=(
+                "Maximum number of attributes to return. "
+                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
     )
 
     attribute = graphene.Field(
@@ -1442,15 +1466,23 @@ class Product(ChannelContextType[models.Product]):
         )
 
     @classmethod
-    def resolve_assigned_attributes(cls, root: ChannelContext[models.Product], info):
-        return cls._resolve_attributes(root, info)
+    def resolve_assigned_attributes(
+        cls,
+        root: ChannelContext[models.Product],
+        info,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
+    ):
+        validate_limit_input_value(limit)
+        return cls._resolve_attributes(root, info, limit)
 
     @classmethod
     def resolve_attributes(cls, root: ChannelContext[models.Product], info):
         return cls._resolve_attributes(root, info)
 
     @classmethod
-    def _resolve_attributes(cls, root: ChannelContext[models.Product], info):
+    def _resolve_attributes(
+        cls, root: ChannelContext[models.Product], info, limit: int | None = None
+    ):
         def wrap_with_channel_context(
             attributes: (
                 list[
@@ -1480,6 +1512,7 @@ class Product(ChannelContextType[models.Product]):
                         ],
                     )
                 )
+            response = response[:limit] if limit else response
             return response
 
         requestor = get_user_or_app_from_context(info.context)

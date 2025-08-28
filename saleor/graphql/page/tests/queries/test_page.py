@@ -24,7 +24,7 @@ PAGE_QUERY = """
             }
             content
             contentJson
-            assignedAttributes {
+            assignedAttributes(limit:10) {
                 attribute {
                     slug
                 }
@@ -496,7 +496,7 @@ def test_page_query_by_translated_slug(user_api_client, page, page_translation_f
 QUERY_PAGE_WITH_ATTRIBUTE = """
 query Page($id: ID!, $slug: String!) {
     page(id: $id) {
-        assignedAttributes {
+        assignedAttributes(limit:10) {
             attribute {
                 slug
             }

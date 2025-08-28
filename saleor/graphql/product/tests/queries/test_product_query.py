@@ -1745,7 +1745,7 @@ def test_get_product_with_sorted_attribute_values_for_assigned_attributes_field(
     query = """
     query getProduct($productID: ID!) {
       product(id: $productID) {
-        assignedAttributes {
+        assignedAttributes(limit:10) {
           ... on AssignedMultiPageReferenceAttribute {
             value {
               id
@@ -2728,7 +2728,7 @@ query Product($id: ID!, $channel: String, $slug: String!) {
                 slug
             }
         }
-        assignedAttributes {
+        assignedAttributes(limit:10) {
             attribute {
                 id
                 slug

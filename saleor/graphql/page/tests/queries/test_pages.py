@@ -271,7 +271,7 @@ PAGES_QUERY = """
             slug
           }
         }
-        assignedAttributes {
+        assignedAttributes(limit:5) {
           attr: attribute {
             slug
           }

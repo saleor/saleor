@@ -51,7 +51,7 @@ mutation createProduct($input: ProductCreateInput!) {
         key
         value
       }
-      assignedAttributes {
+      assignedAttributes(limit:10) {
         attribute {
           slug
         }

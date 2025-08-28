@@ -33,7 +33,7 @@ mutation updatePage($id: ID!, $input: PageInput!) {
       slug
       isPublished
       publishedAt
-      assignedAttributes {
+      assignedAttributes(limit:10) {
         attribute {
           slug
         }
@@ -1364,7 +1364,7 @@ UPDATE_PAGE_ATTRIBUTES_MUTATION = """
                 id
                 title
                 slug
-                assignedAttributes {
+                assignedAttributes(limit:10) {
                     attribute {
                         slug
                     }

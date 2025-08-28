@@ -36,7 +36,7 @@ mutation ProductVariantBulkCreate($variants: [ProductVariantBulkCreateInput!]!, 
         name
         sku
         trackInventory
-        assignedAttributes {
+        assignedAttributes(limit:10) {
           attribute {
             slug
           }

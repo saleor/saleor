@@ -151,7 +151,7 @@ def test_attribute_value_name_when_referenced_page_was_changed(
 ASSIGNED_NUMERIC_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ... on AssignedNumericAttribute {
         attribute {
           id
@@ -191,7 +191,7 @@ def test_assigned_numeric_attribute(staff_api_client, page, numeric_attribute):
 ASSIGNED_TEXT_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ...on AssignedTextAttribute{
         value
         translation(languageCode:FR)
@@ -267,7 +267,7 @@ def test_assigned_text_attribute(staff_api_client, page, rich_text_attribute):
 ASSIGNED_PLAIN_TEXT_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ...on AssignedPlainTextAttribute{
         value
         translation(languageCode:FR)
@@ -351,7 +351,7 @@ def test_assigned_plain_text_attribute(staff_api_client, page, plain_text_attrib
 ASSIGNED_FILE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ...on AssignedFileAttribute{
         value {
           url
@@ -400,7 +400,7 @@ def test_assigned_file_attribute(staff_api_client, page, file_attribute):
 ASSIGNED_SINGLE_PAGE_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       __typename
       ...on AssignedSinglePageReferenceAttribute{
         value{
@@ -460,7 +460,7 @@ def test_assigned_single_page_reference_attribute(
 ASSIGNED_SINGLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       __typename
       ...on AssignedSingleProductReferenceAttribute{
         value{
@@ -521,7 +521,7 @@ def test_assigned_single_product_reference_attribute(
 ASSIGNED_SINGLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       __typename
       ...on AssignedSingleProductVariantReferenceAttribute{
         value{
@@ -582,7 +582,7 @@ def test_assigned_single_product_variant_reference_attribute(
 ASSIGNED_SINGLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       __typename
       ...on AssignedSingleCategoryReferenceAttribute{
         value{
@@ -643,7 +643,7 @@ def test_assigned_single_category_reference_attribute(
 ASSIGNED_SINGLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       __typename
       ...on AssignedSingleCollectionReferenceAttribute{
         value{
@@ -704,7 +704,7 @@ def test_assigned_single_collection_reference_attribute(
 ASSIGNED_MULTIPLE_PAGE_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ...on AssignedMultiPageReferenceAttribute{
         __typename
         value{
@@ -765,7 +765,7 @@ def test_assigned_multi_page_reference_attribute(
 ASSIGNED_MULTIPLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ...on AssignedMultiProductReferenceAttribute{
         __typename
         value{
@@ -826,7 +826,7 @@ def test_assigned_multi_product_reference_attribute(
 ASSIGNED_MULTIPLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ...on AssignedMultiProductVariantReferenceAttribute{
         __typename
         value{
@@ -887,7 +887,7 @@ def test_assigned_multi_product_variant_reference_attribute(
 ASSIGNED_MULTIPLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ...on AssignedMultiCategoryReferenceAttribute{
         __typename
         value{
@@ -948,7 +948,7 @@ def test_assigned_multi_category_reference_attribute(
 ASSIGNED_MULTIPLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ...on AssignedMultiCollectionReferenceAttribute{
         __typename
         value{
@@ -1009,7 +1009,7 @@ def test_assigned_multi_collection_reference_attribute(
 ASSIGNED_SINGLE_CHOICE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ...on AssignedSingleChoiceAttribute{
         __typename
         value{
@@ -1094,7 +1094,7 @@ def test_assigned_single_choice_attribute(
 ASSIGNED_MULTI_CHOICE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ... on AssignedMultiChoiceAttribute {
         __typename
         value {
@@ -1185,7 +1185,7 @@ def test_assigned_multi_choice_attribute(
 ASSIGNED_SWATCH_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ... on AssignedSwatchAttribute {
         value {
           name
@@ -1280,7 +1280,7 @@ def test_assigned_swatch_file_attribute(staff_api_client, page, swatch_attribute
 ASSIGNED_BOOLEAN_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ... on AssignedBooleanAttribute {
         value
       }
@@ -1326,7 +1326,7 @@ def test_assigned_boolean_attribute(
 ASSIGNED_DATE_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ... on AssignedDateAttribute {
         value
       }
@@ -1372,7 +1372,7 @@ def test_assigned_date_attribute(
 ASSIGNED_DATETIME_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
-    assignedAttributes {
+    assignedAttributes(limit:10) {
       ... on AssignedDateTimeAttribute {
         value
       }

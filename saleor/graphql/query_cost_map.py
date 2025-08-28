@@ -160,15 +160,14 @@ COST_MAP = {
         "value": {"complexity": 1},
     },
     "AssignedChoiceAttributeValue": {
-        "name": {"complexity": 1},
-        "slug": {"complexity": 1},
         "translation": {"complexity": 1},
     },
     "AssignedSingleChoiceAttribute": {
         "value": {"complexity": 1},
     },
     "AssignedMultiChoiceAttribute": {
-        "value": {"complexity": 1},
+        "attribute": {"complexity": 1},
+        "value": {"complexity": 1, "multipliers": ["limit"]},
     },
     "AssignedSwatchAttribute": {
         "attribute": {"complexity": 1},
@@ -188,23 +187,23 @@ COST_MAP = {
     },
     "AssignedMultiPageReferenceAttribute": {
         "attribute": {"complexity": 1},
-        "value": {"complexity": 1},
+        "value": {"complexity": 1, "multipliers": ["limit"]},
     },
     "AssignedMultiProductReferenceAttribute": {
         "attribute": {"complexity": 1},
-        "value": {"complexity": 1},
+        "value": {"complexity": 1, "multipliers": ["limit"]},
     },
     "AssignedMultiProductVariantReferenceAttribute": {
         "attribute": {"complexity": 1},
-        "value": {"complexity": 1},
+        "value": {"complexity": 1, "multipliers": ["limit"]},
     },
     "AssignedMultiCategoryReferenceAttribute": {
         "attribute": {"complexity": 1},
-        "value": {"complexity": 1},
+        "value": {"complexity": 1, "multipliers": ["limit"]},
     },
     "AssignedMultiCollectionReferenceAttribute": {
         "attribute": {"complexity": 1},
-        "value": {"complexity": 1},
+        "value": {"complexity": 1, "multipliers": ["limit"]},
     },
     "AssignedSinglePageReferenceAttribute": {
         "attribute": {"complexity": 1},
@@ -318,6 +317,7 @@ COST_MAP = {
         "variant": {"complexity": 1},
     },
     "Page": {
+        "assignedAttributes": {"complexity": 1, "multipliers": ["limit"]},
         "attributes": {"complexity": 1},
         "pageType": {"complexity": 1},
     },
@@ -330,6 +330,7 @@ COST_MAP = {
         "transactions": {"complexity": 1},
     },
     "Product": {
+        "assignedAttributes": {"complexity": 1, "multipliers": ["limit"]},
         "attributes": {"complexity": 1},
         "category": {"complexity": 1},
         "channelListings": {"complexity": 1},
@@ -362,6 +363,7 @@ COST_MAP = {
         "products": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "ProductVariant": {
+        "assignedAttributes": {"complexity": 1, "multipliers": ["limit"]},
         "attributes": {"complexity": 1},
         "channelListings": {"complexity": 1},
         "images": {"complexity": 1},

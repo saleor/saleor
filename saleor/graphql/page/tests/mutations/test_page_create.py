@@ -29,7 +29,7 @@ mutation CreatePage($input: PageCreateInput!) {
       pageType {
         id
       }
-      assignedAttributes {
+      assignedAttributes(limit:10) {
         attribute {
           slug
         }

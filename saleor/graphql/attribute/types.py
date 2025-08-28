@@ -19,6 +19,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ..core.const import DEFAULT_NESTED_LIST_LIMIT
 from ..core.context import (
     ChannelContext,
     ChannelQsContext,
@@ -43,6 +44,7 @@ from ..core.types import (
     NonNullList,
 )
 from ..core.types.context import ChannelContextType, ChannelContextTypeForObjectType
+from ..core.validators import validate_limit_input_value
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
@@ -976,6 +978,13 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
         "saleor.graphql.page.types.Page",
         description="List of assigned page references.",
         required=True,
+        limit=graphene.Int(
+            description=(
+                "Maximum number of referenced pages to return. "
+                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
     )
 
     class Meta:
@@ -984,13 +993,18 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
 
     @staticmethod
     def resolve_value(
-        root: AssignedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[ChannelContext[page_models.Page]]]:
+        validate_limit_input_value(limit)
+
         if not root.values:
             return Promise.resolve([])
 
         channel_slug = root.attribute.channel_slug
         attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
 
         def _wrap_with_channel_context(
             pages: list[page_models.Page],
@@ -1013,6 +1027,13 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
         "saleor.graphql.product.types.Product",
         description="List of assigned product references.",
         required=True,
+        limit=graphene.Int(
+            description=(
+                "Maximum number of referenced products to return. "
+                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
     )
 
     class Meta:
@@ -1021,13 +1042,18 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
 
     @staticmethod
     def resolve_value(
-        root: AssignedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[ChannelContext[product_models.Product]]]:
+        validate_limit_input_value(limit)
+
         if not root.values:
             return Promise.resolve([])
 
         channel_slug = root.attribute.channel_slug
         attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
 
         def _wrap_with_channel_context(
             products: list[product_models.Product],
@@ -1051,6 +1077,13 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
         "saleor.graphql.product.types.ProductVariant",
         description="List of assigned product variant references.",
         required=True,
+        limit=graphene.Int(
+            description=(
+                "Maximum number of referenced product variants to return. "
+                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
     )
 
     class Meta:
@@ -1061,13 +1094,18 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
 
     @staticmethod
     def resolve_value(
-        root: AssignedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[ChannelContext[product_models.ProductVariant]]]:
+        validate_limit_input_value(limit)
+
         if not root.values:
             return Promise.resolve([])
 
         channel_slug = root.attribute.channel_slug
         attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
 
         def _wrap_with_channel_context(
             variants: list[product_models.ProductVariant],
@@ -1091,6 +1129,13 @@ class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
         "saleor.graphql.product.types.Category",
         description="List of assigned category references.",
         required=True,
+        limit=graphene.Int(
+            description=(
+                "Maximum number of referenced categories to return. "
+                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
     )
 
     class Meta:
@@ -1099,11 +1144,15 @@ class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
 
     @staticmethod
     def resolve_value(
-        root: AssignedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[product_models.Category]]:
+        validate_limit_input_value(limit)
         if not root.values:
             return Promise.resolve([])
         attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
 
         return CategoryByIdLoader(info.context).load_many(
             [value.reference_category_id for value in attr_values]
@@ -1115,6 +1164,13 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
         "saleor.graphql.product.types.Collection",
         description="List of assigned collection references.",
         required=True,
+        limit=graphene.Int(
+            description=(
+                "Maximum number of referenced collections to return. "
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}"
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
     )
 
     class Meta:
@@ -1123,13 +1179,17 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
 
     @staticmethod
     def resolve_value(
-        root: AssignedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[ChannelContext[product_models.Collection]]]:
+        validate_limit_input_value(limit)
         if not root.values:
             return Promise.resolve([])
 
         channel_slug = root.attribute.channel_slug
         attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
 
         def _wrap_with_channel_context(
             collections: list[product_models.Collection],
@@ -1201,6 +1261,13 @@ class AssignedMultiChoiceAttribute(BaseObjectType):
         AssignedChoiceAttributeValue,
         required=True,
         description="List of assigned choice values.",
+        limit=graphene.Int(
+            description=(
+                "Maximum number of choices to return. "
+                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
     )
 
     class Meta:
@@ -1209,9 +1276,13 @@ class AssignedMultiChoiceAttribute(BaseObjectType):
 
     @staticmethod
     def resolve_value(
-        root: AssignedAttributeData, info: ResolveInfo
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> list[models.AttributeValue]:
-        return [value.node for value in root.values]
+        validate_limit_input_value(limit)
+        values = root.values[:limit]
+        return [value.node for value in values]
 
 
 class AssignedSwatchAttributeValue(BaseObjectType):

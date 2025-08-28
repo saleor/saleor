@@ -18,6 +18,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ..core.const import DEFAULT_NESTED_LIST_LIMIT
 from ..core.context import (
     ChannelContext,
     ChannelQsContext,
@@ -30,6 +31,7 @@ from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.scalars import Date, DateTime
 from ..core.types import ModelObjectType, NonNullList
 from ..core.types.context import ChannelContextType
+from ..core.validators import validate_limit_input_value
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
@@ -204,6 +206,13 @@ class Page(ChannelContextType[models.Page]):
         "saleor.graphql.attribute.types.AssignedAttribute",
         required=True,
         description="List of attributes assigned to this page." + ADDED_IN_322,
+        limit=graphene.Int(
+            description=(
+                "Maximum number of attributes to return. "
+                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
     )
     attributes = NonNullList(
         SelectedAttribute,
@@ -240,9 +249,13 @@ class Page(ChannelContextType[models.Page]):
 
     @classmethod
     def resolve_assigned_attributes(
-        cls, root: ChannelContext[models.Page], info: ResolveInfo
+        cls,
+        root: ChannelContext[models.Page],
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ):
-        return cls._resolve_assigned_attributes(root, info)
+        validate_limit_input_value(limit)
+        return cls._resolve_assigned_attributes(root, info, limit)
 
     @classmethod
     def resolve_assigned_attribute(
@@ -256,7 +269,10 @@ class Page(ChannelContextType[models.Page]):
 
     @classmethod
     def _resolve_assigned_attributes(
-        cls, root: ChannelContext[models.Page], info: ResolveInfo
+        cls,
+        root: ChannelContext[models.Page],
+        info: ResolveInfo,
+        limit: int | None = None,
     ):
         page = root.node
 
@@ -281,6 +297,7 @@ class Page(ChannelContextType[models.Page]):
                         ],
                     )
                 )
+            response = response[:limit] if limit is not None else response
             return response
 
         requestor = get_user_or_app_from_context(info.context)
