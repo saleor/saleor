@@ -666,10 +666,8 @@ mutation updateVariant($id: ID!, $sku: String, $attributes: [AttributeValueInput
     productVariant {
       sku
       assignedAttributes {
-        ... on AssignedAttributeInterface {
-          attribute {
-            slug
-          }
+        attribute {
+          slug
         }
         ... on AssignedNumericAttribute {
           value

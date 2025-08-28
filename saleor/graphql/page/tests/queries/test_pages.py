@@ -272,10 +272,8 @@ PAGES_QUERY = """
           }
         }
         assignedAttributes {
-          ... on AssignedAttributeInterface {
-            attr: attribute {
-              slug
-            }
+          attr: attribute {
+            slug
           }
           ... on AssignedNumericAttribute {
             attribute {

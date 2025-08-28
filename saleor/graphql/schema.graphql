@@ -7658,485 +7658,9 @@ Represents an attribute assigned to an object.
 
 Added in Saleor 3.22.
 """
-union AssignedAttribute = AssignedNumericAttribute | AssignedTextAttribute | AssignedPlainTextAttribute | AssignedFileAttribute | AssignedSingleChoiceAttribute | AssignedMultiChoiceAttribute | AssignedSwatchAttribute | AssignedBooleanAttribute | AssignedDateAttribute | AssignedDateTimeAttribute | AssignedSinglePageReferenceAttribute | AssignedSingleProductReferenceAttribute | AssignedSingleProductVariantReferenceAttribute | AssignedSingleCategoryReferenceAttribute | AssignedSingleCollectionReferenceAttribute | AssignedMultiPageReferenceAttribute | AssignedMultiProductReferenceAttribute | AssignedMultiProductVariantReferenceAttribute | AssignedMultiCategoryReferenceAttribute | AssignedMultiCollectionReferenceAttribute
-
-"""
-Represents a numeric value of an attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedNumericAttribute implements AssignedAttributeInterface {
+interface AssignedAttribute {
   """Attribute assigned to an object."""
   attribute: Attribute!
-
-  """The assigned numeric value."""
-  value: Float
-}
-
-"""Represents a single attribute assigned to an object."""
-interface AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-}
-
-"""
-Represents text attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedTextAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned rich text content."""
-  value: JSON
-
-  """Translation of the rich text content in the specified language."""
-  translation(languageCode: LanguageCodeEnum!): JSON
-}
-
-scalar JSON
-
-"""
-Represents plain text attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedPlainTextAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned plain text content."""
-  value: String
-
-  """Translation of the plain text content in the specified language."""
-  translation(languageCode: LanguageCodeEnum!): String
-}
-
-"""
-Represents file attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedFileAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned file."""
-  value: File
-}
-
-"""
-Represents a single choice attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedSingleChoiceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned choice value."""
-  value: AssignedChoiceAttributeValue
-}
-
-"""
-Represents a single choice value of the attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedChoiceAttributeValue {
-  """Name of a value displayed in the interface."""
-  name: String
-
-  """Internal representation of a value (unique per attribute)."""
-  slug: String
-
-  """Translation of the name."""
-  translation(languageCode: LanguageCodeEnum!): String
-}
-
-"""
-Represents a multi choice attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedMultiChoiceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """List of assigned choice values."""
-  value: [AssignedChoiceAttributeValue!]!
-}
-
-"""
-Represents a swatch attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedSwatchAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned swatch value."""
-  value: AssignedSwatchAttributeValue
-}
-
-type AssignedSwatchAttributeValue {
-  """Name of the selected swatch value."""
-  name: String
-
-  """Slug of the selected swatch value."""
-  slug: String
-
-  """Hex color code."""
-  hexColor: String
-
-  """File associated with the attribute."""
-  file: File
-}
-
-"""
-Represents a boolean attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedBooleanAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned boolean value."""
-  value: Boolean
-}
-
-"""
-Represents a date attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedDateAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned date value."""
-  value: Date
-}
-
-"""
-Represents a date time attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedDateTimeAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned date time value."""
-  value: DateTime
-}
-
-"""
-Represents single page reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedSinglePageReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned page reference."""
-  value: Page
-}
-
-"""
-A static page that can be manually added by a shop operator through the dashboard.
-"""
-type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
-  """ID of the page."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Title of the page for SEO."""
-  seoTitle: String
-
-  """Description of the page for SEO."""
-  seoDescription: String
-
-  """Title of the page."""
-  title: String!
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-  publicationDate: Date @deprecated(reason: "Use the `publishedAt` field to fetch the publication date.")
-
-  """The page publication date."""
-  publishedAt: DateTime
-
-  """Determines if the page is published."""
-  isPublished: Boolean!
-
-  """Slug of the page."""
-  slug: String!
-
-  """Determines the type of page"""
-  pageType: PageType!
-
-  """Date and time at which page was created."""
-  created: DateTime!
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString! @deprecated(reason: "Use the `content` field instead.")
-
-  """Returns translated page fields for the given language code."""
-  translation(
-    """A language code to return the translation for page."""
-    languageCode: LanguageCodeEnum!
-  ): PageTranslation
-
-  """Get a single attribute attached to page by attribute slug."""
-  attribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): SelectedAttribute @deprecated(reason: "Use `assignedAttribute` field instead.")
-
-  """
-  Get a single attribute attached to page by attribute slug.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): AssignedAttribute
-
-  """
-  List of attributes assigned to this page.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttributes: [AssignedAttribute!]!
-
-  """List of attributes assigned to this page."""
-  attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
-}
-
-"""
-Represents a type of page. It defines what attributes are available to pages of this type.
-"""
-type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
-  """ID of the page type."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the page type."""
-  name: String!
-
-  """Slug of the page type."""
-  slug: String!
-
-  """Page attributes of that page type."""
-  attributes: [Attribute!]
-
-  """
-  Attributes that can be assigned to the page type.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  availableAttributes(
-    """Filtering options for attributes."""
-    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for attributes."""
-    where: AttributeWhereInput
-
-    """Search attributes."""
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeCountableConnection
-
-  """
-  Whether page type has pages assigned.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  hasPages: Boolean
-}
-
-"""Represents page translations."""
-type PageTranslation implements Node @doc(category: "Pages") {
-  """The ID of the page translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated SEO title."""
-  seoTitle: String
-
-  """Translated SEO description."""
-  seoDescription: String
-
-  """
-  Translated page slug.
-  
-  Added in Saleor 3.21.
-  """
-  slug: String
-
-  """Translated page title."""
-  title: String
-
-  """
-  Translated content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-
-  """
-  Translated description of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
-
-  """Represents the page fields to translate."""
-  translatableContent: PageTranslatableContent
-}
-
-"""
-Represents page's original translatable fields and related translations.
-"""
-type PageTranslatableContent implements Node @doc(category: "Pages") {
-  """The ID of the page translatable content."""
-  id: ID!
-
-  """The ID of the page to translate."""
-  pageId: ID!
-
-  """SEO title to translate."""
-  seoTitle: String
-
-  """SEO description to translate."""
-  seoDescription: String
-
-  """
-  Slug to translate.
-  
-  Added in Saleor 3.21.
-  """
-  slug: String
-
-  """Page title to translate."""
-  title: String!
-
-  """
-  Content of the page to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
-
-  """Returns translated page fields for the given language code."""
-  translation(
-    """A language code to return the translation for page."""
-    languageCode: LanguageCodeEnum!
-  ): PageTranslation
-
-  """
-  A static page that can be manually added by a shop operator through the dashboard.
-  """
-  page: Page @deprecated(reason: "Get model fields from the root level queries.")
-
-  """List of page content attribute values that can be translated."""
-  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 """Represents a custom attribute."""
@@ -8146,355 +7670,6 @@ type SelectedAttribute @doc(category: "Attributes") {
 
   """Values of an attribute."""
   values: [AttributeValue!]!
-}
-
-"""
-Represents single product reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedSingleProductReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned product reference."""
-  value: Product
-}
-
-"""
-Represents single product variant reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedSingleProductVariantReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned product variant reference."""
-  value: ProductVariant
-}
-
-"""
-Represents single category reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedSingleCategoryReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned category reference."""
-  value: Category
-}
-
-"""
-Represents single collection reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedSingleCollectionReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """The assigned collection reference."""
-  value: Collection
-}
-
-"""Represents a collection of products."""
-type Collection implements Node & ObjectWithMetadata @doc(category: "Products") {
-  """The ID of the collection."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """SEO title of the collection."""
-  seoTitle: String
-
-  """SEO description of the collection."""
-  seoDescription: String
-
-  """Name of the collection."""
-  name: String!
-
-  """
-  Description of the collection.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """Slug of the collection."""
-  slug: String!
-
-  """
-  Channel given to retrieve this collection. Also used by federation gateway to resolve this object in a federated query.
-  """
-  channel: String
-
-  """
-  Description of the collection.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
-
-  """List of products in this collection."""
-  products(
-    """Filtering options for products."""
-    filter: ProductFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for products."""
-    where: ProductWhereInput
-
-    """Search products."""
-    search: String
-
-    """Sort products."""
-    sortBy: ProductOrder
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductCountableConnection
-
-  """Background image of the collection."""
-  backgroundImage(
-    """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
-    """
-    size: Int
-
-    """
-    The format of the image. When not provided, format of the original image will be used.
-    """
-    format: ThumbnailFormatEnum = ORIGINAL
-  ): Image
-
-  """Returns translated collection fields for the given language code."""
-  translation(
-    """A language code to return the translation for collection."""
-    languageCode: LanguageCodeEnum!
-  ): CollectionTranslation
-
-  """
-  List of channels in which the collection is available.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  channelListings: [CollectionChannelListing!]
-}
-
-"""Represents collection translations."""
-type CollectionTranslation implements Node @doc(category: "Products") {
-  """The ID of the collection translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated SEO title."""
-  seoTitle: String
-
-  """Translated SEO description."""
-  seoDescription: String
-
-  """
-  Translated collection slug.
-  
-  Added in Saleor 3.21.
-  """
-  slug: String
-
-  """Translated collection name."""
-  name: String
-
-  """
-  Translated description of the collection.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Translated description of the collection.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
-
-  """Represents the collection fields to translate."""
-  translatableContent: CollectionTranslatableContent
-}
-
-"""
-Represents collection's original translatable fields and related translations.
-"""
-type CollectionTranslatableContent implements Node @doc(category: "Products") {
-  """The ID of the collection translatable content."""
-  id: ID!
-
-  """The ID of the collection to translate."""
-  collectionId: ID!
-
-  """SEO title to translate."""
-  seoTitle: String
-
-  """SEO description to translate."""
-  seoDescription: String
-
-  """
-  Slug to translate
-  
-  Added in Saleor 3.21.
-  """
-  slug: String
-
-  """Collection's name to translate."""
-  name: String!
-
-  """
-  Collection's description to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Description of the collection.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
-
-  """Returns translated collection fields for the given language code."""
-  translation(
-    """A language code to return the translation for collection."""
-    languageCode: LanguageCodeEnum!
-  ): CollectionTranslation
-
-  """Represents a collection of products."""
-  collection: Collection @deprecated(reason: "Get model fields from the root level queries.")
-}
-
-"""Represents collection channel listing."""
-type CollectionChannelListing implements Node @doc(category: "Products") {
-  """The ID of the collection channel listing."""
-  id: ID!
-  publicationDate: Date @deprecated(reason: "Use the `publishedAt` field to fetch the publication date.")
-
-  """The collection publication date."""
-  publishedAt: DateTime
-
-  """Indicates if the collection is published in the channel."""
-  isPublished: Boolean!
-
-  """The channel to which the collection belongs."""
-  channel: Channel!
-}
-
-"""
-Represents multi page reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedMultiPageReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """List of assigned page references."""
-  value: [Page!]!
-}
-
-"""
-Represents multi product reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedMultiProductReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """List of assigned product references."""
-  value: [Product!]!
-}
-
-"""
-Represents multi product variant reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedMultiProductVariantReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """List of assigned product variant references."""
-  value: [ProductVariant!]!
-}
-
-"""
-Represents multi category reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedMultiCategoryReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """List of assigned category references."""
-  value: [Category!]!
-}
-
-"""
-Represents multi collection reference attribute.
-
-Added in Saleor 3.22.
-"""
-type AssignedMultiCollectionReferenceAttribute implements AssignedAttributeInterface {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-
-  """List of assigned collection references."""
-  value: [Collection!]!
 }
 
 enum ReportingPeriod {
@@ -8970,6 +8145,238 @@ enum MediaChoicesSortField @doc(category: "Products") {
   ID
 }
 
+"""Represents a collection of products."""
+type Collection implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the collection."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """SEO title of the collection."""
+  seoTitle: String
+
+  """SEO description of the collection."""
+  seoDescription: String
+
+  """Name of the collection."""
+  name: String!
+
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Slug of the collection."""
+  slug: String!
+
+  """
+  Channel given to retrieve this collection. Also used by federation gateway to resolve this object in a federated query.
+  """
+  channel: String
+
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+
+  """List of products in this collection."""
+  products(
+    """Filtering options for products."""
+    filter: ProductFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for products."""
+    where: ProductWhereInput
+
+    """Search products."""
+    search: String
+
+    """Sort products."""
+    sortBy: ProductOrder
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection
+
+  """Background image of the collection."""
+  backgroundImage(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    """
+    format: ThumbnailFormatEnum = ORIGINAL
+  ): Image
+
+  """Returns translated collection fields for the given language code."""
+  translation(
+    """A language code to return the translation for collection."""
+    languageCode: LanguageCodeEnum!
+  ): CollectionTranslation
+
+  """
+  List of channels in which the collection is available.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  channelListings: [CollectionChannelListing!]
+}
+
+"""Represents collection translations."""
+type CollectionTranslation implements Node @doc(category: "Products") {
+  """The ID of the collection translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated SEO title."""
+  seoTitle: String
+
+  """Translated SEO description."""
+  seoDescription: String
+
+  """
+  Translated collection slug.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
+  """Translated collection name."""
+  name: String
+
+  """
+  Translated description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """
+  Translated description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+
+  """Represents the collection fields to translate."""
+  translatableContent: CollectionTranslatableContent
+}
+
+"""
+Represents collection's original translatable fields and related translations.
+"""
+type CollectionTranslatableContent implements Node @doc(category: "Products") {
+  """The ID of the collection translatable content."""
+  id: ID!
+
+  """The ID of the collection to translate."""
+  collectionId: ID!
+
+  """SEO title to translate."""
+  seoTitle: String
+
+  """SEO description to translate."""
+  seoDescription: String
+
+  """
+  Slug to translate
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
+  """Collection's name to translate."""
+  name: String!
+
+  """
+  Collection's description to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+
+  """Returns translated collection fields for the given language code."""
+  translation(
+    """A language code to return the translation for collection."""
+    languageCode: LanguageCodeEnum!
+  ): CollectionTranslation
+
+  """Represents a collection of products."""
+  collection: Collection @deprecated(reason: "Get model fields from the root level queries.")
+}
+
+"""Represents collection channel listing."""
+type CollectionChannelListing implements Node @doc(category: "Products") {
+  """The ID of the collection channel listing."""
+  id: ID!
+  publicationDate: Date @deprecated(reason: "Use the `publishedAt` field to fetch the publication date.")
+
+  """The collection publication date."""
+  publishedAt: DateTime
+
+  """Indicates if the collection is published in the channel."""
+  isPublished: Boolean!
+
+  """The channel to which the collection belongs."""
+  channel: Channel!
+}
+
 """Represents product translations."""
 type ProductTranslation implements Node @doc(category: "Products") {
   """The ID of the product translation."""
@@ -9140,6 +8547,298 @@ type TranslatableItemEdge {
 }
 
 union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent | SaleTranslatableContent
+
+"""
+Represents page's original translatable fields and related translations.
+"""
+type PageTranslatableContent implements Node @doc(category: "Pages") {
+  """The ID of the page translatable content."""
+  id: ID!
+
+  """The ID of the page to translate."""
+  pageId: ID!
+
+  """SEO title to translate."""
+  seoTitle: String
+
+  """SEO description to translate."""
+  seoDescription: String
+
+  """
+  Slug to translate.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
+  """Page title to translate."""
+  title: String!
+
+  """
+  Content of the page to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
+
+  """Returns translated page fields for the given language code."""
+  translation(
+    """A language code to return the translation for page."""
+    languageCode: LanguageCodeEnum!
+  ): PageTranslation
+
+  """
+  A static page that can be manually added by a shop operator through the dashboard.
+  """
+  page: Page @deprecated(reason: "Get model fields from the root level queries.")
+
+  """List of page content attribute values that can be translated."""
+  attributeValues: [AttributeValueTranslatableContent!]!
+}
+
+"""Represents page translations."""
+type PageTranslation implements Node @doc(category: "Pages") {
+  """The ID of the page translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated SEO title."""
+  seoTitle: String
+
+  """Translated SEO description."""
+  seoDescription: String
+
+  """
+  Translated page slug.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
+  """Translated page title."""
+  title: String
+
+  """
+  Translated content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+
+  """
+  Translated description of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
+
+  """Represents the page fields to translate."""
+  translatableContent: PageTranslatableContent
+}
+
+"""
+A static page that can be manually added by a shop operator through the dashboard.
+"""
+type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Title of the page for SEO."""
+  seoTitle: String
+
+  """Description of the page for SEO."""
+  seoDescription: String
+
+  """Title of the page."""
+  title: String!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+  publicationDate: Date @deprecated(reason: "Use the `publishedAt` field to fetch the publication date.")
+
+  """The page publication date."""
+  publishedAt: DateTime
+
+  """Determines if the page is published."""
+  isPublished: Boolean!
+
+  """Slug of the page."""
+  slug: String!
+
+  """Determines the type of page"""
+  pageType: PageType!
+
+  """Date and time at which page was created."""
+  created: DateTime!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString! @deprecated(reason: "Use the `content` field instead.")
+
+  """Returns translated page fields for the given language code."""
+  translation(
+    """A language code to return the translation for page."""
+    languageCode: LanguageCodeEnum!
+  ): PageTranslation
+
+  """Get a single attribute attached to page by attribute slug."""
+  attribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): SelectedAttribute @deprecated(reason: "Use `assignedAttribute` field instead.")
+
+  """
+  Get a single attribute attached to page by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to this page.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes: [AssignedAttribute!]!
+
+  """List of attributes assigned to this page."""
+  attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
+}
+
+"""
+Represents a type of page. It defines what attributes are available to pages of this type.
+"""
+type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page type."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the page type."""
+  name: String!
+
+  """Slug of the page type."""
+  slug: String!
+
+  """Page attributes of that page type."""
+  attributes: [Attribute!]
+
+  """
+  Attributes that can be assigned to the page type.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  availableAttributes(
+    """Filtering options for attributes."""
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for attributes."""
+    where: AttributeWhereInput
+
+    """Search attributes."""
+    search: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
+
+  """
+  Whether page type has pages assigned.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  hasPages: Boolean
+}
 
 """
 Represents voucher's original translatable fields and related translations.
@@ -12895,6 +12594,8 @@ Represents possible tokenized payment flows that can be used to process payment.
 enum TokenizedPaymentFlowEnum @doc(category: "Payments") {
   INTERACTIVE
 }
+
+scalar JSON
 
 """Represents an problem in the checkout."""
 union CheckoutProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
@@ -34818,6 +34519,302 @@ type PaymentMethodProcessTokenizationSession implements Event @doc(category: "Pa
   The ID returned by app from `PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION` webhook.
   """
   id: String!
+}
+
+"""
+Represents a numeric value of an attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedNumericAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned numeric value."""
+  value: Float
+}
+
+"""
+Represents text attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedTextAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned rich text content."""
+  value: JSON
+
+  """Translation of the rich text content in the specified language."""
+  translation(languageCode: LanguageCodeEnum!): JSON
+}
+
+"""
+Represents plain text attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedPlainTextAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned plain text content."""
+  value: String
+
+  """Translation of the plain text content in the specified language."""
+  translation(languageCode: LanguageCodeEnum!): String
+}
+
+"""
+Represents file attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedFileAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned file."""
+  value: File
+}
+
+"""
+Represents a single choice attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleChoiceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned choice value."""
+  value: AssignedChoiceAttributeValue
+}
+
+"""
+Represents a single choice value of the attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedChoiceAttributeValue {
+  """Name of a value displayed in the interface."""
+  name: String
+
+  """Internal representation of a value (unique per attribute)."""
+  slug: String
+
+  """Translation of the name."""
+  translation(languageCode: LanguageCodeEnum!): String
+}
+
+"""
+Represents a multi choice attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiChoiceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned choice values."""
+  value: [AssignedChoiceAttributeValue!]!
+}
+
+"""
+Represents a swatch attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSwatchAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned swatch value."""
+  value: AssignedSwatchAttributeValue
+}
+
+type AssignedSwatchAttributeValue {
+  """Name of the selected swatch value."""
+  name: String
+
+  """Slug of the selected swatch value."""
+  slug: String
+
+  """Hex color code."""
+  hexColor: String
+
+  """File associated with the attribute."""
+  file: File
+}
+
+"""
+Represents a boolean attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedBooleanAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned boolean value."""
+  value: Boolean
+}
+
+"""
+Represents a date attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedDateAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned date value."""
+  value: Date
+}
+
+"""
+Represents a date time attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedDateTimeAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned date time value."""
+  value: DateTime
+}
+
+"""
+Represents single page reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSinglePageReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned page reference."""
+  value: Page
+}
+
+"""
+Represents single product reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleProductReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned product reference."""
+  value: Product
+}
+
+"""
+Represents single product variant reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleProductVariantReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned product variant reference."""
+  value: ProductVariant
+}
+
+"""
+Represents single category reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleCategoryReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned category reference."""
+  value: Category
+}
+
+"""
+Represents single collection reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleCollectionReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned collection reference."""
+  value: Collection
+}
+
+"""
+Represents multi page reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiPageReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned page references."""
+  value: [Page!]!
+}
+
+"""
+Represents multi product reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiProductReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned product references."""
+  value: [Product!]!
+}
+
+"""
+Represents multi product variant reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiProductVariantReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned product variant references."""
+  value: [ProductVariant!]!
+}
+
+"""
+Represents multi category reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiCategoryReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned category references."""
+  value: [Category!]!
+}
+
+"""
+Represents multi collection reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiCollectionReferenceAttribute implements AssignedAttribute {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned collection references."""
+  value: [Collection!]!
 }
 
 """_Any value scalar as defined by Federation spec."""

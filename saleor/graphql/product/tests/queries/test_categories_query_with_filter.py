@@ -181,13 +181,11 @@ query (
           name
           channel
           assignedAttributes {
-            ... on AssignedAttributeInterface {
-              attribute {
-                choices(first: 10) {
-                  edges {
-                    node {
-                      slug
-                    }
+            attribute {
+              choices(first: 10) {
+                edges {
+                  node {
+                    slug
                   }
                 }
               }

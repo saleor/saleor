@@ -52,10 +52,8 @@ mutation createProduct($input: ProductCreateInput!) {
         value
       }
       assignedAttributes {
-        ... on AssignedAttributeInterface {
-          attribute {
-            slug
-          }
+        attribute {
+          slug
         }
         ... on AssignedNumericAttribute {
           value

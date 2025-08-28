@@ -30,10 +30,8 @@ mutation CreatePage($input: PageCreateInput!) {
         id
       }
       assignedAttributes {
-        ... on AssignedAttributeInterface {
-          attribute {
-            slug
-          }
+        attribute {
+          slug
         }
         ... on AssignedSingleChoiceAttribute {
           choice: value {

@@ -2717,11 +2717,9 @@ query Product($id: ID!, $channel: String, $slug: String!) {
             }
         }
         assignedAttribute(slug: $slug) {
-            ... on AssignedAttributeInterface {
-                attribute {
-                    id
-                    slug
-                }
+            attribute {
+                id
+                slug
             }
         }
         attributes {
@@ -2731,11 +2729,9 @@ query Product($id: ID!, $channel: String, $slug: String!) {
             }
         }
         assignedAttributes {
-            ... on AssignedAttributeInterface {
-                attribute {
-                    id
-                    slug
-                }
+            attribute {
+                id
+                slug
             }
         }
     }

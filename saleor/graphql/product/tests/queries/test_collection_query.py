@@ -181,13 +181,11 @@ query CollectionProducts(
         node {
           id
           assignedAttributes {
-            ... on AssignedAttributeInterface {
-              attribute {
-                choices(first: 10) {
-                  edges {
-                    node {
-                      slug
-                    }
+            attribute {
+              choices(first: 10) {
+                edges {
+                  node {
+                    slug
                   }
                 }
               }
