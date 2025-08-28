@@ -51,6 +51,7 @@ def test_create_product_with_attributes_created_in_bulk_core_0704(
         attr_bool_id,
         attr_swatch_id,
         attr_reference_id,
+        attr_single_reference_id,
         attr_file_id,
     ) = prepare_all_attributes_in_bulk(
         e2e_staff_api_client, attribute_type="PRODUCT_TYPE", entity_type="PAGE"
@@ -68,6 +69,7 @@ def test_create_product_with_attributes_created_in_bulk_core_0704(
         attr_bool_id,
         attr_swatch_id,
         attr_reference_id,
+        attr_single_reference_id,
         attr_file_id,
     ]
     product_type_data = create_product_type(
@@ -76,7 +78,7 @@ def test_create_product_with_attributes_created_in_bulk_core_0704(
         product_attributes=add_attributes,
     )
     product_type_id = product_type_data["id"]
-    assert len(product_type_data["productAttributes"]) == 11
+    assert len(product_type_data["productAttributes"]) == len(add_attributes)
 
     # Step 3 - Create product with all attributes
     expected_base_text = "Test rich attribute text"
@@ -99,6 +101,7 @@ def test_create_product_with_attributes_created_in_bulk_core_0704(
         {"id": attr_bool_id, "boolean": True},
         {"id": attr_swatch_id, "values": ["blue"]},
         {"id": attr_reference_id, "references": [page_id]},
+        {"id": attr_single_reference_id, "reference": page_id},
         {"id": attr_file_id, "file": file_url, "contentType": file_content_type},
     ]
     product_data = create_product(
@@ -107,5 +110,4 @@ def test_create_product_with_attributes_created_in_bulk_core_0704(
         category_id,
         attributes=attributes,
     )
-    attributes = product_data["attributes"]
-    assert len(product_data["attributes"]) == 11
+    assert len(product_data["attributes"]) == len(attributes)
