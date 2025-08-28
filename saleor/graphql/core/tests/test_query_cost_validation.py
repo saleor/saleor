@@ -2,6 +2,8 @@ import graphene
 import pytest
 from django.test import override_settings
 
+from ...query_cost_map import COST_MAP
+
 
 @override_settings(GRAPHQL_QUERY_MAX_COMPLEXITY=1)
 def test_query_exceeding_cost_limit_fails_validation(
@@ -235,3 +237,234 @@ def test_query_with_fragments_have_same_multiplied_complexity_cost(
     assert json_response["data"] == expected_data
     query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
     assert query_cost == 120
+
+
+QUERY_INLINE_FRAGMENT_BASED_ON_INTERFACE = """
+query Page($assignedAttributeLimit: Int, $assignedMultiProductLimit: Int, $assignedMultiCategoryLimit: Int){
+  page(slug:"about"){
+    assignedAttributes(limit:$assignedAttributeLimit){
+      ...on AssignedAttribute{
+        attribute{
+          id
+        }
+      }
+      ...on AssignedMultiProductReferenceAttribute{
+        value(limit:$assignedMultiProductLimit){
+          id
+        }
+      }
+      ...on AssignedMultiCategoryReferenceAttribute{
+        value(limit:$assignedMultiCategoryLimit){
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_query_cost_for_inline_fragments_on_interface(api_client):
+    assigned_attributes_limit = 10
+    assigned_multi_product_limit = 10
+    assigned_multi_category_limit = 10000
+    variables = {
+        "assignedAttributeLimit": assigned_attributes_limit,
+        "assignedMultiProductLimit": assigned_multi_product_limit,
+        "assignedMultiCategoryLimit": assigned_multi_category_limit,
+    }
+    assert assigned_multi_category_limit > assigned_multi_product_limit
+
+    # when
+    response = api_client.post_graphql(
+        QUERY_INLINE_FRAGMENT_BASED_ON_INTERFACE, variables
+    )
+    json_response = response.json()
+
+    # then
+    query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
+    single_page_cost = COST_MAP["Query"]["page"]["complexity"]
+    single_assigned_attribute_attribute_cost = COST_MAP["AssignedAttribute"][
+        "attribute"
+    ]["complexity"]
+
+    expected_cost = (
+        single_page_cost
+        + single_page_cost * assigned_attributes_limit
+        # Cost of AssignedAttribute interface, as
+        # all responses for child types will include
+        # the fields requested in AssignedInterface
+        # fragment
+        + (
+            single_page_cost
+            * assigned_attributes_limit
+            * single_assigned_attribute_attribute_cost
+        )
+        # max from requested inline fragment is used when requesting
+        # multiple fragments based on the same interface
+        + assigned_attributes_limit * assigned_multi_category_limit
+    )
+    assert query_cost == expected_cost
+
+
+QUERY_SPREAD_FRAGMENTS_BASED_ON_INTERFACE = """
+query Page(
+  $assignedAttributeLimit: Int
+  $assignedMultiProductLimit: Int
+  $assignedMultiCategoryLimit: Int
+) {
+  page(slug: "about") {
+    assignedAttributes(limit: $assignedAttributeLimit) {
+      ...AssignedInterface
+      ...MultiProducts
+      ...MultiCategories
+    }
+  }
+}
+
+fragment AssignedInterface on AssignedAttribute {
+  attribute {
+    id
+  }
+}
+
+fragment MultiProducts on AssignedMultiProductReferenceAttribute {
+  value(limit: $assignedMultiProductLimit) {
+    id
+  }
+}
+
+fragment MultiCategories on AssignedMultiCategoryReferenceAttribute {
+  value(limit: $assignedMultiCategoryLimit) {
+    id
+  }
+}
+"""
+
+
+def test_query_cost_for_spread_fragments_on_interface(api_client):
+    assigned_attributes_limit = 10
+    assigned_multi_product_limit = 10
+    assigned_multi_category_limit = 10000
+    variables = {
+        "assignedAttributeLimit": assigned_attributes_limit,
+        "assignedMultiProductLimit": assigned_multi_product_limit,
+        "assignedMultiCategoryLimit": assigned_multi_category_limit,
+    }
+    assert assigned_multi_category_limit > assigned_multi_product_limit
+
+    # when
+    response = api_client.post_graphql(
+        QUERY_SPREAD_FRAGMENTS_BASED_ON_INTERFACE, variables
+    )
+    json_response = response.json()
+
+    # then
+    query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
+    single_page_cost = COST_MAP["Query"]["page"]["complexity"]
+    single_assigned_attribute_attribute_cost = COST_MAP["AssignedAttribute"][
+        "attribute"
+    ]["complexity"]
+
+    expected_cost = (
+        single_page_cost
+        + single_page_cost * assigned_attributes_limit
+        # Cost of AssignedAttribute interface, as
+        # all responses for child types will include
+        # the fields requested in AssignedInterface
+        # fragment
+        + (
+            single_page_cost
+            * assigned_attributes_limit
+            * single_assigned_attribute_attribute_cost
+        )
+        # max from requested spread fragment is used when requesting
+        # multiple fragments based on the same interface
+        + assigned_attributes_limit * assigned_multi_category_limit
+    )
+    assert query_cost == expected_cost
+
+
+QUERY_SPREAD_AND_INLINE_FRAGMENTS_BASED_ON_INTERFACE = """
+query Page(
+  $assignedAttributeLimit: Int
+  $assignedMultiProductLimit: Int
+  $assignedMultiCategoryLimit: Int
+) {
+  page(slug: "about") {
+    assignedAttributes(limit: $assignedAttributeLimit) {
+      ...AssignedInterface
+      ...MultiProducts
+      ...MultiCategories
+      ...on AssignedMultiCategoryReferenceAttribute{
+        val: value(limit:$assignedMultiCategoryLimit){
+          id
+        }
+      }
+    }
+  }
+}
+
+fragment AssignedInterface on AssignedAttribute {
+  attribute {
+    id
+  }
+}
+
+fragment MultiProducts on AssignedMultiProductReferenceAttribute {
+  value(limit: $assignedMultiProductLimit) {
+    id
+  }
+}
+
+fragment MultiCategories on AssignedMultiCategoryReferenceAttribute {
+  value(limit: $assignedMultiCategoryLimit) {
+    id
+  }
+}
+"""
+
+
+def test_query_cost_for_spread_and_inline_fragments_on_interface(api_client):
+    assigned_attributes_limit = 10
+    assigned_multi_product_limit = 10
+    assigned_multi_category_limit = 10000
+    variables = {
+        "assignedAttributeLimit": assigned_attributes_limit,
+        "assignedMultiProductLimit": assigned_multi_product_limit,
+        "assignedMultiCategoryLimit": assigned_multi_category_limit,
+    }
+    assert assigned_multi_category_limit > assigned_multi_product_limit
+
+    # when
+    response = api_client.post_graphql(
+        QUERY_SPREAD_AND_INLINE_FRAGMENTS_BASED_ON_INTERFACE, variables
+    )
+    json_response = response.json()
+
+    # then
+    query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
+    single_page_cost = COST_MAP["Query"]["page"]["complexity"]
+    single_assigned_attribute_attribute_cost = COST_MAP["AssignedAttribute"][
+        "attribute"
+    ]["complexity"]
+
+    expected_cost = (
+        single_page_cost
+        + single_page_cost * assigned_attributes_limit
+        # Cost of AssignedAttribute interface, as
+        # all responses for child types will include
+        # the fields requested in AssignedInterface
+        # fragment
+        + (
+            single_page_cost
+            * assigned_attributes_limit
+            * single_assigned_attribute_attribute_cost
+        )
+        # max from requested spread/inline fragments is used when requesting
+        # multiple fragments based on the same interface
+        + assigned_attributes_limit * assigned_multi_category_limit
+        # Multiplied by 2 as the same fragment is used with alias
+        + assigned_attributes_limit * assigned_multi_category_limit
+    )
+    assert query_cost == expected_cost

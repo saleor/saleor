@@ -141,6 +141,7 @@ COST_MAP = {
         "tokens": {"complexity": 1},
         "webhooks": {"complexity": 1},
     },
+    "AssignedAttribute": {"attribute": {"complexity": 1}},
     "AssignedNumericAttribute": {
         "attribute": {"complexity": 1},
         "value": {"complexity": 1},
