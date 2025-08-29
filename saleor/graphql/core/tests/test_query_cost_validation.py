@@ -2,8 +2,8 @@ import graphene
 import pytest
 from django.test import override_settings
 
-from ...core.const import DEFAULT_NESTED_LIST_LIMIT
 from ...query_cost_map import COST_MAP
+from ..const import DEFAULT_NESTED_LIST_LIMIT
 
 
 @override_settings(GRAPHQL_QUERY_MAX_COMPLEXITY=1)
@@ -489,6 +489,7 @@ query($limit: Int) {
   }
 }
 """
+
 
 def test_query_with_empty_not_required_limit_argument(
     api_client,
