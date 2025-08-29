@@ -340,6 +340,17 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             "only meant for displaying."
         ),
     )
+    assigned_attribute = graphene.Field(
+        AssignedAttribute,
+        slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the attribute",
+            required=True,
+        ),
+        description="Get a single attribute attached to product by attribute slug."
+        + ADDED_IN_322,
+    )
+
     assigned_attributes = NonNullList(
         AssignedAttribute,
         required=True,
@@ -608,6 +619,45 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     @staticmethod
     def resolve_digital_content(root: ChannelContext[models.ProductVariant], _info):
         return getattr(root.node, "digital_content", None)
+
+    @classmethod
+    def resolve_assigned_attribute(
+        cls, root: ChannelContext[models.ProductVariant], info, slug
+    ):
+        def get_selected_attribute_by_slug(
+            attributes: (
+                list[
+                    dict[
+                        str,
+                        attribute_models.Attribute
+                        | list[attribute_models.AttributeValue],
+                    ]
+                ]
+                | None
+            ),
+        ) -> AssignedAttributeData | None:
+            if attributes is None:
+                return None
+
+            for atr in attributes:
+                attribute = atr["attribute"]
+                attribute = cast(attribute_models.Attribute, attribute)
+                if attribute.slug == slug:
+                    values = atr["values"]
+                    values = cast(list[attribute_models.AttributeValue], values)
+                    return AssignedAttributeData(
+                        attribute=ChannelContext(attribute, root.channel_slug),
+                        values=[
+                            ChannelContext(value, root.channel_slug) for value in values
+                        ],
+                    )
+            return None
+
+        return (
+            AssignedAttributesByProductVariantIdLoader(info.context)
+            .load(root.node.id)
+            .then(get_selected_attribute_by_slug)
+        )
 
     @classmethod
     def resolve_attributes(

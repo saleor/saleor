@@ -7408,6 +7408,16 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   ): VariantPricingInfo
 
   """
+  Get a single attribute attached to product by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
   List of attributes assigned to this variant.
   
   Added in Saleor 3.22.
