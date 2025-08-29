@@ -430,7 +430,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         return None
 
 
-class GenericPaymentMethodDetails(graphene.Interface):
+class PaymentMethodDetails(graphene.Interface):
     name = graphene.String(required=True, description="Name of the payment method.")
 
     class Meta:
@@ -438,6 +438,13 @@ class GenericPaymentMethodDetails(graphene.Interface):
             "Represents a payment method used for a transaction." + ADDED_IN_322
         )
 
+    @classmethod
+    def resolve_type(cls, instance, info: graphene.ResolveInfo):
+        if instance.payment_method_type == PaymentMethodType.CARD:
+            return CardPaymentMethodDetails
+        return OtherPaymentMethodDetails
+
+    @staticmethod
     def resolve_name(root: models.TransactionItem, _info):
         return root.payment_method_name or ""
 
@@ -464,7 +471,7 @@ class CardPaymentMethodDetails(BaseObjectType):
         description = (
             "Represents a card payment method used for a transaction." + ADDED_IN_322
         )
-        interfaces = [GenericPaymentMethodDetails]
+        interfaces = [PaymentMethodDetails]
 
     @staticmethod
     def resolve_brand(root: models.TransactionItem, _info):
@@ -494,18 +501,7 @@ class OtherPaymentMethodDetails(BaseObjectType):
         description = (
             "Represents a payment method used for a transaction." + ADDED_IN_322
         )
-        interfaces = [GenericPaymentMethodDetails]
-
-
-class PaymentMethodDetails(graphene.Union):
-    class Meta:
-        types = (CardPaymentMethodDetails, OtherPaymentMethodDetails)
-
-    @classmethod
-    def resolve_type(cls, instance, info: graphene.ResolveInfo):
-        if instance.payment_method_type == PaymentMethodType.CARD:
-            return CardPaymentMethodDetails
-        return OtherPaymentMethodDetails
+        interfaces = [PaymentMethodDetails]
 
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):

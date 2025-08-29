@@ -12409,49 +12409,12 @@ enum TransactionEventTypeEnum @doc(category: "Payments") {
 
 union UserOrApp = User | App
 
-union PaymentMethodDetails = CardPaymentMethodDetails | OtherPaymentMethodDetails
-
-"""
-Represents a card payment method used for a transaction.
-
-Added in Saleor 3.22.
-"""
-type CardPaymentMethodDetails implements GenericPaymentMethodDetails {
-  """Name of the payment method."""
-  name: String!
-
-  """Card brand."""
-  brand: String
-
-  """First 4 digits of the card number."""
-  firstDigits: String
-
-  """Last 4 digits of the card number."""
-  lastDigits: String
-
-  """Two-digit number representing the card’s expiration month."""
-  expMonth: Int
-
-  """Four-digit number representing the card’s expiration year."""
-  expYear: Int
-}
-
 """
 Represents a payment method used for a transaction.
 
 Added in Saleor 3.22.
 """
-interface GenericPaymentMethodDetails {
-  """Name of the payment method."""
-  name: String!
-}
-
-"""
-Represents a payment method used for a transaction.
-
-Added in Saleor 3.22.
-"""
-type OtherPaymentMethodDetails implements GenericPaymentMethodDetails {
+interface PaymentMethodDetails {
   """Name of the payment method."""
   name: String!
 }
@@ -34466,6 +34429,41 @@ type PaymentMethodProcessTokenizationSession implements Event @doc(category: "Pa
   The ID returned by app from `PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION` webhook.
   """
   id: String!
+}
+
+"""
+Represents a card payment method used for a transaction.
+
+Added in Saleor 3.22.
+"""
+type CardPaymentMethodDetails implements PaymentMethodDetails {
+  """Name of the payment method."""
+  name: String!
+
+  """Card brand."""
+  brand: String
+
+  """First 4 digits of the card number."""
+  firstDigits: String
+
+  """Last 4 digits of the card number."""
+  lastDigits: String
+
+  """Two-digit number representing the card’s expiration month."""
+  expMonth: Int
+
+  """Four-digit number representing the card’s expiration year."""
+  expYear: Int
+}
+
+"""
+Represents a payment method used for a transaction.
+
+Added in Saleor 3.22.
+"""
+type OtherPaymentMethodDetails implements PaymentMethodDetails {
+  """Name of the payment method."""
+  name: String!
 }
 
 """_Any value scalar as defined by Federation spec."""

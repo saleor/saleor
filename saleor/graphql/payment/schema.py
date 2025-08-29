@@ -28,7 +28,18 @@ from .mutations import (
     TransactionUpdate,
 )
 from .resolvers import resolve_payment_by_id, resolve_payments, resolve_transaction
-from .types import Payment, PaymentCountableConnection, TransactionItem
+from .types import (
+    CardPaymentMethodDetails,
+    OtherPaymentMethodDetails,
+    Payment,
+    PaymentCountableConnection,
+    TransactionItem,
+)
+
+PAYMENT_ADDITIONAL_TYPES = [
+    CardPaymentMethodDetails,
+    OtherPaymentMethodDetails,
+]
 
 
 class PaymentQueries(graphene.ObjectType):
