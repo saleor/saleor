@@ -140,7 +140,7 @@ def prepare_all_attributes(e2e_staff_api_client, attribute_type, entity_type):
         slug="reference-test",
         type=attribute_type,
         value_required=True,
-        entityType=entity_type,
+        entity_type=entity_type,
     )
 
     attr_reference_id = attr_reference["id"]
@@ -172,8 +172,12 @@ def prepare_all_attributes(e2e_staff_api_client, attribute_type, entity_type):
     )
 
 
-def prepare_all_attributes_in_bulk(e2e_staff_api_client, attribute_type, entity_type):
-    attributes = [
+def prepare_all_attributes_in_bulk(
+    e2e_staff_api_client,
+    attribute_type,
+    entity_type,
+):
+    attributes_input = [
         {
             "name": "Dropdown",
             "slug": "dropdown",
@@ -261,6 +265,14 @@ def prepare_all_attributes_in_bulk(e2e_staff_api_client, attribute_type, entity_
             "entityType": entity_type,
         },
         {
+            "name": "Single Reference",
+            "slug": "single-reference",
+            "inputType": "SINGLE_REFERENCE",
+            "type": attribute_type,
+            "valueRequired": False,
+            "entityType": entity_type,
+        },
+        {
             "name": "File",
             "slug": "file",
             "inputType": "FILE",
@@ -268,30 +280,14 @@ def prepare_all_attributes_in_bulk(e2e_staff_api_client, attribute_type, entity_
             "valueRequired": False,
         },
     ]
-    attributes_data = bulk_create_attributes(e2e_staff_api_client, attributes)
+    return prepare_attributes_in_bulk(e2e_staff_api_client, attributes_input)
 
-    attr_dropdown_id = attributes_data["results"][0]["attribute"]["id"]
-    attr_multiselect_id = attributes_data["results"][1]["attribute"]["id"]
-    attr_date_id = attributes_data["results"][2]["attribute"]["id"]
-    attr_date_time_id = attributes_data["results"][3]["attribute"]["id"]
-    attr_plain_text_id = attributes_data["results"][4]["attribute"]["id"]
-    attr_rich_text_id = attributes_data["results"][5]["attribute"]["id"]
-    attr_numeric_id = attributes_data["results"][6]["attribute"]["id"]
-    attr_bool_id = attributes_data["results"][7]["attribute"]["id"]
-    attr_swatch_id = attributes_data["results"][8]["attribute"]["id"]
-    attr_reference_id = attributes_data["results"][9]["attribute"]["id"]
-    attr_file_id = attributes_data["results"][10]["attribute"]["id"]
 
-    return (
-        attr_dropdown_id,
-        attr_multiselect_id,
-        attr_date_id,
-        attr_date_time_id,
-        attr_plain_text_id,
-        attr_rich_text_id,
-        attr_numeric_id,
-        attr_bool_id,
-        attr_swatch_id,
-        attr_reference_id,
-        attr_file_id,
-    )
+def prepare_attributes_in_bulk(e2e_staff_api_client, attributes_input):
+    attributes_data = bulk_create_attributes(e2e_staff_api_client, attributes_input)
+
+    attribute_ids = [
+        attribute_data["attribute"]["id"]
+        for attribute_data in attributes_data["results"]
+    ]
+    return attribute_ids

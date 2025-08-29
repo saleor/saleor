@@ -73,6 +73,11 @@ class AttributeInputErrors:
     # Reference Errors
     REFERENCE_REQUIRED = ("A reference is required for this attribute.", "REQUIRED")
     INVALID_REFERENCE = ("Invalid reference type.", "INVALID")
+    INVALID_REFERENCE_TYPE = (
+        "Invalid reference, must be an object from available choices defined by "
+        "reference types on attribute.",
+        "INVALID",
+    )
 
     # Numeric Errors
     ERROR_NUMERIC_VALUE_REQUIRED = ("Numeric value is required.", "INVALID")
@@ -451,16 +456,67 @@ class ReferenceAttributeHandler(AttributeTypeHandler):
             return
         entity_data = ENTITY_TYPE_MAPPING[self.attribute.entity_type]
 
+        prefetch_related = (
+            ["product"]
+            if self.attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT
+            else []
+        )
         try:
             ref_instances = get_nodes(
-                references, self.attribute.entity_type, model=entity_data.model
+                references,
+                self.attribute.entity_type,
+                model=entity_data.model,
+                prefetch_related=prefetch_related,
             )
         except GraphQLError:
             attribute_errors[AttributeInputErrors.INVALID_REFERENCE].append(
                 self.attribute_identifier
             )
             return
+
+        invalid_refs = self.get_references_with_invalid_reference_types(
+            ref_instances, attribute_errors
+        )
+        if invalid_refs:
+            attribute_errors[AttributeInputErrors.INVALID_REFERENCE_TYPE].append(
+                self.attribute_identifier
+            )
+            return
+
         self.values_input.reference_objects = ref_instances
+
+    def get_references_with_invalid_reference_types(
+        self, ref_instances: list, attribute_errors: T_ERROR_DICT
+    ):
+        """Validate that all references are of the correct type.
+
+        For `PRODUCT` and `PRODUCT_VARIANT` entity types, check if the
+        references belong to the reference product types defined in the attribute.
+
+        For `PAGE` entity type, check if the references belong to the reference page
+        types defined in the attribute.
+        """
+        # `reference_product_types` and `reference_page_types` are pre-fetched
+        # in `AttributeAssignmentMixin._resolve_attribute_nodes`
+        if reference_product_types := self.attribute.reference_product_types.all():
+            ref_product_type_ids = set()
+            if self.attribute.entity_type == AttributeEntityType.PRODUCT:
+                ref_product_type_ids = {ref.product_type_id for ref in ref_instances}
+            elif self.attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
+                # product is pre-fetched in `get_nodes`
+                ref_product_type_ids = {
+                    ref.product.product_type_id for ref in ref_instances
+                }
+            attribute_product_type_ids = {pt.id for pt in reference_product_types}
+            invalid_refs = ref_product_type_ids - attribute_product_type_ids
+            return invalid_refs
+        if reference_page_types := self.attribute.reference_page_types.all():
+            ref_page_type_ids = {ref.page_type_id for ref in ref_instances}
+            # `reference_page_types` are pre-fetched in `AttributeAssignmentMixin._resolve_attribute_nodes`
+            attribute_page_type_ids = {pt.id for pt in reference_page_types}
+            invalid_refs = ref_page_type_ids - attribute_page_type_ids
+            return invalid_refs
+        return {}
 
     def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
         references = self.values_input.reference_objects

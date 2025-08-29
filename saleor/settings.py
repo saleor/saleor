@@ -452,6 +452,7 @@ LOGGING = {
     },
 }
 
+
 AUTH_USER_MODEL = "account.User"
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -925,8 +926,6 @@ CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = datetime.timedelta(
 TRANSACTION_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
     "TRANSACTION_BATCH_FOR_RELEASING_FUNDS", 60
 )
-
-NESTED_QUERY_LIMIT = int(os.environ.get("NESTED_QUERY_LIMIT", 100))
 
 
 # The maximum SearchVector expression count allowed per index SQL statement

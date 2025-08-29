@@ -583,6 +583,126 @@ def test_update_page_with_plain_text_attribute_new_value(
     assert plain_text_attribute_page_type.values.count() == values_count + 1
 
 
+def test_update_page_with_reference_attributes_and_reference_types_defined(
+    staff_api_client,
+    page_list,
+    product,
+    variant,
+    page_type_page_reference_attribute,
+    page_type_product_reference_attribute,
+    page_type_variant_reference_attribute,
+    permission_manage_pages,
+):
+    # given
+    page = page_list[0]
+    page.page_type.page_attributes.clear()
+    page.page_type.page_attributes.add(
+        page_type_page_reference_attribute,
+        page_type_product_reference_attribute,
+        page_type_variant_reference_attribute,
+    )
+
+    reference_page = page_list[1]
+
+    page_type_page_reference_attribute.reference_page_types.add(
+        reference_page.page_type
+    )
+    page_type_product_reference_attribute.reference_product_types.add(
+        product.product_type
+    )
+    page_type_variant_reference_attribute.reference_product_types.add(
+        variant.product.product_type
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_page_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_variant_reference_attribute.id
+    )
+    page_ref = graphene.Node.to_global_id("Page", reference_page.pk)
+    product_ref = graphene.Node.to_global_id("Product", product.pk)
+    variant_ref = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+    variables = {
+        "id": page_id,
+        "input": {
+            "attributes": [
+                {"id": page_ref_attr_id, "references": [page_ref]},
+                {"id": product_ref_attr_id, "references": [product_ref]},
+                {"id": variant_ref_attr_id, "references": [variant_ref]},
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_PAGE_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_pages],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+    assert not data["errors"]
+    attributes_data = data["page"]["attributes"]
+    assert len(attributes_data) == len(variables["input"]["attributes"])
+    expected_attributes_data = [
+        {
+            "attribute": {"slug": page_type_page_reference_attribute.slug},
+            "values": [
+                {
+                    "id": ANY,
+                    "slug": f"{page.pk}_{reference_page.pk}",
+                    "file": None,
+                    "plainText": None,
+                    "reference": page_ref,
+                    "name": reference_page.title,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+        {
+            "attribute": {"slug": page_type_product_reference_attribute.slug},
+            "values": [
+                {
+                    "id": ANY,
+                    "slug": f"{page.pk}_{product.pk}",
+                    "file": None,
+                    "plainText": None,
+                    "reference": product_ref,
+                    "name": product.name,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+        {
+            "attribute": {"slug": page_type_variant_reference_attribute.slug},
+            "values": [
+                {
+                    "id": ANY,
+                    "slug": f"{page.pk}_{variant.pk}",
+                    "file": None,
+                    "plainText": None,
+                    "reference": variant_ref,
+                    "name": f"{variant.product.name}: {variant.name}",
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+    ]
+    for attr_data in attributes_data:
+        assert attr_data in expected_attributes_data
+
+
 def test_update_page_with_plain_text_attribute_existing_value(
     staff_api_client,
     permission_manage_pages,
@@ -1038,6 +1158,88 @@ def test_update_page_with_collection_reference_attribute_new_value(
     assert page_type_collection_reference_attribute.values.count() == values_count + 1
 
 
+def test_update_page_with_reference_attributes_ref_not_in_available_choices(
+    staff_api_client,
+    page_list,
+    product,
+    variant,
+    page_type_page_reference_attribute,
+    page_type_product_reference_attribute,
+    page_type_variant_reference_attribute,
+    permission_manage_pages,
+    product_type_with_variant_attributes,
+    page_type_with_rich_text_attribute,
+):
+    # given
+    page = page_list[0]
+    page.page_type.page_attributes.clear()
+    page.page_type.page_attributes.add(
+        page_type_page_reference_attribute,
+        page_type_product_reference_attribute,
+        page_type_variant_reference_attribute,
+    )
+
+    reference_page = page_list[1]
+    # assigned reference types that do not match product/page types of references
+    # that are provided in the input
+    page_type_page_reference_attribute.reference_page_types.add(
+        page_type_with_rich_text_attribute
+    )
+    page_type_product_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+    page_type_variant_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_page_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_variant_reference_attribute.id
+    )
+    variant_ref = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    page_ref = graphene.Node.to_global_id("Page", reference_page.pk)
+    product_ref = graphene.Node.to_global_id("Product", product.pk)
+
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+    variables = {
+        "id": page_id,
+        "input": {
+            "attributes": [
+                {"id": page_ref_attr_id, "references": [page_ref]},
+                {"id": product_ref_attr_id, "references": [product_ref]},
+                {"id": variant_ref_attr_id, "references": [variant_ref]},
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_PAGE_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_pages],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["pageUpdate"]
+    errors = data["errors"]
+    assert not data["page"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PageErrorCode.INVALID.name
+    assert errors[0]["field"] == "attributes"
+    assert set(errors[0]["attributes"]) == {
+        page_ref_attr_id,
+        product_ref_attr_id,
+        variant_ref_attr_id,
+    }
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_public_page_sets_publication_date(
     staff_api_client, permission_manage_pages, page_type
@@ -1181,6 +1383,7 @@ UPDATE_PAGE_ATTRIBUTES_MUTATION = """
                 field
                 code
                 message
+                attributes
             }
         }
     }
