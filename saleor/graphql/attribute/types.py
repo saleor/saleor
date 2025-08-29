@@ -1,5 +1,4 @@
 import graphene
-from django.conf import settings
 from promise import Promise
 
 from ...attribute import AttributeInputType, models
@@ -15,6 +14,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
+from ..core.const import DEFAULT_NESTED_LIST_LIMIT
 from ..core.context import (
     ChannelContext,
     ChannelQsContext,
@@ -268,7 +268,7 @@ class Attribute(ChannelContextType[models.Attribute]):
         required=False,
         limit=graphene.Int(
             description=NESTED_QUERY_LIMIT_DESCRIPTION,
-            default_value=settings.NESTED_QUERY_LIMIT,
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
     )
 

@@ -1,7 +1,8 @@
 import graphene
 import pytest
-from django.conf import settings
 from django.test import override_settings
+
+from ..const import DEFAULT_NESTED_LIST_LIMIT
 
 
 @override_settings(GRAPHQL_QUERY_MAX_COMPLEXITY=1)
@@ -284,7 +285,7 @@ def test_query_with_empty_not_required_limit_argument(
     assert json_response["data"]["attributes"]["edges"]
     query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
     assert (
-        query_cost == 100 * 1 + 100 * settings.NESTED_QUERY_LIMIT
+        query_cost == 100 * 1 + 100 * DEFAULT_NESTED_LIST_LIMIT
     )  # 100 attributes + 100 product types (limit value) per attribute
 
 
@@ -313,5 +314,5 @@ def test_query_with_not_required_limit_argument_not_provided(
     assert json_response["data"]["attributes"]["edges"]
     query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
     assert (
-        query_cost == 100 * 1 + 100 * settings.NESTED_QUERY_LIMIT
+        query_cost == 100 * 1 + 100 * DEFAULT_NESTED_LIST_LIMIT
     )  # 100 attributes + 100 product types (limit value) per attribute
