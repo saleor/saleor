@@ -63,6 +63,7 @@ from . import AddressType, base_calculations, calculations
 from .error_codes import CheckoutErrorCode
 from .lock_objects import checkout_lines_qs_select_for_update
 from .models import Checkout, CheckoutLine, CheckoutMetadata
+from .payment_utils import _get_payment_amount_for_checkout
 
 if TYPE_CHECKING:
     from measurement.measures import Weight
@@ -1067,6 +1068,29 @@ def is_fully_paid(
         checkout_total, zero_taxed_money(checkout_total.currency)
     ).gross
     return total_paid >= checkout_total.amount
+
+
+def is_fully_paid_with_transactions(
+    manager: "PluginsManager",
+    checkout_info: "CheckoutInfo",
+    lines: list["CheckoutLineInfo"],
+):
+    checkout = checkout_info.checkout
+    checkout_transactions = checkout.payment_transactions.all()
+
+    total_authorized, total_charged = _get_payment_amount_for_checkout(
+        checkout_transactions, checkout.currency
+    )
+
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    checkout_total = calculations.calculate_checkout_total_with_gift_cards(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+    )
+
+    return (total_authorized + total_charged).amount >= checkout_total.gross.amount
 
 
 def cancel_active_payments(checkout: Checkout) -> list[int]:
