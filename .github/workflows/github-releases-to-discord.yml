@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Announce to Discord
         uses: SethCohen/github-releases-to-discord@6ac5abea42b8cbac14316970819a8a535aab08ea # v1.16.2
