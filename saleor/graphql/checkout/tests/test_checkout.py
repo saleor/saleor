@@ -13,13 +13,18 @@ from measurement.measures import Weight
 from prices import Money
 
 from ....checkout import base_calculations, calculations
-from ....checkout.calculations import _fetch_checkout_prices_if_expired
+from ....checkout.calculations import (
+    _calculate_and_add_tax,
+    _fetch_checkout_prices_if_expired,
+    fetch_checkout_data,
+)
 from ....checkout.checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.models import Checkout
 from ....checkout.utils import (
     PRIVATE_META_APP_SHIPPING_ID,
     add_variant_to_checkout,
@@ -2854,6 +2859,54 @@ def test_checkout_display_gross_prices_use_default(user_api_client, checkout_wit
 
     # then
     assert data["displayGrossPrices"] == tax_config.display_gross_prices
+
+
+@mock.patch(
+    "saleor.checkout.calculations._calculate_and_add_tax",
+    wraps=_calculate_and_add_tax,
+)
+@mock.patch(
+    "saleor.checkout.calculations.fetch_checkout_data",
+    wraps=fetch_checkout_data,
+)
+def test_checkout_prices_with_checkout_updated_during_price_recalculation(
+    mock_fetch_checkout_data,
+    mock_calculate_and_add_tax,
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    expected_email = "new_email@example.com"
+    checkout = checkout_with_prices
+    variables = {
+        "id": to_global_id_or_none(checkout),
+    }
+
+    # when
+    def modify_checkout(*args, **kwargs):
+        with allow_writer():
+            checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
+            checkout_to_modify.email = expected_email
+            checkout_to_modify.save(update_fields=["email", "last_change"])
+
+    with race_condition.RunBefore(
+        "saleor.checkout.calculations._is_checkout_modified", modify_checkout
+    ):
+        response = user_api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+
+    # Ensure that the checkout prices recalculation was triggered more than one time.
+    assert mock_fetch_checkout_data.call_count > 1
+
+    # Ensure that the checkout price are recalculated only one time
+    assert mock_calculate_and_add_tax.call_count == 1
+
+    checkout.refresh_from_db()
+    assert checkout.email == expected_email
 
 
 def test_checkout_display_gross_prices_use_country_exception(
