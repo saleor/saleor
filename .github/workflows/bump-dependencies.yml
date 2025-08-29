@@ -20,7 +20,7 @@ jobs:
           enable-cache: true
 
       - run: python -m pip install pre-commit
-      - run: uv lock
+      - run: uv lock --upgrade
       - run: pre-commit autoupdate
       - run: git status
 
