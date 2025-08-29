@@ -763,12 +763,12 @@ def test_assigned_multi_page_reference_attribute(
 
 
 ASSIGNED_MULTIPLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID) {
+query PageQuery($id: ID, $valueLimit: Int) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ...on AssignedMultiProductReferenceAttribute{
         __typename
-        value{
+        value(limit: $valueLimit) {
           __typename
           slug
         }
@@ -823,13 +823,70 @@ def test_assigned_multi_product_reference_attribute(
     assert single_page_data["slug"] == expected_reference_slug
 
 
+def test_applies_limit_to_multi_product_references(
+    staff_api_client,
+    page,
+    product_list,
+    page_type_product_reference_attribute,
+):
+    # given
+    page_type = page.page_type
+
+    # make sure that our attribute is on first position
+    page_type.page_attributes.update(storefront_search_position=10)
+    page_type.page_attributes.set([page_type_product_reference_attribute])
+    page_type_product_reference_attribute.input_type = AttributeInputType.REFERENCE
+    page_type_product_reference_attribute.storefront_search_position = 1
+    page_type_product_reference_attribute.save()
+
+    first_reference = AttributeValue.objects.create(
+        attribute=page_type_product_reference_attribute,
+        slug=f"{page.pk}_{product_list[0].pk}",
+        reference_product_id=product_list[0].pk,
+    )
+    second_reference = AttributeValue.objects.create(
+        attribute=page_type_product_reference_attribute,
+        slug=f"{page.pk}_{product_list[1].pk}",
+        reference_product_id=product_list[1].pk,
+    )
+
+    associate_attribute_values_to_instance(
+        page,
+        {page_type_product_reference_attribute.pk: [first_reference, second_reference]},
+    )
+    assert page.attributevalues.count() == 3
+
+    expected_value_limit = 1
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTIPLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY,
+        variables={
+            "id": graphene.Node.to_global_id("Page", page.pk),
+            "valueLimit": expected_value_limit,
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert (
+        len(content["data"]["page"]["assignedAttributes"][0]["value"])
+        == expected_value_limit
+    )
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["value"][0]["slug"]
+        == first_reference.reference_product.slug
+    )
+
+
 ASSIGNED_MULTIPLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID) {
+query PageQuery($id: ID, $valueLimit: Int) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ...on AssignedMultiProductVariantReferenceAttribute{
         __typename
-        value{
+        value(limit: $valueLimit) {
           __typename
           sku
         }
@@ -884,13 +941,70 @@ def test_assigned_multi_product_variant_reference_attribute(
     assert single_page_data["sku"] == expected_reference_sku
 
 
+def test_applies_limit_to_multi_variant_references(
+    staff_api_client,
+    page,
+    product_variant_list,
+    page_type_variant_reference_attribute,
+):
+    # given
+    page_type = page.page_type
+
+    # make sure that our attribute is on first position
+    page_type.page_attributes.update(storefront_search_position=10)
+    page_type.page_attributes.set([page_type_variant_reference_attribute])
+    page_type_variant_reference_attribute.storefront_search_position = 1
+    page_type_variant_reference_attribute.input_type = AttributeInputType.REFERENCE
+    page_type_variant_reference_attribute.save()
+
+    first_reference = AttributeValue.objects.create(
+        attribute=page_type_variant_reference_attribute,
+        slug=f"{page.pk}_{product_variant_list[0].pk}",
+        reference_variant_id=product_variant_list[0].pk,
+    )
+    second_reference = AttributeValue.objects.create(
+        attribute=page_type_variant_reference_attribute,
+        slug=f"{page.pk}_{product_variant_list[1].pk}",
+        reference_variant_id=product_variant_list[1].pk,
+    )
+
+    associate_attribute_values_to_instance(
+        page,
+        {page_type_variant_reference_attribute.pk: [first_reference, second_reference]},
+    )
+
+    assert page.attributevalues.count() == 3
+    expected_value_limit = 1
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTIPLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY,
+        variables={
+            "id": graphene.Node.to_global_id("Page", page.pk),
+            "valueLimit": expected_value_limit,
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert (
+        len(content["data"]["page"]["assignedAttributes"][0]["value"])
+        == expected_value_limit
+    )
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["value"][0]["sku"]
+        == first_reference.reference_variant.sku
+    )
+
+
 ASSIGNED_MULTIPLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID) {
+query PageQuery($id: ID, $valueLimit: Int) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ...on AssignedMultiCategoryReferenceAttribute{
         __typename
-        value{
+        value(limit: $valueLimit) {
           __typename
           slug
         }
@@ -945,13 +1059,75 @@ def test_assigned_multi_category_reference_attribute(
     assert single_page_data["slug"] == expected_reference_slug
 
 
+def test_applies_limit_to_multi_category_references(
+    staff_api_client,
+    page,
+    categories,
+    page_type_category_reference_attribute,
+):
+    # given
+    page_type = page.page_type
+
+    # make sure that our attribute is on first position
+    page_type.page_attributes.update(storefront_search_position=10)
+    page_type.page_attributes.set([page_type_category_reference_attribute])
+    page_type_category_reference_attribute.input_type = AttributeInputType.REFERENCE
+    page_type_category_reference_attribute.storefront_search_position = 1
+    page_type_category_reference_attribute.save()
+
+    first_reference = AttributeValue.objects.create(
+        attribute=page_type_category_reference_attribute,
+        slug=f"{page.pk}_{categories[0].pk}",
+        reference_category_id=categories[0].pk,
+    )
+    second_reference = AttributeValue.objects.create(
+        attribute=page_type_category_reference_attribute,
+        slug=f"{page.pk}_{categories[1].pk}",
+        reference_category_id=categories[1].pk,
+    )
+
+    associate_attribute_values_to_instance(
+        page,
+        {
+            page_type_category_reference_attribute.pk: [
+                first_reference,
+                second_reference,
+            ]
+        },
+    )
+
+    assert page.attributevalues.count() == 3
+    expected_value_limit = 1
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTIPLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY,
+        variables={
+            "id": graphene.Node.to_global_id("Page", page.pk),
+            "valueLimit": expected_value_limit,
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert (
+        len(content["data"]["page"]["assignedAttributes"][0]["value"])
+        == expected_value_limit
+    )
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["value"][0]["slug"]
+        == first_reference.reference_category.slug
+    )
+
+
 ASSIGNED_MULTIPLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID) {
+query PageQuery($id: ID, $valueLimit: Int) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ...on AssignedMultiCollectionReferenceAttribute{
         __typename
-        value{
+        value(limit: $valueLimit) {
           __typename
           slug
         }
@@ -1004,6 +1180,67 @@ def test_assigned_multi_collection_reference_attribute(
     single_page_data = data[0]
     assert single_page_data["__typename"] == "Collection"
     assert single_page_data["slug"] == expected_reference_slug
+
+
+def test_applies_limit_to_multi_collection_references(
+    staff_api_client,
+    page,
+    published_collections,
+    page_type_collection_reference_attribute,
+):
+    # given
+    page_type = page.page_type
+    # make sure that our attribute is on first position
+    page_type.page_attributes.update(storefront_search_position=10)
+    page_type.page_attributes.set([page_type_collection_reference_attribute])
+    page_type_collection_reference_attribute.input_type = AttributeInputType.REFERENCE
+    page_type_collection_reference_attribute.storefront_search_position = 1
+    page_type_collection_reference_attribute.save()
+
+    first_reference = AttributeValue.objects.create(
+        attribute=page_type_collection_reference_attribute,
+        slug=f"{page.pk}_{published_collections[0].pk}",
+        reference_collection_id=published_collections[0].pk,
+    )
+    second_reference = AttributeValue.objects.create(
+        attribute=page_type_collection_reference_attribute,
+        slug=f"{page.pk}_{published_collections[1].pk}",
+        reference_collection_id=published_collections[1].pk,
+    )
+
+    associate_attribute_values_to_instance(
+        page,
+        {
+            page_type_collection_reference_attribute.pk: [
+                first_reference,
+                second_reference,
+            ]
+        },
+    )
+
+    assert page.attributevalues.count() == 3
+    expected_value_limit = 1
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTIPLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY,
+        variables={
+            "id": graphene.Node.to_global_id("Page", page.pk),
+            "valueLimit": expected_value_limit,
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert (
+        len(content["data"]["page"]["assignedAttributes"][0]["value"])
+        == expected_value_limit
+    )
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["value"][0]["slug"]
+        == first_reference.reference_collection.slug
+    )
 
 
 ASSIGNED_SINGLE_CHOICE_ATTRIBUTE_QUERY = """
@@ -1092,12 +1329,12 @@ def test_assigned_single_choice_attribute(
 
 
 ASSIGNED_MULTI_CHOICE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID) {
+query PageQuery($id: ID, $valueLimit: Int) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ... on AssignedMultiChoiceAttribute {
         __typename
-        value {
+        value(limit: $valueLimit) {
           name
           slug
           translation(languageCode: FR)
@@ -1143,6 +1380,51 @@ def test_assigned_multi_choice_attribute_translation(
     assert len(content["data"]["page"]["assignedAttributes"][0]["value"]) == 1
     attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"][0]
     assert attr_value_data["translation"] == translation.name
+
+
+def test_applies_limit_to_multi_choices(
+    staff_api_client,
+    page,
+    size_page_attribute,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([size_page_attribute])
+
+    size_page_attribute.input_type = AttributeInputType.MULTISELECT
+    size_page_attribute.save()
+
+    first_choice = size_page_attribute.values.first()
+    second_choice = size_page_attribute.values.last()
+
+    associate_attribute_values_to_instance(
+        page, {size_page_attribute.pk: [first_choice, second_choice]}
+    )
+
+    assert page.attributevalues.count() == 2
+    expected_value_limit = 1
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_MULTI_CHOICE_ATTRIBUTE_QUERY,
+        variables={
+            "id": graphene.Node.to_global_id("Page", page.pk),
+            "valueLimit": expected_value_limit,
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert (
+        len(content["data"]["page"]["assignedAttributes"][0]["value"])
+        == expected_value_limit
+    )
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["value"][0]["slug"]
+        == first_choice.slug
+    )
 
 
 def test_assigned_multi_choice_attribute(

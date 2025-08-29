@@ -641,6 +641,9 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             selected_attributes,
         ) -> list[AssignedAttributeData]:
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
+                selected_attributes = (
+                    selected_attributes[:limit] if limit else selected_attributes
+                )
                 return [
                     AssignedAttributeData(
                         attribute=ChannelContext(
