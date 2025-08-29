@@ -928,3 +928,114 @@ def test_applies_limit_on_product_assigned_attributes(
         content["data"]["productVariant"]["assignedAttributes"][0]["attribute"]["slug"]
         == size_attribute.slug
     )
+
+
+QUERY_PRODUCT_VARIANT_WITH_ASSIGNED_ATTRIBUTE = """
+query productVariant($id: ID!, $channel: String, $attrSlug: String!) {
+  productVariant(id: $id, channel: $channel) {
+    assignedAttribute(slug:$attrSlug){
+      attribute{
+        slug
+      }
+      ...on AssignedSingleChoiceAttribute{
+        value{
+          slug
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_product_variant_with_assigned_attribute(
+    variant, channel_USD, user_api_client, size_attribute, weight_attribute
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([size_attribute, weight_attribute])
+
+    expected_attribute_value = size_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {
+            size_attribute.pk: [expected_attribute_value],
+            weight_attribute.pk: [weight_attribute.values.first()],
+        },
+    )
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "id": variant_id,
+        "channel": channel_USD.slug,
+        "attrSlug": size_attribute.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_WITH_ASSIGNED_ATTRIBUTE, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assigned_attribute_data = content["data"]["productVariant"]["assignedAttribute"]
+    assert assigned_attribute_data["attribute"]["slug"] == size_attribute.slug
+    assert assigned_attribute_data["value"]["slug"] == expected_attribute_value.slug
+
+
+def test_product_variant_with_assigned_attribute_without_value(
+    variant, channel_USD, user_api_client, size_attribute, weight_attribute
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([size_attribute, weight_attribute])
+
+    associate_attribute_values_to_instance(
+        variant,
+        {
+            size_attribute.pk: [],
+            weight_attribute.pk: [weight_attribute.values.first()],
+        },
+    )
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "id": variant_id,
+        "channel": channel_USD.slug,
+        "attrSlug": size_attribute.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_WITH_ASSIGNED_ATTRIBUTE, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assigned_attribute_data = content["data"]["productVariant"]["assignedAttribute"]
+    assert assigned_attribute_data["attribute"]["slug"] == size_attribute.slug
+    assert assigned_attribute_data["value"] is None
+
+
+def test_product_variant_when_assigned_attribute_is_none(
+    variant, channel_USD, user_api_client, size_attribute, weight_attribute
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([size_attribute, weight_attribute])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "id": variant_id,
+        "channel": channel_USD.slug,
+        "attrSlug": "non-existing-slug",
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_WITH_ASSIGNED_ATTRIBUTE, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["productVariant"]["assignedAttribute"] is None
