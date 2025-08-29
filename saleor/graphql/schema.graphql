@@ -6077,7 +6077,7 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   """
   referenceTypes(
     """
-    Maximum number of objects to return. The default value is also the maximum number of objects that can be fetched.
+    Maximum number of objects to return. Value must be greater than 0. Default is 100.
     """
     limit: Int = 100
   ): [ReferenceType!]
