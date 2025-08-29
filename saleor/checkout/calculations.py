@@ -356,6 +356,7 @@ def _is_checkout_modified(
     try:
         refreshed_checkout_last_change = (
             Checkout.objects.using(database_connection_name)
+            .only("last_change")
             .get(token=checkout.token)
             .last_change
         )
