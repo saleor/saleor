@@ -22,7 +22,9 @@ def checkout_with_prices(
 ):
     # Need to save shipping_method before fetching checkout info.
     checkout_with_items.shipping_method = shipping_method
-    checkout_with_items.save(update_fields=["shipping_method"])
+    country_code = address_other_country.country.code
+    checkout_with_items.set_country(country_code, commit=False)
+    checkout_with_items.save(update_fields=["shipping_method", "country"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines = checkout_with_items.lines.all()
