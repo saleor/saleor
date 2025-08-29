@@ -99,6 +99,8 @@ Like `reference`, the `single-reference` type can target entities defined in the
   - `attribute` and `attributes` fields on Page, Product, and ProductVariant are deprecated.
 
 
+- Added support for restricting available references for `REFERENCE` and `SINGLE_REFERENCE` attributes by specifying reference product or page types.
+  - You can now define `referenceTypes` on an `Attribute` to limit reference choices. Use `productType` for product and product variant references, and page types for page references.
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
