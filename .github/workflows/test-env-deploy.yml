@@ -16,7 +16,7 @@ jobs:
       contents: read
       deployments: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: rlespinasse/github-slug-action@955b5ba4560860f8a633bd24190941f16016e42c # v5.1.0
 
       - name: Set domain

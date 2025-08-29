@@ -30,7 +30,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install system dependencies
         run: |
@@ -51,7 +51,7 @@ jobs:
           uv run python manage.py migrate
 
       - name: Checkout base
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github['base_ref'] }}
 
