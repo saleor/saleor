@@ -217,6 +217,13 @@ def validate_if_int_or_uuid(id):
             raise ValidationError("Must receive an int or UUID.") from e
 
 
+def validate_limit_input_value(limit_value: int | None):
+    if not limit_value or limit_value < 1:
+        raise GraphQLError(
+            f"`limit` must be greater than 1. Provided value is {limit_value}."
+        )
+
+
 def validate_limit_of_list_input(
     input_list: list,
     limit: int,

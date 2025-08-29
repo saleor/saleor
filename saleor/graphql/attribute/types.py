@@ -2,7 +2,6 @@ from datetime import date, datetime
 from typing import cast
 
 import graphene
-from django.conf import settings
 from promise import Promise
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
