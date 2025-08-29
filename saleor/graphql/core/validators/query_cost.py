@@ -1,3 +1,4 @@
+from collections import defaultdict
 from functools import reduce
 from operator import add, mul
 from typing import Any, cast
@@ -66,6 +67,8 @@ class CostValidator(ValidationRule):
         if isinstance(type_def, GraphQLObjectType | GraphQLInterfaceType):
             fields = type_def.fields
         total = 0
+        fragment_map_cost: dict[str, int] = defaultdict(int)
+        fragment_name_to_interface_names: dict[str, set[str]] = defaultdict(set)
         for child_node in node.selection_set.selections:
             self.operation_multipliers = parent_multipliers[:]
             node_cost = self.default_cost
@@ -74,6 +77,7 @@ class CostValidator(ValidationRule):
                 if not field:
                     continue
                 field_type = get_named_type(field.type)
+
                 try:
                     field_args: dict[str, Any] = get_argument_values(
                         field.args,
@@ -97,7 +101,6 @@ class CostValidator(ValidationRule):
                         node_cost = self.compute_cost(**cost_map_args)
                     except (TypeError, ValueError) as e:
                         report_error(self.context, e)
-
                 child_cost = self.compute_node_cost(
                     child_node, field_type, self.operation_multipliers
                 )
@@ -108,19 +111,48 @@ class CostValidator(ValidationRule):
                     fragment_type = self.context.get_schema().get_type(
                         fragment.type_condition.name.value
                     )
-                    node_cost = self.compute_node_cost(
+                    if not fragment_type:
+                        continue
+
+                    fragment_map_cost[fragment_type.name] += self.compute_node_cost(
                         fragment, fragment_type, self.operation_multipliers
                     )
+                    if (
+                        isinstance(fragment_type, GraphQLObjectType)
+                        and fragment_type.interfaces
+                    ):
+                        fragment_name_to_interface_names[fragment_type.name].update(
+                            interface.name for interface in fragment_type.interfaces
+                        )
+
             if isinstance(child_node, InlineFragment):
                 inline_fragment_type = type_def
                 if child_node.type_condition and child_node.type_condition.name:
                     inline_fragment_type = self.context.get_schema().get_type(
                         child_node.type_condition.name.value
                     )
-                node_cost = self.compute_node_cost(
+                if not inline_fragment_type:
+                    continue
+
+                fragment_map_cost[inline_fragment_type.name] += self.compute_node_cost(
                     child_node, inline_fragment_type, self.operation_multipliers
                 )
+                if (
+                    isinstance(inline_fragment_type, GraphQLObjectType)
+                    and inline_fragment_type.interfaces
+                ):
+                    fragment_name_to_interface_names[inline_fragment_type.name].update(
+                        interface.name for interface in inline_fragment_type.interfaces
+                    )
+
             total += node_cost
+        if fragment_map_cost:
+            for fragment_name, interfaces in fragment_name_to_interface_names.items():
+                interfaces_cost = sum(
+                    [fragment_map_cost.get(interface, 0) for interface in interfaces], 0
+                )
+                fragment_map_cost[fragment_name] += interfaces_cost
+            total += max(fragment_map_cost.values(), default=0)
         return total
 
     def enter_operation_definition(self, node, key, parent, path, ancestors):  # pylint: disable=unused-argument
@@ -232,7 +264,9 @@ def validate_cost_map(cost_map: dict[str, dict[str, Any]], schema: GraphQLSchema
                 f"a type {type_name} that is not defined by the schema."
             )
 
-        if not isinstance(type_map[type_name], GraphQLObjectType):
+        if not isinstance(
+            type_map[type_name], GraphQLObjectType | GraphQLInterfaceType
+        ):
             raise GraphQLError(
                 "The query cost could not be calculated because cost map specifies "
                 f"a type {type_name} that is defined by the schema, but is not an "
