@@ -806,7 +806,8 @@ def test_get_attribute_reference_product_types_limit_exceeded(
 
     query = QUERY_ATTRIBUTE_REFERENCE_TYPES
     attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
-    variables = {"id": attribute_id, "limit": 101}
+    limit = 0
+    variables = {"id": attribute_id, "limit": limit}
 
     # when
     content = get_graphql_content_from_response(
@@ -816,7 +817,7 @@ def test_get_attribute_reference_product_types_limit_exceeded(
     # then
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == (
-        "The limit for attribute values cannot be greater than 100."
+        f"`limit` must be greater than 1. Provided value is {limit}."
     )
 
 
@@ -850,7 +851,7 @@ def test_get_attribute_reference_page_types_with_limit(
     assert len(reference_types) == limit
 
 
-def test_get_attribute_reference_page_types_limit_exceeded(
+def test_get_attribute_reference_page_types_invalid_limit(
     staff_api_client,
     product_type_page_reference_attribute,
     page_type_list,
@@ -864,7 +865,8 @@ def test_get_attribute_reference_page_types_limit_exceeded(
 
     query = QUERY_ATTRIBUTE_REFERENCE_TYPES
     attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
-    variables = {"id": attribute_id, "limit": 101}
+    limit = 0
+    variables = {"id": attribute_id, "limit": limit}
 
     # when
     content = get_graphql_content_from_response(
@@ -874,7 +876,7 @@ def test_get_attribute_reference_page_types_limit_exceeded(
     # then
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == (
-        "The limit for attribute values cannot be greater than 100."
+        f"`limit` must be greater than 1. Provided value is {limit}."
     )
 
 
