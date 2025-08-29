@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - ci/**
+      - build/arm64-non-native
 
 jobs:
   publish:
