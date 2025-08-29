@@ -2,8 +2,6 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import TypeVar
 
-from django.conf import settings
-from graphql import GraphQLError
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
@@ -12,7 +10,9 @@ from ...core.telemetry import saleor_attributes, tracer
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
+from .const import DEFAULT_NESTED_LIST_LIMIT
 from .context import get_database_connection_name
+from .validators import validate_limit_input_value
 
 K = TypeVar("K")
 R = TypeVar("R")
@@ -81,26 +81,19 @@ class DataLoader[K, R](BaseLoader):
 class DataLoaderWithLimit(DataLoader[K, R]):
     """Data loader base class that support a limit on the number of items returned."""
 
-    def __new__(cls, context: SaleorContext, limit: int = settings.NESTED_QUERY_LIMIT):
+    def __new__(cls, context: SaleorContext, limit: int = DEFAULT_NESTED_LIST_LIMIT):
         loader = super().__new__(cls, context)
-        cls.limit_validation(limit)
+        validate_limit_input_value(limit)
         loader.limit = limit
         return loader
 
     def __init__(
-        self, context: SaleorContext, limit: int = settings.NESTED_QUERY_LIMIT
+        self, context: SaleorContext, limit: int = DEFAULT_NESTED_LIST_LIMIT
     ) -> None:
         if getattr(self, "limit", None) != limit:
-            self.limit_validation(limit)
+            validate_limit_input_value(limit)
             self.limit = limit
         super().__init__(context=context)
-
-    @staticmethod
-    def limit_validation(limit: int) -> None:
-        if limit > settings.NESTED_QUERY_LIMIT:
-            raise GraphQLError(
-                f"The limit for attribute values cannot be greater than {settings.NESTED_QUERY_LIMIT}."
-            )
 
 
 class BaseThumbnailBySizeAndFormatLoader(
