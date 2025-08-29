@@ -27,7 +27,7 @@ mutation createVariant($input: ProductVariantCreateInput!) {
       id
       name
       sku
-      assignedAttributes {
+      assignedAttributes(limit:10) {
         attribute {
           slug
         }

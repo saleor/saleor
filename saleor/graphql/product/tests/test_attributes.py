@@ -38,7 +38,7 @@ query ($channel: String) {
             slug
           }
         }
-        assignedAttributes {
+        assignedAttributes(limit:10) {
           attr: attribute {
               slug
               type
@@ -174,7 +174,7 @@ query ($channel: String) {
               slug
             }
           }
-          assignedAttributes {
+          assignedAttributes(limit:10) {
             ... on AssignedNumericAttribute {
               attribute {
                 id

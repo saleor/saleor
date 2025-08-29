@@ -180,7 +180,7 @@ query (
           id
           name
           channel
-          assignedAttributes {
+          assignedAttributes(limit:10) {
             attribute {
               choices(first: 10) {
                 edges {

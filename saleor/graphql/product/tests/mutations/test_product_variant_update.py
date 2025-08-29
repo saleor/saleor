@@ -42,7 +42,7 @@ def test_product_variant_update_with_new_attributes(
             }
             productVariant {
               id
-              assignedAttributes {
+              assignedAttributes(limit:10) {
                   ... on AssignedSingleChoiceAttribute {
                         attribute {
                             slug
@@ -665,7 +665,7 @@ mutation updateVariant($id: ID!, $sku: String, $attributes: [AttributeValueInput
   productVariantUpdate(id: $id, input: {sku: $sku, attributes: $attributes}) {
     productVariant {
       sku
-      assignedAttributes {
+      assignedAttributes(limit:10) {
         attribute {
           slug
         }

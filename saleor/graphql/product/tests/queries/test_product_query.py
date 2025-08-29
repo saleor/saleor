@@ -1745,7 +1745,7 @@ def test_get_product_with_sorted_attribute_values_for_assigned_attributes_field(
     query = """
     query getProduct($productID: ID!) {
       product(id: $productID) {
-        assignedAttributes {
+        assignedAttributes(limit:10) {
           ... on AssignedMultiPageReferenceAttribute {
             value {
               id
@@ -2728,7 +2728,7 @@ query Product($id: ID!, $channel: String, $slug: String!) {
                 slug
             }
         }
-        assignedAttributes {
+        assignedAttributes(limit:10) {
             attribute {
                 id
                 slug
@@ -3116,3 +3116,49 @@ def test_query_product_variants_with_where(
 
     assert len(variants) == 1
     assert variants[0]["node"]["sku"] == sku_value
+
+
+def test_applies_limit_on_product_assigned_attributes(
+    product, channel_USD, user_api_client, size_attribute
+):
+    # given
+    query = """
+    query Product($id: ID!, $channel: String) {
+        product(id: $id, channel: $channel) {
+            assignedAttributes(limit:1) {
+                attribute {
+                    slug
+                }
+            }
+        }
+    }
+    """
+
+    associate_attribute_values_to_instance(
+        product,
+        {
+            size_attribute.pk: [size_attribute.values.first()],
+        },
+    )
+
+    assert product.attributevalues.count() == 2
+    first_attribute = product.attributevalues.first().value.attribute
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    expected_limit = 1
+    assert len(content["data"]["product"]["assignedAttributes"]) == expected_limit
+    assert (
+        content["data"]["product"]["assignedAttributes"][0]["attribute"]["slug"]
+        == first_attribute.slug
+    )

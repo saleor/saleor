@@ -24,7 +24,7 @@ PAGE_QUERY = """
             }
             content
             contentJson
-            assignedAttributes {
+            assignedAttributes(limit:10) {
                 attribute {
                     slug
                 }
@@ -496,7 +496,7 @@ def test_page_query_by_translated_slug(user_api_client, page, page_translation_f
 QUERY_PAGE_WITH_ATTRIBUTE = """
 query Page($id: ID!, $slug: String!) {
     page(id: $id) {
-        assignedAttributes {
+        assignedAttributes(limit:10) {
             attribute {
                 slug
             }
@@ -710,3 +710,50 @@ def test_page_channel_not_found(staff_api_client, page, permission_manage_pages)
     # then
     content = get_graphql_content(response)
     assert content["data"]["page"] is None
+
+
+def test_applies_limit_on_page_assigned_attributes(
+    page, channel_USD, user_api_client, size_page_attribute, tag_page_attribute
+):
+    # given
+    query = """
+    query Page($id: ID!, $channel: String) {
+        page(id: $id, channel: $channel) {
+            assignedAttributes(limit:1) {
+                attribute {
+                    slug
+                }
+            }
+        }
+    }
+    """
+
+    associate_attribute_values_to_instance(
+        page,
+        {
+            size_page_attribute.pk: [size_page_attribute.values.first()],
+            tag_page_attribute.pk: [tag_page_attribute.values.first()],
+        },
+    )
+
+    assert page.attributevalues.count() == 2
+    first_attribute = page.attributevalues.first().value.attribute
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+    variables = {
+        "id": page_id,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    expected_limit = 1
+    assert len(content["data"]["page"]["assignedAttributes"]) == expected_limit
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["attribute"]["slug"]
+        == first_attribute.slug
+    )

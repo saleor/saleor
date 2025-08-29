@@ -180,7 +180,7 @@ query CollectionProducts(
       edges {
         node {
           id
-          assignedAttributes {
+          assignedAttributes(limit:10) {
             attribute {
               choices(first: 10) {
                 edges {

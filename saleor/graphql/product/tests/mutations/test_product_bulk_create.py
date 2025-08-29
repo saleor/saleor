@@ -57,7 +57,7 @@ mutation ProductBulkCreate($products: [ProductBulkCreateInput!]!, $errorPolicy: 
             value
           }
         }
-        assignedAttributes {
+        assignedAttributes(limit:10) {
           attribute {
             slug
           }

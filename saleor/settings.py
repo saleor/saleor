@@ -926,8 +926,6 @@ TRANSACTION_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
     "TRANSACTION_BATCH_FOR_RELEASING_FUNDS", 60
 )
 
-NESTED_QUERY_LIMIT = int(os.environ.get("NESTED_QUERY_LIMIT", 100))
-
 
 # The maximum SearchVector expression count allowed per index SQL statement
 # If the count is exceeded, the expression list will be truncated

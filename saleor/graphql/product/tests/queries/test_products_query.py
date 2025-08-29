@@ -1181,7 +1181,7 @@ def test_products_with_variants_query_as_app(
               node{
                 id
                 name
-                assignedAttributes {
+                assignedAttributes(limit:10) {
                     attribute {
                         slug
                     }
