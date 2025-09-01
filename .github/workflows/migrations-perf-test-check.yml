@@ -18,7 +18,7 @@ jobs:
   check-migrations-perf-test-decision:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check if the decision about migrations perf test was made
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip migrations perf test') && !contains(github.event.pull_request.labels.*.name, 'migrations perf test') }}
         run: exit 1
