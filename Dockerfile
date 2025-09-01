@@ -10,7 +10,7 @@ RUN apt-get -y update \
 # Install Python dependencies
 WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /uvx /bin/
-ENV UV_SYSTEM_PYTHON=1 UV_PROJECT_ENVIRONMENT=/usr/local
+ENV UV_COMPILE_BYTECODE=1 UV_SYSTEM_PYTHON=1 UV_PROJECT_ENVIRONMENT=/usr/local
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
