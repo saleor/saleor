@@ -378,7 +378,7 @@ def _fetch_checkout_prices_if_expired(
     checkout = checkout_info.checkout
 
     if not force_update and checkout.price_expiration > timezone.now():
-        return checkout_info, lines, True
+        return checkout_info, lines, False
 
     tax_configuration = checkout_info.tax_configuration
     tax_calculation_strategy = get_tax_calculation_strategy_for_checkout(
@@ -389,7 +389,7 @@ def _fetch_checkout_prices_if_expired(
         tax_calculation_strategy == TaxCalculationStrategy.TAX_APP
         and not allow_sync_webhooks
     ):
-        return checkout_info, lines, False
+        return checkout_info, lines, True
 
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_checkout(
@@ -481,7 +481,7 @@ def _fetch_checkout_prices_if_expired(
                     "prior_unit_price_amount",
                 ],
             )
-    return checkout_info, lines, False
+    return checkout_info, lines, True
 
 
 def _calculate_and_add_tax(
