@@ -212,9 +212,9 @@ class Day(graphene.Int):
 
 
 class PositiveInt(graphene.Int):
-    """Nonnegative Integer scalar implementation.
+    """Positive Integer scalar implementation.
 
-    Should be used in places where value must be nonnegative (0 or greater).
+    Should be used in places where value must be positive (greater than 0).
     """
 
     @staticmethod
