@@ -8,6 +8,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - The following changes were implemented to orders with a zero total amount:
   - No manual charge (`Transaction` or `Payment`) object will be created.
   - The `OrderEvents.ORDER_MARKED_AS_PAID` event will no longer be emitted.
+- Logic associated with `WebhookEventAsyncType.CHECKOUT_FULLY_PAID` event will no longer be triggered when creating a transaction event from webhook response for checkouts with having total gross being 0. At the point of creating the transaction event checkout is already considered fully paid.
+- Creating a Payment (old API) for a Checkout object with an existing Transaction (new API) is no longer permitted as it leads to inconsistent behavior.
 
 ### GraphQL API
 - You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
@@ -133,6 +135,10 @@ Like `reference`, the `single-reference` type can target entities defined in the
 - Fixed bug when not-authenticated staff user couldn't fetch `appExtension.app` without `MANAGE_APPS`. Now apps access is available by staff users and the app itself (for app and extension it owns)
 
 - Fixed bug in user email filtering to make it case-insensitive.
+
+- Checkouts having total gross amount equal to 0 will get their authorization statuses updated to `CheckoutAuthorizeStatus.FULL` upon fetching checkout data.
+
+- Fixed a bug that could prevent rich text attributes written in scripts using combining diacritical marks (for example, Arabic) from being saved properly.
 
 ### Deprecations
 

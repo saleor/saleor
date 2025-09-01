@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.template.defaultfilters import truncatechars
 from django.utils.text import slugify
 from graphql.error import GraphQLError
 from text_unidecode import unidecode
@@ -20,6 +19,7 @@ from ....core.utils import (
     prepare_unique_slug,
 )
 from ....core.utils.editorjs import clean_editor_js
+from ....core.utils.text import safe_truncate
 from ....core.utils.url import get_default_storage_root_url
 from ...core.utils import from_global_id_or_error, get_duplicated_values
 from ...utils import get_nodes
@@ -505,7 +505,7 @@ class PlainTextAttributeHandler(AttributeTypeHandler):
 
         defaults = {
             "plain_text": plain_text,
-            "name": truncatechars(plain_text, 200),
+            "name": safe_truncate(plain_text, 200),
         }
         return self._update_or_create_value(instance, defaults)
 
@@ -528,7 +528,7 @@ class RichTextAttributeHandler(AttributeTypeHandler):
 
         defaults = {
             "rich_text": rich_text,
-            "name": truncatechars(clean_editor_js(rich_text, to_string=True), 200),
+            "name": safe_truncate(clean_editor_js(rich_text, to_string=True), 200),
         }
         return self._update_or_create_value(instance, defaults)
 

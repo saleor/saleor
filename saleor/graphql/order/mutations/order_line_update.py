@@ -71,7 +71,7 @@ class OrderLineUpdate(
         return cleaned_input
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         manager = get_plugin_manager_promise(info.context).get()
 
         order_is_unconfirmed = instance.order.is_unconfirmed()

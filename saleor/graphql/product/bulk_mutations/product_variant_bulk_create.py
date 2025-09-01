@@ -151,7 +151,7 @@ class BulkAttributeValueInput(BaseInputObjectType):
     )
     file = graphene.String(
         required=False,
-        description=("URL of the file attribute. Every time, a new value is created."),
+        description="URL of the file attribute. Every time, a new value is created.",
     )
     content_type = graphene.String(
         required=False,
@@ -165,7 +165,7 @@ class BulkAttributeValueInput(BaseInputObjectType):
     )
     references = NonNullList(
         graphene.ID,
-        description=("List of entity IDs that will be used as references."),
+        description="List of entity IDs that will be used as references.",
         required=False,
     )
     rich_text = JSONString(

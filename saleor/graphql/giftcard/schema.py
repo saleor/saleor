@@ -47,7 +47,7 @@ class GiftCardQueries(graphene.ObjectType):
     gift_cards = FilterConnectionField(
         GiftCardCountableConnection,
         sort_by=GiftCardSortingInput(description="Sort gift cards."),
-        filter=GiftCardFilterInput(description=("Filtering options for gift cards.")),
+        filter=GiftCardFilterInput(description="Filtering options for gift cards."),
         search=graphene.String(
             description="Search gift cards by email and name of user, "
             "who created or used the gift card, and by code."

@@ -21,10 +21,87 @@ on:
     outputs:
       version:
         description: Docker image version
-        value: ${{ jobs.docker.outputs.version }}
+        value: ${{ jobs.merge-digests.outputs.version }}
 
 jobs:
-  docker:
+  build-and-push:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - ubuntu-24.04 # AMD64
+          - ubuntu-24.04-arm # ARM64
+
+    runs-on: ${{ matrix.platform }}
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Build Image Name
+        id: image
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # The name of the owner and of the repository: owner/repository
+          IMAGE_NAME=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
+          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ steps.image.outputs.image_name }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          context: .
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true,oci-mediatypes=true
+          # We set `push-by-digest=true` thus we cannot put any tag and thus we use
+          # the container repository name instead (ghcr.io/saleor/saleor)
+          # (we cannot push both by tags and by digest, only one or the other)
+          tags: ghcr.io/${{ steps.image.outputs.image_name }}
+          push: true
+
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.platform }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge-digests:
+    needs: build-and-push
+
     runs-on: ubuntu-24.04
 
     permissions:
@@ -35,18 +112,27 @@ jobs:
       version: ${{ steps.meta.outputs.version }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref }}
-
-      # Outputs the name of the repository (owner/repo)
       - name: Build Image Name
         id: image
+        env:
+          GH_REPO: ${{ github.repository }}
         run: |
           # The name of the owner and of the repository: owner/repository
-          IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      # Needed by `docker/metadata-action` (to fetch tags and other git information)
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Docker meta
         id: meta
@@ -61,15 +147,6 @@ jobs:
             type=raw,value=${{ inputs.version }},enable=${{ inputs.version != null }}
           context: git
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -77,27 +154,41 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push
-        id: docker_build
-        uses: docker/build-push-action@v5
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          context: .
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-
-      - name: Image digest
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        env:
+          DOCKER_META_JSON: ${{ steps.meta.outputs.json }}
+          IMAGE_NAME: ${{ steps.image.outputs.image_name }}
         run: |
-          echo $"\
-            Digest: ${{ steps.docker_build.outputs.digest }}
-            Tags: ${{ steps.meta.outputs.tags }}"
+          set -x
+          tag_list=$(echo "$DOCKER_META_JSON" | jq -cr '.tags | map("-t " + .) | join(" ")')
+          image_digest_list=$(printf "ghcr.io/$IMAGE_NAME@sha256:%s " *)
+          docker buildx imagetools create $tag_list $image_digest_list
+
+      - name: Inspect image
+        env:
+          IMAGE_VERSION: ${{ steps.meta.outputs.version }}
+          IMAGE_NAME: ${{ steps.image.outputs.image_name }}
+        run: |
+          docker buildx imagetools inspect ghcr.io/"$IMAGE_NAME":"$IMAGE_VERSION"
+
+  notify:
+    if: ${{ failure() }}
+    needs: build-and-push
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+          sparse-checkout: |
+            ./.github/workflows/notify
 
       - name: Notify Slack
-        if: ${{ failure() }}
         env:
           JOB_STATUS: ${{ job.status }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

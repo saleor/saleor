@@ -670,7 +670,7 @@ class SelectedAttribute(ChannelContextTypeForObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = "Represents a custom attribute."
+        description = "Represents an assigned attribute to an object."
 
 
 class AssignedAttribute(graphene.Interface):

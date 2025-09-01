@@ -174,43 +174,6 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
-def test_transaction_amounts_for_checkout_updated_0_checkout_automatic_complete(
-    mocked_fully_paid,
-    mocked_automatic_checkout_completion_task,
-    checkout_with_item_total_0,
-    transaction_item_generator,
-    plugins_manager,
-    app,
-    django_capture_on_commit_callbacks,
-):
-    # given
-    checkout = checkout_with_item_total_0
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
-    transaction = transaction_item_generator(checkout_id=checkout.pk, charged_value=0)
-    channel = checkout_info.channel
-    channel.automatically_complete_fully_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
-
-    # when
-    with django_capture_on_commit_callbacks(execute=True):
-        transaction_amounts_for_checkout_updated(
-            transaction, manager=plugins_manager, user=None, app=app
-        )
-
-    # then
-    checkout.refresh_from_db()
-    assert checkout.charge_status == CheckoutChargeStatus.FULL
-    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
-    mocked_fully_paid.assert_called_with(checkout, webhooks=set())
-    mocked_automatic_checkout_completion_task.assert_called_once_with(
-        checkout.pk, None, app.id
-    )
-
-
-@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
-@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_amounts_for_checkout_updated_fully_authorized(
     mocked_fully_paid,
     mocked_automatic_checkout_completion_task,
@@ -336,10 +299,8 @@ def test_transaction_amounts_automatic_checkout_complete_called_once(
     "previous_modified_at",
     [None, datetime.datetime(2018, 5, 31, 12, 0, 0, tzinfo=datetime.UTC)],
 )
-@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @freeze_time("2023-05-31 12:00:01")
 def test_transaction_amounts_for_checkout_updated_updates_last_transaction_modified_at(
-    mocked_fully_paid,
     previous_modified_at,
     checkout_with_items,
     transaction_item_generator,
@@ -371,7 +332,6 @@ def test_transaction_amounts_for_checkout_updated_updates_last_transaction_modif
     # then
     checkout.refresh_from_db()
     assert checkout.last_transaction_modified_at == transaction.modified_at
-    mocked_fully_paid.assert_called_with(checkout, webhooks=set())
 
 
 def test_get_checkout_refundable_with_transaction_and_last_refund_success(

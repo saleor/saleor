@@ -566,7 +566,7 @@ def test_checkout_complete_with_price_override_and_order_promotion(
         assert order_discount.amount_value == discount_amount
 
 
-@pytest.mark.parametrize(("price_override"), [30, 5])
+@pytest.mark.parametrize("price_override", [30, 5])
 def test_checkout_complete_with_price_override_and_gift_promotion(
     price_override,
     user_api_client,
