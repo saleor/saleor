@@ -5,6 +5,7 @@ from unittest import mock
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.db.models import F
 from django.test import override_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -1848,6 +1849,7 @@ query getCheckout($id: ID) {
     lines {
       id
       isGift
+      quantity
       variant {
         id
         pricing {
@@ -2881,11 +2883,14 @@ def test_checkout_prices_with_checkout_updated_during_price_recalculation(
     variables = {
         "id": to_global_id_or_none(checkout),
     }
+    total_before_recalculation = checkout.total
+    lines_before_recalculation = list(checkout.lines.all())
 
     # when
     def modify_checkout(*args, **kwargs):
         with allow_writer():
             checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
+            checkout_to_modify.lines.update(quantity=F("quantity") + 1)
             checkout_to_modify.email = expected_email
             checkout_to_modify.save(update_fields=["email", "last_change"])
 
@@ -2899,7 +2904,7 @@ def test_checkout_prices_with_checkout_updated_during_price_recalculation(
     # then
     assert data["token"] == str(checkout.token)
 
-    # Ensure that the checkout prices recalculation was triggered more than one time.
+    # Ensure that the checkout prices recalculation was triggered more than one time
     assert mock_fetch_checkout_data.call_count > 1
 
     # Ensure that the checkout price are recalculated only one time
@@ -2907,6 +2912,21 @@ def test_checkout_prices_with_checkout_updated_during_price_recalculation(
 
     checkout.refresh_from_db()
     assert checkout.email == expected_email
+
+    # Confirm that total price hasn't changed in database due to recalculation
+    assert checkout.total == total_before_recalculation
+    # Confirm that total price has changed in query response due to recalculation
+    assert (
+        data["totalPrice"]["gross"]["amount"] != total_before_recalculation.gross.amount
+    )
+
+    for line_before_recalculation, result_line, line in zip(
+        lines_before_recalculation, data["lines"], checkout.lines.all(), strict=True
+    ):
+        # Confirm that returned line quantities are same as before simulated update was applied to the database
+        assert line_before_recalculation.quantity == result_line["quantity"]
+        # Confirm that line quantities have been updated in database
+        assert line_before_recalculation.quantity + 1 == line.quantity
 
 
 def test_checkout_display_gross_prices_use_country_exception(
