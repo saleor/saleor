@@ -2895,7 +2895,7 @@ def test_checkout_prices_with_checkout_updated_during_price_recalculation(
             checkout_to_modify.save(update_fields=["email", "last_change"])
 
     with race_condition.RunBefore(
-        "saleor.checkout.calculations._is_checkout_modified", modify_checkout
+        "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
     ):
         response = user_api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
     content = get_graphql_content(response)

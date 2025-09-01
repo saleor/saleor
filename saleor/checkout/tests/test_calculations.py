@@ -1296,8 +1296,8 @@ def test_fetch_checkout_data_checkout_removed_before_save(
         # it's would pass `checkout` without `pk` to `checkout_info`.
         Checkout.objects.filter(pk=checkout.pk).delete()
 
-    with race_condition.RunBefore(
-        "saleor.checkout.calculations._is_checkout_modified", delete_checkout
+    with race_condition.RunAfter(
+        "saleor.checkout.calculations._calculate_and_add_tax", delete_checkout
     ):
         result_checkout_info, result_lines_info = fetch_checkout_data(**fetch_kwargs)
 
@@ -1347,8 +1347,8 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
         checkout_to_modify.email = expected_email
         checkout_to_modify.save(update_fields=["email", "last_change"])
 
-    with race_condition.RunBefore(
-        "saleor.checkout.calculations._is_checkout_modified", modify_checkout
+    with race_condition.RunAfter(
+        "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
     ):
         result_checkout_info, result_lines_info = fetch_checkout_data(**fetch_kwargs)
 

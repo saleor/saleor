@@ -1953,8 +1953,8 @@ def test_checkout_lines_update_checkout_updated_during_price_recalculation(
         checkout_to_modify.email = expected_email
         checkout_to_modify.save(update_fields=["email", "last_change"])
 
-    with race_condition.RunBefore(
-        "saleor.checkout.calculations._is_checkout_modified", modify_checkout
+    with race_condition.RunAfter(
+        "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
     ):
         response = user_api_client.post_graphql(
             MUTATION_CHECKOUT_LINES_UPDATE, variables
