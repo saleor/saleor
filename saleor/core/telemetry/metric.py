@@ -29,6 +29,7 @@ class MetricType(Enum):
     COUNTER = "counter"
     UP_DOWN_COUNTER = "up_down_counter"
     HISTOGRAM = "histogram"
+    GAUGE = "gauge"
 
 
 DEFAULT_DURATION_BUCKETS = [
@@ -102,6 +103,8 @@ class Meter:
             return otel_meter.create_counter(name, unit.value, description)
         if type == MetricType.UP_DOWN_COUNTER:
             return otel_meter.create_up_down_counter(name, unit.value, description)
+        if type == MetricType.GAUGE:
+            return otel_meter.create_gauge(name, unit.value, description)
         if type == MetricType.HISTOGRAM:
             return otel_meter.create_histogram(
                 name,
