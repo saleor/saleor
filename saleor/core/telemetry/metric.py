@@ -57,6 +57,8 @@ def get_instrument_method(
 ) -> Callable[[Amount, Attributes], None]:
     if hasattr(instrument, "record"):
         return instrument.record
+    if hasattr(instrument, "set"):
+        return instrument.set
     return getattr(instrument, "add")
 
 
