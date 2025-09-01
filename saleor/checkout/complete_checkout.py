@@ -94,7 +94,6 @@ from .utils import (
     get_checkout_metadata,
     get_or_create_checkout_metadata,
     get_voucher_for_checkout_info,
-    is_fully_paid_with_transactions,
     log_unknown_discount_reason,
 )
 
@@ -954,7 +953,6 @@ def _prepare_checkout_with_transactions(
     clean_billing_address(checkout_info, CheckoutErrorCode)
     if (
         checkout_info.checkout.authorize_status != CheckoutAuthorizeStatus.FULL
-        and not is_fully_paid_with_transactions(manager, checkout_info, lines)
         and not checkout_info.channel.allow_unpaid_orders
     ):
         raise ValidationError(

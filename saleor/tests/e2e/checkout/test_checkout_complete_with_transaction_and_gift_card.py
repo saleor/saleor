@@ -1,6 +1,7 @@
 import pytest
 
 from ..gift_cards.utils import create_gift_card
+from ..orders.utils import order_query
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils import prepare_shop
 from ..transactions.utils import create_transaction
@@ -361,5 +362,9 @@ def test_checkout_complete_with_only_gift_card(
         e2e_not_logged_api_client,
         checkout_id,
     )
-    assert order_data["status"] == "UNFULFILLED"
+    assert order_data["status"] == "UNCONFIRMED"
     assert order_data["total"]["gross"]["amount"] == 0
+
+    # Step 5 - Check order status
+    order_data = order_query(e2e_app_api_client, order_data["id"])
+    assert order_data["status"] == "UNFULFILLED"

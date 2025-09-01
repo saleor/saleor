@@ -361,7 +361,7 @@ def _fetch_checkout_prices_if_expired(
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
-) -> tuple["CheckoutInfo", list["CheckoutLineInfo"]]:
+) -> tuple["CheckoutInfo", list["CheckoutLineInfo"], bool]:
     """Fetch checkout prices with taxes.
 
     First calculate and apply all checkout prices with taxes separately,
@@ -378,7 +378,7 @@ def _fetch_checkout_prices_if_expired(
     checkout = checkout_info.checkout
 
     if not force_update and checkout.price_expiration > timezone.now():
-        return checkout_info, lines
+        return checkout_info, lines, True
 
     tax_configuration = checkout_info.tax_configuration
     tax_calculation_strategy = get_tax_calculation_strategy_for_checkout(
@@ -389,7 +389,7 @@ def _fetch_checkout_prices_if_expired(
         tax_calculation_strategy == TaxCalculationStrategy.TAX_APP
         and not allow_sync_webhooks
     ):
-        return checkout_info, lines
+        return checkout_info, lines, False
 
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_checkout(
@@ -481,7 +481,7 @@ def _fetch_checkout_prices_if_expired(
                     "prior_unit_price_amount",
                 ],
             )
-    return checkout_info, lines
+    return checkout_info, lines, False
 
 
 def _calculate_and_add_tax(
@@ -787,7 +787,7 @@ def fetch_checkout_data(
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
     previous_total_gross = checkout_info.checkout.total.gross
-    checkout_info, lines = _fetch_checkout_prices_if_expired(
+    checkout_info, lines, did_refetch = _fetch_checkout_prices_if_expired(
         checkout_info=checkout_info,
         manager=manager,
         lines=lines,
@@ -800,15 +800,26 @@ def fetch_checkout_data(
     current_total_gross = checkout_info.checkout.total.gross
     if (
         current_total_gross != previous_total_gross
+        or did_refetch
         or force_status_update
         or (
             # Checkout with total being zero is fully authorized therefore
             # if authorized status was not yet updated, do it now.
-            current_total_gross == zero_money(current_total_gross.currency)
+            checkout_info.checkout.total.gross
+            == zero_money(checkout_info.checkout.total.currency)
             and checkout_info.checkout.authorize_status != CheckoutAuthorizeStatus.FULL
             and bool(lines)
         )
     ):
+        current_total_gross = (
+            checkout_info.checkout.total.gross
+            - checkout_info.checkout.get_total_gift_cards_balance(
+                database_connection_name
+            )
+        )
+        current_total_gross = max(
+            current_total_gross, zero_money(current_total_gross.currency)
+        )
         update_checkout_payment_statuses(
             checkout=checkout_info.checkout,
             checkout_total_gross=current_total_gross,
