@@ -124,6 +124,7 @@ GraphQLDocDirective = graphql.GraphQLDirective(
         graphql.DirectiveLocation.FIELD_DEFINITION,
         graphql.DirectiveLocation.INPUT_OBJECT,
         graphql.DirectiveLocation.OBJECT,
+        graphql.DirectiveLocation.INTERFACE,
     ],
 )
 

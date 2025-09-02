@@ -36,6 +36,7 @@ from ..core.fields import ConnectionField, FilterConnectionField, JSONString
 from ..core.scalars import JSON, Date, DateTime
 from ..core.types import (
     BaseInputObjectType,
+    BaseInterface,
     BaseObjectType,
     DateRangeInput,
     DateTimeRangeInput,
@@ -673,7 +674,7 @@ class SelectedAttribute(ChannelContextTypeForObjectType):
         description = "Represents an assigned attribute to an object."
 
 
-class AssignedAttribute(graphene.Interface):
+class AssignedAttribute(BaseInterface):
     attribute = graphene.Field(
         Attribute,
         default_value=None,
@@ -706,6 +707,7 @@ class AssignedNumericAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents a numeric value of an attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> float | None:
@@ -736,6 +738,7 @@ class AssignedTextAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents text attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> JSON | None:
@@ -784,6 +787,7 @@ class AssignedPlainTextAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents plain text attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> str | None:
@@ -819,6 +823,7 @@ class AssignedFileAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents file attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> File | None:
@@ -838,6 +843,7 @@ class AssignedSinglePageReferenceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents single page reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -866,6 +872,7 @@ class AssignedSingleProductReferenceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents single product reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -898,6 +905,7 @@ class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
         description = (
             "Represents single product variant reference attribute." + ADDED_IN_322
         )
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -930,6 +938,7 @@ class AssignedSingleCategoryReferenceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents single category reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -951,6 +960,7 @@ class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents single collection reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -990,6 +1000,7 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents multi page reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -1039,6 +1050,7 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents multi product reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -1091,6 +1103,7 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
         description = (
             "Represents multi product variant reference attribute." + ADDED_IN_322
         )
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -1141,6 +1154,7 @@ class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents multi category reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -1176,6 +1190,7 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents multi collection reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -1224,6 +1239,7 @@ class AssignedChoiceAttributeValue(BaseObjectType):
         description = (
             "Represents a single choice value of the attribute." + ADDED_IN_322
         )
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_translation(
@@ -1246,6 +1262,7 @@ class AssignedSingleChoiceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents a single choice attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     def resolve_value(
         root: AssignedAttributeData, info: ResolveInfo
@@ -1273,6 +1290,7 @@ class AssignedMultiChoiceAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents a multi choice attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -1316,6 +1334,10 @@ class AssignedSwatchAttributeValue(BaseObjectType):
             return None
         return File(url=root.file_url, content_type=root.content_type)
 
+    class Meta:
+        description = "Represents a single swatch value." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
 
 class AssignedSwatchAttribute(BaseObjectType):
     value = graphene.Field(
@@ -1327,6 +1349,7 @@ class AssignedSwatchAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents a swatch attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
@@ -1347,6 +1370,7 @@ class AssignedBooleanAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents a boolean attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> bool | None:
@@ -1366,6 +1390,7 @@ class AssignedDateAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents a date attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> date | None:
@@ -1385,6 +1410,7 @@ class AssignedDateTimeAttribute(BaseObjectType):
     class Meta:
         interfaces = [AssignedAttribute]
         description = "Represents a date time attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @staticmethod
     def resolve_value(
