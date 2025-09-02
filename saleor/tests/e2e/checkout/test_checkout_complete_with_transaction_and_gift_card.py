@@ -256,6 +256,7 @@ def test_checkout_complete_with_gift_card_and_transaction(
     assert order_data["total"]["gross"]["amount"] == 0
 
 
+@pytest.mark.e2e
 def test_checkout_complete_with_only_gift_card(
     e2e_app_api_client,
     e2e_not_logged_api_client,

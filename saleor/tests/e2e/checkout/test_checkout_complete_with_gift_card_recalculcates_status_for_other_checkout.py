@@ -14,6 +14,7 @@ from .utils import (
 )
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize(
     "query_second_checkout_status_before_checkout_complete",
     [

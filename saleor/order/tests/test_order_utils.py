@@ -1,10 +1,13 @@
+import datetime
 from decimal import Decimal
 
 import graphene
 import pytest
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...checkout.models import Checkout
 from ...discount import DiscountType, DiscountValueType
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
@@ -452,6 +455,38 @@ def test_add_gift_cards_to_order_no_checkout_user(
             "old_current_balance": "20.000",
         },
     }
+
+
+def test_add_gift_cards_to_order_invalidates_prices_for_other_checkout_attached_to_the_same_gift_card(
+    checkout_with_gift_card,
+    gift_card,
+    order,
+    staff_user,
+    channel_USD,
+):
+    # given
+    checkout = checkout_with_gift_card
+    assert gift_card in checkout.gift_cards.all()
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    other_checkout = Checkout.objects.create(
+        currency=channel_USD.currency_code, channel=channel_USD
+    )
+    other_checkout.gift_cards.add(gift_card)
+    initial_price_expiration = timezone.now() + datetime.timedelta(minutes=30)
+    other_checkout.price_expiration = initial_price_expiration
+    other_checkout.save(update_fields=["price_expiration"])
+
+    # when
+    add_gift_cards_to_order(
+        checkout_info, order, Money(30, gift_card.currency), staff_user, None
+    )
+
+    # then
+    other_checkout.refresh_from_db()
+    assert other_checkout.price_expiration != initial_price_expiration
 
 
 def test_get_total_order_discount_excluding_shipping(order, voucher_shipping_type):
