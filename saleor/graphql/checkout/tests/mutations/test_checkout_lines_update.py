@@ -3,12 +3,17 @@ from decimal import Decimal
 from unittest import mock
 from unittest.mock import patch
 
+import before_after
 import graphene
 import pytest
 from django.test import override_settings
 from django.utils import timezone
 
 from .....checkout.actions import call_checkout_info_event
+from .....checkout.calculations import (
+    _calculate_and_add_tax,
+    fetch_checkout_data,
+)
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
@@ -1615,3 +1620,57 @@ def test_checkout_lines_update_when_line_deleted(user_api_client, checkout_with_
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "lineId"
     assert data["errors"][0]["code"] == CheckoutErrorCode.GRAPHQL_ERROR.name
+
+
+@mock.patch(
+    "saleor.checkout.calculations._calculate_and_add_tax",
+    wraps=_calculate_and_add_tax,
+)
+@mock.patch(
+    "saleor.checkout.calculations.fetch_checkout_data",
+    wraps=fetch_checkout_data,
+)
+def test_checkout_lines_update_checkout_updated_during_price_recalculation(
+    mock_fetch_checkout_data,
+    mock_calculate_and_add_tax,
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    expected_email = "new_email@example.com"
+    checkout = checkout_with_prices
+    line = checkout.lines.first()
+    variant = line.variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    def modify_checkout(*args, **kwargs):
+        checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
+        checkout_to_modify.email = expected_email
+        checkout_to_modify.save(update_fields=["email", "last_change"])
+
+    with before_after.after(
+        "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
+    ):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_LINES_UPDATE, variables
+        )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+
+    # Ensure that the checkout prices recalculation was triggered more than one time.
+    assert mock_fetch_checkout_data.call_count > 1
+
+    # Ensure that the checkout price are recalculated only one time
+    assert mock_calculate_and_add_tax.call_count == 1
+
+    checkout.refresh_from_db()
+    assert checkout.email == expected_email
