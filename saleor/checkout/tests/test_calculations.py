@@ -3,17 +3,13 @@ from typing import Literal
 from unittest.mock import Mock, patch
 
 import pytest
+from django.db.models import F
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from graphene import Node
 from prices import Money, TaxedMoney
 
-from ...checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
-from ...checkout.utils import (
-    add_promo_code_to_checkout,
-    assign_external_shipping_to_checkout,
-)
 from ...core.prices import quantize_price
 from ...core.taxes import (
     TaxData,
@@ -33,6 +29,8 @@ from ...product.models import ProductVariantChannelListing
 from ...shipping.interface import ShippingMethodData
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.checkout import update_checkout_prices_with_flat_rates
+from ...tests import race_condition
+from .. import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..base_calculations import (
     base_checkout_delivery_price,
     calculate_base_line_total_price,
@@ -45,6 +43,11 @@ from ..calculations import (
     logger,
 )
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
+from ..models import Checkout
+from ..utils import (
+    add_promo_code_to_checkout,
+    assign_external_shipping_to_checkout,
+)
 
 
 @pytest.fixture
@@ -1300,3 +1303,105 @@ def test_fetch_checkout_data_updates_status_for_zero_amount_checkout_with_lines(
     checkout_with_item_total_0.refresh_from_db()
     assert checkout_with_item_total_0.authorize_status == CheckoutAuthorizeStatus.FULL
     assert checkout_with_item_total_0.charge_status == CheckoutChargeStatus.FULL
+
+
+def test_fetch_checkout_data_checkout_removed_before_save(
+    checkout_with_prices,
+):
+    # given
+    checkout = checkout_with_prices
+    currency = checkout.currency
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
+    start_total_price = checkout.total
+    lines = list(checkout.lines.all())
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout.shipping_address,
+    }
+
+    # when
+    def delete_checkout(*args, **kwargs):
+        # Simulate checkout deletion. We can't run `delete()` on `checkout_with_prices`, because
+        # it's would pass `checkout` without `pk` to `checkout_info`.
+        Checkout.objects.filter(pk=checkout.pk).delete()
+
+    with race_condition.RunAfter(
+        "saleor.checkout.calculations._calculate_and_add_tax", delete_checkout
+    ):
+        result_checkout_info, result_lines_info = fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    # Check if checkout was deleted.
+    with pytest.raises(Checkout.DoesNotExist):
+        checkout.refresh_from_db()
+
+    # Check if prices are recalculated and returned in info objects.
+    assert start_total_price != result_checkout_info.checkout.total
+    assert result_checkout_info.checkout.total is not None
+    assert result_checkout_info.checkout.total > zero_taxed_money(currency)
+
+    for line, result_line in zip(lines, result_lines_info, strict=True):
+        assert line.total_price != result_line.line.total_price
+        assert result_line.line.total_price is not None
+        assert result_line.line.total_price > zero_taxed_money(currency)
+
+
+def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
+    checkout_with_prices,
+):
+    # given
+    checkout = checkout_with_prices
+    currency = checkout.currency
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration", "last_change"])
+    checkout.refresh_from_db()
+    total_price_before_recalculation = checkout.total
+    last_change_before_recalculation = checkout.last_change
+    lines = list(checkout.lines.all())
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout.shipping_address,
+    }
+    expected_email = "new_email@example.com"
+
+    # when
+    def modify_checkout(*args, **kwargs):
+        checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
+        checkout_to_modify.lines.update(quantity=F("quantity") + 1)
+        checkout_to_modify.email = expected_email
+        checkout_to_modify.save(update_fields=["email", "last_change"])
+
+    with race_condition.RunAfter(
+        "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
+    ):
+        result_checkout_info, result_lines_info = fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    # Check if prices are recalculated and returned in info objects.
+    assert result_checkout_info.checkout.total != total_price_before_recalculation
+    assert result_checkout_info.checkout.total is not None
+    assert result_checkout_info.checkout.total > zero_taxed_money(currency)
+
+    for line, result_line in zip(lines, result_lines_info, strict=True):
+        assert line.total_price != result_line.line.total_price
+        assert result_line.line.total_price is not None
+        assert result_line.line.total_price > zero_taxed_money(currency)
+        assert result_line.line.quantity == line.quantity
+
+    # Check if database contains updated checkout by other requests.
+    checkout.refresh_from_db()
+    assert checkout.last_change > last_change_before_recalculation
+    assert checkout.email == expected_email
+    for old_line, new_line in zip(lines, checkout.lines.all(), strict=True):
+        assert old_line.quantity + 1 == new_line.quantity
