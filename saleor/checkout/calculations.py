@@ -348,17 +348,6 @@ def update_prior_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]):
             line_info.line.prior_unit_price_amount = line_info.prior_unit_price_amount
 
 
-def is_checkout_modified_by_another_process(
-    checkout: "Checkout",
-    refreshed_checkout: "Checkout",
-) -> bool:
-    """Check if the checkout has been modified during recalculation by another process.
-
-    Returns True if the checkout has been modified by another process, False otherwise.
-    """
-    return checkout.last_change != refreshed_checkout.last_change
-
-
 def _fetch_checkout_prices_if_expired(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",
@@ -463,11 +452,11 @@ def _fetch_checkout_prices_if_expired(
                 # Checkout was removed or converted to a order. Return data without saving.
                 return checkout_info, lines
 
-            # Check whether the checkout has been modified during the recalculation process. If so, we should
-            # skip saving.The same applies if the checkout has been removed. This is important to avoid
-            # overwriting changes made by the other requests. Skipping the save function does not affect
+            # Check whether the checkout has been modified during the recalculation process by another process.
+            # If so, we should skip saving. The same applies if the checkout has been removed. This is important
+            # to avoid overwriting changes made by the other requests. Skipping the save function does not affect
             # the query response because it returns the adjusted checkout and line info objects.
-            if not is_checkout_modified_by_another_process(checkout, locked_checkout):
+            if checkout.last_change == locked_checkout.last_change:
                 checkout_update_fields = [
                     "voucher_code",
                     "total_net_amount",
