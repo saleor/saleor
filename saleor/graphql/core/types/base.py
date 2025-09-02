@@ -1,6 +1,7 @@
 from graphene.relay.connection import Connection
 from graphene.types.enum import Enum
 from graphene.types.inputobjecttype import InputObjectType
+from graphene.types.interface import Interface
 from graphene.types.objecttype import ObjectType
 
 
@@ -55,3 +56,16 @@ class BaseConnection(Connection):
     ):
         cls.doc_category = doc_category
         super().__init_subclass_with_meta__(node=node, name=name, **options)
+
+
+class BaseInterface(Interface):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, _meta=None, doc_category=None, **options):
+        cls.doc_category = doc_category
+        super().__init_subclass_with_meta__(
+            _meta=_meta,
+            **options,
+        )

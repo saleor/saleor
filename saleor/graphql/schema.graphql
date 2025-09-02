@@ -8,7 +8,7 @@ schema {
 directive @doc(
   """Name of the grouping category"""
   category: String!
-) on ENUM | FIELD | FIELD_DEFINITION | INPUT_OBJECT | OBJECT
+) on ENUM | FIELD | FIELD_DEFINITION | INPUT_OBJECT | OBJECT | INTERFACE
 
 """Webhook events triggered by a specific location."""
 directive @webhookEventsInfo(
@@ -7678,7 +7678,7 @@ Represents an attribute assigned to an object.
 
 Added in Saleor 3.22.
 """
-interface AssignedAttribute {
+interface AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 }
@@ -34550,7 +34550,7 @@ Represents a numeric value of an attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedNumericAttribute implements AssignedAttribute {
+type AssignedNumericAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34563,7 +34563,7 @@ Represents text attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedTextAttribute implements AssignedAttribute {
+type AssignedTextAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34579,7 +34579,7 @@ Represents plain text attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedPlainTextAttribute implements AssignedAttribute {
+type AssignedPlainTextAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34595,7 +34595,7 @@ Represents file attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedFileAttribute implements AssignedAttribute {
+type AssignedFileAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34608,7 +34608,7 @@ Represents a single choice attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedSingleChoiceAttribute implements AssignedAttribute {
+type AssignedSingleChoiceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34621,7 +34621,7 @@ Represents a single choice value of the attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedChoiceAttributeValue {
+type AssignedChoiceAttributeValue @doc(category: "Attributes") {
   """Name of a value displayed in the interface."""
   name: String
 
@@ -34637,7 +34637,7 @@ Represents a multi choice attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedMultiChoiceAttribute implements AssignedAttribute {
+type AssignedMultiChoiceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34655,7 +34655,7 @@ Represents a swatch attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedSwatchAttribute implements AssignedAttribute {
+type AssignedSwatchAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34663,7 +34663,12 @@ type AssignedSwatchAttribute implements AssignedAttribute {
   value: AssignedSwatchAttributeValue
 }
 
-type AssignedSwatchAttributeValue {
+"""
+Represents a single swatch value.
+
+Added in Saleor 3.22.
+"""
+type AssignedSwatchAttributeValue @doc(category: "Attributes") {
   """Name of the selected swatch value."""
   name: String
 
@@ -34682,7 +34687,7 @@ Represents a boolean attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedBooleanAttribute implements AssignedAttribute {
+type AssignedBooleanAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34695,7 +34700,7 @@ Represents a date attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedDateAttribute implements AssignedAttribute {
+type AssignedDateAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34708,7 +34713,7 @@ Represents a date time attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedDateTimeAttribute implements AssignedAttribute {
+type AssignedDateTimeAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34721,7 +34726,7 @@ Represents single page reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedSinglePageReferenceAttribute implements AssignedAttribute {
+type AssignedSinglePageReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34734,7 +34739,7 @@ Represents single product reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedSingleProductReferenceAttribute implements AssignedAttribute {
+type AssignedSingleProductReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34747,7 +34752,7 @@ Represents single product variant reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedSingleProductVariantReferenceAttribute implements AssignedAttribute {
+type AssignedSingleProductVariantReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34760,7 +34765,7 @@ Represents single category reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedSingleCategoryReferenceAttribute implements AssignedAttribute {
+type AssignedSingleCategoryReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34773,7 +34778,7 @@ Represents single collection reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedSingleCollectionReferenceAttribute implements AssignedAttribute {
+type AssignedSingleCollectionReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34786,7 +34791,7 @@ Represents multi page reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedMultiPageReferenceAttribute implements AssignedAttribute {
+type AssignedMultiPageReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34804,7 +34809,7 @@ Represents multi product reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedMultiProductReferenceAttribute implements AssignedAttribute {
+type AssignedMultiProductReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34822,7 +34827,7 @@ Represents multi product variant reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedMultiProductVariantReferenceAttribute implements AssignedAttribute {
+type AssignedMultiProductVariantReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34840,7 +34845,7 @@ Represents multi category reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedMultiCategoryReferenceAttribute implements AssignedAttribute {
+type AssignedMultiCategoryReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
@@ -34858,7 +34863,7 @@ Represents multi collection reference attribute.
 
 Added in Saleor 3.22.
 """
-type AssignedMultiCollectionReferenceAttribute implements AssignedAttribute {
+type AssignedMultiCollectionReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 
