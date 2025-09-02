@@ -763,7 +763,7 @@ def test_assigned_multi_page_reference_attribute(
 
 
 ASSIGNED_MULTIPLE_PRODUCT_REFERENCE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID, $valueLimit: Int) {
+query PageQuery($id: ID, $valueLimit: PositiveInt) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ...on AssignedMultiProductReferenceAttribute{
@@ -881,7 +881,7 @@ def test_applies_limit_to_multi_product_references(
 
 
 ASSIGNED_MULTIPLE_PRODUCT_VARIANT_REFERENCE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID, $valueLimit: Int) {
+query PageQuery($id: ID, $valueLimit: PositiveInt) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ...on AssignedMultiProductVariantReferenceAttribute{
@@ -999,7 +999,7 @@ def test_applies_limit_to_multi_variant_references(
 
 
 ASSIGNED_MULTIPLE_CATEGORY_REFERENCE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID, $valueLimit: Int) {
+query PageQuery($id: ID, $valueLimit: PositiveInt) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ...on AssignedMultiCategoryReferenceAttribute{
@@ -1122,7 +1122,7 @@ def test_applies_limit_to_multi_category_references(
 
 
 ASSIGNED_MULTIPLE_COLLECTION_REFERENCE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID, $valueLimit: Int) {
+query PageQuery($id: ID, $valueLimit: PositiveInt) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ...on AssignedMultiCollectionReferenceAttribute{
@@ -1329,7 +1329,7 @@ def test_assigned_single_choice_attribute(
 
 
 ASSIGNED_MULTI_CHOICE_ATTRIBUTE_QUERY = """
-query PageQuery($id: ID, $valueLimit: Int) {
+query PageQuery($id: ID, $valueLimit: PositiveInt) {
   page(id: $id) {
     assignedAttributes(limit:10) {
       ... on AssignedMultiChoiceAttribute {

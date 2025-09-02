@@ -5715,10 +5715,8 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Added in Saleor 3.22.
   """
   assignedAttributes(
-    """
-    Maximum number of attributes to return. Value must be greater than 0. Default is 100.
-    """
-    limit: Int = 100
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
   ): [AssignedAttribute!]!
 
   """Get a single attribute attached to product by attribute slug."""
@@ -7426,10 +7424,8 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
     """Define scope of returned attributes."""
     variantSelection: VariantAttributeScope
 
-    """
-    Maximum number of attributes to return. Value must be greater than 0. Default is 100.
-    """
-    limit: Int = 100
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
   ): [AssignedAttribute!]!
 
   """List of attributes assigned to this variant."""
@@ -7682,6 +7678,13 @@ interface AssignedAttribute @doc(category: "Attributes") {
   """Attribute assigned to an object."""
   attribute: Attribute!
 }
+
+"""
+Positive Integer scalar implementation.
+
+Should be used in places where value must be positive (greater than 0).
+"""
+scalar PositiveInt
 
 """Represents an assigned attribute to an object."""
 type SelectedAttribute @doc(category: "Attributes") {
@@ -8769,10 +8772,8 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Added in Saleor 3.22.
   """
   assignedAttributes(
-    """
-    Maximum number of attributes to return. Value must be greater than 0. Default is 100.
-    """
-    limit: Int = 100
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
   ): [AssignedAttribute!]!
 
   """List of attributes assigned to this page."""
@@ -34643,10 +34644,8 @@ type AssignedMultiChoiceAttribute implements AssignedAttribute @doc(category: "A
 
   """List of assigned choice values."""
   value(
-    """
-    Maximum number of choices to return. Value must be greater than 0. Default is 100.
-    """
-    limit: Int = 100
+    """Maximum number of choices to return. Default is 100."""
+    limit: PositiveInt = 100
   ): [AssignedChoiceAttributeValue!]!
 }
 
@@ -34797,10 +34796,8 @@ type AssignedMultiPageReferenceAttribute implements AssignedAttribute @doc(categ
 
   """List of assigned page references."""
   value(
-    """
-    Maximum number of referenced pages to return. Value must be greater than 0. Default is 100.
-    """
-    limit: Int = 100
+    """Maximum number of referenced pages to return. Default is 100."""
+    limit: PositiveInt = 100
   ): [Page!]!
 }
 
@@ -34815,10 +34812,8 @@ type AssignedMultiProductReferenceAttribute implements AssignedAttribute @doc(ca
 
   """List of assigned product references."""
   value(
-    """
-    Maximum number of referenced products to return. Value must be greater than 0. Default is 100.
-    """
-    limit: Int = 100
+    """Maximum number of referenced products to return. Default is 100."""
+    limit: PositiveInt = 100
   ): [Product!]!
 }
 
@@ -34834,9 +34829,9 @@ type AssignedMultiProductVariantReferenceAttribute implements AssignedAttribute 
   """List of assigned product variant references."""
   value(
     """
-    Maximum number of referenced product variants to return. Value must be greater than 0. Default is 100.
+    Maximum number of referenced product variants to return. Default is 100.
     """
-    limit: Int = 100
+    limit: PositiveInt = 100
   ): [ProductVariant!]!
 }
 
@@ -34851,10 +34846,8 @@ type AssignedMultiCategoryReferenceAttribute implements AssignedAttribute @doc(c
 
   """List of assigned category references."""
   value(
-    """
-    Maximum number of referenced categories to return. Value must be greater than 0. Default is 100.
-    """
-    limit: Int = 100
+    """Maximum number of referenced categories to return. Default is 100."""
+    limit: PositiveInt = 100
   ): [Category!]!
 }
 
@@ -34870,7 +34863,7 @@ type AssignedMultiCollectionReferenceAttribute implements AssignedAttribute @doc
   """List of assigned collection references."""
   value(
     """Maximum number of referenced collections to return. Default is 100"""
-    limit: Int = 100
+    limit: PositiveInt = 100
   ): [Collection!]!
 }
 

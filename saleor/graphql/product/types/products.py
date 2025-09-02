@@ -80,7 +80,7 @@ from ...core.fields import (
     JSONString,
     PermissionsField,
 )
-from ...core.scalars import Date, DateTime
+from ...core.scalars import Date, DateTime, PositiveInt
 from ...core.tracing import traced_resolver
 from ...core.types import (
     BaseObjectType,
@@ -96,7 +96,6 @@ from ...core.types import (
 from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
 from ...core.validators import (
-    validate_limit_input_value,
     validate_one_of_args_is_in_query,
 )
 from ...meta.types import ObjectWithMetadata
@@ -359,10 +358,10 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             VariantAttributeScope,
             description="Define scope of returned attributes.",
         ),
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=(
                 "Maximum number of attributes to return. "
-                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
             ),
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
@@ -676,7 +675,6 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         variant_selection: str | None = None,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ):
-        validate_limit_input_value(limit)
         return cls._resolve_attributes(root, info, variant_selection, limit)
 
     @classmethod
@@ -1065,10 +1063,10 @@ class Product(ChannelContextType[models.Product]):
         AssignedAttribute,
         required=True,
         description="List of attributes assigned to this product." + ADDED_IN_322,
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=(
                 "Maximum number of attributes to return. "
-                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
             ),
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
@@ -1525,7 +1523,6 @@ class Product(ChannelContextType[models.Product]):
         info,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ):
-        validate_limit_input_value(limit)
         return cls._resolve_attributes(root, info, limit)
 
     @classmethod
