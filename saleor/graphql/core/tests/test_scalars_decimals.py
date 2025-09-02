@@ -3,7 +3,7 @@ import decimal
 import pytest
 from graphql.language.ast import FloatValue, IntValue, ObjectValue, StringValue
 
-from ..scalars import Decimal, PositiveDecimal
+from ..scalars import Decimal, PositiveDecimal, PositiveInt
 
 # Decimals
 
@@ -91,4 +91,53 @@ def test_positive_decimal_scalar_valid_value_zero():
 def test_positive_decimal_scalar_invalid_literal(node):
     result = PositiveDecimal.parse_literal(node)
 
+    assert result is None
+
+
+# PositiveInt
+
+
+@pytest.mark.parametrize(
+    "valid_node",
+    [
+        IntValue(value="1"),
+        IntValue(value="10"),
+        IntValue(value="999"),
+    ],
+)
+def test_positive_int_scalar_valid_literal(valid_node):
+    result = PositiveInt.parse_literal(valid_node)
+    assert result == int(valid_node.value)
+
+
+@pytest.mark.parametrize(
+    "invalid_node",
+    [
+        IntValue(value="0"),
+        IntValue(value="-1"),
+        FloatValue(value="1.0"),
+        StringValue(value="10"),
+        ObjectValue(fields=[]),
+    ],
+)
+def test_positive_int_scalar_invalid_literal(invalid_node):
+    result = PositiveInt.parse_literal(invalid_node)
+    assert result is None
+
+
+@pytest.mark.parametrize(
+    "valid_value",
+    ["1", "10", "999"],
+)
+def test_positive_int_scalar_valid_value(valid_value):
+    result = PositiveInt.parse_value(valid_value)
+    assert result == int(valid_value)
+
+
+@pytest.mark.parametrize(
+    "invalid_value",
+    ["0", "-1", "NaN", "abc"],
+)
+def test_positive_int_scalar_invalid_value(invalid_value):
+    result = PositiveInt.parse_value(invalid_value)
     assert result is None

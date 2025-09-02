@@ -209,3 +209,28 @@ class Hour(graphene.Int):
 
 class Day(graphene.Int):
     """The `Day` scalar type represents number of days by integer value."""
+
+
+class PositiveInt(graphene.Int):
+    """Positive Integer scalar implementation.
+
+    Should be used in places where value must be positive (greater than 0).
+    """
+
+    @staticmethod
+    def parse_value(value) -> int | None:
+        parsed_value = graphene.Int.parse_value(value)
+
+        if (parsed_value is not None) and parsed_value > 0:
+            return parsed_value
+
+        return None
+
+    @staticmethod
+    def parse_literal(node) -> int | None:
+        parsed_value = graphene.Int.parse_literal(node)
+
+        if (parsed_value is not None) and parsed_value > 0:
+            return parsed_value
+
+        return None
