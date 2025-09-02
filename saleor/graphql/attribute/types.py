@@ -29,7 +29,7 @@ from ..core.descriptions import (
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
-from ..core.scalars import Date, DateTime
+from ..core.scalars import Date, DateTime, PositiveInt
 from ..core.types import (
     BaseInputObjectType,
     BaseObjectType,
@@ -266,7 +266,7 @@ class Attribute(ChannelContextType[models.Attribute]):
             "the choices of reference objects." + ADDED_IN_322
         ),
         required=False,
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=NESTED_QUERY_LIMIT_DESCRIPTION,
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),

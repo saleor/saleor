@@ -726,7 +726,7 @@ def test_get_reference_category_attribute(
 
 
 QUERY_ATTRIBUTE_REFERENCE_TYPES = """
-    query ($id: ID!, $limit: Int) {
+    query ($id: ID!, $limit: PositiveInt) {
         attribute(id: $id) {
             id
             name
@@ -816,8 +816,9 @@ def test_get_attribute_reference_product_types_limit_exceeded(
 
     # then
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == (
-        f"`limit` must be greater than 1. Provided value is {limit}."
+    assert (
+        f'Variable "$limit" got invalid value {limit}'
+        in content["errors"][0]["message"]
     )
 
 
@@ -875,8 +876,9 @@ def test_get_attribute_reference_page_types_invalid_limit(
 
     # then
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == (
-        f"`limit` must be greater than 1. Provided value is {limit}."
+    assert (
+        f'Variable "$limit" got invalid value {limit}'
+        in content["errors"][0]["message"]
     )
 
 

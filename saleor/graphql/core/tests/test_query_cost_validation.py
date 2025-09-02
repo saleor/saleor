@@ -240,7 +240,7 @@ def test_query_with_fragments_have_same_multiplied_complexity_cost(
 
 
 ATTRIBUTE_QUERY_WITH_LIMIT = """
-query($limit: Int) {
+query($limit: PositiveInt) {
   attributes(first:100) {
     edges {
       node {
