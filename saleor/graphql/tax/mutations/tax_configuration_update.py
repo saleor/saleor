@@ -368,7 +368,7 @@ class TaxConfigurationUpdate(DeprecatedModelMutation):
         ).delete()
 
     @classmethod
-    def save(cls, _info, instance, cleaned_input):
+    def save(cls, _info, instance, cleaned_input, instance_tracker=None):
         instance.save()
         update_countries_configuration = cleaned_input.get(
             "update_countries_configuration", []
