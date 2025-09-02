@@ -34,7 +34,7 @@ from .menu.schema import MenuMutations, MenuQueries
 from .meta.schema import MetaMutations
 from .order.schema import OrderMutations, OrderQueries
 from .page.schema import PageMutations, PageQueries
-from .payment.schema import PaymentMutations, PaymentQueries
+from .payment.schema import PAYMENT_ADDITIONAL_TYPES, PaymentMutations, PaymentQueries
 from .plugins.schema import PluginsMutations, PluginsQueries
 from .product.schema import ProductMutations, ProductQueries
 from .shipping.schema import ShippingMutations, ShippingQueries
@@ -177,7 +177,12 @@ GraphQLWebhookEventsInfoDirective = graphql.GraphQLDirective(
 schema = build_federated_schema(
     Query,
     mutation=Mutation,
-    types=unit_enums + list(WEBHOOK_TYPES_MAP.values()) + ASSIGNED_ATTRIBUTE_TYPES,
+    types=(
+        unit_enums
+        + list(WEBHOOK_TYPES_MAP.values())
+        + PAYMENT_ADDITIONAL_TYPES
+        + ASSIGNED_ATTRIBUTE_TYPES
+    ),
     subscription=Subscription,
     directives=graphql.specified_directives
     + [GraphQLDocDirective, GraphQLWebhookEventsInfoDirective],
