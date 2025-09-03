@@ -12,7 +12,6 @@ from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
 from .const import DEFAULT_NESTED_LIST_LIMIT
 from .context import get_database_connection_name
-from .validators import validate_limit_input_value
 
 K = TypeVar("K")
 R = TypeVar("R")
@@ -83,7 +82,6 @@ class DataLoaderWithLimit(DataLoader[K, R]):
 
     def __new__(cls, context: SaleorContext, limit: int = DEFAULT_NESTED_LIST_LIMIT):
         loader = super().__new__(cls, context)
-        validate_limit_input_value(limit)
         loader.limit = limit
         return loader
 
@@ -91,7 +89,6 @@ class DataLoaderWithLimit(DataLoader[K, R]):
         self, context: SaleorContext, limit: int = DEFAULT_NESTED_LIST_LIMIT
     ) -> None:
         if getattr(self, "limit", None) != limit:
-            validate_limit_input_value(limit)
             self.limit = limit
         super().__init__(context=context)
 

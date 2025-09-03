@@ -5956,7 +5956,7 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
     """
     Maximum number of objects to return. Value must be greater than 0. Default is 100.
     """
-    limit: Int = 100
+    limit: PositiveInt = 100
   ): [ReferenceType!]
 
   """Name of an attribute displayed in the interface."""
@@ -6363,6 +6363,13 @@ enum MeasurementUnitsEnum {
   KG
   TONNE
 }
+
+"""
+Positive Integer scalar implementation.
+
+Should be used in places where value must be positive (greater than 0).
+"""
+scalar PositiveInt
 
 type AttributeValueCountableConnection @doc(category: "Attributes") {
   """Pagination data for this connection."""
