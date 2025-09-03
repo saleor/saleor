@@ -369,6 +369,8 @@ def _fetch_checkout_prices_if_expired(
 
     Prices can be updated only if force_update == True, or if time elapsed from the
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
+
+    The last value in the returned tuple is a boolean which indicates whether prices were updated.
     """
     from .utils import checkout_info_for_logs
 
