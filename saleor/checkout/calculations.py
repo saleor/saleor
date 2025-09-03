@@ -8,7 +8,6 @@ from django.db import transaction
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from ..checkout import CheckoutAuthorizeStatus, base_calculations
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import (
@@ -31,7 +30,9 @@ from ..tax.utils import (
     get_tax_calculation_strategy_for_checkout,
     normalize_tax_rate_for_db,
 )
+from . import CheckoutAuthorizeStatus, base_calculations
 from .fetch import find_checkout_line_info
+from .lock_objects import checkout_qs_select_for_update
 from .models import Checkout
 from .payment_utils import update_checkout_payment_statuses
 
@@ -442,45 +443,60 @@ def _fetch_checkout_prices_if_expired(
             # tax from the original gross prices.
             _remove_tax(checkout, lines)
 
-    checkout_update_fields = [
-        "voucher_code",
-        "total_net_amount",
-        "total_gross_amount",
-        "subtotal_net_amount",
-        "subtotal_gross_amount",
-        "shipping_price_net_amount",
-        "shipping_price_gross_amount",
-        "undiscounted_base_shipping_price_amount",
-        "shipping_tax_rate",
-        "translated_discount_name",
-        "discount_amount",
-        "discount_name",
-        "currency",
-        "last_change",
-        "price_expiration",
-        "tax_error",
-    ]
-
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
-
-    from .utils import checkout_lines_bulk_update
 
     with allow_writer():
         with transaction.atomic():
-            checkout.save(
-                update_fields=checkout_update_fields,
-                using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
-            )
-            checkout_lines_bulk_update(
-                [line_info.line for line_info in lines],
-                [
-                    "total_price_net_amount",
-                    "total_price_gross_amount",
-                    "tax_rate",
-                    "undiscounted_unit_price_amount",
-                    "prior_unit_price_amount",
-                ],
-            )
+            try:
+                locked_checkout = (
+                    checkout_qs_select_for_update()
+                    .only("last_change")
+                    .get(token=checkout.token)
+                )
+            except Checkout.DoesNotExist:
+                # Checkout was removed or converted to a order. Return data without saving.
+                return checkout_info, lines
+
+            # Check whether the checkout has been modified during the recalculation process by another process.
+            # If so, we should skip saving. The same applies if the checkout has been removed. This is important
+            # to avoid overwriting changes made by the other requests. Skipping the save function does not affect
+            # the query response because it returns the adjusted checkout and line info objects.
+            if checkout.last_change == locked_checkout.last_change:
+                checkout_update_fields = [
+                    "voucher_code",
+                    "total_net_amount",
+                    "total_gross_amount",
+                    "subtotal_net_amount",
+                    "subtotal_gross_amount",
+                    "shipping_price_net_amount",
+                    "shipping_price_gross_amount",
+                    "undiscounted_base_shipping_price_amount",
+                    "shipping_tax_rate",
+                    "translated_discount_name",
+                    "discount_amount",
+                    "discount_name",
+                    "currency",
+                    "last_change",
+                    "price_expiration",
+                    "tax_error",
+                ]
+
+                from .utils import checkout_lines_bulk_update
+
+                checkout.save(
+                    update_fields=checkout_update_fields,
+                    using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+                )
+                checkout_lines_bulk_update(
+                    [line_info.line for line_info in lines],
+                    [
+                        "total_price_net_amount",
+                        "total_price_gross_amount",
+                        "tax_rate",
+                        "undiscounted_unit_price_amount",
+                        "prior_unit_price_amount",
+                    ],
+                )
     return checkout_info, lines
 
 
