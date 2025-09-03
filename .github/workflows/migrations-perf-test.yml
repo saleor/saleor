@@ -13,7 +13,7 @@ jobs:
       id-token: write # needed by aws-actions/configure-aws-credentials
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: rlespinasse/github-slug-action@c33ff65466c58d57e4d796f88bb1ae0ff26ee453 # v5.2.0
 
       - name: Configure AWS Credentials
@@ -62,7 +62,7 @@ jobs:
       id-token: write # needed by aws-actions/configure-aws-credentials
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: rlespinasse/github-slug-action@c33ff65466c58d57e4d796f88bb1ae0ff26ee453 # v5.2.0
 
       - name: Get pull number
