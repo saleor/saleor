@@ -361,7 +361,7 @@ def _fetch_checkout_prices_if_expired(
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
-) -> tuple["CheckoutInfo", list["CheckoutLineInfo"], bool]:
+) -> tuple["CheckoutInfo", list["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
     First calculate and apply all checkout prices with taxes separately,
@@ -369,8 +369,6 @@ def _fetch_checkout_prices_if_expired(
 
     Prices can be updated only if force_update == True, or if time elapsed from the
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
-
-    The last value in the returned tuple is a boolean which indicates whether prices were updated.
     """
     from .utils import checkout_info_for_logs
 
@@ -380,7 +378,7 @@ def _fetch_checkout_prices_if_expired(
     checkout = checkout_info.checkout
 
     if not force_update and checkout.price_expiration > timezone.now():
-        return checkout_info, lines, False
+        return checkout_info, lines
 
     tax_configuration = checkout_info.tax_configuration
     tax_calculation_strategy = get_tax_calculation_strategy_for_checkout(
@@ -391,7 +389,7 @@ def _fetch_checkout_prices_if_expired(
         tax_calculation_strategy == TaxCalculationStrategy.TAX_APP
         and not allow_sync_webhooks
     ):
-        return checkout_info, lines, True
+        return checkout_info, lines
 
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_checkout(
@@ -483,7 +481,7 @@ def _fetch_checkout_prices_if_expired(
                     "prior_unit_price_amount",
                 ],
             )
-    return checkout_info, lines, True
+    return checkout_info, lines
 
 
 def _calculate_and_add_tax(
@@ -788,8 +786,8 @@ def fetch_checkout_data(
     """
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
-    previous_total_gross = checkout_info.checkout.total.gross
-    checkout_info, lines, did_refetch = _fetch_checkout_prices_if_expired(
+    previous_checkout_price_expiration = checkout_info.checkout.price_expiration
+    checkout_info, lines = _fetch_checkout_prices_if_expired(
         checkout_info=checkout_info,
         manager=manager,
         lines=lines,
@@ -801,8 +799,7 @@ def fetch_checkout_data(
     )
     current_total_gross = checkout_info.checkout.total.gross
     if (
-        current_total_gross != previous_total_gross
-        or did_refetch
+        checkout_info.checkout.price_expiration != previous_checkout_price_expiration
         or force_status_update
         or (
             # Checkout with total being zero is fully authorized therefore
