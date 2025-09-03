@@ -5,6 +5,7 @@ from unittest import mock
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.db.models import F
 from django.test import override_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -13,13 +14,18 @@ from measurement.measures import Weight
 from prices import Money
 
 from ....checkout import base_calculations, calculations
-from ....checkout.calculations import _fetch_checkout_prices_if_expired
+from ....checkout.calculations import (
+    _calculate_and_add_tax,
+    _fetch_checkout_prices_if_expired,
+    fetch_checkout_data,
+)
 from ....checkout.checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.models import Checkout
 from ....checkout.utils import (
     PRIVATE_META_APP_SHIPPING_ID,
     add_variant_to_checkout,
@@ -1843,6 +1849,7 @@ query getCheckout($id: ID) {
     lines {
       id
       isGift
+      quantity
       variant {
         id
         pricing {
@@ -2854,6 +2861,72 @@ def test_checkout_display_gross_prices_use_default(user_api_client, checkout_wit
 
     # then
     assert data["displayGrossPrices"] == tax_config.display_gross_prices
+
+
+@mock.patch(
+    "saleor.checkout.calculations._calculate_and_add_tax",
+    wraps=_calculate_and_add_tax,
+)
+@mock.patch(
+    "saleor.checkout.calculations.fetch_checkout_data",
+    wraps=fetch_checkout_data,
+)
+def test_checkout_prices_with_checkout_updated_during_price_recalculation(
+    mock_fetch_checkout_data,
+    mock_calculate_and_add_tax,
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    expected_email = "new_email@example.com"
+    checkout = checkout_with_prices
+    variables = {
+        "id": to_global_id_or_none(checkout),
+    }
+    total_before_recalculation = checkout.total
+    lines_before_recalculation = list(checkout.lines.all())
+
+    # when
+    def modify_checkout(*args, **kwargs):
+        with allow_writer():
+            checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
+            checkout_to_modify.lines.update(quantity=F("quantity") + 1)
+            checkout_to_modify.email = expected_email
+            checkout_to_modify.save(update_fields=["email", "last_change"])
+
+    with race_condition.RunAfter(
+        "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
+    ):
+        response = user_api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+
+    # Ensure that the checkout prices recalculation was triggered more than one time
+    assert mock_fetch_checkout_data.call_count > 1
+
+    # Ensure that the checkout price are recalculated only one time
+    assert mock_calculate_and_add_tax.call_count == 1
+
+    checkout.refresh_from_db()
+    assert checkout.email == expected_email
+
+    # Confirm that total price hasn't changed in database due to recalculation
+    assert checkout.total == total_before_recalculation
+    # Confirm that total price has changed in query response due to recalculation
+    assert (
+        data["totalPrice"]["gross"]["amount"] != total_before_recalculation.gross.amount
+    )
+
+    for line_before_recalculation, result_line, line in zip(
+        lines_before_recalculation, data["lines"], checkout.lines.all(), strict=True
+    ):
+        # Confirm that returned line quantities are same as before simulated update was applied to the database
+        assert line_before_recalculation.quantity == result_line["quantity"]
+        # Confirm that line quantities have been updated in database
+        assert line_before_recalculation.quantity + 1 == line.quantity
 
 
 def test_checkout_display_gross_prices_use_country_exception(
