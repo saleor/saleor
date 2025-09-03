@@ -33,7 +33,7 @@ from ..core.descriptions import (
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import LanguageCodeEnum, MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
-from ..core.scalars import JSON, Date, DateTime
+from ..core.scalars import JSON, Date, DateTime, PositiveInt
 from ..core.types import (
     BaseInputObjectType,
     BaseInterface,
@@ -45,7 +45,6 @@ from ..core.types import (
     NonNullList,
 )
 from ..core.types.context import ChannelContextType, ChannelContextTypeForObjectType
-from ..core.validators import validate_limit_input_value
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
@@ -988,10 +987,10 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
         "saleor.graphql.page.types.Page",
         description="List of assigned page references.",
         required=True,
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=(
                 "Maximum number of referenced pages to return. "
-                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
             ),
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
@@ -1008,8 +1007,6 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
         info: ResolveInfo,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[ChannelContext[page_models.Page]]]:
-        validate_limit_input_value(limit)
-
         if not root.values:
             return Promise.resolve([])
 
@@ -1038,10 +1035,10 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
         "saleor.graphql.product.types.Product",
         description="List of assigned product references.",
         required=True,
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=(
                 "Maximum number of referenced products to return. "
-                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
             ),
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
@@ -1058,8 +1055,6 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
         info: ResolveInfo,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[ChannelContext[product_models.Product]]]:
-        validate_limit_input_value(limit)
-
         if not root.values:
             return Promise.resolve([])
 
@@ -1089,10 +1084,10 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
         "saleor.graphql.product.types.ProductVariant",
         description="List of assigned product variant references.",
         required=True,
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=(
                 "Maximum number of referenced product variants to return. "
-                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
             ),
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
@@ -1111,8 +1106,6 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
         info: ResolveInfo,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[ChannelContext[product_models.ProductVariant]]]:
-        validate_limit_input_value(limit)
-
         if not root.values:
             return Promise.resolve([])
 
@@ -1142,10 +1135,10 @@ class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
         "saleor.graphql.product.types.Category",
         description="List of assigned category references.",
         required=True,
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=(
                 "Maximum number of referenced categories to return. "
-                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
             ),
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
@@ -1162,7 +1155,6 @@ class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
         info: ResolveInfo,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[product_models.Category]]:
-        validate_limit_input_value(limit)
         if not root.values:
             return Promise.resolve([])
         attr_values = [value.node for value in root.values]
@@ -1178,7 +1170,7 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
         "saleor.graphql.product.types.Collection",
         description="List of assigned collection references.",
         required=True,
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=(
                 "Maximum number of referenced collections to return. "
                 f"Default is {DEFAULT_NESTED_LIST_LIMIT}"
@@ -1198,7 +1190,6 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
         info: ResolveInfo,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[ChannelContext[product_models.Collection]]]:
-        validate_limit_input_value(limit)
         if not root.values:
             return Promise.resolve([])
 
@@ -1278,10 +1269,10 @@ class AssignedMultiChoiceAttribute(BaseObjectType):
         AssignedChoiceAttributeValue,
         required=True,
         description="List of assigned choice values.",
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=(
                 "Maximum number of choices to return. "
-                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
             ),
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
@@ -1298,7 +1289,6 @@ class AssignedMultiChoiceAttribute(BaseObjectType):
         info: ResolveInfo,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> list[models.AttributeValue]:
-        validate_limit_input_value(limit)
         values = root.values[:limit]
         return [value.node for value in values]
 

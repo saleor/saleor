@@ -28,10 +28,9 @@ from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT, RICH_CONTE
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
-from ..core.scalars import Date, DateTime
+from ..core.scalars import Date, DateTime, PositiveInt
 from ..core.types import ModelObjectType, NonNullList
 from ..core.types.context import ChannelContextType
-from ..core.validators import validate_limit_input_value
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
@@ -206,10 +205,10 @@ class Page(ChannelContextType[models.Page]):
         "saleor.graphql.attribute.types.AssignedAttribute",
         required=True,
         description="List of attributes assigned to this page." + ADDED_IN_322,
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=(
                 "Maximum number of attributes to return. "
-                f"Value must be greater than 0. Default is {DEFAULT_NESTED_LIST_LIMIT}."
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
             ),
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),
@@ -254,7 +253,6 @@ class Page(ChannelContextType[models.Page]):
         info: ResolveInfo,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ):
-        validate_limit_input_value(limit)
         return cls._resolve_assigned_attributes(root, info, limit)
 
     @classmethod
