@@ -280,7 +280,7 @@ class Attribute(ChannelContextType[models.Attribute]):
             "the choices of reference objects." + ADDED_IN_322
         ),
         required=False,
-        limit=graphene.Int(
+        limit=PositiveInt(
             description=NESTED_QUERY_LIMIT_DESCRIPTION,
             default_value=DEFAULT_NESTED_LIST_LIMIT,
         ),

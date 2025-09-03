@@ -472,7 +472,7 @@ def test_query_cost_for_spread_and_inline_fragments_on_interface(api_client):
 
 
 ATTRIBUTE_QUERY_WITH_LIMIT = """
-query($limit: Int) {
+query($limit: PositiveInt) {
   attributes(first:100) {
     edges {
       node {
