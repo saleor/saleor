@@ -387,6 +387,10 @@ COST_MAP = {
     "SaleChannelListing": {
         "channel": {"complexity": 1},
     },
+    "SelectedAttribute": {
+        "attribute": {"complexity": 1},
+        "values": {"complexity": 1},
+    },
     "ShippingMethodChannelListing": {
         "channel": {"complexity": 1},
     },
