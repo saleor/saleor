@@ -52,6 +52,8 @@ query Checkout($checkoutId: ID!){
         amount
       }
     }
+    authorizeStatus
+    chargeStatus
   }
 }
 """

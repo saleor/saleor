@@ -802,7 +802,7 @@ def fetch_checkout_data(
     """
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
-    previous_total_gross = checkout_info.checkout.total.gross
+    previous_checkout_price_expiration = checkout_info.checkout.price_expiration
     checkout_info, lines = _fetch_checkout_prices_if_expired(
         checkout_info=checkout_info,
         manager=manager,
@@ -815,7 +815,7 @@ def fetch_checkout_data(
     )
     current_total_gross = checkout_info.checkout.total.gross
     if (
-        current_total_gross != previous_total_gross
+        checkout_info.checkout.price_expiration != previous_checkout_price_expiration
         or force_status_update
         or (
             # Checkout with total being zero is fully authorized therefore
@@ -825,6 +825,15 @@ def fetch_checkout_data(
             and bool(lines)
         )
     ):
+        current_total_gross = (
+            checkout_info.checkout.total.gross
+            - checkout_info.checkout.get_total_gift_cards_balance(
+                database_connection_name
+            )
+        )
+        current_total_gross = max(
+            current_total_gross, zero_money(current_total_gross.currency)
+        )
         update_checkout_payment_statuses(
             checkout=checkout_info.checkout,
             checkout_total_gross=current_total_gross,

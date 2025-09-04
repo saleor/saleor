@@ -39,6 +39,7 @@ from ..calculations import (
     _apply_tax_data,
     _calculate_and_add_tax,
     _set_checkout_base_prices,
+    calculate_checkout_total,
     fetch_checkout_data,
     logger,
 )
@@ -1303,6 +1304,61 @@ def test_fetch_checkout_data_updates_status_for_zero_amount_checkout_with_lines(
     checkout_with_item_total_0.refresh_from_db()
     assert checkout_with_item_total_0.authorize_status == CheckoutAuthorizeStatus.FULL
     assert checkout_with_item_total_0.charge_status == CheckoutChargeStatus.FULL
+
+
+@pytest.mark.parametrize(
+    ("gift_card_balance", "expected_authorize_status", "expected_charge_status"),
+    [
+        (0, CheckoutAuthorizeStatus.PARTIAL, CheckoutChargeStatus.PARTIAL),
+        (10, CheckoutAuthorizeStatus.PARTIAL, CheckoutChargeStatus.PARTIAL),
+        (20, CheckoutAuthorizeStatus.FULL, CheckoutChargeStatus.FULL),
+        (40, CheckoutAuthorizeStatus.FULL, CheckoutChargeStatus.OVERCHARGED),
+    ],
+)
+def test_fetch_checkout_data_considers_gift_cards_balance_when_updating_checkout_payment_status(
+    checkout_with_gift_card,
+    gift_card_balance,
+    expected_authorize_status,
+    expected_charge_status,
+    transaction_item_generator,
+):
+    # given
+    checkout = checkout_with_gift_card
+    gift_card = checkout.gift_cards.first()
+    gift_card.initial_balance_amount = Decimal(gift_card_balance)
+    gift_card.current_balance_amount = Decimal(gift_card_balance)
+    gift_card.save()
+
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    address = checkout.shipping_address or checkout.billing_address
+
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
+    assert checkout.charge_status == CheckoutChargeStatus.NONE
+
+    transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+    )
+
+    total = calculate_checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    assert total.gross.amount == Decimal(30)
+
+    # when
+    fetch_checkout_data(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        address=address,
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == expected_authorize_status
+    assert checkout.charge_status == expected_charge_status
 
 
 def test_fetch_checkout_data_checkout_removed_before_save(
