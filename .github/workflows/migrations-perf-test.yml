@@ -23,7 +23,7 @@ jobs:
           aws-region: ${{ vars.AWS_TESTENVS_REGION }}
 
       - name: Build and push
-        uses: kciter/aws-ecr-action@79255b7c5aa03dbf6d7c46cff2bfd049874cd98d # v4
+        uses: kciter/aws-ecr-action@ea6db9ecebec495c996b0f084c8ea1591f1185d7 # v5
         with:
           access_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
           secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
