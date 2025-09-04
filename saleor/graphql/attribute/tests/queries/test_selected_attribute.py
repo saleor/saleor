@@ -1321,7 +1321,6 @@ def test_assigned_single_choice_attribute(
 
     # then
     content = get_graphql_content(response)
-
     assert len(content["data"]["page"]["assignedAttributes"]) == 1
     attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"]
     assert attr_value_data["name"] == expected_attr_value_name

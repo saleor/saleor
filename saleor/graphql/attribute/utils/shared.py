@@ -31,7 +31,10 @@ T_REFERENCE = (
 @dataclass
 class AssignedAttributeData:
     attribute: ChannelContext[attribute_models.Attribute]
-    values: list[ChannelContext[attribute_models.AttributeValue]]
+
+    product_id: int | None = None
+    page_id: int | None = None
+    variant_id: int | None = None
 
 
 @dataclass

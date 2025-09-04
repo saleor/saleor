@@ -642,13 +642,9 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                 attribute = atr["attribute"]
                 attribute = cast(attribute_models.Attribute, attribute)
                 if attribute.slug == slug:
-                    values = atr["values"]
-                    values = cast(list[attribute_models.AttributeValue], values)
                     return AssignedAttributeData(
                         attribute=ChannelContext(attribute, root.channel_slug),
-                        values=[
-                            ChannelContext(value, root.channel_slug) for value in values
-                        ],
+                        variant_id=root.node.id,
                     )
             return None
 
@@ -697,10 +693,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                         attribute=ChannelContext(
                             selected_att["attribute"], root.channel_slug
                         ),
-                        values=[
-                            ChannelContext(value, root.channel_slug)
-                            for value in selected_att["values"]
-                        ],
+                        variant_id=root.node.id,
                     )
                     for selected_att in selected_attributes
                 ]
@@ -734,10 +727,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                     attribute=ChannelContext(
                         selected_att["attribute"], root.channel_slug
                     ),
-                    values=[
-                        ChannelContext(value, root.channel_slug)
-                        for value in selected_att["values"]
-                    ],
+                    variant_id=root.node.id,
                 )
                 for selected_att in attributes_to_return
             ]
@@ -1493,9 +1483,7 @@ class Product(ChannelContextType[models.Product]):
                     values = cast(list[attribute_models.AttributeValue], values)
                     return AssignedAttributeData(
                         attribute=ChannelContext(attribute, root.channel_slug),
-                        values=[
-                            ChannelContext(value, root.channel_slug) for value in values
-                        ],
+                        product_id=root.node.id,
                     )
             return None
 
@@ -1552,14 +1540,10 @@ class Product(ChannelContextType[models.Product]):
             for attr_data in attributes:
                 attribute = attr_data["attribute"]
                 attribute = cast(attribute_models.Attribute, attribute)
-                values = attr_data["values"]
-                values = cast(list[attribute_models.AttributeValue], values)
                 response.append(
                     AssignedAttributeData(
                         attribute=ChannelContext(attribute, root.channel_slug),
-                        values=[
-                            ChannelContext(value, root.channel_slug) for value in values
-                        ],
+                        product_id=root.node.id,
                     )
                 )
             response = response[:limit] if limit else response
