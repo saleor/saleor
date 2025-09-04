@@ -21,68 +21,167 @@ from .....product.models import Product
 from .....tests.utils import dummy_editorjs
 
 CREATE_PRODUCT_MUTATION = """
-       mutation createProduct(
-           $input: ProductCreateInput!
-       ) {
-                productCreate(
-                    input: $input) {
-                        product {
-                            id
-                            category {
-                                name
-                            }
-                            description
-                            chargeTaxes
-                            taxClass {
-                                id
-                            }
-                            taxType {
-                                taxCode
-                                description
-                            }
-                            name
-                            slug
-                            rating
-                            productType {
-                                name
-                            }
-                            metadata {
-                                key
-                                value
-                            }
-                            privateMetadata {
-                                key
-                                value
-                            }
-                            attributes {
-                                attribute {
-                                    slug
-                                }
-                                values {
-                                    slug
-                                    name
-                                    reference
-                                    richText
-                                    plainText
-                                    boolean
-                                    dateTime
-                                    date
-                                    file {
-                                        url
-                                        contentType
-                                    }
-                                }
-                            }
-                            externalReference
-                          }
-                          errors {
-                            field
-                            code
-                            message
-                            attributes
-                          }
-                        }
-                      }
+mutation createProduct($input: ProductCreateInput!) {
+  productCreate(input: $input) {
+    product {
+      id
+      category {
+        name
+      }
+      description
+      chargeTaxes
+      taxClass {
+        id
+      }
+      taxType {
+        taxCode
+        description
+      }
+      name
+      slug
+      rating
+      productType {
+        name
+      }
+      metadata {
+        key
+        value
+      }
+      privateMetadata {
+        key
+        value
+      }
+      assignedAttributes(limit:10) {
+        attribute {
+          slug
+        }
+        ... on AssignedNumericAttribute {
+          value
+        }
+        ... on AssignedTextAttribute {
+          text: value
+        }
+        ... on AssignedPlainTextAttribute {
+          plain_text: value
+        }
+        ... on AssignedFileAttribute {
+          file: value {
+            contentType
+            url
+          }
+        }
+        ... on AssignedMultiPageReferenceAttribute {
+          pages: value {
+            slug
+          }
+        }
+        ... on AssignedMultiProductReferenceAttribute {
+          products: value {
+            slug
+          }
+        }
+        ... on AssignedMultiCategoryReferenceAttribute {
+          categories: value {
+            slug
+          }
+        }
+        ... on AssignedMultiCollectionReferenceAttribute {
+          collections: value {
+            slug
+          }
+        }
+        ... on AssignedSinglePageReferenceAttribute {
+          page: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductReferenceAttribute {
+          product: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductVariantReferenceAttribute {
+          variant: value {
+            sku
+          }
+        }
+        ... on AssignedSingleCategoryReferenceAttribute {
+          category: value {
+            slug
+          }
+        }
+        ... on AssignedSingleCollectionReferenceAttribute {
+          collection: value {
+            slug
+          }
+        }
+        ... on AssignedMultiProductVariantReferenceAttribute {
+          variants: value {
+            sku
+          }
+        }
+        ... on AssignedSingleChoiceAttribute {
+          choice: value {
+            name
+            slug
+          }
+        }
+        ... on AssignedMultiChoiceAttribute {
+          multi: value {
+            name
+            slug
+          }
+        }
+        ... on AssignedSwatchAttribute {
+          swatch: value {
+            name
+            slug
+            hexColor
+            file {
+              url
+              contentType
+            }
+          }
+        }
+        ... on AssignedBooleanAttribute {
+          bool: value
+        }
+        ... on AssignedDateAttribute {
+          date: value
+        }
+        ... on AssignedDateTimeAttribute {
+          datetime: value
+        }
+      }
+      attributes {
+        attribute {
+          slug
+        }
+        values {
+          slug
+          name
+          reference
+          richText
+          plainText
+          boolean
+          dateTime
+          date
+          file {
+            url
+            contentType
+          }
+        }
+      }
+      externalReference
+    }
+    errors {
+      field
+      code
+      message
+      attributes
+    }
+  }
+}
 """
 
 
@@ -171,12 +270,18 @@ def test_create_product(
     assert data["product"]["category"]["name"] == category.name
     assert data["product"]["taxClass"]["id"] == tax_class_id
     assert data["product"]["externalReference"] == external_reference
+
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
     )
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    assert len(assigned_attributes) == 2
+    assert assigned_attributes[0]["choice"]["name"] == color_value_name
+    assert assigned_attributes[1]["choice"]["name"] == non_existent_attr_value
 
     product = Product.objects.first()
     assert product.search_index_dirty is True
@@ -334,6 +439,7 @@ def test_create_product_with_using_attribute_external_ref(
     product_name = "test name"
     product_slug = "product-test-slug"
 
+    expected_attr_value_name = "newColor"
     # test creating root product
     variables = {
         "input": {
@@ -344,7 +450,7 @@ def test_create_product_with_using_attribute_external_ref(
             "attributes": [
                 {
                     "externalReference": color_attribute.external_reference,
-                    "dropdown": {"value": "newColor"},
+                    "dropdown": {"value": expected_attr_value_name},
                 }
             ],
         }
@@ -367,8 +473,8 @@ def test_create_product_with_using_attribute_external_ref(
             "attribute": {"slug": "color"},
             "values": [
                 {
-                    "slug": "newcolor",
-                    "name": "newColor",
+                    "slug": expected_attr_value_name.lower(),
+                    "name": expected_attr_value_name,
                     "reference": None,
                     "richText": None,
                     "plainText": None,
@@ -383,6 +489,16 @@ def test_create_product_with_using_attribute_external_ref(
 
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_choice_attribute = {
+        "attribute": {"slug": color_attribute.slug},
+        "choice": {
+            "name": expected_attr_value_name,
+            "slug": expected_attr_value_name.lower(),
+        },
+    }
+    assert expected_assigned_choice_attribute in assigned_attributes
 
 
 def test_create_product_with_using_attribute_id_and_external_ref(
@@ -495,6 +611,16 @@ def test_create_product_with_using_attribute_and_value_external_ref(
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": color_attribute.slug},
+        "choice": {
+            "name": attr_value.name,
+            "slug": attr_value.slug,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_product_with_rich_text_attribute(
     staff_api_client,
@@ -572,6 +698,13 @@ def test_create_product_with_rich_text_attribute(
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": rich_text_attribute.slug},
+        "text": rich_text_value,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_product_no_value_for_rich_text_attribute(
     staff_api_client,
@@ -611,6 +744,14 @@ def test_create_product_no_value_for_rich_text_attribute(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["productType"]["name"] == product_type.name
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": rich_text_attribute.slug},
+        "text": None,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     expected_attributes_data = {
         "attribute": {"slug": rich_text_attribute.slug},
         "values": [],
@@ -692,6 +833,13 @@ def test_create_product_with_plain_text_attribute(
         },
     ]
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": plain_text_attribute.slug},
+        "plain_text": text_value,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
 
@@ -738,6 +886,14 @@ def test_create_product_no_value_for_plain_text_attribute(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["productType"]["name"] == product_type.name
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": plain_text_attribute.slug},
+        "plain_text": None,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     expected_attributes_data = {
         "attribute": {"slug": plain_text_attribute.slug},
         "values": [],
@@ -808,6 +964,13 @@ def test_create_product_with_date_time_attribute(
 
     assert expected_attributes_data in data["product"]["attributes"]
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": date_time_attribute.slug},
+        "datetime": str(value.isoformat()),
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 @freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_create_product_with_date_attribute(
@@ -870,6 +1033,13 @@ def test_create_product_with_date_attribute(
 
     assert expected_attributes_data in data["product"]["attributes"]
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": date_attribute.slug},
+        "date": str(value),
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_product_no_value_for_date_attribute(
     staff_api_client,
@@ -912,6 +1082,13 @@ def test_create_product_no_value_for_date_attribute(
         "values": [],
     }
     assert expected_attributes_data in data["product"]["attributes"]
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": date_attribute.slug},
+        "date": None,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_product_with_boolean_attribute(
@@ -973,6 +1150,13 @@ def test_create_product_with_boolean_attribute(
     }
     assert expected_attributes_data in data["product"]["attributes"]
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": boolean_attribute.slug},
+        "bool": False,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_product_no_value_for_boolean_attribute(
     staff_api_client,
@@ -1015,6 +1199,13 @@ def test_create_product_no_value_for_boolean_attribute(
         "values": [],
     }
     assert expected_attributes_data in data["product"]["attributes"]
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": boolean_attribute.slug},
+        "bool": None,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 @pytest.mark.parametrize("input_slug", ["", None])
@@ -1467,6 +1658,7 @@ def test_create_product_with_file_attribute(
     query = CREATE_PRODUCT_MUTATION
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
     product_slug = "product-test-slug"
@@ -1529,6 +1721,16 @@ def test_create_product_with_file_attribute(
 
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count + 1
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_product_with_page_reference_attribute(
@@ -1603,6 +1805,13 @@ def test_create_product_with_page_reference_attribute(
     product_type_page_reference_attribute.refresh_from_db()
     assert product_type_page_reference_attribute.values.count() == values_count + 1
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_page_reference_attribute.slug},
+        "pages": [{"slug": page.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_product_with_product_reference_attribute(
     staff_api_client,
@@ -1675,6 +1884,13 @@ def test_create_product_with_product_reference_attribute(
 
     product_type_product_reference_attribute.refresh_from_db()
     assert product_type_product_reference_attribute.values.count() == values_count + 1
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_product_with_variant_reference_attribute(
@@ -1753,6 +1969,13 @@ def test_create_product_with_variant_reference_attribute(
     product_type_variant_reference_attribute.refresh_from_db()
     assert product_type_variant_reference_attribute.values.count() == values_count + 1
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant.sku}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_product_with_category_reference_attribute(
     staff_api_client,
@@ -1826,6 +2049,13 @@ def test_create_product_with_category_reference_attribute(
 
     product_type_category_reference_attribute.refresh_from_db()
     assert product_type_category_reference_attribute.values.count() == values_count + 1
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_category_reference_attribute.slug},
+        "categories": [{"slug": category.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_product_with_collection_reference_attribute(
@@ -1903,6 +2133,13 @@ def test_create_product_with_collection_reference_attribute(
     assert (
         product_type_collection_reference_attribute.values.count() == values_count + 1
     )
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_collection_reference_attribute.slug},
+        "collections": [{"slug": collection.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_product_with_single_reference_attributes(
@@ -2017,6 +2254,34 @@ def test_create_product_with_single_reference_attributes(
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+
+    expected_assigned_page_attribute = {
+        "attribute": {"slug": product_type_page_single_reference_attribute.slug},
+        "page": {"slug": page.slug},
+    }
+    expected_assigned_product_attribute = {
+        "attribute": {"slug": product_type_product_single_reference_attribute.slug},
+        "product": {"slug": product.slug},
+    }
+    expected_assigned_variant_attribute = {
+        "attribute": {"slug": product_type_variant_single_reference_attribute.slug},
+        "variant": {"sku": product_variant_list[0].sku},
+    }
+    expected_assigned_category_attribute = {
+        "attribute": {"slug": product_type_category_single_reference_attribute.slug},
+        "category": {"slug": categories[0].slug},
+    }
+    expected_assigned_collection_attribute = {
+        "attribute": {"slug": product_type_collection_single_reference_attribute.slug},
+        "collection": {"slug": collection.slug},
+    }
+    assert expected_assigned_page_attribute in assigned_attributes
+    assert expected_assigned_product_attribute in assigned_attributes
+    assert expected_assigned_variant_attribute in assigned_attributes
+    assert expected_assigned_category_attribute in assigned_attributes
+    assert expected_assigned_collection_attribute in assigned_attributes
+
 
 def test_create_product_with_product_reference_attribute_values_saved_in_order(
     staff_api_client,
@@ -2083,6 +2348,12 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
         }
         for product, reference in zip(reference_instances, reference_ids, strict=False)
     ]
+    expected_assigned_attribute = [
+        {
+            "attribute": {"slug": product_type_product_reference_attribute.slug},
+            "products": [{"slug": product.slug} for product in reference_instances],
+        }
+    ]
 
     assert len(data["product"]["attributes"]) == 1
     attribute_data = data["product"]["attributes"][0]
@@ -2095,6 +2366,13 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
 
     product_type_product_reference_attribute.refresh_from_db()
     assert product_type_product_reference_attribute.values.count() == values_count + 3
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug} for product in reference_instances],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_product_with_page_reference_attribute_and_invalid_product_one(
@@ -2221,6 +2499,21 @@ def test_create_product_with_file_attribute_new_attribute_value(
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count + 1
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_choice_attribute = {
+        "attribute": {"slug": color_attribute.slug},
+        "choice": None,
+    }
+    expected_assigned_file_attribute = {
+        "attribute": {"slug": file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": None,
+        },
+    }
+    assert expected_assigned_choice_attribute in assigned_attributes
+    assert expected_assigned_file_attribute in assigned_attributes
+
 
 def test_create_product_with_file_attribute_not_required_no_file_url_given(
     staff_api_client,
@@ -2274,6 +2567,18 @@ def test_create_product_with_file_attribute_not_required_no_file_url_given(
         assert attr_data in expected_attributes_data
 
     file_attribute.refresh_from_db()
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_choice_attribute = {
+        "attribute": {"slug": color_attribute.slug},
+        "choice": None,
+    }
+    expected_assigned_file_attribute = {
+        "attribute": {"slug": file_attribute.slug},
+        "file": None,
+    }
+    assert expected_assigned_choice_attribute in assigned_attributes
+    assert expected_assigned_file_attribute in assigned_attributes
 
 
 def test_create_product_with_file_attribute_required_no_file_url_given(
@@ -2468,11 +2773,13 @@ def test_create_product_no_values_given(
     assert data["product"]["category"]["name"] == category.name
     assert len(data["product"]["attributes"]) == 1
     assert data["product"]["attributes"][0]["values"] == []
+    assert len(data["product"]["assignedAttributes"]) == 1
+    assert data["product"]["assignedAttributes"][0]["choice"] is None
 
 
 @pytest.mark.parametrize(
     ("value", "expected_name", "expected_slug"),
-    [(20.1, "20.1", "20_1"), (20, "20", "20"), ("1", "1", "1")],
+    [(20.1, "20.1", "20_1"), (20, "20", "20"), (1, "1", "1")],
 )
 def test_create_product_with_numeric_attribute_new_attribute_value(
     value,
@@ -2529,6 +2836,13 @@ def test_create_product_with_numeric_attribute_new_attribute_value(
     assert len(values) == 1
     assert values[0]["name"] == expected_name
     assert values[0]["slug"] == f"{product_pk}_{numeric_attribute.id}"
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": numeric_attribute.slug},
+        "value": value,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     numeric_attribute.refresh_from_db()
     assert numeric_attribute.values.filter(name=expected_name, numeric=value).exists()
@@ -2589,6 +2903,13 @@ def test_create_product_with_numeric_attribute_existing_value(
     numeric_attribute.refresh_from_db()
     assert numeric_attribute.values.count() == values_count + 1
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": numeric_attribute.slug},
+        "value": existing_value.numeric,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_product_with_swatch_attribute_new_attribute_value(
     staff_api_client,
@@ -2643,6 +2964,18 @@ def test_create_product_with_swatch_attribute_new_attribute_value(
 
     swatch_attribute.refresh_from_db()
     assert swatch_attribute.values.count() == values_count + 1
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": swatch_attribute.slug},
+        "swatch": {
+            "name": new_value,
+            "slug": slugify(new_value),
+            "hexColor": None,
+            "file": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_product_with_swatch_attribute_new_value_using_values_field(
@@ -2701,6 +3034,18 @@ def test_create_product_with_swatch_attribute_new_value_using_values_field(
     swatch_attribute.refresh_from_db()
     assert swatch_attribute.values.count() == values_count + 1
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": swatch_attribute.slug},
+        "swatch": {
+            "name": new_value,
+            "slug": slugify(new_value),
+            "hexColor": None,
+            "file": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_product_with_swatch_attribute_existing_value(
     staff_api_client,
@@ -2757,6 +3102,18 @@ def test_create_product_with_swatch_attribute_existing_value(
     swatch_attribute.refresh_from_db()
     assert swatch_attribute.values.count() == values_count
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": swatch_attribute.slug},
+        "swatch": {
+            "name": existing_value.name,
+            "slug": existing_value.slug,
+            "hexColor": existing_value.value,
+            "file": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_product_with_swatch_attribute_existing_value_using_values_field(
     staff_api_client,
@@ -2811,6 +3168,18 @@ def test_create_product_with_swatch_attribute_existing_value_using_values_field(
 
     swatch_attribute.refresh_from_db()
     assert swatch_attribute.values.count() == values_count
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": swatch_attribute.slug},
+        "swatch": {
+            "name": existing_value.name,
+            "slug": existing_value.slug,
+            "hexColor": existing_value.value,
+            "file": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_product_with_numeric_attribute_not_numeric_value_given(

@@ -26,41 +26,119 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 UPDATE_PAGE_MUTATION = """
-    mutation updatePage(
-        $id: ID!, $input: PageInput!
-    ) {
-        pageUpdate(
-            id: $id, input: $input
-        ) {
-            page {
-                id
-                title
-                slug
-                isPublished
-                publishedAt
-                attributes {
-                    attribute {
-                        slug
-                    }
-                    values {
-                        slug
-                        name
-                        reference
-                        file {
-                            url
-                            contentType
-                        }
-                        plainText
-                    }
-                }
-            }
-            errors {
-                field
-                code
-                message
-            }
+mutation updatePage($id: ID!, $input: PageInput!) {
+  pageUpdate(id: $id, input: $input) {
+    page {
+      id
+      title
+      slug
+      isPublished
+      publishedAt
+      assignedAttributes(limit:10) {
+        attribute {
+          slug
         }
+        ... on AssignedSingleChoiceAttribute {
+          choice: value {
+            name
+            slug
+          }
+        }
+        ... on AssignedNumericAttribute {
+          value
+        }
+        ... on AssignedFileAttribute {
+          file: value {
+            contentType
+            url
+          }
+        }
+        ... on AssignedMultiPageReferenceAttribute {
+          pages: value {
+            slug
+          }
+        }
+        ... on AssignedDateAttribute {
+          date: value
+        }
+        ... on AssignedDateTimeAttribute {
+          datetime: value
+        }
+        ... on AssignedTextAttribute {
+          text: value
+        }
+        ... on AssignedPlainTextAttribute {
+          plain_text: value
+        }
+        ... on AssignedMultiProductReferenceAttribute {
+          products: value {
+            slug
+          }
+        }
+        ... on AssignedMultiProductVariantReferenceAttribute {
+          variants: value {
+            sku
+          }
+        }
+        ... on AssignedMultiCategoryReferenceAttribute {
+          categories: value {
+            slug
+          }
+        }
+        ... on AssignedMultiCollectionReferenceAttribute {
+          collections: value {
+            slug
+          }
+        }
+        ... on AssignedSingleCategoryReferenceAttribute {
+          category: value {
+            slug
+          }
+        }
+        ... on AssignedSingleCollectionReferenceAttribute {
+          collection: value {
+            slug
+          }
+        }
+        ... on AssignedSinglePageReferenceAttribute {
+          page: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductReferenceAttribute {
+          product: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductVariantReferenceAttribute {
+          variant: value {
+            sku
+          }
+        }
+      }
+      attributes {
+        attribute {
+          slug
+        }
+        values {
+          slug
+          name
+          reference
+          file {
+            url
+            contentType
+          }
+          plainText
+        }
+      }
     }
+    errors {
+      field
+      code
+      message
+    }
+  }
+}
 """
 
 
@@ -101,23 +179,24 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
 
-    expected_attributes = []
-    for attr in page_type.page_attributes.all():
-        if attr.slug != tag_attr.slug:
-            values = [
+    size_attr, tag_attr = page_type.page_attributes.all()
+    size_attr_value = get_page_attribute_values(page, size_attr).get()
+    expected_attributes = [
+        {
+            "attribute": {"slug": size_attr.slug},
+            "values": [
                 {
-                    "slug": slug,
+                    "slug": size_attr_value.slug,
                     "file": None,
-                    "name": name,
+                    "name": size_attr_value.name,
                     "reference": None,
                     "plainText": None,
                 }
-                for slug, name in get_page_attribute_values(page, attr).values_list(
-                    "slug", "name"
-                )
-            ]
-        else:
-            values = [
+            ],
+        },
+        {
+            "attribute": {"slug": tag_attr.slug},
+            "values": [
                 {
                     "slug": slugify(new_value),
                     "file": None,
@@ -125,17 +204,32 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
                     "plainText": None,
                     "reference": None,
                 }
-            ]
-        attr_data = {
-            "attribute": {"slug": attr.slug},
-            "values": values,
-        }
-        expected_attributes.append(attr_data)
+            ],
+        },
+    ]
 
     attributes = data["page"]["attributes"]
     assert len(attributes) == len(expected_attributes)
     for attr_data in attributes:
         assert attr_data in expected_attributes
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_size_assigned_attribute = {
+        "attribute": {"slug": size_attr.slug},
+        "choice": {
+            "name": size_attr_value.name,
+            "slug": size_attr_value.slug,
+        },
+    }
+    expected_tag_assigned_attribute = {
+        "attribute": {"slug": tag_attr.slug},
+        "choice": {
+            "name": new_value,
+            "slug": slugify(new_value),
+        },
+    }
+    assert expected_size_assigned_attribute in assigned_attributes
+    assert expected_tag_assigned_attribute in assigned_attributes
 
 
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
@@ -229,30 +323,46 @@ def test_update_page_only_title(staff_api_client, permission_manage_pages, page)
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
 
-    expected_attributes = []
-    for attr in page_type.page_attributes.all():
-        values = [
-            {
-                "slug": slug,
-                "file": None,
-                "name": name,
-                "reference": None,
-                "plainText": None,
-            }
-            for slug, name in get_page_attribute_values(page, attr).values_list(
-                "slug", "name"
-            )
-        ]
-        attr_data = {
-            "attribute": {"slug": attr.slug},
-            "values": values,
-        }
-        expected_attributes.append(attr_data)
+    size_attr, tag_attr = page_type.page_attributes.all()
+    size_attr_value = get_page_attribute_values(page, size_attr).get()
+    expected_attributes = [
+        {
+            "attribute": {"slug": size_attr.slug},
+            "values": [
+                {
+                    "slug": size_attr_value.slug,
+                    "file": None,
+                    "name": size_attr_value.name,
+                    "reference": None,
+                    "plainText": None,
+                }
+            ],
+        },
+        {
+            "attribute": {"slug": tag_attr.slug},
+            "values": [],
+        },
+    ]
 
     attributes = data["page"]["attributes"]
     assert len(attributes) == len(expected_attributes)
     for attr_data in attributes:
         assert attr_data in expected_attributes
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_size_assigned_attribute = {
+        "attribute": {"slug": size_attr.slug},
+        "choice": {
+            "name": size_attr_value.name,
+            "slug": size_attr_value.slug,
+        },
+    }
+    expected_tag_assigned_attribute = {
+        "attribute": {"slug": tag_attr.slug},
+        "choice": None,
+    }
+    assert expected_size_assigned_attribute in assigned_attributes
+    assert expected_tag_assigned_attribute in assigned_attributes
 
 
 def test_update_page_with_file_attribute_value(
@@ -303,6 +413,16 @@ def test_update_page_with_file_attribute_value(
         ],
     }
     assert updated_attribute in data["page"]["attributes"]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_update_page_with_file_attribute_new_value_is_not_created(
@@ -357,6 +477,16 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
     }
     assert updated_attribute in data["page"]["attributes"]
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": existing_value.content_type,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_update_page_clear_file_attribute_values(
     staff_api_client, permission_manage_pages, page, page_file_attribute
@@ -403,6 +533,13 @@ def test_update_page_clear_file_attribute_values(
         if attr["attribute"]["slug"] == attribute.slug
     ][0]
     assert not attr_data["values"]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_file_attribute.slug},
+        "file": None,
+    }
+    assert expected_assigned_attribute in assigned_attributes
     assert not get_page_attribute_values(page, page_file_attribute).exists()
 
 
@@ -457,6 +594,13 @@ def test_update_page_with_page_reference_attribute_new_value(
         ],
     }
     assert updated_attribute in data["page"]["attributes"]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_page_reference_attribute.slug},
+        "pages": [{"slug": ref_page.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     page_type_page_reference_attribute.refresh_from_db()
     assert page_type_page_reference_attribute.values.count() == values_count + 1
@@ -524,6 +668,13 @@ def test_update_page_with_page_reference_attribute_existing_value(
     }
     assert updated_attribute in data["page"]["attributes"]
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_page_reference_attribute.slug},
+        "pages": [{"slug": ref_page.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_type_page_reference_attribute.refresh_from_db()
     assert page_type_page_reference_attribute.values.count() == values_count
 
@@ -578,6 +729,13 @@ def test_update_page_with_plain_text_attribute_new_value(
         ],
     }
     assert updated_attribute in data["page"]["attributes"]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": plain_text_attribute_page_type.slug},
+        "plain_text": text,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     plain_text_attribute_page_type.refresh_from_db()
     assert plain_text_attribute_page_type.values.count() == values_count + 1
@@ -637,6 +795,13 @@ def test_update_page_with_plain_text_attribute_existing_value(
         ],
     }
     assert updated_attribute in data["page"]["attributes"]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": plain_text_attribute_page_type.slug},
+        "plain_text": text,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     plain_text_attribute_page_type.refresh_from_db()
     assert plain_text_attribute_page_type.values.count() == values_count
@@ -741,6 +906,13 @@ def test_update_page_with_product_reference_attribute_new_value(
     }
     assert updated_attribute in data["page"]["attributes"]
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_type_product_reference_attribute.refresh_from_db()
     assert page_type_product_reference_attribute.values.count() == values_count + 1
 
@@ -807,6 +979,13 @@ def test_update_page_with_product_reference_attribute_existing_value(
     }
     assert updated_attribute in data["page"]["attributes"]
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_type_product_reference_attribute.refresh_from_db()
     assert page_type_product_reference_attribute.values.count() == values_count
 
@@ -861,6 +1040,13 @@ def test_update_page_with_variant_reference_attribute_new_value(
         ],
     }
     assert updated_attribute in data["page"]["attributes"]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant.sku}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     page_type_variant_reference_attribute.refresh_from_db()
     assert page_type_variant_reference_attribute.values.count() == values_count + 1
@@ -928,6 +1114,13 @@ def test_update_page_with_variant_reference_attribute_existing_value(
     }
     assert updated_attribute in data["page"]["attributes"]
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant.sku}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_type_variant_reference_attribute.refresh_from_db()
     assert page_type_variant_reference_attribute.values.count() == values_count
 
@@ -981,6 +1174,13 @@ def test_update_page_with_category_reference_attribute_new_value(
     }
     assert updated_attribute in data["page"]["attributes"]
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_category_reference_attribute.slug},
+        "categories": [{"slug": category.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_type_category_reference_attribute.refresh_from_db()
     assert page_type_category_reference_attribute.values.count() == values_count + 1
 
@@ -1033,6 +1233,13 @@ def test_update_page_with_collection_reference_attribute_new_value(
         ],
     }
     assert updated_attribute in data["page"]["attributes"]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_collection_reference_attribute.slug},
+        "collections": [{"slug": collection.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     page_type_collection_reference_attribute.refresh_from_db()
     assert page_type_collection_reference_attribute.values.count() == values_count + 1
@@ -1158,6 +1365,41 @@ UPDATE_PAGE_ATTRIBUTES_MUTATION = """
                 id
                 title
                 slug
+                assignedAttributes(limit:10) {
+                    attribute {
+                        slug
+                    }
+                    ... on AssignedMultiProductReferenceAttribute {
+                        products: value {
+                            slug
+                        }
+                    }
+                    ... on AssignedSingleCategoryReferenceAttribute {
+                        category: value {
+                            slug
+                        }
+                    }
+                    ... on AssignedSingleCollectionReferenceAttribute {
+                        collection: value {
+                            slug
+                        }
+                    }
+                    ... on AssignedSinglePageReferenceAttribute {
+                        page: value {
+                            slug
+                        }
+                    }
+                    ... on AssignedSingleProductReferenceAttribute {
+                        product: value {
+                            slug
+                        }
+                    }
+                    ... on AssignedSingleProductVariantReferenceAttribute {
+                        variant: value {
+                            sku
+                        }
+                    }
+                }
                 attributes {
                     attribute {
                         slug
@@ -1240,7 +1482,15 @@ def test_update_page_change_attribute_values_ordering(
         get_page_attribute_values(page, attribute).values_list("id", flat=True)
     ) == [attr_value_3.pk, attr_value_2.pk, attr_value_1.pk]
 
-    new_ref_order = [product_list[1], product_list[0], product_list[2]]
+    expected_first_product = product_list[1]
+    expected_second_product = product_list[0]
+    expected_third_product = product_list[2]
+
+    new_ref_order = [
+        expected_first_product,
+        expected_second_product,
+        expected_third_product,
+    ]
     variables = {
         "id": page_id,
         "input": {
@@ -1277,6 +1527,14 @@ def test_update_page_change_attribute_values_ordering(
         graphene.Node.to_global_id("AttributeValue", val.pk)
         for val in [attr_value_2, attr_value_1, attr_value_3]
     ]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    assert len(assigned_attributes) == 1
+    assigned_values = assigned_attributes[0]["products"]
+    assert len(assigned_values) == 3
+    assert assigned_values[0]["slug"] == expected_first_product.slug
+    assert assigned_values[1]["slug"] == expected_second_product.slug
+    assert assigned_values[2]["slug"] == expected_third_product.slug
 
     assert list(
         get_page_attribute_values(page, attribute).values_list("id", flat=True)
@@ -1417,6 +1675,34 @@ def test_update_page_with_single_reference_attributes(
     for attr_data in attributes_data:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+
+    expected_assigned_page_attribute = {
+        "attribute": {"slug": page_type_page_single_reference_attribute.slug},
+        "page": {"slug": page_ref.slug},
+    }
+    expected_assigned_product_attribute = {
+        "attribute": {"slug": page_type_product_single_reference_attribute.slug},
+        "product": {"slug": product.slug},
+    }
+    expected_assigned_variant_attribute = {
+        "attribute": {"slug": page_type_variant_single_reference_attribute.slug},
+        "variant": {"sku": product_variant_list[0].sku},
+    }
+    expected_assigned_category_attribute = {
+        "attribute": {"slug": page_type_category_single_reference_attribute.slug},
+        "category": {"slug": categories[0].slug},
+    }
+    expected_assigned_collection_attribute = {
+        "attribute": {"slug": page_type_collection_single_reference_attribute.slug},
+        "collection": {"slug": collection.slug},
+    }
+    assert expected_assigned_page_attribute in assigned_attributes
+    assert expected_assigned_product_attribute in assigned_attributes
+    assert expected_assigned_variant_attribute in assigned_attributes
+    assert expected_assigned_category_attribute in assigned_attributes
+    assert expected_assigned_collection_attribute in assigned_attributes
+
 
 def test_update_page_with_numeric_attribute(
     staff_api_client, permission_manage_pages, page, numeric_attribute
@@ -1459,6 +1745,13 @@ def test_update_page_with_numeric_attribute(
     assert len(attributes[0]["values"]) == 1
     assert attributes[0]["values"][0]["slug"] == f"{page.pk}_{numeric_attribute.pk}"
     assert attributes[0]["values"][0]["name"] == numeric_name
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": numeric_attribute.slug},
+        "value": numeric_value,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     assert numeric_attribute.values.filter(
         name=numeric_name,

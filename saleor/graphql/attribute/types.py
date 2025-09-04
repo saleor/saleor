@@ -1,19 +1,25 @@
+from datetime import date, datetime
+from typing import cast
+
 import graphene
 from promise import Promise
 
-from ...attribute import AttributeInputType, models
+from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...page import models as page_models
 from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
 )
+from ...product import models as product_models
 from ..core import ResolveInfo
 from ..core.connection import (
     CountableConnection,
     create_connection_slice,
     filter_connection_queryset,
 )
+from ..core.const import DEFAULT_NESTED_LIST_LIMIT
 from ..core.context import (
     ChannelContext,
     ChannelQsContext,
@@ -25,11 +31,12 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
-from ..core.enums import MeasurementUnitsEnum
+from ..core.enums import LanguageCodeEnum, MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
-from ..core.scalars import Date, DateTime
+from ..core.scalars import JSON, Date, DateTime, PositiveInt
 from ..core.types import (
     BaseInputObjectType,
+    BaseInterface,
     BaseObjectType,
     DateRangeInput,
     DateTimeRangeInput,
@@ -41,7 +48,15 @@ from ..core.types.context import ChannelContextType, ChannelContextTypeForObject
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
-from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
+from ..product.dataloaders.products import (
+    CategoryByIdLoader,
+    CollectionByIdLoader,
+    ProductByIdLoader,
+    ProductVariantByIdLoader,
+)
+from ..translations.dataloaders import (
+    AttributeValueTranslationByIdAndLanguageCodeLoader,
+)
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributesByAttributeId
@@ -54,7 +69,7 @@ from .filters import (
 )
 from .shared_filters import AssignedAttributeValueInput
 from .sorters import AttributeChoicesSortingInput
-from .utils.shared import ENTITY_TYPE_MAPPING
+from .utils.shared import ENTITY_TYPE_MAPPING, AssignedAttributeData
 
 
 def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
@@ -496,22 +511,6 @@ class AssignedVariantAttribute(BaseObjectType):
         doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
-class SelectedAttribute(ChannelContextTypeForObjectType):
-    attribute = graphene.Field(
-        Attribute,
-        default_value=None,
-        description=AttributeDescriptions.NAME,
-        required=True,
-    )
-    values = NonNullList(
-        AttributeValue, description="Values of an attribute.", required=True
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = "Represents an assigned attribute to an object."
-
-
 class AttributeInput(BaseInputObjectType):
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     value = AssignedAttributeValueInput(
@@ -656,3 +655,791 @@ class AttributeValueInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
+class SelectedAttribute(ChannelContextTypeForObjectType):
+    attribute = graphene.Field(
+        Attribute,
+        default_value=None,
+        description=AttributeDescriptions.NAME,
+        required=True,
+    )
+    values = NonNullList(
+        AttributeValue, description="Values of an attribute.", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+        description = "Represents an assigned attribute to an object."
+
+
+class AssignedAttribute(BaseInterface):
+    attribute = graphene.Field(
+        Attribute,
+        default_value=None,
+        description="Attribute assigned to an object.",
+        required=True,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+        description = "Represents an attribute assigned to an object." + ADDED_IN_322
+
+    @staticmethod
+    def resolve_type(instance: AssignedAttributeData, _info):
+        if instance.attribute.node.input_type == AttributeInputType.SINGLE_REFERENCE:
+            entity_type = cast(str, instance.attribute.node.entity_type)
+            return ASSIGNED_SINGLE_REFERENCE_MAP.get(entity_type)
+        if instance.attribute.node.input_type == AttributeInputType.REFERENCE:
+            entity_type = cast(str, instance.attribute.node.entity_type)
+            return ASSIGNED_MULTI_REFERENCE_MAP.get(entity_type)
+        attr_type = ASSIGNED_ATTRIBUTE_MAP[instance.attribute.node.input_type]
+        return attr_type
+
+
+class AssignedNumericAttribute(BaseObjectType):
+    value = graphene.Float(
+        required=False,
+        description="The assigned numeric value.",
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents a numeric value of an attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> float | None:
+        if not root.values:
+            return None
+
+        attr_value = root.values[0].node
+        return attr_value.numeric
+
+
+class AssignedTextAttribute(BaseObjectType):
+    value = graphene.Field(
+        JSON,
+        description="The assigned rich text content.",
+        required=False,
+    )
+
+    translation = graphene.Field(
+        JSON,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            required=True,
+        ),
+        description="Translation of the rich text content in the specified language.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents text attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> JSON | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.rich_text
+
+    @staticmethod
+    def resolve_translation(
+        root: AssignedAttributeData, info: ResolveInfo, *, language_code
+    ) -> Promise[JSON | None] | None:
+        if not root.values:
+            return None
+
+        def _wrap_translation(
+            translation: AttributeValueTranslation | None,
+        ) -> JSON | None:
+            if translation is None:
+                return None
+            return translation.rich_text
+
+        return (
+            AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
+            .load((root.values[0].node.id, language_code))
+            .then(_wrap_translation)
+        )
+
+
+class AssignedPlainTextAttribute(BaseObjectType):
+    value = graphene.String(
+        description="The assigned plain text content.",
+        required=False,
+    )
+
+    translation = graphene.Field(
+        graphene.String,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            required=True,
+        ),
+        description="Translation of the plain text content in the specified language.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents plain text attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> str | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.plain_text
+
+    @staticmethod
+    def resolve_translation(
+        root: AssignedAttributeData, info: ResolveInfo, *, language_code
+    ) -> Promise[str | None] | None:
+        if not root.values:
+            return None
+
+        def _wrap_translation(
+            translation: AttributeValueTranslation | None,
+        ) -> str | None:
+            if translation is None:
+                return None
+            return translation.plain_text
+
+        return (
+            AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
+            .load((root.values[0].node.id, language_code))
+            .then(_wrap_translation)
+        )
+
+
+class AssignedFileAttribute(BaseObjectType):
+    value = graphene.Field(File, description="The assigned file.", required=False)
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents file attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> File | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return File(url=attr_value.file_url, content_type=attr_value.content_type)
+
+
+class AssignedSinglePageReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.page.types.Page",
+        description="The assigned page reference.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents single page reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData, info: ResolveInfo
+    ) -> Promise[ChannelContext[page_models.Page]] | None:
+        if not root.values:
+            return None
+
+        channel_slug = root.attribute.channel_slug
+        attr_value = root.values[0].node
+
+        return (
+            PageByIdLoader(info.context)
+            .load(attr_value.reference_page_id)
+            .then(lambda page: ChannelContext(node=page, channel_slug=channel_slug))
+        )
+
+
+class AssignedSingleProductReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.product.types.Product",
+        description="The assigned product reference.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents single product reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData, info: ResolveInfo
+    ) -> Promise[ChannelContext[product_models.Product]] | None:
+        if not root.values:
+            return None
+
+        channel_slug = root.attribute.channel_slug
+        attr_value = root.values[0].node
+
+        return (
+            ProductByIdLoader(info.context)
+            .load(attr_value.reference_product_id)
+            .then(
+                lambda product: ChannelContext(node=product, channel_slug=channel_slug)
+            )
+        )
+
+
+class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant",
+        description="The assigned product variant reference.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = (
+            "Represents single product variant reference attribute." + ADDED_IN_322
+        )
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData, info: ResolveInfo
+    ) -> Promise[ChannelContext[product_models.ProductVariant]] | None:
+        if not root.values:
+            return None
+
+        channel_slug = root.attribute.channel_slug
+        attr_value = root.values[0].node
+
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(attr_value.reference_variant_id)
+            .then(
+                lambda product_variant: ChannelContext(
+                    node=product_variant, channel_slug=channel_slug
+                )
+            )
+        )
+
+
+class AssignedSingleCategoryReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.product.types.Category",
+        description="The assigned category reference.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents single category reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData, info: ResolveInfo
+    ) -> Promise[product_models.Category] | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return CategoryByIdLoader(info.context).load(attr_value.reference_category_id)
+
+
+class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
+    value = graphene.Field(
+        "saleor.graphql.product.types.Collection",
+        description="The assigned collection reference.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents single collection reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData, info: ResolveInfo
+    ) -> Promise[ChannelContext[product_models.Collection]] | None:
+        if not root.values:
+            return None
+
+        channel_slug = root.attribute.channel_slug
+        attr_value = root.values[0].node
+
+        return (
+            CollectionByIdLoader(info.context)
+            .load(attr_value.reference_collection_id)
+            .then(
+                lambda collection: ChannelContext(
+                    node=collection, channel_slug=channel_slug
+                )
+            )
+        )
+
+
+class AssignedMultiPageReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.page.types.Page",
+        description="List of assigned page references.",
+        required=True,
+        limit=PositiveInt(
+            description=(
+                "Maximum number of referenced pages to return. "
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents multi page reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
+    ) -> Promise[list[ChannelContext[page_models.Page]]]:
+        if not root.values:
+            return Promise.resolve([])
+
+        channel_slug = root.attribute.channel_slug
+        attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
+
+        def _wrap_with_channel_context(
+            pages: list[page_models.Page],
+        ) -> list[ChannelContext[page_models.Page]]:
+            if not pages:
+                return []
+            return [
+                ChannelContext(node=page, channel_slug=channel_slug) for page in pages
+            ]
+
+        return (
+            PageByIdLoader(info.context)
+            .load_many([value.reference_page_id for value in attr_values])
+            .then(_wrap_with_channel_context)
+        )
+
+
+class AssignedMultiProductReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.product.types.Product",
+        description="List of assigned product references.",
+        required=True,
+        limit=PositiveInt(
+            description=(
+                "Maximum number of referenced products to return. "
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents multi product reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
+    ) -> Promise[list[ChannelContext[product_models.Product]]]:
+        if not root.values:
+            return Promise.resolve([])
+
+        channel_slug = root.attribute.channel_slug
+        attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
+
+        def _wrap_with_channel_context(
+            products: list[product_models.Product],
+        ) -> list[ChannelContext[product_models.Product]]:
+            if not products:
+                return []
+            return [
+                ChannelContext(node=product, channel_slug=channel_slug)
+                for product in products
+            ]
+
+        return (
+            ProductByIdLoader(info.context)
+            .load_many([value.reference_product_id for value in attr_values])
+            .then(_wrap_with_channel_context)
+        )
+
+
+class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.product.types.ProductVariant",
+        description="List of assigned product variant references.",
+        required=True,
+        limit=PositiveInt(
+            description=(
+                "Maximum number of referenced product variants to return. "
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = (
+            "Represents multi product variant reference attribute." + ADDED_IN_322
+        )
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
+    ) -> Promise[list[ChannelContext[product_models.ProductVariant]]]:
+        if not root.values:
+            return Promise.resolve([])
+
+        channel_slug = root.attribute.channel_slug
+        attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
+
+        def _wrap_with_channel_context(
+            variants: list[product_models.ProductVariant],
+        ) -> list[ChannelContext[product_models.ProductVariant]]:
+            if not variants:
+                return []
+            return [
+                ChannelContext(node=variant, channel_slug=channel_slug)
+                for variant in variants
+            ]
+
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load_many([value.reference_variant_id for value in attr_values])
+            .then(_wrap_with_channel_context)
+        )
+
+
+class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.product.types.Category",
+        description="List of assigned category references.",
+        required=True,
+        limit=PositiveInt(
+            description=(
+                "Maximum number of referenced categories to return. "
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents multi category reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
+    ) -> Promise[list[product_models.Category]]:
+        if not root.values:
+            return Promise.resolve([])
+        attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
+
+        return CategoryByIdLoader(info.context).load_many(
+            [value.reference_category_id for value in attr_values]
+        )
+
+
+class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
+    value = NonNullList(
+        "saleor.graphql.product.types.Collection",
+        description="List of assigned collection references.",
+        required=True,
+        limit=PositiveInt(
+            description=(
+                "Maximum number of referenced collections to return. "
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}"
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents multi collection reference attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
+    ) -> Promise[list[ChannelContext[product_models.Collection]]]:
+        if not root.values:
+            return Promise.resolve([])
+
+        channel_slug = root.attribute.channel_slug
+        attr_values = [value.node for value in root.values]
+        attr_values = attr_values[:limit]
+
+        def _wrap_with_channel_context(
+            collections: list[product_models.Collection],
+        ) -> list[ChannelContext[product_models.Collection]]:
+            if not collections:
+                return []
+            return [
+                ChannelContext(node=collection, channel_slug=channel_slug)
+                for collection in collections
+            ]
+
+        return (
+            CollectionByIdLoader(info.context)
+            .load_many([value.reference_collection_id for value in attr_values])
+            .then(_wrap_with_channel_context)
+        )
+
+
+class AssignedChoiceAttributeValue(BaseObjectType):
+    name = graphene.String(description=AttributeValueDescriptions.NAME)
+    slug = graphene.String(description=AttributeValueDescriptions.SLUG)
+    translation = graphene.String(
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            required=True,
+        ),
+        description="Translation of the name.",
+        required=False,
+    )
+
+    class Meta:
+        description = (
+            "Represents a single choice value of the attribute." + ADDED_IN_322
+        )
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_translation(
+        root: AttributeValue, info: ResolveInfo, *, language_code
+    ) -> Promise[str | None] | None:
+        return (
+            AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
+            .load((root.id, language_code))
+            .then(lambda translation: translation.name if translation else None)
+        )
+
+
+class AssignedSingleChoiceAttribute(BaseObjectType):
+    value = graphene.Field(
+        AssignedChoiceAttributeValue,
+        required=False,
+        description="The assigned choice value.",
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents a single choice attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    def resolve_value(
+        root: AssignedAttributeData, info: ResolveInfo
+    ) -> models.AttributeValue | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value
+
+
+class AssignedMultiChoiceAttribute(BaseObjectType):
+    value = NonNullList(
+        AssignedChoiceAttributeValue,
+        required=True,
+        description="List of assigned choice values.",
+        limit=PositiveInt(
+            description=(
+                "Maximum number of choices to return. "
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents a multi choice attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
+    ) -> list[models.AttributeValue]:
+        values = root.values[:limit]
+        return [value.node for value in values]
+
+
+class AssignedSwatchAttributeValue(BaseObjectType):
+    name = graphene.String(
+        description="Name of the selected swatch value. ",
+        required=False,
+    )
+    slug = graphene.String(
+        description="Slug of the selected swatch value.",
+        required=False,
+    )
+    hex_color = graphene.String(
+        required=False,
+        description="Hex color code.",
+    )
+    file = graphene.Field(
+        File, description="File associated with the attribute.", required=False
+    )
+
+    @staticmethod
+    def resolve_hex_color(
+        root: models.AttributeValue, _info: ResolveInfo
+    ) -> str | None:
+        if not root.value:
+            return None
+        return root.value
+
+    @staticmethod
+    def resolve_file(root: models.AttributeValue, _info: ResolveInfo) -> File | None:
+        if not root.file_url:
+            return None
+        return File(url=root.file_url, content_type=root.content_type)
+
+    class Meta:
+        description = "Represents a single swatch value." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
+class AssignedSwatchAttribute(BaseObjectType):
+    value = graphene.Field(
+        AssignedSwatchAttributeValue,
+        required=False,
+        description="The assigned swatch value.",
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents a swatch attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData, _info: ResolveInfo
+    ) -> models.AttributeValue | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value
+
+
+class AssignedBooleanAttribute(BaseObjectType):
+    value = graphene.Boolean(
+        description="The assigned boolean value.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents a boolean attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> bool | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.boolean
+
+
+class AssignedDateAttribute(BaseObjectType):
+    value = graphene.Field(
+        Date,
+        description="The assigned date value.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents a date attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(root: AssignedAttributeData, _info: ResolveInfo) -> date | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.date_time.date() if attr_value.date_time else None
+
+
+class AssignedDateTimeAttribute(BaseObjectType):
+    value = graphene.Field(
+        DateTime,
+        description="The assigned date time value.",
+        required=False,
+    )
+
+    class Meta:
+        interfaces = [AssignedAttribute]
+        description = "Represents a date time attribute." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+    @staticmethod
+    def resolve_value(
+        root: AssignedAttributeData, _info: ResolveInfo
+    ) -> datetime | None:
+        if not root.values:
+            return None
+        attr_value = root.values[0].node
+        return attr_value.date_time
+
+
+ASSIGNED_SINGLE_REFERENCE_MAP = {
+    AttributeEntityType.PAGE: AssignedSinglePageReferenceAttribute,
+    AttributeEntityType.PRODUCT: AssignedSingleProductReferenceAttribute,
+    AttributeEntityType.PRODUCT_VARIANT: AssignedSingleProductVariantReferenceAttribute,
+    AttributeEntityType.CATEGORY: AssignedSingleCategoryReferenceAttribute,
+    AttributeEntityType.COLLECTION: AssignedSingleCollectionReferenceAttribute,
+}
+ASSIGNED_MULTI_REFERENCE_MAP = {
+    AttributeEntityType.PAGE: AssignedMultiPageReferenceAttribute,
+    AttributeEntityType.PRODUCT: AssignedMultiProductReferenceAttribute,
+    AttributeEntityType.PRODUCT_VARIANT: AssignedMultiProductVariantReferenceAttribute,
+    AttributeEntityType.CATEGORY: AssignedMultiCategoryReferenceAttribute,
+    AttributeEntityType.COLLECTION: AssignedMultiCollectionReferenceAttribute,
+}
+ASSIGNED_ATTRIBUTE_MAP = {
+    AttributeInputType.NUMERIC: AssignedNumericAttribute,
+    AttributeInputType.RICH_TEXT: AssignedTextAttribute,
+    AttributeInputType.PLAIN_TEXT: AssignedPlainTextAttribute,
+    AttributeInputType.FILE: AssignedFileAttribute,
+    AttributeInputType.DROPDOWN: AssignedSingleChoiceAttribute,
+    AttributeInputType.MULTISELECT: AssignedMultiChoiceAttribute,
+    AttributeInputType.SWATCH: AssignedSwatchAttribute,
+    AttributeInputType.BOOLEAN: AssignedBooleanAttribute,
+    AttributeInputType.DATE: AssignedDateAttribute,
+    AttributeInputType.DATE_TIME: AssignedDateTimeAttribute,
+}
+ASSIGNED_ATTRIBUTE_TYPES = (
+    list(ASSIGNED_ATTRIBUTE_MAP.values())
+    + list(ASSIGNED_SINGLE_REFERENCE_MAP.values())
+    + list(ASSIGNED_MULTI_REFERENCE_MAP.values())
+)

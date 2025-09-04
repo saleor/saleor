@@ -22,64 +22,163 @@ from ....tests.utils import (
 )
 
 PRODUCT_BULK_CREATE_MUTATION = """
-    mutation ProductBulkCreate(
-        $products: [ProductBulkCreateInput!]!
-        $errorPolicy: ErrorPolicyEnum
-    ) {
-        productBulkCreate(products: $products, errorPolicy: $errorPolicy) {
-            results {
-                errors {
-                    path
-                    code
-                    message
-                    warehouses
-                    channels
-                }
-                product{
-                    id
-                    name
-                    slug
-                    media{
-                        url
-                        alt
-                        type
-                        oembedData
-                    }
-                    category{
-                        name
-                    }
-                    collections{
-                        id
-                    }
-                    description
-                    attributes{
-                        attribute{
-                          slug
-                        }
-                        values{
-                           value
-                        }
-                    }
-                    channelListings{
-                        id
-                        channel{
-                            name
-                        }
-                    }
-                    variants{
-                        name
-                        stocks{
-                            warehouse{
-                                slug
-                            }
-                            quantity
-                        }
-                    }
-                }
-            }
-            count
+mutation ProductBulkCreate($products: [ProductBulkCreateInput!]!, $errorPolicy: ErrorPolicyEnum) {
+  productBulkCreate(products: $products, errorPolicy: $errorPolicy) {
+    results {
+      errors {
+        path
+        code
+        message
+        warehouses
+        channels
+      }
+      product {
+        id
+        name
+        slug
+        media {
+          url
+          alt
+          type
+          oembedData
         }
+        category {
+          name
+        }
+        collections {
+          id
+        }
+        description
+        attributes {
+          attribute {
+            slug
+          }
+          values {
+            value
+          }
+        }
+        assignedAttributes(limit:10) {
+          attribute {
+            slug
+          }
+          ... on AssignedNumericAttribute {
+            value
+          }
+          ... on AssignedTextAttribute {
+            text: value
+          }
+          ... on AssignedPlainTextAttribute {
+            plain_text: value
+          }
+          ... on AssignedFileAttribute {
+            file: value {
+              contentType
+              url
+            }
+          }
+          ... on AssignedMultiPageReferenceAttribute {
+            pages: value {
+              slug
+            }
+          }
+          ... on AssignedMultiProductReferenceAttribute {
+            products: value {
+              slug
+            }
+          }
+          ... on AssignedMultiCategoryReferenceAttribute {
+            categories: value {
+              slug
+            }
+          }
+          ... on AssignedMultiCollectionReferenceAttribute {
+            collections: value {
+              slug
+            }
+          }
+          ... on AssignedSinglePageReferenceAttribute {
+            page: value {
+              slug
+            }
+          }
+          ... on AssignedSingleProductReferenceAttribute {
+            product: value {
+              slug
+            }
+          }
+          ... on AssignedSingleProductVariantReferenceAttribute {
+            variant: value {
+              sku
+            }
+          }
+          ... on AssignedSingleCategoryReferenceAttribute {
+            category: value {
+              slug
+            }
+          }
+          ... on AssignedSingleCollectionReferenceAttribute {
+            collection: value {
+              slug
+            }
+          }
+          ... on AssignedMultiProductVariantReferenceAttribute {
+            variants: value {
+              sku
+            }
+          }
+          ... on AssignedSingleChoiceAttribute {
+            choice: value {
+              name
+              slug
+            }
+          }
+          ... on AssignedMultiChoiceAttribute {
+            multi: value {
+              name
+              slug
+            }
+          }
+          ... on AssignedSwatchAttribute {
+            swatch: value {
+              name
+              slug
+              hexColor
+              file {
+                url
+                contentType
+              }
+            }
+          }
+          ... on AssignedBooleanAttribute {
+            bool: value
+          }
+          ... on AssignedDateAttribute {
+            date: value
+          }
+          ... on AssignedDateTimeAttribute {
+            datetime: value
+          }
+        }
+        channelListings {
+          id
+          channel {
+            name
+          }
+        }
+        variants {
+          name
+          stocks {
+            warehouse {
+              slug
+            }
+            quantity
+          }
+        }
+      }
     }
+    count
+  }
+}
 """
 
 
@@ -790,6 +889,16 @@ def test_product_bulk_create_with_attributes(
         == color_attr.slug
     )
 
+    first_p_assigned_attributes = data["results"][0]["product"]["assignedAttributes"]
+    assert len(first_p_assigned_attributes) == 2
+    assert first_p_assigned_attributes[0]["choice"]["name"] == color_value_name
+    assert first_p_assigned_attributes[1]["choice"]["name"] == non_existent_attr_value
+
+    second_p_assigned_attributes = data["results"][1]["product"]["assignedAttributes"]
+    assert len(second_p_assigned_attributes) == 2
+    assert second_p_assigned_attributes[0]["choice"]["name"] == color_value_name
+    assert second_p_assigned_attributes[1]["choice"]["name"] == non_existent_attr_value
+
     for product in products:
         product_attributes = get_product_attributes(product)
         assert len(product_attributes) == 2
@@ -874,6 +983,16 @@ def test_product_bulk_create_with_single_reference_attributes(
         == attribute.slug
     )
 
+    first_p_assigned_attributes = data["results"][0]["product"]["assignedAttributes"]
+    second_p_assigned_attributes = data["results"][1]["product"]["assignedAttributes"]
+
+    expected_assigned_page_attribute = {
+        "attribute": {"slug": product_type_page_single_reference_attribute.slug},
+        "page": {"slug": page.slug},
+    }
+    assert expected_assigned_page_attribute in first_p_assigned_attributes
+    assert expected_assigned_page_attribute in second_p_assigned_attributes
+
 
 def test_product_bulk_create_with_attributes_using_external_refs(
     staff_api_client,
@@ -897,7 +1016,8 @@ def test_product_bulk_create_with_attributes_using_external_refs(
 
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name="Color")
-    color_value_external_reference = color_attr.values.first().external_reference
+    color_value = color_attr.values.first()
+    color_value_external_reference = color_value.external_reference
 
     # Add second attribute
     product_type.product_attributes.add(size_attribute)
@@ -941,6 +1061,11 @@ def test_product_bulk_create_with_attributes_using_external_refs(
         data["results"][0]["product"]["attributes"][0]["attribute"]["slug"]
         == color_attr.slug
     )
+
+    first_p_assigned_attributes = data["results"][0]["product"]["assignedAttributes"]
+    assert len(first_p_assigned_attributes) == 2
+    assert first_p_assigned_attributes[0]["choice"]["name"] == color_value.name
+    assert first_p_assigned_attributes[1]["choice"]["name"] == non_existent_attr_value
 
     for product in products:
         attributes = get_product_attributes(product)
@@ -1016,6 +1141,11 @@ def test_product_bulk_create_with_attributes_and_create_new_value_with_external_
         data["results"][0]["product"]["attributes"][0]["attribute"]["slug"]
         == color_attr.slug
     )
+
+    first_p_assigned_attributes = data["results"][0]["product"]["assignedAttributes"]
+    assert len(first_p_assigned_attributes) == 1
+    assert first_p_assigned_attributes[0]["choice"]["name"] == new_value
+
     assert color_attr.values.count() == color_attr_values_count + 1
     attributes = get_product_attributes(product)
     first_attribute_assignment = attributes[0]

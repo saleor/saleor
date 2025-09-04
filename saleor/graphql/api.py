@@ -20,6 +20,7 @@ from ..graphql.notifications.schema import ExternalNotificationMutations
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
 from .attribute.schema import AttributeMutations, AttributeQueries
+from .attribute.types import ASSIGNED_ATTRIBUTE_TYPES
 from .channel.schema import ChannelMutations, ChannelQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.enums import unit_enums
@@ -123,6 +124,7 @@ GraphQLDocDirective = graphql.GraphQLDirective(
         graphql.DirectiveLocation.FIELD_DEFINITION,
         graphql.DirectiveLocation.INPUT_OBJECT,
         graphql.DirectiveLocation.OBJECT,
+        graphql.DirectiveLocation.INTERFACE,
     ],
 )
 
@@ -176,7 +178,12 @@ GraphQLWebhookEventsInfoDirective = graphql.GraphQLDirective(
 schema = build_federated_schema(
     Query,
     mutation=Mutation,
-    types=unit_enums + list(WEBHOOK_TYPES_MAP.values()) + PAYMENT_ADDITIONAL_TYPES,
+    types=(
+        unit_enums
+        + list(WEBHOOK_TYPES_MAP.values())
+        + PAYMENT_ADDITIONAL_TYPES
+        + ASSIGNED_ATTRIBUTE_TYPES
+    ),
     subscription=Subscription,
     directives=graphql.specified_directives
     + [GraphQLDocDirective, GraphQLWebhookEventsInfoDirective],

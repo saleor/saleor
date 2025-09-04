@@ -42,6 +42,17 @@ def test_product_variant_update_with_new_attributes(
             }
             productVariant {
               id
+              assignedAttributes(limit:10) {
+                  ... on AssignedSingleChoiceAttribute {
+                        attribute {
+                            slug
+                        }
+                        choice: value {
+                            name
+                            slug
+                        }
+                  }
+              }
               attributes {
                 attribute {
                   id
@@ -90,6 +101,16 @@ def test_product_variant_update_with_new_attributes(
     attributes = data["productVariant"]["attributes"]
     assert len(attributes) == 1
     assert attributes[0]["attribute"]["id"] == size_attribute_id
+
+    assigned_attributes = data["productVariant"]["assignedAttributes"]
+    expected_assigned_choice_attribute = {
+        "attribute": {"slug": size_attribute.slug},
+        "choice": {
+            "name": attr_value,
+            "slug": attr_value.lower(),
+        },
+    }
+    assert expected_assigned_choice_attribute in assigned_attributes
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
@@ -640,46 +661,140 @@ def test_update_product_variant_change_sku_to_empty_string(
 
 
 QUERY_UPDATE_VARIANT_ATTRIBUTES = """
-    mutation updateVariant (
-        $id: ID!,
-        $sku: String,
-        $attributes: [AttributeValueInput!]) {
-            productVariantUpdate(
-                id: $id,
-                input: {
-                    sku: $sku,
-                    attributes: $attributes
-                }) {
-                productVariant {
-                    sku
-                    attributes {
-                        attribute {
-                            slug
-                        }
-                        values {
-                            id
-                            slug
-                            name
-                            file {
-                                url
-                                contentType
-                            }
-                            reference
-                            richText
-                            plainText
-                            boolean
-                            date
-                            dateTime
-                        }
-                    }
-                }
-                errors {
-                    field
-                    code
-                    message
-                }
-            }
+mutation updateVariant($id: ID!, $sku: String, $attributes: [AttributeValueInput!]) {
+  productVariantUpdate(id: $id, input: {sku: $sku, attributes: $attributes}) {
+    productVariant {
+      sku
+      assignedAttributes(limit:10) {
+        attribute {
+          slug
         }
+        ... on AssignedNumericAttribute {
+          value
+        }
+        ... on AssignedTextAttribute {
+          text: value
+        }
+        ... on AssignedPlainTextAttribute {
+          plain_text: value
+        }
+        ... on AssignedFileAttribute {
+          file: value {
+            contentType
+            url
+          }
+        }
+        ... on AssignedMultiPageReferenceAttribute {
+          pages: value {
+            slug
+          }
+        }
+        ... on AssignedMultiProductReferenceAttribute {
+          products: value {
+            slug
+          }
+        }
+        ... on AssignedMultiCategoryReferenceAttribute {
+          categories: value {
+            slug
+          }
+        }
+        ... on AssignedMultiCollectionReferenceAttribute {
+          collections: value {
+            slug
+          }
+        }
+        ... on AssignedSinglePageReferenceAttribute {
+          page: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductReferenceAttribute {
+          product: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductVariantReferenceAttribute {
+          variant: value {
+            sku
+          }
+        }
+        ... on AssignedSingleCategoryReferenceAttribute {
+          category: value {
+            slug
+          }
+        }
+        ... on AssignedSingleCollectionReferenceAttribute {
+          collection: value {
+            slug
+          }
+        }
+        ... on AssignedMultiProductVariantReferenceAttribute {
+          variants: value {
+            sku
+          }
+        }
+        ... on AssignedSingleChoiceAttribute {
+          choice: value {
+            name
+            slug
+          }
+        }
+        ... on AssignedMultiChoiceAttribute {
+          multi: value {
+            name
+            slug
+          }
+        }
+        ... on AssignedSwatchAttribute {
+          swatch: value {
+            name
+            slug
+            hexColor
+            file {
+              url
+              contentType
+            }
+          }
+        }
+        ... on AssignedBooleanAttribute {
+          bool: value
+        }
+        ... on AssignedDateAttribute {
+          date: value
+        }
+        ... on AssignedDateTimeAttribute {
+          datetime: value
+        }
+      }
+      attributes {
+        attribute {
+          slug
+        }
+        values {
+          id
+          slug
+          name
+          file {
+            url
+            contentType
+          }
+          reference
+          richText
+          plainText
+          boolean
+          date
+          dateTime
+        }
+      }
+    }
+    errors {
+      field
+      code
+      message
+    }
+  }
+}
 """
 
 
@@ -711,6 +826,7 @@ def test_update_product_variant_do_not_require_required_attributes(
     assert data["productVariant"]["sku"] == sku
     assert len(data["productVariant"]["attributes"]) == 1
     assert data["productVariant"]["attributes"][0]["values"]
+    assert len(data["productVariant"]["assignedAttributes"]) == 1
 
 
 def test_update_product_variant_with_current_attribute(
@@ -808,6 +924,8 @@ def test_update_product_variant_with_value_that_matching_existing_slug(
     assert not variant.sku == sku
 
     attribute_1, attribute_2 = product.product_type.variant_attributes.all()
+    assert attribute_1.input_type == AttributeInputType.DROPDOWN
+    assert attribute_2.input_type == AttributeInputType.DROPDOWN
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     attribute_1_id = graphene.Node.to_global_id("Attribute", attribute_1.pk)
@@ -816,12 +934,14 @@ def test_update_product_variant_with_value_that_matching_existing_slug(
     attr_1_values_count = attribute_1.values.count()
     attr_2_values_count = attribute_2.values.count()
 
+    value_for_attr_1 = attribute_1.values.first()
+    value_for_attr_2 = attribute_2.values.first()
     variables = {
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": attribute_1_id, "values": [attribute_1.values.first().slug]},
-            {"id": attribute_2_id, "values": [attribute_2.values.first().slug]},
+            {"id": attribute_1_id, "values": [value_for_attr_1.slug]},
+            {"id": attribute_2_id, "values": [value_for_attr_2.slug]},
         ],
     }
 
@@ -841,6 +961,24 @@ def test_update_product_variant_with_value_that_matching_existing_slug(
     for attr_data in data["productVariant"]["attributes"]:
         assert len(attr_data["values"]) == 1
 
+    assigned_attributes = data["productVariant"]["assignedAttributes"]
+    expected_first_assigned_choice_attribute = {
+        "attribute": {"slug": attribute_1.slug},
+        "choice": {
+            "name": value_for_attr_1.name,
+            "slug": value_for_attr_1.slug,
+        },
+    }
+    expected_second_assigned_choice_attribute = {
+        "attribute": {"slug": attribute_2.slug},
+        "choice": {
+            "name": value_for_attr_2.name,
+            "slug": value_for_attr_2.slug,
+        },
+    }
+    assert expected_first_assigned_choice_attribute in assigned_attributes
+    assert expected_second_assigned_choice_attribute in assigned_attributes
+
 
 def test_update_product_variant_with_value_that_matching_existing_name(
     staff_api_client,
@@ -853,6 +991,8 @@ def test_update_product_variant_with_value_that_matching_existing_name(
     assert not variant.sku == sku
 
     attribute_1, attribute_2 = product.product_type.variant_attributes.all()
+    assert attribute_1.input_type == AttributeInputType.DROPDOWN
+    assert attribute_2.input_type == AttributeInputType.DROPDOWN
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     attribute_1_id = graphene.Node.to_global_id("Attribute", attribute_1.pk)
@@ -861,12 +1001,15 @@ def test_update_product_variant_with_value_that_matching_existing_name(
     attr_1_values_count = attribute_1.values.count()
     attr_2_values_count = attribute_2.values.count()
 
+    value_for_attr_1 = attribute_1.values.first()
+    value_for_attr_2 = attribute_2.values.first()
+
     variables = {
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": attribute_1_id, "values": [attribute_1.values.first().name]},
-            {"id": attribute_2_id, "values": [attribute_2.values.first().name]},
+            {"id": attribute_1_id, "values": [value_for_attr_1.name]},
+            {"id": attribute_2_id, "values": [value_for_attr_2.name]},
         ],
     }
 
@@ -888,6 +1031,24 @@ def test_update_product_variant_with_value_that_matching_existing_name(
     for attr_data in data["productVariant"]["attributes"]:
         assert len(attr_data["values"]) == 1
 
+    assigned_attributes = data["productVariant"]["assignedAttributes"]
+    expected_first_assigned_choice_attribute = {
+        "attribute": {"slug": attribute_1.slug},
+        "choice": {
+            "name": value_for_attr_1.name,
+            "slug": value_for_attr_1.slug,
+        },
+    }
+    expected_second_assigned_choice_attribute = {
+        "attribute": {"slug": attribute_2.slug},
+        "choice": {
+            "name": value_for_attr_2.name,
+            "slug": value_for_attr_2.slug,
+        },
+    }
+    assert expected_first_assigned_choice_attribute in assigned_attributes
+    assert expected_second_assigned_choice_attribute in assigned_attributes
+
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_update_variant_with_boolean_attribute(
@@ -908,13 +1069,14 @@ def test_update_variant_with_boolean_attribute(
     attr_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
     size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
 
+    size_value_name = "XXXL"
     new_value = False
     values_count = boolean_attribute.values.count()
     variables = {
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": size_attr_id, "values": ["XXXL"]},
+            {"id": size_attr_id, "values": [size_value_name]},
             {"id": attr_id, "boolean": new_value},
         ],
     }
@@ -936,6 +1098,22 @@ def test_update_variant_with_boolean_attribute(
     assert data["attributes"][-1]["attribute"]["slug"] == boolean_attribute.slug
     assert data["attributes"][-1]["values"][0]["name"] == "Boolean: No"
     assert data["attributes"][-1]["values"][0]["boolean"] is new_value
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_boolean_assigned_choice_attribute = {
+        "attribute": {"slug": boolean_attribute.slug},
+        "bool": new_value,
+    }
+    expected_size_assigned_choice_attribute = {
+        "attribute": {"slug": size_attribute.slug},
+        "choice": {
+            "name": size_value_name,
+            "slug": size_value_name.lower(),
+        },
+    }
+    assert expected_boolean_assigned_choice_attribute in assigned_attributes
+    assert expected_size_assigned_choice_attribute in assigned_attributes
+
     assert boolean_attribute.values.count() == values_count
     product_variant_updated.assert_called_once_with(product.variants.last())
 
@@ -985,6 +1163,19 @@ def test_update_variant_with_swatch_attribute_new_value_created(
     assert data["sku"] == sku
     assert data["attributes"][-1]["attribute"]["slug"] == swatch_attribute.slug
     assert data["attributes"][-1]["values"][0]["name"] == value
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": swatch_attribute.slug},
+        "swatch": {
+            "name": value,
+            "slug": slugify(value),
+            "hexColor": None,
+            "file": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert swatch_attribute.values.count() == values_count + 1
     product_variant_updated.assert_called_once_with(product.variants.last())
 
@@ -1035,6 +1226,19 @@ def test_update_variant_with_swatch_attribute_existing_value(
     assert data["sku"] == sku
     assert data["attributes"][-1]["attribute"]["slug"] == swatch_attribute.slug
     assert data["attributes"][-1]["values"][0]["name"] == value.name
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": swatch_attribute.slug},
+        "swatch": {
+            "name": value.name,
+            "slug": value.slug,
+            "hexColor": value.value,
+            "file": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert swatch_attribute.values.count() == values_count
     product_variant_updated.assert_called_once_with(product.variants.last())
 
@@ -1081,6 +1285,19 @@ def test_update_variant_with_swatch_attribute_use_values(
     assert data["sku"] == sku
     assert data["attributes"][-1]["attribute"]["slug"] == swatch_attribute.slug
     assert data["attributes"][-1]["values"][0]["name"] == value
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": swatch_attribute.slug},
+        "swatch": {
+            "name": value,
+            "slug": slugify(value),
+            "hexColor": None,
+            "file": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert swatch_attribute.values.count() == values_count + 1
     product_variant_updated.assert_called_once_with(product.variants.last())
 
@@ -1126,6 +1343,13 @@ def test_update_variant_with_swatch_attribute_no_values_given(
     assert data["attributes"][-1]["attribute"]["slug"] == swatch_attribute.slug
     assert not data["attributes"][-1]["values"]
 
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": swatch_attribute.slug},
+        "swatch": None,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_update_variant_with_rich_text_attribute(
@@ -1144,12 +1368,12 @@ def test_update_variant_with_rich_text_attribute(
     sku = "123"
     attr_id = graphene.Node.to_global_id("Attribute", rich_text_attribute.id)
     rich_text_attribute_value = rich_text_attribute.values.first()
-    rich_text = json.dumps(rich_text_attribute_value.rich_text)
+    rich_text = rich_text_attribute_value.rich_text
     variables = {
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": attr_id, "richText": rich_text},
+            {"id": attr_id, "richText": json.dumps(rich_text)},
         ],
     }
     rich_text_attribute_value.slug = f"{variant.id}_{rich_text_attribute.id}"
@@ -1169,7 +1393,15 @@ def test_update_variant_with_rich_text_attribute(
     assert not content["errors"]
     assert data["sku"] == sku
     assert data["attributes"][-1]["attribute"]["slug"] == rich_text_attribute.slug
-    assert data["attributes"][-1]["values"][0]["richText"] == rich_text
+    assert data["attributes"][-1]["values"][0]["richText"] == json.dumps(rich_text)
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": rich_text_attribute.slug},
+        "text": rich_text,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert rich_text_attribute.values.count() == values_count
     product_variant_updated.assert_called_once_with(product.variants.last())
 
@@ -1221,6 +1453,14 @@ def test_update_variant_with_plain_text_attribute(
     assert data["sku"] == sku
     assert data["attributes"][-1]["attribute"]["slug"] == plain_text_attribute.slug
     assert data["attributes"][-1]["values"][0]["plainText"] == text
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": plain_text_attribute.slug},
+        "plain_text": text,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert plain_text_attribute.values.count() == values_count
     product_variant_updated.assert_called_once_with(product.variants.last())
 
@@ -1276,6 +1516,14 @@ def test_update_variant_with_plain_text_attribute_value_required(
     assert data["sku"] == sku
     assert data["attributes"][-1]["attribute"]["slug"] == plain_text_attribute.slug
     assert data["attributes"][-1]["values"][0]["plainText"] == text
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": plain_text_attribute.slug},
+        "plain_text": text,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert plain_text_attribute.values.count() == values_count
     product_variant_updated.assert_called_once_with(product.variants.last())
 
@@ -1390,6 +1638,14 @@ def test_update_variant_with_date_attribute(
     assert data["sku"] == sku
     assert date_values_count + 1 == date_attribute.values.count()
     assert expected_attributes_data in data["attributes"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": date_attribute.slug},
+        "date": str(date_value),
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     product_variant_updated.assert_called_once_with(product.variants.last())
 
 
@@ -1452,6 +1708,14 @@ def test_update_variant_with_date_time_attribute(
     assert data["sku"] == sku
     assert date_time_values_count + 1 == date_time_attribute.values.count()
     assert expected_attributes_data in data["attributes"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": date_time_attribute.slug},
+        "datetime": date_time_value.isoformat(),
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     product_variant_updated.assert_called_once_with(product.variants.last())
 
 
@@ -1497,6 +1761,14 @@ def test_update_variant_removes_numeric_attribute_value(
     assert data["sku"] == sku
     assert data["attributes"][-1]["attribute"]["slug"] == numeric_attribute.slug
     assert not data["attributes"][-1]["values"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": numeric_attribute.slug},
+        "value": None,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert numeric_attribute.values.count() == values_count
     product_variant_updated.assert_called_once_with(product.variants.last())
 
@@ -1547,6 +1819,13 @@ def test_update_variant_adds_numeric_attribute(
     ][0]
     assert attribute_data["attribute"]["slug"] == numeric_attribute.slug
     assert attribute_data["values"][0]["name"] == numeric_name
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": numeric_attribute.slug},
+        "value": numeric_value,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     assert numeric_attribute.values.filter(
         name=numeric_name, numeric=numeric_value
@@ -1636,6 +1915,13 @@ def test_update_product_variant_clear_attributes(
     assert not data["errors"]
     variant.refresh_from_db()
     assert not data["productVariant"]["attributes"][0]["values"]
+    assigned_attributes = data["productVariant"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": attribute.slug},
+        "multi": [],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     with pytest.raises(variant_attr._meta.model.DoesNotExist):
         variant_attr.refresh_from_db()
 
@@ -1740,6 +2026,16 @@ def test_update_product_variant_with_current_file_attribute(
         == f"{slugify(second_value)}-2"
     )
 
+    assigned_attributes = variant_data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_update_product_variant_with_duplicated_file_attribute(
     staff_api_client,
@@ -1843,6 +2139,16 @@ def test_update_product_variant_with_file_attribute_new_value_is_not_created(
     assert value_data["file"]["url"] == file_url
     assert value_data["file"]["contentType"] == existing_value.content_type
 
+    assigned_attributes = variant_data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": existing_value.content_type,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_update_product_variant_with_page_reference_attribute(
     staff_api_client,
@@ -1893,6 +2199,15 @@ def test_update_product_variant_with_page_reference_attribute(
         variant_data["attributes"][0]["values"][0]["slug"] == f"{variant.pk}_{page.pk}"
     )
     assert variant_data["attributes"][0]["values"][0]["reference"] == reference
+
+    assigned_attributes = variant_data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_page_reference_attribute.slug},
+        "pages": [
+            {"slug": page.slug},
+        ],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_update_product_variant_with_product_reference_attribute(
@@ -1947,6 +2262,13 @@ def test_update_product_variant_with_product_reference_attribute(
         == f"{variant.pk}_{product_ref.pk}"
     )
     assert variant_data["attributes"][0]["values"][0]["reference"] == reference
+
+    assigned_attributes = variant_data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_product_reference_attribute.slug},
+        "products": [{"slug": product_ref.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_update_product_variant_with_variant_reference_attribute(
@@ -2006,6 +2328,13 @@ def test_update_product_variant_with_variant_reference_attribute(
     )
     assert variant_data["attributes"][0]["values"][0]["reference"] == reference
 
+    assigned_attributes = variant_data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant_ref.sku}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_update_product_variant_with_category_reference_attribute(
     staff_api_client,
@@ -2060,6 +2389,15 @@ def test_update_product_variant_with_category_reference_attribute(
         == f"{variant.pk}_{category.pk}"
     )
     assert variant_data["attributes"][0]["values"][0]["reference"] == reference
+
+    assigned_attributes = variant_data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_category_reference_attribute.slug},
+        "categories": [
+            {"slug": category.slug},
+        ],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_update_product_variant_with_single_reference_attributes(
@@ -2164,6 +2502,34 @@ def test_update_product_variant_with_single_reference_attributes(
     for attr_data in attributes_data:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = variant_data["assignedAttributes"]
+
+    expected_assigned_page_attribute = {
+        "attribute": {"slug": product_type_page_single_reference_attribute.slug},
+        "page": {"slug": page.slug},
+    }
+    expected_assigned_product_attribute = {
+        "attribute": {"slug": product_type_product_single_reference_attribute.slug},
+        "product": {"slug": product.slug},
+    }
+    expected_assigned_variant_attribute = {
+        "attribute": {"slug": product_type_variant_single_reference_attribute.slug},
+        "variant": {"sku": product_variant_list[0].sku},
+    }
+    expected_assigned_category_attribute = {
+        "attribute": {"slug": product_type_category_single_reference_attribute.slug},
+        "category": {"slug": categories[0].slug},
+    }
+    expected_assigned_collection_attribute = {
+        "attribute": {"slug": product_type_collection_single_reference_attribute.slug},
+        "collection": {"slug": collection.slug},
+    }
+    assert expected_assigned_page_attribute in assigned_attributes
+    assert expected_assigned_product_attribute in assigned_attributes
+    assert expected_assigned_variant_attribute in assigned_attributes
+    assert expected_assigned_category_attribute in assigned_attributes
+    assert expected_assigned_collection_attribute in assigned_attributes
+
 
 def test_update_product_variant_change_attribute_values_ordering(
     staff_api_client,
@@ -2219,7 +2585,16 @@ def test_update_product_variant_change_attribute_values_ordering(
         )
     ) == [attr_value_3.pk, attr_value_2.pk, attr_value_1.pk]
 
-    new_ref_order = [product_list[1], product_list[0], product_list[2]]
+    expected_first_product = product_list[1]
+    expected_second_product = product_list[0]
+    expected_third_product = product_list[2]
+
+    new_ref_order = [
+        expected_first_product,
+        expected_second_product,
+        expected_third_product,
+    ]
+
     variables = {
         "id": variant_id,
         "sku": sku,
@@ -2255,6 +2630,14 @@ def test_update_product_variant_change_attribute_values_ordering(
         graphene.Node.to_global_id("AttributeValue", val.pk)
         for val in [attr_value_2, attr_value_1, attr_value_3]
     ]
+    assigned_attributes = data["productVariant"]["assignedAttributes"]
+    assert len(assigned_attributes) == 1
+    assigned_values = assigned_attributes[0]["products"]
+    assert len(assigned_values) == 3
+    assert assigned_values[0]["slug"] == expected_first_product.slug
+    assert assigned_values[1]["slug"] == expected_second_product.slug
+    assert assigned_values[2]["slug"] == expected_third_product.slug
+
     variant.refresh_from_db()
     assert list(
         variant.attributes.first().variantvalueassignment.values_list(

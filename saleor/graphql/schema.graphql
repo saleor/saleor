@@ -8,7 +8,7 @@ schema {
 directive @doc(
   """Name of the grouping category"""
   category: String!
-) on ENUM | FIELD | FIELD_DEFINITION | INPUT_OBJECT | OBJECT
+) on ENUM | FIELD | FIELD_DEFINITION | INPUT_OBJECT | OBJECT | INTERFACE
 
 """Webhook events triggered by a specific location."""
 directive @webhookEventsInfo(
@@ -5699,6 +5699,26 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """A type of tax. Assigned by enabled tax gateway"""
   taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
 
+  """
+  Get a single attribute attached to product by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to this product.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
+
   """Get a single attribute attached to product by attribute slug."""
   attribute(
     """Slug of the attribute"""
@@ -7385,6 +7405,29 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
     address: AddressInput
   ): VariantPricingInfo
 
+  """
+  Get a single attribute attached to product by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to this variant.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes(
+    """Define scope of returned attributes."""
+    variantSelection: VariantAttributeScope
+
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
+
   """List of attributes assigned to this variant."""
   attributes(
     """Define scope of returned attributes."""
@@ -7625,6 +7668,23 @@ input MetadataInput {
   """Value of a metadata item."""
   value: String!
 }
+
+"""
+Represents an attribute assigned to an object.
+
+Added in Saleor 3.22.
+"""
+interface AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+}
+
+"""
+Positive Integer scalar implementation.
+
+Should be used in places where value must be positive (greater than 0).
+"""
+scalar PositiveInt
 
 """Represents an assigned attribute to an object."""
 type SelectedAttribute @doc(category: "Attributes") {
@@ -8694,10 +8754,30 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   attribute(
     """Slug of the attribute"""
     slug: String!
-  ): SelectedAttribute
+  ): SelectedAttribute @deprecated(reason: "Use `assignedAttribute` field instead.")
+
+  """
+  Get a single attribute attached to page by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to this page.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
 
   """List of attributes assigned to this page."""
-  attributes: [SelectedAttribute!]!
+  attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
 }
 
 """
@@ -34464,6 +34544,327 @@ Added in Saleor 3.22.
 type OtherPaymentMethodDetails implements PaymentMethodDetails {
   """Name of the payment method."""
   name: String!
+}
+
+"""
+Represents a numeric value of an attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedNumericAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned numeric value."""
+  value: Float
+}
+
+"""
+Represents text attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedTextAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned rich text content."""
+  value: JSON
+
+  """Translation of the rich text content in the specified language."""
+  translation(languageCode: LanguageCodeEnum!): JSON
+}
+
+"""
+Represents plain text attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedPlainTextAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned plain text content."""
+  value: String
+
+  """Translation of the plain text content in the specified language."""
+  translation(languageCode: LanguageCodeEnum!): String
+}
+
+"""
+Represents file attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedFileAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned file."""
+  value: File
+}
+
+"""
+Represents a single choice attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleChoiceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned choice value."""
+  value: AssignedChoiceAttributeValue
+}
+
+"""
+Represents a single choice value of the attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedChoiceAttributeValue @doc(category: "Attributes") {
+  """Name of a value displayed in the interface."""
+  name: String
+
+  """Internal representation of a value (unique per attribute)."""
+  slug: String
+
+  """Translation of the name."""
+  translation(languageCode: LanguageCodeEnum!): String
+}
+
+"""
+Represents a multi choice attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiChoiceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned choice values."""
+  value(
+    """Maximum number of choices to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedChoiceAttributeValue!]!
+}
+
+"""
+Represents a swatch attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSwatchAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned swatch value."""
+  value: AssignedSwatchAttributeValue
+}
+
+"""
+Represents a single swatch value.
+
+Added in Saleor 3.22.
+"""
+type AssignedSwatchAttributeValue @doc(category: "Attributes") {
+  """Name of the selected swatch value."""
+  name: String
+
+  """Slug of the selected swatch value."""
+  slug: String
+
+  """Hex color code."""
+  hexColor: String
+
+  """File associated with the attribute."""
+  file: File
+}
+
+"""
+Represents a boolean attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedBooleanAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned boolean value."""
+  value: Boolean
+}
+
+"""
+Represents a date attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedDateAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned date value."""
+  value: Date
+}
+
+"""
+Represents a date time attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedDateTimeAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned date time value."""
+  value: DateTime
+}
+
+"""
+Represents single page reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSinglePageReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned page reference."""
+  value: Page
+}
+
+"""
+Represents single product reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleProductReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned product reference."""
+  value: Product
+}
+
+"""
+Represents single product variant reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleProductVariantReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned product variant reference."""
+  value: ProductVariant
+}
+
+"""
+Represents single category reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleCategoryReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned category reference."""
+  value: Category
+}
+
+"""
+Represents single collection reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedSingleCollectionReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """The assigned collection reference."""
+  value: Collection
+}
+
+"""
+Represents multi page reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiPageReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned page references."""
+  value(
+    """Maximum number of referenced pages to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [Page!]!
+}
+
+"""
+Represents multi product reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiProductReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned product references."""
+  value(
+    """Maximum number of referenced products to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [Product!]!
+}
+
+"""
+Represents multi product variant reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiProductVariantReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned product variant references."""
+  value(
+    """
+    Maximum number of referenced product variants to return. Default is 100.
+    """
+    limit: PositiveInt = 100
+  ): [ProductVariant!]!
+}
+
+"""
+Represents multi category reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiCategoryReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned category references."""
+  value(
+    """Maximum number of referenced categories to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [Category!]!
+}
+
+"""
+Represents multi collection reference attribute.
+
+Added in Saleor 3.22.
+"""
+type AssignedMultiCollectionReferenceAttribute implements AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+
+  """List of assigned collection references."""
+  value(
+    """Maximum number of referenced collections to return. Default is 100"""
+    limit: PositiveInt = 100
+  ): [Collection!]!
 }
 
 """_Any value scalar as defined by Federation spec."""

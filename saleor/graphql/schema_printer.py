@@ -252,7 +252,12 @@ def print_object(type_: GrapheneObjectType) -> str:
 
 
 def print_interface(type_: GraphQLInterfaceType) -> str:
-    return print_description(type_) + f"interface {type_.name}" + print_fields(type_)
+    return (
+        print_description(type_)
+        + f"interface {type_.name}"
+        + print_object_directives(type_)
+        + print_fields(type_)
+    )
 
 
 def print_union(type_: GraphQLUnionType) -> str:
