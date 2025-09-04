@@ -284,15 +284,10 @@ class Page(ChannelContextType[models.Page]):
                 attribute = cast(
                     attribute_models.Attribute, attribute_data["attribute"]
                 )
-                values = cast(
-                    list[attribute_models.AttributeValue], attribute_data["values"]
-                )
                 response.append(
                     AssignedAttributeData(
                         attribute=ChannelContext(attribute, root.channel_slug),
-                        values=[
-                            ChannelContext(value, root.channel_slug) for value in values
-                        ],
+                        page_id=root.node.id,
                     )
                 )
             response = response[:limit] if limit is not None else response
@@ -333,13 +328,10 @@ class Page(ChannelContextType[models.Page]):
             if attribute_data is None:
                 return None
             attribute = cast(attribute_models.Attribute, attribute_data["attribute"])
-            values = cast(
-                list[attribute_models.AttributeValue], attribute_data["values"]
-            )
 
             return AssignedAttributeData(
                 attribute=ChannelContext(attribute, root.channel_slug),
-                values=[ChannelContext(value, root.channel_slug) for value in values],
+                page_id=root.node.id,
             )
 
         requestor = get_user_or_app_from_context(info.context)
