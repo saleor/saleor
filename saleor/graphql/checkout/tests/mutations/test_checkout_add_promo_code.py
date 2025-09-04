@@ -1499,6 +1499,24 @@ def test_add_promo_code_with_price_override_set(
     assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == expected_subtotal
 
 
+def prepare_checkout_calculcations_and_channel_settings(checkout):
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    calculations.calculate_checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+
+    channel = checkout_info.checkout.channel
+    channel.create_transactions_for_gift_cards = True
+    channel.save(update_fields=["create_transactions_for_gift_cards"])
+
+    return checkout_info
+
+
 @pytest.mark.parametrize(
     ("gift_card_current_balance_amount", "expected_authorized_value"),
     [
@@ -1510,7 +1528,7 @@ def test_add_promo_code_with_price_override_set(
         (50, 30),
     ],
 )
-def test_checkout_add_gift_card_for_create_transactions_for_gift_cards_flow(
+def test_checkout_add_gift_card_for_create_transactions_for_gift_cards_flow_creates_authorization_transaction(
     api_client,
     checkout_with_item,
     gift_card,
@@ -1518,7 +1536,9 @@ def test_checkout_add_gift_card_for_create_transactions_for_gift_cards_flow(
     expected_authorized_value,
 ):
     # given
-    checkout_info = prepare_checkout_calculcations(checkout_with_item)
+    checkout_info = prepare_checkout_calculcations_and_channel_settings(
+        checkout_with_item
+    )
 
     gift_card.current_balance_amount = gift_card_current_balance_amount
     gift_card.save(update_fields=["current_balance_amount"])
@@ -1547,33 +1567,15 @@ def test_checkout_add_gift_card_for_create_transactions_for_gift_cards_flow(
     assert transaction_event.type == TransactionEventType.AUTHORIZATION_SUCCESS
 
 
-def prepare_checkout_calculcations(checkout):
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    calculations.calculate_checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout.shipping_address,
-    )
-
-    channel = checkout_info.checkout.channel
-    channel.create_transactions_for_gift_cards = True
-    channel.save(update_fields=["create_transactions_for_gift_cards"])
-
-    return checkout_info
-
-
-def test_checkout_add_gift_card_to_other_checkout_for_create_transactions_for_gift_cards_flow(
+def test_checkout_add_gift_card_to_other_checkout_for_create_transactions_for_gift_cards_flow_invalidates_previous_authorization_transactions(
     api_client,
     checkout_with_item,
     other_checkout_with_item,
     gift_card,
 ):
     # given
-    prepare_checkout_calculcations(checkout_with_item)
-    prepare_checkout_calculcations(other_checkout_with_item)
+    prepare_checkout_calculcations_and_channel_settings(checkout_with_item)
+    prepare_checkout_calculcations_and_channel_settings(other_checkout_with_item)
     assert TransactionItem.objects.filter(checkout=checkout_with_item).exists() is False
 
     variables = {
@@ -1623,13 +1625,13 @@ def test_checkout_add_gift_card_to_other_checkout_for_create_transactions_for_gi
     assert other_checkout_gift_card_transaction.gift_card == gift_card
 
 
-def test_checkout_add_gift_card_to_checkout_with_zero_total_for_create_transactions_for_gift_cards_flow(
+def test_checkout_add_gift_card_to_checkout_with_zero_total_for_create_transactions_for_gift_cards_flow_fails(
     api_client,
     checkout_with_item_total_0,
     gift_card,
 ):
     # given
-    prepare_checkout_calculcations(checkout_with_item_total_0)
+    prepare_checkout_calculcations_and_channel_settings(checkout_with_item_total_0)
 
     checkout_with_item_total_0.refresh_from_db()
     assert checkout_with_item_total_0.total_gross_amount == 0

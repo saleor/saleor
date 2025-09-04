@@ -1,6 +1,6 @@
 import pytest
 
-from ..gift_cards.utils import bulk_create_gift_card
+from ..gift_cards.utils import create_gift_card
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
 from ..utils import assign_permissions
@@ -10,16 +10,6 @@ from .utils import (
     checkout_create,
     checkout_delivery_method_update,
 )
-
-
-def prepare_gift_card(
-    e2e_staff_api_client,
-    balance_amount,
-):
-    gift_card = bulk_create_gift_card(
-        e2e_staff_api_client, 1, balance_amount, "USD", active=True
-    )
-    return gift_card[0]["code"]
 
 
 @pytest.mark.e2e
@@ -59,7 +49,7 @@ def test_checkout_completes_after_assigning_gift_card_code_covering_entire_total
     )
     product_variant_price = float(product_variant_price)
 
-    gift_card_code = prepare_gift_card(e2e_staff_api_client, 100)
+    gift_card_code = create_gift_card(e2e_staff_api_client, 100)["code"]
 
     # Step 1 - Create checkout for product
     lines = [
