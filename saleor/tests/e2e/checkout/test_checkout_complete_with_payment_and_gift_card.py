@@ -14,6 +14,7 @@ from .utils import (
     checkout_dummy_payment_create,
 )
 
+
 @pytest.mark.e2e
 @pytest.mark.parametrize(("create_transactions_for_gift_cards"), [True, False])
 def test_checkout_complete_does_not_use_create_transactions_for_gift_cards_flow_when_payment_is_mixed_with_gift_card(
