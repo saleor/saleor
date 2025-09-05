@@ -6128,10 +6128,10 @@ PageType applicable for reference attribute with `PAGE` entity type.
 union ReferenceType = ProductType | PageType
 
 """
-Represents a type of page. It defines what attributes are available to pages of this type.
+Represents a type of product. It defines what attributes are available to products of this type.
 """
-type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
-  """ID of the page type."""
+type ProductType implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the product type."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -6164,25 +6164,86 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   """
   metafields(keys: [String!]): Metadata
 
-  """Name of the page type."""
+  """Name of the product type."""
   name: String!
 
-  """Slug of the page type."""
+  """Slug of the product type."""
   slug: String!
 
-  """Page attributes of that page type."""
-  attributes: [Attribute!]
+  """Whether the product type has variants."""
+  hasVariants: Boolean!
+
+  """Whether shipping is required for this product type."""
+  isShippingRequired: Boolean!
+
+  """Whether the product type is digital."""
+  isDigital: Boolean!
+
+  """Weight of the product type."""
+  weight: Weight
+
+  """The product type kind."""
+  kind: ProductTypeKindEnum!
+
+  """List of products of this type."""
+  products(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection @deprecated(reason: "Use the top-level `products` query with the `productTypes` filter.")
+
+  """A type of tax. Assigned by enabled tax gateway"""
+  taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
 
   """
-  Attributes that can be assigned to the page type.
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
   
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxClass: TaxClass
+
+  """Variant attributes of that product type."""
+  variantAttributes(
+    """Define scope of returned attributes."""
+    variantSelection: VariantAttributeScope
+  ): [Attribute!] @deprecated(reason: "Use `assignedVariantAttributes` instead.")
+
+  """
+  Variant attributes of that product type with attached variant selection.
+  """
+  assignedVariantAttributes(
+    """Define scope of returned attributes."""
+    variantSelection: VariantAttributeScope
+  ): [AssignedVariantAttribute!]
+
+  """Product attributes of that product type."""
+  productAttributes: [Attribute!]
+
+  """
+  List of attributes which can be assigned to this product type.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   availableAttributes(
-    """Filtering options for attributes."""
+    """Filtering options for attributes of this product type."""
     filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
 
-    """Where filtering options for attributes."""
+    """Where filtering options for attributes of this product type."""
     where: AttributeWhereInput
 
     """Search attributes."""
@@ -6204,13 +6265,97 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
     """
     last: Int
   ): AttributeCountableConnection
+}
+
+enum ProductTypeKindEnum @doc(category: "Products") {
+  NORMAL
+  GIFT_CARD
+}
+
+"""Representation of tax types fetched from tax gateway."""
+type TaxType @doc(category: "Taxes") {
+  """Description of the tax type."""
+  description: String
+
+  """External tax code used to identify given tax group."""
+  taxCode: String
+}
+
+"""
+Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
+"""
+type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
 
   """
-  Whether page type has pages assigned.
+  A single key from private metadata. Requires staff permissions to access.
   
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  Tip: Use GraphQL aliases to fetch multiple keys.
   """
-  hasPages: Boolean
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the tax class."""
+  name: String!
+
+  """Country-specific tax rates for this tax class."""
+  countries: [TaxClassCountryRate!]!
+}
+
+"""
+Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
+"""
+type TaxClassCountryRate @doc(category: "Taxes") {
+  """Country in which this tax rate applies."""
+  country: CountryDisplay!
+
+  """Tax rate value."""
+  rate: Float!
+
+  """Related tax class."""
+  taxClass: TaxClass
+}
+
+enum VariantAttributeScope @doc(category: "Products") {
+  ALL
+  VARIANT_SELECTION
+  NOT_VARIANT_SELECTION
+}
+
+"""
+Represents assigned attribute to variant with variant selection attached.
+"""
+type AssignedVariantAttribute @doc(category: "Attributes") {
+  """Attribute assigned to variant."""
+  attribute: Attribute!
+
+  """
+  Determines, whether assigned attribute is allowed for variant selection. Supported variant types for variant selection are: ['dropdown', 'boolean', 'swatch', 'numeric']
+  """
+  variantSelection: Boolean!
 }
 
 type AttributeCountableConnection @doc(category: "Attributes") {
@@ -6362,6 +6507,92 @@ enum MeasurementUnitsEnum {
   OZ
   KG
   TONNE
+}
+
+"""
+Represents a type of page. It defines what attributes are available to pages of this type.
+"""
+type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page type."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the page type."""
+  name: String!
+
+  """Slug of the page type."""
+  slug: String!
+
+  """Page attributes of that page type."""
+  attributes: [Attribute!]
+
+  """
+  Attributes that can be assigned to the page type.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  availableAttributes(
+    """Filtering options for attributes."""
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for attributes."""
+    where: AttributeWhereInput
+
+    """Search attributes."""
+    search: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
+
+  """
+  Whether page type has pages assigned.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  hasPages: Boolean
 }
 
 """
@@ -6609,244 +6840,6 @@ type ProductTypeCountableEdge @doc(category: "Products") {
   """A cursor for use in pagination."""
   cursor: String!
 }
-
-"""
-Represents a type of product. It defines what attributes are available to products of this type.
-"""
-type ProductType implements Node & ObjectWithMetadata @doc(category: "Products") {
-  """The ID of the product type."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the product type."""
-  name: String!
-
-  """Slug of the product type."""
-  slug: String!
-
-  """Whether the product type has variants."""
-  hasVariants: Boolean!
-
-  """Whether shipping is required for this product type."""
-  isShippingRequired: Boolean!
-
-  """Whether the product type is digital."""
-  isDigital: Boolean!
-
-  """Weight of the product type."""
-  weight: Weight
-
-  """The product type kind."""
-  kind: ProductTypeKindEnum!
-
-  """List of products of this type."""
-  products(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductCountableConnection @deprecated(reason: "Use the top-level `products` query with the `productTypes` filter.")
-
-  """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
-
-  """
-  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
-  """
-  taxClass: TaxClass
-
-  """Variant attributes of that product type."""
-  variantAttributes(
-    """Define scope of returned attributes."""
-    variantSelection: VariantAttributeScope
-  ): [Attribute!] @deprecated(reason: "Use `assignedVariantAttributes` instead.")
-
-  """
-  Variant attributes of that product type with attached variant selection.
-  """
-  assignedVariantAttributes(
-    """Define scope of returned attributes."""
-    variantSelection: VariantAttributeScope
-  ): [AssignedVariantAttribute!]
-
-  """Product attributes of that product type."""
-  productAttributes: [Attribute!]
-
-  """
-  List of attributes which can be assigned to this product type.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  availableAttributes(
-    """Filtering options for attributes of this product type."""
-    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for attributes of this product type."""
-    where: AttributeWhereInput
-
-    """Search attributes."""
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeCountableConnection
-}
-
-enum ProductTypeKindEnum @doc(category: "Products") {
-  NORMAL
-  GIFT_CARD
-}
-
-"""Representation of tax types fetched from tax gateway."""
-type TaxType @doc(category: "Taxes") {
-  """Description of the tax type."""
-  description: String
-
-  """External tax code used to identify given tax group."""
-  taxCode: String
-}
-
-"""
-Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
-"""
-type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
-  """The ID of the object."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the tax class."""
-  name: String!
-
-  """Country-specific tax rates for this tax class."""
-  countries: [TaxClassCountryRate!]!
-}
-
-"""
-Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
-"""
-type TaxClassCountryRate @doc(category: "Taxes") {
-  """Country in which this tax rate applies."""
-  country: CountryDisplay!
-
-  """Tax rate value."""
-  rate: Float!
-
-  """Related tax class."""
-  taxClass: TaxClass
-}
-
-enum VariantAttributeScope @doc(category: "Products") {
-  ALL
-  VARIANT_SELECTION
-  NOT_VARIANT_SELECTION
-}
-
-"""
-Represents assigned attribute to variant with variant selection attached.
-"""
-type AssignedVariantAttribute @doc(category: "Attributes") {
-  """Attribute assigned to variant."""
-  attribute: Attribute!
-
-  """
-  Determines, whether assigned attribute is allowed for variant selection. Supported variant types for variant selection are: ['dropdown', 'boolean', 'swatch', 'numeric']
-  """
-  variantSelection: Boolean!
-}
-
-"""
-Positive Integer scalar implementation.
-
-Should be used in places where value must be positive (greater than 0).
-"""
-scalar PositiveInt
 
 """
 Represents a single category of products. Categories allow to organize products in a tree-hierarchies which can be used for navigation in the storefront.

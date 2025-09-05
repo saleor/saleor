@@ -97,8 +97,6 @@ Like `reference`, the `single-reference` type can target entities defined in the
 - Refunds are now more powerful. You can configure new `RefundSettings` to accept a `reasonReferenceType`. Once assigned, creating refunds (both manual and with grant refunds) will require a reason type to be specified. `refundReasonReferenceTypeClear` clears the settings.
 - You can now use the `AssignedAttribute` interface and the `assignedAttribute`, `assignedAttributes` fields on `Page`, `Product`, and `ProductVariant` to fetch assigned attributes and their values in a cleaner, more focused shape.
   - `attribute` and `attributes` fields on Page, Product, and ProductVariant are deprecated.
-
-
 - Added support for restricting available references for `REFERENCE` and `SINGLE_REFERENCE` attributes by specifying reference product or page types.
   - You can now define `referenceTypes` on an `Attribute` to limit reference choices. Use `productType` for product and product variant references, and page types for page references.
 
