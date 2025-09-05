@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
+import mptt
 import pytest
 from django.core.management import CommandError, call_command
 from django.db.utils import DataError
@@ -462,3 +463,13 @@ def test_prepare_unique_attribute_value_slug_non_existing_slug(color_attribute):
     result = prepare_unique_attribute_value_slug(color_attribute, non_existing_slug)
 
     assert result == non_existing_slug
+
+
+def test_mptt_version():
+    # Ensure the django-mptt library version is below 0.18
+    # Version 0.18 introduces changes in index definitions.
+    # Upgrading to this version requires new migrations, which are already included in later versions.
+    version = tuple(map(int, mptt.__version__.split(".")))
+    assert version <= (0, 18), (
+        f"mptt version is {mptt.__version__}, must be 0.18 or lower"
+    )
