@@ -579,7 +579,6 @@ def test_cancel_fulfillment_waiting_for_approval(fulfilled_order):
     fulfilled_order.status = OrderStatus.UNCONFIRMED
     fulfilled_order.save(update_fields=["status"])
     warehouse = None
-    line_1, line_2 = fulfillment.lines.all()
 
     # when
     cancel_fulfillment(
@@ -592,6 +591,7 @@ def test_cancel_fulfillment_waiting_for_approval(fulfilled_order):
 
     fulfillment.refresh_from_db()
     fulfilled_order.refresh_from_db()
+    line_1, line_2 = fulfillment.lines.all()
     assert fulfillment.status == FulfillmentStatus.CANCELED
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
     assert line_1.order_line.quantity_fulfilled == 0
