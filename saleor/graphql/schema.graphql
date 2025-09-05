@@ -7791,13 +7791,6 @@ interface AssignedAttribute @doc(category: "Attributes") {
   attribute: Attribute!
 }
 
-"""
-Positive Integer scalar implementation.
-
-Should be used in places where value must be positive (greater than 0).
-"""
-scalar PositiveInt
-
 """Represents an assigned attribute to an object."""
 type SelectedAttribute @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
