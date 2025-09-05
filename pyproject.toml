@@ -84,9 +84,6 @@ package-mode = false
   django-countries = "^7.2"
   django-filter = "^24.3"
   django-measurement = "^3.0"
-  # Version 0.18 introduces changes in index definitions.
-  # Upgrading to this version requires new migrations, which are already included in later versions.
-  # Block upgrading to prevent potential migration conflicts.
   django-mptt = ">=0,<0.18"
   django-phonenumber-field = ">=4,<9"
   django-stubs-ext = "^5.1.1"
