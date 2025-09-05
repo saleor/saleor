@@ -37,7 +37,6 @@ from ..actions import (
     call_order_events,
     cancel_fulfillment,
     cancel_order,
-    cancel_waiting_fulfillment,
     clean_mark_order_as_paid,
     fulfill_order_lines,
     handle_fully_paid_order,
@@ -569,21 +568,33 @@ def test_cancel_fulfillment(fulfilled_order, warehouse):
     assert line_2.order_line.quantity_fulfilled == 0
 
 
-def test_cancel_waiting_fulfillment_for_unconfirmed_order(fulfilled_order):
-    for fulfillment in fulfilled_order.fulfillments.all():
-        fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
-        fulfillment.save()
-    fulfilled_order.status = OrderStatus.UNCONFIRMED
-    fulfilled_order.save()
+def test_cancel_fulfillment_waiting_for_approval(fulfilled_order):
+    # given
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+    fulfillment.save(update_fields=["status"])
 
-    cancel_waiting_fulfillment(
-        fulfilled_order.fulfillments.first(),
+    fulfilled_order.status = OrderStatus.UNCONFIRMED
+    fulfilled_order.save(update_fields=["status"])
+    warehouse = None
+
+    # when
+    cancel_fulfillment(
+        fulfillment,
         None,
         None,
-        get_plugins_manager(allow_replica=False),
+        warehouse,
+        manager=get_plugins_manager(allow_replica=False),
     )
 
-    assert fulfilled_order.status == OrderStatus.UNCONFIRMED
+    # then
+    fulfillment.refresh_from_db()
+    fulfilled_order.refresh_from_db()
+    line_1, line_2 = fulfillment.lines.all()
+    assert fulfillment.status == FulfillmentStatus.CANCELED
+    assert fulfilled_order.status == OrderStatus.UNFULFILLED
+    assert line_1.order_line.quantity_fulfilled == 0
+    assert line_2.order_line.quantity_fulfilled == 0
 
 
 def test_cancel_fulfillment_variant_without_inventory_tracking(
