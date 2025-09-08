@@ -1239,6 +1239,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_collection_metadata_updated_webhook,
     subscription_checkout_created_webhook,
     subscription_checkout_updated_webhook,
+    subscription_checkout_fully_authorized_webhook,
     subscription_checkout_fully_paid_webhook,
     subscription_checkout_metadata_updated_webhook,
     subscription_page_created_webhook,
@@ -1525,6 +1526,10 @@ def async_subscription_webhooks_with_root_objects(
         events.CHECKOUT_UPDATED: [subscription_checkout_updated_webhook, checkout],
         events.CHECKOUT_FULLY_PAID: [
             subscription_checkout_fully_paid_webhook,
+            checkout,
+        ],
+        events.CHECKOUT_FULLY_AUTHORIZED: [
+            subscription_checkout_fully_authorized_webhook,
             checkout,
         ],
         events.CHECKOUT_METADATA_UPDATED: [

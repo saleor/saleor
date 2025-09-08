@@ -1276,6 +1276,26 @@ def test_checkout_fully_paid(mocked_sample_method, checkout, webhook):
     )
 
 
+@patch("saleor.plugins.tests.sample_plugins.PluginSample.checkout_fully_authorized")
+def test_checkout_fully_authorized(mocked_sample_method, checkout, webhook):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+    webhooks = {webhook}
+
+    # when
+    manager.checkout_fully_authorized(checkout, webhooks=webhooks)
+
+    # then
+    mocked_sample_method.assert_called_once_with(
+        checkout, previous_value=None, webhooks=webhooks
+    )
+
+
 @patch("saleor.plugins.tests.sample_plugins.PluginSample.order_fully_refunded")
 def test_order_fully_refunded(mocked_sample_method, order, webhook):
     # given
