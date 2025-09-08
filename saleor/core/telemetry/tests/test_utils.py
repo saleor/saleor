@@ -3,7 +3,7 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from opentelemetry.attributes import BoundedAttributes
-from opentelemetry.trace import Link, SpanContext, TraceFlags
+from opentelemetry.trace import INVALID_SPAN_CONTEXT, Link, SpanContext, TraceFlags
 from opentelemetry.util.types import AttributeValue
 
 from ..utils import (
@@ -172,6 +172,18 @@ def test_telemetry_task_context_to_dict():
     assert data["global_attributes"] == global_attrs
 
 
+def test_telemetry_task_context_to_dict_skip_link_to_invalid_span():
+    # given
+    global_attrs = {"global_key": "global_value"}
+    link = Link(context=INVALID_SPAN_CONTEXT, attributes={"link_attr": "link_value"})
+
+    # when
+    context = TelemetryTaskContext(links=[link], global_attributes=global_attrs)
+
+    # then
+    assert context.to_dict() == {"global_attributes": global_attrs, "links": []}
+
+
 def test_telemetry_task_context_to_dict_is_json_serializable():
     # given
     trace_id, span_id, trace_flags = 12345, 67890, 1
@@ -261,6 +273,29 @@ def test_telemetry_task_context_from_dict_empty():
     # then
     assert context.links is None
     assert context.global_attributes == {}
+
+
+def test_telemetry_task_context_from_dict_skip_link_to_invalid_span():
+    data = {
+        "links": [
+            {
+                "context": {
+                    "trace_id": 0,
+                    "span_id": 0,
+                    "trace_flags": 0,
+                },
+                "attributes": {"link_attr": "link_value"},
+            }
+        ],
+        "global_attributes": {"global_key": "global_value"},
+    }
+
+    # when
+    context = TelemetryTaskContext.from_dict(data)
+
+    # then
+    assert context.global_attributes == {"global_key": "global_value"}
+    assert context.links == []
 
 
 @patch("saleor.core.telemetry.utils.set_global_attributes")
