@@ -916,7 +916,9 @@ def test_create_transaction_event_with_invalid_message(
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 def test_create_transaction_event_from_session_when_authorized_triggers_checkout_completion(
+    mocked_checkout_fully_authorized,
     mocked_checkout_fully_paid,
     mocked_automatic_checkout_completion_task,
     transaction_item_generator,
@@ -963,6 +965,7 @@ def test_create_transaction_event_from_session_when_authorized_triggers_checkout
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_not_called()
+    mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     mocked_automatic_checkout_completion_task.assert_called_once_with(
         checkout.pk, None, app.id
     )

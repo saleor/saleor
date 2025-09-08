@@ -1366,6 +1366,18 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
+    def checkout_fully_authorized(self, checkout: "Checkout", webhooks=None):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "checkout_fully_authorized",
+            default_value,
+            checkout,
+            channel_slug=checkout.channel.slug,
+            webhooks=webhooks,
+        )
+
+    # Note: this method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from plugin to core modules.
     def checkout_fully_paid(self, checkout: "Checkout", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(

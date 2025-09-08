@@ -545,6 +545,15 @@ class BasePlugin:
     # Webhook-related functionality will be moved from the plugin to core modules.
     checkout_fully_paid: Callable[["Checkout", Any, None], Any]
 
+    # Trigger when checkout is fully authorized with transactions.
+    #
+    # Overwrite this method if you need to trigger specific logic when a checkout is
+    # updated.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    checkout_fully_authorized: Callable[["Checkout", Any, None], Any]
+
     # Trigger when checkout metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a checkout
