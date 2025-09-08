@@ -16349,7 +16349,7 @@ type Mutation {
     reason: String
 
     """
-    ID of Model to reference in reason.
+    ID of a `Page` (Model) to reference in reason.
     
     Added in Saleor 3.22.
     """
@@ -24972,7 +24972,7 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   reason: String
 
   """
-  ID of Model to reference in reason.
+  ID of a `Page` (Model) to reference in reason.
   
   Added in Saleor 3.22.
   """
@@ -25079,7 +25079,7 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   reason: String
 
   """
-  ID of Model to reference in reason.
+  ID of a `Page` (Model) to reference in reason.
   
   Added in Saleor 3.22.
   """

@@ -72,7 +72,7 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
     )
     reason = graphene.String(description="Reason of the granted refund.")
     reason_reference = graphene.ID(
-        description="ID of Model to reference in reason." + ADDED_IN_322
+        description="ID of a `Page` (Model) to reference in reason." + ADDED_IN_322
     )
     lines = NonNullList(
         OrderGrantRefundCreateLineInput,

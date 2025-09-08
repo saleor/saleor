@@ -70,7 +70,7 @@ class TransactionRequestAction(BaseMutation):
             required=False,
         )
         reason_reference = graphene.ID(
-            description="ID of Model to reference in reason." + ADDED_IN_322,
+            description="ID of a `Page` (Model) to reference in reason." + ADDED_IN_322,
             required=False,
         )
 
