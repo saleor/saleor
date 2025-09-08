@@ -445,8 +445,11 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
             if not page:
                 return None
 
-            # It works but is it a valid solution?
-            return ChannelContext(node=page, channel_slug=None)
+            # TODO Check if this works
+            print(info.context)
+
+            channel_slug = getattr(getattr(info.context, "channel", None), "slug", None)
+            return ChannelContext(node=page, channel_slug=channel_slug)
 
         return (
             PageByIdLoader(info.context)

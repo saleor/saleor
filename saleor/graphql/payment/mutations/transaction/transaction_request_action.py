@@ -182,7 +182,7 @@ class TransactionRequestAction(BaseMutation):
         action_value = data.get("amount")
         reason = data.get("reason")
         reason_reference_id = data.get("reason_reference")
-        if reason_reference_id and len(reason_reference_id) == 0:
+        if not reason_reference_id:
             reason_reference_id = None
 
         requestor_is_app = info.context.app is not None
@@ -191,10 +191,6 @@ class TransactionRequestAction(BaseMutation):
         settings = Site.objects.get_current().settings
         refund_reason_reference_type = settings.refund_reason_reference_type
 
-        # It works as following:
-        # If it's not configured, it's optional
-        # If it's configured, it's required for staff user
-        # It's never required for the app
         is_passing_reason_reference_required = refund_reason_reference_type is not None
 
         if (

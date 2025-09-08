@@ -404,12 +404,18 @@ class OrderGrantedRefund(
             if not page:
                 return None
 
-            # It works but is it a valid solution?
-            return ChannelContext(node=page, channel_slug=None)
+            # TODO Check if this works
+            print(info.context)
+
+            channel_slug = getattr(getattr(info.context, "channel", None), "slug", None)
+
+            return ChannelContext(node=page, channel_slug=channel_slug)
+
+        print(root.node.reason_reference_id)
 
         return (
             PageByIdLoader(info.context)
-            .load(root.node.reason_reference.id)
+            .load(root.node.reason_reference_id)
             .then(wrap_page_with_context)
         )
 
