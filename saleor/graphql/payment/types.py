@@ -621,9 +621,11 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         description="The payment method used for this transaction." + ADDED_IN_322,
     )
 
-    reason = graphene.String(description="Reason of the refund.")
+    reason = graphene.String(description="Reason of the refund." + ADDED_IN_322)
     reason_reference = graphene.Field(
-        Page, required=False, description="Reason model for refund."
+        Page,
+        required=False,
+        description="Reason `Page` (model) for refund." + ADDED_IN_322,
     )
 
     class Meta:

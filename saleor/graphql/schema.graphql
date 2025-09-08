@@ -11029,10 +11029,18 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """
   paymentMethodDetails: PaymentMethodDetails
 
-  """Reason of the refund."""
+  """
+  Reason of the refund.
+  
+  Added in Saleor 3.22.
+  """
   reason: String
 
-  """Reason model for refund."""
+  """
+  Reason `Page` (model) for refund.
+  
+  Added in Saleor 3.22.
+  """
   reasonReference: Page
 }
 
@@ -12350,7 +12358,11 @@ type OrderGrantedRefund @doc(category: "Orders") {
   """Refund amount."""
   amount: Money!
 
-  """Reason of the refund."""
+  """
+  Reason of the refund.
+  
+  Added in Saleor 3.22.
+  """
   reason: String
 
   """
@@ -20790,7 +20802,7 @@ input RefundSettingsUpdateInput @doc(category: "Shop") {
   
   Added in Saleor 3.22.
   """
-  refundReasonReferenceType: ID
+  refundReasonReferenceType: ID!
 }
 
 """

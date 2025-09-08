@@ -288,10 +288,6 @@ class OrderGrantRefundCreate(BaseMutation):
         settings = Site.objects.get_current().settings
         refund_reason_reference_type = settings.refund_reason_reference_type
 
-        # It works as following:
-        # If it's not configured, it's optional
-        # If it's configured, it's required for staff user
-        # It's never required for the app
         is_passing_reason_reference_required = refund_reason_reference_type is not None
 
         if (
@@ -306,7 +302,7 @@ class OrderGrantRefundCreate(BaseMutation):
                         code=OrderGrantRefundCreateErrorCode.REQUIRED.value,
                     )
                 }
-            ) from None
+            )
 
         # If feature is not enabled, ignore it from the input
         if not is_passing_reason_reference_required:

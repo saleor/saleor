@@ -270,7 +270,7 @@ class OrderGrantedRefund(
     created_at = DateTime(required=True, description="Time of creation.")
     updated_at = DateTime(required=True, description="Time of last update.")
     amount = graphene.Field(Money, required=True, description="Refund amount.")
-    reason = graphene.String(description="Reason of the refund.")
+    reason = graphene.String(description="Reason of the refund." + ADDED_IN_322)
     reason_reference = graphene.Field(
         Page,
         required=False,

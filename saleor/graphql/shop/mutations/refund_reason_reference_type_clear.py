@@ -29,6 +29,6 @@ class RefundReasonReferenceTypeClear(BaseMutation):
 
         settings.refund_reason_reference_type = None
 
-        settings.save()
+        settings.save(update_fields=["refund_reason_reference_type"])
 
         return RefundReasonReferenceTypeClear(refund_settings=settings)

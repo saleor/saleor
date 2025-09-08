@@ -20,7 +20,7 @@ class RefundSettingsUpdateInput(BaseInputObjectType):
             "All models with of this type will be accepted as refund reasons. "
             f"{ADDED_IN_322}"
         ),
-        required=False,
+        required=True,
     )
 
     class Meta:
@@ -50,15 +50,6 @@ class RefundSettingsUpdate(BaseMutation):
         input = data.get("input")
 
         refund_reason_reference_type = input.get("refund_reason_reference_type")
-
-        if refund_reason_reference_type and len(refund_reason_reference_type) == 0:
-            raise ValidationError(
-                {
-                    "refund_reason_model_type": ValidationError(
-                        "Field should be a valid ID", code="invalid"
-                    )
-                }
-            ) from None
 
         # todo should we use this loader, or get_current?
         site = get_site_promise(info.context).get()

@@ -349,7 +349,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         if errors:
             raise ValidationError(errors)
 
-        if reason_reference is not None and len(reason_reference) == 0:
+        if not reason_reference:
             reason_reference = None
 
         cleaned_input = {
@@ -417,10 +417,6 @@ class OrderGrantRefundUpdate(BaseMutation):
             settings = Site.objects.get_current().settings
             refund_reason_reference_type = settings.refund_reason_reference_type
 
-            # It works as following:
-            # If it's not configured, it's optional
-            # If it's configured, it's required for staff user
-            # It's never required for the app
             is_passing_reason_reference_required = (
                 refund_reason_reference_type is not None
             )
