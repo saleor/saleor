@@ -231,8 +231,7 @@ By default `poe test` is using the `--reuse-db` flag to speed up testing time.
 > If you need to ignore `--reuse-db` (e.g when testing Saleor on different versions that have different migrations) add `--create-db` argument: `poe test --create-db`
 
 > [!TIP]
-> When running test's it's recommended to use local database, not a one running in Docker, to make them execute faster.
-> On macOS you can easily install Postgres by using [Postgres.app](https://github.com/PostgresApp/PostgresApp)
+> Depending on your setup, you may want to run your Postgres on host (not inside container) to improve the test execution speed
 
 ### How to run particular tests?
 
