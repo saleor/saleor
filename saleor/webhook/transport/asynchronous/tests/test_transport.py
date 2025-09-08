@@ -181,7 +181,7 @@ def test_send_webhook_request_async_record_external_request_with_unknown_webhook
 
 
 @patch("saleor.webhook.transport.asynchronous.transport.webhooks_otel_trace")
-def test_send_webhook_request_async_fails_when_exception_raised_in_webhooks_otel_trace(
+def test_send_webhook_request_async_fails_when_exception_raised_by_webhooks_otel_trace(
     mock_webhooks_otel_trace,
     event_delivery,
 ):
