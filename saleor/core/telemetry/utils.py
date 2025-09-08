@@ -91,18 +91,21 @@ class TelemetryTaskContext:
     )
 
     def to_dict(self) -> dict:
+        # filter out links to invalid spans
+        links = [
+            {
+                "context": {
+                    "trace_id": link.context.trace_id,
+                    "span_id": link.context.span_id,
+                    "trace_flags": int(link.context.trace_flags),
+                },
+                "attributes": dict(link.attributes) if link.attributes else {},
+            }
+            for link in self.links or []
+            if link.context.is_valid
+        ]
         return {
-            "links": [
-                {
-                    "context": {
-                        "trace_id": link.context.trace_id,
-                        "span_id": link.context.span_id,
-                        "trace_flags": int(link.context.trace_flags),
-                    },
-                    "attributes": dict(link.attributes) if link.attributes else {},
-                }
-                for link in (self.links or [])
-            ],
+            "links": links,
             "global_attributes": dict(self.global_attributes),
         }
 
@@ -111,18 +114,18 @@ class TelemetryTaskContext:
         if not data:
             return cls(global_attributes={})
         try:
-            links = [
-                Link(
-                    context=SpanContext(
-                        trace_id=link["context"]["trace_id"],
-                        span_id=link["context"]["span_id"],
-                        is_remote=True,
-                        trace_flags=TraceFlags(link["context"]["trace_flags"]),
-                    ),
-                    attributes=link.get("attributes"),
+            links = []
+            for link in data.get("links", []):
+                context = SpanContext(
+                    trace_id=link["context"]["trace_id"],
+                    span_id=link["context"]["span_id"],
+                    is_remote=True,
+                    trace_flags=TraceFlags(link["context"]["trace_flags"]),
                 )
-                for link in data.get("links", [])
-            ]
+                if not context.is_valid:
+                    # filter out links to invalid spans
+                    continue
+                links.append(Link(context, attributes=link.get("attributes")))
             return cls(links=links, global_attributes=data.get("global_attributes", {}))
         except (KeyError, ValueError, TypeError) as e:
             raise ValueError(f"Invalid telemetry context data: {e}") from e
