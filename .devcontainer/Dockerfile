@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update \
   && apt-get install -y \
   libffi8 \
-  libgdk-pixbuf2.0-0 \
+  libgdk-pixbuf-2.0-0\
   liblcms2-2 \
   libopenjp2-7 \
   libssl3 \
@@ -14,7 +14,7 @@ RUN apt-get update \
   libwebp7 \
   libpq5 \
   shared-mime-info \
-  mime-support
+  libmagic1
 
 WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /uvx /bin/
