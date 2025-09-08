@@ -200,6 +200,7 @@ class OrderGrantRefundCreate(BaseMutation):
         transaction_id = input.get("transaction_id")
         input_lines = input.get("lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", False)
+        reason_reference = input.get("reason_reference")
 
         cls.validate_input(input)
 
@@ -260,28 +261,7 @@ class OrderGrantRefundCreate(BaseMutation):
                 }
             )
 
-        return {
-            "amount": amount,
-            "reason": reason,
-            "lines": cleaned_input_lines,
-            "grant_refund_for_shipping": grant_refund_for_shipping,
-            "transaction_item": transaction_item,
-            "reason_reference": input.get("reason_reference"),
-        }
-
-    @classmethod
-    def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input
-    ):
-        order = cls.get_node_or_error(info, id, only_type=Order)
-        cleaned_input = cls.clean_input(info, order, input)
-        amount = cleaned_input["amount"]
-        reason = cleaned_input["reason"]
-        reason_reference_id = cleaned_input["reason_reference"]
-        cleaned_input_lines = cleaned_input["lines"]
-        grant_refund_for_shipping = cleaned_input["grant_refund_for_shipping"]
-        transaction_item = cleaned_input["transaction_item"]
-
+        # todo this validation should be shared helper
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
@@ -292,7 +272,7 @@ class OrderGrantRefundCreate(BaseMutation):
 
         if (
             is_passing_reason_reference_required
-            and reason_reference_id is None
+            and reason_reference is None
             and requestor_is_user
         ):
             raise ValidationError(
@@ -326,6 +306,29 @@ class OrderGrantRefundCreate(BaseMutation):
                         )
                     }
                 ) from None
+
+        return {
+            "amount": amount,
+            "reason": reason,
+            "lines": cleaned_input_lines,
+            "grant_refund_for_shipping": grant_refund_for_shipping,
+            "transaction_item": transaction_item,
+            "reason_reference": reason_reference,
+            "reason_reference_instance": reason_reference_instance,
+        }
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
+        order = cls.get_node_or_error(info, id, only_type=Order)
+        cleaned_input = cls.clean_input(info, order, input)
+        amount = cleaned_input["amount"]
+        reason = cleaned_input["reason"]
+        cleaned_input_lines = cleaned_input["lines"]
+        grant_refund_for_shipping = cleaned_input["grant_refund_for_shipping"]
+        transaction_item = cleaned_input["transaction_item"]
+        reason_reference_instance = cleaned_input["reason_reference_instance"]
 
         with transaction.atomic():
             granted_refund = order.granted_refunds.create(
