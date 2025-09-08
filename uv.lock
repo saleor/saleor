@@ -2151,16 +2151,16 @@ wheels = [
 
 [[package]]
 name = "pytest-cov"
-version = "6.2.1"
+version = "6.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "coverage", marker = "platform_python_implementation != 'PyPy'" },
     { name = "pluggy", marker = "platform_python_implementation != 'PyPy'" },
     { name = "pytest", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/18/99/668cade231f434aaa59bbfbf49469068d2ddd945000621d3d165d2e7dd7b/pytest_cov-6.2.1.tar.gz", hash = "sha256:25cc6cc0a5358204b8108ecedc51a9b57b34cc6b8c967cc2c01a4e00d8a67da2", size = 69432, upload-time = "2025-06-12T10:47:47.684Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/30/4c/f883ab8f0daad69f47efdf95f55a66b51a8b939c430dadce0611508d9e99/pytest_cov-6.3.0.tar.gz", hash = "sha256:35c580e7800f87ce892e687461166e1ac2bcb8fb9e13aea79032518d6e503ff2", size = 70398, upload-time = "2025-09-06T15:40:14.361Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/16/4ea354101abb1287856baa4af2732be351c7bee728065aed451b678153fd/pytest_cov-6.2.1-py3-none-any.whl", hash = "sha256:f5bc4c23f42f1cdd23c70b1dab1bbaef4fc505ba950d53e0081d0730dd7e86d5", size = 24644, upload-time = "2025-06-12T10:47:45.932Z" },
+    { url = "https://files.pythonhosted.org/packages/80/b4/bb7263e12aade3842b938bc5c6958cae79c5ee18992f9b9349019579da0f/pytest_cov-6.3.0-py3-none-any.whl", hash = "sha256:440db28156d2468cafc0415b4f8e50856a0d11faefa38f30906048fe490f1749", size = 25115, upload-time = "2025-09-06T15:40:12.44Z" },
 ]
 
 [[package]]
