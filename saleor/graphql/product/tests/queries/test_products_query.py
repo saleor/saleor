@@ -1181,6 +1181,11 @@ def test_products_with_variants_query_as_app(
               node{
                 id
                 name
+                assignedAttributes(limit:10) {
+                    attribute {
+                        slug
+                    }
+                }
                 attributes {
                     attribute {
                         id
@@ -1211,6 +1216,9 @@ def test_products_with_variants_query_as_app(
         attrs = response_product["node"]["attributes"]
         assert len(attrs) == 1
         assert attrs[0]["attribute"]["id"] == attribute_id
+        assigned_attribtues = response_product["node"]["assignedAttributes"]
+        assert len(assigned_attribtues) == 1
+        assert assigned_attribtues[0]["attribute"]["slug"] == attribute.slug
 
 
 PRODUCT_SEARCH_QUERY = """

@@ -98,9 +98,7 @@ TRANSACTION_QUERY = """
             }
             paymentMethodDetails{
                 __typename
-                ...on GenericPaymentMethodDetails{
-                    name
-                }
+                name
                 ...on CardPaymentMethodDetails{
                     name
                     brand

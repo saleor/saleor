@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional, cast
 
 from django.utils import timezone
 
+from ..core.taxes import zero_money
 from ..core.utils.events import (
     call_event_including_protected_events,
     webhook_async_event_requires_sync_webhooks_to_trigger,
@@ -241,7 +242,14 @@ def transaction_amounts_for_checkout_updated_without_price_recalculation(
     previous_charge_status = checkout_info.checkout.charge_status
     previous_authorize_status = checkout_info.checkout.authorize_status
 
-    current_total_gross = checkout_info.checkout.total.gross
+    current_total_gross = (
+        checkout_info.checkout.total.gross
+        - checkout_info.checkout.get_total_gift_cards_balance()
+    )
+    current_total_gross = max(
+        current_total_gross, zero_money(current_total_gross.currency)
+    )
+
     update_checkout_payment_statuses(
         checkout=checkout_info.checkout,
         checkout_total_gross=current_total_gross,

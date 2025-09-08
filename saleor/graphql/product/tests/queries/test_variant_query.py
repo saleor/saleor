@@ -28,6 +28,28 @@ query variant(
         id
         sku
         externalReference
+        assignedAttributes(variantSelection: $variantSelection) {
+            attribute {
+                slug
+            }
+            ... on AssignedFileAttribute {
+                file: value {
+                    contentType
+                    url
+                }
+            }
+            ... on AssignedSingleChoiceAttribute {
+                choice: value {
+                    name
+                    slug
+                }
+            }
+            ... on AssignedMultiProductReferenceAttribute {
+                products: value {
+                    slug
+                }
+            }
+        }
         attributes(variantSelection: $variantSelection) {
             attribute {
                 slug
@@ -559,11 +581,20 @@ def test_get_variant_by_id_with_variant_selection_filter(
             data["attributes"][0]["attribute"]["slug"]
             == file_attribute_with_file_input_type_without_values.slug
         )
+        assert len(data["assignedAttributes"]) == 1
+        assert (
+            data["assignedAttributes"][0]["attribute"]["slug"]
+            == file_attribute_with_file_input_type_without_values.slug
+        )
     elif variant_selection == VariantAttributeScope.VARIANT_SELECTION.name:
         assert len(data["attributes"]) == 1
         assert data["attributes"][0]["attribute"]["slug"] == size_attribute.slug
+
+        assert len(data["assignedAttributes"]) == 1
+        assert data["assignedAttributes"][0]["attribute"]["slug"] == size_attribute.slug
     else:
         assert len(data["attributes"]) == 2
+        assert len(data["assignedAttributes"]) == 2
 
 
 def test_get_variant_with_sorted_attribute_values(
@@ -581,17 +612,24 @@ def test_get_variant_with_sorted_attribute_values(
         attribute=product_type_product_reference_attribute,
         name=product_list[0].name,
         slug=f"{variant.pk}_{product_list[0].pk}",
+        reference_product=product_list[0],
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
         name=product_list[1].name,
         slug=f"{variant.pk}_{product_list[1].pk}",
+        reference_product=product_list[1],
     )
     attr_value_3 = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
         name=product_list[2].name,
         slug=f"{variant.pk}_{product_list[2].pk}",
+        reference_product=product_list[2],
     )
+
+    expected_first_product = product_list[1]
+    expected_second_product = product_list[0]
+    expected_third_product = product_list[2]
 
     attr_values = [attr_value_2, attr_value_1, attr_value_3]
     associate_attribute_values_to_instance(
@@ -614,6 +652,14 @@ def test_get_variant_with_sorted_attribute_values(
     assert [value["id"] for value in values] == [
         graphene.Node.to_global_id("AttributeValue", val.pk) for val in attr_values
     ]
+
+    assigned_attributes = data["assignedAttributes"]
+    assert len(assigned_attributes) == 1
+    assigned_values = assigned_attributes[0]["products"]
+    assert len(assigned_values) == 3
+    assert assigned_values[0]["slug"] == expected_first_product.slug
+    assert assigned_values[1]["slug"] == expected_second_product.slug
+    assert assigned_values[2]["slug"] == expected_third_product.slug
 
 
 @pytest.mark.parametrize(

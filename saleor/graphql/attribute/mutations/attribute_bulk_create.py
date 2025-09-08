@@ -51,7 +51,7 @@ def validate_value(
         index_error_map[attribute_index].append(
             error_class(
                 path=f"{path_prefix}.{value_index}",
-                message=("Cannot specify both value and file for swatch attribute."),
+                message="Cannot specify both value and file for swatch attribute.",
                 code=error_class.code.INVALID.value,
             )
         )

@@ -34,18 +34,18 @@ from ..discount.dataloaders import (
 )
 from ..menu.dataloaders import MenuItemByIdLoader
 from ..page.dataloaders import (
+    AssignedAttributesAllByPageIdLoader,
+    AssignedAttributesVisibleInStorefrontPageIdLoader,
     PageByIdLoader,
-    SelectedAttributesAllByPageIdLoader,
-    SelectedAttributesVisibleInStorefrontPageIdLoader,
 )
 from ..product.dataloaders import (
+    AssignedAttributesAllByProductIdLoader,
+    AssignedAttributesByProductVariantIdLoader,
+    AssignedAttributesVisibleInStorefrontByProductIdLoader,
     CategoryByIdLoader,
     CollectionByIdLoader,
     ProductByIdLoader,
     ProductVariantByIdLoader,
-    SelectedAttributesAllByProductIdLoader,
-    SelectedAttributesByProductVariantIdLoader,
-    SelectedAttributesVisibleInStorefrontByProductIdLoader,
 )
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..utils import get_user_or_app_from_context
@@ -294,7 +294,7 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
     @staticmethod
     def resolve_attribute_values(root: product_models.ProductVariant, info):
         return (
-            SelectedAttributesByProductVariantIdLoader(info.context)
+            AssignedAttributesByProductVariantIdLoader(info.context)
             .load(root.id)
             .then(get_translatable_attribute_values)
         )
@@ -396,12 +396,12 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
             and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
         ):
             return (
-                SelectedAttributesAllByProductIdLoader(info.context)
+                AssignedAttributesAllByProductIdLoader(info.context)
                 .load(root.id)
                 .then(get_translatable_attribute_values)
             )
         return (
-            SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+            AssignedAttributesVisibleInStorefrontByProductIdLoader(info.context)
             .load(root.id)
             .then(get_translatable_attribute_values)
         )
@@ -680,12 +680,12 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
             return (
-                SelectedAttributesAllByPageIdLoader(info.context)
+                AssignedAttributesAllByPageIdLoader(info.context)
                 .load(root.id)
                 .then(get_translatable_attribute_values)
             )
         return (
-            SelectedAttributesVisibleInStorefrontPageIdLoader(info.context)
+            AssignedAttributesVisibleInStorefrontPageIdLoader(info.context)
             .load(root.id)
             .then(get_translatable_attribute_values)
         )

@@ -6,9 +6,11 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....page.models import Page
+from .....product.search import update_products_search_vector
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -214,3 +216,71 @@ def test_page_type_delete_with_file_attributes(
         page_type.refresh_from_db()
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
+
+
+def test_page_type_delete_sets_search_index_dirty_in_product_with_page_reference(
+    staff_api_client,
+    page_type,
+    page,
+    product,
+    product_type_page_reference_attribute,
+    permission_manage_page_types_and_attributes,
+):
+    # given
+    # Set up page reference attribute
+    attribute = product_type_page_reference_attribute
+    product.product_type.product_attributes.add(attribute)
+    page.title = "Brand"
+    page.save(update_fields=["title"])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name=page.title,
+        slug=f"{product.pk}_{page.pk}",
+        reference_page=page,
+    )
+
+    associate_attribute_values_to_instance(product, {attribute.pk: [attr_value]})
+
+    # Ensure product search index is initially clean
+    product.search_index_dirty = False
+    product.save(update_fields=["search_index_dirty"])
+    update_products_search_vector([product.id])
+    product.refresh_from_db()
+    assert page.title.lower() in product.search_vector
+
+    # when
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+    variables = {"id": page_type_id}
+    staff_api_client.user.user_permissions.add(
+        permission_manage_page_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(DELETE_PAGE_TYPE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageTypeDelete"]
+
+    assert not data["errors"]
+    assert data["pageType"]["id"] == page_type_id
+
+    # Check that page type was deleted
+    with pytest.raises(page_type._meta.model.DoesNotExist):
+        page_type.refresh_from_db()
+
+    # Check that page was deleted (cascade from page type)
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()
+
+    # Check that attribute value was deleted
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+
+    # Check that product search_index_dirty flag was set to True
+    product.refresh_from_db(fields=["search_index_dirty"])
+    assert product.search_index_dirty is True
+
+    # Verify search vector no longer contains the deleted page title
+    update_products_search_vector([product.id])
+    product.refresh_from_db()
+    assert page.title.lower() not in product.search_vector

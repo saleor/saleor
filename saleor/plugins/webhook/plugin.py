@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any, Final, Optional, Union, cast
 
 import graphene
 from django.conf import settings
-from django.template.defaultfilters import truncatechars
 from pydantic import ValidationError
 
 from ...app.models import App
@@ -22,6 +21,7 @@ from ...core.taxes import TAX_ERROR_FIELD_LENGTH, TaxData, TaxDataError, TaxType
 from ...core.telemetry import get_task_context
 from ...core.utils import build_absolute_uri, get_domain
 from ...core.utils.json_serializer import CustomJsonEncoder
+from ...core.utils.text import safe_truncate
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import (
@@ -62,7 +62,7 @@ from ...payment.utils import (
 )
 from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...thumbnail.models import Thumbnail
-from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
+from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TTL
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -2819,7 +2819,7 @@ class WebhookPlugin(BasePlugin):
                     self.allow_replica,
                     subscribable_object=list_payment_method_data,
                     request_timeout=WEBHOOK_SYNC_TIMEOUT,
-                    cache_timeout=WEBHOOK_CACHE_DEFAULT_TIMEOUT,
+                    cache_timeout=WEBHOOK_CACHE_DEFAULT_TTL,
                     requestor=self.requestor,
                 )
                 if response_data:
@@ -3525,7 +3525,7 @@ class WebhookPlugin(BasePlugin):
                 str(e),
                 extra={"errors": errors},
             )
-            error_msg = truncatechars(parse_validation_error(e), TAX_ERROR_FIELD_LENGTH)
+            error_msg = safe_truncate(parse_validation_error(e), TAX_ERROR_FIELD_LENGTH)
             raise TaxDataError(error_msg, errors=errors) from e
         return tax_data
 

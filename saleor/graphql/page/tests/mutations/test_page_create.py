@@ -17,46 +17,126 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 CREATE_PAGE_MUTATION = """
-    mutation CreatePage(
-        $input: PageCreateInput!
-    ) {
-        pageCreate(input: $input) {
-            page {
-                id
-                title
-                content
-                slug
-                isPublished
-                publishedAt
-                pageType {
-                    id
-                }
-                attributes {
-                    attribute {
-                        slug
-                    }
-                    values {
-                        slug
-                        name
-                        reference
-                        date
-                        dateTime
-                        plainText
-                        file {
-                            url
-                            contentType
-                        }
-                    }
-                }
-            }
-            errors {
-                field
-                code
-                message
-                attributes
-            }
+mutation CreatePage($input: PageCreateInput!) {
+  pageCreate(input: $input) {
+    page {
+      id
+      title
+      content
+      slug
+      isPublished
+      publishedAt
+      pageType {
+        id
+      }
+      assignedAttributes(limit:10) {
+        attribute {
+          slug
         }
+        ... on AssignedSingleChoiceAttribute {
+          choice: value {
+            name
+            slug
+          }
+        }
+        ... on AssignedNumericAttribute {
+          value
+        }
+        ... on AssignedFileAttribute {
+          file: value {
+            contentType
+            url
+          }
+        }
+        ... on AssignedMultiPageReferenceAttribute {
+          pages: value {
+            slug
+          }
+        }
+        ... on AssignedDateAttribute {
+          date: value
+        }
+        ... on AssignedDateTimeAttribute {
+          datetime: value
+        }
+        ... on AssignedTextAttribute {
+          text: value
+        }
+        ... on AssignedPlainTextAttribute {
+          plain_text: value
+        }
+        ... on AssignedMultiProductReferenceAttribute {
+          products: value {
+            slug
+          }
+        }
+        ... on AssignedMultiProductVariantReferenceAttribute {
+          variants: value {
+            sku
+          }
+        }
+        ... on AssignedMultiCategoryReferenceAttribute {
+          categories: value {
+            slug
+          }
+        }
+        ... on AssignedMultiCollectionReferenceAttribute {
+          collections: value {
+            slug
+          }
+        }
+        ... on AssignedSingleCategoryReferenceAttribute {
+          category: value {
+            slug
+          }
+        }
+        ... on AssignedSingleCollectionReferenceAttribute {
+          collection: value {
+            slug
+          }
+        }
+        ... on AssignedSinglePageReferenceAttribute {
+          page: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductReferenceAttribute {
+          product: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductVariantReferenceAttribute {
+          variant: value {
+            sku
+          }
+        }
+      }
+      attributes {
+        attribute {
+          slug
+        }
+        values {
+          slug
+          name
+          reference
+          date
+          dateTime
+          plainText
+          file {
+            url
+            contentType
+          }
+        }
+      }
     }
+    errors {
+      field
+      code
+      message
+      attributes
+    }
+  }
+}
 """
 
 
@@ -75,9 +155,9 @@ def test_page_create_mutation(
 
     # Default attributes defined in page_type fixture
     tag_attr = page_type.page_attributes.get(name="tag")
-    tag_value_slug = tag_attr.values.first().slug
+
     tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
-    tag_value_name = tag_attr.values.first().name
+    tag_value = tag_attr.values.first()
 
     # Add second attribute
     size_attr = page_type.page_attributes.get(name="Page size")
@@ -96,7 +176,7 @@ def test_page_create_mutation(
             "slug": page_slug,
             "pageType": page_type_id,
             "attributes": [
-                {"id": tag_attr_id, "values": [tag_value_name]},
+                {"id": tag_attr_id, "values": [tag_value.name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
                 {
                     "id": to_global_id_or_none(numeric_attribute),
@@ -129,7 +209,26 @@ def test_page_create_mutation(
         data["page"]["attributes"][1]["values"][0]["slug"],
     )
     assert slugify(non_existent_attr_value) in values
-    assert tag_value_slug in values
+    assert tag_value.slug in values
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_size_assigned_attribute = {
+        "attribute": {"slug": size_attr.slug},
+        "choice": {
+            "name": non_existent_attr_value,
+            "slug": slugify(non_existent_attr_value),
+        },
+    }
+    expected_tag_assigned_attribute = {
+        "attribute": {"slug": tag_attr.slug},
+        "choice": {
+            "name": tag_value.name,
+            "slug": tag_value.slug,
+        },
+    }
+    assert expected_size_assigned_attribute in assigned_attributes
+    assert expected_tag_assigned_attribute in assigned_attributes
+
     assert numeric_attribute.values.filter(
         name=numeric_name, numeric=numeric_value
     ).exists()
@@ -150,8 +249,7 @@ def test_page_create_mutation_with_published_at_date(
 
     # Default attributes defined in page_type fixture
     tag_attr = page_type.page_attributes.get(name="tag")
-    tag_value_slug = tag_attr.values.first().slug
-    tag_value_name = tag_attr.values.first().name
+    tag_value = tag_attr.values.first()
     tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
 
     # Add second attribute
@@ -169,7 +267,7 @@ def test_page_create_mutation_with_published_at_date(
             "slug": page_slug,
             "pageType": page_type_id,
             "attributes": [
-                {"id": tag_attr_id, "values": [tag_value_name]},
+                {"id": tag_attr_id, "values": [tag_value.name]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
         }
@@ -192,7 +290,25 @@ def test_page_create_mutation_with_published_at_date(
         data["page"]["attributes"][1]["values"][0]["slug"],
     )
     assert slugify(non_existent_attr_value) in values
-    assert tag_value_slug in values
+    assert tag_value.slug in values
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_size_assigned_attribute = {
+        "attribute": {"slug": size_attr.slug},
+        "choice": {
+            "name": non_existent_attr_value,
+            "slug": slugify(non_existent_attr_value),
+        },
+    }
+    expected_tag_assigned_attribute = {
+        "attribute": {"slug": tag_attr.slug},
+        "choice": {
+            "name": tag_value.name,
+            "slug": tag_value.slug,
+        },
+    }
+    assert expected_size_assigned_attribute in assigned_attributes
+    assert expected_tag_assigned_attribute in assigned_attributes
 
 
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
@@ -455,6 +571,16 @@ def test_create_page_with_file_attribute(
     }
     assert data["page"]["attributes"][0] == expected_attr_data
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_file_attribute.refresh_from_db()
     assert page_file_attribute.values.count() == values_count + 1
 
@@ -537,6 +663,16 @@ def test_create_page_with_file_attribute_new_attribute_value(
     }
     assert data["page"]["attributes"][0] == expected_attr_data
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": new_value_content_type,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_file_attribute.refresh_from_db()
     assert page_file_attribute.values.count() == values_count + 1
 
@@ -587,6 +723,13 @@ def test_create_page_with_file_attribute_not_required_no_file_url_given(
     assert data["page"]["pageType"]["id"] == page_type_id
     assert len(data["page"]["attributes"]) == 1
     assert len(data["page"]["attributes"][0]["values"]) == 0
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_file_attribute.slug},
+        "file": None,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_page_with_file_attribute_required_no_file_url_given(
@@ -707,6 +850,13 @@ def test_create_page_with_page_reference_attribute(
     }
     assert data["page"]["attributes"][0] == expected_attr_data
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_page_reference_attribute.slug},
+        "pages": [{"slug": page.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_type_page_reference_attribute.refresh_from_db()
     assert page_type_page_reference_attribute.values.count() == values_count + 1
 
@@ -767,8 +917,14 @@ def test_create_page_with_date_attribute(
             }
         ],
     }
-
     assert expected_attributes_data in data["page"]["attributes"]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": date_attribute.slug},
+        "date": str(date_value),
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 @freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
@@ -830,6 +986,13 @@ def test_create_page_with_date_time_attribute(
 
     assert expected_attributes_data in data["page"]["attributes"]
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": date_time_attribute.slug},
+        "datetime": date_time_value.isoformat(),
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_page_with_plain_text_attribute(
     staff_api_client,
@@ -887,8 +1050,14 @@ def test_create_page_with_plain_text_attribute(
             }
         ],
     }
-
     assert expected_attributes_data in data["page"]["attributes"]
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": plain_text_attribute_page_type.slug},
+        "plain_text": text,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_page_with_page_reference_attribute_not_required_no_references_given(
@@ -907,7 +1076,7 @@ def test_create_page_with_page_reference_attribute_not_required_no_references_gi
     )
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    file_attribute_id = graphene.Node.to_global_id(
+    reference_attribute_id = graphene.Node.to_global_id(
         "Attribute", page_type_page_reference_attribute.pk
     )
     page_type.page_attributes.add(page_type_page_reference_attribute)
@@ -923,7 +1092,7 @@ def test_create_page_with_page_reference_attribute_not_required_no_references_gi
             "isPublished": page_is_published,
             "slug": page_slug,
             "pageType": page_type_id,
-            "attributes": [{"id": file_attribute_id, "file": ""}],
+            "attributes": [{"id": reference_attribute_id}],
         }
     }
 
@@ -943,6 +1112,13 @@ def test_create_page_with_page_reference_attribute_not_required_no_references_gi
     assert len(data["page"]["attributes"]) == 1
     assert len(data["page"]["attributes"][0]["values"]) == 0
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_page_reference_attribute.slug},
+        "pages": [],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
 
 def test_create_page_with_page_reference_attribute_required_no_references_given(
     staff_api_client,
@@ -960,7 +1136,7 @@ def test_create_page_with_page_reference_attribute_required_no_references_given(
     )
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    file_attribute_id = graphene.Node.to_global_id(
+    reference_attribute_id = graphene.Node.to_global_id(
         "Attribute", page_type_page_reference_attribute.pk
     )
     page_type.page_attributes.add(page_type_page_reference_attribute)
@@ -976,7 +1152,11 @@ def test_create_page_with_page_reference_attribute_required_no_references_given(
             "isPublished": page_is_published,
             "slug": page_slug,
             "pageType": page_type_id,
-            "attributes": [{"id": file_attribute_id, "file": ""}],
+            "attributes": [
+                {
+                    "id": reference_attribute_id,
+                }
+            ],
         }
     }
 
@@ -992,7 +1172,7 @@ def test_create_page_with_page_reference_attribute_required_no_references_given(
     assert len(errors) == 1
     assert errors[0]["code"] == PageErrorCode.REQUIRED.name
     assert errors[0]["field"] == "attributes"
-    assert errors[0]["attributes"] == [file_attribute_id]
+    assert errors[0]["attributes"] == [reference_attribute_id]
 
 
 def test_create_page_with_product_reference_attribute(
@@ -1067,6 +1247,13 @@ def test_create_page_with_product_reference_attribute(
     }
     assert data["page"]["attributes"][0] == expected_attr_data
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_type_product_reference_attribute.refresh_from_db()
     assert page_type_product_reference_attribute.values.count() == values_count + 1
 
@@ -1087,7 +1274,7 @@ def test_create_page_with_product_reference_attribute_not_required_no_references
     )
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    file_attribute_id = graphene.Node.to_global_id(
+    reference_attribute_id = graphene.Node.to_global_id(
         "Attribute", page_type_product_reference_attribute.pk
     )
     page_type.page_attributes.add(page_type_product_reference_attribute)
@@ -1103,7 +1290,7 @@ def test_create_page_with_product_reference_attribute_not_required_no_references
             "isPublished": page_is_published,
             "slug": page_slug,
             "pageType": page_type_id,
-            "attributes": [{"id": file_attribute_id, "file": ""}],
+            "attributes": [{"id": reference_attribute_id}],
         }
     }
 
@@ -1122,6 +1309,13 @@ def test_create_page_with_product_reference_attribute_not_required_no_references
     assert data["page"]["pageType"]["id"] == page_type_id
     assert len(data["page"]["attributes"]) == 1
     assert len(data["page"]["attributes"][0]["values"]) == 0
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_product_reference_attribute.slug},
+        "products": [],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
 
 def test_create_page_with_product_reference_attribute_required_no_references_given(
@@ -1247,6 +1441,13 @@ def test_create_page_with_variant_reference_attribute(
     }
     assert data["page"]["attributes"][0] == expected_attr_data
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant.sku}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_type_variant_reference_attribute.refresh_from_db()
     assert page_type_variant_reference_attribute.values.count() == values_count + 1
 
@@ -1322,6 +1523,13 @@ def test_create_page_with_category_reference_attribute(
     }
     assert data["page"]["attributes"][0] == expected_attr_data
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_category_reference_attribute.slug},
+        "categories": [{"slug": category.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     page_type_category_reference_attribute.refresh_from_db()
     assert page_type_category_reference_attribute.values.count() == values_count + 1
 
@@ -1396,6 +1604,12 @@ def test_create_page_with_collection_reference_attribute(
         ],
     }
     assert data["page"]["attributes"][0] == expected_attr_data
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": page_type_collection_reference_attribute.slug},
+        "collections": [{"slug": collection.slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     page_type_collection_reference_attribute.refresh_from_db()
     assert page_type_collection_reference_attribute.values.count() == values_count + 1
@@ -1513,6 +1727,34 @@ def test_create_page_with_single_reference_attributes(
     for attr_data in attributes_data:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = data["page"]["assignedAttributes"]
+
+    expected_assigned_page_attribute = {
+        "attribute": {"slug": page_type_page_single_reference_attribute.slug},
+        "page": {"slug": page.slug},
+    }
+    expected_assigned_product_attribute = {
+        "attribute": {"slug": page_type_product_single_reference_attribute.slug},
+        "product": {"slug": product.slug},
+    }
+    expected_assigned_variant_attribute = {
+        "attribute": {"slug": page_type_variant_single_reference_attribute.slug},
+        "variant": {"sku": product_variant_list[0].sku},
+    }
+    expected_assigned_category_attribute = {
+        "attribute": {"slug": page_type_category_single_reference_attribute.slug},
+        "category": {"slug": categories[0].slug},
+    }
+    expected_assigned_collection_attribute = {
+        "attribute": {"slug": page_type_collection_single_reference_attribute.slug},
+        "collection": {"slug": collection.slug},
+    }
+    assert expected_assigned_page_attribute in assigned_attributes
+    assert expected_assigned_product_attribute in assigned_attributes
+    assert expected_assigned_variant_attribute in assigned_attributes
+    assert expected_assigned_category_attribute in assigned_attributes
+    assert expected_assigned_collection_attribute in assigned_attributes
+
 
 @freeze_time("2020-03-18 12:00:00")
 def test_page_create_mutation_with_numeric_attribue(
@@ -1566,6 +1808,13 @@ def test_page_create_mutation_with_numeric_attribue(
         == f"{Page.objects.get().id}_{numeric_attribute.id}"
     )
     assert attribute["values"][0]["name"] == numeric_name
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": numeric_attribute.slug},
+        "value": numeric_value,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     assert numeric_attribute.values.filter(
         name=numeric_name, numeric=numeric_value

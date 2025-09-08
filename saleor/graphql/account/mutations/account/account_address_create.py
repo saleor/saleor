@@ -100,7 +100,7 @@ class AccountAddressCreate(
         return AccountAddressCreate(user=user, address=address)
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         user = cleaned_input.pop("user")
         super().save(info, instance, cleaned_input)
         remove_the_oldest_user_address_if_address_limit_is_reached(user)

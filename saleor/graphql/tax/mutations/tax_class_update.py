@@ -138,7 +138,7 @@ class TaxClassUpdate(DeprecatedModelMutation):
         models.TaxClassCountryRate.objects.filter(country__in=country_codes).delete()
 
     @classmethod
-    def save(cls, _info, instance, cleaned_input):
+    def save(cls, _info, instance, cleaned_input, instance_tracker=None):
         instance.save()
         update_country_rates = cleaned_input.get("update_country_rates", [])
         remove_country_rates = cleaned_input.get("remove_country_rates", [])

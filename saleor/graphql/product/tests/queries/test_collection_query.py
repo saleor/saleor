@@ -7,10 +7,7 @@ from django.core.files import File
 from .....product.tests.utils import create_image
 from .....thumbnail.models import Thumbnail
 from ....core.enums import LanguageCodeEnum, ThumbnailFormatEnum
-from ....tests.utils import (
-    get_graphql_content,
-    get_graphql_content_from_response,
-)
+from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 QUERY_COLLECTION = """
     query ($id: ID, $slug: String, $channel: String, $slugLanguageCode: LanguageCodeEnum){
@@ -183,6 +180,17 @@ query CollectionProducts(
       edges {
         node {
           id
+          assignedAttributes(limit:10) {
+            attribute {
+              choices(first: 10) {
+                edges {
+                  node {
+                    slug
+                  }
+                }
+              }
+            }
+          }
           attributes {
             attribute {
               choices(first: 10) {
@@ -301,6 +309,18 @@ def test_filter_collection_products_by_multiple_attributes(
         "Product", product_with_multiple_values_attributes.pk
     )
     assert product["attributes"] == [
+        {
+            "attribute": {
+                "choices": {
+                    "edges": [
+                        {"node": {"slug": "eco"}},
+                        {"node": {"slug": "power"}},
+                    ]
+                }
+            }
+        }
+    ]
+    assert product["assignedAttributes"] == [
         {
             "attribute": {
                 "choices": {

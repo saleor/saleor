@@ -187,22 +187,29 @@ def test_cancel_fulfillment_no_warehouse_id(
 def test_cancel_fulfillment_awaiting_approval(
     mock_restock_lines, staff_api_client, fulfillment, permission_group_manage_orders
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
+
     query = CANCEL_FULFILLMENT_MUTATION
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
     variables = {"id": fulfillment_id}
+
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentCancel"]
-    assert data["fulfillment"] is None
-    mock_restock_lines.assert_not_called()
+    assert data["fulfillment"]
+    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+
     event_cancelled = fulfillment.order.events.get()
-    assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
-    assert event_cancelled.parameters == {}
+    assert event_cancelled.type == OrderEvents.FULFILLMENT_CANCELED
+    assert event_cancelled.parameters == {"composed_id": fulfillment.composed_id}
     assert event_cancelled.user == staff_api_client.user
-    assert not Fulfillment.objects.filter(pk=fulfillment.pk).exists()
+    mock_restock_lines.assert_not_called()
 
 
 @patch("saleor.order.actions.restock_fulfillment_lines")
@@ -213,6 +220,7 @@ def test_cancel_fulfillment_awaiting_approval_warehouse_specified(
     permission_group_manage_orders,
     warehouse,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
@@ -220,16 +228,21 @@ def test_cancel_fulfillment_awaiting_approval_warehouse_specified(
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     variables = {"id": fulfillment_id, "warehouseId": warehouse_id}
+
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentCancel"]
-    assert data["fulfillment"] is None
-    mock_restock_lines.assert_not_called()
+    assert data["fulfillment"]
+    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+
     event_cancelled = fulfillment.order.events.get()
-    assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
-    assert event_cancelled.parameters == {}
+    assert event_cancelled.type == OrderEvents.FULFILLMENT_CANCELED
+    assert event_cancelled.parameters == {"composed_id": fulfillment.composed_id}
     assert event_cancelled.user == staff_api_client.user
-    assert not Fulfillment.objects.filter(pk=fulfillment.pk).exists()
+    mock_restock_lines.assert_not_called()
 
 
 def test_cancel_fulfillment_canceled_state(

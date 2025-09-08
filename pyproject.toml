@@ -1,9 +1,142 @@
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "saleor"
+version = "3.22.0-a.0"
+description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
+authors = [{ name = "Saleor Commerce", email = "hello@saleor.io" }]
+requires-python = ">=3.12,<3.13"
+readme = "README.md"
+license = "BSD-3-Clause"
+dependencies = [
+    "Adyen>=4.0.0,<5",
+    "asgiref>=3.7.2,<4",
+    "Authlib>=1.6.0,<2",
+    "authorizenet>=1.1.5,<2",
+    "azure-common>=1.1.28,<2",
+    "azure-storage-blob>=12.23.1,<13",
+    "azure-storage-common>=2.1.0,<3",
+    "babel>=2.8,<2.18",
+    "boto3~=1.28",
+    "botocore~=1.37",
+    "braintree>=4.2,<4.32",
+    "cryptography>=44.0.2,<45",
+    "dj-database-url>=2,<3",
+    "dj-email-url>=1,<2",
+    "django[bcrypt]~=5.2",
+    "django-cache-url>=3.1.2,<4",
+    "django-celery-beat>=2.8.1,<3",
+    "django-countries~=7.2",
+    "django-filter~=24.3",
+    "django-measurement~=3.0",
+    "django-mptt>=0,<1",
+    "django-phonenumber-field>=4,<9",
+    "django-stubs-ext>=5.1.3,<6",
+    "draftjs-sanitizer>=1.0.0,<2",
+    "faker>=26.0.0,<27.0",
+    "google-cloud-pubsub>=1.7,<3.0",
+    "google-cloud-storage>=2.0.0,<3",
+    "google-i18n-address>=3.1.0,<4",
+    "graphene<3.0",
+    "graphql-core>=2.3.2,<3",
+    "graphql-relay>=2.0.1,<3",
+    "html-to-draftjs>=1.0.1,<2",
+    "lxml>=4.9.3,<5",
+    "markdown>=3.1.1,<4",
+    "measurement>=3.2.2,<4",
+    "micawber>=0.5.5,<0.6",
+    "oauthlib~=3.1",
+    "petl==1.7.15",
+    "phonenumberslite>=9.0.7,<10",
+    "pillow>=11.1.0,<12",
+    "pillow-avif-plugin>=1.5.2,<2",
+    "posuto>=2025.1.0,<2026",
+    "prices~=1.0",
+    "promise~=2.3",
+    "pybars3>=0.9.7,<0.10",
+    "pyjwt>=2.10.1,<3",
+    "python-dateutil>=2.8.2,<3",
+    "python-http-client>=3.3.7,<4",
+    "python-json-logger>=0.1.11,<3.3.0",
+    "pytimeparse>=1.1.8,<2",
+    "razorpay~=1.2",
+    "redis>=5.0.1,<6",
+    "requests~=2.32",
+    "requests-hardened>=1.0.0,<2.0.0",
+    "Rx>=1.6.3,<2",
+    "semantic-version>=2.10.0,<3",
+    "sendgrid>=6.7.1,<7",
+    "sentry-sdk~=2.12",
+    "stripe>=3.0.0,<4",
+    "text-unidecode~=1.2",
+    "urllib3>=2.4.0,<3",
+    "uvicorn[standard]>=0.32.0,<0.33",
+    "setuptools>=76.0.0,<77",
+    "psycopg[binary]>=3.2.9,<4",
+    "pydantic>=2.11.0,<3",
+    "pydantic-core>=2.33.0,<3",
+    "opentelemetry-api>=1.32.1,<2",
+    "opentelemetry-sdk>=1.32.1,<2",
+    "opentelemetry-semantic-conventions>=0.53b1,<0.54",
+    "opentelemetry-distro[otlp]>=0.53b1,<0.54",
+    "celery[redis, sqs]>=4.4.5,<6.0.0",
+    "django-storages[google]~=1.11",
+    "python-magic>=0.4.27,<0.5 ; sys_platform != 'win32'",
+    "python-magic-bin>=0.4.14,<0.5 ; sys_platform == 'win32'",
+]
+
+[project.urls]
+Homepage = "https://saleor.io/"
+Repository = "https://github.com/saleor/saleor"
+Documentation = "https://docs.saleor.io/"
+
+[dependency-groups]
+dev = [
+    "coverage~=7.6",
+    "deptry>=0.23.0,<0.24",
+    "django-extensions~=4.1",
+    "django-stubs[compatible-mypy]>=5.1.3,<6",
+    "fakeredis~=2.26",
+    "freezegun>=1,<2",
+    "mypy-extensions>=1.1.0,<2",
+    "openpyxl>=3.1.5,<4",
+    "pre-commit~=4.0",
+    "pytest>=8.3.2,<9",
+    "pytest-asyncio>=1.0.0,<2",
+    "pytest-celery>=1.0.1,<2",
+    "pytest-cov>=6.0.0,<7",
+    "pytest-django==4.9.0",
+    "pytest-django-queries>=1.2,<1.3",
+    "pytest-memray>=1.5.0,<2",
+    "pytest-mock>=3.6.1,<4",
+    "pytest-recording>=0.13.0,<0.14",
+    "pytest-socket>=0.7.0,<0.8",
+    "pytest-xdist>=3.0.2,<4",
+    "pywatchman>=2.0.0,<3",
+    "ruff>=0.12.2,<0.13",
+    "types-certifi>=2021.10.8,<2022",
+    "types-freezegun>=1.1.7,<2",
+    "types-mock>=5.0.0.5,<6",
+    "types-setuptools>=80.9.0.20250529,<81",
+    "types-python-dateutil>=2.9.0,<3",
+    "types-redis>=4.6.0,<5",
+    "types-requests>=2.32.4,<3",
+    "types-six>=1.17.0,<2",
+    "vcrpy>=7.0.0,<8",
+    "poethepoet>=0.32.2,<0.33",
+    "ipdb>=0.13.13,<0.14",
+]
 
 [tool.poe]
 envfile = ".env"
+
+[tool.uv]
+environments = [
+  "platform_python_implementation != 'PyPy'"
+]
+package = false
 
 [tool.poe.tasks]
 start.help = "Start development server with hot reload"
@@ -46,158 +179,17 @@ Populates database with sample data and creates admin user with credentials:
 test.cmd="pytest --reuse-db"
 test.help = "Run tests with db reuse to speed up testing time"
 
-[tool.poetry]
-name = "saleor"
-version = "3.22.0-a.0"
-description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
-authors = [ "Saleor Commerce <hello@saleor.io>" ]
-license = "BSD-3-Clause"
-readme = "README.md"
-homepage = "https://saleor.io/"
-repository = "https://github.com/saleor/saleor"
-documentation = "https://docs.saleor.io/"
-package-mode = false
-
-  [tool.poetry.dependencies]
-  python = "~3.12"
-  Adyen = "^4.0.0"
-  asgiref = "^3.7.2"
-  Authlib = "^1.6.0"
-  authorizenet = "^1.1.5"
-  azure-common = "^1.1.28"
-  azure-storage-blob = "^12.23.1"
-  azure-storage-common = "^2.1.0"
-  babel = ">=2.8,<2.18"
-  boto3 = "^1.28"
-  botocore = "^1.37"
-  braintree = ">=4.2,<4.32"
-  cryptography = "^44.0.2"
-  dj-database-url = "^2"
-  dj-email-url = "^1"
-  django = {extras = ["bcrypt"], version = "^5.2"}
-  django-cache-url = "^3.1.2"
-  django-celery-beat = "^2.8.1"
-  django-countries = "^7.2"
-  django-filter = "^24.3"
-  django-measurement = "^3.0"
-  django-mptt = "^0"
-  django-phonenumber-field = ">=4,<9"
-  django-stubs-ext = "^5.1.3"
-  draftjs-sanitizer = "^1.0.0"
-  faker = ">=26.0.0,<27.0"
-  google-cloud-pubsub = ">=1.7,<3.0"
-  google-cloud-storage = "^2.0.0"
-  google-i18n-address = "^3.1.0"
-  graphene = "<3.0"
-  graphql-core = "^2.3.2"
-  graphql-relay = "^2.0.1"
-  html-to-draftjs = "^1.0.1"
-  lxml = "^4.9.3"
-  markdown = "^3.1.1"
-  measurement = "^3.2.2"
-  micawber = "^0.5.5"
-  oauthlib = "^3.1"
-  petl = "1.7.15"
-  phonenumberslite = "^9.0.7"
-  pillow = "^11.1.0"
-  pillow-avif-plugin = "^1.5.2"
-  posuto = "^2025.1.0"
-  prices = "^1.0"
-  promise = "^2.3"
-  pybars3 = "^0.9.7"
-  pyjwt = "^2.10.1"
-  python-dateutil = "^2.8.2"
-  python-http-client = "^3.3.7"
-  python-json-logger = ">=0.1.11,<3.3.0"
-  pytimeparse = "^1.1.8"
-  razorpay = "^1.2"
-  redis = "^5.0.1"
-  requests = "^2.32"
-  requests-hardened = ">=1.0.0,<2.0.0"
-  Rx = "^1.6.3"
-  semantic-version = "^2.10.0"
-  sendgrid = "^6.7.1"
-  sentry-sdk = "^2.12"
-  stripe = "^3.0.0"
-  text-unidecode = "^1.2"
-  urllib3 = "^2.4.0"
-  uvicorn = {extras = ["standard"], version = "^0.32.0"}
-  setuptools = "^76.0.0"
-  psycopg = {version = "^3.2.9", extras = ["binary"]}
-  pydantic = "^2.11.0"
-  pydantic-core = "^2.33.0"
-  opentelemetry-api = "^1.32.1"
-  opentelemetry-sdk = "^1.32.1"
-  opentelemetry-semantic-conventions = "^0.53b1"
-  opentelemetry-distro = {extras = ["otlp"], version = "^0.53b1"}
-
-    [tool.poetry.dependencies.celery]
-    version = ">=4.4.5,<6.0.0"
-    extras = [ "redis", "sqs" ]
-
-    [tool.poetry.dependencies.django-storages]
-    version = "^1.11"
-    extras = [ "google" ]
-
-    [tool.poetry.dependencies.python-magic]
-    version = "^0.4.27"
-    markers = "sys_platform != 'win32'"
-
-    [tool.poetry.dependencies.python-magic-bin]
-    version = "^0.4.14"
-    platform = "win32"
-
-  [tool.poetry.group.dev.dependencies]
-  coverage = "^7.6"
-  deptry = "^0.23.0"
-  django-extensions = "^4.1"
-  django-stubs = {extras = ["compatible-mypy"], version = "^5.1.3"}
-  fakeredis = "^2.26"
-  freezegun = "^1"
-  mypy-extensions = "^1.1.0"
-  openpyxl = "^3.1.5"
-  pre-commit = "^4.0"
-  pytest = "^8.3.2"
-  pytest-asyncio = "^1.0.0"
-  pytest-celery = "^1.0.1"
-  pytest-cov = "^6.0.0"
-  pytest-django = "4.9.0"
-  pytest-django-queries = "~1.2"
-  pytest-memray = "^1.5.0"
-  pytest-mock = "^3.6.1"
-  pytest-recording = "^0.13.0"
-  pytest-socket = "^0.7.0"
-  pytest-xdist = "^3.0.2"
-  pywatchman = "^2.0.0"
-  ruff = "^0.12.2"
-  types-certifi = "^2021.10.8"
-  types-freezegun = "^1.1.7"
-  types-mock = "^5.0.0.5"
-  types-setuptools = "^80.9.0.20250529"
-  types-python-dateutil = "^2.9.0"
-  types-redis = "^4.6.0"
-  types-requests = "^2.32.4"
-  types-six = "^1.17.0"
-  # vcrpy v7.0.0 requires urllib3 v1.x on PyPy but urllib3 v1.x & PyPy are incompatible
-  # with our project. We cannot tell Poetry that we only support CPython,
-  # thus we can only trick it using a marker in order to match marker
-  # 'urllib3; platform_python_implementation != "PyPy" and python_version >= "3.10"'
-  # (https://pypi.org/pypi/vcrpy/7.0.0/json)
-  vcrpy = { version = "^7.0.0", markers = "platform_python_implementation != 'PyPy' and python_version >= \"3.10\"" }
-  poethepoet = "^0.32.2"
-  ipdb = "^0.13.13"
-
 [tool.deptry]
 extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
 
-  [tool.deptry.package_module_name_map]
-  graphql-core = "graphql"
-  pillow = "PIL"
-  python-magic-bin = "magic"
+[tool.deptry.package_module_name_map]
+graphql-core = "graphql"
+pillow = "PIL"
+python-magic-bin = "magic"
 
-  [tool.deptry.per_rule_ignores]
-  DEP001 = ["pkg_resources"]
-  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb"]
+[tool.deptry.per_rule_ignores]
+DEP001 = ["pkg_resources"]
+DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb"]
 
 [tool.django-stubs]
 django_settings_module = "saleor.settings"
@@ -224,9 +216,9 @@ exclude = [
   "tests/"
 ]
 
-  [[tool.mypy.overrides]]
-  module = ["saleor.*.migrations.*"]
-  ignore_errors = true
+[[tool.mypy.overrides]]
+module = ["saleor.*.migrations.*"]
+ignore_errors = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
@@ -236,57 +228,57 @@ warn_required_dynamic_aliases = true
 [tool.ruff]
 target-version = "py312"
 
-  [tool.ruff.lint]
-  select = [
-    "ASYNC",
-    "B",
-    "C4",
-    "D",
-    "DTZ",
-    "E",
-    "F",
-    "FURB",
-    "G",
-    "I",
-    "ISC001",
-    "ISC002",
-    "LOG",
-    "PGH",
-    "PIE",
-    "PT",
-    "PYI",
-    "RET",
-    "T20",
-    "UP",
-    "W"
-  ]
-  ignore = [
-    "B009", # Do not call getattr with a constant value
-    "B010", # Do not call setattr with a constant value
-    "B023", # Function definition does not bind loop variable
-    "D100", # Missing docstring in public module
-    "D101", # Missing docstring in public class
-    "D102", # Missing docstring in public method
-    "D103", # Missing docstring in public function
-    "D104", # Missing docstring in public package
-    "D105", # Missing docstring in magic method
-    "D106", # Missing docstring in public nested class
-    "D107", # Missing docstring in __init__
-    "D202", # No blank lines allowed after function docstring
-    "D203", # 1 blank line required before class docstring
-    "D206", # Docstring should be indented with spaces, not tabs
-    "D213", # Multi-line docstring summary should start at the second line
-    "D407", # Missing dashed underline after section
-    "E501", # Line too long
-    "PT019", # Fixture without value is injected as parameter, use @pytest.mark.usefixtures instead
-    "PYI041", # Use `float` instead of `int | float`
-    "RET504", # Unnecessary assignment before return statement
-    "UP046" # Parameter syntax for generic classes; not supported by mypy: https://github.com/python/mypy/issues/18507
-  ]
+[tool.ruff.lint]
+select = [
+  "ASYNC",
+  "B",
+  "C4",
+  "D",
+  "DTZ",
+  "E",
+  "F",
+  "FURB",
+  "G",
+  "I",
+  "ISC001",
+  "ISC002",
+  "LOG",
+  "PGH",
+  "PIE",
+  "PT",
+  "PYI",
+  "RET",
+  "T20",
+  "UP",
+  "W"
+]
+ignore = [
+  "B009", # Do not call getattr with a constant value
+  "B010", # Do not call setattr with a constant value
+  "B023", # Function definition does not bind loop variable
+  "D100", # Missing docstring in public module
+  "D101", # Missing docstring in public class
+  "D102", # Missing docstring in public method
+  "D103", # Missing docstring in public function
+  "D104", # Missing docstring in public package
+  "D105", # Missing docstring in magic method
+  "D106", # Missing docstring in public nested class
+  "D107", # Missing docstring in __init__
+  "D202", # No blank lines allowed after function docstring
+  "D203", # 1 blank line required before class docstring
+  "D206", # Docstring should be indented with spaces, not tabs
+  "D213", # Multi-line docstring summary should start at the second line
+  "D407", # Missing dashed underline after section
+  "E501", # Line too long
+  "PT019", # Fixture without value is injected as parameter, use @pytest.mark.usefixtures instead
+  "PYI041", # Use `float` instead of `int | float`
+  "RET504", # Unnecessary assignment before return statement
+  "UP046" # Parameter syntax for generic classes; not supported by mypy: https://github.com/python/mypy/issues/18507
+]
 
-  [tool.ruff.lint.flake8-pytest-style]
-  fixture-parentheses = false
-  mark-parentheses = false
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
 
-  [tool.ruff.lint.isort]
-  known-first-party = ["saleor"]
+[tool.ruff.lint.isort]
+known-first-party = ["saleor"]

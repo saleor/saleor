@@ -16,8 +16,8 @@
   },
   "homepage": "http://saleor.io/",
   "devDependencies": {
-    "@release-it/bumper": "^4.0.0",
-    "release-it": "^15.6.0"
+    "@release-it/bumper": "^7.0.5",
+    "release-it": "^19.0.4"
   },
   "scripts": {
     "release": "release-it"

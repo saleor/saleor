@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - No manual charge (`Transaction` or `Payment`) object will be created.
   - The `OrderEvents.ORDER_MARKED_AS_PAID` event will no longer be emitted.
 - Logic associated with `WebhookEventAsyncType.CHECKOUT_FULLY_PAID` event will no longer be triggered when creating a transaction event from webhook response for checkouts with having total gross being 0. At the point of creating the transaction event checkout is already considered fully paid.
+- Creating a Payment (old API) for a Checkout object with an existing Transaction (new API) is no longer permitted as it leads to inconsistent behavior.
 
 ### GraphQL API
 - You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
@@ -94,6 +95,10 @@ Like `reference`, the `single-reference` type can target entities defined in the
 - Added `fractionalAmount` and `fractionDigits` fields to the `Money` type. These fields allow monetary values to be represented as a pair of integers, which is often required when integrating with payment service providers.
 - Add support for filtering `productVariants` by associated attributes
 - Refunds are now more powerful. You can configure new `RefundSettings` to accept a `reasonReferenceType`. Once assigned, creating refunds (both manual and with grant refunds) will require a reason type to be specified. `refundReasonReferenceTypeClear` clears the settings. Read more in [docs](todo) and check the [announcement post](todo)
+- You can now use the `AssignedAttribute` interface and the `assignedAttribute`, `assignedAttributes` fields on `Page`, `Product`, and `ProductVariant` to fetch assigned attributes and their values in a cleaner, more focused shape.
+  - `attribute` and `attributes` fields on Page, Product, and ProductVariant are deprecated.
+
+
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
@@ -133,6 +138,10 @@ Like `reference`, the `single-reference` type can target entities defined in the
 - Fixed bug in user email filtering to make it case-insensitive.
 
 - Checkouts having total gross amount equal to 0 will get their authorization statuses updated to `CheckoutAuthorizeStatus.FULL` upon fetching checkout data.
+
+- Fixed a bug that could prevent rich text attributes written in scripts using combining diacritical marks (for example, Arabic) from being saved properly.
+
+- Fixed a bug where a Checkout partially paid by Transaction(s) and partially paid by Gift Card(s) could not be completed due to `CHECKOUT_NOT_FULLY_PAID` error. Checkout authorize and charge statuses are now recalculcated more reliably. Status calculcation is now taking into account available gift cards balance.
 
 ### Deprecations
 

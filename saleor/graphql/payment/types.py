@@ -369,7 +369,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
 
     created_by = graphene.Field(
         "saleor.graphql.core.types.user_or_app.UserOrApp",
-        description=("User or App that created the transaction event."),
+        description="User or App that created the transaction event.",
     )
 
     idempotency_key = graphene.String(
@@ -455,7 +455,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         )
 
 
-class GenericPaymentMethodDetails(graphene.Interface):
+class PaymentMethodDetails(graphene.Interface):
     name = graphene.String(required=True, description="Name of the payment method.")
 
     class Meta:
@@ -463,6 +463,13 @@ class GenericPaymentMethodDetails(graphene.Interface):
             "Represents a payment method used for a transaction." + ADDED_IN_322
         )
 
+    @classmethod
+    def resolve_type(cls, instance, info: graphene.ResolveInfo):
+        if instance.payment_method_type == PaymentMethodType.CARD:
+            return CardPaymentMethodDetails
+        return OtherPaymentMethodDetails
+
+    @staticmethod
     def resolve_name(root: models.TransactionItem, _info):
         return root.payment_method_name or ""
 
@@ -489,7 +496,7 @@ class CardPaymentMethodDetails(BaseObjectType):
         description = (
             "Represents a card payment method used for a transaction." + ADDED_IN_322
         )
-        interfaces = [GenericPaymentMethodDetails]
+        interfaces = [PaymentMethodDetails]
 
     @staticmethod
     def resolve_brand(root: models.TransactionItem, _info):
@@ -519,18 +526,7 @@ class OtherPaymentMethodDetails(BaseObjectType):
         description = (
             "Represents a payment method used for a transaction." + ADDED_IN_322
         )
-        interfaces = [GenericPaymentMethodDetails]
-
-
-class PaymentMethodDetails(graphene.Union):
-    class Meta:
-        types = (CardPaymentMethodDetails, OtherPaymentMethodDetails)
-
-    @classmethod
-    def resolve_type(cls, instance, info: graphene.ResolveInfo):
-        if instance.payment_method_type == PaymentMethodType.CARD:
-            return CardPaymentMethodDetails
-        return OtherPaymentMethodDetails
+        interfaces = [PaymentMethodDetails]
 
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):
@@ -610,7 +606,7 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     )
     created_by = graphene.Field(
         "saleor.graphql.core.types.user_or_app.UserOrApp",
-        description=("User or App that created the transaction."),
+        description="User or App that created the transaction.",
     )
     external_url = graphene.String(
         description=(

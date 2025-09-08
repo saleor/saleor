@@ -13,14 +13,14 @@ jobs:
       id-token: write # needed by aws-actions/configure-aws-credentials
       contents: read
     steps:
-      - uses: actions/checkout@v2
-      - uses: rlespinasse/github-slug-action@e4699e49fcf890a3172a02c56ba78d867dbb9fd5
+      - uses: actions/checkout@v5
+      - uses: rlespinasse/github-slug-action@c33ff65466c58d57e4d796f88bb1ae0ff26ee453 # v5.2.0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_TESTENVS_REGION }}
 
       - name: Build and push
         uses: kciter/aws-ecr-action@79255b7c5aa03dbf6d7c46cff2bfd049874cd98d # v4
@@ -29,7 +29,7 @@ jobs:
           secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           account_id: ${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}
           repo: saleor-testenvs
-          region: us-east-1
+          region: ${{ vars.AWS_TESTENVS_REGION }}
           tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
 
       - name: Get pull number
@@ -37,18 +37,18 @@ jobs:
           echo "PULL_ID=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
       - name: Invoke deployment lambda
-        uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
+        uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          REGION: us-east-1
+          REGION: ${{ vars.AWS_TESTENVS_REGION }}
           FunctionName: migrations-perf-test-manager
           Payload: >-
             {
               "action": "${{ github.event.action }}",
               "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
-              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
+              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_TESTENVS_REGION }}.amazonaws.com/saleor-testenvs:${{ github.sha }}",
               "pr_id": "${{ env.PULL_ID }}",
               "commit_hash": "${{ github.sha }}"
             }
@@ -62,8 +62,8 @@ jobs:
       id-token: write # needed by aws-actions/configure-aws-credentials
       contents: read
     steps:
-      - uses: actions/checkout@v2
-      - uses: rlespinasse/github-slug-action@e4699e49fcf890a3172a02c56ba78d867dbb9fd5
+      - uses: actions/checkout@v5
+      - uses: rlespinasse/github-slug-action@c33ff65466c58d57e4d796f88bb1ae0ff26ee453 # v5.2.0
 
       - name: Get pull number
         run: |
@@ -73,21 +73,21 @@ jobs:
         uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_TESTENVS_REGION }}
 
       - name: Invoke deployment lambda
-        uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
+        uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          REGION: us-east-1
+          REGION: ${{ vars.AWS_TESTENVS_REGION }}
           FunctionName: migrations-perf-test-manager
           Payload: >-
             {
               "action": "${{ github.event.action }}",
               "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
-              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}",
+              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_TESTENVS_REGION }}.amazonaws.com/saleor-testenvs:${{ github.sha }}",
               "pr_id": "${{ env.PULL_ID }}",
               "commit_hash": "${{ github.sha }}"
             }

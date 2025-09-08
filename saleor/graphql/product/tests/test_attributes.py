@@ -25,34 +25,282 @@ from ...tests.utils import get_graphql_content
 from ..enums import ProductAttributeType
 
 QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
-    query ($channel: String){
-      products(first: 1, channel: $channel) {
-        edges {
-          node {
-            attributes {
-              attribute {
-                slug
-                type
+query ($channel: String) {
+  products(first: 1, channel: $channel) {
+    edges {
+      node {
+        attributes {
+          attribute {
+            slug
+            type
+          }
+          values {
+            slug
+          }
+        }
+        assignedAttributes(limit:10) {
+          attr: attribute {
+              slug
+              type
+          }
+          ... on AssignedNumericAttribute {
+            attribute {
+              id
+            }
+            value
+          }
+          ... on AssignedTextAttribute {
+            text: value
+            text_translation: translation(languageCode: FR)
+          }
+          ... on AssignedPlainTextAttribute {
+            plain_text: value
+            plain_translation: translation(languageCode: FR)
+          }
+          ... on AssignedFileAttribute {
+            file: value {
+              contentType
+            }
+          }
+          ... on AssignedSinglePageReferenceAttribute {
+            page_ref: value {
+              __typename
+              slug
+            }
+          }
+          ... on AssignedSingleProductReferenceAttribute {
+            product_ref: value {
+              __typename
+              slug
+            }
+          }
+          ... on AssignedSingleProductVariantReferenceAttribute {
+            variant_ref: value {
+              __typename
+              sku
+            }
+          }
+          ... on AssignedSingleCategoryReferenceAttribute {
+            category_ref: value {
+              __typename
+              slug
+            }
+          }
+          ... on AssignedSingleCollectionReferenceAttribute {
+            collection_ref: value {
+              __typename
+              slug
+            }
+          }
+          ... on AssignedMultiPageReferenceAttribute {
+            __typename
+            pages: value {
+              __typename
+              slug
+            }
+          }
+          ... on AssignedMultiProductReferenceAttribute {
+            __typename
+            producs: value {
+              __typename
+              slug
+            }
+          }
+          ... on AssignedMultiProductVariantReferenceAttribute {
+            __typename
+            variants: value {
+              __typename
+              sku
+            }
+          }
+          ... on AssignedMultiCategoryReferenceAttribute {
+            __typename
+            categories: value {
+              __typename
+              slug
+            }
+          }
+          ... on AssignedMultiCollectionReferenceAttribute {
+            __typename
+            collections: value {
+              __typename
+              slug
+            }
+          }
+          ... on AssignedSingleChoiceAttribute {
+            __typename
+            choice: value {
+              name
+              slug
+              translation(languageCode: FR)
+            }
+          }
+          ... on AssignedMultiChoiceAttribute {
+            __typename
+            multi: value {
+              name
+              slug
+              translation(languageCode: FR)
+            }
+          }
+          ... on AssignedSwatchAttribute {
+            swatch: value {
+              name
+              slug
+              hexColor
+              file {
+                url
+                contentType
               }
-              values {
+            }
+          }
+          ... on AssignedBooleanAttribute {
+            bool: value
+          }
+          ... on AssignedDateAttribute {
+            date: value
+          }
+          ... on AssignedDateTimeAttribute {
+            datetime: value
+          }
+        }
+        variants {
+          attributes {
+            attribute {
+              slug
+              type
+            }
+            values {
+              slug
+            }
+          }
+          assignedAttributes(limit:10) {
+            ... on AssignedNumericAttribute {
+              attribute {
+                id
+              }
+              value
+            }
+            ... on AssignedTextAttribute {
+              text: value
+              text_translation: translation(languageCode: FR)
+            }
+            ... on AssignedPlainTextAttribute {
+              plain_text: value
+              plain_translation: translation(languageCode: FR)
+            }
+            ... on AssignedFileAttribute {
+              file: value {
+                contentType
+              }
+            }
+            ... on AssignedSinglePageReferenceAttribute {
+              page_ref: value {
+                __typename
                 slug
               }
             }
-            variants {
-              attributes {
-                attribute {
-                  slug
-                  type
-                }
-                values {
-                  slug
+            ... on AssignedSingleProductReferenceAttribute {
+              product_ref: value {
+                __typename
+                slug
+              }
+            }
+            ... on AssignedSingleProductVariantReferenceAttribute {
+              variant_ref: value {
+                __typename
+                sku
+              }
+            }
+            ... on AssignedSingleCategoryReferenceAttribute {
+              category_ref: value {
+                __typename
+                slug
+              }
+            }
+            ... on AssignedSingleCollectionReferenceAttribute {
+              collection_ref: value {
+                __typename
+                slug
+              }
+            }
+            ... on AssignedMultiPageReferenceAttribute {
+              __typename
+              pages: value {
+                __typename
+                slug
+              }
+            }
+            ... on AssignedMultiProductReferenceAttribute {
+              __typename
+              producs: value {
+                __typename
+                slug
+              }
+            }
+            ... on AssignedMultiProductVariantReferenceAttribute {
+              __typename
+              variants: value {
+                __typename
+                sku
+              }
+            }
+            ... on AssignedMultiCategoryReferenceAttribute {
+              __typename
+              categories: value {
+                __typename
+                slug
+              }
+            }
+            ... on AssignedMultiCollectionReferenceAttribute {
+              __typename
+              collections: value {
+                __typename
+                slug
+              }
+            }
+            ... on AssignedSingleChoiceAttribute {
+              __typename
+              choice: value {
+                name
+                slug
+                translation(languageCode: FR)
+              }
+            }
+            ... on AssignedMultiChoiceAttribute {
+              __typename
+              multi: value {
+                name
+                slug
+                translation(languageCode: FR)
+              }
+            }
+            ... on AssignedSwatchAttribute {
+              swatch: value {
+                name
+                slug
+                hexColor
+                file {
+                  url
+                  contentType
                 }
               }
+            }
+            ... on AssignedBooleanAttribute {
+              bool: value
+            }
+            ... on AssignedDateAttribute {
+              date: value
+            }
+            ... on AssignedDateTimeAttribute {
+              datetime: value
             }
           }
         }
       }
     }
+  }
+}
 """
 
 

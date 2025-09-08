@@ -169,13 +169,28 @@ query (
     id
     name
     products(
-        first: 5, channel: $channel, filter: $filters, where: $where, search: $search
+      first: 5
+      channel: $channel
+      filter: $filters
+      where: $where
+      search: $search
     ) {
       edges {
         node {
           id
           name
           channel
+          assignedAttributes(limit:10) {
+            attribute {
+              choices(first: 10) {
+                edges {
+                  node {
+                    slug
+                  }
+                }
+              }
+            }
+          }
           attributes {
             attribute {
               choices(first: 10) {
@@ -329,6 +344,18 @@ def test_category_filter_products_by_multiple_attributes(
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_with_multiple_values_attributes_id
     assert products[0]["node"]["attributes"] == [
+        {
+            "attribute": {
+                "choices": {
+                    "edges": [
+                        {"node": {"slug": "eco"}},
+                        {"node": {"slug": "power"}},
+                    ]
+                }
+            }
+        }
+    ]
+    assert products[0]["node"]["assignedAttributes"] == [
         {
             "attribute": {
                 "choices": {

@@ -63,7 +63,7 @@ class ProductVariantInput(BaseInputObjectType):
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
-        description=("Determines if variant is in preorder.")
+        description="Determines if variant is in preorder."
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,
@@ -246,7 +246,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
             )
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         new_variant = instance.pk is None
         cls.set_track_inventory(info, instance, cleaned_input)
         with traced_atomic_transaction():

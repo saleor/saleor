@@ -15,64 +15,165 @@ from ....core.enums import WeightUnitsEnum
 from ....tests.utils import get_graphql_content
 
 CREATE_VARIANT_MUTATION = """
-      mutation createVariant ($input: ProductVariantCreateInput!) {
-                productVariantCreate(input: $input) {
-                    errors {
-                      field
-                      message
-                      attributes
-                      code
-                    }
-                    productVariant {
-                        id
-                        name
-                        sku
-                        attributes {
-                            attribute {
-                                slug
-                            }
-                            values {
-                                name
-                                slug
-                                reference
-                                richText
-                                plainText
-                                boolean
-                                date
-                                dateTime
-                                file {
-                                    url
-                                    contentType
-                                }
-                            }
-                        }
-                        weight {
-                            value
-                            unit
-                        }
-                        stocks {
-                            quantity
-                            warehouse {
-                                slug
-                            }
-                        }
-                        preorder {
-                            globalThreshold
-                            endDate
-                        }
-                        metadata {
-                            key
-                            value
-                        }
-                        privateMetadata {
-                            key
-                            value
-                        }
-                        externalReference
-                    }
-                }
+mutation createVariant($input: ProductVariantCreateInput!) {
+  productVariantCreate(input: $input) {
+    errors {
+      field
+      message
+      attributes
+      code
+    }
+    productVariant {
+      id
+      name
+      sku
+      assignedAttributes(limit:10) {
+        attribute {
+          slug
+        }
+        ... on AssignedNumericAttribute {
+          value
+        }
+        ... on AssignedTextAttribute {
+          text: value
+        }
+        ... on AssignedPlainTextAttribute {
+          plain_text: value
+        }
+        ... on AssignedFileAttribute {
+          file: value {
+            contentType
+            url
+          }
+        }
+        ... on AssignedMultiPageReferenceAttribute {
+          pages: value {
+            slug
+          }
+        }
+        ... on AssignedMultiProductReferenceAttribute {
+          products: value {
+            slug
+          }
+        }
+        ... on AssignedMultiCategoryReferenceAttribute {
+          categories: value {
+            slug
+          }
+        }
+        ... on AssignedMultiCollectionReferenceAttribute {
+          collections: value {
+            slug
+          }
+        }
+        ... on AssignedSinglePageReferenceAttribute {
+          page: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductReferenceAttribute {
+          product: value {
+            slug
+          }
+        }
+        ... on AssignedSingleProductVariantReferenceAttribute {
+          variant: value {
+            sku
+          }
+        }
+        ... on AssignedSingleCategoryReferenceAttribute {
+          category: value {
+            slug
+          }
+        }
+        ... on AssignedSingleCollectionReferenceAttribute {
+          collection: value {
+            slug
+          }
+        }
+        ... on AssignedMultiProductVariantReferenceAttribute {
+          variants: value {
+            sku
+          }
+        }
+        ... on AssignedSingleChoiceAttribute {
+          choice: value {
+            name
+            slug
+          }
+        }
+        ... on AssignedMultiChoiceAttribute {
+          multi: value {
+            name
+            slug
+          }
+        }
+        ... on AssignedSwatchAttribute {
+          swatch: value {
+            name
+            slug
+            hexColor
+            file {
+              url
+              contentType
             }
-
+          }
+        }
+        ... on AssignedBooleanAttribute {
+          bool: value
+        }
+        ... on AssignedDateAttribute {
+          date: value
+        }
+        ... on AssignedDateTimeAttribute {
+          datetime: value
+        }
+      }
+      attributes {
+        attribute {
+          slug
+        }
+        values {
+          name
+          slug
+          reference
+          richText
+          plainText
+          boolean
+          date
+          dateTime
+          file {
+            url
+            contentType
+          }
+        }
+      }
+      weight {
+        value
+        unit
+      }
+      stocks {
+        quantity
+        warehouse {
+          slug
+        }
+      }
+      preorder {
+        globalThreshold
+        endDate
+      }
+      metadata {
+        key
+        value
+      }
+      privateMetadata {
+        key
+        value
+      }
+      externalReference
+    }
+  }
+}
 """
 
 
@@ -94,11 +195,9 @@ def test_create_variant_with_name(
     weight = 10.22
     metadata_key = "md key"
     metadata_value = "md value"
-    variant_slug = product_type.variant_attributes.first().slug
-    attribute_id = graphene.Node.to_global_id(
-        "Attribute", product_type.variant_attributes.first().pk
-    )
-    variant_value = "test-value"
+    attribute = product_type.variant_attributes.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attr_value = "test-value"
     stocks = [
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
@@ -114,7 +213,7 @@ def test_create_variant_with_name(
             "stocks": stocks,
             "name": name,
             "weight": weight,
-            "attributes": [{"id": attribute_id, "values": [variant_value]}],
+            "attributes": [{"id": attribute_id, "values": [attr_value]}],
             "trackInventory": True,
             "metadata": [{"key": metadata_key, "value": metadata_value}],
             "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
@@ -133,8 +232,8 @@ def test_create_variant_with_name(
     data = content["productVariant"]
     assert data["name"] == name
     assert data["sku"] == sku
-    assert data["attributes"][0]["attribute"]["slug"] == variant_slug
-    assert data["attributes"][0]["values"][0]["slug"] == variant_value
+    assert data["attributes"][0]["attribute"]["slug"] == attribute.slug
+    assert data["attributes"][0]["values"][0]["slug"] == attr_value
     assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
     assert data["weight"]["value"] == weight
     assert len(data["stocks"]) == 1
@@ -145,6 +244,16 @@ def test_create_variant_with_name(
     assert data["privateMetadata"][0]["key"] == metadata_key
     assert data["privateMetadata"][0]["value"] == metadata_value
     assert data["externalReference"] == external_reference
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_choice_attribute = {
+        "attribute": {"slug": attribute.slug},
+        "choice": {
+            "name": attr_value,
+            "slug": attr_value.lower(),
+        },
+    }
+    assert expected_assigned_choice_attribute in assigned_attributes
 
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
@@ -168,11 +277,11 @@ def test_create_variant_without_name(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
     weight = 10.22
-    variant_slug = product_type.variant_attributes.first().slug
-    attribute_id = graphene.Node.to_global_id(
-        "Attribute", product_type.variant_attributes.first().pk
-    )
-    variant_value = "test-value"
+
+    attribute = product_type.variant_attributes.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attr_value = "test-value"
+
     stocks = [
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
@@ -186,7 +295,7 @@ def test_create_variant_without_name(
             "sku": sku,
             "stocks": stocks,
             "weight": weight,
-            "attributes": [{"id": attribute_id, "values": [variant_value]}],
+            "attributes": [{"id": attribute_id, "values": [attr_value]}],
             "trackInventory": True,
         }
     }
@@ -200,15 +309,26 @@ def test_create_variant_without_name(
     # then
     assert not content["errors"]
     data = content["productVariant"]
-    assert data["name"] == variant_value
+    assert data["name"] == attr_value
     assert data["sku"] == sku
-    assert data["attributes"][0]["attribute"]["slug"] == variant_slug
-    assert data["attributes"][0]["values"][0]["slug"] == variant_value
+    assert data["attributes"][0]["attribute"]["slug"] == attribute.slug
+    assert data["attributes"][0]["values"][0]["slug"] == attr_value.lower()
     assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
     assert data["weight"]["value"] == weight
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_choice_attribute = {
+        "attribute": {"slug": attribute.slug},
+        "choice": {
+            "name": attr_value,
+            "slug": attr_value.lower(),
+        },
+    }
+    assert expected_assigned_choice_attribute in assigned_attributes
+
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
 
@@ -425,6 +545,16 @@ def test_create_variant_with_file_attribute(
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
 
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count + 1
 
@@ -495,6 +625,13 @@ def test_create_variant_with_boolean_attribute(
     }
 
     assert expected_attribute_data in data["attributes"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": boolean_attribute.slug},
+        "bool": True,
+    }
+    assert expected_assigned_attribute in assigned_attributes
     created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
@@ -554,6 +691,16 @@ def test_create_variant_with_file_attribute_new_value(
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": file_attribute.slug},
+        "file": {
+            "url": file_url,
+            "contentType": None,
+        },
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count + 1
@@ -616,6 +763,13 @@ def test_create_variant_with_file_attribute_no_file_url_given(
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": file_attribute.slug},
+        "file": None,
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count
@@ -705,6 +859,14 @@ def test_create_variant_with_page_reference_attribute(
     ]
     for value in expected_values:
         assert value in data["attributes"][0]["values"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_page_reference_attribute.slug},
+        "pages": [{"slug": page_list[0].slug}, {"slug": page_list[1].slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
@@ -867,6 +1029,14 @@ def test_create_variant_with_product_reference_attribute(
     ]
     for value in expected_values:
         assert value in data["attributes"][0]["values"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_product_reference_attribute.slug},
+        "products": [{"slug": product_list[0].slug}, {"slug": product_list[1].slug}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
@@ -1036,6 +1206,14 @@ def test_create_variant_with_variant_reference_attribute(
     ]
     for value in expected_values:
         assert value in data["attributes"][0]["values"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant_1.sku}, {"sku": variant_2.sku}],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
@@ -1207,6 +1385,17 @@ def test_create_variant_with_category_reference_attribute(
     ]
     for value in expected_values:
         assert value in data["attributes"][0]["values"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_category_reference_attribute.slug},
+        "categories": [
+            {"slug": category_list[0].slug},
+            {"slug": category_list[1].slug},
+        ],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
@@ -1308,6 +1497,17 @@ def test_create_variant_with_collection_reference_attribute(
     ]
     for value in expected_values:
         assert value in data["attributes"][0]["values"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": product_type_collection_reference_attribute.slug},
+        "collections": [
+            {"slug": collection_list[0].slug},
+            {"slug": collection_list[1].slug},
+        ],
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
@@ -1431,6 +1631,34 @@ def test_create_variant_with_single_reference_attributes(
     for attr_data in data["attributes"]:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = data["assignedAttributes"]
+
+    expected_assigned_page_attribute = {
+        "attribute": {"slug": product_type_page_single_reference_attribute.slug},
+        "page": {"slug": page.slug},
+    }
+    expected_assigned_product_attribute = {
+        "attribute": {"slug": product_type_product_single_reference_attribute.slug},
+        "product": {"slug": product.slug},
+    }
+    expected_assigned_variant_attribute = {
+        "attribute": {"slug": product_type_variant_single_reference_attribute.slug},
+        "variant": {"sku": product_variant_list[0].sku},
+    }
+    expected_assigned_category_attribute = {
+        "attribute": {"slug": product_type_category_single_reference_attribute.slug},
+        "category": {"slug": categories[0].slug},
+    }
+    expected_assigned_collection_attribute = {
+        "attribute": {"slug": product_type_collection_single_reference_attribute.slug},
+        "collection": {"slug": collection.slug},
+    }
+    assert expected_assigned_page_attribute in assigned_attributes
+    assert expected_assigned_product_attribute in assigned_attributes
+    assert expected_assigned_variant_attribute in assigned_attributes
+    assert expected_assigned_category_attribute in assigned_attributes
+    assert expected_assigned_collection_attribute in assigned_attributes
+
     created_webhook_mock.assert_called_once_with(product.variants.get(pk=variant_pk))
 
 
@@ -1489,6 +1717,14 @@ def test_create_variant_with_numeric_attribute(
         data["attributes"][0]["values"][0]["slug"]
         == f"{variant_pk}_{numeric_attribute.pk}"
     )
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": numeric_attribute.slug},
+        "value": numeric_value,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
     assert data["weight"]["value"] == weight
     assert len(data["stocks"]) == 1
@@ -1797,7 +2033,7 @@ def test_create_variant_with_rich_text_attribute(
     sku = "1"
     weight = 10.22
     attr_id = graphene.Node.to_global_id("Attribute", rich_text_attribute.id)
-    rich_text = json.dumps(dummy_editorjs("Sample text"))
+    rich_text = dummy_editorjs("Sample text")
     stocks = [
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
@@ -1811,7 +2047,7 @@ def test_create_variant_with_rich_text_attribute(
             "stocks": stocks,
             "weight": weight,
             "attributes": [
-                {"id": attr_id, "richText": rich_text},
+                {"id": attr_id, "richText": json.dumps(rich_text)},
             ],
             "trackInventory": True,
         }
@@ -1826,7 +2062,15 @@ def test_create_variant_with_rich_text_attribute(
     assert not content["errors"]
     assert data["name"] == sku
     assert data["sku"] == sku
-    assert data["attributes"][-1]["values"][0]["richText"] == rich_text
+    assert data["attributes"][-1]["values"][0]["richText"] == json.dumps(rich_text)
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": rich_text_attribute.slug},
+        "text": rich_text,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
@@ -1880,6 +2124,14 @@ def test_create_variant_with_plain_text_attribute(
     assert data["name"] == sku
     assert data["sku"] == sku
     assert data["attributes"][-1]["values"][0]["plainText"] == text
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": plain_text_attribute.slug},
+        "plain_text": text,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
@@ -1941,6 +2193,13 @@ def test_create_variant_with_date_attribute(
     assert not content["errors"]
     assert data["sku"] == sku
     assert expected_attributes_data in data["attributes"]
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": date_attribute.slug},
+        "date": str(date_value),
+    }
+    assert expected_assigned_attribute in assigned_attributes
 
     created_webhook_mock.assert_called_once_with(variant)
 
@@ -2005,6 +2264,13 @@ def test_create_variant_with_date_time_attribute(
     assert data["sku"] == sku
     assert expected_attributes_data in data["attributes"]
 
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": date_time_attribute.slug},
+        "datetime": date_time_value.isoformat(),
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
     created_webhook_mock.assert_called_once_with(variant)
 
 
@@ -2023,11 +2289,11 @@ def test_create_variant_with_empty_string_for_sku(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = ""
     weight = 10.22
-    variant_slug = product_type.variant_attributes.first().slug
-    attribute_id = graphene.Node.to_global_id(
-        "Attribute", product_type.variant_attributes.first().pk
-    )
-    variant_value = "test-value"
+
+    attribute = product_type.variant_attributes.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attr_value = "test-value"
+
     stocks = [
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
@@ -2041,7 +2307,7 @@ def test_create_variant_with_empty_string_for_sku(
             "sku": sku,
             "stocks": stocks,
             "weight": weight,
-            "attributes": [{"id": attribute_id, "values": [variant_value]}],
+            "attributes": [{"id": attribute_id, "values": [attr_value]}],
             "trackInventory": True,
         }
     }
@@ -2052,15 +2318,26 @@ def test_create_variant_with_empty_string_for_sku(
 
     assert not content["errors"]
     data = content["productVariant"]
-    assert data["name"] == variant_value
+    assert data["name"] == attr_value
     assert data["sku"] is None
-    assert data["attributes"][0]["attribute"]["slug"] == variant_slug
-    assert data["attributes"][0]["values"][0]["slug"] == variant_value
+    assert data["attributes"][0]["attribute"]["slug"] == attribute.slug
+    assert data["attributes"][0]["values"][0]["slug"] == attr_value
     assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
     assert data["weight"]["value"] == weight
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_assigned_choice_attribute = {
+        "attribute": {"slug": attribute.slug},
+        "choice": {
+            "name": attr_value,
+            "slug": attr_value.lower(),
+        },
+    }
+    assert expected_assigned_choice_attribute in assigned_attributes
+
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
 

@@ -2,6 +2,7 @@ import pytest
 
 from ...channel.utils import update_channel
 from ...gift_cards.utils import create_gift_card
+from ...orders.utils.order_query import order_query
 from ...product.utils.preparing_product import prepare_products
 from ...shop.utils.preparing_shop import prepare_default_shop
 from ...utils import assign_permissions
@@ -16,10 +17,10 @@ from ..utils import (
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("mark_as_paid_strategy"),
+    "mark_as_paid_strategy",
     [
-        ("TRANSACTION_FLOW"),
-        ("PAYMENT_FLOW"),
+        "TRANSACTION_FLOW",
+        "PAYMENT_FLOW",
     ],
 )
 def test_gift_card_total_payment_for_checkout_core_1101(
@@ -28,6 +29,7 @@ def test_gift_card_total_payment_for_checkout_core_1101(
     shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_gift_card,
+    permission_manage_orders,
     mark_as_paid_strategy,
 ):
     # Before
@@ -35,6 +37,7 @@ def test_gift_card_total_payment_for_checkout_core_1101(
         *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_gift_card,
+        permission_manage_orders,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -141,7 +144,11 @@ def test_gift_card_total_payment_for_checkout_core_1101(
         e2e_logged_api_client,
         checkout_id,
     )
-    assert order_data["status"] == "UNFULFILLED"
+    assert order_data["status"] == "UNCONFIRMED"
     assert order_data["total"]["gross"]["amount"] == 0
     assert order_data["giftCards"][0]["id"] == gift_card_id
     assert order_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]
+
+    # Step 5 - Check order status
+    order_data = order_query(e2e_staff_api_client, order_data["id"])
+    assert order_data["status"] == "UNFULFILLED"

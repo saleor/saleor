@@ -445,7 +445,7 @@ def test_order_status_with_order_confirmation(
 
 
 @pytest.mark.parametrize(
-    ("auto_order_confirmation"),
+    "auto_order_confirmation",
     [True, False],
 )
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")

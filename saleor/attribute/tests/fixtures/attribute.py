@@ -1,10 +1,10 @@
 import datetime
 
 import pytest
-from django.template.defaultfilters import truncatechars
 
 from ....core.units import MeasurementUnits
 from ....core.utils.editorjs import clean_editor_js
+from ....core.utils.text import safe_truncate
 from ....tests.utils import dummy_editorjs
 from ... import AttributeEntityType, AttributeInputType, AttributeType
 from ...models import Attribute, AttributeValue
@@ -325,7 +325,7 @@ def rich_text_attribute(db):
     text = "Rich text attribute content."
     AttributeValue.objects.create(
         attribute=attribute,
-        name=truncatechars(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
+        name=safe_truncate(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
         slug=f"instance_{attribute.id}",
         rich_text=dummy_editorjs(text),
     )
@@ -346,7 +346,7 @@ def rich_text_attribute_page_type(db):
     text = "Rich text attribute content."
     AttributeValue.objects.create(
         attribute=attribute,
-        name=truncatechars(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
+        name=safe_truncate(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
         slug=f"instance_{attribute.id}",
         rich_text=dummy_editorjs(text),
     )
@@ -362,7 +362,7 @@ def rich_text_attribute_with_many_values(rich_text_attribute):
         values.append(
             AttributeValue(
                 attribute=attribute,
-                name=truncatechars(
+                name=safe_truncate(
                     clean_editor_js(dummy_editorjs(text), to_string=True), 50
                 ),
                 slug=f"instance_{attribute.id}_{i}",
@@ -387,7 +387,7 @@ def plain_text_attribute(db):
     text = "Plain text attribute content."
     AttributeValue.objects.create(
         attribute=attribute,
-        name=truncatechars(text, 50),
+        name=safe_truncate(text, 50),
         slug=f"instance_{attribute.id}",
         plain_text=text,
     )
@@ -408,7 +408,7 @@ def plain_text_attribute_page_type(db):
     text = "Plain text attribute content."
     AttributeValue.objects.create(
         attribute=attribute,
-        name=truncatechars(text, 50),
+        name=safe_truncate(text, 50),
         slug=f"instance_{attribute.id}",
         plain_text=text,
     )

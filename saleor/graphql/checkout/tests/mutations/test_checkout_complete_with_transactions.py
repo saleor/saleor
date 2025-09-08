@@ -156,11 +156,12 @@ def prepare_checkout_for_test(
         ],
     )
     recalculate_transaction_amounts(transaction)
-    update_checkout_payment_statuses(
-        checkout=checkout_info.checkout,
-        checkout_total_gross=total.gross,
-        checkout_has_lines=bool(lines),
-    )
+
+    # Set price expiration to force payment status recalculcation upon fetching checkout
+    # data.
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
     return checkout
 
 
@@ -1023,6 +1024,16 @@ def test_checkout_with_voucher_not_applicable(
         transaction_item_generator,
         transaction_events_generator,
     )
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    calculations.fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+    )
+
     Voucher.objects.all().delete()
 
     redirect_url = "https://www.example.com"
@@ -1058,6 +1069,16 @@ def test_checkout_with_voucher_inactive_code(
         transaction_item_generator,
         transaction_events_generator,
     )
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    calculations.fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+    )
+
     code.is_active = False
     code.save(update_fields=["is_active"])
 
@@ -1092,11 +1113,11 @@ def test_checkout_with_insufficient_stock(
         transaction_item_generator,
         transaction_events_generator,
     )
+
     checkout_line = checkout.lines.first()
     stock = Stock.objects.get(product_variant=checkout_line.variant)
-    quantity_available = get_available_quantity_for_stock(stock)
-    checkout_line.quantity = quantity_available + 1
-    checkout_line.save()
+    stock.quantity = 0
+    stock.save(update_fields=["quantity"])
 
     redirect_url = "https://www.example.com"
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
@@ -3734,6 +3755,14 @@ def test_checkout_complete_own_reservation(
     transaction_item_generator,
 ):
     # given
+    checkout = checkout_with_item
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    quantity_available = get_available_quantity_for_stock(stock)
+
+    checkout_line.quantity = quantity_available
+    checkout_line.save()
+
     checkout = prepare_checkout_for_test(
         checkout_with_item,
         address,
@@ -3742,12 +3771,6 @@ def test_checkout_complete_own_reservation(
         transaction_item_generator,
         transaction_events_generator,
     )
-    checkout_line = checkout.lines.first()
-    stock = Stock.objects.get(product_variant=checkout_line.variant)
-    quantity_available = get_available_quantity_for_stock(stock)
-
-    checkout_line.quantity = quantity_available
-    checkout_line.save()
 
     reservation = Reservation.objects.create(
         checkout_line=checkout_line,
@@ -4089,6 +4112,13 @@ def test_complete_checkout_raises_error_for_local_stock(
     transaction_item_generator,
 ):
     # given
+    checkout = checkout_with_item_for_cc
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    quantity_available = get_available_quantity_for_stock(stock)
+    checkout_line.quantity = quantity_available + 1
+    checkout_line.save()
+
     checkout = prepare_checkout_for_test(
         checkout_with_item_for_cc,
         None,
@@ -4097,15 +4127,10 @@ def test_complete_checkout_raises_error_for_local_stock(
         transaction_item_generator,
         transaction_events_generator,
     )
-    checkout_line = checkout.lines.first()
-    stock = Stock.objects.get(product_variant=checkout_line.variant)
-    quantity_available = get_available_quantity_for_stock(stock)
-    checkout_line.quantity = quantity_available + 1
-    checkout_line.save()
 
     variables = {
         "id": to_global_id_or_none(checkout),
-        "rediirectUrl": "https://www.example.com",
+        "redirectUrl": "https://www.example.com",
     }
 
     checkout.collection_point = warehouse_for_cc
@@ -4134,6 +4159,14 @@ def test_comp_checkout_builds_order_for_all_warehouse_even_if_not_available_loca
     transaction_item_generator,
 ):
     # given
+    checkout = checkout_with_item_for_cc
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(
+        product_variant=checkout_line.variant, warehouse=warehouse_for_cc
+    )
+    quantity_available = get_available_quantity_for_stock(stock)
+    checkout_line.quantity = quantity_available + 1
+    checkout_line.save()
     checkout = prepare_checkout_for_test(
         checkout_with_item_for_cc,
         None,
@@ -4142,13 +4175,6 @@ def test_comp_checkout_builds_order_for_all_warehouse_even_if_not_available_loca
         transaction_item_generator,
         transaction_events_generator,
     )
-    checkout_line = checkout.lines.first()
-    stock = Stock.objects.get(
-        product_variant=checkout_line.variant, warehouse=warehouse_for_cc
-    )
-    quantity_available = get_available_quantity_for_stock(stock)
-    checkout_line.quantity = quantity_available + 1
-    checkout_line.save()
 
     warehouse_for_cc.click_and_collect_option = (
         WarehouseClickAndCollectOption.ALL_WAREHOUSES
@@ -4182,14 +4208,7 @@ def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_su
     transaction_item_generator,
 ):
     # given
-    checkout = prepare_checkout_for_test(
-        checkout_with_item_for_cc,
-        None,
-        address,
-        None,
-        transaction_item_generator,
-        transaction_events_generator,
-    )
+    checkout = checkout_with_item_for_cc
     checkout_line = checkout.lines.first()
     overall_stock_quantity = (
         Stock.objects.filter(product_variant=checkout_line.variant).aggregate(
@@ -4198,6 +4217,14 @@ def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_su
     ).pop("quantity__sum")
     checkout_line.quantity = overall_stock_quantity + 1
     checkout_line.save()
+    checkout = prepare_checkout_for_test(
+        checkout_with_item_for_cc,
+        None,
+        address,
+        None,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
     warehouse_for_cc.click_and_collect_option = (
         WarehouseClickAndCollectOption.ALL_WAREHOUSES
     )

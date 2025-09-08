@@ -800,6 +800,9 @@ def cancel_fulfillment(
                 fulfillment=fulfillment,
                 warehouse_pk=warehouse.pk,
             )
+        else:
+            decrease_fulfilled_quantity(fulfillment)
+
         fulfillment.status = FulfillmentStatus.CANCELED
         fulfillment.save(update_fields=["status"])
         update_order_status(fulfillment.order)
@@ -812,35 +815,14 @@ def cancel_fulfillment(
     return fulfillment
 
 
-def cancel_waiting_fulfillment(
-    fulfillment: Fulfillment,
-    user: User,
-    app: Optional["App"],
-    manager: "PluginsManager",
-):
-    """Cancel fulfillment which is in waiting for approval state."""
-    fulfillment = Fulfillment.objects.get(pk=fulfillment.pk)
-    # transaction ensures sending webhooks after order line is updated and events are
-    # successfully created
-    with traced_atomic_transaction():
-        events.fulfillment_canceled_event(
-            order=fulfillment.order, user=user, app=app, fulfillment=None
-        )
-
-        order_lines = []
-        for line in fulfillment:
-            order_line = line.order_line
-            order_line.quantity_fulfilled -= line.quantity
-            order_lines.append(order_line)
-        OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
-
-        fulfillment.delete()
-        call_event(manager.fulfillment_canceled, fulfillment)
-        call_order_event(
-            manager,
-            WebhookEventAsyncType.ORDER_UPDATED,
-            fulfillment.order,
-        )
+def decrease_fulfilled_quantity(fulfillment: Fulfillment) -> None:
+    """Decrease the fulfilled quantity for order lines in the given fulfillment."""
+    order_lines = []
+    for line in fulfillment:
+        order_line = line.order_line
+        order_line.quantity_fulfilled -= line.quantity
+        order_lines.append(order_line)
+    OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
 
 
 def approve_fulfillment(

@@ -12,7 +12,7 @@ on:
       - "**/setup.py"
       - "**/requirements*.txt"
       - "**/Pipfile.lock"
-      - "**/poetry.lock"
+      - "**/uv.lock"
       # JS/TS Ecosystem
       - "**/package.json"
       - "**/pnpm-lock.yaml"

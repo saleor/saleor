@@ -1,4 +1,10 @@
-from .base import BaseConnection, BaseEnum, BaseInputObjectType, BaseObjectType
+from .base import (
+    BaseConnection,
+    BaseEnum,
+    BaseInputObjectType,
+    BaseInterface,
+    BaseObjectType,
+)
 from .common import (
     TYPES_WITH_DOUBLE_ID_AVAILABLE,
     AccountError,
@@ -91,6 +97,7 @@ __all__ = [
     "BaseConnection",
     "BaseEnum",
     "BaseInputObjectType",
+    "BaseInterface",
     "BaseObjectType",
     "BulkProductError",
     "BulkStockError",
