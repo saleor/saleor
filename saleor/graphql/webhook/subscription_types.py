@@ -1506,11 +1506,25 @@ class CheckoutFullyPaid(SubscriptionObjectType, CheckoutBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when checkout is fully paid with transactions."
-            " The checkout is considered as fully paid when the checkout "
-            "`charge_status` is `FULL` or `OVERCHARGED`. "
-            "The event is not sent when the checkout authorization flow strategy "
-            "is used."
+            "Event sent when a checkout was fully paid. A checkout is "
+            "considered fully paid when its `chargeStatus` is `FULL` "
+            "or `OVERCHARGED`. This event is not sent if payments are only "
+            "authorized but not fully charged."
+            "\n\nIt is triggered only for checkouts whose payments are "
+            "processed through the Transaction API."
+        )
+
+
+class CheckoutFullyAuthorized(SubscriptionObjectType, CheckoutBase):
+    class Meta:
+        root_type = "Checkout"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when a checkout was fully authorized. A checkout is "
+            "considered fully authorized when its `authorizeStatus` is `FULL`."
+            "\n\nIt is triggered only for checkouts whose payments are processed through "
+            "the Transaction API."
         )
 
 
@@ -2783,6 +2797,17 @@ class Subscription(SubscriptionObjectType):
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
+    checkout_fully_authorized = BaseField(
+        CheckoutFullyAuthorized,
+        description=(
+            "Event sent when checkout is fully authorized."
+            + ADDED_IN_321
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_CHECKOUT,
+    )
     checkout_metadata_updated = BaseField(
         CheckoutMetadataUpdated,
         description=(
@@ -3007,6 +3032,7 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.COLLECTION_METADATA_UPDATED: CollectionMetadataUpdated,
     WebhookEventAsyncType.CHECKOUT_CREATED: CheckoutCreated,
     WebhookEventAsyncType.CHECKOUT_UPDATED: CheckoutUpdated,
+    WebhookEventAsyncType.CHECKOUT_FULLY_AUTHORIZED: CheckoutFullyAuthorized,
     WebhookEventAsyncType.CHECKOUT_FULLY_PAID: CheckoutFullyPaid,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: CheckoutMetadataUpdated,
     WebhookEventAsyncType.PAGE_CREATED: PageCreated,

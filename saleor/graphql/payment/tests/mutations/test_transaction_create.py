@@ -1199,7 +1199,9 @@ def test_transaction_create_for_checkout_by_staff(
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 def test_transaction_create_for_checkout_fully_paid(
+    mocked_checkout_fully_authorized,
     mocked_checkout_fully_paid,
     mocked_automatic_checkout_completion_task,
     checkout_with_prices,
@@ -1249,12 +1251,15 @@ def test_transaction_create_for_checkout_fully_paid(
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     mocked_automatic_checkout_completion_task.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_create_for_checkout_fully_paid_automatic_completion(
     mocked_checkout_fully_paid,
+    mocked_checkout_fully_authorized,
     checkout_with_prices,
     permission_manage_payments,
     staff_api_client,
@@ -1302,6 +1307,7 @@ def test_transaction_create_for_checkout_fully_paid_automatic_completion(
 
     # then
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     with pytest.raises(Checkout.DoesNotExist):
         checkout.refresh_from_db()
 
@@ -1314,9 +1320,11 @@ def test_transaction_create_for_checkout_fully_paid_automatic_completion(
 
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_create_for_checkout_fully_authorized(
     mocked_checkout_fully_paid,
+    mocked_checkout_fully_authorized,
     mocked_automatic_checkout_completion_task,
     checkout_with_prices,
     permission_manage_payments,
@@ -1364,13 +1372,16 @@ def test_transaction_create_for_checkout_fully_authorized(
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
+    mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     mocked_checkout_fully_paid.assert_not_called()
     mocked_automatic_checkout_completion_task.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 def test_transaction_create_for_checkout_fully_authorized_automatic_completion(
     mocked_checkout_fully_paid,
+    mocked_checkout_fully_authorized,
     checkout_with_prices,
     permission_manage_payments,
     staff_api_client,
@@ -1417,6 +1428,7 @@ def test_transaction_create_for_checkout_fully_authorized_automatic_completion(
     )
 
     # then
+    mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     mocked_checkout_fully_paid.assert_not_called()
 
     with pytest.raises(Checkout.DoesNotExist):

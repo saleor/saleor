@@ -36,6 +36,7 @@ from ..plugins.manager import PluginsManager
 CHECKOUT_WEBHOOK_EVENT_MAP = {
     WebhookEventAsyncType.CHECKOUT_CREATED: PluginsManager.checkout_created.__name__,
     WebhookEventAsyncType.CHECKOUT_UPDATED: PluginsManager.checkout_updated.__name__,
+    WebhookEventAsyncType.CHECKOUT_FULLY_AUTHORIZED: PluginsManager.checkout_fully_authorized.__name__,
     WebhookEventAsyncType.CHECKOUT_FULLY_PAID: PluginsManager.checkout_fully_paid.__name__,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: PluginsManager.checkout_metadata_updated.__name__,
 }
@@ -310,16 +311,26 @@ def _transaction_amounts_for_checkout_updated(
             checkout_info=checkout_info,
             lines=lines,
         )
+    previous_authorize_status_is_full = (
+        previous_authorize_status == CheckoutAuthorizeStatus.FULL
+    )
+    current_authorize_status_is_full = (
+        checkout_info.checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    )
+    if not previous_authorize_status_is_full and current_authorize_status_is_full:
+        call_checkout_info_event(
+            manager,
+            event_name=WebhookEventAsyncType.CHECKOUT_FULLY_AUTHORIZED,
+            checkout_info=checkout_info,
+            lines=lines,
+        )
 
     channel = checkout_info.channel
     if (
         channel.automatically_complete_fully_paid_checkouts
         and
         # ensure that checkout completion is triggered only once
-        (
-            previous_authorize_status != CheckoutAuthorizeStatus.FULL
-            and checkout_info.checkout.authorize_status == CheckoutAuthorizeStatus.FULL
-        )
+        (not previous_authorize_status_is_full and current_authorize_status_is_full)
     ):
         user_id = user.id if user else None
         app_id = app.id if app else None
