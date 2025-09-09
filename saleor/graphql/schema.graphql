@@ -2052,6 +2052,19 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+
+  """
+  A checkout was fully authorized (its `authorizeStatus` is `FULL`).
+  
+  This event is emitted only for checkouts whose payments are processed through the Transaction API.
+  """
+  CHECKOUT_FULLY_AUTHORIZED
+
+  """
+  A checkout was fully paid (its `chargeStatus` is `FULL` or `OVERCHARGED`). This event is not sent if payments are only authorized but not fully charged.
+  
+  This event is emitted only for checkouts whose payments are processed through the Transaction API.
+  """
   CHECKOUT_FULLY_PAID
 
   """A checkout metadata is updated."""
@@ -2614,6 +2627,19 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+
+  """
+  A checkout was fully authorized (its `authorizeStatus` is `FULL`).
+  
+  This event is emitted only for checkouts whose payments are processed through the Transaction API.
+  """
+  CHECKOUT_FULLY_AUTHORIZED
+
+  """
+  A checkout was fully paid (its `chargeStatus` is `FULL` or `OVERCHARGED`). This event is not sent if payments are only authorized but not fully charged.
+  
+  This event is emitted only for checkouts whose payments are processed through the Transaction API.
+  """
   CHECKOUT_FULLY_PAID
 
   """A checkout metadata is updated."""
@@ -3425,6 +3451,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_VARIANT_STOCK_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
+  CHECKOUT_FULLY_AUTHORIZED
   CHECKOUT_FULLY_PAID
   CHECKOUT_METADATA_UPDATED
   NOTIFY_USER
@@ -31017,6 +31044,20 @@ type Subscription @doc(category: "Miscellaneous") {
   ): CheckoutFullyPaid @doc(category: "Checkout")
 
   """
+  Event sent when checkout is fully authorized.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutFullyAuthorized(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): CheckoutFullyAuthorized @doc(category: "Checkout")
+
+  """
   Event sent when checkout metadata is updated.
   
   Added in Saleor 3.21.
@@ -31356,9 +31397,33 @@ type CheckoutUpdated implements Event @doc(category: "Checkout") {
 }
 
 """
-Event sent when checkout is fully paid with transactions. The checkout is considered as fully paid when the checkout `charge_status` is `FULL` or `OVERCHARGED`. The event is not sent when the checkout authorization flow strategy is used.
+Event sent when a checkout was fully paid. A checkout is considered fully paid when its `chargeStatus` is `FULL` or `OVERCHARGED`. This event is not sent if payments are only authorized but not fully charged.
+
+It is triggered only for checkouts whose payments are processed through the Transaction API.
 """
 type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""
+Event sent when a checkout was fully authorized. A checkout is considered fully authorized when its `authorizeStatus` is `FULL`.
+
+It is triggered only for checkouts whose payments are processed through the Transaction API.
+"""
+type CheckoutFullyAuthorized implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 

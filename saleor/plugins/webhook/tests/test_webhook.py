@@ -1269,6 +1269,40 @@ def test_checkout_fully_paid(
     )
 
 
+@freeze_time("2014-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_checkout_fully_authorized(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    checkout_with_items,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager(allow_replica=False)
+
+    # when
+    manager.checkout_fully_authorized(checkout_with_items)
+
+    # then
+    mocked_webhook_trigger.assert_called_once_with(
+        None,
+        WebhookEventAsyncType.CHECKOUT_FULLY_AUTHORIZED,
+        [any_webhook],
+        checkout_with_items,
+        None,
+        legacy_data_generator=ANY,
+        allow_replica=False,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    )
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
+
+
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_checkout_metadata_updated(

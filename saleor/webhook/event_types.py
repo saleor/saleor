@@ -145,6 +145,7 @@ class WebhookEventAsyncType:
 
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
+    CHECKOUT_FULLY_AUTHORIZED = "checkout_fully_authorized"
     CHECKOUT_FULLY_PAID = "checkout_fully_paid"
     CHECKOUT_METADATA_UPDATED = "checkout_metadata_updated"
 
@@ -606,6 +607,10 @@ class WebhookEventAsyncType:
             "name": "Checkout updated",
             "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
             "is_deferred_payload": True,
+        },
+        CHECKOUT_FULLY_AUTHORIZED: {
+            "name": "Checkout fully authorized",
+            "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
         },
         CHECKOUT_FULLY_PAID: {
             "name": "Checkout fully paid",
