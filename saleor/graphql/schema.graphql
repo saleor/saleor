@@ -2054,13 +2054,15 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   CHECKOUT_UPDATED
 
   """
-  A checkout is fully authorized (`checkout.authorizeStatus` = `FULL`).
+  A checkout was fully authorized (its `authorizeStatus` is `FULL`).
+  
   This event is emitted only for checkouts whose payments are processed through the Transaction API.
   """
   CHECKOUT_FULLY_AUTHORIZED
 
   """
-  A checkout is fully paid (`checkout.chargeStatus` = `FULL` or `OVERCHARGED`). This event is not sent if payments are only authorized but not fully charged.
+  A checkout was fully paid (its `chargeStatus` is `FULL` or `OVERCHARGED`). This event is not sent if payments are only authorized but not fully charged.
+  
   This event is emitted only for checkouts whose payments are processed through the Transaction API.
   """
   CHECKOUT_FULLY_PAID
@@ -2627,13 +2629,15 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   CHECKOUT_UPDATED
 
   """
-  A checkout is fully authorized (`checkout.authorizeStatus` = `FULL`).
+  A checkout was fully authorized (its `authorizeStatus` is `FULL`).
+  
   This event is emitted only for checkouts whose payments are processed through the Transaction API.
   """
   CHECKOUT_FULLY_AUTHORIZED
 
   """
-  A checkout is fully paid (`checkout.chargeStatus` = `FULL` or `OVERCHARGED`). This event is not sent if payments are only authorized but not fully charged.
+  A checkout was fully paid (its `chargeStatus` is `FULL` or `OVERCHARGED`). This event is not sent if payments are only authorized but not fully charged.
+  
   This event is emitted only for checkouts whose payments are processed through the Transaction API.
   """
   CHECKOUT_FULLY_PAID
@@ -31393,7 +31397,8 @@ type CheckoutUpdated implements Event @doc(category: "Checkout") {
 }
 
 """
-Event sent when a checkout is fully paid. A checkout is considered fully paid when `checkout.chargeStatus` is `FULL` or `OVERCHARGED`. This event is not sent if payments are only authorized but not fully charged.
+Event sent when a checkout was fully paid. A checkout is considered fully paid when its `chargeStatus` is `FULL` or `OVERCHARGED`. This event is not sent if payments are only authorized but not fully charged.
+
 It is triggered only for checkouts whose payments are processed through the Transaction API.
 """
 type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
@@ -31414,7 +31419,8 @@ type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
 }
 
 """
-Event sent when a checkout is fully authorized. A checkout is considered fully authorized when `checkout.authorizeStatus` is `FULL`.
+Event sent when a checkout was fully authorized. A checkout is considered fully authorized when its `authorizeStatus` is `FULL`.
+
 It is triggered only for checkouts whose payments are processed through the Transaction API.
 """
 type CheckoutFullyAuthorized implements Event @doc(category: "Checkout") {
