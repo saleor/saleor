@@ -329,6 +329,19 @@ class UserPermission(Permission):
         return groups
 
 
+def is_newly_created_user(
+    user: models.User,
+):
+    """Determine if the resolver is called for newly created user.
+
+    Newly created user can be represented as user instance that is not stored in DB.
+    We need to skip any resolvers that requires existing id value.
+    """
+    if getattr(user, "NEWLY_CREATED_USER", False):
+        return True
+    return False
+
+
 @federated_entity("id")
 @federated_entity("email")
 class User(ModelObjectType[models.User]):
@@ -492,10 +505,14 @@ class User(ModelObjectType[models.User]):
 
     @staticmethod
     def resolve_addresses(root: models.User, _info: ResolveInfo):
+        if is_newly_created_user(root):
+            return []
         return root.addresses.annotate_default(root).all()
 
     @staticmethod
     def resolve_checkout(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return []
         database_connection_name = get_database_connection_name(info.context)
         checkout = get_user_checkout(
             root, database_connection_name=database_connection_name
@@ -507,6 +524,9 @@ class User(ModelObjectType[models.User]):
     @staticmethod
     @traced_resolver
     def resolve_checkout_tokens(root: models.User, info: ResolveInfo, channel=None):
+        if is_newly_created_user(root):
+            return []
+
         def return_checkout_tokens(checkouts):
             if not checkouts:
                 return []
@@ -530,6 +550,9 @@ class User(ModelObjectType[models.User]):
     @staticmethod
     @traced_resolver
     def resolve_checkout_ids(root: models.User, info: ResolveInfo, channel=None):
+        if is_newly_created_user(root):
+            return []
+
         def return_checkout_ids(checkouts):
             if not checkouts:
                 return []
@@ -561,6 +584,9 @@ class User(ModelObjectType[models.User]):
                 allow_sync_webhooks=False,
             )
 
+        if is_newly_created_user(root):
+            return _resolve_checkouts([])
+
         if channel := kwargs.get("channel"):
             return (
                 CheckoutByUserAndChannelLoader(info.context)
@@ -578,33 +604,46 @@ class User(ModelObjectType[models.User]):
                 gift_cards, info, kwargs, GiftCardCountableConnection
             )
 
+        if is_newly_created_user(root):
+            return _resolve_gift_cards([])
+
         return (
             GiftCardsByUserLoader(info.context).load(root.id).then(_resolve_gift_cards)
         )
 
     @staticmethod
     def resolve_user_permissions(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return []
         from .resolvers import resolve_permissions
 
         return resolve_permissions(root, info)
 
     @staticmethod
     def resolve_permission_groups(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return []
         return root.groups.using(get_database_connection_name(info.context)).all()
 
     @staticmethod
     def resolve_editable_groups(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return []
         database_connection_name = get_database_connection_name(info.context)
         return get_groups_which_user_can_manage(root, database_connection_name)
 
     @staticmethod
-    def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
+    def resolve_accessible_channels(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return []
         # Sum of channels from all user groups. If at least one group has
         # `restrictedAccessToChannels` set to False - all channels are returned
         return AccessibleChannelsByUserIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_restricted_access_to_channels(root: models.Group, info: ResolveInfo):
+    def resolve_restricted_access_to_channels(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return False
         # Returns False if at least one user group has `restrictedAccessToChannels`
         # set to False
         return RestrictedChannelAccessByUserIdLoader(info.context).load(root.id)
@@ -615,11 +654,22 @@ class User(ModelObjectType[models.User]):
 
     @staticmethod
     def resolve_events(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return []
         return CustomerEventsByUserLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_orders(root: models.User, info: ResolveInfo, **kwargs):
         from ..order.types import OrderCountableConnection
+
+        if is_newly_created_user(root):
+            return create_connection_slice_for_sync_webhook_control_context(
+                [],
+                info,
+                kwargs,
+                OrderCountableConnection,
+                allow_sync_webhooks=False,
+            )
 
         user_or_app = get_user_or_app_from_context(info.context)
         if not user_or_app or (
@@ -699,6 +749,8 @@ class User(ModelObjectType[models.User]):
     def resolve_stored_payment_sources(
         root: models.User, info: ResolveInfo, channel=None
     ):
+        if is_newly_created_user(root):
+            return []
         from .resolvers import resolve_payment_sources
 
         if root == info.context.user:
@@ -743,6 +795,8 @@ class User(ModelObjectType[models.User]):
         info: ResolveInfo,
         channel: str,
     ):
+        if is_newly_created_user(root):
+            return []
         requestor = get_user_or_app_from_context(info.context)
         if not requestor or requestor.id != root.id:
             return []
@@ -764,12 +818,16 @@ class User(ModelObjectType[models.User]):
 
     @staticmethod
     def resolve_default_billing_address(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return None
         if root.default_billing_address_id:
             return AddressByIdLoader(info.context).load(root.default_billing_address_id)
         return None
 
     @staticmethod
     def resolve_default_shipping_address(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return None
         if root.default_shipping_address_id:
             return AddressByIdLoader(info.context).load(
                 root.default_shipping_address_id
