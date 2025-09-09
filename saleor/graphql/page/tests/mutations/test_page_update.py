@@ -744,15 +744,16 @@ def test_update_page_with_plain_text_attribute_new_value(
 def test_update_page_with_reference_attributes_and_reference_types_defined(
     staff_api_client,
     page_list,
+    page,
     product,
     variant,
     page_type_page_reference_attribute,
     page_type_product_reference_attribute,
     page_type_variant_reference_attribute,
     permission_manage_pages,
+    permission_manage_products,
 ):
     # given
-    page = page_list[0]
     page.page_type.page_attributes.clear()
     page.page_type.page_attributes.add(
         page_type_page_reference_attribute,
@@ -801,7 +802,7 @@ def test_update_page_with_reference_attributes_and_reference_types_defined(
     response = staff_api_client.post_graphql(
         UPDATE_PAGE_ATTRIBUTES_MUTATION,
         variables,
-        permissions=[permission_manage_pages],
+        permissions=[permission_manage_pages, permission_manage_products],
     )
 
     # then
@@ -859,6 +860,23 @@ def test_update_page_with_reference_attributes_and_reference_types_defined(
     ]
     for attr_data in attributes_data:
         assert attr_data in expected_attributes_data
+
+    assigned_attributes = data["page"]["assignedAttributes"]
+    expected_page_ref_assigned_attribute = {
+        "attribute": {"slug": page_type_page_reference_attribute.slug},
+        "pages": [{"slug": reference_page.slug}],
+    }
+    assert expected_page_ref_assigned_attribute in assigned_attributes
+    expected_product_ref_assigned_attribute = {
+        "attribute": {"slug": page_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug}],
+    }
+    assert expected_product_ref_assigned_attribute in assigned_attributes
+    expected_variant_ref_assigned_attribute = {
+        "attribute": {"slug": page_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant.sku}],
+    }
+    assert expected_variant_ref_assigned_attribute in assigned_attributes
 
 
 def test_update_page_with_plain_text_attribute_existing_value(
@@ -1573,6 +1591,26 @@ UPDATE_PAGE_ATTRIBUTES_MUTATION = """
                     }
                     ... on AssignedMultiProductReferenceAttribute {
                         products: value {
+                            slug
+                        }
+                    }
+                    ... on AssignedMultiProductVariantReferenceAttribute {
+                        variants: value {
+                            sku
+                        }
+                    }
+                    ... on AssignedMultiCategoryReferenceAttribute {
+                        categories: value {
+                            slug
+                        }
+                    }
+                    ... on AssignedMultiCollectionReferenceAttribute {
+                        collections: value {
+                            slug
+                        }
+                    }
+                    ... on AssignedMultiPageReferenceAttribute {
+                        pages: value {
                             slug
                         }
                     }
