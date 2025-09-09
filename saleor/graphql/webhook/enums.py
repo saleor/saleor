@@ -26,7 +26,17 @@ order_updated_event_enum_description = (
     "An order is updated; triggered for all changes related to an order; "
     "covers all other order webhooks, except for ORDER_CREATED."
 )
-
+checkout_fully_authorized_event_enum_description = (
+    "A checkout is fully authorized "
+    "(`checkout.authorizeStatus` = `FULL`).\nThis event is emitted only for "
+    "checkouts whose payments are processed through the Transaction API."
+)
+checkout_fully_paid_event_enum_description = (
+    "A checkout is fully paid (`checkout.chargeStatus` = `FULL` "
+    "or `OVERCHARGED`). This event is not sent if payments are only authorized "
+    "but not fully charged.\nThis event is emitted only for checkouts whose payments "
+    "are processed through the Transaction API."
+)
 
 WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: (
@@ -65,6 +75,8 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.CHANNEL_METADATA_UPDATED: "A channel metadata is updated.",
     WebhookEventAsyncType.CHECKOUT_CREATED: "A new checkout is created.",
     WebhookEventAsyncType.CHECKOUT_UPDATED: checkout_updated_event_enum_description,
+    WebhookEventAsyncType.CHECKOUT_FULLY_AUTHORIZED: checkout_fully_authorized_event_enum_description,
+    WebhookEventAsyncType.CHECKOUT_FULLY_PAID: checkout_fully_paid_event_enum_description,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: "A checkout metadata is updated.",
     WebhookEventAsyncType.COLLECTION_CREATED: "A new collection is created.",
     WebhookEventAsyncType.COLLECTION_UPDATED: "A collection is updated.",
