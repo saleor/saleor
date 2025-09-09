@@ -61,12 +61,14 @@ def get_results(instances_data_with_errors_list, reject_everything=False):
             for data in instances_data_with_errors_list
         ]
     return [
-        ProductBulkResult(
-            product=ChannelContext(node=data.get("instance"), channel_slug=None),
-            errors=data.get("errors"),
+        (
+            ProductBulkResult(
+                product=ChannelContext(node=data.get("instance"), channel_slug=None),
+                errors=data.get("errors"),
+            )
+            if data.get("instance")
+            else ProductBulkResult(product=None, errors=data.get("errors"))
         )
-        if data.get("instance")
-        else ProductBulkResult(product=None, errors=data.get("errors"))
         for data in instances_data_with_errors_list
     ]
 
@@ -457,7 +459,7 @@ class ProductBulkCreate(BaseMutation):
             if alt and len(alt) > ALT_CHAR_LIMIT:
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
-                        path=f"media.{index}",
+                        path=f"media.{index}.alt",
                         message=f"Alt field exceeds the character "
                         f"limit of {ALT_CHAR_LIMIT}.",
                         code=ProductBulkCreateErrorCode.INVALID.value,
@@ -518,9 +520,11 @@ class ProductBulkCreate(BaseMutation):
             for error in errors:
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
-                        path=f"variants.{index}.{error.path}"
-                        if error.path
-                        else f"variants.{index}",
+                        path=(
+                            f"variants.{index}.{error.path}"
+                            if error.path
+                            else f"variants.{index}"
+                        ),
                         message=error.message,
                         code=error.code,
                         attributes=error.attributes,
