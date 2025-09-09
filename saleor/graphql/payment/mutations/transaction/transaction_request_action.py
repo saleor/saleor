@@ -31,6 +31,7 @@ from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum
 from ...types import TransactionItem
+from ...utils import validate_refund_reason_requirement
 from .utils import get_transaction_item
 
 if TYPE_CHECKING:
@@ -197,8 +198,8 @@ class TransactionRequestAction(BaseMutation):
         token = data.get("token")
         action_type = data["action_type"]
         action_value = data.get("amount")
-        reason = data.get("reason")
-        reason_reference_id = data.get("reason_reference")
+        reason = data.get("refund_reason")
+        reason_reference_id = data.get("refund_reason_reference")
         if not reason_reference_id:
             reason_reference_id = None
 
@@ -212,19 +213,10 @@ class TransactionRequestAction(BaseMutation):
 
         is_passing_reason_reference_required = refund_reason_reference_type is not None
 
-        if (
-            is_passing_reason_reference_required
-            and reason_reference_id is None
-            and requestor_is_user
-        ):
-            raise ValidationError(
-                {
-                    "reason_reference": ValidationError(
-                        "Reason reference is required when refund reason reference type is configured.",
-                        code=TransactionRequestActionErrorCode.REQUIRED.value,
-                    )
-                }
-            ) from None
+        validate_refund_reason_requirement(
+            reason_reference_id=reason_reference_id,
+            requestor_is_user=bool(requestor_is_user),
+        )
 
         # If feature is not enabled, ignore it from the input
         if not is_passing_reason_reference_required:

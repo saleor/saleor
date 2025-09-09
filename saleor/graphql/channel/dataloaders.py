@@ -64,14 +64,13 @@ class ChannelWithHasOrdersByIdLoader(DataLoader[int, Channel]):
         return [channels.get(channel_id) for channel_id in keys]
 
 
-# TODO TEST
 class ChannelByTransactionIdLoader(DataLoader[int, Channel]):
     context_key = "channel_by_transaction_id"
 
-    # check if str or uuid
     def batch_load(self, keys: list[str]):
         transaction_item_ids = keys
 
+        # Order doesn't have relation to transaction item, so we first need to do reverse
         transaction_items_with_order_ids_only = (
             TransactionItem.objects.using(self.database_connection_name)
             .only("order_id")

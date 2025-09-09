@@ -20,6 +20,7 @@ from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.mutations.transaction.utils import get_transaction_item
+from ...payment.utils import validate_refund_reason_requirement
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -200,7 +201,7 @@ class OrderGrantRefundCreate(BaseMutation):
         transaction_id = input.get("transaction_id")
         input_lines = input.get("lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", False)
-        reason_reference = input.get("reason_reference")
+        reason_reference_id = input.get("reason_reference")
 
         cls.validate_input(input)
 
@@ -261,7 +262,6 @@ class OrderGrantRefundCreate(BaseMutation):
                 }
             )
 
-        # todo this validation should be shared helper
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
@@ -270,19 +270,10 @@ class OrderGrantRefundCreate(BaseMutation):
 
         is_passing_reason_reference_required = refund_reason_reference_type is not None
 
-        if (
-            is_passing_reason_reference_required
-            and reason_reference is None
-            and requestor_is_user
-        ):
-            raise ValidationError(
-                {
-                    "reason_reference": ValidationError(
-                        "Reason reference is required when refund reason reference type is configured.",
-                        code=OrderGrantRefundCreateErrorCode.REQUIRED.value,
-                    )
-                }
-            )
+        validate_refund_reason_requirement(
+            reason_reference_id=reason_reference_id,
+            requestor_is_user=bool(requestor_is_user),
+        )
 
         # If feature is not enabled, ignore it from the input
         if not is_passing_reason_reference_required:
@@ -313,7 +304,7 @@ class OrderGrantRefundCreate(BaseMutation):
             "lines": cleaned_input_lines,
             "grant_refund_for_shipping": grant_refund_for_shipping,
             "transaction_item": transaction_item,
-            "reason_reference": reason_reference,
+            "reason_reference": reason_reference_id,
             "reason_reference_instance": reason_reference_instance,
         }
 

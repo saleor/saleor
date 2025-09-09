@@ -20,6 +20,7 @@ from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.types import TransactionItem
+from ...payment.utils import validate_refund_reason_requirement
 from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -421,19 +422,10 @@ class OrderGrantRefundUpdate(BaseMutation):
                 refund_reason_reference_type is not None
             )
 
-            if (
-                is_passing_reason_reference_required
-                and reason_reference_id is None
-                and requestor_is_user
-            ):
-                raise ValidationError(
-                    {
-                        "reason_reference": ValidationError(
-                            "Reason reference is required when refund reason reference type is configured.",
-                            code=OrderGrantRefundUpdateErrorCode.REQUIRED.value,
-                        )
-                    }
-                ) from None
+            validate_refund_reason_requirement(
+                reason_reference_id=reason_reference_id,
+                requestor_is_user=bool(requestor_is_user),
+            )
 
             # If feature is not enabled, ignore it from the input
             if not is_passing_reason_reference_required:

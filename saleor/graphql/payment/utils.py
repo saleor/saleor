@@ -1,6 +1,10 @@
 from typing import TYPE_CHECKING, Optional
 
+from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
+
 from ...payment import models as payment_models
+from ..core.enums import TransactionRequestActionErrorCode
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -41,3 +45,26 @@ def check_if_requestor_has_access(
         if transaction.app_identifier and transaction.app_identifier == app.identifier:
             return True
     return False
+
+
+def validate_refund_reason_requirement(
+    *, reason_reference_id: str | None, requestor_is_user: bool
+):
+    settings = Site.objects.get_current().settings
+    refund_reason_reference_type = settings.refund_reason_reference_type
+
+    is_passing_reason_reference_required = refund_reason_reference_type is not None
+
+    if (
+        is_passing_reason_reference_required
+        and reason_reference_id is None
+        and requestor_is_user
+    ):
+        raise ValidationError(
+            {
+                "reason_reference": ValidationError(
+                    "Reason reference is required when refund reason reference type is configured.",
+                    code=TransactionRequestActionErrorCode.REQUIRED.value,
+                )
+            }
+        ) from None
