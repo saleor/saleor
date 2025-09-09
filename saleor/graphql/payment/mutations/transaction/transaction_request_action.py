@@ -65,11 +65,11 @@ class TransactionRequestAction(BaseMutation):
             ),
             required=False,
         )
-        reason = graphene.String(
+        refund_reason = graphene.String(
             description="Reason of the refund" + ADDED_IN_322,
             required=False,
         )
-        reason_reference = graphene.ID(
+        refund_reason_reference = graphene.ID(
             description="ID of a `Page` (Model) to reference in reason." + ADDED_IN_322,
             required=False,
         )
