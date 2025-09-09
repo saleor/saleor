@@ -30,7 +30,7 @@ jobs:
             echo "IS_LATEST=false" >> $GITHUB_OUTPUT
           fi
       - name: Create tag
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           VERSION: ${{ steps.set-version.outputs.VERSION }}
         with:
