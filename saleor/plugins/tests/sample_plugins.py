@@ -339,6 +339,9 @@ class PluginSample(BasePlugin):
     def checkout_fully_paid(self, checkout, previous_value, webhooks):
         return None
 
+    def checkout_fully_authorized(self, checkout, previous_value, webhooks):
+        return None
+
     def order_fully_refunded(self, order, previous_value, webhooks):
         return None
 

@@ -136,6 +136,14 @@ def setup_checkout_webhooks(
             ...CheckoutFragment
           }
         }
+        ... on CheckoutFullyAuthorized {
+          issuingPrincipal {
+            ...IssuingPrincipal
+          }
+          checkout {
+            ...CheckoutFragment
+          }
+        }
         ... on CheckoutMetadataUpdated {
           issuingPrincipal {
             ...IssuingPrincipal
