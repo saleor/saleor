@@ -116,25 +116,23 @@ def generate_payload_promise_from_subscription(
         execution_context_class=PromiseExecutionContext,
     )
 
-    if results.errors:
-        logger.warning(
-            "Unable to build a payload for subscription.\nerror: %s",
-            str(results.errors),
-            extra={"query": subscription_query, "app": app_id},
-        )
-        return None
-
     if not results.data:
         logger.warning(
             "Subscription did not return a payload.",
             extra={"query": subscription_query, "app": app_id},
         )
-        return None
+        return Promise.resolve(None)
 
     payload_instance = results.data
     event_payload = _process_payload_instance(payload_instance)
 
-    return event_payload
+    if results.errors:
+        event_payload["errors"] = [
+            format_error(error, (GraphQLError, PermissionDenied))
+            for error in results.errors
+        ]
+
+    return Promise.resolve(event_payload)
 
 
 def generate_payload_from_subscription(
@@ -173,14 +171,6 @@ def generate_payload_from_subscription(
         context_value=get_context_value(request),
         execution_context_class=PromiseExecutionContext,
     )
-    if results.errors:
-        logger.warning(
-            "Unable to build a payload for subscription. Error: %s",
-            str(results.errors),
-            extra={"query": subscription_query, "app": app_id},
-        )
-        return None
-
     if not results.data:
         logger.warning(
             "Subscription did not return a payload.",
@@ -190,6 +180,12 @@ def generate_payload_from_subscription(
 
     payload_instance = results.data
     event_payload = _process_payload_instance(payload_instance)
+
+    if results.errors:
+        event_payload["errors"] = [
+            format_error(error, (GraphQLError, PermissionDenied))
+            for error in results.errors
+        ]
 
     return event_payload
 
