@@ -21,15 +21,15 @@ mutation TransactionRequestAction(
     $id: ID
     $action_type: TransactionActionEnum!
     $amount: PositiveDecimal
-    $reason: String
-    $reason_reference: ID
+    $refund_reason: String
+    $refund_reason_reference: ID
     ){
     transactionRequestAction(
             id: $id,
             actionType: $action_type,
             amount: $amount,
-            reason: $reason,
-            reasonReference: $reason_reference
+            refundReason: $refund_reason,
+            refundReasonReference: $refund_reason_reference
         ){
         transaction{
                 id
@@ -71,8 +71,8 @@ mutation TransactionRequestAction(
             token: $token,
             actionType: $action_type,
             amount: $amount,
-            reason: $reason,
-            reasonReference: $reason_reference
+            refundReason: $reason,
+            refundReasonReference: $reason_reference
         ){
         transaction{
                 id
@@ -1365,8 +1365,8 @@ def test_transaction_request_refund_with_reason_reference_required_created_by_us
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
-        "reason": "Product was damaged during shipping",
-        "reason_reference": page_id,
+        "refund_reason": "Product was damaged during shipping",
+        "refund_reason_reference": page_id,
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
 
@@ -1425,7 +1425,7 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
-        "reason": "Product was damaged during shipping",
+        "refund_reason": "Product was damaged during shipping",
         # "reason_reference": page_id,  # Not provided
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
@@ -1484,7 +1484,7 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
-        "reason": "Product was damaged during shipping",
+        "refund_reason": "Product was damaged during shipping",
         # "reason_reference": page_id,  # Not provided
     }
     app_api_client.app.permissions.add(permission_manage_payments)
@@ -1552,8 +1552,8 @@ def test_transaction_request_refund_with_reason_reference_not_configured_created
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
-        "reason": "Product was damaged during shipping",
-        "reason_reference": page_id,  # Provided but should be ignored
+        "refund_reason": "Product was damaged during shipping",
+        "refund_reason_reference": page_id,  # Provided but should be ignored
     }
     app_api_client.app.permissions.add(permission_manage_payments)
 
@@ -1616,8 +1616,8 @@ def test_transaction_request_refund_with_reason_reference_required_created_by_us
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
-        "reason": "Product was damaged during shipping",
-        "reason_reference": invalid_page_id,  # Invalid ID provided
+        "refund_reason": "Product was damaged during shipping",
+        "refund_reason_reference": invalid_page_id,  # Invalid ID provided
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
 
@@ -1674,7 +1674,7 @@ def test_transaction_request_refund_with_reason_only_no_reference(
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
-        "reason": "Product was damaged during shipping",
+        "refund_reason": "Product was damaged during shipping",
         # No reason_reference provided
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
@@ -1743,8 +1743,8 @@ def test_transaction_request_charge_ignores_reason_and_reference(
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,
-        "reason": "Some reason that should be ignored",
-        "reason_reference": page_id,  # Should be ignored for charge actions
+        "refund_reason": "Some reason that should be ignored",
+        "refund_reason_reference": page_id,  # Should be ignored for charge actions
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
 

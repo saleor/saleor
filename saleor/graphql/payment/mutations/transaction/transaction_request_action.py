@@ -200,6 +200,7 @@ class TransactionRequestAction(BaseMutation):
         action_value = data.get("amount")
         reason = data.get("refund_reason")
         reason_reference_id = data.get("refund_reason_reference")
+
         if not reason_reference_id:
             reason_reference_id = None
 
