@@ -269,6 +269,9 @@ class OrderGrantRefundUpdate(BaseMutation):
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", None)
         reason_reference = input.get("reason_reference")
 
+        requestor_is_app = info.context.app is not None
+        requestor_is_user = info.context.user is not None and not requestor_is_app
+
         line_ids_to_remove = []
         if remove_lines:
             line_ids_to_remove = cls.clean_remove_lines(
@@ -353,6 +356,11 @@ class OrderGrantRefundUpdate(BaseMutation):
         if not reason_reference:
             reason_reference = None
 
+        validate_refund_reason_requirement(
+            reason_reference_id=reason_reference,
+            requestor_is_user=bool(requestor_is_user),
+        )
+
         cleaned_input = {
             "amount": amount,
             "reason": reason,
@@ -412,9 +420,6 @@ class OrderGrantRefundUpdate(BaseMutation):
 
             reason_reference_id = cleaned_input["reason_reference"]
 
-            requestor_is_app = info.context.app is not None
-            requestor_is_user = info.context.user is not None and not requestor_is_app
-
             settings = Site.objects.get_current().settings
             refund_reason_reference_type = settings.refund_reason_reference_type
 
@@ -422,10 +427,6 @@ class OrderGrantRefundUpdate(BaseMutation):
                 refund_reason_reference_type is not None
             )
 
-            validate_refund_reason_requirement(
-                reason_reference_id=reason_reference_id,
-                requestor_is_user=bool(requestor_is_user),
-            )
 
             # If feature is not enabled, ignore it from the input
             if not is_passing_reason_reference_required:
