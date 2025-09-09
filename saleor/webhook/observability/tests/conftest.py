@@ -28,6 +28,7 @@ def gql_operation_factory():
         return GraphQLOperationResponse(
             name=operation_name,
             query=query,
+            query_string=query_string,
             variables=variables,
             result=result,
             result_invalid=result_invalid,

@@ -118,6 +118,7 @@ def pop_events_with_remaining_size() -> tuple[list[bytes], int]:
 class GraphQLOperationResponse:
     name: str | None = None
     query: DocumentNode | None = None
+    query_string: str | None = None
     variables: dict | None = None
     result: dict | None = None
     result_invalid: bool = False

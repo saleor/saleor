@@ -42,8 +42,7 @@ SENSITIVE_HEADERS = {
     }
 }
 
-SensitiveFieldsMap = dict[str, set[str]]
-SENSITIVE_GQL_FIELDS: SensitiveFieldsMap = {
+SENSITIVE_GQL_FIELDS: dict[str, set[str]] = {
     "RefreshToken": {"token"},
     "CreateToken": {"token", "refreshToken", "csrfToken"},
     "User": {"email", "firstName", "lastName"},

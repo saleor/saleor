@@ -37,7 +37,6 @@ from .payload_schema import (
     ObservabilityEventTypes,
     Webhook,
 )
-from .sensitive_data import SENSITIVE_GQL_FIELDS
 
 if TYPE_CHECKING:
     from ...core.models import EventDeliveryAttempt
@@ -100,7 +99,7 @@ def serialize_gql_operation_result(
     bytes_limit -= GQL_OPERATION_PLACEHOLDER_SIZE
     if bytes_limit < 0:
         raise ApiCallTruncationError("serialize_gql_operation_result", bytes_limit, 0)
-    anonymize_gql_operation_response(operation, SENSITIVE_GQL_FIELDS)
+    anonymize_gql_operation_response(operation)
     payload = GraphQLOperation(
         name=None,
         operation_type=None,
@@ -113,9 +112,7 @@ def serialize_gql_operation_result(
         bytes_limit -= name.byte_size
         payload["name"] = name
     if operation.query:
-        query = JsonTruncText.truncate(
-            operation.query.document_string, bytes_limit // 2
-        )
+        query = JsonTruncText.truncate(operation.query_string, bytes_limit // 2)
         bytes_limit -= query.byte_size
         payload["query"] = query
         if definition := get_operation_ast(operation.query, operation.name):
@@ -265,7 +262,6 @@ def generate_event_delivery_attempt_payload(
         subscription_query,
         attempt.delivery.event_type,
         event_delivery_payload,
-        SENSITIVE_GQL_FIELDS,
     )
     payload["event_delivery"]["payload"]["body"] = JsonTruncText.truncate(
         pretty_json(event_delivery_payload), remaining

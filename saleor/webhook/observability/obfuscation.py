@@ -19,7 +19,7 @@ from graphql import (
     validate,
 )
 
-from .sensitive_data import ALLOWED_HEADERS, SENSITIVE_HEADERS, SensitiveFieldsMap
+from .sensitive_data import ALLOWED_HEADERS, SENSITIVE_GQL_FIELDS, SENSITIVE_HEADERS
 
 if TYPE_CHECKING:
     from .utils import GraphQLOperationResponse
@@ -55,15 +55,12 @@ class SensitiveFieldError(GraphQLError):
 
 
 class ContainSensitiveField(ValidationRule):
-    def __init__(self, sensitive_fields: SensitiveFieldsMap):  # pylint: disable=super-init-not-called
-        self.sensitive_fields = sensitive_fields
-
     def __call__(self, context: ValidationContext):
         self.context = context
         return self
 
     def is_sensitive_field(self, node: FieldNode, parent_type: str):
-        if fields := self.sensitive_fields.get(parent_type):
+        if fields := SENSITIVE_GQL_FIELDS.get(parent_type):
             node_name = node.name.value
             if node_name in fields:
                 raise SensitiveFieldError(
@@ -103,12 +100,12 @@ class ContainSensitiveField(ValidationRule):
         return False
 
     def enter_operation_definition(self, node, key, parent, path, ancestors):  # pylint: disable=unused-argument
-        validate_sensitive_fields_map(self.sensitive_fields, self.context.schema)
-        if node.operation == "query":
+        validate_sensitive_fields_map(self.context.schema)
+        if node.operation.name == "QUERY":
             self.contain_sensitive_field(node, self.context.schema.query_type)
-        elif node.operation == "mutation":
+        elif node.operation.name == "MUTATION":
             self.contain_sensitive_field(node, self.context.schema.mutation_type)
-        elif node.operation == "subscription":
+        elif node.operation.name == "SUBSCRIPTION":
             self.contain_sensitive_field(node, self.context.schema.subscription_type)
 
     def enter(
@@ -123,11 +120,9 @@ class ContainSensitiveField(ValidationRule):
             self.enter_operation_definition(node, key, parent, path, ancestors)
 
 
-def validate_sensitive_fields_map(
-    sensitive_fields: SensitiveFieldsMap, schema: GraphQLSchema
-):
+def validate_sensitive_fields_map(schema: GraphQLSchema):
     type_map = schema.type_map
-    for type_name, type_fields in sensitive_fields.items():
+    for type_name, type_fields in SENSITIVE_GQL_FIELDS.items():
         if type_name not in type_map:
             raise GraphQLError(
                 "The query anonymization could not be performed "
@@ -149,12 +144,7 @@ def validate_sensitive_fields_map(
                 )
 
 
-def _contain_sensitive_field(
-    document: DocumentNode, sensitive_fields: SensitiveFieldsMap
-):
-    validator = cast(
-        type[ValidationRule], ContainSensitiveField(sensitive_fields=sensitive_fields)
-    )
+def _contain_sensitive_field(document: DocumentNode):
     from ...graphql.api import schema
 
     if not document:
@@ -164,19 +154,17 @@ def _contain_sensitive_field(
         validate(
             schema.graphql_schema,
             document,
-            [validator],
+            [ContainSensitiveField],
         )
     except SensitiveFieldError:
         return True
     return False
 
 
-def anonymize_gql_operation_response(
-    operation: "GraphQLOperationResponse", sensitive_fields: SensitiveFieldsMap
-):
+def anonymize_gql_operation_response(operation: "GraphQLOperationResponse"):
     if not operation.query or not operation.result:
         return
-    if _contain_sensitive_field(operation.query, sensitive_fields):
+    if _contain_sensitive_field(operation.query):
         operation.result["data"] = MASK
 
 
@@ -184,12 +172,11 @@ def anonymize_event_payload(
     subscription_query: str | None,
     event_type: str,  # pylint: disable=unused-argument
     payload: Any,
-    sensitive_fields: SensitiveFieldsMap,
 ) -> Any:
     if not subscription_query:
         return payload
 
     document = parse(subscription_query)
-    if _contain_sensitive_field(document, sensitive_fields):
+    if _contain_sensitive_field(document):
         return MASK
     return payload

@@ -1,13 +1,12 @@
-import pytest
-from graphql import GraphQLError
+from unittest.mock import patch
 
-from ....graphql.api import schema
+import pytest
+
 from ..obfuscation import (
     MASK,
     anonymize_event_payload,
     anonymize_gql_operation_response,
     filter_and_hide_headers,
-    validate_sensitive_fields_map,
 )
 
 
@@ -39,12 +38,11 @@ def test_filter_and_hide_headers(headers, allowed, sensitive, expected):
 
 
 def test_anonymize_gql_operation_response(gql_operation_factory):
-    query = "query FirstQuery { shop { name } }"
+    query = 'query FirstQuery { order(id: "test") { user { email } } }'
     result = {"data": "result"}
-    sensitive_fields = {"Shop": {"name"}}
     operation_result = gql_operation_factory(query, result=result)
 
-    anonymize_gql_operation_response(operation_result, sensitive_fields)
+    anonymize_gql_operation_response(operation_result)
 
     assert operation_result.result["data"] == MASK
 
@@ -57,14 +55,17 @@ def test_anonymize_gql_operation_with_mutation_in_query(gql_operation_factory):
         }
     }"""
     result = {"data": {"tokenRefresh": {"token": "SECRET TOKEN"}}}
-    sensitive_fields = {"RefreshToken": {"token"}}
     operation_result = gql_operation_factory(query, result=result)
 
-    anonymize_gql_operation_response(operation_result, sensitive_fields)
+    anonymize_gql_operation_response(operation_result)
 
     assert operation_result.result["data"] == MASK
 
 
+@patch(
+    "saleor.webhook.observability.obfuscation.SENSITIVE_GQL_FIELDS",
+    {"Product": {"name"}},
+)
 def test_anonymize_gql_operation_with_subscription_in_query(gql_operation_factory):
     query = """
     subscription{
@@ -79,26 +80,17 @@ def test_anonymize_gql_operation_with_subscription_in_query(gql_operation_factor
     }
     """
     result = {"data": "secret data"}
-    sensitive_fields = {"Product": {"name"}}
     operation_result = gql_operation_factory(query, result=result)
 
-    anonymize_gql_operation_response(operation_result, sensitive_fields)
+    anonymize_gql_operation_response(operation_result)
 
     assert operation_result.result["data"] == MASK
 
 
-def test_anonymize_gql_operation_response_with_empty_sensitive_fields_map(
-    gql_operation_factory,
-):
-    query = "query FirstQuery { shop { name } }"
-    result = {"data": "result"}
-    operation_result = gql_operation_factory(query, result=result)
-
-    anonymize_gql_operation_response(operation_result, {})
-
-    assert operation_result.result == result
-
-
+@patch(
+    "saleor.webhook.observability.obfuscation.SENSITIVE_GQL_FIELDS",
+    {"Product": {"name"}},
+)
 def test_anonymize_gql_operation_response_with_fragment_spread(gql_operation_factory):
     query = """
     fragment ProductFragment on Product {
@@ -118,27 +110,17 @@ def test_anonymize_gql_operation_response_with_fragment_spread(gql_operation_fac
       }
     }"""
     result = {"data": "result"}
-    sensitive_fields = {"Product": {"name"}}
     operation_result = gql_operation_factory(query, result=result)
 
-    anonymize_gql_operation_response(operation_result, sensitive_fields)
+    anonymize_gql_operation_response(operation_result)
 
     assert operation_result.result["data"] == MASK
 
 
-@pytest.mark.parametrize(
-    "sensitive_fields",
-    [
-        {"NonExistingType": {}},
-        {"Product": {"nonExistingField"}},
-        {"Node": {"id"}},
-    ],
+@patch(
+    "saleor.webhook.observability.obfuscation.SENSITIVE_GQL_FIELDS",
+    {"Product": {"name"}},
 )
-def test_validate_sensitive_fields_map(sensitive_fields):
-    with pytest.raises(GraphQLError):
-        validate_sensitive_fields_map(sensitive_fields, schema)
-
-
 def test_anonymize_event_payload():
     query = """
         subscription{
@@ -153,17 +135,19 @@ def test_anonymize_event_payload():
         }
         """
     payload = [{"sensitive": "data"}]
-    sensitive_fields = {"Product": {"name"}}
 
-    anonymized = anonymize_event_payload(query, "any_type", payload, sensitive_fields)
+    anonymized = anonymize_event_payload(query, "any_type", payload)
 
     assert anonymized == MASK
 
 
+@patch(
+    "saleor.webhook.observability.obfuscation.SENSITIVE_GQL_FIELDS",
+    {"Product": {"name"}},
+)
 def test_anonymize_event_delivery_payload_when_empty_subscription_query():
     payload = [{"sensitive": "data"}]
-    sensitive_fields = {"Product": {"name"}}
 
-    anonymized = anonymize_event_payload(None, "any_type", payload, sensitive_fields)
+    anonymized = anonymize_event_payload(None, "any_type", payload)
 
     assert anonymized == payload
