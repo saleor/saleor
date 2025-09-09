@@ -4,6 +4,7 @@ from django.db.models import Exists, OuterRef
 
 from ...channel.models import Channel
 from ...order.models import Order
+from ...payment.models import TransactionItem
 from ..core.dataloaders import DataLoader
 from ..order.dataloaders import OrderByIdLoader
 
@@ -61,3 +62,24 @@ class ChannelWithHasOrdersByIdLoader(DataLoader[int, Channel]):
             .in_bulk(keys)
         )
         return [channels.get(channel_id) for channel_id in keys]
+
+
+# TODO TEST
+class ChannelByTransactionIdLoader(DataLoader[int, Channel]):
+    context_key = "channel_by_transaction_id"
+
+    # check if str or uuid
+    def batch_load(self, keys: list[str]):
+        transaction_item_ids = keys
+
+        transaction_items_with_order_ids_only = (
+            TransactionItem.objects.using(self.database_connection_name)
+            .only("order_id")
+            .in_bulk(transaction_item_ids)
+        )
+
+        order_ids = [
+            item.order_id for item in transaction_items_with_order_ids_only.values()
+        ]
+
+        return ChannelByOrderIdLoader(self.context).load_many(order_ids)

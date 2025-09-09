@@ -4,6 +4,7 @@ from uuid import UUID
 import graphene
 from django.db.models import Q
 from graphene import relay
+from promise import Promise
 
 from ...core.exceptions import PermissionDenied
 from ...graphql.core.descriptions import ADDED_IN_322
@@ -12,6 +13,7 @@ from ...payment.interface import PaymentMethodData
 from ...permission.enums import OrderPermissions
 from ..account.dataloaders import UserByUserIdLoader
 from ..app.dataloaders import ActiveAppsByAppIdentifierLoader, AppByIdLoader
+from ..channel.dataloaders import ChannelByTransactionIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
@@ -441,21 +443,25 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         if not root.reason_reference_id:
             return None
 
-        def wrap_page_with_context(page):
+        def wrap_page_with_context(data):
+            page, channel = data
+
             if not page:
                 return None
 
-            # TODO Check if this works
-            print(info.context)
+            return ChannelContext(node=page, channel_slug=channel.slug)
 
-            channel_slug = getattr(getattr(info.context, "channel", None), "slug", None)
-            return ChannelContext(node=page, channel_slug=channel_slug)
-
-        return (
-            PageByIdLoader(info.context)
-            .load(root.reason_reference_id)
-            .then(wrap_page_with_context)
+        page_promise = PageByIdLoader(info.context).load(root.reason_reference_id)
+        channel_promise = ChannelByTransactionIdLoader(info.context).load(
+            root.transaction_id
         )
+
+        return Promise.all(
+            [
+                page_promise,
+                channel_promise,
+            ]
+        ).then(wrap_page_with_context)
 
 
 class PaymentMethodDetails(graphene.Interface):
