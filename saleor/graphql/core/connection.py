@@ -1,6 +1,7 @@
 import json
 from collections.abc import Callable, Iterable
 from decimal import Decimal, InvalidOperation
+from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
 import graphene
@@ -8,6 +9,7 @@ from django.conf import settings
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
 from graphene.relay import Connection, PageInfo
+from graphene.relay.connection import connection_adapter
 from graphql import (
     FieldNode,
     FragmentSpreadNode,
@@ -443,7 +445,7 @@ def slice_connection_iterable(
     slice = connection_from_array(
         iterable,
         args,
-        connection_type=connection_type,
+        connection_type=partial(connection_adapter, connection_type),
         edge_type=connection_type.Edge,
     )
     slice = cast(CountableConnection, slice)
