@@ -396,7 +396,9 @@ class OrderGrantedRefund(
         )
 
     @staticmethod
-    def resolve_reason_reference(root: models.OrderGrantedRefund, info):
+    def resolve_reason_reference(
+        root: SyncWebhookControlContext[models.OrderGrantedRefund], info
+    ):
         if not root.node.reason_reference:
             return None
 
