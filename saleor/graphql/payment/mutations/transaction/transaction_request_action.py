@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import graphene
 from django.contrib.sites.models import Site
@@ -174,6 +174,23 @@ class TransactionRequestAction(BaseMutation):
             reason_reference=reason_reference_to_set,
         )
 
+    def _validate_reason_and_event(input: dict[str, Any]):
+        action_type = input["action_type"]
+        reason = input.get("reason")
+        reason_reference_id = input.get("reason_reference")
+
+        reason_exists = reason or reason_reference_id
+
+        if reason_exists and action_type is not TransactionAction.REFUND:
+            raise ValidationError(
+                {
+                    "reason": ValidationError(
+                        "Reason and reason reference can be set only for REFUND action.",
+                        code=TransactionRequestActionErrorCode.INVALID.value,
+                    )
+                }
+            )
+
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
         id = data.get("id")
@@ -184,6 +201,8 @@ class TransactionRequestAction(BaseMutation):
         reason_reference_id = data.get("reason_reference")
         if not reason_reference_id:
             reason_reference_id = None
+
+        cls._validate_reason_and_event(data)
 
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
