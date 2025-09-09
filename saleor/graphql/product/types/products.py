@@ -49,6 +49,7 @@ from ...attribute.types import (
     AssignedVariantAttribute,
     Attribute,
     AttributeCountableConnection,
+    ObjectWithAttributes,
     SelectedAttribute,
 )
 from ...attribute.utils.shared import AssignedAttributeData
@@ -354,10 +355,6 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         AssignedAttribute,
         required=True,
         description="List of attributes assigned to this variant." + ADDED_IN_322,
-        variant_selection=graphene.Argument(
-            VariantAttributeScope,
-            description="Define scope of returned attributes.",
-        ),
         limit=PositiveInt(
             description=(
                 "Maximum number of attributes to return. "
@@ -469,7 +466,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         description = (
             "Represents a version of a product such as different size or color."
         )
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [relay.Node, ObjectWithMetadata, ObjectWithAttributes]
         model = models.ProductVariant
 
     @staticmethod
@@ -672,9 +669,9 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         cls,
         root: ChannelContext[models.ProductVariant],
         info,
-        variant_selection: str | None = None,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ):
+        variant_selection = None
         return cls._resolve_attributes(root, info, variant_selection, limit)
 
     @classmethod
@@ -1194,7 +1191,7 @@ class Product(ChannelContextType[models.Product]):
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
         description = "Represents an individual item for sale in the storefront."
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [relay.Node, ObjectWithMetadata, ObjectWithAttributes]
         model = models.Product
 
     @staticmethod

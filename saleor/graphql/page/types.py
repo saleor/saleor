@@ -10,7 +10,12 @@ from ..attribute.filters import (
     AttributeWhereInput,
     filter_attribute_search,
 )
-from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
+from ..attribute.types import (
+    Attribute,
+    AttributeCountableConnection,
+    ObjectWithAttributes,
+    SelectedAttribute,
+)
 from ..attribute.utils.shared import AssignedAttributeData
 from ..core import ResolveInfo
 from ..core.connection import (
@@ -226,7 +231,7 @@ class Page(ChannelContextType[models.Page]):
             "A static page that can be manually added by a shop operator through the "
             "dashboard."
         )
-        interfaces = [graphene.relay.Node, ObjectWithMetadata]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata, ObjectWithAttributes]
         model = models.Page
 
     @staticmethod

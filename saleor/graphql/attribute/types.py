@@ -1443,3 +1443,32 @@ ASSIGNED_ATTRIBUTE_TYPES = (
     + list(ASSIGNED_SINGLE_REFERENCE_MAP.values())
     + list(ASSIGNED_MULTI_REFERENCE_MAP.values())
 )
+
+
+class ObjectWithAttributes(BaseInterface):
+    assigned_attribute = graphene.Field(
+        AssignedAttribute,
+        slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the attribute",
+            required=True,
+        ),
+        description="Get a single attribute attached to the object by attribute slug."
+        + ADDED_IN_322,
+    )
+    assigned_attributes = NonNullList(
+        AssignedAttribute,
+        required=True,
+        description="List of attributes assigned to the object." + ADDED_IN_322,
+        limit=PositiveInt(
+            description=(
+                "Maximum number of attributes to return. "
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
+    )
+
+    class Meta:
+        description = "An object with attributes." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ATTRIBUTES
