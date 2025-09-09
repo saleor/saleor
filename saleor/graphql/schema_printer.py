@@ -29,8 +29,6 @@ from graphql.language.print_string import print_string
 
 __all__ = ["print_schema", "print_introspection_schema", "print_type"]
 
-from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-
 
 def is_specified_directive(directive: GraphQLDirective) -> bool:
     return directive.name in ("skip", "include", "deprecated")

@@ -7,6 +7,7 @@ import graphene
 from django.conf import settings
 from django.utils.text import slugify
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductErrorCode
@@ -674,7 +675,7 @@ def test_create_variant_with_page_reference_attribute(
     data = content["productVariant"]
     assert data["sku"] == sku
     variant_id = data["id"]
-    _, variant_pk = graphene.Node.from_global_id(variant_id)
+    _, variant_pk = from_global_id(variant_id)
     assert (
         data["attributes"][0]["attribute"]["slug"]
         == product_type_page_reference_attribute.slug
@@ -836,7 +837,7 @@ def test_create_variant_with_product_reference_attribute(
     data = content["productVariant"]
     assert data["sku"] == sku
     variant_id = data["id"]
-    _, variant_pk = graphene.Node.from_global_id(variant_id)
+    _, variant_pk = from_global_id(variant_id)
     assert (
         data["attributes"][0]["attribute"]["slug"]
         == product_type_product_reference_attribute.slug
@@ -1005,7 +1006,7 @@ def test_create_variant_with_variant_reference_attribute(
     data = content["productVariant"]
     assert data["sku"] == sku
     variant_id = data["id"]
-    _, variant_pk = graphene.Node.from_global_id(variant_id)
+    _, variant_pk = from_global_id(variant_id)
     assert (
         data["attributes"][0]["attribute"]["slug"]
         == product_type_variant_reference_attribute.slug
@@ -1176,7 +1177,7 @@ def test_create_variant_with_category_reference_attribute(
     data = content["productVariant"]
     assert data["sku"] == sku
     variant_id = data["id"]
-    _, variant_pk = graphene.Node.from_global_id(variant_id)
+    _, variant_pk = from_global_id(variant_id)
     assert (
         data["attributes"][0]["attribute"]["slug"]
         == product_type_category_reference_attribute.slug
@@ -1277,7 +1278,7 @@ def test_create_variant_with_collection_reference_attribute(
     data = content["productVariant"]
     assert data["sku"] == sku
     variant_id = data["id"]
-    _, variant_pk = graphene.Node.from_global_id(variant_id)
+    _, variant_pk = from_global_id(variant_id)
     assert (
         data["attributes"][0]["attribute"]["slug"]
         == product_type_collection_reference_attribute.slug
@@ -1407,7 +1408,7 @@ def test_create_variant_with_single_reference_attributes(
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
 
     variant_id = data["id"]
-    _, variant_pk = graphene.Node.from_global_id(variant_id)
+    _, variant_pk = from_global_id(variant_id)
 
     expected_attributes_data = [
         {
@@ -1481,7 +1482,7 @@ def test_create_variant_with_numeric_attribute(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     assert not content["errors"]
     data = content["productVariant"]
-    variant_pk = graphene.Node.from_global_id(data["id"])[1]
+    variant_pk = from_global_id(data["id"])[1]
     assert data["name"] == sku
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == variant_slug

@@ -4,6 +4,7 @@ from unittest import mock
 
 import graphene
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from .....core import EventDeliveryStatus
 from .....graphql.tests.utils import get_graphql_content
@@ -391,7 +392,7 @@ def test_webhook_trigger_for_deferred_payload(
 
     assert not data["errors"]
     delivery_node_id = data["delivery"]["id"]
-    _, delivery_pk = graphene.Node.from_global_id(delivery_node_id)
+    _, delivery_pk = from_global_id(delivery_node_id)
     delivery_pk = int(delivery_pk)
     assert mocked_generate_deferred_payloads.called
     generate_payload_kwargs = mocked_generate_deferred_payloads.call_args.kwargs[

@@ -9,6 +9,7 @@ from django.contrib.sites.models import Site
 from django.db.models.aggregates import Sum
 from django.test import override_settings
 from django.utils import timezone
+from graphql_relay import from_global_id
 
 from .....account.models import Address
 from .....checkout import calculations
@@ -792,7 +793,7 @@ def test_checkout_complete_with_variant_without_sku(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
-    order_id = graphene.Node.from_global_id(data["order"]["id"])[1]
+    order_id = from_global_id(data["order"]["id"])[1]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.get(id=order_id)
     assert order.status == OrderStatus.UNFULFILLED
@@ -909,9 +910,7 @@ def test_checkout_complete_requires_confirmation(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
 
-    order_id = graphene.Node.from_global_id(
-        content["data"]["checkoutComplete"]["order"]["id"]
-    )[1]
+    order_id = from_global_id(content["data"]["checkoutComplete"]["order"]["id"])[1]
     order = Order.objects.get(pk=order_id)
     assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()

@@ -10,6 +10,7 @@ import graphene
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 from measurement.measures import Weight
 from prices import Money
 
@@ -1142,7 +1143,7 @@ def test_generate_product_variant_deleted_payload(
     ).first()
     ProductVariant.objects.filter(id=variant.id).delete()
     payload = json.loads(generate_product_variant_payload([variant]))[0]
-    [_, payload_variant_id] = graphene.Node.from_global_id(payload["id"])
+    [_, payload_variant_id] = from_global_id(payload["id"])
     additional_fields = ["channel_listings"]
     extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(

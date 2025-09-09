@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from graphql_relay import from_global_id
 
 from .....thumbnail import IconThumbnailFormat
 from .....thumbnail.models import Thumbnail
@@ -22,7 +23,7 @@ def test_apps_installation(app_installation, staff_api_client, permission_manage
     installations = content["data"]["appsInstallations"]
 
     assert len(installations) == 1
-    _, app_id = graphene.Node.from_global_id(installations[0]["id"])
+    _, app_id = from_global_id(installations[0]["id"])
     assert int(app_id) == app_installation.id
 
 
@@ -36,7 +37,7 @@ def test_apps_installation_by_app(
     installations = content["data"]["appsInstallations"]
 
     assert len(installations) == 1
-    _, app_id = graphene.Node.from_global_id(installations[0]["id"])
+    _, app_id = from_global_id(installations[0]["id"])
     assert int(app_id) == app_installation.id
 
 

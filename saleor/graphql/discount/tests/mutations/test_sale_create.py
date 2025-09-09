@@ -4,6 +4,7 @@ from unittest.mock import patch
 import graphene
 from django.utils import timezone
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
@@ -87,7 +88,7 @@ def test_create_sale(
     assert {edge["node"]["id"] for edge in data["products"]["edges"]} == set(
         product_ids
     )
-    type, id = graphene.Node.from_global_id(data["id"])
+    type, id = from_global_id(data["id"])
     assert type == "Sale"
     assert str(sale.old_sale_id) == id
     assert sale.last_notification_scheduled_at == timezone.now()
@@ -329,7 +330,7 @@ def test_create_sale_empty_predicate(
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
     assert not data["products"]
-    type, id = graphene.Node.from_global_id(data["id"])
+    type, id = from_global_id(data["id"])
     assert type == "Sale"
     assert str(sale.old_sale_id) == id
     assert sale.last_notification_scheduled_at == timezone.now()

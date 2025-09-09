@@ -7,6 +7,7 @@ import pytest
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.utils import timezone
+from graphql_relay import from_global_id
 from measurement.measures import Weight
 
 from .....attribute.models import AttributeValue
@@ -2559,8 +2560,8 @@ def test_query_product_media_sorting_asc(
     # then
     content = get_graphql_content(response)
     media = content["data"]["product"]["media"]
-    _, media1 = graphene.Node.from_global_id(media[0]["id"])
-    _, media2 = graphene.Node.from_global_id(media[1]["id"])
+    _, media1 = from_global_id(media[0]["id"])
+    _, media2 = from_global_id(media[1]["id"])
     assert int(media1) < int(media2)
 
 
@@ -2584,8 +2585,8 @@ def test_query_product_media_sorting_desc(
     # then
     content = get_graphql_content(response)
     media = content["data"]["product"]["media"]
-    _, media1 = graphene.Node.from_global_id(media[0]["id"])
-    _, media2 = graphene.Node.from_global_id(media[1]["id"])
+    _, media1 = from_global_id(media[0]["id"])
+    _, media2 = from_global_id(media[1]["id"])
     assert int(media1) > int(media2)
 
 

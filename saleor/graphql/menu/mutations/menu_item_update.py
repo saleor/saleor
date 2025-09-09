@@ -6,7 +6,6 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_MENU
 from ...core.types import MenuError
-from ...core.utils import WebhookEventInfo
 from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import MenuItem

@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from graphql_relay import from_global_id
 from pydantic import ValidationError
 
 from ...response_schemas.shipping import (
@@ -374,7 +375,7 @@ def test_excluded_shipping_method_schema_valid_shipping_method(data):
     excluded_method_data = ExcludedShippingMethodSchema.model_validate(data)
 
     # then
-    assert excluded_method_data.id == graphene.Node.from_global_id(data["id"])[1]
+    assert excluded_method_data.id == from_global_id(data["id"])[1]
     assert excluded_method_data.reason == (data["reason"] or "")
 
 
@@ -446,6 +447,6 @@ def test_filter_shipping_methods_schema_invalid_element_skipped(mocked_logger):
     assert schema.excluded_methods[0].reason == data["excluded_methods"][0]["reason"]
     assert (
         schema.excluded_methods[1].id
-        == graphene.Node.from_global_id(data["excluded_methods"][2]["id"])[1]
+        == from_global_id(data["excluded_methods"][2]["id"])[1]
     )
     assert schema.excluded_methods[1].reason == ""

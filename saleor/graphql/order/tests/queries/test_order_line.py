@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import graphene
 from django.core.files import File
+from graphql_relay import from_global_id
 from prices import Money, TaxedMoney
 
 from .....core.prices import quantize_price
@@ -300,7 +301,7 @@ def test_order_line_with_allocations(
     lines = content["data"]["orders"]["edges"][0]["node"]["lines"]
 
     for line in lines:
-        _, _id = graphene.Node.from_global_id(line["id"])
+        _, _id = from_global_id(line["id"])
         order_line = order.lines.get(pk=_id)
         allocations_from_query = {
             allocation["quantity"] for allocation in line["allocations"]

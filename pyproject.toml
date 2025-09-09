@@ -40,6 +40,7 @@ dependencies = [
     "google-cloud-storage>=2.0.0,<3",
     "google-i18n-address>=3.1.0,<4",
     "graphene>=3",
+    "graphene-directives>=0.4.7",
     "graphene-federation>=3.2.0",
     "graphql-core>=3",
     "graphql-core-promise>=3.4.2",

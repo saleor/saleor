@@ -3,6 +3,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 from django.contrib.sites.models import Site
+from graphql_relay import from_global_id
 from measurement.measures import Weight
 
 from .....attribute import AttributeInputType, AttributeType
@@ -469,7 +470,7 @@ def test_product_type_filter_unassigned_attributes(
 
     assert len(found_attributes) == 1
 
-    _, attribute_id = graphene.Node.from_global_id(found_attributes[0]["node"]["id"])
+    _, attribute_id = from_global_id(found_attributes[0]["node"]["id"])
     assert attribute_id == str(expected_attribute.pk)
 
 
@@ -494,7 +495,7 @@ def test_product_type_where_filter_unassigned_attributes(
 
     assert len(found_attributes) == 1
 
-    _, attribute_id = graphene.Node.from_global_id(found_attributes[0]["node"]["id"])
+    _, attribute_id = from_global_id(found_attributes[0]["node"]["id"])
     assert attribute_id == str(expected_attribute.pk)
 
 
@@ -522,7 +523,7 @@ def test_product_type_search_unassigned_attributes(
     # then
     assert len(found_attributes) == 1
 
-    _, attribute_id = graphene.Node.from_global_id(found_attributes[0]["node"]["id"])
+    _, attribute_id = from_global_id(found_attributes[0]["node"]["id"])
     assert attribute_id == str(expected_attribute.pk)
 
 

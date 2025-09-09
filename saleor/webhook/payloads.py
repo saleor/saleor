@@ -329,7 +329,9 @@ def generate_order_payload(
         "number": order.number,
         "user_email": order.get_customer_email(),
         "created": order.created_at,
-        "original": graphene.Node.to_global_id("Order", order.original_id),
+        "original": graphene.Node.to_global_id("Order", order.original_id)
+        if order.original_id
+        else None,
         "lines": json.loads(generate_order_lines_payload(lines)),
         "fulfillments": json.loads(fulfillments_data),
         "collection_point": (
@@ -1147,22 +1149,23 @@ def _generate_sample_order_payload(event_name):
 @allow_writer()
 @traced_payload_generator
 def generate_sample_payload(event_name: str) -> dict | None:
-    checkout_events = [
+    checkout_events = {
         WebhookEventAsyncType.CHECKOUT_UPDATED,
         WebhookEventAsyncType.CHECKOUT_CREATED,
-    ]
-    pages_events = [
+    }
+    pages_events = {
         WebhookEventAsyncType.PAGE_CREATED,
         WebhookEventAsyncType.PAGE_DELETED,
         WebhookEventAsyncType.PAGE_UPDATED,
-    ]
-    user_events = [
+    }
+    user_events = {
         WebhookEventAsyncType.CUSTOMER_CREATED,
         WebhookEventAsyncType.CUSTOMER_UPDATED,
-    ]
+    }
 
     if event_name in user_events:
         user = generate_fake_user()
+        user.pk = 1
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
         product = _get_sample_object(Product.objects.all())

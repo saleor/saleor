@@ -25,11 +25,9 @@ from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.scalars import UUID
 from ....core.types import common as common_types
 from ....core.validators import validate_one_of_args_is_in_mutation
-from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionItem
 from ...utils import check_if_requestor_has_access

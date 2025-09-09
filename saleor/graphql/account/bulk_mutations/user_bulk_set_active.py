@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphene_directives import directive
 
 from ....account import models
 from ....account.error_codes import AccountErrorCode

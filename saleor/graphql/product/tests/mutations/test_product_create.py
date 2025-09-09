@@ -7,6 +7,7 @@ import pytest
 from django.conf import settings
 from django.utils.text import slugify
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from .....core.taxes import TaxType
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
@@ -545,7 +546,7 @@ def test_create_product_with_rich_text_attribute(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
 
     expected_attributes_data = [
         {"attribute": {"slug": "color"}, "values": []},
@@ -670,7 +671,7 @@ def test_create_product_with_plain_text_attribute(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
 
     expected_attributes_data = [
         {"attribute": {"slug": "color"}, "values": []},
@@ -787,7 +788,7 @@ def test_create_product_with_date_time_attribute(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["productType"]["name"] == product_type.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
 
     expected_attributes_data = {
         "attribute": {"slug": "release-date-time"},
@@ -849,7 +850,7 @@ def test_create_product_with_date_attribute(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["productType"]["name"] == product_type.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
 
     expected_attributes_data = {
         "attribute": {"slug": "release-date"},
@@ -1577,7 +1578,7 @@ def test_create_product_with_page_reference_attribute(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
@@ -1650,7 +1651,7 @@ def test_create_product_with_product_reference_attribute(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
@@ -1727,7 +1728,7 @@ def test_create_product_with_variant_reference_attribute(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
@@ -1801,7 +1802,7 @@ def test_create_product_with_category_reference_attribute(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
@@ -1876,7 +1877,7 @@ def test_create_product_with_collection_reference_attribute(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
@@ -1989,7 +1990,7 @@ def test_create_product_with_single_reference_attributes(
     assert data["product"]["category"]["name"] == category.name
     assert len(data["product"]["attributes"]) == len(references) + 1
 
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
     expected_attributes_data = [
         {"attribute": {"slug": color_attribute.slug}, "values": []}
     ]
@@ -2068,7 +2069,7 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    _, product_id = from_global_id(data["product"]["id"])
     expected_values = [
         {
             "slug": f"{product_id}_{product.id}",
@@ -2516,7 +2517,7 @@ def test_create_product_with_numeric_attribute_new_attribute_value(
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
     assert data["errors"] == []
-    product_pk = graphene.Node.from_global_id(data["product"]["id"])[1]
+    product_pk = from_global_id(data["product"]["id"])[1]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -2572,7 +2573,7 @@ def test_create_product_with_numeric_attribute_existing_value(
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
     assert data["errors"] == []
-    product_pk = graphene.Node.from_global_id(data["product"]["id"])[1]
+    product_pk = from_global_id(data["product"]["id"])[1]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name

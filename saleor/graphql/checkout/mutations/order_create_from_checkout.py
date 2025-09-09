@@ -15,7 +15,6 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
-from ...core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo
 from ...directives import doc, webhook_events
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...order.types import Order

@@ -9,7 +9,6 @@ from .....payment.error_codes import PaymentErrorCode
 from .....permission.enums import OrderPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.types import common as common_types
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Payment

@@ -8,7 +8,6 @@ from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.types import CheckoutError
-from ...core.utils import WebhookEventInfo
 from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout

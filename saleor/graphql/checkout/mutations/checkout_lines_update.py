@@ -5,7 +5,6 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import CheckoutLineInfo
 from ....core.exceptions import NonExistingCheckoutLines
 from ....warehouse.reservations import is_reservation_enabled
-from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...checkout.types import CheckoutLine
 from ...core import ResolveInfo

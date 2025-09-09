@@ -37,7 +37,7 @@ def generate_fake_user() -> "User":
 
     The instance cannot be saved
     """
-    fake_user = create_fake_user(user_password=None, save=False, generate_id=True)
+    fake_user = create_fake_user(user_password=None, save=False)
     # Prevent accidental saving of the instance
     fake_user.save = _fake_save
     return fake_user
@@ -56,11 +56,19 @@ def anonymize_order(order: "Order") -> "Order":
     anonymized_order = copy.deepcopy(order)
     # Prevent accidental saving of the instance
     anonymized_order.save = _fake_save  # type: ignore[method-assign]
-    fake_user = generate_fake_user()
-    anonymized_order.user = fake_user
+    if order.user_id:
+        fake_user = generate_fake_user()
+        fake_user.pk = order.user_id
+        anonymized_order.user = fake_user
     anonymized_order.user_email = fake_user.email
-    anonymized_order.shipping_address = generate_fake_address()
-    anonymized_order.billing_address = generate_fake_address()
+    if order.shipping_address_id:
+        shipping_address = generate_fake_address()
+        shipping_address.pk = order.shipping_address_id
+        anonymized_order.shipping_address = shipping_address
+    if order.billing_address_id:
+        billing_address = generate_fake_address()
+        billing_address.pk = order.billing_address_id
+        anonymized_order.billing_address = billing_address
     anonymized_order.customer_note = fake.paragraph()
     anonymized_order.metadata = generate_fake_metadata()
     anonymized_order.private_metadata = generate_fake_metadata()
@@ -75,11 +83,19 @@ def anonymize_checkout(checkout: "Checkout") -> "Checkout":
     anonymized_checkout = copy.deepcopy(checkout)
     # Prevent accidental saving of the instance
     anonymized_checkout.save = _fake_save  # type: ignore[method-assign]
-    fake_user = generate_fake_user()
-    anonymized_checkout.user = fake_user
+    if checkout.user_id:
+        fake_user = generate_fake_user()
+        fake_user.pk = checkout.user_id
+        anonymized_checkout.user = fake_user
     anonymized_checkout.email = fake_user.email
-    anonymized_checkout.shipping_address = generate_fake_address()
-    anonymized_checkout.billing_address = generate_fake_address()
+    if checkout.shipping_address_id:
+        shipping_address = generate_fake_address()
+        shipping_address.pk = checkout.shipping_address_id
+        anonymized_checkout.shipping_address = shipping_address
+    if checkout.billing_address_id:
+        billing_address = generate_fake_address()
+        billing_address.pk = checkout.billing_address_id
+        anonymized_checkout.billing_address = billing_address
     anonymized_checkout.note = fake.paragraph()
     anonymized_checkout_metadata = get_or_create_checkout_metadata(anonymized_checkout)
     anonymized_checkout_metadata.metadata = generate_fake_metadata()

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import graphene
 from django.core.files import File
+from graphql_relay import from_global_id
 
 from .....product.tests.utils import create_image
 from .....thumbnail.models import Thumbnail
@@ -294,7 +295,7 @@ def test_filter_collection_products_by_multiple_attributes(
     products_data = content["data"]["collection"]["products"]["edges"]
     product = products_data[0]["node"]
 
-    _, _id = graphene.Node.from_global_id(product["id"])
+    _, _id = from_global_id(product["id"])
 
     assert len(products_data) == 1
     assert product["id"] == graphene.Node.to_global_id(

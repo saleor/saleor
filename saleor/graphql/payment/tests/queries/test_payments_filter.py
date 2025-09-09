@@ -1,4 +1,5 @@
 import graphene
+from graphql_relay import from_global_id
 
 from .....payment.models import Payment
 from ....tests.utils import get_graphql_content
@@ -96,7 +97,7 @@ def test_query_payments_filter_by_one_id(
     result_payments = content["data"]["payments"]["edges"]
 
     assert len(result_payments) == 1
-    _, id = graphene.Node.from_global_id(result_payments[0]["node"]["id"])
+    _, id = from_global_id(result_payments[0]["node"]["id"])
     assert id == str(search_payment.pk)
 
 
@@ -123,7 +124,7 @@ def test_query_payments_filter_by_multiple_ids(
 
     assert len(result_payments) == len(search_payments)
     for result_payment in result_payments:
-        _, id = graphene.Node.from_global_id(result_payment["node"]["id"])
+        _, id = from_global_id(result_payment["node"]["id"])
         assert id in expected_ids
 
 
@@ -145,7 +146,7 @@ def test_query_payments_filter_by_empty_id_list(
 
     assert len(result_payments) == len(payments_dummy)
     for result_payment in result_payments:
-        _, id = graphene.Node.from_global_id(result_payment["node"]["id"])
+        _, id = from_global_id(result_payment["node"]["id"])
         assert id in expected_ids
 
 

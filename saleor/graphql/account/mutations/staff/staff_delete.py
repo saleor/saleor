@@ -8,7 +8,6 @@ from ....account.types import User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import StaffError
-from ....core.utils import WebhookEventInfo
 from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import StaffDeleteMixin

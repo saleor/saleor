@@ -7,6 +7,7 @@ import pytest
 from django.db import transaction
 from django.db.models.aggregates import Sum
 from django.utils import timezone
+from graphql_relay import from_global_id
 from prices import Money, TaxedMoney
 
 from .....channel import MarkAsPaidStrategy
@@ -766,7 +767,7 @@ def test_order_from_checkout_requires_confirmation(
     )
     content = get_graphql_content(response)
 
-    order_id = graphene.Node.from_global_id(
+    order_id = from_global_id(
         content["data"]["orderCreateFromCheckout"]["order"]["id"]
     )[1]
     order = Order.objects.get(pk=order_id)

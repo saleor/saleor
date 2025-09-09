@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from .....page.error_codes import PageErrorCode
 from .....page.models import Page, PageType
@@ -690,7 +691,7 @@ def test_create_page_with_page_reference_attribute(
     assert data["page"]["pageType"]["id"] == page_type_id
     assert len(data["page"]["attributes"]) == 1
     page_id = data["page"]["id"]
-    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    _, new_page_pk = from_global_id(page_id)
     expected_attr_data = {
         "attribute": {"slug": page_type_page_reference_attribute.slug},
         "values": [
@@ -752,7 +753,7 @@ def test_create_page_with_date_attribute(
     assert data["page"]["title"] == page_title
     assert data["page"]["pageType"]["id"] == page_type_id
     page_id = data["page"]["id"]
-    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    _, new_page_pk = from_global_id(page_id)
     expected_attributes_data = {
         "attribute": {"slug": "release-date"},
         "values": [
@@ -812,7 +813,7 @@ def test_create_page_with_date_time_attribute(
     assert data["page"]["title"] == page_title
     assert data["page"]["pageType"]["id"] == page_type_id
     page_id = data["page"]["id"]
-    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    _, new_page_pk = from_global_id(page_id)
     expected_attributes_data = {
         "attribute": {"slug": "release-date-time"},
         "values": [
@@ -872,7 +873,7 @@ def test_create_page_with_plain_text_attribute(
     assert data["page"]["title"] == page_title
     assert data["page"]["pageType"]["id"] == page_type_id
     page_id = data["page"]["id"]
-    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    _, new_page_pk = from_global_id(page_id)
     expected_attributes_data = {
         "attribute": {"slug": plain_text_attribute_page_type.slug},
         "values": [
@@ -1050,7 +1051,7 @@ def test_create_page_with_product_reference_attribute(
     assert data["page"]["pageType"]["id"] == page_type_id
     assert len(data["page"]["attributes"]) == 1
     page_id = data["page"]["id"]
-    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    _, new_page_pk = from_global_id(page_id)
     expected_attr_data = {
         "attribute": {"slug": page_type_product_reference_attribute.slug},
         "values": [
@@ -1230,7 +1231,7 @@ def test_create_page_with_variant_reference_attribute(
     assert data["page"]["pageType"]["id"] == page_type_id
     assert len(data["page"]["attributes"]) == 1
     page_id = data["page"]["id"]
-    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    _, new_page_pk = from_global_id(page_id)
     expected_attr_data = {
         "attribute": {"slug": page_type_variant_reference_attribute.slug},
         "values": [
@@ -1305,7 +1306,7 @@ def test_create_page_with_category_reference_attribute(
     assert data["page"]["pageType"]["id"] == page_type_id
     assert len(data["page"]["attributes"]) == 1
     page_id = data["page"]["id"]
-    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    _, new_page_pk = from_global_id(page_id)
     expected_attr_data = {
         "attribute": {"slug": page_type_category_reference_attribute.slug},
         "values": [
@@ -1380,7 +1381,7 @@ def test_create_page_with_collection_reference_attribute(
     assert data["page"]["pageType"]["id"] == page_type_id
     assert len(data["page"]["attributes"]) == 1
     page_id = data["page"]["id"]
-    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    _, new_page_pk = from_global_id(page_id)
     expected_attr_data = {
         "attribute": {"slug": page_type_collection_reference_attribute.slug},
         "values": [
@@ -1490,7 +1491,7 @@ def test_create_page_with_single_reference_attributes(
     attributes_data = data["page"]["attributes"]
     assert len(attributes_data) == len(references)
     page_id = data["page"]["id"]
-    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    _, new_page_pk = from_global_id(page_id)
     expected_attributes_data = [
         {
             "attribute": {

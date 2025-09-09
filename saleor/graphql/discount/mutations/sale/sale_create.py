@@ -16,7 +16,6 @@ from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime, PositiveDecimal
 from ....core.types import DiscountError, NonNullList
-from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise

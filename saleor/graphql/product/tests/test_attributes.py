@@ -2,6 +2,7 @@ from unittest import mock
 
 import graphene
 import pytest
+from graphql_relay import from_global_id
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import (
@@ -351,11 +352,11 @@ def test_assign_attributes_to_product_type(
     )
 
     found_product_attrs_ids = {
-        int(graphene.Node.from_global_id(attr["id"])[1])
+        int(from_global_id(attr["id"])[1])
         for attr in content["productType"]["productAttributes"]
     }
     found_variant_attrs_ids = {
-        int(graphene.Node.from_global_id(attr["id"])[1])
+        int(from_global_id(attr["id"])[1])
         for attr in content["productType"]["variantAttributes"]
     }
 
@@ -1290,7 +1291,7 @@ def test_sort_attributes_within_product_type(
     assert len(gql_attributes) == len(expected_order)
 
     for attr, expected_pk in zip(gql_attributes, expected_order, strict=False):
-        gql_type, gql_attr_id = graphene.Node.from_global_id(attr["id"])
+        gql_type, gql_attr_id = from_global_id(attr["id"])
         assert gql_type == "Attribute"
         assert int(gql_attr_id) == expected_pk
 
@@ -1401,7 +1402,7 @@ def test_sort_product_attribute_values(
     assert len(gql_attribute_values) == 3
 
     for attr, expected_pk in zip(gql_attribute_values, expected_order, strict=False):
-        db_type, value_pk = graphene.Node.from_global_id(attr["id"])
+        db_type, value_pk = from_global_id(attr["id"])
         assert db_type == "AttributeValue"
         assert int(value_pk) == expected_pk
 
@@ -1638,7 +1639,7 @@ def test_sort_product_variant_attribute_values(
     assert len(gql_attribute_values) == 3
 
     for attr, expected_pk in zip(gql_attribute_values, expected_order, strict=False):
-        db_type, value_pk = graphene.Node.from_global_id(attr["id"])
+        db_type, value_pk = from_global_id(attr["id"])
         assert db_type == "AttributeValue"
         assert int(value_pk) == expected_pk
 

@@ -21,7 +21,6 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import NonNullList, StaffError
-from ....core.utils import WebhookEventInfo
 from ....directives import doc, webhook_events
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise

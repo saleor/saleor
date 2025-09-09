@@ -2,6 +2,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from .....discount.error_codes import DiscountErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
@@ -84,7 +85,7 @@ def test_sale_translate(
     assert translation_data["language"]["code"] == "PL"
     assert translation_data["__typename"] == "SaleTranslation"
 
-    type, _ = graphene.Node.from_global_id(translation_data["id"])
+    type, _ = from_global_id(translation_data["id"])
     assert type == "SaleTranslation"
 
     translation = promotion.translations.first()

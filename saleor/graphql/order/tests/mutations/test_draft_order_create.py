@@ -8,6 +8,7 @@ import pytest
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 from prices import Money
 
 from .....account.models import Address
@@ -2644,7 +2645,7 @@ def test_draft_order_create_update_display_gross_prices(
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     order_id = content["data"]["draftOrderCreate"]["order"]["id"]
-    _, order_pk = graphene.Node.from_global_id(order_id)
+    _, order_pk = from_global_id(order_id)
 
     order = Order.objects.get(id=order_pk)
     assert not order.display_gross_prices
@@ -3508,7 +3509,7 @@ def test_draft_order_create_with_voucher_without_user(
     content = get_graphql_content(response)
     data = content["data"]["draftOrderCreate"]
     assert len(data["errors"]) == 0
-    order = Order.objects.get(id=graphene.Node.from_global_id(data["order"]["id"])[1])
+    order = Order.objects.get(id=from_global_id(data["order"]["id"])[1])
     assert order.user is None
     assert data["order"]["voucherCode"] == voucher_percentage.code == order.voucher_code
     assert data["order"]["status"] == OrderStatus.DRAFT.upper() == order.status.upper()
@@ -3549,7 +3550,7 @@ def test_draft_order_create_create_no_shipping_method(
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     order_id = content["data"]["draftOrderCreate"]["order"]["id"]
-    _, order_pk = graphene.Node.from_global_id(order_id)
+    _, order_pk = from_global_id(order_id)
 
     order = Order.objects.get(id=order_pk)
     assert order.undiscounted_base_shipping_price_amount == 0
@@ -4106,7 +4107,7 @@ def test_draft_order_create_create_with_language_code(
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     order_id = content["data"]["draftOrderCreate"]["order"]["id"]
-    _, order_pk = graphene.Node.from_global_id(order_id)
+    _, order_pk = from_global_id(order_id)
 
     order = Order.objects.get(id=order_pk)
 

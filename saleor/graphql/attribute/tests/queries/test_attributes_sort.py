@@ -1,4 +1,5 @@
 import graphene
+from graphql_relay import from_global_id
 
 from .....attribute import AttributeType
 from .....attribute.models import AssignedProductAttributeValue, Attribute
@@ -108,8 +109,7 @@ def test_attributes_of_products_are_sorted_on_variant(
     )["data"]
     attributes = data["productVariant"]["attributes"]
     actual_order = [
-        int(graphene.Node.from_global_id(attr["attribute"]["id"])[1])
-        for attr in attributes
+        int(from_global_id(attr["attribute"]["id"])[1]) for attr in attributes
     ]
 
     # Compare the received data against our expectations
@@ -168,8 +168,7 @@ def test_attributes_of_products_are_sorted_on_product(
     )["data"]
     attributes = data["product"]["attributes"]
     actual_order = [
-        int(graphene.Node.from_global_id(attr["attribute"]["id"])[1])
-        for attr in attributes
+        int(from_global_id(attr["attribute"]["id"])[1]) for attr in attributes
     ]
 
     # Compare the received data against our expectations

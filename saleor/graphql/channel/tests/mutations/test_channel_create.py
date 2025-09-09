@@ -7,6 +7,7 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from .....channel.error_codes import ChannelErrorCode
 from .....channel.models import Channel
@@ -470,9 +471,7 @@ def test_channel_create_mutation_with_shipping_zones(
     data = content["data"]["channelCreate"]
     assert not data["errors"]
     channel_data = data["channel"]
-    channel = Channel.objects.get(
-        id=graphene.Node.from_global_id(channel_data["id"])[1]
-    )
+    channel = Channel.objects.get(id=from_global_id(channel_data["id"])[1])
     assert channel_data["name"] == channel.name == name
     assert channel_data["slug"] == channel.slug == slug
     assert channel_data["currencyCode"] == channel.currency_code == currency_code
@@ -519,9 +518,7 @@ def test_channel_create_mutation_with_warehouses(
     data = content["data"]["channelCreate"]
     assert not data["errors"]
     channel_data = data["channel"]
-    channel = Channel.objects.get(
-        id=graphene.Node.from_global_id(channel_data["id"])[1]
-    )
+    channel = Channel.objects.get(id=from_global_id(channel_data["id"])[1])
     assert channel_data["name"] == channel.name == name
     assert channel_data["slug"] == channel.slug == slug
     assert channel_data["currencyCode"] == channel.currency_code == currency_code

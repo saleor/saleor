@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from graphql_relay import from_global_id
 from prices import Money, TaxedMoney
 
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
@@ -1002,7 +1003,7 @@ def test_order_query_with_transactions_details(
         assert len(transaction["events"]) == 1
         event = transaction["events"][0]
         assert event["message"] == event_message
-        _, expected_uuid = graphene.Node.from_global_id(transaction.get("id"))
+        _, expected_uuid = from_global_id(transaction.get("id"))
         assert event["pspReference"] == f"{event_reference}{expected_uuid}"
 
 
@@ -1089,7 +1090,7 @@ def test_order_discounts_query(
     discounts_data = order_data.get("discounts")
     assert len(discounts_data) == 1
     discount_data = discounts_data[0]
-    _, discount_id = graphene.Node.from_global_id(discount_data["id"])
+    _, discount_id = from_global_id(discount_data["id"])
     assert discount_id == str(discount.id)
     assert discount_data["valueType"] == discount.value_type.upper()
     assert discount_data["value"] == discount.value
@@ -1158,7 +1159,7 @@ def test_order_discounts_with_line_lvl_voucher_discount_from_checkout_and_legacy
     discounts_data = order_data.get("discounts")
     assert len(discounts_data) == 1
     discount_data = discounts_data[0]
-    _, discount_id = graphene.Node.from_global_id(discount_data["id"])
+    _, discount_id = from_global_id(discount_data["id"])
     assert discount_id == str(first_order_line_discount.id)
     assert discount_data["valueType"] == voucher.discount_value_type.upper()
     assert discount_data["reason"] == expected_reason

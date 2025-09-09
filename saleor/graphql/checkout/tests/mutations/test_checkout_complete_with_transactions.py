@@ -8,6 +8,7 @@ from django.db import transaction
 from django.db.models.aggregates import Sum
 from django.test import override_settings
 from django.utils import timezone
+from graphql_relay import from_global_id
 from prices import TaxedMoney
 
 from .....account.models import Address
@@ -1957,7 +1958,7 @@ def test_checkout_complete_with_variant_without_sku(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
-    order_id = graphene.Node.from_global_id(data["order"]["id"])[1]
+    order_id = from_global_id(data["order"]["id"])[1]
     assert Order.objects.count() == 1
     order = Order.objects.get(id=order_id)
     assert order.status == OrderStatus.UNFULFILLED

@@ -94,7 +94,7 @@ class SubscriptionQuery:
         try:
             document = parse(self.query)
             self.ast = document
-            errors = validate(schema, self.ast)
+            errors = validate(schema.graphql_schema, self.ast)
         except GraphQLSyntaxError as e:
             self.error_code = WebhookErrorCode.SYNTAX.value
             return [e]

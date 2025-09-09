@@ -1,5 +1,4 @@
 import graphene
-from graphene_directives import directive
 
 from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo

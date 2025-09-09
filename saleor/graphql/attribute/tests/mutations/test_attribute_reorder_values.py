@@ -4,6 +4,7 @@ from unittest import mock
 import graphene
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from .....attribute.models import AttributeValue
 from .....core.utils.json_serializer import CustomJsonEncoder
@@ -142,7 +143,7 @@ def test_sort_values_within_attribute(
     actual_order = []
 
     for attr, _expected_pk in zip(gql_values, expected_order, strict=False):
-        gql_type, gql_attr_id = graphene.Node.from_global_id(attr["node"]["id"])
+        gql_type, gql_attr_id = from_global_id(attr["node"]["id"])
         assert gql_type == "AttributeValue"
         actual_order.append(int(gql_attr_id))
 
