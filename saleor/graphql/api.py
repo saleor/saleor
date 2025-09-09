@@ -8,6 +8,7 @@ from .app.schema import AppMutations, AppQueries
 from .attribute.schema import AttributeMutations, AttributeQueries
 from .channel.schema import ChannelMutations, ChannelQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
+from .core.enums import unit_enums
 from .core.schema import CoreMutations, CoreQueries
 from .csv.schema import CsvMutations, CsvQueries
 from .directives import DocDirective, WebhookEventsDirective
@@ -32,7 +33,7 @@ from .warehouse.schema import (
     WarehouseQueries,
 )
 from .webhook.schema import WebhookMutations, WebhookQueries
-from .webhook.subscription_types import Subscription
+from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
@@ -96,7 +97,7 @@ class Mutation(
 schema = build_schema(
     query=Query,
     mutation=Mutation,
-    # types=unit_enums + list(WEBHOOK_TYPES_MAP.values()),
+    types=unit_enums + list(WEBHOOK_TYPES_MAP.values()),
     subscription=Subscription,
     directives=(DocDirective, WebhookEventsDirective),
     federation_version=LATEST_VERSION,

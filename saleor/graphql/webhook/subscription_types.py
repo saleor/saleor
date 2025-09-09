@@ -1118,7 +1118,7 @@ class SaleCreated(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = ("Event sent when new sale is created.",)
+        description = "Event sent when new sale is created."
 
 
 class SaleUpdated(SubscriptionObjectType, SaleBase):
@@ -2201,7 +2201,7 @@ class PaymentGatewayInitializeTokenizationSession(
         interfaces = (Event,)
         description = (
             "Event sent to initialize a new session in payment gateway to store the "
-            "payment method. "
+            "payment method."
         )
 
 
@@ -2884,14 +2884,14 @@ class Subscription(SubscriptionObjectType):
     )
 
     @staticmethod
-    def resolve_event(root, info: ResolveInfo):
-        return Observable.from_([root])
+    async def subscribe_event(root, info: ResolveInfo):
+        yield root
 
     @staticmethod
-    def resolve_order_bulk_created(root, info: ResolveInfo, channels=None):
+    async def subscribe_order_bulk_created(root, info: ResolveInfo, channels=None):
         event_type, orders = root
         if event_type != WebhookEventAsyncType.ORDER_BULK_CREATED:
-            return Observable.from_([])
+            return
 
         orders_to_return = []
         if channels:
@@ -2904,8 +2904,8 @@ class Subscription(SubscriptionObjectType):
                 if order.channel_id in channel_ids:
                     orders_to_return.append(order)
             root = (event_type, orders_to_return)
-            return Observable.from_([root])
-        return Observable.from_([root])
+            yield root
+        yield root
 
 
 @doc(category=DOC_CATEGORY_MISC)
