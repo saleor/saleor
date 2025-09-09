@@ -10,9 +10,17 @@ from django.core.cache import cache
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
-from graphql import GraphQLBackend, GraphQLDocument, GraphQLSchema
-from graphql.error import GraphQLError, GraphQLSyntaxError
-from graphql.execution import ExecutionResult
+from graphql import (
+    DocumentNode,
+    ExecutionResult,
+    GraphQLError,
+    GraphQLSchema,
+    GraphQLSyntaxError,
+    execute_sync,
+    get_operation_ast,
+    parse,
+)
+from graphql_core_promise import PromiseExecutionContext
 from jwt.exceptions import PyJWTError
 from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.semconv._incubating.attributes import (
@@ -33,7 +41,7 @@ from ..core.telemetry import Scope, SpanKind, saleor_attributes, tracer
 from ..webhook import observability
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
-from .core.validators.query_cost import validate_query_cost
+from .core.validators.query_cost import calculate_cost_of_query
 from .metrics import (
     record_graphql_query_cost,
     record_graphql_query_count,
@@ -41,7 +49,7 @@ from .metrics import (
     record_request_count,
     record_request_duration,
 )
-from .query_cost_map import COST_MAP, QUERY_COST_FAILED_OPERATION
+from .query_cost_map import QUERY_COST_FAILED_OPERATION
 from .utils import (
     format_error,
     get_source_service_name_value,
@@ -65,7 +73,6 @@ class GraphQLView(View):
     executor = None
     middleware = None
     root_value = None
-    backend: GraphQLBackend = None  # type: ignore[assignment]
     _query: str | None = None
 
     HANDLED_EXCEPTIONS = (
@@ -77,26 +84,16 @@ class GraphQLView(View):
 
     def __init__(
         self,
-        schema: GraphQLSchema,
-        backend: GraphQLBackend,
-        executor=None,
-        middleware: list[str] | None = None,
-        root_value=None,
     ):
         super().__init__()
-        if middleware is None:
-            middleware = settings.GRAPHQL_MIDDLEWARE
-            if middleware:
-                middleware = [
-                    self.import_middleware(middleware_name)
-                    for middleware_name in middleware
-                ]
-        self.schema = schema
+        middleware = settings.GRAPHQL_MIDDLEWARE
+        if middleware:
+            middleware = [
+                self.import_middleware(middleware_name)
+                for middleware_name in middleware
+            ]
         if middleware is not None:
             self.middleware = list(instantiate_middleware(middleware))
-        self.executor = executor
-        self.root_value = root_value
-        self.backend = backend
 
     @staticmethod
     def import_middleware(middleware_name):
@@ -221,7 +218,7 @@ class GraphQLView(View):
                     response["errors"] = [
                         self.format_error(e) for e in execution_result.errors
                     ]
-                if execution_result.invalid:
+                if not execution_result.data:
                     status_code = 400
                 else:
                     response["data"] = execution_result.data
@@ -231,15 +228,17 @@ class GraphQLView(View):
             else:
                 result = None
             operation.result = result
-            operation.result_invalid = execution_result.invalid
+            operation.result_invalid = (
+                execution_result is None or execution_result.data is None
+            )
         return result, status_code
 
     def get_root_value(self):
-        return self.root_value
+        return None
 
     def parse_query(
         self, query: str | None
-    ) -> tuple[GraphQLDocument | None, ExecutionResult | None]:
+    ) -> tuple[DocumentNode | None, ExecutionResult | None]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
         If no query was given or query is not a string, it returns an error.
@@ -249,19 +248,14 @@ class GraphQLView(View):
         if not query or not isinstance(query, str):
             return (
                 None,
-                ExecutionResult(
-                    errors=[GraphQLError("Must provide a query string.")], invalid=True
-                ),
+                ExecutionResult(errors=[GraphQLError("Must provide a query string.")]),
             )
 
         # Attempt to parse the query, if it fails, return the error
         try:
-            return (
-                self.backend.document_from_string(self.schema, query),
-                None,
-            )
-        except (ValueError, GraphQLSyntaxError) as e:
-            return None, ExecutionResult(errors=[e], invalid=True)
+            return parse(query), None
+        except GraphQLSyntaxError as e:
+            return None, ExecutionResult(errors=[e])
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with (
@@ -307,18 +301,18 @@ class GraphQLView(View):
                     QUERY_COST_FAILED_OPERATION, error_type=error_type
                 )
                 query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
-                return ExecutionResult(errors=[e], invalid=True)
+                return ExecutionResult(errors=[e])
 
             # Query identifier and fingerprint cannot be calculated earlier, as they
             # require a parsed and valid GraphQL document.
             operation_identifier = query_identifier(document)
-            operation_fingerprint = query_fingerprint(document)
-            operation_type = document.get_operation_type(operation_name)
+            operation_fingerprint = query_fingerprint(document, query)
+            operation_node = get_operation_ast(document, operation_name)
+            operation_type = operation_node.operation.name if operation_node else None
 
             self._query = operation_identifier
-            raw_query_string = document.document_string
-            span.update_name(raw_query_string)
-            span.set_attribute(graphql_attributes.GRAPHQL_DOCUMENT, raw_query_string)
+            span.update_name(query)
+            span.set_attribute(graphql_attributes.GRAPHQL_DOCUMENT, query)
             if operation_type:
                 span.set_attribute(
                     graphql_attributes.GRAPHQL_OPERATION_TYPE, operation_type
@@ -350,17 +344,26 @@ class GraphQLView(View):
                     saleor_attributes.SALEOR_SOURCE_SERVICE_NAME, source_service_name
                 )
 
-            query_cost, cost_errors = validate_query_cost(
-                schema,
+            query_cost = calculate_cost_of_query(
                 document,
-                variables,
-                COST_MAP,
-                settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+                schema.graphql_schema,
+                variables or {},
             )
             span.set_attribute(saleor_attributes.GRAPHQL_OPERATION_COST, query_cost)
-
-            if settings.GRAPHQL_QUERY_MAX_COMPLEXITY and cost_errors:
-                result = ExecutionResult(errors=cost_errors, invalid=True)
+            if query_cost > settings.GRAPHQL_QUERY_MAX_COMPLEXITY:
+                cost_errors = [
+                    GraphQLError(
+                        f"Query cost {query_cost} exceeds maximum allowed complexity {settings.GRAPHQL_QUERY_MAX_COMPLEXITY}.",
+                        extensions={
+                            "code": "COST_EXCEEDED",
+                            "cost": {
+                                "requestedQueryCost": query_cost,
+                                "maximumAvailable": settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+                            },
+                        },
+                    )
+                ]
+                result = ExecutionResult(errors=cost_errors)
                 error_description = self.format_span_error_description(result)
                 span.set_status(status=StatusCode.ERROR, description=error_description)
                 error_type = cost_errors[0].__class__.__name__ if cost_errors else None
@@ -381,13 +384,6 @@ class GraphQLView(View):
                     query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
                 return set_query_cost_on_result(result, query_cost)
 
-            extra_options: dict[str, Any | None] = {}
-
-            if self.executor:
-                # We only include it optionally since
-                # executor is not a valid argument in all backends
-                extra_options["executor"] = self.executor
-
             context = get_context_value(request)
             if app := getattr(request, "app", None):
                 span.set_attribute(saleor_attributes.SALEOR_APP_ID, app.id)
@@ -400,17 +396,19 @@ class GraphQLView(View):
                     not settings.DEBUG
                 )
                 if should_use_cache_for_scheme:
-                    key = generate_cache_key(raw_query_string)
+                    key = generate_cache_key(query)
                     response = cache.get(key)
 
                 if not response:
-                    response = document.execute(
-                        root=self.get_root_value(),
-                        variables=variables,
+                    response = execute_sync(
+                        schema=schema.graphql_schema,
+                        document=document,
+                        root_value=self.get_root_value(),
+                        variable_values=variables,
                         operation_name=operation_name,
-                        context=context,
+                        context_value=context,
                         middleware=self.middleware,
-                        **extra_options,
+                        execution_context_class=PromiseExecutionContext,
                     )
                     if response.errors:
                         error_type = response.errors[0].__class__.__name__
@@ -461,7 +459,7 @@ class GraphQLView(View):
                     error_type=error_type,
                 )
                 query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
-                return ExecutionResult(errors=[e], invalid=True)
+                return ExecutionResult(errors=[e])
             finally:
                 clear_context(context)
 
@@ -478,10 +476,16 @@ class GraphQLView(View):
         return {}
 
     @staticmethod
-    def get_graphql_params(request: HttpRequest, data: dict):
+    def get_graphql_params(
+        request: HttpRequest, data: dict
+    ) -> tuple[str, dict | None, str | None]:
         query = data.get("query")
         variables = data.get("variables")
         operation_name = data.get("operationName")
+        if not isinstance(query, str):
+            raise ValueError("Query must be a string.")
+        if variables and not isinstance(variables, dict):
+            raise ValueError("Variables must be an object.")
         if operation_name == "null":
             operation_name = None
 
@@ -568,6 +572,8 @@ def generate_cache_key(raw_query: str) -> str:
 
 def set_query_cost_on_result(execution_result: ExecutionResult, query_cost):
     if settings.GRAPHQL_QUERY_MAX_COMPLEXITY:
+        if execution_result.extensions is None:
+            execution_result.extensions = {}
         execution_result.extensions.update(
             {
                 "cost": {

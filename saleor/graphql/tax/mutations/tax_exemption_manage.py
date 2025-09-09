@@ -14,21 +14,20 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.types import Error
 from ...core.types.taxes import TaxSourceObject
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 
-TaxExemptionManageErrorCode = graphene.Enum.from_enum(
-    error_codes.TaxExemptionManageErrorCode
+TaxExemptionManageErrorCode = doc(
+    DOC_CATEGORY_TAXES, graphene.Enum.from_enum(error_codes.TaxExemptionManageErrorCode)
 )
-TaxExemptionManageErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxExemptionManageError(Error):
     code = TaxExemptionManageErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxExemptionManage(BaseMutation):
     taxable_object = graphene.Field(TaxSourceObject)
 
@@ -47,7 +46,6 @@ class TaxExemptionManage(BaseMutation):
             "still be calculated in cases when product prices are entered with the "
             "tax included and the net price needs to be known."
         )
-        doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxExemptionManageError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 

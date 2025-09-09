@@ -618,6 +618,10 @@ class WebhookEventAsyncType:
         NOTIFY_USER: {
             "name": "Notify user",
             "permission": AccountPermissions.MANAGE_USERS,
+            "deprecation_reason": (
+                "See the docs for more details about migrating from NOTIFY_USER to other events: "
+                "https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user"
+            ),
         },
         PAGE_CREATED: {
             "name": "Page created",

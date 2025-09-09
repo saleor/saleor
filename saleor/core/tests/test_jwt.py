@@ -1,7 +1,7 @@
-import graphene
 import jwt
 from cryptography.hazmat.primitives import serialization
 from django.urls import reverse
+from graphql_relay import from_global_id
 
 from ..jwt import (
     create_access_token_for_app,
@@ -32,7 +32,7 @@ def test_create_access_token_for_app(
 
     # then
     decoded_token = jwt_decode(access_token, verify_expiration=False, verify_aud=False)
-    _, decode_app_id = graphene.Node.from_global_id(decoded_token["app"])
+    _, decode_app_id = from_global_id(decoded_token["app"])
     assert decoded_token["permissions"] == ["MANAGE_PRODUCTS"]
     assert set(decoded_token["user_permissions"]) == {"MANAGE_APPS", "MANAGE_PRODUCTS"}
     assert int(decode_app_id) == app.id
@@ -70,10 +70,8 @@ def test_create_access_token_for_app_extension_staff_user_with_more_permissions(
     # then
     decoded_token = jwt_decode(access_token, verify_expiration=False, verify_aud=False)
     assert decoded_token["permissions"] == ["MANAGE_PRODUCTS"]
-    _, decode_extension_id = graphene.Node.from_global_id(
-        decoded_token["app_extension"]
-    )
-    _, decode_app_id = graphene.Node.from_global_id(decoded_token["app"])
+    _, decode_extension_id = from_global_id(decoded_token["app_extension"])
+    _, decode_app_id = from_global_id(decoded_token["app"])
     assert set(decoded_token["user_permissions"]) == {
         "MANAGE_CHANNELS",
         "MANAGE_APPS",
@@ -116,10 +114,8 @@ def test_create_access_token_for_app_extension_with_more_permissions(
     # then
     decoded_token = jwt_decode(access_token, verify_expiration=False)
     assert decoded_token["permissions"] == ["MANAGE_PRODUCTS"]
-    _, decode_extension_id = graphene.Node.from_global_id(
-        decoded_token["app_extension"]
-    )
-    _, decode_app_id = graphene.Node.from_global_id(decoded_token["app"])
+    _, decode_extension_id = from_global_id(decoded_token["app_extension"])
+    _, decode_app_id = from_global_id(decoded_token["app"])
     assert decoded_token["user_permissions"] == ["MANAGE_PRODUCTS"]
     assert int(decode_extension_id) == extension.id
     assert int(decode_app_id) == app.id

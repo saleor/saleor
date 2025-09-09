@@ -10,14 +10,22 @@ from .....order import models as order_models
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Voucher
-from .voucher_create import VoucherCreate, VoucherInput
+from .voucher_create import VoucherInput, VoucherMutationBase
 
 
-class VoucherUpdate(VoucherCreate):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.VOUCHER_UPDATED,
+        WebhookEventAsyncType.VOUCHER_CODES_CREATED,
+    }
+)
+class VoucherUpdate(VoucherMutationBase):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a voucher to update.")
         input = VoucherInput(
@@ -31,16 +39,6 @@ class VoucherUpdate(VoucherCreate):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_UPDATED,
-                description="A voucher was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_CODES_CREATED,
-                description="A voucher code was created.",
-            ),
-        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

@@ -9,10 +9,12 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.mutations import BaseMutation
 from ...core.types import WebhookError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import EventDelivery
 
 
+@doc(category=DOC_CATEGORY_WEBHOOKS)
 class EventDeliveryRetry(BaseMutation):
     delivery = graphene.Field(EventDelivery, description="Event delivery.")
 
@@ -23,7 +25,6 @@ class EventDeliveryRetry(BaseMutation):
 
     class Meta:
         description = "Retries event delivery."
-        doc_category = DOC_CATEGORY_WEBHOOKS
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = WebhookError
 

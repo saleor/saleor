@@ -1,11 +1,11 @@
 from django.core.exceptions import ValidationError
-from graphql import GraphQLDocument
-from graphql.error import GraphQLError
-from graphql.language.ast import (
-    Field,
-    FragmentDefinition,
-    InlineFragment,
-    OperationDefinition,
+from graphql import (
+    DocumentNode,
+    FieldNode,
+    FragmentDefinitionNode,
+    GraphQLError,
+    InlineFragmentNode,
+    OperationDefinitionNode,
 )
 
 from ..core.utils import get_duplicates_items
@@ -33,17 +33,17 @@ def check_for_duplicates(
     return error
 
 
-def __queries_or_introspection_in_selections(selections: list, is_query: bool):
+def __queries_or_introspection_in_selections(selections: tuple, is_query: bool):
     found_queries = False
     found_introspection = False
     for selection in selections:
-        if isinstance(selection, Field):
+        if isinstance(selection, FieldNode):
             selection_name = str(selection.name.value)
             if is_query and selection_name == "__schema":
                 found_introspection = True
             else:
                 found_queries = True
-        if isinstance(selection, InlineFragment):
+        if isinstance(selection, InlineFragmentNode):
             (
                 sub_queries,
                 sub_introspection,
@@ -56,7 +56,7 @@ def __queries_or_introspection_in_selections(selections: list, is_query: bool):
 
 
 def __queries_or_introspection_in_inline_fragment(
-    fragment: InlineFragment, is_query: bool
+    fragment: InlineFragmentNode, is_query: bool
 ):
     if fragment.type_condition and fragment.type_condition.name.value == "__Schema":
         return False, True
@@ -68,14 +68,18 @@ def __queries_or_introspection_in_inline_fragment(
     return __queries_or_introspection_in_selections(selections, is_query=False)
 
 
-def __queries_or_introspection_in_operation_definition(definition: OperationDefinition):
+def __queries_or_introspection_in_operation_definition(
+    definition: OperationDefinitionNode,
+):
     if definition.operation != "query":
         return False, False
     selections = definition.selection_set.selections
     return __queries_or_introspection_in_selections(selections, is_query=True)
 
 
-def __queries_or_introspection_in_fragment_definition(definition: FragmentDefinition):
+def __queries_or_introspection_in_fragment_definition(
+    definition: FragmentDefinitionNode,
+):
     selections = definition.selection_set.selections
     if definition.type_condition:
         if definition.type_condition.name.value == "Query":
@@ -85,18 +89,18 @@ def __queries_or_introspection_in_fragment_definition(definition: FragmentDefini
     return __queries_or_introspection_in_selections(selections, is_query=False)
 
 
-def check_if_query_contains_only_schema(document: GraphQLDocument):
+def check_if_query_contains_only_schema(document: DocumentNode):
     found_queries = False
     found_introspection = False
-    for definition in document.document_ast.definitions:
-        if isinstance(definition, OperationDefinition):
+    for definition in document.definitions:
+        if isinstance(definition, OperationDefinitionNode):
             (
                 sub_queries,
                 sub_introspection,
             ) = __queries_or_introspection_in_operation_definition(definition)
             found_queries = found_queries or sub_queries
             found_introspection = found_introspection or sub_introspection
-        if isinstance(definition, FragmentDefinition):
+        if isinstance(definition, FragmentDefinitionNode):
             (
                 sub_queries,
                 sub_introspection,

@@ -8,10 +8,12 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.types import common as common_types
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Payment
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentVoid(BaseMutation):
     payment = graphene.Field(Payment, description="Updated payment.")
 
@@ -20,7 +22,6 @@ class PaymentVoid(BaseMutation):
 
     class Meta:
         description = "Voids the authorized payment."
-        doc_category = DOC_CATEGORY_PAYMENTS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"

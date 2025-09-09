@@ -11,10 +11,12 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
+from ...directives import doc
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderLineDiscountUpdate(OrderDiscountCommon):
     order_line = graphene.Field(
         OrderLine, description="Order line which has been discounted."
@@ -34,7 +36,6 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
 
     class Meta:
         description = "Update discount for the order line."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

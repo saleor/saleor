@@ -13,6 +13,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.fields import PermissionsField
 from ...core.scalars import PositiveDecimal
 from ...core.types import ModelObjectType, Money
+from ...directives import doc
 from ...order.dataloaders import OrderLineByIdLoader
 from ..enums import DiscountValueTypeEnum, OrderDiscountTypeEnum
 
@@ -51,6 +52,7 @@ class BaseOrderDiscount(ModelObjectType[N]):
         abstract = True
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderDiscount(BaseOrderDiscount[models.OrderDiscount]):
     amount = graphene.Field(
         Money,
@@ -81,6 +83,7 @@ class OrderDiscount(BaseOrderDiscount[models.OrderDiscount]):
         return root.amount
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderLineDiscount(BaseOrderDiscount[models.OrderLineDiscount]):
     total = graphene.Field(
         Money,
@@ -95,7 +98,6 @@ class OrderLineDiscount(BaseOrderDiscount[models.OrderLineDiscount]):
 
     class Meta:
         description = "Represent the discount applied to order line."
-        doc_category = DOC_CATEGORY_ORDERS
         model = models.OrderLineDiscount
 
     @staticmethod

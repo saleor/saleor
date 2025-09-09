@@ -7,16 +7,17 @@ from ...core.descriptions import ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import AppError, BaseInputObjectType, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...core.types import AppError, NonNullList
 from ...decorators import staff_member_required
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
 from ..types import App
 from ..utils import ensure_can_manage_permissions
 
 
-class AppInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class AppInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the app.")
     identifier = graphene.String(
         description=(
@@ -29,10 +30,9 @@ class AppInput(BaseInputObjectType):
         description="List of permission code names to assign to this app.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_APPS
 
-
+@doc(category=DOC_CATEGORY_APPS)
+@webhook_events(async_events={WebhookEventAsyncType.APP_INSTALLED})
 class AppCreate(DeprecatedModelMutation):
     auth_token = graphene.types.String(
         description="The newly created authentication token."
@@ -55,12 +55,6 @@ class AppCreate(DeprecatedModelMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.APP_INSTALLED,
-                description="An app was installed.",
-            ),
-        ]
 
     @classmethod
     def clean_input(cls, info, instance, data, **kwargs):

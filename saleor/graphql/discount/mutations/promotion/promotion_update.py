@@ -14,8 +14,8 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import Error
-from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionUpdateErrorCode
 from ...types import Promotion
@@ -36,6 +36,14 @@ class PromotionUpdateInput(PromotionInput):
     name = graphene.String(description="Promotion name.")
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.PROMOTION_UPDATED,
+        WebhookEventAsyncType.PROMOTION_STARTED,
+        WebhookEventAsyncType.PROMOTION_ENDED,
+    }
+)
 class PromotionUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of the promotion to update.")
@@ -49,21 +57,6 @@ class PromotionUpdate(DeprecatedModelMutation):
         object_type = Promotion
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionUpdateError
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_UPDATED,
-                description="A promotion was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_STARTED,
-                description="Optionally called if promotion was started.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_ENDED,
-                description="Optionally called if promotion was ended.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

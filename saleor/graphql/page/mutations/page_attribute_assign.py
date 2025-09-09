@@ -12,9 +12,11 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, PageError
+from ...directives import doc
 from ...page.types import PageType
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageAttributeAssign(BaseMutation):
     page_type = graphene.Field(PageType, description="The updated page type.")
 
@@ -30,7 +32,6 @@ class PageAttributeAssign(BaseMutation):
         )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PAGES
         description = "Assign attributes to a given page type."
         error_type_class = PageError
         error_type_field = "page_errors"

@@ -1,6 +1,7 @@
 import decimal
 
 import django_filters
+import graphene
 from django.db.models import Exists, OuterRef, Q, Sum
 from django.utils import timezone
 
@@ -32,12 +33,8 @@ from ..core.filters.where_input import (
     StringFilterInput,
     WhereInputObjectType,
 )
-from ..core.types import (
-    BaseInputObjectType,
-    DateTimeRangeInput,
-    IntRangeInput,
-    NonNullList,
-)
+from ..core.types import DateTimeRangeInput, IntRangeInput, NonNullList
+from ..directives import doc
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
@@ -164,16 +161,14 @@ class SaleFilter(MetadataFilterBase):
         fields = ["status", "sale_type", "started", "search"]
 
 
-class PromotionTypeEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class PromotionTypeEnumFilterInput(graphene.InputObjectType):
     eq = PromotionTypeEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         PromotionTypeEnum,
         description=FilterInputDescriptions.ONE_OF,
         required=False,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class PromotionWhere(MetadataWhereFilterBase):
@@ -219,9 +214,9 @@ class PromotionWhere(MetadataWhereFilterBase):
         return filter_where_by_value_field(qs, "type", value)
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = PromotionWhere
 
 
@@ -241,7 +236,7 @@ class DiscountedObjectWhere(WhereFilterSet):
         abstract = True
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class DiscountedObjectWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = DiscountedObjectWhere

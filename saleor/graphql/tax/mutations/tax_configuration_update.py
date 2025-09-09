@@ -12,19 +12,21 @@ from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_319, ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import BaseInputObjectType, Error, NonNullList
+from ...core.types import Error, NonNullList
 from ...core.utils import get_duplicates_items
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import TaxCalculationStrategy
 from ..types import TaxConfiguration
 
-TaxConfigurationUpdateErrorCode = graphene.Enum.from_enum(
-    error_codes.TaxConfigurationUpdateErrorCode
+TaxConfigurationUpdateErrorCode = doc(
+    DOC_CATEGORY_TAXES,
+    graphene.Enum.from_enum(error_codes.TaxConfigurationUpdateErrorCode),
 )
-TaxConfigurationUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
-class TaxConfigurationPerCountryInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxConfigurationPerCountryInput(graphene.InputObjectType):
     country_code = CountryCodeEnum(
         description="Country in which this configuration applies.", required=True
     )
@@ -64,11 +66,9 @@ class TaxConfigurationPerCountryInput(BaseInputObjectType):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
-class TaxConfigurationUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxConfigurationUpdateInput(graphene.InputObjectType):
     charge_taxes = graphene.Boolean(
         description="Determines whether taxes are charged in the given channel."
     )
@@ -121,10 +121,8 @@ class TaxConfigurationUpdateInput(BaseInputObjectType):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxConfigurationUpdateError(Error):
     code = TaxConfigurationUpdateErrorCode(description="The error code.", required=True)
     country_codes = NonNullList(
@@ -133,10 +131,8 @@ class TaxConfigurationUpdateError(Error):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxConfigurationUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of the tax configuration.", required=True)

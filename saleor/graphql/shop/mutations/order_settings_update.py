@@ -8,10 +8,12 @@ from ...channel.types import OrderSettings
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
-from ...core.types import BaseInputObjectType, OrderSettingsError
+from ...core.types import OrderSettingsError
+from ...directives import doc
 
 
-class OrderSettingsUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderSettingsUpdateInput(graphene.InputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
         required=False,
         description="When disabled, all new orders from checkout "
@@ -24,10 +26,8 @@ class OrderSettingsUpdateInput(BaseInputObjectType):
         "will be fulfilled automatically. By default set to True.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderSettingsUpdate(BaseMutation):
     order_settings = graphene.Field(OrderSettings, description="Order settings.")
 
@@ -41,7 +41,6 @@ class OrderSettingsUpdate(BaseMutation):
             "Update shop order settings across all channels. "
             "Returns `orderSettings` for the first `channel` in alphabetical order. "
         )
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderSettingsError
         error_type_field = "order_settings_errors"

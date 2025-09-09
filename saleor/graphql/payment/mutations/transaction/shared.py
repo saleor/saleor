@@ -9,11 +9,10 @@ from .....payment.error_codes import (
 )
 from .....payment.interface import PaymentMethodDetails
 from ....core.descriptions import ADDED_IN_322
-from ....core.types.base import BaseInputObjectType
 from ....core.validators import validate_one_of_args_is_in_mutation
 
 
-class CardPaymentMethodDetailsInput(BaseInputObjectType):
+class CardPaymentMethodDetailsInput(graphene.InputObjectType):
     name = graphene.String(
         description="Name of the payment method used for the transaction. Max length is 256 characters.",
         required=True,
@@ -40,14 +39,14 @@ class CardPaymentMethodDetailsInput(BaseInputObjectType):
     )
 
 
-class OtherPaymentMethodDetailsInput(BaseInputObjectType):
+class OtherPaymentMethodDetailsInput(graphene.InputObjectType):
     name = graphene.String(
         description="Name of the payment method used for the transaction.",
         required=True,
     )
 
 
-class PaymentMethodDetailsInput(BaseInputObjectType):
+class PaymentMethodDetailsInput(graphene.InputObjectType):
     card = graphene.Field(
         CardPaymentMethodDetailsInput,
         required=False,

@@ -6,13 +6,16 @@ from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import InvoiceError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Invoice
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
+@webhook_events(async_events={WebhookEventAsyncType.INVOICE_DELETED})
 class InvoiceRequestDelete(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(
@@ -26,12 +29,6 @@ class InvoiceRequestDelete(DeprecatedModelMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.INVOICE_DELETED,
-                description="An invoice was requested to delete.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

@@ -9,12 +9,12 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...checkout.types import CheckoutLine
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID, PositiveDecimal
-from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...directives import doc
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
@@ -29,12 +29,12 @@ from .utils import (
 )
 
 
-class CheckoutLineUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_CHECKOUT)
+class CheckoutLineUpdateInput(graphene.InputObjectType):
     variant_id = graphene.ID(
         required=False,
-        description=(
-            f"ID of the product variant. {DEPRECATED_IN_3X_INPUT} Use `lineId` instead."
-        ),
+        description="ID of the product variant.",
+        deprecation_reason="Use `lineId` instead.",
     )
     quantity = graphene.Int(
         required=False,
@@ -65,9 +65,6 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
-
 
 class CheckoutLinesUpdate(CheckoutLinesAdd):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
@@ -78,14 +75,14 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             required=False,
         )
         token = UUID(
-            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            description="Checkout token.",
+            deprecation_reason="Use `id` instead.",
             required=False,
         )
         checkout_id = graphene.ID(
             required=False,
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
-            ),
+            description="The ID of the checkout.",
+            deprecation_reason="Use `id` instead.",
         )
         lines = NonNullList(
             CheckoutLineUpdateInput,
@@ -98,15 +95,8 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
     class Meta:
         description = "Updates checkout line in the existing checkout."
-        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
-                description="A checkout was updated.",
-            )
-        ]
 
     @classmethod
     def validate_checkout_lines(

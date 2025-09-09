@@ -6,21 +6,24 @@ from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import to_enum
 from ..core.utils import str_to_enum
+from ..directives import doc
 
-AttributeInputTypeEnum = to_enum(AttributeInputType)
-AttributeInputTypeEnum.doc_category = DOC_CATEGORY_ATTRIBUTES
+AttributeInputTypeEnum = doc(DOC_CATEGORY_ATTRIBUTES, to_enum(AttributeInputType))
 
-AttributeTypeEnum = to_enum(AttributeType)
-AttributeTypeEnum.doc_category = DOC_CATEGORY_ATTRIBUTES
+AttributeTypeEnum = doc(DOC_CATEGORY_ATTRIBUTES, to_enum(AttributeType))
 
-AttributeEntityTypeEnum = to_enum(AttributeEntityType)
-AttributeEntityTypeEnum.doc_category = DOC_CATEGORY_ATTRIBUTES
+AttributeEntityTypeEnum = doc(DOC_CATEGORY_ATTRIBUTES, to_enum(AttributeEntityType))
 
-AttributeEntityTypeEnum = graphene.Enum(
-    "AttributeEntityTypeEnum",
-    [(str_to_enum(name.upper()), code) for code, name in AttributeEntityType.CHOICES],
+AttributeEntityTypeEnum = doc(
+    DOC_CATEGORY_ATTRIBUTES,
+    graphene.Enum(
+        "AttributeEntityTypeEnum",
+        [
+            (str_to_enum(name.upper()), code)
+            for code, name in AttributeEntityType.CHOICES
+        ],
+    ),
 )
-AttributeEntityTypeEnum.doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 class AttributeValueBulkActionEnum(Enum):

@@ -1,7 +1,6 @@
 import pytest
 from django.core.exceptions import ValidationError
-from graphql import GraphQLError
-from graphql.error import GraphQLSyntaxError
+from graphql import GraphQLError, GraphQLSyntaxError
 
 from saleor.webhook.error_codes import WebhookErrorCode
 

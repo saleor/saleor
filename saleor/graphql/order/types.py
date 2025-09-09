@@ -6,6 +6,7 @@ import graphene
 import prices
 from django.core.exceptions import ValidationError
 from graphene import relay
+from graphene_federation import key
 from promise import Promise
 
 from ...account.models import Address
@@ -22,7 +23,6 @@ from ...graphql.core.context import (
     SyncWebhookControlContext,
     get_database_connection_name,
 )
-from ...graphql.core.federation.entities import federated_entity
 from ...graphql.core.federation.resolvers import resolve_federation_references
 from ...graphql.order.resolvers import resolve_orders
 from ...graphql.utils import get_user_or_app_from_context
@@ -74,7 +74,6 @@ from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_320,
     ADDED_IN_321,
-    DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
@@ -84,7 +83,6 @@ from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import DateTime, PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import (
-    BaseObjectType,
     Image,
     ModelObjectType,
     Money,
@@ -97,6 +95,7 @@ from ..core.types import (
 from ..core.types.sync_webhook_control import SyncWebhookControlContextModelObjectType
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required
+from ..directives import doc
 from ..discount.dataloaders import (
     OrderDiscountsByOrderIDLoader,
     OrderLineDiscountsByOrderLineIDLoader,
@@ -388,7 +387,8 @@ class OrderGrantedRefund(
         )
 
 
-class OrderDiscount(BaseObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderDiscount(graphene.ObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
@@ -402,9 +402,6 @@ class OrderDiscount(BaseObjectType):
         required=False, description="Explanation for the applied discount."
     )
     amount = graphene.Field(Money, description="Returns amount of discount.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderEventDiscountObject(OrderDiscount):
@@ -421,20 +418,15 @@ class OrderEventDiscountObject(OrderDiscount):
         Money, required=False, description="Returns amount of discount."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderEventOrderLineObject(BaseObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderEventOrderLineObject(graphene.ObjectType):
     quantity = graphene.Int(description="The variant quantity.")
     order_line = graphene.Field(lambda: OrderLine, description="The order line.")
     item_name = graphene.String(description="The variant name.")
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order line."
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderEvent(
@@ -759,9 +751,9 @@ class OrderEvent(
         return root.node.parameters.get("reference")
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderEventCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         node = OrderEvent
 
 
@@ -1474,7 +1466,7 @@ class OrderLine(
         return Promise.all([manager, order]).then(with_manager_and_order)
 
 
-@federated_entity("id")
+@key("id")
 class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Order]]):
     id = graphene.GlobalID(required=True, description="ID of the order.")
     created = DateTime(
@@ -1498,7 +1490,8 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     )
     tracking_client_id = graphene.String(
         required=True,
-        description="Google Analytics tracking client ID. " + DEPRECATED_IN_3X_INPUT,
+        description="Google Analytics tracking client ID.",
+        deprecation_reason="",
     )
     billing_address = graphene.Field(
         "saleor.graphql.account.types.Address",
@@ -1766,7 +1759,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     errors = NonNullList(
         OrderError,
         description="List of errors that occurred during order validation.",
-        default_value=[],
+        default_value=(),
         required=True,
     )
     display_gross_prices = graphene.Boolean(
@@ -3076,7 +3069,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         return results
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         node = Order

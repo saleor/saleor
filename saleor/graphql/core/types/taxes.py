@@ -27,7 +27,7 @@ from ...checkout.dataloaders import (
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
 from ...core.doc_category import DOC_CATEGORY_TAXES
-from ...core.types import BaseObjectType
+from ...directives import doc
 from ...discount.dataloaders import OrderDiscountsByOrderIDLoader
 from ...order import types as order_types
 from ...order.dataloaders import OrderByIdLoader, OrderLinesByOrderIdLoader
@@ -70,7 +70,8 @@ class TaxSourceLine(graphene.Union):
         return super().resolve_type(instance, info)
 
 
-class TaxableObjectLine(BaseObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxableObjectLine(graphene.ObjectType):
     source_line = graphene.Field(
         TaxSourceLine,
         required=True,
@@ -105,9 +106,6 @@ class TaxableObjectLine(BaseObjectType):
         ),
         required=True,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_variant_name(root: CheckoutLine | OrderLine, info: ResolveInfo):
@@ -272,7 +270,8 @@ class TaxableObjectLine(BaseObjectType):
         return root.base_unit_price * root.quantity
 
 
-class TaxableObjectDiscount(BaseObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxableObjectDiscount(graphene.ObjectType):
     name = graphene.String(description="The name of the discount.")
     amount = graphene.Field(
         MoneyType, description="The amount of the discount.", required=True
@@ -284,11 +283,11 @@ class TaxableObjectDiscount(BaseObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_TAXES
         description = "Taxable object discount."
 
 
-class TaxableObject(BaseObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxableObject(graphene.ObjectType):
     source_object = graphene.Field(
         TaxSourceObject,
         required=True,
@@ -322,7 +321,6 @@ class TaxableObject(BaseObjectType):
 
     class Meta:
         description = "Taxable object."
-        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_channel(root: Checkout | Order, info: ResolveInfo):

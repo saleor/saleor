@@ -9,18 +9,17 @@ from ...account.utils import can_manage_app
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import AppError, BaseInputObjectType
+from ...core.types import AppError
+from ...directives import doc
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import AppToken
 from ..utils import validate_app_is_not_removed
 
 
-class AppTokenInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class AppTokenInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the token.", required=False)
     app = graphene.ID(description="ID of app.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_APPS
 
 
 class AppTokenCreate(DeprecatedModelMutation):

@@ -9,28 +9,24 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import StaffError
 from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import StaffDeleteMixin
 from .base import UserDelete
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(async_events={WebhookEventAsyncType.STAFF_DELETED})
 class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
         description = (
             "Deletes a staff user. Apps are not allowed to perform this mutation."
         )
-        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.STAFF_DELETED,
-                description="A staff account was deleted.",
-            ),
-        ]
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a staff user to delete.")

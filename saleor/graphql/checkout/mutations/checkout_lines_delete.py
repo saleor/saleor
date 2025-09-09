@@ -8,18 +8,19 @@ from ....checkout.utils import invalidate_checkout
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import resolve_global_ids_to_primary_keys
 from ..types import Checkout
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
+@webhook_events(async_events={WebhookEventAsyncType.CHECKOUT_UPDATED})
 class CheckoutLinesDelete(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
@@ -29,7 +30,8 @@ class CheckoutLinesDelete(BaseMutation):
             required=False,
         )
         token = UUID(
-            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            description="Checkout token.",
+            deprecation_reason="Use `id` instead.",
             required=False,
         )
         lines_ids = NonNullList(
@@ -40,14 +42,7 @@ class CheckoutLinesDelete(BaseMutation):
 
     class Meta:
         description = "Deletes checkout lines."
-        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
-                description="A checkout was updated.",
-            )
-        ]
 
     @classmethod
     def validate_lines(cls, checkout: Checkout, lines_to_delete_ids: list[str]):

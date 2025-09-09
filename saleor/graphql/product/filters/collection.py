@@ -2,9 +2,7 @@ import django_filters
 import graphene
 from django.db.models import Q
 
-from ....product.models import (
-    Collection,
-)
+from ....product.models import Collection
 from ...channel.filters import get_channel_slug_from_filter_data
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
@@ -16,16 +14,10 @@ from ...core.filters import (
     MetadataFilterBase,
     MetadataWhereFilterBase,
 )
-from ...core.filters.where_input import (
-    WhereInputObjectType,
-)
-from ...utils.filters import (
-    filter_by_ids,
-    filter_slug_list,
-)
-from ..enums import (
-    CollectionPublished,
-)
+from ...core.filters.where_input import WhereInputObjectType
+from ...directives import doc
+from ...utils.filters import filter_by_ids, filter_slug_list
+from ..enums import CollectionPublished
 
 
 def _filter_collections_is_published(qs, _, value, channel_slug):
@@ -73,13 +65,13 @@ class CollectionWhere(MetadataWhereFilterBase):
         fields = []
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionFilterInput(ChannelFilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CollectionFilter
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CollectionWhere

@@ -9,13 +9,12 @@ from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
 from ...core.fields import JSONString
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import AttributeError, BaseInputObjectType, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...core.types import AttributeError, NonNullList
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
@@ -23,19 +22,22 @@ from ..types import Attribute
 from .mixins import AttributeMixin
 
 
-class AttributeValueInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeValueInput(graphene.InputObjectType):
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
     rich_text = JSONString(
-        description=AttributeValueDescriptions.RICH_TEXT
-        + DEPRECATED_IN_3X_INPUT
-        + "The rich text attribute hasn't got predefined value, so can be specified "
-        "only from instance that supports the given attribute."
+        description=AttributeValueDescriptions.RICH_TEXT,
+        deprecation_reason=(
+            "The rich text attribute hasn't got predefined value, so can be specified "
+            "only from instance that supports the given attribute."
+        ),
     )
     plain_text = graphene.String(
-        description=AttributeValueDescriptions.PLAIN_TEXT
-        + DEPRECATED_IN_3X_INPUT
-        + "The plain text attribute hasn't got predefined value, so can be specified "
-        "only from instance that supports the given attribute."
+        description=AttributeValueDescriptions.PLAIN_TEXT,
+        deprecation_reason=(
+            "The plain text attribute hasn't got predefined value, so can be specified "
+            "only from instance that supports the given attribute."
+        ),
     )
     file_url = graphene.String(
         required=False,
@@ -47,18 +49,13 @@ class AttributeValueInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
-
 
 class AttributeValueCreateInput(AttributeValueInput):
     name = graphene.String(required=True, description=AttributeValueDescriptions.NAME)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-class AttributeCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeCreateInput(graphene.InputObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     entity_type = AttributeEntityTypeEnum(description=AttributeDescriptions.ENTITY_TYPE)
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
@@ -76,27 +73,27 @@ class AttributeCreateInput(BaseInputObjectType):
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
     )
     filterable_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
-        + DEPRECATED_IN_3X_INPUT
+        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT,
+        deprecation_reason="",
     )
     filterable_in_dashboard = graphene.Boolean(
         description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
     )
     storefront_search_position = graphene.Int(
         required=False,
-        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
-        + DEPRECATED_IN_3X_INPUT,
+        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION,
+        deprecation_reason="",
     )
     available_in_grid = graphene.Boolean(
         required=False,
-        description=AttributeDescriptions.AVAILABLE_IN_GRID + DEPRECATED_IN_3X_INPUT,
+        description=AttributeDescriptions.AVAILABLE_IN_GRID,
+        deprecation_reason="",
     )
     external_reference = graphene.String(
         description="External ID of this attribute.", required=False
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         description = (
             "Represents an input for create of attribute.\n\n"
             "NOTE: Deprecated fields `filterableInStorefront`, "
@@ -105,6 +102,8 @@ class AttributeCreateInput(BaseInputObjectType):
         )
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(async_events={WebhookEventAsyncType.ATTRIBUTE_CREATED})
 class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
@@ -123,12 +122,6 @@ class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
         description = "Creates an attribute."
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_CREATED,
-                description="An attribute was created.",
-            ),
-        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

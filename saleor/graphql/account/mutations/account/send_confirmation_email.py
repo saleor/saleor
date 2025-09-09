@@ -18,12 +18,21 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import SendConfirmationEmailError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....site.dataloaders import get_site_promise
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
+    }
+)
 class SendConfirmationEmail(BaseMutation):
+    """Sends a notification confirmation."""
+
     class Arguments:
         redirect_url = graphene.String(
             required=True,
@@ -37,23 +46,8 @@ class SendConfirmationEmail(BaseMutation):
         )
 
     class Meta:
-        description = "Sends a notification confirmation."
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = SendConfirmationEmailError
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for account confirmation.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
-                description=(
-                    "An account confirmation was requested. "
-                    "This event is always sent regardless of settings."
-                ),
-            ),
-        ]
 
     @classmethod
     def clean_user(cls, site, redirect_url, info: ResolveInfo):

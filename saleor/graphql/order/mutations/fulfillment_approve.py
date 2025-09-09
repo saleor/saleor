@@ -16,7 +16,7 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Fulfillment, Order
@@ -24,6 +24,8 @@ from ..utils import prepare_insufficient_stock_order_validation_errors
 from .order_fulfill import OrderFulfill
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
+@webhook_events(async_events={WebhookEventAsyncType.FULFILLMENT_APPROVED})
 class FulfillmentApprove(BaseMutation):
     fulfillment = graphene.Field(Fulfillment, description="An approved fulfillment.")
     order = graphene.Field(Order, description="Order which fulfillment was approved.")
@@ -39,16 +41,9 @@ class FulfillmentApprove(BaseMutation):
 
     class Meta:
         description = "Approve existing fulfillment."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.FULFILLMENT_APPROVED,
-                description="Fulfillment is approved.",
-            ),
-        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, fulfillment):

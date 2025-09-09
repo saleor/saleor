@@ -14,8 +14,8 @@ from ...core.descriptions import ADDED_IN_320, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
-from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
+from ...directives import doc
 from ...payment.mutations.transaction.utils import get_transaction_item
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
@@ -36,6 +36,7 @@ class OrderGrantRefundCreateLineError(Error):
     )
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderGrantRefundCreateError(Error):
     code = OrderGrantRefundCreateErrorCode(description="The error code.", required=True)
     lines = NonNullList(
@@ -44,22 +45,18 @@ class OrderGrantRefundCreateError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderGrantRefundCreateLineInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderGrantRefundCreateLineInput(graphene.InputObjectType):
     id = graphene.ID(description="The ID of the order line.", required=True)
     quantity = graphene.Int(
         description="The quantity of line items to be marked to refund.", required=True
     )
     reason = graphene.String(description="Reason of the granted refund for the line.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderGrantRefundCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderGrantRefundCreateInput(graphene.InputObjectType):
     amount = Decimal(
         description=(
             "Amount of the granted refund. If not provided, the amount will be "
@@ -90,10 +87,8 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderGrantRefundCreate(BaseMutation):
     order = graphene.Field(
         Order, description="Order which has assigned new grant refund."
@@ -113,7 +108,6 @@ class OrderGrantRefundCreate(BaseMutation):
         description = "Adds granted refund to the order."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderGrantRefundCreateError
-        doc_category = DOC_CATEGORY_ORDERS
 
     @classmethod
     def clean_input_lines(

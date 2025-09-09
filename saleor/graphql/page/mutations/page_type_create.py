@@ -11,8 +11,9 @@ from ....permission.enums import PageTypePermissions
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import BaseInputObjectType, NonNullList, PageError
+from ...core.types import NonNullList, PageError
 from ...core.validators import validate_slug_and_generate_if_needed
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import PageType
 
@@ -20,16 +21,14 @@ if TYPE_CHECKING:
     from ....attribute.models import Attribute
 
 
-class PageTypeCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PAGES)
+class PageTypeCreateInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the page type.")
     slug = graphene.String(description="Page type slug.")
     add_attributes = NonNullList(
         graphene.ID,
         description="List of attribute IDs to be assigned to the page type.",
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PAGES
 
 
 class PageTypeMixin:

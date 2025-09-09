@@ -4,6 +4,7 @@ import graphene
 from celery.exceptions import Retry
 from django.db.models import Exists, OuterRef
 from graphene.utils.str_converters import to_camel_case
+from graphql_relay import from_global_id
 
 from ....app.models import App
 from ....core import EventDeliveryStatus
@@ -27,11 +28,13 @@ from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.mutations import BaseMutation
 from ...core.types.common import WebhookTriggerError
 from ...core.utils import from_global_id_or_error, raise_validation_error
+from ...directives import doc
 from ..subscription_query import SubscriptionQuery
 from ..subscription_types import ASYNC_WEBHOOK_TYPES_MAP
 from ..types import EventDelivery
 
 
+@doc(category=DOC_CATEGORY_WEBHOOKS)
 class WebhookTrigger(BaseMutation):
     delivery = graphene.Field(EventDelivery)
 
@@ -48,7 +51,6 @@ class WebhookTrigger(BaseMutation):
             "relevant to processed event. Successfully delivered webhook returns "
             "`delivery` with status='PENDING' and empty payload."
         )
-        doc_category = DOC_CATEGORY_WEBHOOKS
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
         error_type_class = WebhookTriggerError
 
@@ -75,7 +77,7 @@ class WebhookTrigger(BaseMutation):
     @classmethod
     def validate_event_type(cls, event_type, object_id):
         event = cls._get_async_event_or_raise_error(event_type)
-        model, _ = graphene.Node.from_global_id(object_id)
+        model, _ = from_global_id(object_id)
         model_name = event._meta.root_type  # type: ignore[unused-ignore]
         enable_dry_run = event._meta.enable_dry_run  # type: ignore[unused-ignore]
 

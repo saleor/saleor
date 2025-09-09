@@ -1,12 +1,13 @@
+import graphene
+
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class EventDeliverySortField(BaseEnum):
+@doc(category=DOC_CATEGORY_WEBHOOKS)
+class EventDeliverySortField(graphene.Enum):
     CREATED_AT = ["created_at"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_WEBHOOKS
 
     @property
     def description(self):
@@ -16,18 +17,16 @@ class EventDeliverySortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_WEBHOOKS)
 class EventDeliverySortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_WEBHOOKS
         sort_enum = EventDeliverySortField
         type_name = "deliveries"
 
 
-class EventDeliveryAttemptSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_WEBHOOKS)
+class EventDeliveryAttemptSortField(graphene.Enum):
     CREATED_AT = ["created_at"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_WEBHOOKS
 
     @property
     def description(self):
@@ -37,8 +36,8 @@ class EventDeliveryAttemptSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_WEBHOOKS)
 class EventDeliveryAttemptSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_WEBHOOKS
         sort_enum = EventDeliveryAttemptSortField
         type_name = "attempts"

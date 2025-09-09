@@ -3,7 +3,8 @@ import graphene
 from ..core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.scalars import JSON, PositiveDecimal
-from ..core.types import BaseInputObjectType, NonNullList
+from ..core.types import NonNullList
+from ..directives import doc
 from ..discount.filters import DiscountedObjectWhereInput
 from ..product.filters.category import CategoryWhereInput
 from ..product.filters.collection import CollectionWhereInput
@@ -12,7 +13,7 @@ from ..product.filters.product_variant import ProductVariantWhereInput
 from .enums import RewardTypeEnum, RewardValueTypeEnum
 
 
-class PredicateInputObjectType(BaseInputObjectType):
+class PredicateInputObjectType(graphene.InputObjectType):
     """Class for defining the predicate input.
 
     AND and OR class type fields are automatically added to available input
@@ -23,7 +24,7 @@ class PredicateInputObjectType(BaseInputObjectType):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, _meta=None, **options):  # type: ignore[override]
+    def __init_subclass_with_meta__(cls, _meta=None, **options):
         super().__init_subclass_with_meta__(_meta=_meta, **options)
         cls._meta.fields.update(
             {
@@ -45,6 +46,7 @@ class PredicateInputObjectType(BaseInputObjectType):
         )
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class CataloguePredicateInput(PredicateInputObjectType):
     variant_predicate = ProductVariantWhereInput(
         description="Defines the product variant conditions to be met."
@@ -59,21 +61,16 @@ class CataloguePredicateInput(PredicateInputObjectType):
         description="Defines the collection conditions to be met."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class OrderPredicateInput(PredicateInputObjectType):
     discounted_object_predicate = graphene.Field(
         DiscountedObjectWhereInput,
         description="Defines the conditions related to checkout and order objects.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
-class PromotionRuleBaseInput(BaseInputObjectType):
+class PromotionRuleBaseInput(graphene.InputObjectType):
     name = graphene.String(description="Promotion rule name.")
     description = JSON(description="Promotion rule description.")
     catalogue_predicate = CataloguePredicateInput(

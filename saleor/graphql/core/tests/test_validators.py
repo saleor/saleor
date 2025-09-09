@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ....product.models import Category
 from ..validators import (

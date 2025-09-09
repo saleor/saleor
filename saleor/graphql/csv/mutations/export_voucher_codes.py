@@ -11,14 +11,16 @@ from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_318, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ...core.types import BaseInputObjectType, ExportError, NonNullList
-from ...core.utils import WebhookEventInfo, raise_validation_error
+from ...core.types import ExportError, NonNullList
+from ...core.utils import raise_validation_error
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...directives import doc, webhook_events
 from ..enums import FileTypeEnum
 from .base_export import BaseExportMutation
 
 
-class ExportVoucherCodesInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class ExportVoucherCodesInput(graphene.InputObjectType):
     voucher_id = graphene.GlobalID(
         required=False,
         description=(
@@ -33,10 +35,9 @@ class ExportVoucherCodesInput(BaseInputObjectType):
     )
     file_type = FileTypeEnum(description="Type of exported file.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED})
 class ExportVoucherCodes(BaseExportMutation):
     class Arguments:
         input = ExportVoucherCodesInput(
@@ -47,15 +48,8 @@ class ExportVoucherCodes(BaseExportMutation):
         description = (
             "Export voucher codes to csv/xlsx file." + ADDED_IN_318 + PREVIEW_FEATURE
         )
-        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = ExportError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
-                description="A notification for the exported file.",
-            ),
-        ]
 
     @classmethod
     def clean_input(cls, input):

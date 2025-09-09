@@ -10,6 +10,7 @@ from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from .dataloaders import AppByIdLoader, AppExtensionByIdLoader, app_promise_callback
 from .filters import AppExtensionFilter, AppFilter
 from .mutations import (
@@ -43,80 +44,92 @@ from .types import (
 )
 
 
+@doc(category=DOC_CATEGORY_APPS)
 class AppFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_APPS
         filterset_class = AppFilter
 
 
+@doc(category=DOC_CATEGORY_APPS)
 class AppExtensionFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_APPS
         filterset_class = AppExtensionFilter
 
 
 class AppQueries(graphene.ObjectType):
-    apps_installations = PermissionsField(
-        NonNullList(AppInstallation),
-        description="List of all apps installations",
-        required=True,
-        permissions=[
-            AppPermission.MANAGE_APPS,
-        ],
-        doc_category=DOC_CATEGORY_APPS,
-    )
-    apps = FilterConnectionField(
-        AppCountableConnection,
-        filter=AppFilterInput(description="Filtering options for apps."),
-        sort_by=AppSortingInput(description="Sort apps."),
-        description="List of the apps.",
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AppPermission.MANAGE_APPS,
-        ],
-        doc_category=DOC_CATEGORY_APPS,
-    )
-    app = PermissionsField(
-        App,
-        id=graphene.Argument(graphene.ID, description="ID of the app.", required=False),
-        description=(
-            "Look up an app by ID. If ID is not provided, return the currently "
-            "authenticated app.\n\nRequires one of the following permissions: "
-            f"{AuthorizationFilters.AUTHENTICATED_STAFF_USER.name} "
-            f"{AuthorizationFilters.AUTHENTICATED_APP.name}. The authenticated app has "
-            f"access to its resources. Fetching different apps requires "
-            f"{AppPermission.MANAGE_APPS.name} permission."
+    apps_installations = doc(
+        DOC_CATEGORY_APPS,
+        PermissionsField(
+            NonNullList(AppInstallation),
+            description="List of all apps installations",
+            required=True,
+            permissions=[
+                AppPermission.MANAGE_APPS,
+            ],
         ),
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        auto_permission_message=False,
-        doc_category=DOC_CATEGORY_APPS,
     )
-    app_extensions = FilterConnectionField(
-        AppExtensionCountableConnection,
-        filter=AppExtensionFilterInput(
-            description="Filtering options for apps extensions."
+    apps = doc(
+        DOC_CATEGORY_APPS,
+        FilterConnectionField(
+            AppCountableConnection,
+            filter=AppFilterInput(description="Filtering options for apps."),
+            sort_by=AppSortingInput(description="Sort apps."),
+            description="List of the apps.",
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AppPermission.MANAGE_APPS,
+            ],
         ),
-        description="List of all extensions.",
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        doc_category=DOC_CATEGORY_APPS,
     )
-    app_extension = PermissionsField(
-        AppExtension,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the app extension.", required=True
+    app = doc(
+        DOC_CATEGORY_APPS,
+        PermissionsField(
+            App,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the app.", required=False
+            ),
+            description=(
+                "Look up an app by ID. If ID is not provided, return the currently "
+                "authenticated app.\n\nRequires one of the following permissions: "
+                f"{AuthorizationFilters.AUTHENTICATED_STAFF_USER.name} "
+                f"{AuthorizationFilters.AUTHENTICATED_APP.name}. The authenticated app has "
+                f"access to its resources. Fetching different apps requires "
+                f"{AppPermission.MANAGE_APPS.name} permission."
+            ),
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
+            auto_permission_message=False,
         ),
-        description="Look up an app extension by ID.",
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        doc_category=DOC_CATEGORY_APPS,
+    )
+    app_extensions = doc(
+        DOC_CATEGORY_APPS,
+        FilterConnectionField(
+            AppExtensionCountableConnection,
+            filter=AppExtensionFilterInput(
+                description="Filtering options for apps extensions."
+            ),
+            description="List of all extensions.",
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
+        ),
+    )
+    app_extension = doc(
+        DOC_CATEGORY_APPS,
+        PermissionsField(
+            AppExtension,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the app extension.", required=True
+            ),
+            description="Look up an app extension by ID.",
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
+        ),
     )
 
     @staticmethod

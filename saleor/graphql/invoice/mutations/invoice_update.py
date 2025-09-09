@@ -10,12 +10,14 @@ from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import BaseInputObjectType, InvoiceError, NonNullList
+from ...core.types import InvoiceError, NonNullList
+from ...directives import doc
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ..types import Invoice
 
 
-class UpdateInvoiceInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class UpdateInvoiceInput(graphene.InputObjectType):
     number = graphene.String(description="Invoice number")
     url = graphene.String(description="URL of an invoice to download.")
     metadata = NonNullList(
@@ -30,9 +32,6 @@ class UpdateInvoiceInput(BaseInputObjectType):
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class InvoiceUpdate(DeprecatedModelMutation):

@@ -5,6 +5,7 @@ import graphene
 from django.db.models import Exists, OuterRef, Q
 from django.db.models.query import QuerySet
 from django.utils import timezone
+from graphql_relay import from_global_id
 
 from ....attribute.models import (
     AssignedVariantAttribute,
@@ -43,6 +44,7 @@ from ...core.filters import (
 )
 from ...core.filters.where_input import StringFilterInput, WhereInputObjectType
 from ...core.types import DateTimeRangeInput
+from ...directives import doc
 from ...utils.filters import (
     Number,
     filter_by_ids,
@@ -397,18 +399,18 @@ def filter_by_contains_referenced_object_ids(
     contains_all = attr_value.get("contains_all")
     contains_any = attr_value.get("contains_any")
 
-    variant_ids = set()
-    product_ids = set()
-    page_ids = set()
+    variant_ids: set[int] = set()
+    product_ids: set[int] = set()
+    page_ids: set[int] = set()
 
     for obj_id in contains_any or contains_all or []:
-        type_, id_ = graphene.Node.from_global_id(obj_id)
+        type_, id_ = from_global_id(obj_id)
         if type_ == "Page":
-            page_ids.add(id_)
+            page_ids.add(int(id_))
         elif type_ == "Product":
-            product_ids.add(id_)
+            product_ids.add(int(id_))
         elif type_ == "ProductVariant":
-            variant_ids.add(id_)
+            variant_ids.add(int(id_))
 
     if contains_all:
         return _filter_by_contains_all_referenced_object_ids(
@@ -615,13 +617,13 @@ class ProductVariantWhere(MetadataWhereFilterBase):
         return super().is_valid()
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductVariantFilter
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductVariantWhere

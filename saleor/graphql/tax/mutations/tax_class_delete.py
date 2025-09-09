@@ -5,19 +5,20 @@ from ....tax import error_codes, models
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import Error
+from ...directives import doc
 from ..types import TaxClass
 
-TaxClassDeleteErrorCode = graphene.Enum.from_enum(error_codes.TaxClassDeleteErrorCode)
-TaxClassDeleteErrorCode.doc_category = DOC_CATEGORY_TAXES
+TaxClassDeleteErrorCode = doc(
+    DOC_CATEGORY_TAXES, graphene.Enum.from_enum(error_codes.TaxClassDeleteErrorCode)
+)
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxClassDeleteError(Error):
     code = TaxClassDeleteErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxClassDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a tax class to delete.")

@@ -3,7 +3,7 @@ from babel.numbers import get_currency_precision
 
 from ....core.prices import quantize_price
 from ...core.doc_category import DOC_CATEGORY_TAXES
-from ...core.types import BaseObjectType
+from ...directives import doc
 
 
 class Money(graphene.ObjectType):
@@ -68,7 +68,8 @@ class TaxedMoneyRange(graphene.ObjectType):
         description = "Represents a range of monetary values."
 
 
-class VAT(BaseObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class VAT(graphene.ObjectType):
     country_code = graphene.String(description="Country code.", required=True)
     standard_rate = graphene.Float(description="Standard VAT rate in percent.")
     reduced_rates = graphene.List(
@@ -79,7 +80,6 @@ class VAT(BaseObjectType):
 
     class Meta:
         description = "Represents a VAT rate for a country."
-        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_standard_rate(root, _info):
@@ -94,10 +94,10 @@ class VAT(BaseObjectType):
         ]
 
 
-class ReducedRate(BaseObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class ReducedRate(graphene.ObjectType):
     rate = graphene.Float(description="Reduced VAT rate in percent.", required=True)
     rate_type = graphene.String(description="A type of goods.", required=True)
 
     class Meta:
         description = "Represents a reduced VAT rate for a particular type of goods."
-        doc_category = DOC_CATEGORY_TAXES

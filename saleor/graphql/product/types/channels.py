@@ -26,7 +26,8 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
 from ...core.tracing import traced_resolver
-from ...core.types import BaseObjectType, ModelObjectType
+from ...core.types import ModelObjectType
+from ...directives import doc
 from ...tax.dataloaders import (
     TaxClassCountryRateByTaxClassIDLoader,
     TaxClassDefaultRateByCountryLoader,
@@ -41,12 +42,12 @@ from ..dataloaders import (
 )
 
 
-class Margin(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class Margin(graphene.ObjectType):
     start = graphene.Int(description="The starting value of the margin.")
     stop = graphene.Int(description="The ending value of the margin.")
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Metadata for the Margin class."
 
 
@@ -309,7 +310,8 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         return Promise.all([channel, tax_class_id_loader]).then(load_tax_configuration)
 
 
-class PreorderThreshold(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class PreorderThreshold(graphene.ObjectType):
     quantity = graphene.Int(
         required=False,
         description="Preorder threshold for product variant in this channel.",
@@ -320,7 +322,6 @@ class PreorderThreshold(BaseObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents preorder variant data for channel."
 
 

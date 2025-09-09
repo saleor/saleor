@@ -1,6 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ....attribute import AttributeInputType, models
 from ....core.utils.editorjs import clean_editor_js
@@ -9,19 +9,16 @@ from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeValueTranslation
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import AttributeValueTranslateErrorCode, LanguageCodeEnum
-from ...core.types import (
-    AttributeValueBulkTranslateError,
-    BaseInputObjectType,
-    BaseObjectType,
-    NonNullList,
-)
+from ...core.types import AttributeValueBulkTranslateError, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...directives import doc
 from .attribute_value_translate import AttributeValueTranslationInput
 from .utils import BaseBulkTranslateMutation
 
 
-class AttributeValueBulkTranslateResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeValueBulkTranslateResult(graphene.ObjectType):
     translation = graphene.Field(
         AttributeValueTranslation, description="Attribute value translation data."
     )
@@ -31,11 +28,9 @@ class AttributeValueBulkTranslateResult(BaseObjectType):
         description="List of errors occurred on translation attempt.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-class AttributeValueBulkTranslateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeValueBulkTranslateInput(graphene.InputObjectType):
     id = graphene.ID(
         required=False,
         description="Attribute value ID.",
@@ -52,10 +47,8 @@ class AttributeValueBulkTranslateInput(BaseInputObjectType):
         description="Translation fields.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
     count = graphene.Int(
         required=True,
@@ -64,7 +57,7 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
     results = NonNullList(
         AttributeValueBulkTranslateResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the translations.",
     )
 
@@ -84,7 +77,6 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
         result_type = AttributeValueBulkTranslateResult
         error_type_class = AttributeValueBulkTranslateError
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @classmethod
     def clean_translations(cls, data_inputs, index_error_map):

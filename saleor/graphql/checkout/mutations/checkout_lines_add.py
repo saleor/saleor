@@ -15,14 +15,13 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import MetadataErrorCode
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
-from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_variants_available_in_channel
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
@@ -41,6 +40,8 @@ from .utils import (
 )
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
+@webhook_events(async_events={WebhookEventAsyncType.CHECKOUT_UPDATED})
 class CheckoutLinesAdd(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
@@ -50,14 +51,14 @@ class CheckoutLinesAdd(BaseMutation):
             required=False,
         )
         token = UUID(
-            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            description="Checkout token.",
+            deprecation_reason="Use `id` instead.",
             required=False,
         )
         checkout_id = graphene.ID(
             required=False,
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
-            ),
+            description="The ID of the checkout.",
+            deprecation_reason="Use `id` instead.",
         )
         lines = NonNullList(
             CheckoutLineInput,
@@ -73,15 +74,8 @@ class CheckoutLinesAdd(BaseMutation):
             "Adds a checkout line to the existing checkout."
             "If line was already in checkout, its quantity will be increased."
         )
-        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
-                description="A checkout was updated.",
-            )
-        ]
 
     @classmethod
     def validate_checkout_lines(

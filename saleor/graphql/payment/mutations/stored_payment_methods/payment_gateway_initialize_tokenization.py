@@ -10,11 +10,15 @@ from ....core.enums import PaymentGatewayInitializeTokenizationErrorCode
 from ....core.mutations import BaseMutation
 from ....core.scalars import JSON
 from ....core.types.common import PaymentGatewayInitializeTokenizationError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PaymentGatewayInitializeTokenizationResultEnum
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
+@webhook_events(
+    sync_events={WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION}
+)
 class PaymentGatewayInitializeTokenization(BaseMutation):
     result = PaymentGatewayInitializeTokenizationResultEnum(
         description="A status of the payment gateway initialization.", required=True
@@ -40,21 +44,9 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
         )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Initializes payment gateway for tokenizing payment method session."
         )
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=(
-                    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION
-                ),
-                description=(
-                    "The customer requested to initialize payment gateway for "
-                    "tokenization."
-                ),
-            ),
-        ]
         error_type_class = PaymentGatewayInitializeTokenizationError
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 

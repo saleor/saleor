@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from graphene_directives import directive
 
 from ....account import models
 from ....account.error_codes import AccountErrorCode
@@ -8,10 +9,14 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import BaseBulkMutation
 from ...core.types import AccountError, NonNullList
+from ...directives import doc
 from ..types import User
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class UserBulkSetActive(BaseBulkMutation):
+    """Activate or deactivate users."""
+
     class Arguments:
         ids = NonNullList(
             graphene.ID,
@@ -23,8 +28,6 @@ class UserBulkSetActive(BaseBulkMutation):
         )
 
     class Meta:
-        description = "Activate or deactivate users."
-        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)

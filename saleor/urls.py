@@ -5,7 +5,6 @@ from django.urls import re_path
 from django.views.decorators.csrf import csrf_exempt
 
 from .core.views import jwks
-from .graphql.api import backend, schema
 from .graphql.views import GraphQLView
 from .plugins.views import (
     handle_global_plugin_webhook,
@@ -18,7 +17,7 @@ from .thumbnail.views import handle_thumbnail
 urlpatterns = [
     re_path(
         r"^graphql/$",
-        csrf_exempt(GraphQLView.as_view(backend=backend, schema=schema)),
+        csrf_exempt(GraphQLView.as_view()),
         name="api",
     ),
     re_path(

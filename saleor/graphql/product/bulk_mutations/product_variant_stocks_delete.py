@@ -14,12 +14,14 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, StockError
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..types import ProductVariant
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantStocksDelete(BaseMutation):
     product_variant = graphene.Field(
         ProductVariant, description="Updated product variant."
@@ -40,7 +42,6 @@ class ProductVariantStocksDelete(BaseMutation):
 
     class Meta:
         description = "Deletes stocks from product variant."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = StockError
         error_type_field = "stock_errors"

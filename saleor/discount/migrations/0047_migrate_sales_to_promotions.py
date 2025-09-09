@@ -8,6 +8,7 @@ from django.apps import apps as registry
 from django.db import migrations, transaction
 from django.db.models import Exists, OuterRef
 from django.db.models.signals import post_migrate
+from graphql_relay import from_global_id
 
 from ..tasks import update_discounted_prices_task
 
@@ -393,7 +394,7 @@ def migrate_order_line_discounts(
         order_line_discounts = []
         for order_line in order_lines:
             channel_id = order_line.order.channel_id
-            sale_id = graphene.Node.from_global_id(order_line.sale_id)[1]
+            sale_id = from_global_id(order_line.sale_id)[1]
             lookup = f"{channel_id}_{sale_id}"
             if rule := rule_by_channel_and_sale.get(lookup):
                 order_line_discounts.append(

@@ -1,6 +1,7 @@
 import graphene
 import pytest
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from .....account.models import User
 from .....account.search import prepare_user_search_document_value
@@ -106,7 +107,7 @@ def test_query_customers_with_filter_by_one_id(
 
     # then
     result_user = content["data"]["customers"]["edges"][0]
-    _, id = graphene.Node.from_global_id(result_user["node"]["id"])
+    _, id = from_global_id(result_user["node"]["id"])
     assert id == str(search_user.pk)
 
 
@@ -136,7 +137,7 @@ def test_query_customers_with_filter_by_multiple_ids(
 
     assert len(result_users) == len(search_users)
     for result_user in result_users:
-        _, id = graphene.Node.from_global_id(result_user["node"]["id"])
+        _, id = from_global_id(result_user["node"]["id"])
         assert id in expected_ids
 
 
@@ -161,7 +162,7 @@ def test_query_customers_with_filter_by_empty_list(
 
     assert len(result_users) == len(customer_users)
     for result_user in result_users:
-        _, id = graphene.Node.from_global_id(result_user["node"]["id"])
+        _, id = from_global_id(result_user["node"]["id"])
         assert id in expected_ids
 
 
@@ -319,7 +320,7 @@ def test_query_customers_with_filter_metadata(
     users = content["data"]["customers"]["edges"]
     assert len(users) == 1
     user = users[0]
-    _, user_id = graphene.Node.from_global_id(user["node"]["id"])
+    _, user_id = from_global_id(user["node"]["id"])
     assert second_customer.id == int(user_id)
 
 

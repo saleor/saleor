@@ -13,7 +13,7 @@ TRANSACTION_BATCH_SIZE = 10000
 
 def set_local_app_identifier_in_transaction_item(apps, _schema_editor):
     TransactionItem = apps.get_model("payment", "TransactionItem")
-    none_global_id = graphene.Node.to_global_id("App", None)
+    none_global_id = graphene.Node.to_global_id("App", "None")
 
     while True:
         transaction_items = TransactionItem.objects.filter(
@@ -32,7 +32,7 @@ def set_local_app_identifier_in_transaction_item(apps, _schema_editor):
 
 def set_local_app_identifier_in_transaction_event(apps, _schema_editor):
     TransactionEvent = apps.get_model("payment", "TransactionEvent")
-    none_global_id = graphene.Node.to_global_id("App", None)
+    none_global_id = graphene.Node.to_global_id("App", "None")
 
     while True:
         transaction_events = TransactionEvent.objects.filter(
@@ -51,7 +51,7 @@ def set_local_app_identifier_in_transaction_event(apps, _schema_editor):
 
 def set_identifier_for_local_apps(apps, _schema_editor):
     App = apps.get_model("app", "App")
-    none_global_id = graphene.Node.to_global_id("App", None)
+    none_global_id = graphene.Node.to_global_id("App", "None")
 
     while True:
         apps = App.objects.filter(

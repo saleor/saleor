@@ -13,13 +13,13 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.scalars import PositiveDecimal
 from ...core.types import GiftCardError, NonNullList
-from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_price_precision
+from ...directives import doc, webhook_events
 from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import GiftCard
-from .gift_card_create import GiftCardCreate, GiftCardInput
+from .gift_card_create import GiftCardInput, GiftCardMutationBase
 
 
 class GiftCardUpdateInput(GiftCardInput):
@@ -32,11 +32,10 @@ class GiftCardUpdateInput(GiftCardInput):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
-
-class GiftCardUpdate(GiftCardCreate):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+@webhook_events(async_events={WebhookEventAsyncType.GIFT_CARD_UPDATED})
+class GiftCardUpdate(GiftCardMutationBase):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a gift card to update.")
         input = GiftCardUpdateInput(
@@ -50,12 +49,6 @@ class GiftCardUpdate(GiftCardCreate):
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.GIFT_CARD_UPDATED,
-                description="A gift card was updated.",
-            )
-        ]
         support_meta_field = True
         support_private_meta_field = True
 

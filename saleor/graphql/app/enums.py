@@ -1,6 +1,7 @@
 from ...app.types import AppExtensionMount, AppExtensionTarget, AppType
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.enums import to_enum
+from ..directives import doc
 
 
 def description(enum):
@@ -52,18 +53,22 @@ class CircuitBreakerState:
     ]
 
 
-CircuitBreakerStateEnum = to_enum(CircuitBreakerState, description=breaker_description)
-CircuitBreakerStateEnum.doc_category = DOC_CATEGORY_APPS
-
-AppTypeEnum = to_enum(AppType, description=description)
-AppTypeEnum.doc_category = DOC_CATEGORY_APPS
-
-AppExtensionMountEnum = to_enum(
-    AppExtensionMount, description=AppExtensionMount.__doc__
+CircuitBreakerStateEnum = doc(
+    DOC_CATEGORY_APPS,
+    to_enum(CircuitBreakerState, description=breaker_description),
 )
-AppExtensionMountEnum.doc_category = DOC_CATEGORY_APPS
 
-AppExtensionTargetEnum = to_enum(
-    AppExtensionTarget, description=AppExtensionTarget.__doc__
+AppTypeEnum = doc(
+    DOC_CATEGORY_APPS,
+    to_enum(AppType, description=description),
 )
-AppExtensionTargetEnum.doc_category = DOC_CATEGORY_APPS
+
+AppExtensionMountEnum = doc(
+    DOC_CATEGORY_APPS,
+    to_enum(AppExtensionMount, description=AppExtensionMount.__doc__),
+)
+
+AppExtensionTargetEnum = doc(
+    DOC_CATEGORY_APPS,
+    to_enum(AppExtensionTarget, description=AppExtensionTarget.__doc__),
+)

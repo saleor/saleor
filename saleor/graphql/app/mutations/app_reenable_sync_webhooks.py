@@ -18,6 +18,7 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
+from ...directives import doc
 from ...utils import get_user_or_app_from_context
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 breaker_board = initialize_breaker_board()
 
 
+@doc(category=DOC_CATEGORY_APPS)
 class AppReenableSyncWebhooks(BaseMutation):
     app = graphene.Field(
         App,
@@ -42,7 +44,6 @@ class AppReenableSyncWebhooks(BaseMutation):
             "Can be used to manually re-enable sync webhooks for the app before "
             "the cooldown period ends." + ADDED_IN_321
         )
-        doc_category = DOC_CATEGORY_APPS
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"

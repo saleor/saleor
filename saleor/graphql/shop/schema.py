@@ -7,6 +7,7 @@ from ..core.context import get_database_connection_name
 from ..core.descriptions import DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS, DOC_CATEGORY_ORDERS
 from ..core.fields import PermissionsField
+from ..directives import doc
 from ..site.dataloaders import load_site_callback
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
@@ -29,23 +30,27 @@ class ShopQueries(graphene.ObjectType):
         description="Return information about the shop.",
         required=True,
     )
-    order_settings = PermissionsField(
-        OrderSettings,
-        description=(
-            "Order related settings from site settings. "
-            "Returns `orderSettings` for the first `channel` in "
-            "alphabetical order."
+    order_settings = doc(
+        DOC_CATEGORY_ORDERS,
+        PermissionsField(
+            OrderSettings,
+            description=(
+                "Order related settings from site settings. "
+                "Returns `orderSettings` for the first `channel` in "
+                "alphabetical order."
+            ),
+            deprecation_reason="Use the `channel` query to fetch the `orderSettings` field instead.",
+            permissions=[OrderPermissions.MANAGE_ORDERS],
         ),
-        deprecation_reason="Use the `channel` query to fetch the `orderSettings` field instead.",
-        permissions=[OrderPermissions.MANAGE_ORDERS],
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    gift_card_settings = PermissionsField(
-        GiftCardSettings,
-        description="Gift card related settings from site settings.",
-        required=True,
-        permissions=[GiftcardPermissions.MANAGE_GIFT_CARD],
-        doc_category=DOC_CATEGORY_GIFT_CARDS,
+    gift_card_settings = doc(
+        DOC_CATEGORY_GIFT_CARDS,
+        PermissionsField(
+            GiftCardSettings,
+            description="Gift card related settings from site settings.",
+            required=True,
+            permissions=[GiftcardPermissions.MANAGE_GIFT_CARD],
+        ),
     )
 
     def resolve_shop(self, _info):

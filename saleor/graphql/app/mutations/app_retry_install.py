@@ -8,12 +8,15 @@ from ....core import JobStatus
 from ....permission.enums import AppPermission
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AppError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ..types import AppInstallation
 
 
+@doc(category=DOC_CATEGORY_APPS)
+@webhook_events(async_events={WebhookEventAsyncType.APP_INSTALLED})
 class AppRetryInstall(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of failed installation.", required=True)
@@ -30,12 +33,6 @@ class AppRetryInstall(DeprecatedModelMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.APP_INSTALLED,
-                description="An app was installed.",
-            ),
-        ]
 
     @classmethod
     def save(

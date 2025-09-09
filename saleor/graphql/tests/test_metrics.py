@@ -7,7 +7,6 @@ from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.semconv.attributes import error_attributes
 
 from ...core.telemetry import Unit, saleor_attributes
-from ...graphql.api import backend, schema
 from ..metrics import (
     METRIC_GRAPHQL_QUERY_COST,
     METRIC_GRAPHQL_QUERY_COUNT,
@@ -73,7 +72,7 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
     )
 
     # when
-    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view = GraphQLView.as_view()
     view(request)
 
     # then
@@ -159,7 +158,7 @@ def test_graphql_query_record_metrics_invalid_query(
     )
 
     # when
-    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view = GraphQLView.as_view()
     view(request)
 
     # then
@@ -297,7 +296,7 @@ def test_graphql_view_record_http_metrics(mock_meter, rf, channel_USD, product_l
     )
 
     # when
-    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view = GraphQLView.as_view()
     view(request)
 
     # then
@@ -330,7 +329,7 @@ def test_graphql_view_record_http_metrics_error_type(mock_handle_query, mock_met
     )
 
     # when
-    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view = GraphQLView.as_view()
     view(request)
 
     # then

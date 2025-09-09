@@ -8,12 +8,13 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....directives import doc
 from ....site.dataloaders import get_site_promise
 from ...types import User
 from .utils import _get_new_csrf_token, update_user_last_login_if_required
 
 
-class CreateToken(BaseMutation):
+class AbstractCreateToken(BaseMutation):
     """Mutation that authenticates a user and returns token and user data."""
 
     class Arguments:
@@ -28,10 +29,7 @@ class CreateToken(BaseMutation):
         )
 
     class Meta:
-        description = "Create JWT token."
-        doc_category = DOC_CATEGORY_AUTH
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        abstract = True
 
     token = graphene.String(description="JWT token, required to authenticate.")
     refresh_token = graphene.String(
@@ -111,3 +109,12 @@ class CreateToken(BaseMutation):
             refresh_token=refresh_token,
             csrf_token=csrf_token,
         )
+
+
+@doc(category=DOC_CATEGORY_AUTH)
+class CreateToken(AbstractCreateToken):
+    """Create a new JWT token."""
+
+    class Meta:
+        error_type_class = AccountError
+        error_type_field = "account_errors"

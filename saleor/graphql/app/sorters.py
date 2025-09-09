@@ -1,13 +1,14 @@
+import graphene
+
 from ..core.doc_category import DOC_CATEGORY_APPS
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class AppSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_APPS)
+class AppSortField(graphene.Enum):
     NAME = ["name", "pk"]
     CREATION_DATE = ["created_at", "name", "pk"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_APPS
 
     @property
     def description(self):
@@ -17,8 +18,8 @@ class AppSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_APPS)
 class AppSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_APPS
         sort_enum = AppSortField
         type_name = "apps"

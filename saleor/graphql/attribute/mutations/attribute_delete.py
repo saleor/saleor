@@ -7,13 +7,16 @@ from ....permission.enums import ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(async_events={WebhookEventAsyncType.ATTRIBUTE_DELETED})
 class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(required=False, description="ID of an attribute to delete.")
@@ -29,12 +32,6 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_DELETED,
-                description="An attribute was deleted.",
-            ),
-        ]
 
     @classmethod
     def success_response(cls, instance):

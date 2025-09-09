@@ -9,20 +9,20 @@ from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
-from ...core.types import BaseInputObjectType, GiftCardError
-from ...core.utils import WebhookEventInfo
+from ...core.types import GiftCardError
 from ...core.validators import validate_required_string_field
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard, GiftCardEvent
 
 
-class GiftCardAddNoteInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+class GiftCardAddNoteInput(graphene.InputObjectType):
     message = graphene.String(description="Note message.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
-
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+@webhook_events(async_events={WebhookEventAsyncType.GIFT_CARD_UPDATED})
 class GiftCardAddNote(BaseMutation):
     gift_card = graphene.Field(GiftCard, description="Gift card with the note added.")
     event = graphene.Field(GiftCardEvent, description="Gift card note created.")
@@ -38,15 +38,8 @@ class GiftCardAddNote(BaseMutation):
 
     class Meta:
         description = "Adds note to the gift card."
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.GIFT_CARD_UPDATED,
-                description="A gift card was updated.",
-            )
-        ]
 
     @classmethod
     def clean_input(cls, _info: ResolveInfo, _instance, data):

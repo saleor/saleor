@@ -32,6 +32,7 @@ from ...thumbnail import IconThumbnailFormat, ThumbnailFormat
 from ...translations import error_codes as translatable_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
+from ..directives import doc
 from ..notifications import error_codes as external_notifications_error_codes
 from .doc_category import (
     DOC_CATEGORY_APPS,
@@ -104,8 +105,10 @@ LanguageCodeEnum = graphene.Enum(
 
 JobStatusEnum = to_enum(JobStatus)
 
-PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
-PermissionEnum.doc_category = DOC_CATEGORY_USERS
+PermissionEnum = doc(
+    DOC_CATEGORY_USERS,
+    graphene.Enum("PermissionEnum", get_permissions_enum_list()),
+)
 
 TimePeriodTypeEnum = to_enum(TimePeriodType)
 ThumbnailFormatEnum = to_enum(ThumbnailFormat)
@@ -151,228 +154,268 @@ def error_policy_enum_description(enum):
 
 ErrorPolicyEnum = to_enum(ErrorPolicy, description=error_policy_enum_description)
 
-AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
-AccountErrorCode.doc_category = DOC_CATEGORY_USERS
-
-AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
-AppErrorCode.doc_category = DOC_CATEGORY_APPS
-
-AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
-AttributeErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
-
-
-AttributeBulkCreateErrorCode = graphene.Enum.from_enum(
-    attribute_error_codes.AttributeBulkCreateErrorCode
+AccountErrorCode = doc(
+    DOC_CATEGORY_USERS,
+    graphene.Enum.from_enum(account_error_codes.AccountErrorCode),
 )
-AttributeBulkCreateErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-AttributeBulkUpdateErrorCode = graphene.Enum.from_enum(
-    attribute_error_codes.AttributeBulkUpdateErrorCode
+AppErrorCode = doc(
+    DOC_CATEGORY_APPS, graphene.Enum.from_enum(app_error_codes.AppErrorCode)
 )
-AttributeBulkCreateErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-AttributeTranslateErrorCode = graphene.Enum.from_enum(
-    translatable_error_codes.AttributeTranslateErrorCode
+AttributeErrorCode = doc(
+    DOC_CATEGORY_ATTRIBUTES,
+    graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode),
 )
-AttributeTranslateErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
 
-AttributeValueTranslateErrorCode = graphene.Enum.from_enum(
-    translatable_error_codes.AttributeValueTranslateErrorCode
+AttributeBulkCreateErrorCode = doc(
+    DOC_CATEGORY_ATTRIBUTES,
+    graphene.Enum.from_enum(attribute_error_codes.AttributeBulkCreateErrorCode),
 )
-AttributeValueTranslateErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
 
-ChannelErrorCode = graphene.Enum.from_enum(channel_error_codes.ChannelErrorCode)
-ChannelErrorCode.doc_category = DOC_CATEGORY_CHANNELS
-
-CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
-CheckoutErrorCode.doc_category = DOC_CATEGORY_CHECKOUT
-
-CustomerBulkUpdateErrorCode = graphene.Enum.from_enum(
-    account_error_codes.CustomerBulkUpdateErrorCode
+AttributeBulkUpdateErrorCode = doc(
+    DOC_CATEGORY_ATTRIBUTES,
+    graphene.Enum.from_enum(attribute_error_codes.AttributeBulkUpdateErrorCode),
 )
-CustomerBulkUpdateErrorCode.doc_category = DOC_CATEGORY_USERS
+
+AttributeTranslateErrorCode = doc(
+    DOC_CATEGORY_ATTRIBUTES,
+    graphene.Enum.from_enum(translatable_error_codes.AttributeTranslateErrorCode),
+)
+
+AttributeValueTranslateErrorCode = doc(
+    DOC_CATEGORY_ATTRIBUTES,
+    graphene.Enum.from_enum(translatable_error_codes.AttributeValueTranslateErrorCode),
+)
+
+ChannelErrorCode = doc(
+    DOC_CATEGORY_CHANNELS,
+    graphene.Enum.from_enum(channel_error_codes.ChannelErrorCode),
+)
+
+CheckoutErrorCode = doc(
+    DOC_CATEGORY_CHECKOUT,
+    graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode),
+)
+
+CustomerBulkUpdateErrorCode = doc(
+    DOC_CATEGORY_USERS,
+    graphene.Enum.from_enum(account_error_codes.CustomerBulkUpdateErrorCode),
+)
 
 ExternalNotificationTriggerErrorCode = graphene.Enum.from_enum(
     external_notifications_error_codes.ExternalNotificationErrorCodes
 )
 ExportErrorCode = graphene.Enum.from_enum(csv_error_codes.ExportErrorCode)
 
-DiscountErrorCode = graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode)
-DiscountErrorCode.doc_category = DOC_CATEGORY_DISCOUNTS
-
-VoucherCodeBulkDeleteErrorCode = graphene.Enum.from_enum(
-    discount_error_codes.VoucherCodeBulkDeleteErrorCode
+DiscountErrorCode = doc(
+    DOC_CATEGORY_DISCOUNTS,
+    graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode),
 )
-VoucherCodeBulkDeleteErrorCode.doc_category = DOC_CATEGORY_DISCOUNTS
+
+VoucherCodeBulkDeleteErrorCode = doc(
+    DOC_CATEGORY_DISCOUNTS,
+    graphene.Enum.from_enum(discount_error_codes.VoucherCodeBulkDeleteErrorCode),
+)
 
 PluginErrorCode = graphene.Enum.from_enum(plugin_error_codes.PluginErrorCode)
 
-GiftCardErrorCode = graphene.Enum.from_enum(giftcard_error_codes.GiftCardErrorCode)
-GiftCardErrorCode.doc_category = DOC_CATEGORY_GIFT_CARDS
+GiftCardErrorCode = doc(
+    DOC_CATEGORY_GIFT_CARDS,
+    graphene.Enum.from_enum(giftcard_error_codes.GiftCardErrorCode),
+)
 
 MenuErrorCode = graphene.Enum.from_enum(menu_error_codes.MenuErrorCode)
 
-OrderSettingsErrorCode = graphene.Enum.from_enum(
-    site_error_codes.OrderSettingsErrorCode
+OrderSettingsErrorCode = doc(
+    DOC_CATEGORY_ORDERS,
+    graphene.Enum.from_enum(site_error_codes.OrderSettingsErrorCode),
 )
-OrderSettingsErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
-GiftCardSettingsErrorCode = graphene.Enum.from_enum(
-    site_error_codes.GiftCardSettingsErrorCode
+GiftCardSettingsErrorCode = doc(
+    DOC_CATEGORY_GIFT_CARDS,
+    graphene.Enum.from_enum(site_error_codes.GiftCardSettingsErrorCode),
 )
-GiftCardSettingsErrorCode.doc_category = DOC_CATEGORY_GIFT_CARDS
 
 MetadataErrorCode = graphene.Enum.from_enum(core_error_codes.MetadataErrorCode)
 
-OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
-OrderErrorCode.doc_category = DOC_CATEGORY_ORDERS
+OrderErrorCode = doc(
+    DOC_CATEGORY_ORDERS, graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
+)
+
 OrderBulkCreateErrorCode = graphene.Enum.from_enum(
     order_error_codes.OrderBulkCreateErrorCode
 )
 
-InvoiceErrorCode = graphene.Enum.from_enum(invoice_error_codes.InvoiceErrorCode)
-InvoiceErrorCode.doc_category = DOC_CATEGORY_ORDERS
-
-PageErrorCode = graphene.Enum.from_enum(page_error_codes.PageErrorCode)
-PageErrorCode.doc_category = DOC_CATEGORY_PAGES
-
-PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)
-PaymentErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
-
-
-ProductTranslateErrorCode = graphene.Enum.from_enum(
-    translatable_error_codes.ProductTranslateErrorCode
+InvoiceErrorCode = doc(
+    DOC_CATEGORY_ORDERS,
+    graphene.Enum.from_enum(invoice_error_codes.InvoiceErrorCode),
 )
-ProductTranslateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
-
-ProductVariantTranslateErrorCode = graphene.Enum.from_enum(
-    translatable_error_codes.ProductVariantTranslateErrorCode
+PageErrorCode = doc(
+    DOC_CATEGORY_PAGES, graphene.Enum.from_enum(page_error_codes.PageErrorCode)
 )
-ProductVariantTranslateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
-
-TransactionCreateErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.TransactionCreateErrorCode
+PaymentErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS, graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)
 )
-TransactionCreateErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-TransactionUpdateErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.TransactionUpdateErrorCode
+ProductTranslateErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(translatable_error_codes.ProductTranslateErrorCode),
 )
-TransactionUpdateErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-TransactionRequestActionErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.TransactionRequestActionErrorCode
+ProductVariantTranslateErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(translatable_error_codes.ProductVariantTranslateErrorCode),
 )
-TransactionRequestActionErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-TransactionRequestRefundForGrantedRefundErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.TransactionRequestRefundForGrantedRefundErrorCode
+TransactionCreateErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(payment_error_codes.TransactionCreateErrorCode),
 )
-TransactionRequestRefundForGrantedRefundErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
-TransactionEventReportErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.TransactionEventReportErrorCode
+
+TransactionUpdateErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(payment_error_codes.TransactionUpdateErrorCode),
 )
-TransactionEventReportErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-TransactionInitializeErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.TransactionInitializeErrorCode
+TransactionRequestActionErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(payment_error_codes.TransactionRequestActionErrorCode),
 )
-TransactionInitializeErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-TransactionProcessErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.TransactionProcessErrorCode
+TransactionRequestRefundForGrantedRefundErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(
+        payment_error_codes.TransactionRequestRefundForGrantedRefundErrorCode
+    ),
 )
-TransactionProcessErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-PaymentGatewayConfigErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.PaymentGatewayConfigErrorCode
+TransactionEventReportErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(payment_error_codes.TransactionEventReportErrorCode),
 )
-PaymentGatewayConfigErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-PaymentGatewayInitializeErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.PaymentGatewayInitializeErrorCode
+TransactionInitializeErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(payment_error_codes.TransactionInitializeErrorCode),
 )
-PaymentGatewayInitializeErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-StoredPaymentMethodRequestDeleteErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.StoredPaymentMethodRequestDeleteErrorCode
+TransactionProcessErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(payment_error_codes.TransactionProcessErrorCode),
 )
-StoredPaymentMethodRequestDeleteErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-PaymentGatewayInitializeTokenizationErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.PaymentGatewayInitializeTokenizationErrorCode
+PaymentGatewayConfigErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(payment_error_codes.PaymentGatewayConfigErrorCode),
 )
-PaymentGatewayInitializeTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-PaymentMethodInitializeTokenizationErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.PaymentMethodInitializeTokenizationErrorCode
+PaymentGatewayInitializeErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(payment_error_codes.PaymentGatewayInitializeErrorCode),
 )
-PaymentMethodInitializeTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-PaymentMethodProcessTokenizationErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.PaymentMethodProcessTokenizationErrorCode
+StoredPaymentMethodRequestDeleteErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(
+        payment_error_codes.StoredPaymentMethodRequestDeleteErrorCode
+    ),
 )
-PaymentMethodProcessTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
-PermissionGroupErrorCode = graphene.Enum.from_enum(
-    account_error_codes.PermissionGroupErrorCode
+PaymentGatewayInitializeTokenizationErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(
+        payment_error_codes.PaymentGatewayInitializeTokenizationErrorCode
+    ),
 )
-PermissionGroupErrorCode.doc_category = DOC_CATEGORY_USERS
 
-ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
-ProductErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
-
-ProductBulkCreateErrorCode = graphene.Enum.from_enum(
-    product_error_codes.ProductBulkCreateErrorCode
+PaymentMethodInitializeTokenizationErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(
+        payment_error_codes.PaymentMethodInitializeTokenizationErrorCode
+    ),
 )
-ProductBulkCreateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
-ProductVariantBulkErrorCode = graphene.Enum.from_enum(
-    product_error_codes.ProductVariantBulkErrorCode
+PaymentMethodProcessTokenizationErrorCode = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(
+        payment_error_codes.PaymentMethodProcessTokenizationErrorCode
+    ),
 )
-ProductVariantBulkErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
-CollectionErrorCode = graphene.Enum.from_enum(product_error_codes.CollectionErrorCode)
-CollectionErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
-
-SendConfirmationEmailErrorCode = graphene.Enum.from_enum(
-    account_error_codes.SendConfirmationEmailErrorCode
+PermissionGroupErrorCode = doc(
+    DOC_CATEGORY_USERS,
+    graphene.Enum.from_enum(account_error_codes.PermissionGroupErrorCode),
 )
-SendConfirmationEmailErrorCode.doc_category = DOC_CATEGORY_USERS
+
+ProductErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(product_error_codes.ProductErrorCode),
+)
+
+ProductBulkCreateErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(product_error_codes.ProductBulkCreateErrorCode),
+)
+
+ProductBulkCreateErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(product_error_codes.ProductBulkCreateErrorCode),
+)
+
+ProductVariantBulkErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(product_error_codes.ProductVariantBulkErrorCode),
+)
+
+CollectionErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(product_error_codes.CollectionErrorCode),
+)
+
+SendConfirmationEmailErrorCode = doc(
+    DOC_CATEGORY_USERS,
+    graphene.Enum.from_enum(account_error_codes.SendConfirmationEmailErrorCode),
+)
 
 ShopErrorCode = graphene.Enum.from_enum(core_error_codes.ShopErrorCode)
 
-ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)
-ShippingErrorCode.doc_category = DOC_CATEGORY_SHIPPING
-
-StockErrorCode = graphene.Enum.from_enum(warehouse_error_codes.StockErrorCode)
-StockErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
-
-StockBulkUpdateErrorCode = graphene.Enum.from_enum(
-    warehouse_error_codes.StockBulkUpdateErrorCode
+ShippingErrorCode = doc(
+    DOC_CATEGORY_SHIPPING,
+    graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode),
 )
-StockBulkUpdateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+
+StockErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(warehouse_error_codes.StockErrorCode),
+)
+
+StockBulkUpdateErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(warehouse_error_codes.StockBulkUpdateErrorCode),
+)
 
 UploadErrorCode = graphene.Enum.from_enum(core_error_codes.UploadErrorCode)
 
-WarehouseErrorCode = graphene.Enum.from_enum(warehouse_error_codes.WarehouseErrorCode)
-WarehouseErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+WarehouseErrorCode = doc(
+    DOC_CATEGORY_PRODUCTS,
+    graphene.Enum.from_enum(warehouse_error_codes.WarehouseErrorCode),
+)
 
 TranslationErrorCode = graphene.Enum.from_enum(core_error_codes.TranslationErrorCode)
 
-WebhookErrorCode = graphene.Enum.from_enum(webhook_error_codes.WebhookErrorCode)
-WebhookErrorCode.doc_category = DOC_CATEGORY_WEBHOOKS
-
-WebhookDryRunErrorCode = graphene.Enum.from_enum(
-    webhook_error_codes.WebhookDryRunErrorCode
+WebhookErrorCode = doc(
+    DOC_CATEGORY_WEBHOOKS, graphene.Enum.from_enum(webhook_error_codes.WebhookErrorCode)
 )
-WebhookDryRunErrorCode.doc_category = DOC_CATEGORY_WEBHOOKS
 
-WebhookTriggerErrorCode = graphene.Enum.from_enum(
-    webhook_error_codes.WebhookTriggerErrorCode
+WebhookDryRunErrorCode = doc(
+    DOC_CATEGORY_WEBHOOKS,
+    graphene.Enum.from_enum(webhook_error_codes.WebhookDryRunErrorCode),
 )
-WebhookTriggerErrorCode.doc_category = DOC_CATEGORY_WEBHOOKS
+
+WebhookTriggerErrorCode = doc(
+    DOC_CATEGORY_WEBHOOKS,
+    graphene.Enum.from_enum(webhook_error_codes.WebhookTriggerErrorCode),
+)

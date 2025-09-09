@@ -5,13 +5,16 @@ from ....permission.enums import MenuPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.doc_category import DOC_CATEGORY_MENU
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import MenuError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Menu
 
 
+@doc(category=DOC_CATEGORY_MENU)
+@webhook_events(async_events={WebhookEventAsyncType.MENU_DELETED})
 class MenuDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a menu to delete.")
@@ -23,12 +26,6 @@ class MenuDelete(ModelDeleteMutation):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.MENU_DELETED,
-                description="A menu was deleted.",
-            ),
-        ]
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

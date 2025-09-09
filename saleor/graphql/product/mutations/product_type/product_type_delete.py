@@ -13,16 +13,17 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import ProductError
+from ....directives import doc
 from ...types import ProductType
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductTypeDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a product type to delete.")
 
     class Meta:
         description = "Deletes a product type."
-        doc_category = DOC_CATEGORY_PRODUCTS
         model = models.ProductType
         object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)

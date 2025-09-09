@@ -17,11 +17,13 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import PermissionEnum
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import PermissionGroupError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Group
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events({WebhookEventAsyncType.PERMISSION_GROUP_DELETED})
 class PermissionGroupDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(description="ID of the group to delete.", required=True)
@@ -30,17 +32,11 @@ class PermissionGroupDelete(ModelDeleteMutation):
         description = (
             "Delete permission group. Apps are not allowed to perform this mutation."
         )
-        doc_category = DOC_CATEGORY_USERS
         model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PERMISSION_GROUP_DELETED,
-            )
-        ]
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

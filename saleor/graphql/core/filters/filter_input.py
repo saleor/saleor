@@ -2,12 +2,10 @@ import itertools
 
 from django.db import models
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
-from graphene import Argument, InputField, String
+from graphene import Argument, InputField, InputObjectType, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from ..descriptions import DEPRECATED_IN_3X_INPUT
-from ..types.base import BaseInputObjectType
 from .shared_filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
 GLOBAL_ID_FILTERS = {
@@ -34,7 +32,7 @@ def get_filterset_class(filterset_class=None):
     )
 
 
-class FilterInputObjectType(BaseInputObjectType):
+class FilterInputObjectType(InputObjectType):
     """Class for storing and serving django-filters as graphQL input.
 
     FilterSet class which inherits from django-filters.FilterSet should be
@@ -42,7 +40,7 @@ class FilterInputObjectType(BaseInputObjectType):
     """
 
     @classmethod
-    def __init_subclass_with_meta__(  # type: ignore[override]
+    def __init_subclass_with_meta__(
         cls, _meta=None, model=None, filterset_class=None, fields=None, **options
     ):
         cls.custom_filterset_class = filterset_class
@@ -93,10 +91,8 @@ class FilterInputObjectType(BaseInputObjectType):
 class ChannelFilterInputObjectType(FilterInputObjectType):
     channel = Argument(
         String,
-        description=(
-            "Specifies the channel by which the data should be filtered. "
-            f"{DEPRECATED_IN_3X_INPUT} Use root-level channel argument instead."
-        ),
+        description="Specifies the channel by which the data should be filtered.",
+        deprecation_reason="Use root-level `channel` argument instead.",
     )
 
     class Meta:

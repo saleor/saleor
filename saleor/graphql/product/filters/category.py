@@ -13,12 +13,9 @@ from ...core.filters import (
     MetadataWhereFilterBase,
     ObjectTypeFilter,
 )
-from ...core.filters.where_input import (
-    WhereInputObjectType,
-)
-from ...core.types import (
-    DateTimeRangeInput,
-)
+from ...core.filters.where_input import WhereInputObjectType
+from ...core.types import DateTimeRangeInput
+from ...directives import doc
 from ...utils.filters import (
     filter_by_ids,
     filter_slug_list,
@@ -64,13 +61,13 @@ class CategoryWhere(MetadataWhereFilterBase):
         fields = []
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CategoryFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CategoryFilter
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CategoryWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CategoryWhere

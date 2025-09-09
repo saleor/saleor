@@ -2,7 +2,7 @@ import hashlib
 import logging
 import traceback
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 import graphene
@@ -10,9 +10,14 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
-from graphql import GraphQLDocument
-from graphql.error import GraphQLError
-from graphql.error import format_error as format_graphql_error
+from graphql import (
+    DocumentNode,
+    FieldNode,
+    GraphQLError,
+    GraphQLFormattedError,
+    OperationDefinitionNode,
+)
+from graphql.error.graphql_error import format_error as format_graphql_error
 from jwt import InvalidTokenError
 
 from ...account.models import User
@@ -21,7 +26,6 @@ from ...core.exceptions import CircularSubscriptionSyncEvent, PermissionDenied
 from ..core.enums import PermissionEnum
 from ..core.types import TYPES_WITH_DOUBLE_ID_AVAILABLE, Permission
 from ..core.utils import from_global_id_or_error
-from ..core.validators.query_cost import QueryCostError
 
 if TYPE_CHECKING:
     from ..core import SaleorContext
@@ -45,7 +49,6 @@ ALLOWED_ERRORS = [
     InvalidTokenError,
     PermissionDenied,
     ValidationError,
-    QueryCostError,
 ]
 
 AVAILABLE_SOURCE_SERVICE_NAMES_FOR_SPAN_TAG = {
@@ -207,7 +210,7 @@ def requestor_is_superuser(requestor):
     return getattr(requestor, "is_superuser", False)
 
 
-def query_identifier(document: GraphQLDocument) -> str:
+def query_identifier(document: DocumentNode) -> str:
     """Generate a identifier for a GraphQL query.
 
     For queries identifier is sorted set of all root objects separated by `,`.
@@ -241,24 +244,25 @@ def query_identifier(document: GraphQLDocument) -> str:
     identifier: deleteWarehouse, tokenCreate
     """
     labels = []
-    for definition in document.document_ast.definitions:
-        if getattr(definition, "operation", None) in {
+    for definition in document.definitions:
+        if isinstance(definition, OperationDefinitionNode) and definition.operation in {
             "query",
             "mutation",
         }:
             selections = definition.selection_set.selections
             for selection in selections:
-                labels.append(selection.name.value)
+                if isinstance(selection, FieldNode):
+                    labels.append(selection.name.value)
     if not labels:
         return "undefined"
     return ", ".join(sorted(set(labels)))
 
 
-def query_fingerprint(document: GraphQLDocument) -> str:
+def query_fingerprint(document: DocumentNode, query: str) -> str:
     """Generate a fingerprint for a GraphQL query."""
     label = "unknown"
-    for definition in document.document_ast.definitions:
-        if getattr(definition, "operation", None) in {
+    for definition in document.definitions:
+        if isinstance(definition, OperationDefinitionNode) and definition.operation in {
             "query",
             "mutation",
             "subscription",
@@ -266,14 +270,14 @@ def query_fingerprint(document: GraphQLDocument) -> str:
             if definition.name:
                 label = f"{definition.operation}:{definition.name.value}"
             else:
-                label = definition.operation
+                label = definition.operation.name
             break
-    query_hash = hashlib.md5(document.document_string.encode("utf-8")).hexdigest()
+    query_hash = hashlib.md5(str.encode("utf-8")).hexdigest()
     return f"{label}:{query_hash}"
 
 
 def format_error(error, handled_exceptions, query=None):
-    result: dict[str, Any]
+    result: GraphQLFormattedError
     if isinstance(error, GraphQLError):
         result = format_graphql_error(error)
     else:
@@ -287,8 +291,6 @@ def format_error(error, handled_exceptions, query=None):
         exc = exc.original_error
     if isinstance(exc, AssertionError):
         exc = GraphQLError(str(exc))
-    if query:
-        exc._exc_query = query
     if isinstance(exc, handled_exceptions):
         handled_errors_logger.debug("A query had an error", exc_info=exc)
     else:
@@ -305,12 +307,12 @@ def format_error(error, handled_exceptions, query=None):
 
     result["extensions"]["exception"] = {"code": type(exc).__name__}
     if settings.DEBUG:
-        lines = []
+        lines: list[str] = []
 
         if isinstance(exc, BaseException):
             for line in traceback.format_exception(type(exc), exc, exc.__traceback__):
                 lines.extend(line.rstrip().splitlines())
-        result["extensions"]["exception"]["stacktrace"] = lines
+        result["extensions"]["exception"]["stacktrace"] = "\n".join(lines)
     return result
 
 

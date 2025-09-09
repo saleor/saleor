@@ -10,18 +10,19 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import User
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
+@webhook_events(async_events={WebhookEventAsyncType.CHECKOUT_UPDATED})
 class CheckoutCustomerAttach(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
@@ -31,14 +32,14 @@ class CheckoutCustomerAttach(BaseMutation):
             required=False,
         )
         token = UUID(
-            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            description="Checkout token.",
+            deprecation_reason="Use `id` instead.",
             required=False,
         )
         checkout_id = graphene.ID(
             required=False,
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
-            ),
+            description="The ID of the checkout.",
+            deprecation_reason="Use `id` instead.",
         )
         customer_id = graphene.ID(
             required=False,
@@ -51,19 +52,12 @@ class CheckoutCustomerAttach(BaseMutation):
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
-        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
         permissions = (
             AuthorizationFilters.AUTHENTICATED_APP,
             AuthorizationFilters.AUTHENTICATED_USER,
         )
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
-                description="A checkout was updated.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(

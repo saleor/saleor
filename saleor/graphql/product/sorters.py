@@ -25,16 +25,15 @@ from ...product.models import (
 )
 from ..core.descriptions import CHANNEL_REQUIRED
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
-from ..core.types import BaseEnum, ChannelSortInputObjectType, SortInputObjectType
+from ..core.types import ChannelSortInputObjectType, SortInputObjectType
+from ..directives import doc
 
 
-class CategorySortField(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class CategorySortField(graphene.Enum):
     NAME = ["name", "slug"]
     PRODUCT_COUNT = ["product_count", "name", "slug"]
     SUBCATEGORY_COUNT = ["subcategory_count", "name", "slug"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -69,22 +68,20 @@ class CategorySortField(BaseEnum):
         return queryset.annotate(subcategory_count=Count("children__id"))
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CategorySortingInput(ChannelSortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = CategorySortField
         type_name = "categories"
 
 
-class CollectionSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class CollectionSortField(graphene.Enum):
     NAME = ["name", "slug"]
     AVAILABILITY = ["is_published", "slug"]
     PRODUCT_COUNT = ["product_count", "slug"]
     PUBLICATION_DATE = ["published_at", "slug", "pk"]
     PUBLISHED_AT = ["published_at", "slug"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -140,14 +137,15 @@ class CollectionSortField(BaseEnum):
         )
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionSortingInput(ChannelSortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = CollectionSortField
         type_name = "collections"
 
 
-class ProductOrderField(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductOrderField(graphene.Enum):
     NAME = ["name", "slug"]
     RANK = ["search_rank", "id"]
     PRICE = ["min_variants_price_amount", "name", "slug"]
@@ -162,9 +160,6 @@ class ProductOrderField(BaseEnum):
     COLLECTION = ["sort_order", "pk"]
     RATING = ["rating", "name", "slug"]
     CREATED_AT = ["created_at", "name", "slug"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -284,6 +279,7 @@ class ProductOrderField(BaseEnum):
         )
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductOrder(ChannelSortInputObjectType):
     attribute_id = graphene.Argument(
         graphene.ID,
@@ -297,16 +293,13 @@ class ProductOrder(ChannelSortInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductOrderField
         type_name = "products"
 
 
-class ProductVariantSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductVariantSortField(graphene.Enum):
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -319,20 +312,18 @@ class ProductVariantSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductVariantSortField
         type_name = "productVariants"
 
 
-class ProductTypeSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductTypeSortField(graphene.Enum):
     NAME = ["name", "slug"]
     DIGITAL = ["is_digital", "name", "slug"]
     SHIPPING_REQUIRED = ["is_shipping_required", "name", "slug"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -347,18 +338,16 @@ class ProductTypeSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductTypeSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductTypeSortField
         type_name = "product types"
 
 
-class MediaChoicesSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class MediaChoicesSortField(graphene.Enum):
     ID = ["id"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -370,8 +359,8 @@ class MediaChoicesSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class MediaSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = MediaChoicesSortField
         type_name = "media"

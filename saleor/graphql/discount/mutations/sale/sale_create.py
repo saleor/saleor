@@ -15,9 +15,10 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime, PositiveDecimal
-from ....core.types import BaseInputObjectType, DiscountError, NonNullList
+from ....core.types import DiscountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum
 from ...types import Sale
@@ -27,7 +28,8 @@ from ...utils import (
 )
 
 
-class SaleInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class SaleInput(graphene.InputObjectType):
     name = graphene.String(description="Voucher name.")
     type = DiscountValueTypeEnum(description="Fixed or percentage.")
     value = PositiveDecimal(description="Value of the voucher.")
@@ -52,10 +54,9 @@ class SaleInput(BaseInputObjectType):
     start_date = DateTime(description="Start date of the voucher in ISO 8601 format.")
     end_date = DateTime(description="End date of the voucher in ISO 8601 format.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.SALE_CREATED})
 class SaleCreate(DeprecatedModelMutation):
     class Arguments:
         input = SaleInput(
@@ -70,13 +71,6 @@ class SaleCreate(DeprecatedModelMutation):
         return_field_name = "sale"
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.SALE_CREATED,
-                description="A sale was created.",
-            ),
-        ]
 
     @classmethod
     def create_predicate(cls, input):

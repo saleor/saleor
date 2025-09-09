@@ -36,12 +36,12 @@ from ...core.filters.where_input import (
 )
 from ...core.scalars import DateTime
 from ...core.types import (
-    BaseInputObjectType,
     DateTimeRangeInput,
     IntRangeInput,
     NonNullList,
     PriceRangeInput,
 )
+from ...directives import doc
 from ...utils.filters import (
     filter_by_id,
     filter_by_ids,
@@ -83,12 +83,10 @@ from .shared import filter_updated_at_range
 T_PRODUCT_FILTER_QUERIES = dict[int, list[int]]
 
 
-class ProductStockFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductStockFilterInput(graphene.InputObjectType):
     warehouse_ids = NonNullList(graphene.ID, required=False)
     quantity = graphene.Field(IntRangeInput, required=False)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductFilter(MetadataFilterBase):
@@ -442,13 +440,13 @@ class ProductWhere(MetadataWhereFilterBase):
         return super().is_valid()
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductFilterInput(ChannelFilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductFilter
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductWhere

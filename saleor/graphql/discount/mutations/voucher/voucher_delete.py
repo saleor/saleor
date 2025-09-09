@@ -6,13 +6,16 @@ from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
+from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import DiscountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Voucher
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.VOUCHER_DELETED})
 class VoucherDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a voucher to delete.")
@@ -24,12 +27,6 @@ class VoucherDelete(ModelDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_DELETED,
-                description="A voucher was deleted.",
-            )
-        ]
 
     @classmethod
     def success_response(cls, instance):

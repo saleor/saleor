@@ -1,5 +1,6 @@
 import graphene
 from graphene import relay
+from graphene_federation import key
 from promise import Promise
 
 from ....permission.utils import has_one_of_permissions
@@ -19,12 +20,13 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import ChannelQsContext, get_database_connection_name
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
-from ...core.federation import federated_entity, resolve_federation_references
+from ...core.federation import resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.scalars import DateTime
 from ...core.types import Image, ModelObjectType, ThumbnailField
+from ...directives import doc
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import CategoryTranslation
@@ -39,7 +41,7 @@ from ..sorters import ProductOrder
 from .products import ProductCountableConnection
 
 
-@federated_entity("id")
+@key("id")
 class Category(ModelObjectType[models.Category]):
     id = graphene.GlobalID(required=True, description="The ID of the category.")
     seo_title = graphene.String(description="SEO title of category.")
@@ -64,10 +66,8 @@ class Category(ModelObjectType[models.Category]):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(
-            description=(
-                f"Filtering options for products. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
+            description="Filtering options for products.",
+            deprecation_reason="Use `where` filter instead.",
         ),
         where=ProductWhereInput(description="Where filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
@@ -224,7 +224,7 @@ class Category(ModelObjectType[models.Category]):
         )
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CategoryCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         node = Category

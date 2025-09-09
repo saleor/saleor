@@ -1,15 +1,16 @@
+import graphene
+
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class GiftCardSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+class GiftCardSortField(graphene.Enum):
     PRODUCT = ["product__name", "product__slug"]
     USED_BY = ["used_by__first_name", "used_by__last_name", "created_at"]
     CURRENT_BALANCE = ["current_balance_amount", "created_at"]
     CREATED_AT = ["created_at", "id"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
     @property
     def description(self):
@@ -19,8 +20,8 @@ class GiftCardSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         sort_enum = GiftCardSortField
         type_name = "gift cards"

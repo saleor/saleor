@@ -16,42 +16,46 @@ from ...payment.interface import (
 )
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.enums import to_enum
-from ..core.types import BaseEnum
+from ..directives import doc
 
-TransactionKindEnum = to_enum(TransactionKind, type_name="TransactionKind")
-TransactionKindEnum.doc_category = DOC_CATEGORY_PAYMENTS
-
-PaymentChargeStatusEnum = to_enum(ChargeStatus, type_name="PaymentChargeStatusEnum")
-PaymentChargeStatusEnum.doc_category = DOC_CATEGORY_PAYMENTS
-
-TransactionActionEnum = to_enum(
-    TransactionAction,
-    type_name="TransactionActionEnum",
-    description=TransactionAction.__doc__,
+TransactionKindEnum = doc(
+    DOC_CATEGORY_PAYMENTS, to_enum(TransactionKind, type_name="TransactionKind")
 )
-TransactionActionEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
-TransactionEventTypeEnum = to_enum(
-    TransactionEventType, description=TransactionEventType.__doc__
+PaymentChargeStatusEnum = doc(
+    DOC_CATEGORY_PAYMENTS, to_enum(ChargeStatus, type_name="PaymentChargeStatusEnum")
 )
-TransactionEventTypeEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
-PaymentMethodTypeEnum = to_enum(
-    PaymentMethodType,
-    type_name="PaymentMethodTypeEnum",
-    description=PaymentMethodType.__doc__,
+TransactionActionEnum = doc(
+    DOC_CATEGORY_PAYMENTS,
+    to_enum(
+        TransactionAction,
+        type_name="TransactionActionEnum",
+        description=TransactionAction.__doc__,
+    ),
 )
-PaymentMethodTypeEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
+TransactionEventTypeEnum = doc(
+    DOC_CATEGORY_PAYMENTS,
+    to_enum(TransactionEventType, description=TransactionEventType.__doc__),
+)
+
+PaymentMethodTypeEnum = doc(
+    DOC_CATEGORY_PAYMENTS,
+    field=to_enum(
+        PaymentMethodType,
+        type_name="PaymentMethodTypeEnum",
+        description=PaymentMethodType.__doc__,
+    ),
+)
 
 
-class OrderAction(BaseEnum):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class OrderAction(graphene.Enum):
     CAPTURE = "CAPTURE"
     MARK_AS_PAID = "MARK_AS_PAID"
     REFUND = "REFUND"
     VOID = "VOID"
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
     @property
     def description(self):
@@ -85,29 +89,35 @@ def description(enum):
     return None
 
 
-StorePaymentMethodEnum = to_enum(
-    StorePaymentMethod, type_name="StorePaymentMethodEnum", description=description
+StorePaymentMethodEnum = doc(
+    DOC_CATEGORY_PAYMENTS,
+    to_enum(
+        StorePaymentMethod, type_name="StorePaymentMethodEnum", description=description
+    ),
 )
-StorePaymentMethodEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
-TokenizedPaymentFlowEnum = to_enum(
-    TokenizedPaymentFlow,
-    type_name="TokenizedPaymentFlowEnum",
-    description=TokenizedPaymentFlow.__doc__,
+TokenizedPaymentFlowEnum = doc(
+    DOC_CATEGORY_PAYMENTS,
+    to_enum(
+        TokenizedPaymentFlow,
+        type_name="TokenizedPaymentFlowEnum",
+        description=TokenizedPaymentFlow.__doc__,
+    ),
 )
-TokenizedPaymentFlowEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
-PaymentGatewayInitializeTokenizationResultEnum = graphene.Enum.from_enum(
-    PaymentGatewayInitializeTokenizationResult,
+PaymentGatewayInitializeTokenizationResultEnum = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(
+        PaymentGatewayInitializeTokenizationResult,
+    ),
 )
-PaymentGatewayInitializeTokenizationResultEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
-PaymentMethodTokenizationResultEnum = graphene.Enum.from_enum(
-    PaymentMethodTokenizationResult
+PaymentMethodTokenizationResultEnum = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(PaymentMethodTokenizationResult),
 )
-PaymentMethodTokenizationResultEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
-StoredPaymentMethodRequestDeleteResultEnum = graphene.Enum.from_enum(
-    StoredPaymentMethodRequestDeleteResult,
+StoredPaymentMethodRequestDeleteResultEnum = doc(
+    DOC_CATEGORY_PAYMENTS,
+    graphene.Enum.from_enum(StoredPaymentMethodRequestDeleteResult),
 )
-StoredPaymentMethodRequestDeleteResultEnum.doc_category = DOC_CATEGORY_PAYMENTS

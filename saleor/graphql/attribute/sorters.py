@@ -1,8 +1,12 @@
+import graphene
+
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class AttributeSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeSortField(graphene.Enum):
     NAME = ["name", "slug"]
     SLUG = ["slug"]
     VALUE_REQUIRED = ["value_required", "name", "slug"]
@@ -12,9 +16,6 @@ class AttributeSortField(BaseEnum):
     FILTERABLE_IN_DASHBOARD = ["filterable_in_dashboard", "name", "slug"]
     STOREFRONT_SEARCH_POSITION = ["storefront_search_position", "name", "pk"]
     AVAILABLE_IN_GRID = ["available_in_grid", "name", "pk"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @property
     def description(self):
@@ -50,19 +51,17 @@ class AttributeSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         sort_enum = AttributeSortField
         type_name = "attributes"
 
 
-class AttributeChoicesSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeChoicesSortField(graphene.Enum):
     NAME = ["name", "slug"]
     SLUG = ["slug"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @property
     def description(self):
@@ -75,8 +74,8 @@ class AttributeChoicesSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeChoicesSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         sort_enum = AttributeChoicesSortField
         type_name = "attribute choices"

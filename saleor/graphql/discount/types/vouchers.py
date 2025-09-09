@@ -12,12 +12,13 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import ADDED_IN_318, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_318, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.scalars import DateTime
 from ...core.types import ModelObjectType, Money, NonNullList
 from ...core.types.context import ChannelContextType
+from ...directives import doc
 from ...meta.types import ObjectWithMetadata
 from ...product.types import (
     CategoryCountableConnection,
@@ -75,9 +76,9 @@ class VoucherCode(ModelObjectType[models.VoucherCode]):
         model = models.VoucherCode
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherCodeCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         node = VoucherCode
 
 
@@ -89,7 +90,7 @@ class Voucher(ChannelContextType[models.Voucher]):
         description="List of codes available for this voucher." + ADDED_IN_318,
     )
     code = graphene.String(
-        description="The code of the voucher." + DEPRECATED_IN_3X_INPUT
+        description="The code of the voucher.", deprecation_reason=""
     )
     usage_limit = graphene.Int(description="The number of times a voucher can be used.")
     used = graphene.Int(
@@ -302,7 +303,7 @@ class Voucher(ChannelContextType[models.Voucher]):
         return VoucherChannelListingsByVoucherIdLoader(info.context).load(root.node.id)
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         node = Voucher

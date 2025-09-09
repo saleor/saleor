@@ -6,10 +6,12 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, PageError
+from ...directives import doc
 from ...page.types import PageType
 from ...utils import resolve_global_ids_to_primary_keys
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageAttributeUnassign(BaseMutation):
     page_type = graphene.Field(PageType, description="The updated page type.")
 
@@ -28,7 +30,6 @@ class PageAttributeUnassign(BaseMutation):
 
     class Meta:
         description = "Unassign attributes from a given page type."
-        doc_category = DOC_CATEGORY_PAGES
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"

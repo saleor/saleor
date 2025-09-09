@@ -20,13 +20,15 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
-from ...core.types import BaseInputObjectType, NonNullList, ProductError
+from ...core.types import NonNullList, ProductError
 from ...core.utils.reordering import perform_reordering
+from ...directives import doc
 from ...product.types import Product, ProductType, ProductVariant
 from ..enums import ProductAttributeType
 
 
-class ProductAttributeAssignInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductAttributeAssignInput(graphene.InputObjectType):
     id = graphene.ID(required=True, description="The ID of the attribute to assign.")
     type = ProductAttributeType(
         required=True, description="The attribute type to be assigned as."
@@ -39,11 +41,9 @@ class ProductAttributeAssignInput(BaseInputObjectType):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ProductAttributeAssignmentUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductAttributeAssignmentUpdateInput(graphene.InputObjectType):
     id = graphene.ID(required=True, description="The ID of the attribute to assign.")
     variant_selection = graphene.Boolean(
         required=True,
@@ -52,9 +52,6 @@ class ProductAttributeAssignmentUpdateInput(BaseInputObjectType):
             f"Allowed types are: {AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
         ),
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class VariantAssignmentValidationMixin:
@@ -90,6 +87,7 @@ class VariantAssignmentValidationMixin:
             errors["operations"].append(error)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
@@ -106,7 +104,6 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
 
     class Meta:
         description = "Assign attributes to a given product type."
-        doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
@@ -304,6 +301,7 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
         return cls(product_type=product_type)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductAttributeUnassign(BaseMutation):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
@@ -322,7 +320,6 @@ class ProductAttributeUnassign(BaseMutation):
 
     class Meta:
         description = "Un-assign attributes from a given product type."
-        doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
@@ -358,6 +355,7 @@ class ProductAttributeUnassign(BaseMutation):
         return cls(product_type=product_type)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidationMixin):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
@@ -376,7 +374,6 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
         description = (
             "Update attributes assigned to product variant for given product type."
         )
-        doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
@@ -550,6 +547,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
         return cls(product_type=product_type)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
     product_type = graphene.Field(
         ProductType, description="Product type from which attributes are reordered."
@@ -557,7 +555,6 @@ class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
 
     class Meta:
         description = "Reorder the attributes of a product type."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -616,6 +613,7 @@ class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
         return ProductTypeReorderAttributes(product_type=product_type)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
     product = graphene.Field(
         Product, description="Product from which attribute values are reordered."
@@ -623,7 +621,6 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
 
     class Meta:
         description = "Reorder product attribute values."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -726,6 +723,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
         return attribute_assignment
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
     product_variant = graphene.Field(
         ProductVariant,
@@ -734,7 +732,6 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
 
     class Meta:
         description = "Reorder product variant attribute values."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

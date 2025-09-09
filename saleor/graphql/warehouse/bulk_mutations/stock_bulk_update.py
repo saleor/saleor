@@ -3,6 +3,7 @@ from collections import defaultdict
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import F, Q
+from graphql_relay import from_global_id
 
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
@@ -14,19 +15,15 @@ from ....webhook.utils import get_webhooks_for_event
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation
-from ...core.types import (
-    BaseInputObjectType,
-    BaseObjectType,
-    NonNullList,
-    StockBulkUpdateError,
-)
-from ...core.utils import WebhookEventInfo
+from ...core.types import NonNullList, StockBulkUpdateError
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Stock
 
 
-class StockBulkResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class StockBulkResult(graphene.ObjectType):
     stock = graphene.Field(Stock, required=False, description="Stock data.")
     errors = NonNullList(
         StockBulkUpdateError,
@@ -34,11 +31,9 @@ class StockBulkResult(BaseObjectType):
         description="List of errors occurred on create or update attempt.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class StockBulkUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class StockBulkUpdateInput(graphene.InputObjectType):
     variant_id = graphene.ID(required=False, description="Variant ID.")
     variant_external_reference = graphene.String(
         required=False, description="Variant external reference."
@@ -51,10 +46,9 @@ class StockBulkUpdateInput(BaseInputObjectType):
         required=True, description="Quantity of items available for sell."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
+@webhook_events(async_events={WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED})
 class StockBulkUpdate(BaseMutation):
     count = graphene.Int(
         required=True,
@@ -64,7 +58,7 @@ class StockBulkUpdate(BaseMutation):
     results = NonNullList(
         StockBulkResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the updated stocks.",
     )
 
@@ -88,15 +82,8 @@ class StockBulkUpdate(BaseMutation):
             "selectors have to be the same for all stock inputs. Is not allowed to "
             "use 'variantId' in one input and 'variantExternalReference' in another."
         )
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = StockBulkUpdateError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED,
-                description="A product variant stock details were updated.",
-            )
-        ]
 
     @classmethod
     def validate_variant(
@@ -122,7 +109,7 @@ class StockBulkUpdate(BaseMutation):
 
         if variant_id:
             try:
-                type, variant_db_id = graphene.Node.from_global_id(variant_id)
+                type, variant_db_id = from_global_id(variant_id)
                 if type != "ProductVariant":
                     index_error_map[index].append(
                         StockBulkUpdateError(
@@ -174,7 +161,7 @@ class StockBulkUpdate(BaseMutation):
 
         if warehouse_id:
             try:
-                type, warehouse_db_id = graphene.Node.from_global_id(warehouse_id)
+                type, warehouse_db_id = from_global_id(warehouse_id)
                 if type != "Warehouse":
                     index_error_map[index].append(
                         StockBulkUpdateError(

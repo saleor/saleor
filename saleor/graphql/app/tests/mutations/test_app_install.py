@@ -1,6 +1,6 @@
 from unittest.mock import Mock, patch
 
-import graphene
+from graphql_relay import from_global_id
 
 from .....app.models import App, AppInstallation
 from .....app.tasks import install_app_task
@@ -61,7 +61,7 @@ def test_install_app_mutation(
     # then
     app_installation = AppInstallation.objects.get()
     app_installation_data = data["appInstallation"]
-    _, app_id = graphene.Node.from_global_id(app_installation_data["id"])
+    _, app_id = from_global_id(app_installation_data["id"])
     assert int(app_id) == app_installation.id
     assert app_installation_data["status"] == JobStatus.PENDING.upper()
     assert app_installation_data["manifestUrl"] == app_installation.manifest_url
@@ -96,7 +96,7 @@ def test_install_app_mutation_with_another_app_installed_but_marked_to_be_remove
     # then
     app_installation = AppInstallation.objects.get()
     app_installation_data = data["appInstallation"]
-    _, app_id = graphene.Node.from_global_id(app_installation_data["id"])
+    _, app_id = from_global_id(app_installation_data["id"])
     assert int(app_id) == app_installation.id
     assert app_installation_data["status"] == JobStatus.PENDING.upper()
     assert app_installation_data["manifestUrl"] == app_installation.manifest_url

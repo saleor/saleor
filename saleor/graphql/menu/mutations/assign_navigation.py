@@ -6,11 +6,13 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_MENU
 from ...core.mutations import BaseMutation
 from ...core.types import MenuError
+from ...directives import doc
 from ...site.dataloaders import get_site_promise
 from ..enums import NavigationType
 from ..types import Menu
 
 
+@doc(category=DOC_CATEGORY_MENU)
 class AssignNavigation(BaseMutation):
     menu = graphene.Field(Menu, description="Assigned navigation menu.")
 
@@ -23,7 +25,6 @@ class AssignNavigation(BaseMutation):
 
     class Meta:
         description = "Assigns storefront's navigation menus."
-        doc_category = DOC_CATEGORY_MENU
         permissions = (MenuPermissions.MANAGE_MENUS, SitePermissions.MANAGE_SETTINGS)
         error_type_class = MenuError
         error_type_field = "menu_errors"

@@ -4,10 +4,10 @@ from ...attribute import models
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.context import ChannelContext, ChannelQsContext
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
-from ..core.fields import BaseField, FilterConnectionField
+from ..core.fields import FilterConnectionField
 from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
+from ..directives import doc
 from ..translations.mutations import (
     AttributeBulkTranslate,
     AttributeTranslate,
@@ -33,34 +33,40 @@ from .types import Attribute, AttributeCountableConnection
 
 
 class AttributeQueries(graphene.ObjectType):
-    attributes = FilterConnectionField(
-        AttributeCountableConnection,
-        description="List of the shop's attributes.",
-        filter=AttributeFilterInput(
-            description=(
-                f"Filtering options for attributes. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
+    attributes = doc(
+        DOC_CATEGORY_ATTRIBUTES,
+        FilterConnectionField(
+            AttributeCountableConnection,
+            description="List of the shop's attributes.",
+            filter=AttributeFilterInput(
+                description="Filtering options for attributes.",
+                deprecation_reason="Use `where` filter instead.",
+            ),
+            where=AttributeWhereInput(
+                description="Where filtering options for attributes."
+            ),
+            search=graphene.String(description="Search attributes."),
+            sort_by=AttributeSortingInput(
+                description="Sorting options for attributes."
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
         ),
-        where=AttributeWhereInput(
-            description="Where filtering options for attributes."
-        ),
-        search=graphene.String(description="Search attributes."),
-        sort_by=AttributeSortingInput(description="Sorting options for attributes."),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        doc_category=DOC_CATEGORY_ATTRIBUTES,
     )
-    attribute = BaseField(
-        Attribute,
-        id=graphene.Argument(graphene.ID, description="ID of the attribute."),
-        slug=graphene.Argument(graphene.String, description="Slug of the attribute."),
-        external_reference=graphene.Argument(
-            graphene.String, description="External ID of the attribute."
+    attribute = doc(
+        DOC_CATEGORY_ATTRIBUTES,
+        graphene.Field(
+            Attribute,
+            id=graphene.Argument(graphene.ID, description="ID of the attribute."),
+            slug=graphene.Argument(
+                graphene.String, description="Slug of the attribute."
+            ),
+            external_reference=graphene.Argument(
+                graphene.String, description="External ID of the attribute."
+            ),
+            description="Look up an attribute by ID, slug or external reference.",
         ),
-        description="Look up an attribute by ID, slug or external reference.",
-        doc_category=DOC_CATEGORY_ATTRIBUTES,
     )
 
     def resolve_attributes(self, info: ResolveInfo, *, search=None, **kwargs):

@@ -5,11 +5,13 @@ from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.fields import JSONString
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 
 
+@doc(category=DOC_CATEGORY_AUTH)
 class ExternalLogout(BaseMutation):
-    """Logout user by a custom plugin."""
+    """Log the user out of an external authentication mechanism."""
 
     logout_data = JSONString(description="The data returned by authentication plugin.")
 
@@ -23,8 +25,6 @@ class ExternalLogout(BaseMutation):
         )
 
     class Meta:
-        description = "Logout user by custom plugin."
-        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 

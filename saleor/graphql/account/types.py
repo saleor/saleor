@@ -5,6 +5,7 @@ from typing import cast
 import graphene
 from django.contrib.auth import get_user_model
 from graphene import relay
+from graphene_federation import key
 from promise import Promise
 
 from ...account import models
@@ -37,14 +38,12 @@ from ..core.connection import (
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
 from ..core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_USERS
-from ..core.enums import LanguageCodeEnum
-from ..core.federation import federated_entity, resolve_federation_references
+from ..core.enums import LanguageCodeEnum, PermissionEnum
+from ..core.federation import resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID, DateTime
 from ..core.tracing import traced_resolver
 from ..core.types import (
-    BaseInputObjectType,
-    BaseObjectType,
     CountryDisplay,
     Image,
     ModelObjectType,
@@ -54,6 +53,7 @@ from ..core.types import (
     ThumbnailField,
 )
 from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
+from ..directives import doc
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader, OrdersByUserLoader
@@ -72,7 +72,7 @@ from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
 
-class AddressInput(BaseInputObjectType):
+class AddressInput(graphene.InputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     company_name = graphene.String(description="Company or organization.")
@@ -113,8 +113,10 @@ class AddressInput(BaseInputObjectType):
     )
 
 
-@federated_entity("id")
+@key("id")
 class Address(ModelObjectType[models.Address]):
+    """Represents a user's address."""
+
     id = graphene.GlobalID(required=True, description="The ID of the address.")
     first_name = graphene.String(
         required=True, description="The given name of the address."
@@ -153,7 +155,6 @@ class Address(ModelObjectType[models.Address]):
     )
 
     class Meta:
-        description = "Represents user address data."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Address
 
@@ -218,7 +219,10 @@ class Address(ModelObjectType[models.Address]):
         return result
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class CustomerEvent(ModelObjectType[models.CustomerEvent]):
+    """Represents an event in a customer's history log."""
+
     id = graphene.GlobalID(required=True, description="The ID of the customer event.")
     date = DateTime(description="Date when event happened at in ISO 8601 format.")
     type = CustomerEventsEnum(description="Customer event type.")
@@ -234,10 +238,8 @@ class CustomerEvent(ModelObjectType[models.CustomerEvent]):
     )
 
     class Meta:
-        description = "History log of the customer."
         interfaces = [relay.Node]
         model = models.CustomerEvent
-        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_user(root: models.CustomerEvent, info: ResolveInfo):
@@ -303,7 +305,14 @@ class CustomerEvent(ModelObjectType[models.CustomerEvent]):
         return None
 
 
-class UserPermission(Permission):
+@doc(category=DOC_CATEGORY_USERS)
+class UserPermission(graphene.ObjectType):
+    """Represents a permission."""
+
+    code = PermissionEnum(description="Internal code for permission.", required=True)
+    name = graphene.String(
+        description="Describe action(s) allowed to do by permission.", required=True
+    )
     source_permission_groups = NonNullList(
         "saleor.graphql.account.types.Group",
         description="List of user permission groups which contains this permission.",
@@ -315,10 +324,6 @@ class UserPermission(Permission):
         required=False,
     )
 
-    class Meta:
-        description = "Represents user's permissions."
-        doc_category = DOC_CATEGORY_USERS
-
     @staticmethod
     @traced_resolver
     def resolve_source_permission_groups(root: Permission, info: ResolveInfo, user_id):
@@ -329,9 +334,15 @@ class UserPermission(Permission):
         return groups
 
 
-@federated_entity("id")
-@federated_entity("email")
+@key("id")
+@key("email")
+@doc(category=DOC_CATEGORY_USERS)
 class User(ModelObjectType[models.User]):
+    """Represents a user.
+
+    Use for both customers and staff members.
+    """
+
     id = SecureGlobalID(required=True, description="The ID of the user.")
     email = graphene.String(required=True, description="The email address of the user.")
     first_name = graphene.String(
@@ -341,7 +352,7 @@ class User(ModelObjectType[models.User]):
         required=True, description="The family name of the address."
     )
     is_staff = graphene.Boolean(
-        required=True, description="Determine if the user is a staff admin."
+        required=True, description="Determine if the user is a staff member."
     )
     is_active = graphene.Boolean(
         required=True, description="Determine if the user is active."
@@ -485,10 +496,8 @@ class User(ModelObjectType[models.User]):
     )
 
     class Meta:
-        description = "Represents user data."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = get_user_model()
-        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_addresses(root: models.User, _info: ResolveInfo):
@@ -777,9 +786,9 @@ class User(ModelObjectType[models.User]):
         return None
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class UserCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_USERS
         node = User
 
 
@@ -788,7 +797,7 @@ class ChoiceValue(graphene.ObjectType):
     verbose = graphene.String(description="The verbose name of the choice.")
 
 
-FORMAT_FILED_DESCRIPTION = (
+FORMAT_FIELD_DESCRIPTION = (
     "\n\nMany fields in the JSON refer to address fields by one-letter "
     "abbreviations. These are defined as follows:\n\n"
     "- `N`: Name\n"
@@ -803,7 +812,10 @@ FORMAT_FILED_DESCRIPTION = (
 )
 
 
-class AddressValidationData(BaseObjectType):
+@doc(category=DOC_CATEGORY_USERS)
+class AddressValidationData(graphene.ObjectType):
+    """Represents address validation rules and examples."""
+
     country_code = graphene.String(
         required=True, description="The country code of the address validation rule."
     )
@@ -814,14 +826,14 @@ class AddressValidationData(BaseObjectType):
         required=True,
         description=(
             "The address format of the address validation rule."
-            + FORMAT_FILED_DESCRIPTION
+            + FORMAT_FIELD_DESCRIPTION
         ),
     )
     address_latin_format = graphene.String(
         required=True,
         description=(
             "The latin address format of the address validation rule."
-            + FORMAT_FILED_DESCRIPTION
+            + FORMAT_FIELD_DESCRIPTION
         ),
     )
     allowed_fields = NonNullList(
@@ -898,12 +910,14 @@ class AddressValidationData(BaseObjectType):
         description="The postal code prefix of the address validation rule.",
     )
 
-    class Meta:
-        description = "Represents address validation rules for a country."
-        doc_category = DOC_CATEGORY_USERS
-
 
 class StaffNotificationRecipient(graphene.ObjectType):
+    """Represents a recipient of email notifications send by Saleor.
+
+    For example, notifications about new orders. Notifications can be
+    assigned to staff users or arbitrary email addresses.
+    """
+
     id = graphene.ID(
         required=True, description="The ID of the staff notification recipient."
     )
@@ -921,11 +935,6 @@ class StaffNotificationRecipient(graphene.ObjectType):
     active = graphene.Boolean(description="Determines if a notification active.")
 
     class Meta:
-        description = (
-            "Represents a recipient of email notifications send by Saleor, "
-            "such as notifications about new orders. Notifications can be "
-            "assigned to staff users or arbitrary email addresses."
-        )
         interfaces = [relay.Node]
         model = models.StaffNotificationRecipient
 
@@ -953,8 +962,11 @@ class StaffNotificationRecipient(graphene.ObjectType):
         return root.get_email()
 
 
-@federated_entity("id")
+@key("id")
+@doc(category=DOC_CATEGORY_USERS)
 class Group(ModelObjectType[models.Group]):
+    """Represents a group of users."""
+
     id = graphene.GlobalID(required=True, description="The ID of the group.")
     name = graphene.String(required=True, description="The name of the group.")
     users = PermissionsField(
@@ -980,10 +992,8 @@ class Group(ModelObjectType[models.Group]):
     )
 
     class Meta:
-        description = "Represents permission group data."
         interfaces = [relay.Node]
         model = models.Group
-        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_users(root: models.Group, info: ResolveInfo):
@@ -1024,7 +1034,7 @@ class Group(ModelObjectType[models.Group]):
         return resolve_federation_references(Group, roots, qs)
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class GroupCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_USERS
         node = Group

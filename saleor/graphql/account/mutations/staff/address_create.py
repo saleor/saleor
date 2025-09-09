@@ -14,12 +14,16 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...i18n import I18nMixin
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events({WebhookEventAsyncType.ADDRESS_CREATED})
 class AddressCreate(AddressMetadataMixin, DeprecatedModelMutation, I18nMixin):
+    """Creates a user address."""
+
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )
@@ -33,19 +37,11 @@ class AddressCreate(AddressMetadataMixin, DeprecatedModelMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Creates user address."
-        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ADDRESS_CREATED,
-                description="A new address was created.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):

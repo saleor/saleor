@@ -1,5 +1,5 @@
 import uuid
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -20,14 +20,13 @@ from ....core.mutations import BaseMutation
 from ....core.scalars import UUID
 from ....core.types import common as common_types
 from ....core.validators import validate_one_of_args_is_in_mutation
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionItem
 from .utils import get_transaction_item
 
-if TYPE_CHECKING:
-    pass
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionRequestRefundForGrantedRefund(BaseMutation):
     transaction = graphene.Field(TransactionItem)
 
@@ -59,7 +58,6 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
         description = (
             "Request a refund for payment transaction based on granted refund."
         )
-        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionRequestRefundForGrantedRefundError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 

@@ -16,11 +16,7 @@ from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..app.types import App
 from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
-from ..core.descriptions import (
-    ADDED_IN_319,
-    DEFAULT_DEPRECATION_REASON,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ..core.descriptions import ADDED_IN_319, DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import (
     DOC_CATEGORY_AUTH,
     DOC_CATEGORY_GIFT_CARDS,
@@ -30,7 +26,6 @@ from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import (
-    BaseObjectType,
     CountryDisplay,
     LanguageDisplay,
     ModelObjectType,
@@ -39,6 +34,7 @@ from ..core.types import (
     TimePeriod,
 )
 from ..core.utils import str_to_enum
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import PaymentGateway
 from ..plugins.dataloaders import plugin_manager_promise_callback
@@ -69,16 +65,17 @@ class Domain(graphene.ObjectType):
         description = "Represents API domain."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderSettings(ModelObjectType[site_models.SiteSettings]):
     automatically_confirm_all_new_orders = graphene.Boolean(required=True)
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(required=True)
 
     class Meta:
         description = "Order related settings from site settings."
-        doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="The gift card expiry type settings.", required=True
@@ -89,7 +86,6 @@ class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
 
     class Meta:
         description = "Gift card related settings from site settings."
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         model = site_models.SiteSettings
 
     def resolve_expiry_type(root, info):
@@ -103,7 +99,8 @@ class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
         )
 
 
-class ExternalAuthentication(BaseObjectType):
+@doc(category=DOC_CATEGORY_AUTH)
+class ExternalAuthentication(graphene.ObjectType):
     id = graphene.String(
         description="ID of external authentication plugin.", required=True
     )
@@ -111,7 +108,6 @@ class ExternalAuthentication(BaseObjectType):
 
     class Meta:
         description = "External authentication plugin."
-        doc_category = DOC_CATEGORY_AUTH
 
 
 class Limits(graphene.ObjectType):
@@ -146,10 +142,8 @@ class Shop(graphene.ObjectType):
         PaymentGateway,
         currency=graphene.Argument(
             graphene.String,
-            description=(
-                "A currency for which gateways will be returned. "
-                f"{DEPRECATED_IN_3X_INPUT} Use `channel` argument instead."
-            ),
+            description="A currency for which gateways will be returned.",
+            deprecation_reason="Use `channel` argument instead.",
             required=False,
         ),
         channel=graphene.Argument(
@@ -195,10 +189,8 @@ class Shop(graphene.ObjectType):
         CountryDisplay,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=(
-                "A language code to return the translation for. "
-                f"{DEPRECATED_IN_3X_INPUT}"
-            ),
+            description="A language code to return the translation for.",
+            deprecation_reason="",
         ),
         filter=CountryFilterInput(
             description="Filtering options for countries",

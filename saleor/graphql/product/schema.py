@@ -12,24 +12,15 @@ from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.context import ChannelContext, ChannelQsContext
-from ..core.descriptions import (
-    ADDED_IN_321,
-    ADDED_IN_322,
-    DEFAULT_DEPRECATION_REASON,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ..core.descriptions import ADDED_IN_321, ADDED_IN_322, DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import LanguageCodeEnum, ReportingPeriod
-from ..core.fields import (
-    BaseField,
-    ConnectionField,
-    FilterConnectionField,
-    PermissionsField,
-)
+from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
+from ..directives import doc
 from ..shop.resolvers import get_database_connection_name
 from ..translations.mutations import (
     CategoryTranslate,
@@ -150,215 +141,247 @@ from .utils import check_for_sorting_by_rank
 
 
 class ProductQueries(graphene.ObjectType):
-    digital_content = PermissionsField(
-        DigitalContent,
-        description="Look up digital content by ID.",
-        id=graphene.Argument(
-            graphene.ID, description="ID of the digital content.", required=True
+    digital_content = doc(
+        DOC_CATEGORY_PRODUCTS,
+        PermissionsField(
+            DigitalContent,
+            description="Look up digital content by ID.",
+            id=graphene.Argument(
+                graphene.ID, description="ID of the digital content.", required=True
+            ),
+            permissions=[
+                ProductPermissions.MANAGE_PRODUCTS,
+            ],
         ),
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-        ],
-        doc_category=DOC_CATEGORY_PRODUCTS,
     )
-    digital_contents = ConnectionField(
-        DigitalContentCountableConnection,
-        description="List of digital content.",
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-        ],
-        doc_category=DOC_CATEGORY_PRODUCTS,
+    digital_contents = doc(
+        DOC_CATEGORY_PRODUCTS,
+        ConnectionField(
+            DigitalContentCountableConnection,
+            description="List of digital content.",
+            permissions=[
+                ProductPermissions.MANAGE_PRODUCTS,
+            ],
+        ),
     )
-    categories = FilterConnectionField(
-        CategoryCountableConnection,
-        filter=CategoryFilterInput(description="Filtering options for categories."),
-        where=CategoryWhereInput(description="Where filtering options for categories."),
-        sort_by=CategorySortingInput(description="Sort categories."),
-        level=graphene.Argument(
-            graphene.Int,
-            description="Filter categories by the nesting level in the category tree.",
+    categories = doc(
+        DOC_CATEGORY_PRODUCTS,
+        FilterConnectionField(
+            CategoryCountableConnection,
+            filter=CategoryFilterInput(description="Filtering options for categories."),
+            where=CategoryWhereInput(
+                description="Where filtering options for categories."
+            ),
+            sort_by=CategorySortingInput(description="Sort categories."),
+            level=graphene.Argument(
+                graphene.Int,
+                description="Filter categories by the nesting level in the category tree.",
+            ),
+            description="List of the shop's categories.",
         ),
-        description="List of the shop's categories.",
-        doc_category=DOC_CATEGORY_PRODUCTS,
     )
-    category = BaseField(
-        Category,
-        id=graphene.Argument(graphene.ID, description="ID of the category."),
-        slug=graphene.Argument(graphene.String, description="Slug of the category"),
-        slug_language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="Language code of the category slug, omit to use primary slug."
-            + ADDED_IN_321,
+    category = doc(
+        DOC_CATEGORY_PRODUCTS,
+        graphene.Field(
+            Category,
+            id=graphene.Argument(graphene.ID, description="ID of the category."),
+            slug=graphene.Argument(graphene.String, description="Slug of the category"),
+            slug_language_code=graphene.Argument(
+                LanguageCodeEnum,
+                description="Language code of the category slug, omit to use primary slug."
+                + ADDED_IN_321,
+            ),
+            description="Look up a category by ID or slug.",
         ),
-        description="Look up a category by ID or slug.",
-        doc_category=DOC_CATEGORY_PRODUCTS,
     )
-    collection = BaseField(
-        Collection,
-        id=graphene.Argument(
-            graphene.ID,
-            description="ID of the collection.",
-        ),
-        slug=graphene.Argument(graphene.String, description="Slug of the collection"),
-        slug_language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="Language code of the collection slug, omit to use primary slug."
-            + ADDED_IN_321,
-        ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description=(
-            "Look up a collection by ID or slug. If slugLanguageCode is provided, "
-            "category will be fetched by slug translation. Requires one of the "
-            "following permissions to include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
-        ),
-        doc_category=DOC_CATEGORY_PRODUCTS,
-    )
-    collections = FilterConnectionField(
-        CollectionCountableConnection,
-        filter=CollectionFilterInput(description="Filtering options for collections."),
-        where=CollectionWhereInput(
-            description="Where filtering options for collections."
-        ),
-        sort_by=CollectionSortingInput(description="Sort collections."),
-        description=(
-            "List of the shop's collections. Requires one of the following permissions "
-            "to include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
-        ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        doc_category=DOC_CATEGORY_PRODUCTS,
-    )
-    product = BaseField(
-        Product,
-        id=graphene.Argument(
-            graphene.ID,
-            description="ID of the product.",
-        ),
-        slug=graphene.Argument(graphene.String, description="Slug of the product."),
-        slug_language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="Language code of the product slug, omit to use primary slug."
-            + ADDED_IN_321,
-        ),
-        external_reference=graphene.Argument(
-            graphene.String, description="External ID of the product."
-        ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description=(
-            "Look up a product by ID. Requires one of the following permissions to "
-            "include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
-        ),
-        doc_category=DOC_CATEGORY_PRODUCTS,
-    )
-    products = FilterConnectionField(
-        ProductCountableConnection,
-        filter=ProductFilterInput(
+    collection = doc(
+        DOC_CATEGORY_PRODUCTS,
+        graphene.Field(
+            Collection,
+            id=graphene.Argument(
+                graphene.ID,
+                description="ID of the collection.",
+            ),
+            slug=graphene.Argument(
+                graphene.String, description="Slug of the collection"
+            ),
+            slug_language_code=graphene.Argument(
+                LanguageCodeEnum,
+                description="Language code of the collection slug, omit to use primary slug."
+                + ADDED_IN_321,
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
             description=(
-                f"Filtering options for products. {DEPRECATED_IN_3X_INPUT}"
-                " Use `where` filter instead."
-            )
+                "Look up a collection by ID or slug. If slugLanguageCode is provided, "
+                "category will be fetched by slug translation. Requires one of the "
+                "following permissions to include the unpublished items: "
+                f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+            ),
         ),
-        where=ProductWhereInput(description="Where filtering options for products."),
-        sort_by=ProductOrder(description="Sort products."),
-        search=graphene.String(description="Search products."),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description=(
-            "List of the shop's products. Requires one of the following permissions to "
-            "include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
-        ),
-        doc_category=DOC_CATEGORY_PRODUCTS,
     )
-    product_type = BaseField(
-        ProductType,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the product type.", required=True
-        ),
-        description="Look up a product type by ID.",
-        doc_category=DOC_CATEGORY_PRODUCTS,
-    )
-    product_types = FilterConnectionField(
-        ProductTypeCountableConnection,
-        filter=ProductTypeFilterInput(
-            description="Filtering options for product types."
-        ),
-        sort_by=ProductTypeSortingInput(description="Sort product types."),
-        description="List of the shop's product types.",
-        doc_category=DOC_CATEGORY_PRODUCTS,
-    )
-    product_variant = BaseField(
-        ProductVariant,
-        id=graphene.Argument(
-            graphene.ID,
-            description="ID of the product variant.",
-        ),
-        sku=graphene.Argument(
-            graphene.String, description="SKU of the product variant."
-        ),
-        external_reference=graphene.Argument(
-            graphene.String, description="External ID of the product."
-        ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description=(
-            "Look up a product variant by ID or SKU. Requires one of the following "
-            "permissions to include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
-        ),
-        doc_category=DOC_CATEGORY_PRODUCTS,
-    )
-    product_variants = FilterConnectionField(
-        ProductVariantCountableConnection,
-        ids=NonNullList(
-            graphene.ID, description="Filter product variants by given IDs."
-        ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        filter=ProductVariantFilterInput(
+    collections = doc(
+        DOC_CATEGORY_PRODUCTS,
+        FilterConnectionField(
+            CollectionCountableConnection,
+            filter=CollectionFilterInput(
+                description="Filtering options for collections."
+            ),
+            where=CollectionWhereInput(
+                description="Where filtering options for collections."
+            ),
+            sort_by=CollectionSortingInput(description="Sort collections."),
             description=(
-                f"Filtering options for product variants. {DEPRECATED_IN_3X_INPUT}"
-                " Use `where` filter instead."
-            )
+                "List of the shop's collections. Requires one of the following permissions "
+                "to include the unpublished items: "
+                f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
         ),
-        where=ProductVariantWhereInput(
-            description="Where filtering options for product variants."
-        ),
-        search=graphene.String(description="Search product variants." + ADDED_IN_322),
-        sort_by=ProductVariantSortingInput(description="Sort products variants."),
-        description=(
-            "List of product variants. Requires one of the following permissions to "
-            "include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
-        ),
-        doc_category=DOC_CATEGORY_PRODUCTS,
     )
-    report_product_sales = ConnectionField(
-        ProductVariantCountableConnection,
-        period=graphene.Argument(
-            ReportingPeriod, required=True, description="Span of time."
+    product = doc(
+        DOC_CATEGORY_PRODUCTS,
+        graphene.Field(
+            Product,
+            id=graphene.Argument(
+                graphene.ID,
+                description="ID of the product.",
+            ),
+            slug=graphene.Argument(graphene.String, description="Slug of the product."),
+            slug_language_code=graphene.Argument(
+                LanguageCodeEnum,
+                description="Language code of the product slug, omit to use primary slug."
+                + ADDED_IN_321,
+            ),
+            external_reference=graphene.Argument(
+                graphene.String, description="External ID of the product."
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            description=(
+                "Look up a product by ID. Requires one of the following permissions to "
+                "include the unpublished items: "
+                f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+            ),
         ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned.",
-            required=True,
+    )
+    products = doc(
+        DOC_CATEGORY_PRODUCTS,
+        FilterConnectionField(
+            ProductCountableConnection,
+            filter=ProductFilterInput(
+                description="Filtering options for products.",
+                deprecation_reason="Use `where` filter instead.",
+            ),
+            where=ProductWhereInput(
+                description="Where filtering options for products."
+            ),
+            sort_by=ProductOrder(description="Sort products."),
+            search=graphene.String(description="Search products."),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            description=(
+                "List of the shop's products. Requires one of the following permissions to "
+                "include the unpublished items: "
+                f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+            ),
         ),
-        description="List of top selling products.",
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-        ],
-        doc_category=DOC_CATEGORY_PRODUCTS,
-        deprecation_reason=DEFAULT_DEPRECATION_REASON,
+    )
+    product_type = doc(
+        DOC_CATEGORY_PRODUCTS,
+        graphene.Field(
+            ProductType,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the product type.", required=True
+            ),
+            description="Look up a product type by ID.",
+        ),
+    )
+    product_types = doc(
+        DOC_CATEGORY_PRODUCTS,
+        FilterConnectionField(
+            ProductTypeCountableConnection,
+            filter=ProductTypeFilterInput(
+                description="Filtering options for product types."
+            ),
+            sort_by=ProductTypeSortingInput(description="Sort product types."),
+            description="List of the shop's product types.",
+        ),
+    )
+    product_variant = doc(
+        DOC_CATEGORY_PRODUCTS,
+        graphene.Field(
+            ProductVariant,
+            id=graphene.Argument(
+                graphene.ID,
+                description="ID of the product variant.",
+            ),
+            sku=graphene.Argument(
+                graphene.String, description="SKU of the product variant."
+            ),
+            external_reference=graphene.Argument(
+                graphene.String, description="External ID of the product."
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            description=(
+                "Look up a product variant by ID or SKU. Requires one of the following "
+                "permissions to include the unpublished items: "
+                f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+            ),
+        ),
+    )
+    product_variants = doc(
+        DOC_CATEGORY_PRODUCTS,
+        FilterConnectionField(
+            ProductVariantCountableConnection,
+            ids=NonNullList(
+                graphene.ID, description="Filter product variants by given IDs."
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            filter=ProductVariantFilterInput(
+                description="Filtering options for product variants.",
+                deprecation_reason="Use `where` filter instead.",
+            ),
+            where=ProductVariantWhereInput(
+                description="Where filtering options for product variants."
+            ),
+            search=graphene.String(
+                description="Search product variants." + ADDED_IN_322
+            ),
+            sort_by=ProductVariantSortingInput(description="Sort products variants."),
+            description=(
+                "List of product variants. Requires one of the following permissions to "
+                "include the unpublished items: "
+                f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+            ),
+        ),
+    )
+    report_product_sales = doc(
+        DOC_CATEGORY_PRODUCTS,
+        ConnectionField(
+            ProductVariantCountableConnection,
+            period=graphene.Argument(
+                ReportingPeriod, required=True, description="Span of time."
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned.",
+                required=True,
+            ),
+            description="List of top selling products.",
+            permissions=[
+                ProductPermissions.MANAGE_PRODUCTS,
+            ],
+            deprecation_reason=DEFAULT_DEPRECATION_REASON,
+        ),
     )
 
     @staticmethod

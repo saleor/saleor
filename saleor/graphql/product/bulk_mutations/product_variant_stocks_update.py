@@ -26,7 +26,6 @@ from .product_variant_stocks_create import ProductVariantStocksCreate
 class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     class Meta:
         description = "Updates stocks for product variant."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkStockError
         error_type_field = "bulk_stock_errors"

@@ -9,22 +9,23 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import Error
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderEvent
 from .order_note_common import OrderNoteCommon
 from .utils import call_event_by_order_status
 
-OrderNoteUpdateErrorCode = graphene.Enum.from_enum(error_codes.OrderNoteUpdateErrorCode)
-OrderNoteUpdateErrorCode.doc_category = DOC_CATEGORY_ORDERS
+OrderNoteUpdateErrorCode = doc(
+    DOC_CATEGORY_ORDERS, graphene.Enum.from_enum(error_codes.OrderNoteUpdateErrorCode)
+)
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderNoteUpdateError(Error):
     code = OrderNoteUpdateErrorCode(description="The error code.", required=False)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderNoteUpdate(OrderNoteCommon):
     order = graphene.Field(Order, description="Order with the note updated.")
     event = graphene.Field(OrderEvent, description="Order note updated.")
@@ -38,7 +39,6 @@ class OrderNoteUpdate(OrderNoteCommon):
 
     class Meta:
         description = "Updates note of an order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderNoteUpdateError
 

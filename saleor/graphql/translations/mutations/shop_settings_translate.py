@@ -8,17 +8,20 @@ from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation
 from ...core.types import TranslationError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shop.types import Shop
 from ...site.dataloaders import get_site_promise
 from .utils import validate_input_against_model
 
 
+@doc(category=DOC_CATEGORY_SHOP)
 class ShopSettingsTranslationInput(graphene.InputObjectType):
     header_text = graphene.String()
     description = graphene.String()
 
 
+@doc(category=DOC_CATEGORY_SHOP)
 class ShopSettingsTranslate(BaseMutation):
     shop = graphene.Field(Shop, description="Updated shop settings.")
 
@@ -33,7 +36,6 @@ class ShopSettingsTranslate(BaseMutation):
 
     class Meta:
         description = "Creates/updates translations for shop settings."
-        doc_category = DOC_CATEGORY_SHOP
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)

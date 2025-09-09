@@ -12,10 +12,12 @@ from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types import ChannelError, NonNullList
 from ...core.utils.reordering import perform_reordering
+from ...directives import doc
 from ...warehouse.types import Warehouse
 from ..types import Channel
 
 
+@doc(category=DOC_CATEGORY_CHANNELS)
 class ChannelReorderWarehouses(BaseMutation):
     channel = graphene.Field(
         Channel, description="Channel within the warehouses are reordered."
@@ -36,7 +38,6 @@ class ChannelReorderWarehouses(BaseMutation):
 
     class Meta:
         description = "Reorder the warehouses of a channel."
-        doc_category = DOC_CATEGORY_CHANNELS
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
 

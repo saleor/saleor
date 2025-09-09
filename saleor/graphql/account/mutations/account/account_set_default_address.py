@@ -12,13 +12,17 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import AddressTypeEnum
 from ...types import Address, User
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(async_events={WebhookEventAsyncType.CUSTOMER_UPDATED})
 class AccountSetDefaultAddress(BaseMutation):
+    """Sets a default address for the authenticated user."""
+
     user = graphene.Field(User, description="An updated user instance.")
 
     class Arguments:
@@ -28,17 +32,9 @@ class AccountSetDefaultAddress(BaseMutation):
         type = AddressTypeEnum(required=True, description="The type of address.")
 
     class Meta:
-        description = "Sets a default address for the authenticated user."
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
-                description="A customer's address was updated.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

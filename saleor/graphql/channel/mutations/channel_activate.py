@@ -8,11 +8,13 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import BaseMutation
 from ...core.types import ChannelError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Channel
 
 
+@doc(category=DOC_CATEGORY_CHANNELS)
+@webhook_events(async_events={WebhookEventAsyncType.CHANNEL_STATUS_CHANGED})
 class ChannelActivate(BaseMutation):
     channel = graphene.Field(Channel, description="Activated channel.")
 
@@ -21,16 +23,9 @@ class ChannelActivate(BaseMutation):
 
     class Meta:
         description = "Activate a channel."
-        doc_category = DOC_CATEGORY_CHANNELS
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
-                description="A channel was activated.",
-            ),
-        ]
 
     @classmethod
     def clean_channel_availability(cls, channel):

@@ -6,7 +6,8 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
-from graphql.error import GraphQLError
+from graphql import GraphQLError
+from graphql_relay import from_global_id
 from text_unidecode import unidecode
 
 from ....attribute import models
@@ -20,19 +21,14 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
-from ...core.types import (
-    AttributeBulkUpdateError,
-    BaseInputObjectType,
-    BaseObjectType,
-    NonNullList,
-)
+from ...core.types import AttributeBulkUpdateError, NonNullList
 from ...core.utils import (
     WebhookEventAsyncType,
-    WebhookEventInfo,
     from_global_id_or_error,
     get_duplicated_values,
 )
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import AttributeTypeEnum
 from ..types import Attribute
@@ -40,16 +36,14 @@ from .attribute_bulk_create import DEPRECATED_ATTR_FIELDS, clean_values
 from .attribute_update import AttributeUpdateInput
 
 
-class AttributeBulkUpdateResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeBulkUpdateResult(graphene.ObjectType):
     attribute = graphene.Field(Attribute, description="Attribute data.")
     errors = NonNullList(
         AttributeBulkUpdateError,
         required=False,
         description="List of errors occurred on update attempt.",
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 def get_results(
@@ -72,17 +66,23 @@ def get_results(
     return results
 
 
-class AttributeBulkUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeBulkUpdateInput(graphene.InputObjectType):
     id = graphene.ID(description="ID of an attribute to update.", required=False)
     external_reference = graphene.String(
         description="External ID of this attribute.", required=False
     )
     fields = AttributeUpdateInput(description="Fields to update.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+        WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
+        WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
+    }
+)
 class AttributeBulkUpdate(BaseMutation):
     count = graphene.Int(
         required=True,
@@ -91,7 +91,7 @@ class AttributeBulkUpdate(BaseMutation):
     results = NonNullList(
         AttributeBulkUpdateResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the updated attributes.",
     )
 
@@ -109,26 +109,7 @@ class AttributeBulkUpdate(BaseMutation):
 
     class Meta:
         description = "Updates attributes."
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         error_type_class = AttributeBulkUpdateError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
-                description=(
-                    "An attribute was updated. "
-                    "Optionally called when new attribute value was created or "
-                    "deleted."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
-                description="Called optionally when an attribute value was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
-                description="Called optionally when an attribute value was deleted.",
-            ),
-        ]
 
     @classmethod
     def clean_attributes(
@@ -511,7 +492,7 @@ class AttributeBulkUpdate(BaseMutation):
                 continue
 
             if attribute_id:
-                attribute_ids.add(graphene.Node.from_global_id(attribute_id)[1])
+                attribute_ids.add(from_global_id(attribute_id)[1])
             else:
                 external_refs.add(external_ref)
 

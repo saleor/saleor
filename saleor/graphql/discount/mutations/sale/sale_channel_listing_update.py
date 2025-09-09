@@ -19,9 +19,10 @@ from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.scalars import PositiveDecimal
-from ....core.types import BaseInputObjectType, DiscountError, NonNullList
+from ....core.types import DiscountError, NonNullList
 from ....core.utils import raise_validation_error
 from ....core.validators import validate_price_precision
+from ....directives import doc
 from ....discount.types import Sale
 from ...dataloaders import (
     PromotionRulesByPromotionIdLoader,
@@ -30,17 +31,16 @@ from ...dataloaders import (
 from ...utils import get_products_for_rule
 
 
-class SaleChannelListingAddInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class SaleChannelListingAddInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     discount_value = PositiveDecimal(
         required=True, description="The value of the discount."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
-class SaleChannelListingInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class SaleChannelListingInput(graphene.InputObjectType):
     add_channels = NonNullList(
         SaleChannelListingAddInput,
         description="List of channels to which the sale should be assigned.",
@@ -52,10 +52,8 @@ class SaleChannelListingInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class SaleChannelListingUpdate(BaseChannelListingMutation):
     sale = graphene.Field(Sale, description="An updated sale instance.")
 
@@ -68,7 +66,6 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage sale's availability in channels."
-        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"

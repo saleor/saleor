@@ -54,7 +54,7 @@ This query will have cost of 200 (100 x 2 for each product):
 # GraphQL operations that fail before cost can be calculated have a fixed cost of 1.
 QUERY_COST_FAILED_OPERATION = 1
 
-COST_MAP = {
+COST_MAP: dict[str, dict[str, dict]] = {
     "Query": {
         "address": {"complexity": 1},
         "addressValidationRules": {"complexity": 1},
@@ -264,6 +264,9 @@ COST_MAP = {
     "ProductChannelListing": {
         "channel": {"complexity": 1},
         "pricing": {"complexity": 1},
+    },
+    "ProductCountableConnection": {
+        "totalCount": {"complexity": 1},
     },
     "ProductImage": {
         "url": {"complexity": 1},

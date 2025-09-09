@@ -9,14 +9,15 @@ from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import BaseMutation
-from ....core.types import BaseInputObjectType, DiscountError, NonNullList
-from ....core.utils import WebhookEventInfo
+from ....core.types import DiscountError, NonNullList
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....product.types import Category, Collection, Product, ProductVariant
 from ...types import Voucher
 
 
-class CatalogueInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class CatalogueInput(graphene.InputObjectType):
     products = NonNullList(
         graphene.ID, description="Products related to the discount.", name="products"
     )
@@ -35,9 +36,6 @@ class CatalogueInput(BaseInputObjectType):
         description="Product variant related to the discount.",
         name="variants",
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class VoucherBaseCatalogueMutation(BaseMutation):
@@ -78,19 +76,14 @@ class VoucherBaseCatalogueMutation(BaseMutation):
             )
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.VOUCHER_UPDATED})
 class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
     class Meta:
         description = "Adds products, categories, collections to a voucher."
-        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_UPDATED,
-                description="A voucher was updated.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

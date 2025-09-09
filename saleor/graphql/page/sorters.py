@@ -1,8 +1,12 @@
+import graphene
+
 from ..core.doc_category import DOC_CATEGORY_PAGES
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class PageSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_PAGES)
+class PageSortField(graphene.Enum):
     TITLE = ["title", "slug"]
     SLUG = ["slug"]
     VISIBILITY = ["is_published", "title", "slug"]
@@ -10,9 +14,6 @@ class PageSortField(BaseEnum):
     PUBLICATION_DATE = ["published_at", "title", "slug", "pk"]
     PUBLISHED_AT = ["published_at", "title", "slug"]
     CREATED_AT = ["created_at", "title", "slug"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PAGES
 
     @property
     def description(self):
@@ -40,19 +41,17 @@ class PageSortField(BaseEnum):
         return None
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PAGES
         sort_enum = PageSortField
         type_name = "pages"
 
 
-class PageTypeSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_PAGES)
+class PageTypeSortField(graphene.Enum):
     NAME = ["name", "slug"]
     SLUG = ["slug"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PAGES
 
     @property
     def description(self):
@@ -62,8 +61,8 @@ class PageTypeSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageTypeSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PAGES
         sort_enum = PageTypeSortField
         type_name = "page types"

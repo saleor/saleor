@@ -13,9 +13,11 @@ from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.inputs import ReorderInput
 from ...core.types import NonNullList, PageError
 from ...core.utils.reordering import perform_reordering
+from ...directives import doc
 from ...page.types import Page
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
     page = graphene.Field(
         Page, description="Page from which attribute values are reordered."
@@ -23,7 +25,6 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
 
     class Meta:
         description = "Reorder page attribute values."
-        doc_category = DOC_CATEGORY_PAGES
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"

@@ -13,6 +13,7 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import BulkStockError, NonNullList
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
@@ -21,6 +22,7 @@ from ..types import ProductVariant
 from ..utils import create_stocks
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantStocksCreate(BaseMutation):
     product_variant = graphene.Field(
         ProductVariant, description="Updated product variant."
@@ -39,7 +41,6 @@ class ProductVariantStocksCreate(BaseMutation):
 
     class Meta:
         description = "Creates stocks for product variant."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkStockError
         error_type_field = "bulk_stock_errors"

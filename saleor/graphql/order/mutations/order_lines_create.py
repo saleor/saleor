@@ -26,6 +26,7 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
@@ -43,6 +44,7 @@ from .utils import (
 )
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
     order = graphene.Field(Order, description="Related order.")
     order_lines = NonNullList(OrderLine, description="List of added order lines.")
@@ -59,7 +61,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
     class Meta:
         description = "Creates order lines for an order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

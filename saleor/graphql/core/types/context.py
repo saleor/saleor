@@ -1,18 +1,18 @@
 from typing import Generic, TypeVar, cast
 
+import graphene
 from django.db.models import Model
 from graphene.types.resolver import get_default_resolver
 
 from ...translations.resolvers import resolve_translation
 from .. import ResolveInfo
 from ..context import ChannelContext
-from .base import BaseObjectType
 from .model import ModelObjectType
 
 N = TypeVar("N", bound=Model)
 
 
-class ChannelContextTypeForObjectType(Generic[N], BaseObjectType):
+class ChannelContextTypeForObjectType(Generic[N], graphene.ObjectType):
     """A Graphene type that supports resolvers' root as ChannelContext objects."""
 
     class Meta:

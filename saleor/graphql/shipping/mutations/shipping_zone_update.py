@@ -7,6 +7,7 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import NonNullList, ShippingError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import ShippingZone
 from .base import ShippingZoneMixin
@@ -23,10 +24,8 @@ class ShippingZoneUpdateInput(ShippingZoneCreateInput):
         description="List of channels to unassign from the shipping zone.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
 
-
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingZoneUpdate(ShippingZoneMixin, DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of a shipping zone to update.", required=True)

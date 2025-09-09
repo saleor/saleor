@@ -13,10 +13,14 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....directives import doc
 from ...types import User
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class PasswordChange(BaseMutation):
+    """Change the password of the logged in user."""
+
     user = graphene.Field(User, description="A user instance with a new password.")
 
     class Arguments:
@@ -26,8 +30,6 @@ class PasswordChange(BaseMutation):
         new_password = graphene.String(required=True, description="New user password.")
 
     class Meta:
-        description = "Change the password of the logged in user."
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)

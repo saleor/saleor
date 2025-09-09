@@ -19,7 +19,6 @@ from .payment_capture import PaymentCapture
 class PaymentRefund(PaymentCapture):
     class Meta:
         description = "Refunds the captured payment amount."
-        doc_category = DOC_CATEGORY_PAYMENTS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"

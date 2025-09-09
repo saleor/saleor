@@ -15,7 +15,7 @@ from ....core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import Error, NonNullList
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils.validators import check_for_duplicates
 from ...enums import PromotionRuleUpdateErrorCode
@@ -68,6 +68,8 @@ class PromotionRuleUpdateInput(PromotionRuleBaseInput):
     )
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.PROMOTION_RULE_UPDATED})
 class PromotionRuleUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(
@@ -83,13 +85,6 @@ class PromotionRuleUpdate(DeprecatedModelMutation):
         object_type = PromotionRule
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionRuleUpdateError
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_RULE_UPDATED,
-                description="A promotion rule was updated.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

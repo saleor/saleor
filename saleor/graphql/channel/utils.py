@@ -3,7 +3,7 @@ from collections import defaultdict
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef, Q
 from django.utils.functional import SimpleLazyObject
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
 from ...channel.models import Channel

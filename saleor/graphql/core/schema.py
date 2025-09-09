@@ -1,7 +1,7 @@
 import graphene
 
 from ..core.doc_category import DOC_CATEGORY_TAXES
-from ..core.fields import BaseField
+from ..directives import doc
 from ..plugins.dataloaders import get_plugin_manager_promise
 from . import ResolveInfo
 from .mutations import FileUpload
@@ -9,11 +9,13 @@ from .types import NonNullList, TaxType
 
 
 class CoreQueries(graphene.ObjectType):
-    tax_types = BaseField(
-        NonNullList(TaxType),
-        description="List of all tax rates available from tax gateway.",
-        doc_category=DOC_CATEGORY_TAXES,
-        deprecation_reason="Use `taxClasses` field instead.",
+    tax_types = doc(
+        DOC_CATEGORY_TAXES,
+        graphene.Field(
+            NonNullList(TaxType),
+            description="List of all tax rates available from tax gateway.",
+            deprecation_reason="Use `taxClasses` field instead.",
+        ),
     )
 
     def resolve_tax_types(self, info: ResolveInfo):

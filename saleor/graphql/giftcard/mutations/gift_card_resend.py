@@ -11,14 +11,15 @@ from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
-from ...core.types import BaseInputObjectType, GiftCardError
-from ...core.utils import WebhookEventInfo
+from ...core.types import GiftCardError
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
 from .utils import clean_gift_card
 
 
-class GiftCardResendInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+class GiftCardResendInput(graphene.InputObjectType):
     id = graphene.ID(required=True, description="ID of a gift card to resend.")
     email = graphene.String(
         required=False, description="Email to which gift card should be send."
@@ -28,10 +29,9 @@ class GiftCardResendInput(BaseInputObjectType):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
-
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+@webhook_events(async_events={WebhookEventAsyncType.NOTIFY_USER})
 class GiftCardResend(BaseMutation):
     gift_card = graphene.Field(GiftCard, description="Gift card which has been sent.")
 
@@ -42,15 +42,8 @@ class GiftCardResend(BaseMutation):
 
     class Meta:
         description = "Resend a gift card."
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for gift card resend.",
-            )
-        ]
 
     @classmethod
     def clean_input(cls, data):

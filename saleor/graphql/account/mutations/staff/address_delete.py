@@ -4,22 +4,18 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import Address
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ..base import BaseAddressDelete
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events({WebhookEventAsyncType.ADDRESS_DELETED})
 class AddressDelete(BaseAddressDelete):
+    """Deletes an address."""
+
     class Meta:
-        description = "Deletes an address."
-        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ADDRESS_DELETED,
-                description="An address was deleted.",
-            )
-        ]

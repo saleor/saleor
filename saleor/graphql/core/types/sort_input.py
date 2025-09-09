@@ -3,16 +3,14 @@ import copy
 import graphene
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 
-from ..descriptions import DEPRECATED_IN_3X_INPUT
 from ..enums import OrderDirection
-from .base import BaseInputObjectType
 
 
 class SortInputMeta(InputObjectTypeOptions):
     sort_enum = None
 
 
-class SortInputObjectType(BaseInputObjectType):
+class SortInputObjectType(graphene.InputObjectType):
     direction = graphene.Argument(
         OrderDirection,
         required=True,
@@ -23,7 +21,7 @@ class SortInputObjectType(BaseInputObjectType):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(  # type: ignore[override]
+    def __init_subclass_with_meta__(
         cls, container=None, _meta=None, sort_enum=None, type_name=None, **options
     ):
         if not _meta:
@@ -48,10 +46,8 @@ class SortInputObjectType(BaseInputObjectType):
 class ChannelSortInputObjectType(SortInputObjectType):
     channel = graphene.Argument(
         graphene.String,
-        description=(
-            "Specifies the channel in which to sort the data."
-            f"{DEPRECATED_IN_3X_INPUT} Use root-level channel argument instead."
-        ),
+        description="Specifies the channel in which to sort the data.",
+        deprecation_reason="Use root-level `channel` argument instead.",
     )
 
     class Meta:

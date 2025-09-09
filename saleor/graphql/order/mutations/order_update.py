@@ -25,14 +25,16 @@ from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelWithExtRefMutation
-from ...core.types import BaseInputObjectType, NonNullList, OrderError
+from ...core.types import NonNullList, OrderError
+from ...directives import doc
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .utils import ORDER_UPDATE_FIELDS
 
 
-class OrderUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderUpdateInput(graphene.InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     user_email = graphene.String(description="Email address of the customer.")
     shipping_address = AddressInput(description="Shipping address of the customer.")
@@ -62,9 +64,6 @@ class OrderUpdateInput(BaseInputObjectType):
         required=False,
         description=(f"Order language code.{ADDED_IN_321}"),
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):

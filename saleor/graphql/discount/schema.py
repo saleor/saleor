@@ -1,15 +1,14 @@
 import graphene
+from graphene_directives import directive
 
 from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import (
-    DEPRECATED_IN_3X_INPUT,
-)
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from ..translations.mutations import (
     PromotionRuleTranslate,
     PromotionTranslate,
@@ -59,105 +58,115 @@ from .types import (
 from .types.promotions import PromotionCountableConnection
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = VoucherFilter
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class SaleFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = SaleFilter
 
 
 class DiscountQueries(graphene.ObjectType):
-    sale = PermissionsField(
-        Sale,
-        id=graphene.Argument(graphene.ID, description="ID of the sale.", required=True),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
+    sale = doc(
+        DOC_CATEGORY_DISCOUNTS,
+        PermissionsField(
+            Sale,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the sale.", required=True
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            description="Look up a sale by ID.",
+            deprecation_reason="Use the `promotion` query instead.",
+            permissions=[
+                DiscountPermissions.MANAGE_DISCOUNTS,
+            ],
         ),
-        description="Look up a sale by ID.",
-        deprecation_reason="Use the `promotion` query instead.",
-        permissions=[
-            DiscountPermissions.MANAGE_DISCOUNTS,
-        ],
-        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
-    sales = FilterConnectionField(
-        SaleCountableConnection,
-        filter=SaleFilterInput(description="Filtering options for sales."),
-        sort_by=SaleSortingInput(description="Sort sales."),
-        query=graphene.String(
-            description=(
-                "Search sales by name, value or type. "
-                f"{DEPRECATED_IN_3X_INPUT} Use `filter.search` input instead."
-            )
+    sales = doc(
+        DOC_CATEGORY_DISCOUNTS,
+        FilterConnectionField(
+            SaleCountableConnection,
+            filter=SaleFilterInput(description="Filtering options for sales."),
+            sort_by=SaleSortingInput(description="Sort sales."),
+            query=graphene.String(
+                description="Search sales by name, value or type.",
+                deprecation_reason="Use `filter.search` input instead.",
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            description="List of the shop's sales.",
+            deprecation_reason="Use the `promotions` query instead.",
+            permissions=[
+                DiscountPermissions.MANAGE_DISCOUNTS,
+            ],
         ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description="List of the shop's sales.",
-        deprecation_reason="Use the `promotions` query instead.",
-        permissions=[
-            DiscountPermissions.MANAGE_DISCOUNTS,
-        ],
-        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
-    voucher = PermissionsField(
-        Voucher,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the voucher.", required=True
+    voucher = doc(
+        DOC_CATEGORY_DISCOUNTS,
+        PermissionsField(
+            Voucher,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the voucher.", required=True
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            description="Look up a voucher by ID.",
+            permissions=[
+                DiscountPermissions.MANAGE_DISCOUNTS,
+            ],
         ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description="Look up a voucher by ID.",
-        permissions=[
-            DiscountPermissions.MANAGE_DISCOUNTS,
-        ],
-        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
-    vouchers = FilterConnectionField(
-        VoucherCountableConnection,
-        filter=VoucherFilterInput(description="Filtering options for vouchers."),
-        sort_by=VoucherSortingInput(description="Sort voucher."),
-        query=graphene.String(
-            description=(
-                "Search vouchers by name or code. "
-                f"{DEPRECATED_IN_3X_INPUT} Use `filter.search` input instead."
-            )
+    vouchers = doc(
+        DOC_CATEGORY_DISCOUNTS,
+        FilterConnectionField(
+            VoucherCountableConnection,
+            filter=VoucherFilterInput(description="Filtering options for vouchers."),
+            sort_by=VoucherSortingInput(description="Sort voucher."),
+            query=graphene.String(
+                description="Search vouchers by name or code.",
+                deprecation_reason="Use `filter.search` input instead.",
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            description="List of the shop's vouchers.",
+            permissions=[
+                DiscountPermissions.MANAGE_DISCOUNTS,
+            ],
         ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description="List of the shop's vouchers.",
-        permissions=[
-            DiscountPermissions.MANAGE_DISCOUNTS,
-        ],
-        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
-    promotion = PermissionsField(
-        Promotion,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the promotion.", required=True
+    promotion = doc(
+        DOC_CATEGORY_DISCOUNTS,
+        PermissionsField(
+            Promotion,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the promotion.", required=True
+            ),
+            description="Look up a promotion by ID.",
+            permissions=[
+                DiscountPermissions.MANAGE_DISCOUNTS,
+            ],
         ),
-        description="Look up a promotion by ID.",
-        permissions=[
-            DiscountPermissions.MANAGE_DISCOUNTS,
-        ],
-        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
-    promotions = FilterConnectionField(
-        PromotionCountableConnection,
-        where=PromotionWhereInput(
-            description="Where filtering options for promotions."
+    promotions = doc(
+        DOC_CATEGORY_DISCOUNTS,
+        FilterConnectionField(
+            PromotionCountableConnection,
+            where=PromotionWhereInput(
+                description="Where filtering options for promotions."
+            ),
+            sort_by=PromotionSortingInput(description="Sort promotions."),
+            description="List of the promotions.",
+            permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
         ),
-        sort_by=PromotionSortingInput(description="Sort promotions."),
-        description="List of the promotions.",
-        permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
-        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
 
     @staticmethod

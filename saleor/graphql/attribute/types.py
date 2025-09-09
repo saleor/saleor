@@ -19,18 +19,12 @@ from ..core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ..core.descriptions import (
-    ADDED_IN_322,
-    DEFAULT_DEPRECATION_REASON,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ..core.descriptions import ADDED_IN_322, DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
 from ..core.scalars import Date, DateTime
 from ..core.types import (
-    BaseInputObjectType,
-    BaseObjectType,
     DateRangeInput,
     DateTimeRangeInput,
     File,
@@ -39,6 +33,7 @@ from ..core.types import (
 )
 from ..core.types.context import ChannelContextType, ChannelContextTypeForObjectType
 from ..decorators import check_attribute_required_permissions
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
@@ -241,9 +236,9 @@ class AttributeValue(ChannelContextType[models.AttributeValue]):
         )
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeValueCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         node = AttributeValue
 
 
@@ -262,10 +257,8 @@ class Attribute(ChannelContextType[models.Attribute]):
         AttributeValueCountableConnection,
         sort_by=AttributeChoicesSortingInput(description="Sort attribute choices."),
         filter=AttributeValueFilterInput(
-            description=(
-                f"Filtering options for attribute choices. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            ),
+            description="Filtering options for attribute choices.",
+            deprecation_reason="Use `where` filter instead.",
         ),
         where=AttributeValueWhereInput(
             description="Where filtering options for attribute choices." + ADDED_IN_322
@@ -469,13 +462,14 @@ class Attribute(ChannelContextType[models.Attribute]):
         return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         node = Attribute
 
 
-class AssignedVariantAttribute(BaseObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AssignedVariantAttribute(graphene.ObjectType):
     attribute = graphene.Field(
         Attribute, description="Attribute assigned to variant.", required=True
     )
@@ -493,9 +487,9 @@ class AssignedVariantAttribute(BaseObjectType):
         description = (
             "Represents assigned attribute to variant with variant selection attached."
         )
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class SelectedAttribute(ChannelContextTypeForObjectType):
     attribute = graphene.Field(
         Attribute,
@@ -508,11 +502,11 @@ class SelectedAttribute(ChannelContextTypeForObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         description = "Represents an assigned attribute to an object."
 
 
-class AttributeInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeInput(graphene.InputObjectType):
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     value = AssignedAttributeValueInput(
         required=False,
@@ -529,8 +523,8 @@ class AttributeInput(BaseInputObjectType):
             "Slugs identifying the attributeValues associated with the Attribute. "
             "When specified, it filters the results to include only records with "
             "one of the matching values. Requires `slug` to be provided. "
-            f" {DEPRECATED_IN_3X_INPUT} Use `value` instead."
         ),
+        deprecation_reason="Use `value` instead.",
     )
     values_range = graphene.Field(
         IntRangeInput,
@@ -538,8 +532,8 @@ class AttributeInput(BaseInputObjectType):
         description=(
             AttributeValueDescriptions.VALUES_RANGE
             + " Requires `slug` to be provided. "
-            f"{DEPRECATED_IN_3X_INPUT} Use `value` instead."
         ),
+        deprecation_reason="Use `value` instead.",
     )
     date_time = graphene.Field(
         DateTimeRangeInput,
@@ -547,30 +541,28 @@ class AttributeInput(BaseInputObjectType):
         description=(
             AttributeValueDescriptions.DATE_TIME_RANGE
             + " Requires `slug` to be provided. "
-            f"{DEPRECATED_IN_3X_INPUT} Use `value` instead."
         ),
+        deprecation_reason="Use `value` instead.",
     )
     date = graphene.Field(
         DateRangeInput,
         required=False,
         description=(
             AttributeValueDescriptions.DATE_RANGE + " Requires `slug` to be provided. "
-            f"{DEPRECATED_IN_3X_INPUT} Use `value` instead."
         ),
+        deprecation_reason="Use `value` instead.",
     )
     boolean = graphene.Boolean(
         required=False,
         description=(
             AttributeDescriptions.BOOLEAN + " Requires `slug` to be provided. "
-            f"{DEPRECATED_IN_3X_INPUT} Use `value` instead."
         ),
+        deprecation_reason="Use `value` instead.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-class AttributeValueSelectableTypeInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeValueSelectableTypeInput(graphene.InputObjectType):
     id = graphene.ID(required=False, description="ID of an attribute value.")
     external_reference = graphene.String(
         required=False, description="External reference of an attribute value."
@@ -594,10 +586,10 @@ class AttributeValueSelectableTypeInput(BaseInputObjectType):
             "4. If externalReference and value is provided then "
             "new attribute value will be created."
         )
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
-class AttributeValueInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeValueInput(graphene.InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.", required=False)
     external_reference = graphene.String(
         description="External ID of this attribute.", required=False
@@ -607,9 +599,9 @@ class AttributeValueInput(BaseInputObjectType):
         required=False,
         description=(
             "The value or slug of an attribute to resolve. "
-            "If the passed value is non-existent, it will be created. "
-            + DEPRECATED_IN_3X_INPUT
+            "If the passed value is non-existent, it will be created."
         ),
+        deprecation_reason="",
     )
     dropdown = AttributeValueSelectableTypeInput(
         required=False,
@@ -653,6 +645,3 @@ class AttributeValueInput(BaseInputObjectType):
     date_time = DateTime(
         required=False, description=AttributeValueDescriptions.DATE_TIME
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES

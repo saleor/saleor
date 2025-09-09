@@ -10,16 +10,18 @@ from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import BaseMutation
-from ...core.types import BaseInputObjectType, Error, NonNullList
+from ...core.types import Error, NonNullList
 from ...core.utils import from_global_id_or_error
+from ...directives import doc
 from ..types import TaxCountryConfiguration
 
-TaxCountryConfigurationUpdateErrorCode = graphene.Enum.from_enum(
-    error_codes.TaxCountryConfigurationUpdateErrorCode
+TaxCountryConfigurationUpdateErrorCode = doc(
+    DOC_CATEGORY_TAXES,
+    graphene.Enum.from_enum(error_codes.TaxCountryConfigurationUpdateErrorCode),
 )
-TaxCountryConfigurationUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxCountryConfigurationUpdateError(Error):
     code = TaxCountryConfigurationUpdateErrorCode(
         description="The error code.", required=True
@@ -30,20 +32,16 @@ class TaxCountryConfigurationUpdateError(Error):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
-class TaxClassRateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxClassRateInput(graphene.InputObjectType):
     tax_class_id = graphene.ID(
         description="ID of a tax class for which to update the tax rate", required=False
     )
     rate = graphene.Float(description="Tax rate value.", required=False)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxCountryConfigurationUpdate(BaseMutation):
     tax_country_configuration = graphene.Field(
         TaxCountryConfiguration,
@@ -67,7 +65,6 @@ class TaxCountryConfigurationUpdate(BaseMutation):
 
     class Meta:
         description = "Updates tax class rates for a specific country."
-        doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxCountryConfigurationUpdateError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 

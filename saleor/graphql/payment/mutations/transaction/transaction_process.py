@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import graphene
 from django.conf import settings
@@ -24,14 +24,13 @@ from ....core.mutations import BaseMutation
 from ....core.scalars import JSON, UUID
 from ....core.types import common as common_types
 from ....core.validators import validate_one_of_args_is_in_mutation
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionEvent, TransactionItem
 from .utils import clean_customer_ip_address, get_transaction_item
 
-if TYPE_CHECKING:
-    pass
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionProcess(BaseMutation):
     transaction = graphene.Field(
         TransactionItem, description="The processed transaction."
@@ -74,7 +73,6 @@ class TransactionProcess(BaseMutation):
         )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Processes a transaction session. It triggers the webhook "
             "`TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. "

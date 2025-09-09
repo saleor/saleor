@@ -13,6 +13,7 @@ from ...core.fields import PermissionsField
 from ...core.scalars import DateTime
 from ...core.types import ModelObjectType
 from ...core.types.user_or_app import UserOrApp
+from ...directives import doc
 from ...utils import get_user_or_app_from_context
 from ..enums import PromotionEventsEnum
 
@@ -21,6 +22,7 @@ def resolve_event_type(root: models.PromotionEvent, _info):
     return root.type
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionEventInterface(graphene.Interface):
     id = graphene.GlobalID()
     date = DateTime(description="Date when event happened.", required=True)
@@ -78,44 +80,43 @@ class PromotionEventInterface(graphene.Interface):
         return None
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionCreatedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = "History log of the promotion created event."
         interfaces = [relay.Node, PromotionEventInterface]
         model = models.PromotionEvent
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionUpdatedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = "History log of the promotion updated event."
         interfaces = [relay.Node, PromotionEventInterface]
         model = models.PromotionEvent
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionStartedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = "History log of the promotion started event."
         interfaces = [relay.Node, PromotionEventInterface]
         model = models.PromotionEvent
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionEndedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = "History log of the promotion ended event."
         interfaces = [relay.Node, PromotionEventInterface]
         model = models.PromotionEvent
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionRuleEventInterface(graphene.Interface):
     class Meta:
         description = "History log of the promotion event related to rule."
-        interfaces = [relay.Node]
         model = models.PromotionEvent
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
     rule_id = graphene.String(
         description="The rule ID associated with the promotion event."
@@ -126,28 +127,28 @@ class PromotionRuleEventInterface(graphene.Interface):
         return root.parameters.get("rule_id", None)
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionRuleCreatedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = "History log of the promotion rule created event."
         interfaces = [relay.Node, PromotionEventInterface, PromotionRuleEventInterface]
         model = models.PromotionEvent
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionRuleUpdatedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = "History log of the promotion rule created event."
         interfaces = [relay.Node, PromotionEventInterface, PromotionRuleEventInterface]
         model = models.PromotionEvent
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionRuleDeletedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = "History log of the promotion rule created event."
         interfaces = [relay.Node, PromotionEventInterface, PromotionRuleEventInterface]
         model = models.PromotionEvent
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 PROMOTION_EVENT_MAP = {
@@ -161,6 +162,7 @@ PROMOTION_EVENT_MAP = {
 }
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionEvent(graphene.Union):
     class Meta:
         types = list(PROMOTION_EVENT_MAP.values())

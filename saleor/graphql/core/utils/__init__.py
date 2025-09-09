@@ -8,7 +8,8 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene import ObjectType
-from graphql.error import GraphQLError
+from graphql import GraphQLError
+from graphql_relay import from_global_id
 
 from ....plugins.const import APP_ID_PREFIX
 from ....thumbnail import FILE_NAME_MAX_LENGTH
@@ -77,7 +78,7 @@ def from_global_id_or_error(
     Returns tuple: (type, id).
     """
     try:
-        type_, id_ = graphene.Node.from_global_id(global_id)
+        type_, id_ = from_global_id(global_id)
         if type_ == APP_ID_PREFIX:
             id_ = global_id
         else:

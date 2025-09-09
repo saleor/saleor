@@ -5,13 +5,12 @@ from ...account import CustomerEvents
 from ...checkout import AddressType
 from ...graphql.core.enums import to_enum
 from ..core.doc_category import DOC_CATEGORY_USERS
-from ..core.types import BaseEnum
 from ..core.utils import str_to_enum
+from ..directives import doc
 
 AddressTypeEnum = to_enum(AddressType, type_name="AddressTypeEnum")
 
-CustomerEventsEnum = to_enum(CustomerEvents)
-CustomerEventsEnum.doc_category = DOC_CATEGORY_USERS
+CustomerEventsEnum = doc(DOC_CATEGORY_USERS, to_enum(CustomerEvents))
 
 
 CountryCodeEnum = graphene.Enum(
@@ -24,13 +23,12 @@ CountryCodeEnum = graphene.Enum(
 )
 
 
-class StaffMemberStatus(BaseEnum):
+@doc(category=DOC_CATEGORY_USERS)
+class StaffMemberStatus(graphene.Enum):
+    """Represents the status of a staff account."""
+
     ACTIVE = "active"
     DEACTIVATED = "deactivated"
-
-    class Meta:
-        description = "Represents status of a staff account."
-        doc_category = DOC_CATEGORY_USERS
 
     @property
     def description(self):

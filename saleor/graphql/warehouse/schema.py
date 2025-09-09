@@ -12,6 +12,7 @@ from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from ..core.utils.resolvers import resolve_by_global_id_or_ext_ref
+from ..directives import doc
 from .bulk_mutations import StockBulkUpdate
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
@@ -32,31 +33,35 @@ from .types import (
 
 
 class WarehouseQueries(graphene.ObjectType):
-    warehouse = PermissionsField(
-        Warehouse,
-        description="Look up a warehouse by ID.",
-        id=graphene.Argument(graphene.ID, description="ID of a warehouse."),
-        external_reference=graphene.Argument(
-            graphene.String, description="External ID of a warehouse."
+    warehouse = doc(
+        DOC_CATEGORY_PRODUCTS,
+        PermissionsField(
+            Warehouse,
+            description="Look up a warehouse by ID.",
+            id=graphene.Argument(graphene.ID, description="ID of a warehouse."),
+            external_reference=graphene.Argument(
+                graphene.String, description="External ID of a warehouse."
+            ),
+            permissions=[
+                ProductPermissions.MANAGE_PRODUCTS,
+                OrderPermissions.MANAGE_ORDERS,
+                ShippingPermissions.MANAGE_SHIPPING,
+            ],
         ),
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-            OrderPermissions.MANAGE_ORDERS,
-            ShippingPermissions.MANAGE_SHIPPING,
-        ],
-        doc_category=DOC_CATEGORY_PRODUCTS,
     )
-    warehouses = FilterConnectionField(
-        WarehouseCountableConnection,
-        description="List of warehouses.",
-        filter=WarehouseFilterInput(),
-        sort_by=WarehouseSortingInput(),
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-            OrderPermissions.MANAGE_ORDERS,
-            ShippingPermissions.MANAGE_SHIPPING,
-        ],
-        doc_category=DOC_CATEGORY_PRODUCTS,
+    warehouses = doc(
+        DOC_CATEGORY_PRODUCTS,
+        FilterConnectionField(
+            WarehouseCountableConnection,
+            description="List of warehouses.",
+            filter=WarehouseFilterInput(),
+            sort_by=WarehouseSortingInput(),
+            permissions=[
+                ProductPermissions.MANAGE_PRODUCTS,
+                OrderPermissions.MANAGE_ORDERS,
+                ShippingPermissions.MANAGE_SHIPPING,
+            ],
+        ),
     )
 
     @staticmethod
@@ -85,19 +90,23 @@ class WarehouseMutations(graphene.ObjectType):
 
 
 class StockQueries(graphene.ObjectType):
-    stock = PermissionsField(
-        Stock,
-        description="Look up a stock by ID",
-        id=graphene.ID(required=True, description="ID of a stock"),
-        permissions=[ProductPermissions.MANAGE_PRODUCTS],
-        doc_category=DOC_CATEGORY_PRODUCTS,
+    stock = doc(
+        DOC_CATEGORY_PRODUCTS,
+        PermissionsField(
+            Stock,
+            description="Look up a stock by ID",
+            id=graphene.ID(required=True, description="ID of a stock"),
+            permissions=[ProductPermissions.MANAGE_PRODUCTS],
+        ),
     )
-    stocks = FilterConnectionField(
-        StockCountableConnection,
-        description="List of stocks.",
-        filter=StockFilterInput(),
-        permissions=[ProductPermissions.MANAGE_PRODUCTS],
-        doc_category=DOC_CATEGORY_PRODUCTS,
+    stocks = doc(
+        DOC_CATEGORY_PRODUCTS,
+        FilterConnectionField(
+            StockCountableConnection,
+            description="List of stocks.",
+            filter=StockFilterInput(),
+            permissions=[ProductPermissions.MANAGE_PRODUCTS],
+        ),
     )
 
     @staticmethod

@@ -8,19 +8,19 @@ from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
-from ....core.types import BaseInputObjectType, ProductError
+from ....core.types import ProductError
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 from ...utils import ALT_CHAR_LIMIT
 
 
-class ProductMediaUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductMediaUpdateInput(graphene.InputObjectType):
     alt = graphene.String(description="Alt text for a product media.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductMediaUpdate(BaseMutation):
     product = graphene.Field(Product)
     media = graphene.Field(ProductMedia)
@@ -33,7 +33,6 @@ class ProductMediaUpdate(BaseMutation):
 
     class Meta:
         description = "Updates a product media."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

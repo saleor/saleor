@@ -11,6 +11,7 @@ from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
 from ...core.scalars import JSON, DateTime, PositiveDecimal
 from ...core.types import ModelObjectType, NonNullList
+from ...directives import doc
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import PromotionRuleTranslation, PromotionTranslation
@@ -25,6 +26,7 @@ from ..enums import PromotionTypeEnum, RewardTypeEnum, RewardValueTypeEnum
 from .promotion_events import PromotionEvent
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class Promotion(ModelObjectType[models.Promotion]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True, description="Name of the promotion.")
@@ -57,7 +59,6 @@ class Promotion(ModelObjectType[models.Promotion]):
         )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Promotion
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @staticmethod
     def resolve_rules(root: models.Promotion, info: ResolveInfo):
@@ -68,6 +69,7 @@ class Promotion(ModelObjectType[models.Promotion]):
         return PromotionEventsByPromotionIdLoader(info.context).load(root.id)
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionRule(ModelObjectType[models.PromotionRule]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(description="Name of the promotion rule.")
@@ -137,7 +139,6 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
         )
         interfaces = [relay.Node]
         model = models.PromotionRule
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @staticmethod
     def resolve_promotion(root: models.PromotionRule, info: ResolveInfo):
@@ -170,7 +171,7 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
         return GiftsByPromotionRuleIDLoader(info.context).load(root.id).then(with_gifts)
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         node = Promotion

@@ -12,6 +12,7 @@ from ..core.context import ChannelContext
 from ..core.doc_category import DOC_CATEGORY_MENU
 from ..core.types import NonNullList
 from ..core.types.context import ChannelContextType
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
 from ..page.types import Page
@@ -60,9 +61,9 @@ class Menu(ChannelContextType[models.Menu]):
         )
 
 
+@doc(category=DOC_CATEGORY_MENU)
 class MenuCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_MENU
         node = Menu
 
 
@@ -238,10 +239,10 @@ class MenuItem(ChannelContextType[models.MenuItem]):
         return None
 
 
+@doc(category=DOC_CATEGORY_MENU)
 class MenuItemCountableConnection(CountableConnection):
     class Meta:
         node = MenuItem
-        doc_category = DOC_CATEGORY_MENU
 
 
 class MenuItemMoveInput(graphene.InputObjectType):

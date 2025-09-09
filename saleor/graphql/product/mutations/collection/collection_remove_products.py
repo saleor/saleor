@@ -8,10 +8,12 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import CollectionError, NonNullList
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection, Product
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionRemoveProducts(BaseMutation):
     collection = graphene.Field(
         Collection, description="Collection from which products will be removed."
@@ -27,7 +29,6 @@ class CollectionRemoveProducts(BaseMutation):
 
     class Meta:
         description = "Remove products from a collection."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"

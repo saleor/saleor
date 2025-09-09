@@ -9,36 +9,33 @@ from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
-from ....core.descriptions import (
-    ADDED_IN_318,
-    DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
-)
+from ....core.descriptions import ADDED_IN_318, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime
-from ....core.types import BaseInputObjectType, DiscountError, NonNullList
-from ....core.utils import WebhookEventInfo, get_duplicated_values
+from ....core.types import DiscountError, NonNullList
+from ....core.utils import get_duplicated_values
 from ....core.validators import (
     validate_end_is_after_start,
     validate_one_of_args_is_in_mutation,
 )
+from ....directives import doc, webhook_events
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ...types import Voucher
 
 
-class VoucherInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class VoucherInput(graphene.InputObjectType):
     type = VoucherTypeEnum(
         description="Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."
     )
     name = graphene.String(description="Voucher name.")
     code = graphene.String(
         required=False,
-        description="Code to use the voucher. "
-        + DEPRECATED_IN_3X_INPUT
-        + " Use `addCodes` instead.",
+        description="Code to use the voucher.",
+        deprecation_reason="Use `addCodes` instead.",
     )
     add_codes = NonNullList(
         graphene.String,
@@ -96,33 +93,10 @@ class VoucherInput(BaseInputObjectType):
         description="Limit number of times this voucher can be used in total."
     )
 
+
+class VoucherMutationBase(DeprecatedModelMutation):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
-
-
-class VoucherCreate(DeprecatedModelMutation):
-    class Arguments:
-        input = VoucherInput(
-            required=True, description="Fields required to create a voucher."
-        )
-
-    class Meta:
-        description = "Creates a new voucher."
-        model = models.Voucher
-        object_type = Voucher
-        permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
-        error_type_class = DiscountError
-        error_type_field = "discount_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_CREATED,
-                description="A voucher was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_CODES_CREATED,
-                description="A voucher codes were created.",
-            ),
-        ]
+        abstract = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -315,3 +289,25 @@ class VoucherCreate(DeprecatedModelMutation):
 
         cls.post_save_action(info, voucher_instance, code_instances, cleaned_input)
         return cls.success_response(voucher_instance)
+
+
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.VOUCHER_CREATED,
+        WebhookEventAsyncType.VOUCHER_CODES_CREATED,
+    }
+)
+class VoucherCreate(VoucherMutationBase):
+    class Arguments:
+        input = VoucherInput(
+            required=True, description="Fields required to create a voucher."
+        )
+
+    class Meta:
+        description = "Creates a new voucher."
+        model = models.Voucher
+        object_type = Voucher
+        permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
+        error_type_class = DiscountError
+        error_type_field = "discount_errors"

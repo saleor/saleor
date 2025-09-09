@@ -11,6 +11,7 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....directives import doc
 from ...types import User
 from .utils import (
     _does_token_match,
@@ -20,6 +21,7 @@ from .utils import (
 )
 
 
+@doc(category=DOC_CATEGORY_AUTH)
 class RefreshToken(BaseMutation):
     """Mutation that refresh user token and returns token and user data."""
 
@@ -43,7 +45,6 @@ class RefreshToken(BaseMutation):
             f"`{JWT_REFRESH_TOKEN_COOKIE_NAME}`. "
             "`csrfToken` is required when `refreshToken` is provided as a cookie."
         )
-        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 

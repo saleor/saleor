@@ -16,7 +16,6 @@ from ...product import models as product_models
 from ..core.filters import DecimalFilterInput
 from ..core.filters.where_input import ContainsFilterInput, StringFilterInput
 from ..core.types import DateRangeInput, DateTimeRangeInput
-from ..core.types.base import BaseInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils.filters import (
     Number,
@@ -26,7 +25,7 @@ from ..utils.filters import (
 )
 
 
-class AssignedAttributeReferenceInput(BaseInputObjectType):
+class AssignedAttributeReferenceInput(graphene.InputObjectType):
     referenced_ids = ContainsFilterInput(
         description="Returns objects with a reference pointing to an object identified by the given ID.",
     )
@@ -46,7 +45,7 @@ class AssignedAttributeReferenceInput(BaseInputObjectType):
     )
 
 
-class AssignedAttributeValueInput(BaseInputObjectType):
+class AssignedAttributeValueInput(graphene.InputObjectType):
     slug = StringFilterInput(
         description="Filter by slug assigned to AttributeValue.",
     )
@@ -75,7 +74,7 @@ class AssignedAttributeValueInput(BaseInputObjectType):
     )
 
 
-class AssignedAttributeWhereInput(BaseInputObjectType):
+class AssignedAttributeWhereInput(graphene.InputObjectType):
     slug = graphene.String(description="Filter by attribute slug.", required=False)
     value = AssignedAttributeValueInput(
         required=False,

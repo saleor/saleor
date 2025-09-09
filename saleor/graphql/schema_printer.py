@@ -6,10 +6,10 @@ Can be dropped once we upgrade from the legacy version of GraphQL Core.
 from collections.abc import Callable
 from typing import cast
 
-from graphene.types.definitions import GrapheneObjectType
-from graphql.language.printer import print_ast
-from graphql.type.definition import (
+from graphql import (
+    DEFAULT_DEPRECATION_REASON,
     GraphQLArgument,
+    GraphQLDirective,
     GraphQLEnumType,
     GraphQLEnumValue,
     GraphQLInputObjectType,
@@ -17,13 +17,15 @@ from graphql.type.definition import (
     GraphQLNamedType,
     GraphQLObjectType,
     GraphQLScalarType,
+    GraphQLSchema,
+    GraphQLString,
     GraphQLUnionType,
+    ValueNode,
+    ast_from_value,
+    print_ast,
 )
-from graphql.type.directives import DEFAULT_DEPRECATION_REASON, GraphQLDirective
-from graphql.type.schema import GraphQLSchema
-from graphql.utils.ast_from_value import ast_from_value
-
-from saleor.graphql.core.descriptions import DEPRECATED_IN_3X_INPUT
+from graphql.language.block_string import print_block_string
+from graphql.language.print_string import print_string
 
 __all__ = ["print_schema", "print_introspection_schema", "print_type"]
 
@@ -64,10 +66,8 @@ def print_filtered_schema(
     directive_filter: Callable[[GraphQLDirective], bool],
     type_filter: Callable[[GraphQLNamedType], bool],
 ) -> str:
-    directives = filter(directive_filter, schema.get_directives())
-    types = filter(
-        type_filter, cast(list[GraphQLNamedType], schema.get_type_map().values())
-    )
+    directives = filter(directive_filter, schema.directives)
+    types = filter(type_filter, cast(list[GraphQLNamedType], schema.type_map.values()))
 
     return "\n\n".join(
         (
@@ -81,15 +81,15 @@ def print_filtered_schema(
 def print_schema_definition(schema: GraphQLSchema) -> str | None:
     operation_types = []
 
-    query_type = schema.get_query_type()
+    query_type = schema.query_type
     if query_type:
         operation_types.append(f"  query: {query_type.name}")
 
-    mutation_type = schema.get_mutation_type()
+    mutation_type = schema.mutation_type
     if mutation_type:
         operation_types.append(f"  mutation: {mutation_type.name}")
 
-    subscription_type = schema.get_subscription_type()
+    subscription_type = schema.subscription_type
     if subscription_type:
         operation_types.append(f"  subscription: {subscription_type.name}")
 
@@ -111,96 +111,16 @@ def is_schema_of_common_names(schema: GraphQLSchema) -> bool:
 
     When using this naming convention, the schema description can be omitted.
     """
-    query_type = schema.get_query_type()
+    query_type = schema.query_type
     if query_type and query_type.name != "Query":
         return False
 
-    mutation_type = schema.get_mutation_type()
+    mutation_type = schema.mutation_type
     if mutation_type and mutation_type.name != "Mutation":
         return False
 
-    subscription_type = schema.get_subscription_type()
+    subscription_type = schema.subscription_type
     return not subscription_type or subscription_type.name == "Subscription"
-
-
-def print_object_directives_for_category(type_) -> str:
-    doc_category = getattr(type_.graphene_type, "doc_category", None)
-    return f' @doc(category: "{doc_category}")' if doc_category else ""
-
-
-def print_object_directvie_for_webhook_events_info(type_) -> str:
-    webhook_events_info = getattr(type_.graphene_type, "webhook_events_info", None)
-
-    if not webhook_events_info:
-        return ""
-
-    async_events = []
-    sync_events = []
-    for event in webhook_events_info:
-        if event.type in WebhookEventAsyncType.ALL:
-            async_events.append(event.type.upper())
-        if event.type in WebhookEventSyncType.ALL:
-            sync_events.append(event.type.upper())
-    async_events_str = ", ".join(async_events)
-    sync_events_str = ", ".join(sync_events)
-    return (
-        f" @webhookEventsInfo(asyncEvents: [{async_events_str}], syncEvents: "
-        f"[{sync_events_str}])"
-    )
-
-
-def print_object_directives(type_) -> str:
-    directive = print_object_directives_for_category(type_)
-    directive += print_object_directvie_for_webhook_events_info(type_)
-    return directive
-
-
-def print_field_directives_for_category(field, name) -> str:
-    doc_category = None
-    # Get doc_category for `type Mutation` & `type Subscription` fields.
-    if hasattr(field.type, "graphene_type"):
-        doc_category = getattr(field.type.graphene_type, "doc_category", None)
-
-    if not doc_category:
-        # Get doc_category for `type Query` fields.
-        doc_category = getattr(field.resolver, "doc_category", None)
-
-    return f' @doc(category: "{doc_category}")' if doc_category else ""
-
-
-def print_field_directives_for_webhook_events_info(field, name) -> str:
-    webhook_events_info = getattr(field.resolver, "webhook_events_info", None)
-
-    if not webhook_events_info and hasattr(field.type, "graphene_type"):
-        webhook_events_info = getattr(
-            field.type.graphene_type, "webhook_events_info", None
-        )
-
-    if not webhook_events_info:
-        return ""
-
-    async_events = []
-    sync_events = []
-    for event in webhook_events_info:
-        if event.type in WebhookEventAsyncType.ALL:
-            async_events.append(event.type.upper())
-        if event.type in WebhookEventSyncType.ALL:
-            sync_events.append(event.type.upper())
-    async_events_str = ", ".join(async_events)
-    sync_events_str = ", ".join(sync_events)
-
-    return (
-        f" @webhookEventsInfo(asyncEvents: [{async_events_str}], syncEvents: "
-        f"[{sync_events_str}])"
-    )
-
-
-def print_field_directives(field, name, include_doc_category: bool = True) -> str:
-    directive = ""
-    if include_doc_category:
-        directive = print_field_directives_for_category(field, name)
-    directive += print_field_directives_for_webhook_events_info(field, name)
-    return directive
 
 
 def print_type(type_: GraphQLNamedType) -> str:
@@ -236,18 +156,12 @@ def print_implemented_interfaces(type_: GraphQLObjectType) -> str:
     return " implements " + " & ".join(i.name for i in interfaces) if interfaces else ""
 
 
-def print_object(type_: GrapheneObjectType) -> str:
-    include_doc_category_directives = type_.name in [
-        "Mutation",
-        "Query",
-        "Subscription",
-    ]
+def print_object(type_: GraphQLObjectType) -> str:
     return (
         print_description(type_)
         + f"type {type_.name}"
         + print_implemented_interfaces(type_)
-        + print_object_directives(type_)
-        + print_fields(type_, include_doc_category_directives)
+        + print_fields(type_)
     )
 
 
@@ -264,16 +178,11 @@ def print_union(type_: GraphQLUnionType) -> str:
 def print_enum(type_: GraphQLEnumType) -> str:
     values = [
         print_description(v, "  ", not i)
-        + f"  {v.name}"
+        + f"  {v.value}"
         + print_deprecated(v.deprecation_reason)
-        for i, v in enumerate(type_.values)
+        for i, v in enumerate(type_.values.values())
     ]
-    return (
-        print_description(type_)
-        + f"enum {type_.name}"
-        + print_object_directives(type_)
-        + print_block(values)
-    )
+    return print_description(type_) + f"enum {type_.name}" + print_block(values)
 
 
 def print_input_object(type_: GraphQLInputObjectType) -> str:
@@ -281,24 +190,15 @@ def print_input_object(type_: GraphQLInputObjectType) -> str:
         print_description(field, "  ", not i) + "  " + print_input_value(name, field)
         for i, (name, field) in enumerate(type_.fields.items())
     ]
-    return (
-        print_description(type_)
-        + f"input {type_.name}"
-        + print_object_directives(type_)
-        + print_block(fields)
-    )
+    return print_description(type_) + f"input {type_.name}" + print_block(fields)
 
 
-def print_fields(
-    type_: GraphQLObjectType | GraphQLInterfaceType,
-    include_doc_category_directives: bool = True,
-) -> str:
+def print_fields(type_: GraphQLObjectType | GraphQLInterfaceType) -> str:
     fields = [
         print_description(field, "  ", not i)
         + f"  {name}"
         + print_args(field.args, "  ")
         + f": {field.type}"
-        + print_field_directives(field, name, include_doc_category_directives)
         + print_deprecated(field.deprecation_reason)
         for i, (name, field) in enumerate(type_.fields.items())
     ]
@@ -334,16 +234,10 @@ def print_args(args: dict[str, GraphQLArgument], indentation: str = "") -> str:
 
 
 def print_input_value(name: str, arg: GraphQLArgument) -> str:
-    default_ast = ast_from_value(arg.default_value, arg.type)
+    default_ast = cast(ValueNode, ast_from_value(arg.default_value, arg.type))
     arg_decl = f"{name}: {arg.type}"
     if default_ast:
         arg_decl += f" = {print_ast(default_ast)}"
-
-    if arg.description and DEPRECATED_IN_3X_INPUT in arg.description:
-        deprecation_pos = arg.description.index(DEPRECATED_IN_3X_INPUT)
-        reason = arg.description[deprecation_pos + len(DEPRECATED_IN_3X_INPUT) :]
-        reason = reason.strip() or DEFAULT_DEPRECATION_REASON
-        arg_decl += print_deprecated(reason)
 
     return arg_decl
 
@@ -354,7 +248,7 @@ def print_directive(directive: GraphQLDirective) -> str:
         + f"directive @{directive.name}"
         + print_args(directive.args)
         + " on "
-        + " | ".join(location for location in directive.locations)
+        + " | ".join(location.name for location in directive.locations)
     )
 
 
@@ -362,8 +256,8 @@ def print_deprecated(reason: str | None) -> str:
     if reason is None:
         return ""
     if reason != DEFAULT_DEPRECATION_REASON:
-        ast_value = print_ast(ast_from_value(reason))
-        return f" @deprecated(reason: {ast_value})"
+        reason = print_string(reason)
+        return f" @deprecated(reason: {reason})"
     return " @deprecated"
 
 
@@ -404,60 +298,6 @@ def is_printable_as_block_string(value: str) -> bool:
     return True
 
 
-def print_block_string(value: str, minimize: bool = False) -> str:
-    """Print a block string in the indented block form.
-
-    Prints a block string in the indented block form by adding a leading and
-    trailing blank line. However, if a block string starts with whitespace and
-    is a single-line, adding a leading blank line would strip that whitespace.
-    """
-    if not isinstance(value, str):
-        value = str(value)  # resolve lazy string proxy object
-
-    escaped_value = value.replace('"""', '\\"""')
-
-    # Expand a block string's raw value into independent lines.
-    lines = escaped_value.splitlines() or [""]
-    num_lines = len(lines)
-    is_single_line = num_lines == 1
-
-    # If common indentation is found,
-    # we can fix some of those cases by adding a leading new line.
-    force_leading_new_line = num_lines > 1 and all(
-        not line or line[0] in " \t" for line in lines[1:]
-    )
-
-    # Trailing triple quotes just looks confusing but doesn't force trailing new line.
-    has_trailing_triple_quotes = escaped_value.endswith('\\"""')
-
-    # Trailing quote (single or double) or slash forces trailing new line
-    has_trailing_quote = value.endswith('"') and not has_trailing_triple_quotes
-    has_trailing_slash = value.endswith("\\")
-    force_trailing_new_line = has_trailing_quote or has_trailing_slash
-
-    print_as_multiple_lines = not minimize and (
-        # add leading and trailing new lines only if it improves readability
-        not is_single_line
-        or len(value) > 70
-        or force_trailing_new_line
-        or force_leading_new_line
-        or has_trailing_triple_quotes
-    )
-
-    # Format a multi-line block quote to account for leading space.
-    skip_leading_new_line = is_single_line and value and value[0] in " \t"
-    before = (
-        "\n"
-        if print_as_multiple_lines
-        and not skip_leading_new_line
-        or force_leading_new_line
-        else ""
-    )
-    after = "\n" if print_as_multiple_lines or force_trailing_new_line else ""
-
-    return f'"""{before}{escaped_value}{after}"""'
-
-
 def print_description(
     def_: (
         GraphQLArgument
@@ -477,16 +317,13 @@ def print_description(
     if description is None:
         return ""
 
-    if DEPRECATED_IN_3X_INPUT in description:
-        deprecation_pos = description.index(DEPRECATED_IN_3X_INPUT)
-        description = description[:deprecation_pos]
-
     description = description.rstrip()
 
     if is_printable_as_block_string(description):
         block_string = print_block_string(description)
     else:
-        block_string = print_ast(ast_from_value(description))
+        ast = cast(ValueNode, ast_from_value(description, GraphQLString))
+        block_string = print_ast(ast)
 
     prefix = "\n" + indentation if indentation and not first_in_block else indentation
 

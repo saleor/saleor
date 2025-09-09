@@ -3,7 +3,7 @@ import decimal
 
 import graphene
 from graphene.types.generic import GenericScalar
-from graphql.language import ast
+from graphql import FloatValueNode, IntValueNode, ListValueNode, ObjectValueNode
 from measurement.measures import Weight
 
 from ...core.weight import (
@@ -21,7 +21,7 @@ class Decimal(graphene.Float):
 
     @staticmethod
     def parse_literal(node) -> decimal.Decimal | None:
-        if isinstance(node, ast.FloatValue | ast.IntValue):
+        if isinstance(node, FloatValueNode | IntValueNode):
             try:
                 return decimal.Decimal(node.value)
             except decimal.DecimalException:
@@ -74,12 +74,12 @@ class PositiveDecimal(graphene.Float):
 class JSON(GenericScalar):
     @staticmethod
     def parse_literal(node):
-        if isinstance(node, ast.ObjectValue):
+        if isinstance(node, ObjectValueNode):
             return {
                 field.name.value: GenericScalar.parse_literal(field.value)
                 for field in node.fields
             }
-        if isinstance(node, ast.ListValue):
+        if isinstance(node, ListValueNode):
             return [GenericScalar.parse_literal(value) for value in node.values]
         return None
 
@@ -110,7 +110,7 @@ class WeightScalar(graphene.Scalar):
 
     @staticmethod
     def parse_literal(node):
-        if isinstance(node, ast.ObjectValue):
+        if isinstance(node, ObjectValueNode):
             weight = WeightScalar.parse_literal_object(node)
         else:
             weight = WeightScalar.parse_decimal(node.value)

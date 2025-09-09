@@ -13,11 +13,13 @@ from ....core.context import disallow_replica_in_context
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import validation_error_to_error_type
 from ....core.types import AccountError
+from ....directives import doc
 from ..base import INVALID_TOKEN
-from . import CreateToken
+from .create_token import AbstractCreateToken
 
 
-class SetPassword(CreateToken):
+@doc(category=DOC_CATEGORY_USERS)
+class SetPassword(AbstractCreateToken):
     class Arguments:
         token = graphene.String(
             description="A one-time token required to set the password.", required=True
@@ -30,7 +32,6 @@ class SetPassword(CreateToken):
             "Sets the user's password from the token sent by email "
             "using the RequestPasswordReset mutation."
         )
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 

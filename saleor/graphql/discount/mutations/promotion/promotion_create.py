@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from .....channel import models as channel_models
 from .....discount import PromotionType, events, models
@@ -20,9 +20,9 @@ from ....core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import JSON, DateTime
-from ....core.types import BaseInputObjectType, Error, NonNullList
-from ....core.utils import WebhookEventInfo
+from ....core.types import Error, NonNullList
 from ....core.validators import validate_end_is_after_start
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils import get_nodes
 from ...enums import PromotionCreateErrorCode, PromotionTypeEnum
@@ -32,6 +32,7 @@ from ..utils import promotion_rule_should_be_marked_with_dirty_variants
 from .validators import clean_promotion_rule
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionCreateError(Error):
     code = PromotionCreateErrorCode(description="The error code.", required=True)
     index = graphene.Int(
@@ -51,6 +52,7 @@ class PromotionCreateError(Error):
     )
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionRuleInput(PromotionRuleBaseInput):
     channels = NonNullList(
         graphene.ID,
@@ -63,11 +65,9 @@ class PromotionRuleInput(PromotionRuleBaseInput):
         + PREVIEW_FEATURE,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
-class PromotionInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class PromotionInput(graphene.InputObjectType):
     description = JSON(description="Promotion description.")
     start_date = DateTime(
         description="The start date of the promotion in ISO 8601 format."
@@ -87,10 +87,14 @@ class PromotionCreateInput(PromotionInput):
     )
     rules = NonNullList(PromotionRuleInput, description="List of promotion rules.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.PROMOTION_CREATED,
+        WebhookEventAsyncType.PROMOTION_STARTED,
+    }
+)
 class PromotionCreate(DeprecatedModelMutation):
     class Arguments:
         input = PromotionCreateInput(
@@ -103,17 +107,6 @@ class PromotionCreate(DeprecatedModelMutation):
         object_type = Promotion
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionCreateError
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_CREATED,
-                description="A promotion was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_STARTED,
-                description="Optionally called if promotion was started.",
-            ),
-        ]
 
     @classmethod
     def clean_input(

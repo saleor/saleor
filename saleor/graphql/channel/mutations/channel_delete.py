@@ -11,14 +11,15 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelDeleteMutation
-from ...core.types import BaseInputObjectType, ChannelError
-from ...core.utils import WebhookEventInfo
+from ...core.types import ChannelError
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
 
 
-class ChannelDeleteInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_CHANNELS)
+class ChannelDeleteInput(graphene.InputObjectType):
     channel_id = graphene.ID(
         required=True,
         description=(
@@ -27,10 +28,9 @@ class ChannelDeleteInput(BaseInputObjectType):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHANNELS
 
-
+@doc(category=DOC_CATEGORY_CHANNELS)
+@webhook_events(async_events={WebhookEventAsyncType.CHANNEL_DELETED})
 class ChannelDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a channel to delete.")
@@ -47,12 +47,6 @@ class ChannelDelete(ModelDeleteMutation):
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHANNEL_DELETED,
-                description="A channel was deleted.",
-            ),
-        ]
 
     @classmethod
     def validate_input(cls, origin_channel, target_channel):

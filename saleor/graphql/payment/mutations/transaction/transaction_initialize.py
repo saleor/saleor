@@ -19,6 +19,7 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionInitializeErrorCode
 from ....core.scalars import JSON, PositiveDecimal
 from ....core.types import common as common_types
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionEvent, TransactionItem
 from ..base import TransactionSessionBase
@@ -26,6 +27,7 @@ from .payment_gateway_initialize import PaymentGatewayToInitialize
 from .utils import clean_customer_ip_address
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionInitialize(TransactionSessionBase):
     transaction = graphene.Field(
         TransactionItem, description="The initialized transaction."
@@ -85,7 +87,6 @@ class TransactionInitialize(TransactionSessionBase):
         )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Initializes a transaction session. It triggers the webhook "
             "`TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. "

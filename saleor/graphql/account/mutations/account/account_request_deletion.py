@@ -16,11 +16,20 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED,
+    }
+)
 class AccountRequestDeletion(BaseMutation):
+    """Sends an email with the account removal link for the logged-in user."""
+
     class Arguments:
         redirect_url = graphene.String(
             required=True,
@@ -37,23 +46,9 @@ class AccountRequestDeletion(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Sends an email with the account removal link for the logged-in user."
-        )
-        doc_category = DOC_CATEGORY_USERS
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for account delete request.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED,
-                description="An account delete requested.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

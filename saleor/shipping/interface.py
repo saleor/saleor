@@ -39,7 +39,7 @@ class ShippingMethodData:
         try:
             type_, _ = from_global_id_or_error(self.id)
             str_type = str(type_)
-        except graphql.error.base.GraphQLError:
+        except graphql.GraphQLError:
             pass
         else:
             return str_type == APP_ID_PREFIX

@@ -8,24 +8,24 @@ from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.fields import JSONString
 from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import WeightScalar
-from ...core.types import BaseInputObjectType, NonNullList, ShippingError
+from ...core.types import NonNullList, ShippingError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 from ..types import ShippingMethodType, ShippingZone
 from .base import ShippingMethodTypeMixin, ShippingPriceMixin
 
 
-class ShippingPostalCodeRulesCreateInputRange(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_SHIPPING)
+class ShippingPostalCodeRulesCreateInputRange(graphene.InputObjectType):
     start = graphene.String(
         required=True, description="Start range of the postal code."
     )
     end = graphene.String(required=False, description="End range of the postal code.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
 
-
-class ShippingPriceInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_SHIPPING)
+class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the shipping method.")
     description = JSONString(description="Shipping method description.")
     minimum_order_weight = WeightScalar(
@@ -63,10 +63,8 @@ class ShippingPriceInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
 
-
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingPriceCreate(
     ShippingPriceMixin, ShippingMethodTypeMixin, DeprecatedModelMutation
 ):

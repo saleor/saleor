@@ -11,12 +11,9 @@ from ...core.filters import (
     ListObjectTypeFilter,
     MetadataFilterBase,
 )
+from ...directives import doc
 from ...utils.filters import filter_slug_list
-from ..enums import (
-    ProductTypeConfigurable,
-    ProductTypeEnum,
-    ProductTypeKindEnum,
-)
+from ..enums import ProductTypeConfigurable, ProductTypeEnum, ProductTypeKindEnum
 
 
 def filter_product_type_configurable(qs, _, value):
@@ -65,7 +62,7 @@ class ProductTypeFilter(MetadataFilterBase):
         return queryset.filter(name_slug_qs)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductTypeFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductTypeFilter

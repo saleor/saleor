@@ -17,16 +17,15 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import DiscountError, NonNullList
-from ...core.utils import (
-    WebhookEventInfo,
-    from_global_id_or_error,
-    raise_validation_error,
-)
+from ...core.utils import from_global_id_or_error, raise_validation_error
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Sale, Voucher
 from ..utils import convert_migrated_sale_predicate_to_catalogue_info
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.SALE_DELETED})
 class SaleBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
@@ -41,13 +40,6 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.SALE_DELETED,
-                description="A sale was deleted.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -140,6 +132,8 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         )
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.VOUCHER_DELETED})
 class VoucherBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
@@ -153,12 +147,6 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_DELETED,
-                description="A voucher was deleted.",
-            )
-        ]
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):

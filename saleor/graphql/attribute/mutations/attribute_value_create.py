@@ -9,9 +9,10 @@ from ....permission.enums import ProductPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AttributeError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_create import AttributeValueCreateInput
@@ -19,38 +20,13 @@ from .mixins import AttributeMixin
 from .validators import validate_value_is_unique
 
 
-class AttributeValueCreate(AttributeMixin, DeprecatedModelMutation):
+class AttributeValueMutationBase(AttributeMixin, DeprecatedModelMutation):
     ATTRIBUTE_VALUES_FIELD = "input"
 
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
-    class Arguments:
-        attribute_id = graphene.ID(
-            required=True,
-            name="attribute",
-            description="Attribute to which value will be assigned.",
-        )
-        input = AttributeValueCreateInput(
-            required=True, description="Fields required to create an AttributeValue."
-        )
-
     class Meta:
-        model = models.AttributeValue
-        object_type = AttributeValue
-        description = "Creates a value for an attribute."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = AttributeError
-        error_type_field = "attribute_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
-                description="An attribute value was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
-                description="An attribute was updated.",
-            ),
-        ]
+        abstract = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -114,3 +90,30 @@ class AttributeValueCreate(AttributeMixin, DeprecatedModelMutation):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_created, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)
+
+
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.ATTRIBUTE_VALUE_CREATED,
+        WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+    }
+)
+class AttributeValueCreate(AttributeValueMutationBase):
+    class Arguments:
+        attribute_id = graphene.ID(
+            required=True,
+            name="attribute",
+            description="Attribute to which value will be assigned.",
+        )
+        input = AttributeValueCreateInput(
+            required=True, description="Fields required to create an AttributeValue."
+        )
+
+    class Meta:
+        model = models.AttributeValue
+        object_type = AttributeValue
+        description = "Creates a value for an attribute."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"

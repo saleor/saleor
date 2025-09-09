@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import graphene
 from graphene import relay
+from graphene_federation import key
 from promise import Promise
 
 from ....permission.enums import ProductPermissions
@@ -24,13 +25,13 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
-from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
 from ...core.types import Image, NonNullList, ThumbnailField
 from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
+from ...directives import doc
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import CollectionTranslation
@@ -46,7 +47,7 @@ from .channels import CollectionChannelListing
 from .products import ProductCountableConnection
 
 
-@federated_entity("id channel")
+@key("id channel")
 class Collection(ChannelContextType[models.Collection]):
     id = graphene.GlobalID(required=True, description="The ID of the collection.")
     seo_title = graphene.String(description="SEO title of the collection.")
@@ -69,10 +70,8 @@ class Collection(ChannelContextType[models.Collection]):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(
-            description=(
-                f"Filtering options for products. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
+            description="Filtering options for products.",
+            deprecation_reason="Use `where` filter instead.",
         ),
         where=ProductWhereInput(description="Where filtering options for products."),
         search=graphene.String(description="Search products."),
@@ -203,8 +202,8 @@ class Collection(ChannelContextType[models.Collection]):
         return [collections.get(root_id) for root_id in roots_ids]
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         node = Collection
         description = "Represents a connection to a list of collections."

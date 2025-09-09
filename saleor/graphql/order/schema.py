@@ -13,24 +13,16 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
-from ..core.descriptions import (
-    ADDED_IN_322,
-    DEFAULT_DEPRECATION_REASON,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ..core.descriptions import ADDED_IN_322, DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
-from ..core.fields import (
-    BaseField,
-    ConnectionField,
-    FilterConnectionField,
-    PermissionsField,
-)
+from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
 from ..core.scalars import UUID
 from ..core.types import TaxedMoney
 from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
+from ..directives import doc
 from ..utils import get_user_or_app_from_context
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.order_bulk_cancel import OrderBulkCancel
@@ -94,15 +86,15 @@ def sort_field_from_kwargs(kwargs: dict) -> list[str] | None:
     return kwargs.get("sort_by", {}).get("field") or None
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = OrderFilter
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderDraftFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = DraftOrderFilter
 
 
@@ -118,88 +110,96 @@ class OrderQueries(graphene.ObjectType):
         ],
         deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
-    order = BaseField(
-        Order,
-        description="Look up an order by ID or external reference.",
-        id=graphene.Argument(graphene.ID, description="ID of an order."),
-        external_reference=graphene.Argument(
-            graphene.String,
-            description=(
-                "External ID of an order. "
-                "\n\nRequires one of the following permissions: MANAGE_ORDERS."
+    order = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            Order,
+            description="Look up an order by ID or external reference.",
+            id=graphene.Argument(graphene.ID, description="ID of an order."),
+            external_reference=graphene.Argument(
+                graphene.String,
+                description=(
+                    "External ID of an order. "
+                    "\n\nRequires one of the following permissions: MANAGE_ORDERS."
+                ),
             ),
         ),
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    orders = FilterConnectionField(
-        OrderCountableConnection,
-        sort_by=OrderSortingInput(description="Sort orders."),
-        filter=OrderFilterInput(
+    orders = doc(
+        DOC_CATEGORY_ORDERS,
+        FilterConnectionField(
+            OrderCountableConnection,
+            sort_by=OrderSortingInput(description="Sort orders."),
+            filter=OrderFilterInput(
+                description="Filtering options for orders.",
+                deprecation_reason="Use `where` filter instead.",
+            ),
+            where=OrderWhereInput(
+                description="Where filtering options for orders." + ADDED_IN_322
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            search=graphene.String(description="Search orders." + ADDED_IN_322),
             description=(
-                f"Filtering options for orders. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
+                "List of orders. The query will not initiate any external requests, "
+                "including filtering available shipping methods, or performing external "
+                "tax calculations."
+            ),
+            permissions=[
+                OrderPermissions.MANAGE_ORDERS,
+            ],
         ),
-        where=OrderWhereInput(
-            description="Where filtering options for orders." + ADDED_IN_322
-        ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        search=graphene.String(description="Search orders." + ADDED_IN_322),
-        description=(
-            "List of orders. The query will not initiate any external requests, "
-            "including filtering available shipping methods, or performing external "
-            "tax calculations."
-        ),
-        permissions=[
-            OrderPermissions.MANAGE_ORDERS,
-        ],
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    draft_orders = FilterConnectionField(
-        OrderCountableConnection,
-        sort_by=OrderSortingInput(description="Sort draft orders."),
-        filter=OrderDraftFilterInput(
+    draft_orders = doc(
+        DOC_CATEGORY_ORDERS,
+        FilterConnectionField(
+            OrderCountableConnection,
+            sort_by=OrderSortingInput(description="Sort draft orders."),
+            filter=OrderDraftFilterInput(
+                description="Filtering options for draft orders.",
+                deprecation_reason="Use `where` filter instead.",
+            ),
+            where=DraftOrderWhereInput(
+                description="Where filtering options for draft orders." + ADDED_IN_322
+            ),
+            search=graphene.String(description="Search orders." + ADDED_IN_322),
             description=(
-                f"Filtering options for draft orders. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
+                "List of draft orders. The query will not initiate any external requests, "
+                "including filtering available shipping methods, or performing external "
+                "tax calculations."
+            ),
+            permissions=[
+                OrderPermissions.MANAGE_ORDERS,
+            ],
         ),
-        where=DraftOrderWhereInput(
-            description="Where filtering options for draft orders." + ADDED_IN_322
-        ),
-        search=graphene.String(description="Search orders." + ADDED_IN_322),
-        description=(
-            "List of draft orders. The query will not initiate any external requests, "
-            "including filtering available shipping methods, or performing external "
-            "tax calculations."
-        ),
-        permissions=[
-            OrderPermissions.MANAGE_ORDERS,
-        ],
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    orders_total = PermissionsField(
-        TaxedMoney,
-        description="Return the total sales amount from a specific period.",
-        period=graphene.Argument(ReportingPeriod, description="A period of time."),
-        channel=graphene.Argument(
-            graphene.String,
-            description="Slug of a channel for which the data should be returned.",
+    orders_total = doc(
+        DOC_CATEGORY_ORDERS,
+        PermissionsField(
+            TaxedMoney,
+            description="Return the total sales amount from a specific period.",
+            period=graphene.Argument(ReportingPeriod, description="A period of time."),
+            channel=graphene.Argument(
+                graphene.String,
+                description="Slug of a channel for which the data should be returned.",
+            ),
+            permissions=[
+                OrderPermissions.MANAGE_ORDERS,
+            ],
+            deprecation_reason=DEFAULT_DEPRECATION_REASON,
         ),
-        permissions=[
-            OrderPermissions.MANAGE_ORDERS,
-        ],
-        doc_category=DOC_CATEGORY_ORDERS,
-        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
-    order_by_token = BaseField(
-        Order,
-        description="Look up an order by token.",
-        deprecation_reason=DEFAULT_DEPRECATION_REASON,
-        token=graphene.Argument(UUID, description="The order's token.", required=True),
-        doc_category=DOC_CATEGORY_ORDERS,
+    order_by_token = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            Order,
+            description="Look up an order by token.",
+            deprecation_reason=DEFAULT_DEPRECATION_REASON,
+            token=graphene.Argument(
+                UUID, description="The order's token.", required=True
+            ),
+        ),
     )
 
     @staticmethod

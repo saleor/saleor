@@ -14,7 +14,6 @@ class JsonFormatter(BaseFormatter):
         super().add_fields(log_record, record, message_dict)
         log_record["hostname"] = platform.node()
         try:
-            log_record["query"] = record.exc_info[1]._exc_query
             log_record["version"] = saleor_version
         except (TypeError, IndexError, AttributeError):
             pass

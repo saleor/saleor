@@ -5,13 +5,16 @@ from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import BaseInputObjectType, Error, NonNullList
+from ...core.types import Error, NonNullList
+from ...directives import doc
 from ..types import TaxClass
 
-TaxClassCreateErrorCode = graphene.Enum.from_enum(error_codes.TaxClassCreateErrorCode)
-TaxClassCreateErrorCode.doc_category = DOC_CATEGORY_TAXES
+TaxClassCreateErrorCode = doc(
+    DOC_CATEGORY_TAXES, graphene.Enum.from_enum(error_codes.TaxClassCreateErrorCode)
+)
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxClassCreateError(Error):
     code = TaxClassCreateErrorCode(description="The error code.", required=True)
     country_codes = NonNullList(
@@ -20,11 +23,9 @@ class TaxClassCreateError(Error):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
-class CountryRateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class CountryRateInput(graphene.InputObjectType):
     country_code = CountryCodeEnum(
         description="Country in which this rate applies.", required=True
     )
@@ -36,21 +37,17 @@ class CountryRateInput(BaseInputObjectType):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
-class TaxClassCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxClassCreateInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the tax class.", required=True)
     create_country_rates = NonNullList(
         CountryRateInput,
         description="List of country-specific tax rates to create for this tax class.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxClassCreate(DeprecatedModelMutation):
     class Arguments:
         input = TaxClassCreateInput(

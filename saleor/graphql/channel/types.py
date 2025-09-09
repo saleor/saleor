@@ -21,10 +21,10 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
     ADDED_IN_321,
-    DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
+    DOC_CATEGORY_CHANNELS,
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAYMENTS,
@@ -33,7 +33,8 @@ from ..core.doc_category import (
 )
 from ..core.fields import PermissionsField
 from ..core.scalars import DateTime, Day, Hour, Minute
-from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
+from ..core.types import CountryDisplay, ModelObjectType, NonNullList
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from ..tax.dataloaders import TaxConfigurationByChannelId
 from ..warehouse.dataloaders import WarehousesByChannelIdLoader
@@ -49,7 +50,8 @@ if TYPE_CHECKING:
     from ...shipping.models import ShippingZone
 
 
-class StockSettings(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class StockSettings(graphene.ObjectType):
     allocation_strategy = AllocationStrategyEnum(
         description=(
             "Allocation strategy defines the preference of warehouses "
@@ -60,9 +62,9 @@ class StockSettings(BaseObjectType):
 
     class Meta:
         description = "Represents the channel stock settings."
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutSettings(ObjectType):
     use_legacy_error_flow = graphene.Boolean(
         required=True,
@@ -75,8 +77,8 @@ class CheckoutSettings(ObjectType):
             "Some of the `problems` can block the finalizing checkout process. "
             "The legacy flow will be removed in Saleor 4.0. "
             "The flow with `checkout.problems` will be the default one."
-            + DEPRECATED_IN_3X_INPUT
         ),
+        deprecation_reason="",
     )
     automatically_complete_fully_paid_checkouts = graphene.Boolean(
         required=True,
@@ -94,9 +96,9 @@ class CheckoutSettings(ObjectType):
 
     class Meta:
         description = "Represents the channel-specific checkout settings."
-        doc_category = DOC_CATEGORY_CHECKOUT
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderSettings(ObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
         required=True,
@@ -179,9 +181,9 @@ class OrderSettings(ObjectType):
 
     class Meta:
         description = "Represents the channel-specific order settings."
-        doc_category = DOC_CATEGORY_ORDERS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentSettings(ObjectType):
     default_transaction_flow_strategy = TransactionFlowStrategyEnum(
         required=True,
@@ -217,9 +219,9 @@ class PaymentSettings(ObjectType):
 
     class Meta:
         description = "Represents the channel-specific payment settings."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_CHANNELS)
 class Channel(ModelObjectType):
     id = graphene.GlobalID(required=True, description="The ID of the channel.")
     slug = graphene.String(
@@ -332,15 +334,17 @@ class Channel(ModelObjectType):
         ],
     )
 
-    tax_configuration = PermissionsField(
-        "saleor.graphql.tax.types.TaxConfiguration",
-        description="Channel specific tax configuration." + ADDED_IN_320,
-        required=True,
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        doc_category=DOC_CATEGORY_TAXES,
+    tax_configuration = doc(
+        DOC_CATEGORY_TAXES,
+        PermissionsField(
+            "saleor.graphql.tax.types.TaxConfiguration",
+            description="Channel specific tax configuration." + ADDED_IN_320,
+            required=True,
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
+        ),
     )
 
     class Meta:

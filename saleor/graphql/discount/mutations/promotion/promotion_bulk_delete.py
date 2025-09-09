@@ -13,11 +13,13 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelBulkDeleteMutation
 from ....core.types import DiscountError, NonNullList
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Promotion
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.PROMOTION_DELETED})
 class PromotionBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
@@ -30,13 +32,6 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
         object_type = Promotion
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_DELETED,
-                description="A promotion was deleted.",
-            )
-        ]
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):

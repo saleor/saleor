@@ -8,14 +8,17 @@ from ....permission.enums import AppPermission
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.utils import can_manage_app
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AppError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import App
 
 
+@doc(category=DOC_CATEGORY_APPS)
+@webhook_events(async_events={WebhookEventAsyncType.APP_DELETED})
 class AppDelete(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of an app to delete.", required=True)
@@ -27,12 +30,6 @@ class AppDelete(DeprecatedModelMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.APP_DELETED,
-                description="An app was deleted.",
-            ),
-        ]
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):

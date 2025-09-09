@@ -8,6 +8,7 @@ from ..core.context import ChannelContext, get_database_connection_name
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from ..translations.mutations import ShippingPriceTranslate
 from .bulk_mutations import ShippingPriceBulkDelete, ShippingZoneBulkDelete
 from .filters import ShippingZoneFilterInput
@@ -29,29 +30,33 @@ from .types import ShippingZone, ShippingZoneCountableConnection
 
 
 class ShippingQueries(graphene.ObjectType):
-    shipping_zone = PermissionsField(
-        ShippingZone,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the shipping zone.", required=True
+    shipping_zone = doc(
+        DOC_CATEGORY_SHIPPING,
+        PermissionsField(
+            ShippingZone,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the shipping zone.", required=True
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            description="Look up a shipping zone by ID.",
+            permissions=[ShippingPermissions.MANAGE_SHIPPING],
         ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description="Look up a shipping zone by ID.",
-        permissions=[ShippingPermissions.MANAGE_SHIPPING],
-        doc_category=DOC_CATEGORY_SHIPPING,
     )
-    shipping_zones = FilterConnectionField(
-        ShippingZoneCountableConnection,
-        filter=ShippingZoneFilterInput(
-            description="Filtering options for shipping zones."
+    shipping_zones = doc(
+        DOC_CATEGORY_SHIPPING,
+        FilterConnectionField(
+            ShippingZoneCountableConnection,
+            filter=ShippingZoneFilterInput(
+                description="Filtering options for shipping zones."
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+            ),
+            description="List of the shop's shipping zones.",
+            permissions=[ShippingPermissions.MANAGE_SHIPPING],
         ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
-        description="List of the shop's shipping zones.",
-        permissions=[ShippingPermissions.MANAGE_SHIPPING],
-        doc_category=DOC_CATEGORY_SHIPPING,
     )
 
     @staticmethod

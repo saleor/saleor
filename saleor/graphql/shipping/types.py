@@ -22,7 +22,6 @@ from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import ConnectionField, JSONString, PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import (
-    BaseObjectType,
     CountryDisplay,
     ModelObjectType,
     Money,
@@ -31,6 +30,7 @@ from ..core.types import (
     Weight,
 )
 from ..core.types.context import ChannelContextType
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range, resolve_shipping_translation
 from ..tax.dataloaders import TaxClassByIdLoader
@@ -345,7 +345,8 @@ class ShippingZone(ChannelContextType[models.ShippingZone]):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingMethod(BaseObjectType):
+@doc(category=DOC_CATEGORY_SHIPPING)
+class ShippingMethod(graphene.ObjectType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
@@ -393,7 +394,6 @@ class ShippingMethod(BaseObjectType):
 
     class Meta:
         interfaces = [relay.Node, ObjectWithMetadata]
-        doc_category = DOC_CATEGORY_SHIPPING
         description = (
             "Shipping methods that can be used as means of shipping "
             "for orders and checkouts."
@@ -412,13 +412,14 @@ class ShippingMethod(BaseObjectType):
         return convert_weight_to_default_weight_unit(root.minimum_order_weight)
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingZoneCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
         node = ShippingZone
 
 
-class ShippingMethodsPerCountry(BaseObjectType):
+@doc(category=DOC_CATEGORY_SHIPPING)
+class ShippingMethodsPerCountry(graphene.ObjectType):
     country_code = graphene.Field(
         CountryCodeEnum, required=True, description="The country code."
     )
@@ -427,5 +428,4 @@ class ShippingMethodsPerCountry(BaseObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
         description = "List of shipping methods available for the country."

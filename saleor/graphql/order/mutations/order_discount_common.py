@@ -8,11 +8,12 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types import BaseInputObjectType
+from ...directives import doc
 from ...discount.enums import DiscountValueTypeEnum
 
 
-class OrderDiscountCommonInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderDiscountCommonInput(graphene.InputObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
@@ -25,9 +26,6 @@ class OrderDiscountCommonInput(BaseInputObjectType):
     reason = graphene.String(
         required=False, description="Explanation for the applied discount."
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderDiscountCommon(BaseMutation):

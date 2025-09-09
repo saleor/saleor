@@ -1,4 +1,3 @@
-from .base import BaseConnection, BaseEnum, BaseInputObjectType, BaseObjectType
 from .common import (
     TYPES_WITH_DOUBLE_ID_AVAILABLE,
     AccountError,
@@ -88,10 +87,6 @@ __all__ = [
     "AttributeBulkUpdateError",
     "AttributeBulkTranslateError",
     "AttributeValueBulkTranslateError",
-    "BaseConnection",
-    "BaseEnum",
-    "BaseInputObjectType",
-    "BaseObjectType",
     "BulkProductError",
     "BulkStockError",
     "ChannelError",
@@ -119,7 +114,6 @@ __all__ = [
     "MediaInput",
     "MenuError",
     "MetadataError",
-    "MetadataFilterInput",
     "ModelObjectType",
     "Money",
     "MoneyRange",

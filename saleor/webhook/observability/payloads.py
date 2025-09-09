@@ -118,10 +118,8 @@ def serialize_gql_operation_result(
         )
         bytes_limit -= query.byte_size
         payload["query"] = query
-        if definition := get_operation_ast(
-            operation.query.document_ast, operation.name
-        ):
-            payload["operation_type"] = definition.operation
+        if definition := get_operation_ast(operation.query, operation.name):
+            payload["operation_type"] = definition.operation.name
     if operation.result:
         result = JsonTruncText.truncate(pretty_json(operation.result), bytes_limit)
         bytes_limit -= result.byte_size

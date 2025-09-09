@@ -22,12 +22,11 @@ from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Date, DateTime, PositiveDecimal
 from ...core.types import (
-    BaseInputObjectType,
     CollectionChannelListingError,
     NonNullList,
     ProductChannelListingError,
@@ -37,6 +36,7 @@ from ...core.validators import (
     validate_one_of_args_is_in_mutation,
     validate_price_precision,
 )
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types.collections import Collection
@@ -49,21 +49,17 @@ if TYPE_CHECKING:
 ErrorType = defaultdict[str, list[ValidationError]]
 
 
-class PublishableChannelListingInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class PublishableChannelListingInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_published = graphene.Boolean(
         description="Determines if object is visible to customers."
     )
     publication_date = Date(
-        description=(
-            f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT} "
-            "Use `publishedAt` field instead."
-        )
+        description="Publication date. ISO 8601 standard.",
+        deprecation_reason="Use `publishedAt` field instead.",
     )
     published_at = DateTime(description="Publication date time. ISO 8601 standard.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductChannelListingAddInput(PublishableChannelListingInput):
@@ -83,10 +79,9 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
     available_for_purchase_date = Date(
         description=(
             "A start date from which a product will be available for purchase. "
-            "When not set and isAvailable is set to True, "
-            f"the current day is assumed. {DEPRECATED_IN_3X_INPUT} "
-            "Use `availableForPurchaseAt` field instead."
-        )
+            "When not set and isAvailable is set to True, the current day is assumed."
+        ),
+        deprecation_reason="Use `availableForPurchaseAt` field instead.",
     )
     available_for_purchase_at = DateTime(
         description=(
@@ -106,11 +101,9 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ProductChannelListingUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductChannelListingUpdateInput(graphene.InputObjectType):
     update_channels = NonNullList(
         ProductChannelListingAddInput,
         description=(
@@ -124,10 +117,8 @@ class ProductChannelListingUpdateInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductChannelListingUpdate(BaseChannelListingMutation):
     product = graphene.Field(Product, description="An updated product instance.")
 
@@ -140,7 +131,6 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage product's availability in channels."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
         error_type_field = "product_channel_listing_errors"
@@ -382,7 +372,8 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         )
 
 
-class ProductVariantChannelListingAddInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductVariantChannelListingAddInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     price = PositiveDecimal(
         required=True, description="Price of the particular variant in channel."
@@ -397,10 +388,8 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
         description="The threshold for preorder variant in channel."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantChannelListingUpdate(BaseMutation):
     variant = graphene.Field(
         ProductVariant, description="An updated product variant instance."
@@ -424,7 +413,6 @@ class ProductVariantChannelListingUpdate(BaseMutation):
 
     class Meta:
         description = "Manage product variant prices in channels."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
         error_type_field = "product_channel_listing_errors"
@@ -598,7 +586,8 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         )
 
 
-class CollectionChannelListingUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class CollectionChannelListingUpdateInput(graphene.InputObjectType):
     add_channels = NonNullList(
         PublishableChannelListingInput,
         description="List of channels to which the collection should be assigned.",
@@ -610,10 +599,8 @@ class CollectionChannelListingUpdateInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionChannelListingUpdate(BaseChannelListingMutation):
     collection = graphene.Field(
         Collection, description="An updated collection instance."
@@ -630,7 +617,6 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage collection's availability in channels."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionChannelListingError
         error_type_field = "collection_channel_listing_errors"

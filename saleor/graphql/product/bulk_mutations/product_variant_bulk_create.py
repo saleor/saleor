@@ -22,7 +22,7 @@ from ...attribute.types import (
 )
 from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core.context import ChannelContext
-from ...core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
@@ -33,14 +33,13 @@ from ...core.mutations import (
 )
 from ...core.scalars import Date, DateTime
 from ...core.types import (
-    BaseInputObjectType,
-    BaseObjectType,
     BulkProductError,
     NonNullList,
     ProductVariantBulkError,
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
+from ...directives import doc
 from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shop.utils import get_track_inventory_by_default
@@ -104,7 +103,8 @@ def get_results(instances_data_with_errors_list, reject_everything=False):
     ]
 
 
-class ProductVariantBulkResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductVariantBulkResult(graphene.ObjectType):
     product_variant = graphene.Field(
         ProductVariant, required=False, description="Product variant data."
     )
@@ -114,11 +114,9 @@ class ProductVariantBulkResult(BaseObjectType):
         description="List of errors occurred on create attempt.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class BulkAttributeValueInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class BulkAttributeValueInput(graphene.InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.", required=False)
     external_reference = graphene.String(
         description="External ID of this attribute.", required=False
@@ -129,8 +127,8 @@ class BulkAttributeValueInput(BaseInputObjectType):
         description=(
             "The value or slug of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
-            + DEPRECATED_IN_3X_INPUT
         ),
+        deprecation_reason="",
     )
     dropdown = AttributeValueSelectableTypeInput(
         required=False,
@@ -188,9 +186,6 @@ class BulkAttributeValueInput(BaseInputObjectType):
         required=False, description=AttributeValueDescriptions.DATE_TIME
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
-
 
 class ProductVariantBulkCreateInput(ProductVariantInput):
     attributes = NonNullList(
@@ -210,10 +205,8 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
     )
     sku = graphene.String(description="Stock keeping unit.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantBulkCreate(BaseMutation):
     count = graphene.Int(
         required=True,
@@ -223,14 +216,15 @@ class ProductVariantBulkCreate(BaseMutation):
     product_variants = NonNullList(
         ProductVariant,
         required=True,
-        default_value=[],
-        description="List of the created variants." + DEPRECATED_IN_3X_INPUT,
+        default_value=(),
+        description="List of the created variants.",
+        deprecation_reason="",
     )
 
     results = NonNullList(
         ProductVariantBulkResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the created variants.",
     )
 
@@ -255,7 +249,6 @@ class ProductVariantBulkCreate(BaseMutation):
 
     class Meta:
         description = "Creates product variants for a given product."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkProductError
         error_type_field = "bulk_product_errors"

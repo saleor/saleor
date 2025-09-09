@@ -9,11 +9,13 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, ShippingError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product import types as product_types
 from ..types import ShippingMethodType
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingPriceRemoveProductFromExclude(BaseMutation):
     shipping_method = graphene.Field(
         ShippingMethodType,
@@ -30,7 +32,6 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
 
     class Meta:
         description = "Remove product from excluded list for shipping price."
-        doc_category = DOC_CATEGORY_SHIPPING
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"

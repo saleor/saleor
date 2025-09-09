@@ -17,12 +17,9 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import DiscountError
-from ....core.utils import (
-    WebhookEventInfo,
-    from_global_id_or_error,
-    raise_validation_error,
-)
+from ....core.utils import from_global_id_or_error, raise_validation_error
 from ....core.validators import validate_end_is_after_start
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Sale
 from ...utils import (
@@ -35,6 +32,10 @@ from ..utils import update_variants_for_promotion
 from .sale_create import SaleInput
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(
+    async_events={WebhookEventAsyncType.SALE_UPDATED, WebhookEventAsyncType.SALE_TOGGLE}
+)
 class SaleUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a sale to update.")
@@ -50,17 +51,6 @@ class SaleUpdate(DeprecatedModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.SALE_UPDATED,
-                description="A sale was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.SALE_TOGGLE,
-                description="Optionally triggered when a sale is started or stopped.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

@@ -23,12 +23,11 @@ from ....checkout.mutations.utils import get_checkout
 from ....checkout.types import Checkout
 from ....core import ResolveInfo
 from ....core.context import SyncWebhookControlContext
-from ....core.descriptions import DEPRECATED_IN_3X_INPUT
 from ....core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.scalars import UUID, PositiveDecimal
-from ....core.types import BaseInputObjectType
 from ....core.types import common as common_types
+from ....directives import doc
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import StorePaymentMethodEnum
@@ -36,7 +35,8 @@ from ...types import Payment
 from ...utils import deprecated_metadata_contains_empty_key
 
 
-class PaymentInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class PaymentInput(graphene.InputObjectType):
     gateway = graphene.Field(
         graphene.String,
         description="A gateway to use with that payment.",
@@ -77,10 +77,8 @@ class PaymentInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="Related checkout object.")
     payment = graphene.Field(Payment, description="A newly created payment.")
@@ -91,14 +89,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             required=False,
         )
         token = UUID(
-            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            description="Checkout token.",
+            deprecation_reason="Use `id` instead.",
             required=False,
         )
         checkout_id = graphene.ID(
             required=False,
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
-            ),
+            description="The ID of the checkout.",
+            deprecation_reason="Use `id` instead.",
         )
         input = PaymentInput(
             description="Data required to create a new payment.", required=True
@@ -106,7 +104,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     class Meta:
         description = "Creates a new payment for given checkout."
-        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 

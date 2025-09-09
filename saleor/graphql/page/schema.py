@@ -4,11 +4,12 @@ from ..channel.dataloaders import ChannelBySlugLoader
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.context import ChannelContext
-from ..core.descriptions import ADDED_IN_321, ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_321, ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.enums import LanguageCodeEnum
-from ..core.fields import BaseField, FilterConnectionField
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish, PageTypeBulkDelete
 from .filters import PageFilterInput, PageTypeFilterInput, PageWhereInput, search_pages
@@ -35,58 +36,65 @@ from .types import Page, PageCountableConnection, PageType, PageTypeCountableCon
 
 
 class PageQueries(graphene.ObjectType):
-    page = BaseField(
-        Page,
-        id=graphene.Argument(graphene.ID, description="ID of the page."),
-        slug=graphene.String(description="The slug of the page."),
-        slug_language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="Language code of the page slug, omit to use primary slug."
-            + ADDED_IN_321,
-        ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-            + ADDED_IN_322
-        ),
-        description="Look up a page by ID or slug.",
-        doc_category=DOC_CATEGORY_PAGES,
-    )
-    pages = FilterConnectionField(
-        PageCountableConnection,
-        sort_by=PageSortingInput(description="Sort pages."),
-        filter=PageFilterInput(
-            description=(
-                "Filtering options for pages."
-                f"{DEPRECATED_IN_3X_INPUT} + Use `where` and `search` instead."
+    page = doc(
+        DOC_CATEGORY_PAGES,
+        graphene.Field(
+            Page,
+            id=graphene.Argument(graphene.ID, description="ID of the page."),
+            slug=graphene.String(description="The slug of the page."),
+            slug_language_code=graphene.Argument(
+                LanguageCodeEnum,
+                description="Language code of the page slug, omit to use primary slug."
+                + ADDED_IN_321,
             ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+                + ADDED_IN_322
+            ),
+            description="Look up a page by ID or slug.",
         ),
-        search=graphene.String(
-            description="Search pages. Overrides filter.search input." + ADDED_IN_322
-        ),
-        where=PageWhereInput(
-            description="Where filtering options for pages." + ADDED_IN_322
-        ),
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-            + ADDED_IN_322
-        ),
-        description="List of the shop's pages.",
-        doc_category=DOC_CATEGORY_PAGES,
     )
-    page_type = BaseField(
-        PageType,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the page type.", required=True
+    pages = doc(
+        DOC_CATEGORY_PAGES,
+        FilterConnectionField(
+            PageCountableConnection,
+            sort_by=PageSortingInput(description="Sort pages."),
+            filter=PageFilterInput(
+                description="Filtering options for pages.",
+                deprecation_reason="Use `where` and `search` instead.",
+            ),
+            search=graphene.String(
+                description="Search pages. Overrides filter.search input."
+                + ADDED_IN_322
+            ),
+            where=PageWhereInput(
+                description="Where filtering options for pages." + ADDED_IN_322
+            ),
+            channel=graphene.String(
+                description="Slug of a channel for which the data should be returned."
+                + ADDED_IN_322
+            ),
+            description="List of the shop's pages.",
         ),
-        description="Look up a page type by ID.",
-        doc_category=DOC_CATEGORY_PAGES,
     )
-    page_types = FilterConnectionField(
-        PageTypeCountableConnection,
-        sort_by=PageTypeSortingInput(description="Sort page types."),
-        filter=PageTypeFilterInput(description="Filtering options for page types."),
-        description="List of the page types.",
-        doc_category=DOC_CATEGORY_PAGES,
+    page_type = doc(
+        DOC_CATEGORY_PAGES,
+        graphene.Field(
+            PageType,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the page type.", required=True
+            ),
+            description="Look up a page type by ID.",
+        ),
+    )
+    page_types = doc(
+        DOC_CATEGORY_PAGES,
+        FilterConnectionField(
+            PageTypeCountableConnection,
+            sort_by=PageTypeSortingInput(description="Sort page types."),
+            filter=PageTypeFilterInput(description="Filtering options for page types."),
+            description="List of the page types.",
+        ),
     )
 
     @staticmethod

@@ -12,7 +12,6 @@ from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
     ADDED_IN_321,
-    DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import (
@@ -24,9 +23,9 @@ from ...core.doc_category import (
 )
 from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import DateTime, Day, Hour, Minute
-from ...core.types import BaseInputObjectType, ChannelError, NonNullList
+from ...core.types import ChannelError, NonNullList
 from ...core.types import common as common_types
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import (
@@ -42,7 +41,8 @@ from .utils import (
 )
 
 
-class StockSettingsInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class StockSettingsInput(graphene.InputObjectType):
     allocation_strategy = AllocationStrategyEnum(
         description=(
             "Allocation strategy options. Strategy defines the preference "
@@ -51,11 +51,9 @@ class StockSettingsInput(BaseInputObjectType):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class CheckoutSettingsInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_CHECKOUT)
+class CheckoutSettingsInput(graphene.InputObjectType):
     use_legacy_error_flow = graphene.Boolean(
         description=(
             "Default `true`. Determines if the checkout mutations should use legacy "
@@ -66,8 +64,8 @@ class CheckoutSettingsInput(BaseInputObjectType):
             "Some of the `problems` can block the finalizing checkout process. "
             "The legacy flow will be removed in Saleor 4.0. "
             "The flow with `checkout.problems` will be the default one. "
-            + DEPRECATED_IN_3X_INPUT
-        )
+        ),
+        deprecation_reason="",
     )
     automatically_complete_fully_paid_checkouts = graphene.Boolean(
         description=(
@@ -82,11 +80,9 @@ class CheckoutSettingsInput(BaseInputObjectType):
         + ADDED_IN_320,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
 
-
-class OrderSettingsInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderSettingsInput(graphene.InputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
         required=False,
         description="When disabled, all new orders from checkout "
@@ -170,11 +166,9 @@ class OrderSettingsInput(BaseInputObjectType):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class PaymentSettingsInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class PaymentSettingsInput(graphene.InputObjectType):
     default_transaction_flow_strategy = TransactionFlowStrategyEnum(
         required=False,
         description=(
@@ -207,11 +201,9 @@ class PaymentSettingsInput(BaseInputObjectType):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
-class ChannelInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_CHANNELS)
+class ChannelInput(graphene.InputObjectType):
     is_active = graphene.Boolean(
         description="Determine if channel will be set active or not."
     )
@@ -260,9 +252,6 @@ class ChannelInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHANNELS
-
 
 class ChannelCreateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.", required=True)
@@ -279,10 +268,9 @@ class ChannelCreateInput(ChannelInput):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHANNELS
 
-
+@doc(category=DOC_CATEGORY_CHANNELS)
+@webhook_events(async_events={WebhookEventAsyncType.CHANNEL_CREATED})
 class ChannelCreate(DeprecatedModelMutation):
     class Arguments:
         input = ChannelCreateInput(
@@ -296,12 +284,6 @@ class ChannelCreate(DeprecatedModelMutation):
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHANNEL_CREATED,
-                description="A channel was created.",
-            ),
-        ]
         support_meta_field = True
         support_private_meta_field = True
 

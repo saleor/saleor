@@ -1,12 +1,15 @@
+import graphene
 from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
 from ...payment.models import Payment
 from ..core.descriptions import ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_ORDERS
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class OrderSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderSortField(graphene.Enum):
     NUMBER = ["number"]
     RANK = ["search_rank", "id"]
     CREATION_DATE = ["created_at", "status", "number", "pk"]
@@ -16,9 +19,6 @@ class OrderSortField(BaseEnum):
     PAYMENT = ["last_charge_status", "status", "number"]
     FULFILLMENT_STATUS = ["status", "user_email", "number"]
     STATUS = ["status", "number"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
     @property
     def description(self):
@@ -61,8 +61,8 @@ class OrderSortField(BaseEnum):
         )
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         sort_enum = OrderSortField
         type_name = "orders"

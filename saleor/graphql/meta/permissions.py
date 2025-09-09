@@ -8,6 +8,7 @@ from ...account import models as account_models
 from ...account.error_codes import AccountErrorCode
 from ...attribute import AttributeType
 from ...attribute import models as attribute_models
+from ...core.db.connection import allow_writer_in_context
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...payment.utils import payment_owned_by_user
@@ -75,11 +76,12 @@ def private_user_permissions(
     info: ResolveInfo, user_pk: int
 ) -> list[BasePermissionEnum]:
     database_connection_name = get_database_connection_name(info.context)
-    user = (
-        account_models.User.objects.using(database_connection_name)
-        .filter(pk=user_pk)
-        .first()
-    )
+    with allow_writer_in_context(info.context):
+        user = (
+            account_models.User.objects.using(database_connection_name)
+            .filter(pk=user_pk)
+            .first()
+        )
     if not user:
         raise PermissionDenied()
     if user.is_staff:

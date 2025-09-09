@@ -4,6 +4,7 @@ from unittest import mock
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from graphql_relay import from_global_id
 
 from ....account.models import Address
 from ....checkout import AddressType
@@ -255,7 +256,7 @@ def test_skip_address_validation_with_correct_input_run_normalization(
     assert data["address"]["city"] != address_data["city"]
     assert data["address"]["city"] == address_data["city"].upper()
     global_id = data["address"]["id"]
-    _, id = graphene.Node.from_global_id(global_id)
+    _, id = from_global_id(global_id)
     address_db = Address.objects.get(id=id)
     assert address_db.city != address_data["city"]
     assert address_db.city == address_data["city"].upper()
@@ -289,7 +290,7 @@ def test_skip_address_validation_with_incorrect_input_skip_normalization(
     assert data["address"]["city"] == address_data["city"]
     assert data["address"]["postalCode"] == invalid_name
     global_id = data["address"]["id"]
-    _, id = graphene.Node.from_global_id(global_id)
+    _, id = from_global_id(global_id)
     address_db = Address.objects.get(id=id)
     assert address_db.city != address_data["city"].upper()
     assert address_db.city == address_data["city"]

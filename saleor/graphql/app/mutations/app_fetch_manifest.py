@@ -12,9 +12,11 @@ from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
+from ...directives import doc
 from ..types import Manifest
 
 
+@doc(category=DOC_CATEGORY_APPS)
 class AppFetchManifest(BaseMutation):
     manifest = graphene.Field(Manifest, description="The validated manifest.")
 
@@ -25,7 +27,6 @@ class AppFetchManifest(BaseMutation):
 
     class Meta:
         description = "Fetch and validate manifest."
-        doc_category = DOC_CATEGORY_APPS
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"

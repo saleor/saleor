@@ -12,11 +12,15 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import StoredPaymentMethodRequestDeleteErrorCode
 from ....core.mutations import BaseMutation
 from ....core.types.common import PaymentMethodRequestDeleteError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import StoredPaymentMethodRequestDeleteResultEnum
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
+@webhook_events(
+    sync_events={WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED}
+)
 class StoredPaymentMethodRequestDelete(BaseMutation):
     result = StoredPaymentMethodRequestDeleteResultEnum(
         required=True, description="The result of deleting a stored payment method."
@@ -32,19 +36,12 @@ class StoredPaymentMethodRequestDelete(BaseMutation):
         )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Request to delete a stored payment method on payment provider side."
         )
 
         error_type_class = PaymentMethodRequestDeleteError
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED,
-                description="The customer requested to delete a payment method.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(cls, root, info, id, channel):  # type: ignore[override]

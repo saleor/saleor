@@ -12,7 +12,8 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.scalars import PositiveDecimal
-from ...core.types import BaseInputObjectType, NonNullList, OrderError
+from ...core.types import NonNullList, OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Fulfillment, Order
 from .fulfillment_refund_and_return_product_base import (
@@ -20,7 +21,8 @@ from .fulfillment_refund_and_return_product_base import (
 )
 
 
-class OrderReturnLineInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderReturnLineInput(graphene.InputObjectType):
     order_line_id = graphene.ID(
         description="The ID of the order line to return.",
         name="orderLineId",
@@ -35,11 +37,9 @@ class OrderReturnLineInput(BaseInputObjectType):
         default_value=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderReturnFulfillmentLineInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderReturnFulfillmentLineInput(graphene.InputObjectType):
     fulfillment_line_id = graphene.ID(
         description="The ID of the fulfillment line to return.",
         name="fulfillmentLineId",
@@ -54,11 +54,9 @@ class OrderReturnFulfillmentLineInput(BaseInputObjectType):
         default_value=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderReturnProductsInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderReturnProductsInput(graphene.InputObjectType):
     order_lines = NonNullList(
         OrderReturnLineInput,
         description="List of unfulfilled lines to return.",
@@ -83,10 +81,8 @@ class OrderReturnProductsInput(BaseInputObjectType):
         default_value=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
     return_fulfillment = graphene.Field(
         Fulfillment, description="A return fulfillment."
@@ -102,7 +98,6 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
 
     class Meta:
         description = "Return products."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

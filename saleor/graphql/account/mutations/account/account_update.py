@@ -12,7 +12,7 @@ from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_319
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError, NonNullList
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...mixins import AppImpersonateMixin
@@ -21,7 +21,10 @@ from ..base import BaseCustomerCreate
 from .base import AccountBaseInput
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountInput(AccountBaseInput):
+    """Fields required to update the user."""
+
     default_billing_address = AddressInput(
         description="Billing address of the customer."
     )
@@ -37,12 +40,23 @@ class AccountInput(AccountBaseInput):
         required=False,
     )
 
-    class Meta:
-        description = "Fields required to update the user."
-        doc_category = DOC_CATEGORY_USERS
 
-
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.CUSTOMER_UPDATED,
+        WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+    }
+)
 class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixin):
+    """Updates the account of the logged-in user.
+
+    Requires one of following set of permissions:
+      AUTHENTICATED_USER
+    or
+      AUTHENTICATED_APP + IMPERSONATE_USER
+    """
+
     class Arguments:
         input = AccountInput(
             description="Fields required to update the account of the logged-in user.",
@@ -60,12 +74,6 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
 
     class Meta:
         auto_permission_message = False
-        description = (
-            "Updates the account of the logged-in user.\n\n"
-            "Requires one of following set of permissions: "
-            "AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER."
-        )
-        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -76,16 +84,6 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
         error_type_class = AccountError
         error_type_field = "account_errors"
         support_meta_field = True
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
-                description="A customer account was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
-                description="Optionally called when customer's metadata was updated.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):

@@ -12,12 +12,19 @@ from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types import AttributeError, NonNullList
-from ...core.utils import WebhookEventInfo
 from ...core.utils.reordering import perform_reordering
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED,
+        WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+    }
+)
 class AttributeReorderValues(BaseMutation):
     attribute = graphene.Field(
         Attribute, description="Attribute from which values are reordered."
@@ -25,20 +32,9 @@ class AttributeReorderValues(BaseMutation):
 
     class Meta:
         description = "Reorder the values of an attribute."
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED,
-                description="An attribute value was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
-                description="An attribute was updated.",
-            ),
-        ]
 
     class Arguments:
         attribute_id = graphene.Argument(

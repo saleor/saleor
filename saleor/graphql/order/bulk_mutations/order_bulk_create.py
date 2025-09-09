@@ -63,9 +63,10 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
 from ...core.scalars import DateTime, PositiveDecimal, WeightScalar
-from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
+from ...core.types import NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
+from ...directives import doc
 from ...discount.enums import DiscountValueTypeEnum
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...payment.mutations.transaction.transaction_create import (
@@ -359,26 +360,23 @@ class ModelIdentifiers:
     )
 
 
-class TaxedMoneyInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class TaxedMoneyInput(graphene.InputObjectType):
     gross = PositiveDecimal(required=True, description="Gross value of an item.")
     net = PositiveDecimal(required=True, description="Net value of an item.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderBulkCreateUserInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderBulkCreateUserInput(graphene.InputObjectType):
     id = graphene.ID(description="Customer ID associated with the order.")
     email = graphene.String(description="Customer email associated with the order.")
     external_reference = graphene.String(
         description="Customer external ID associated with the order."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderBulkCreateInvoiceInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderBulkCreateInvoiceInput(graphene.InputObjectType):
     created_at = DateTime(
         required=True, description="The date, when the invoice was created."
     )
@@ -395,11 +393,9 @@ class OrderBulkCreateInvoiceInput(BaseInputObjectType):
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderBulkCreateDeliveryMethodInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderBulkCreateDeliveryMethodInput(graphene.InputObjectType):
     warehouse_id = graphene.ID(description="The ID of the warehouse.")
     warehouse_name = graphene.String(description="The name of the warehouse.")
     shipping_method_id = graphene.ID(description="The ID of the shipping method.")
@@ -423,11 +419,9 @@ class OrderBulkCreateDeliveryMethodInput(BaseInputObjectType):
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderBulkCreateNoteInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderBulkCreateNoteInput(graphene.InputObjectType):
     message = graphene.String(
         required=True, description=f"Note message. Max characters: {MAX_NOTE_LENGTH}."
     )
@@ -439,11 +433,9 @@ class OrderBulkCreateNoteInput(BaseInputObjectType):
     )
     app_id = graphene.ID(description="The app ID associated with the message.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderBulkCreateFulfillmentLineInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderBulkCreateFulfillmentLineInput(graphene.InputObjectType):
     variant_id = graphene.ID(description="The ID of the product variant.")
     variant_sku = graphene.String(description="The SKU of the product variant.")
     variant_external_reference = graphene.String(
@@ -464,22 +456,18 @@ class OrderBulkCreateFulfillmentLineInput(BaseInputObjectType):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderBulkCreateFulfillmentInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderBulkCreateFulfillmentInput(graphene.InputObjectType):
     tracking_code = graphene.String(description="Fulfillment's tracking code.")
     lines = NonNullList(
         OrderBulkCreateFulfillmentLineInput,
         description="List of items informing how to fulfill the order.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderBulkCreateOrderLineInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
     variant_id = graphene.ID(description="The ID of the product variant.")
     variant_sku = graphene.String(description="The SKU of the product variant.")
     variant_external_reference = graphene.String(
@@ -558,11 +546,9 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderBulkCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderBulkCreateInput(graphene.InputObjectType):
     external_reference = graphene.String(description="External ID of the order.")
     channel = graphene.String(
         required=True, description="Slug of the channel associated with the order."
@@ -635,21 +621,17 @@ class OrderBulkCreateInput(BaseInputObjectType):
         OrderBulkCreateInvoiceInput, description="Invoices related to the order."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderBulkCreateResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderBulkCreateResult(graphene.ObjectType):
     order = graphene.Field(OrderType, description="Order data.")
     errors = NonNullList(
         OrderBulkCreateError,
         description="List of errors occurred on create attempt.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderBulkCreate(BaseMutation, I18nMixin):
     count = graphene.Int(
         required=True,
@@ -659,7 +641,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     results = NonNullList(
         OrderBulkCreateResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the created orders.",
     )
 
@@ -687,7 +669,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     class Meta:
         description = "Creates multiple orders."
         permissions = (OrderPermissions.MANAGE_ORDERS_IMPORT,)
-        doc_category = DOC_CATEGORY_ORDERS
         error_type_class = OrderBulkCreateError
         support_meta_field = True
         support_private_meta_field = True

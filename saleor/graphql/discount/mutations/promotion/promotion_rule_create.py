@@ -12,7 +12,7 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import Error
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionRuleCreateErrorCode
 from ...types import PromotionRule
@@ -48,6 +48,8 @@ class PromotionRuleCreateError(Error):
     )
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.PROMOTION_RULE_CREATED})
 class PromotionRuleCreate(DeprecatedModelMutation):
     class Arguments:
         input = PromotionRuleCreateInput(
@@ -60,13 +62,6 @@ class PromotionRuleCreate(DeprecatedModelMutation):
         object_type = PromotionRule
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionRuleCreateError
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_RULE_CREATED,
-                description="A promotion rule was created.",
-            ),
-        ]
 
     @classmethod
     def clean_input(

@@ -10,16 +10,14 @@ from ....attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ....attribute.utils.shared import AttrValuesInput
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
-from ....core.descriptions import (
-    DEPRECATED_IN_3X_INPUT,
-    RICH_CONTENT,
-)
+from ....core.descriptions import RICH_CONTENT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import WeightScalar
-from ....core.types import BaseInputObjectType, NonNullList, ProductError, SeoInput
+from ....core.types import NonNullList, ProductError, SeoInput
 from ....core.validators import clean_seo_fields
+from ....directives import doc
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
@@ -27,15 +25,15 @@ from ..utils import clean_tax_code
 from . import product_cleaner as cleaner
 
 
-class ProductInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductInput(graphene.InputObjectType):
     attributes = NonNullList(AttributeValueInput, description="List of attributes.")
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
-        description=(
-            "Determine if taxes are being charged for the product. "
-            f"{DEPRECATED_IN_3X_INPUT} Use `Channel.taxConfiguration` to configure "
-            "whether tax collection is enabled."
-        )
+        description="Determine if taxes are being charged for the product.",
+        deprecation_reason=(
+            "Use `Channel.taxConfiguration` to configure whether tax collection is enabled."
+        ),
     )
     collections = NonNullList(
         graphene.ID,
@@ -53,13 +51,13 @@ class ProductInput(BaseInputObjectType):
         required=False,
     )
     tax_code = graphene.String(
-        description=(
-            f"Tax rate for enabled tax gateway. {DEPRECATED_IN_3X_INPUT} "
+        description="Tax rate for enabled tax gateway.",
+        deprecation_reason=(
             "Use tax classes to control the tax calculation for a product. "
             "If taxCode is provided, Saleor will try to find a tax class with given "
             "code (codes are stored in metadata) and assign it. If no tax class is "
             "found, it would be created and assigned."
-        )
+        ),
     )
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
@@ -80,11 +78,9 @@ class ProductInput(BaseInputObjectType):
         description="External ID of this product.", required=False
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class StockInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class StockInput(graphene.InputObjectType):
     warehouse = graphene.ID(
         required=True, description="Warehouse in which stock is located."
     )
@@ -92,18 +88,13 @@ class StockInput(BaseInputObjectType):
         required=True, description="Quantity of items available for sell."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class StockUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class StockUpdateInput(graphene.InputObjectType):
     stock = graphene.ID(required=True, description="Stock.")
     quantity = graphene.Int(
         required=True, description="Quantity of items available for sell."
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductCreateInput(ProductInput):
@@ -112,9 +103,6 @@ class ProductCreateInput(ProductInput):
         name="productType",
         required=True,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]

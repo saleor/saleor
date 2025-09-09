@@ -4,14 +4,11 @@ from unittest.mock import patch
 import fakeredis
 import pytest
 from django.core.cache import cache
-from graphql import get_default_backend
+from graphql import parse
 from redis import ConnectionPool
 
-from ....graphql.api import schema
 from ..buffers import RedisBuffer
 from ..utils import GraphQLOperationResponse, get_buffer_name
-
-backend = get_default_backend()
 
 BROKER_URL_HOST = "fake-redis"
 BROKER_URL = f"redis://{BROKER_URL_HOST}"
@@ -27,7 +24,7 @@ def gql_operation_factory():
         result: dict | None = None,
         result_invalid=False,
     ) -> GraphQLOperationResponse:
-        query = backend.document_from_string(schema, query_string)
+        query = parse(query_string)
         return GraphQLOperationResponse(
             name=operation_name,
             query=query,

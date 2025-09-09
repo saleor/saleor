@@ -23,9 +23,6 @@ class PageTypeUpdateInput(PageTypeCreateInput):
         description="List of attribute IDs to be assigned to the page type.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAGES
-
 
 class PageTypeUpdate(PageTypeMixin, DeprecatedModelMutation):
     class Arguments:

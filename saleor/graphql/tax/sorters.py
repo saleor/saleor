@@ -1,12 +1,13 @@
+import graphene
+
 from ..core.doc_category import DOC_CATEGORY_TAXES
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class TaxClassSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxClassSortField(graphene.Enum):
     NAME = ["name", "pk"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
     @property
     def description(self):
@@ -16,8 +17,8 @@ class TaxClassSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxClassSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_TAXES
         sort_enum = TaxClassSortField
         type_name = "tax classes"

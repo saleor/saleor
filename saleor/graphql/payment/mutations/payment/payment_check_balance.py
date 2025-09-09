@@ -10,8 +10,8 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.fields import JSONString
 from ....core.mutations import BaseMutation
 from ....core.scalars import PositiveDecimal
-from ....core.types import BaseInputObjectType
 from ....core.types import common as common_types
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 
 
@@ -33,7 +33,8 @@ class CardInput(graphene.InputObjectType):
     )
 
 
-class PaymentCheckBalanceInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class PaymentCheckBalanceInput(graphene.InputObjectType):
     gateway_id = graphene.types.String(
         description="An ID of a payment gateway to check.", required=True
     )
@@ -44,10 +45,8 @@ class PaymentCheckBalanceInput(BaseInputObjectType):
     )
     card = CardInput(description="Information about card.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentCheckBalance(BaseMutation):
     data = JSONString(description="Response from the gateway.")
 
@@ -58,7 +57,6 @@ class PaymentCheckBalance(BaseMutation):
 
     class Meta:
         description = "Check payment balance."
-        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 

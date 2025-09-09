@@ -55,22 +55,22 @@ def build_federated_schema(
         directives=directives,
     )
 
-    entity_type = schema.get_type("_Entity")
+    entity_type = schema._Entity
     entity_type.resolve_type = create_entity_type_resolver(schema)
 
-    query_type = schema.get_type("Query")
+    query_type = schema.Query
     query_type.fields["_entities"] = GraphQLField(
         GraphQLList(entity_type),
         args={
             "representations": GraphQLArgument(
-                GraphQLList(schema.get_type("_Any")),
+                GraphQLList(schema._Any),
             ),
         },
-        resolver=resolve_entities,
+        resolve=resolve_entities,
     )
     query_type.fields["_service"] = GraphQLField(
-        schema.get_type("_Service"),
-        resolver=create_service_sdl_resolver(schema),
+        schema._Service,
+        resolve=create_service_sdl_resolver(schema),
     )
 
     return schema
@@ -148,7 +148,7 @@ def create_service_sdl_resolver(schema):
         directives=schema._directives,
     )
     # Render schema to string
-    federated_schema_sdl = print_schema(schema_sans_subscriptions)
+    federated_schema_sdl = print_schema(schema_sans_subscriptions.graphql_schema)
 
     del schema_sans_subscriptions
 

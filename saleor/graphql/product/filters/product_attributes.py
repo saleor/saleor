@@ -3,9 +3,9 @@ import math
 from collections import defaultdict
 from typing import Literal, TypedDict
 
-import graphene
 from django.db.models import Exists, OuterRef, Q, QuerySet
 from graphql import GraphQLError
+from graphql_relay import from_global_id
 
 from ....attribute import AttributeInputType
 from ....attribute.models import (
@@ -634,18 +634,18 @@ def filter_by_contains_referenced_object_ids(
     contains_all = attr_value.get("contains_all")
     contains_any = attr_value.get("contains_any")
 
-    variant_ids = set()
-    product_ids = set()
-    page_ids = set()
+    variant_ids: set[int] = set()
+    product_ids: set[int] = set()
+    page_ids: set[int] = set()
 
     for obj_id in contains_any or contains_all or []:
-        type_, id_ = graphene.Node.from_global_id(obj_id)
+        type_, id_ = from_global_id(obj_id)
         if type_ == "Page":
-            page_ids.add(id_)
+            page_ids.add(int(id_))
         elif type_ == "Product":
-            product_ids.add(id_)
+            product_ids.add(int(id_))
         elif type_ == "ProductVariant":
-            variant_ids.add(id_)
+            variant_ids.add(int(id_))
 
     if contains_all:
         return _filter_by_contains_all_referenced_object_ids(

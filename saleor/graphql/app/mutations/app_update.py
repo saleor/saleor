@@ -7,9 +7,10 @@ from ....permission.enums import AppPermission, get_permissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.utils import can_manage_app
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AppError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import App
@@ -17,6 +18,8 @@ from ..utils import ensure_can_manage_permissions
 from .app_create import AppInput
 
 
+@doc(category=DOC_CATEGORY_APPS)
+@webhook_events(async_events={WebhookEventAsyncType.APP_UPDATED})
 class AppUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of an app to update.", required=True)
@@ -32,12 +35,6 @@ class AppUpdate(DeprecatedModelMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.APP_UPDATED,
-                description="An app was updated.",
-            ),
-        ]
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):

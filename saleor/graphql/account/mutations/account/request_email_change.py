@@ -16,12 +16,21 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED,
+    }
+)
 class RequestEmailChange(BaseMutation):
+    """Request email change of the logged in user."""
+
     user = graphene.Field(User, description="A user instance.")
 
     class Arguments:
@@ -42,21 +51,9 @@ class RequestEmailChange(BaseMutation):
         )
 
     class Meta:
-        description = "Request email change of the logged in user."
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for account email change.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED,
-                description="An account email change was requested.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

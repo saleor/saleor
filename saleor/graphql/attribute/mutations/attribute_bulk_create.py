@@ -18,8 +18,9 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
-from ...core.types import AttributeBulkCreateError, BaseObjectType, NonNullList
-from ...core.utils import WebhookEventInfo, get_duplicated_values
+from ...core.types import AttributeBulkCreateError, NonNullList
+from ...core.utils import get_duplicated_values
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import AttributeTypeEnum
 from ..mutations.attribute_create import AttributeCreateInput, AttributeValueCreateInput
@@ -183,16 +184,14 @@ def clean_values(
     return cleand_values
 
 
-class AttributeBulkCreateResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeBulkCreateResult(graphene.ObjectType):
     attribute = graphene.Field(Attribute, description="Attribute data.")
     errors = NonNullList(
         AttributeBulkCreateError,
         required=False,
         description="List of errors occurred on create attempt.",
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 def get_results(
@@ -215,6 +214,8 @@ def get_results(
     return results
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(async_events={WebhookEventAsyncType.ATTRIBUTE_CREATED})
 class AttributeBulkCreate(BaseMutation):
     count = graphene.Int(
         required=True,
@@ -223,7 +224,7 @@ class AttributeBulkCreate(BaseMutation):
     results = NonNullList(
         AttributeBulkCreateResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the created attributes.",
     )
 
@@ -241,14 +242,7 @@ class AttributeBulkCreate(BaseMutation):
 
     class Meta:
         description = "Creates attributes."
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         error_type_class = AttributeBulkCreateError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_CREATED,
-                description="An attribute was created.",
-            ),
-        ]
 
     @classmethod
     def clean_attributes(

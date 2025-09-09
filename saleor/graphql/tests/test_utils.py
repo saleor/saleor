@@ -2,10 +2,8 @@ import re
 
 import pytest
 from django.test import override_settings
-from graphql import GraphQLError
-from graphql.utils import schema_printer
+from graphql import GraphQLError, parse
 
-from ..api import backend, schema
 from ..utils import (
     ALLOWED_ERRORS,
     INTERNAL_ERROR_MESSAGE,
@@ -32,10 +30,6 @@ def test_multiple_interface_separator_in_schema(api_client):
     ampersand_separated_interfaces = re.findall("implements (\\w+) & (\\w+)", sdl)
     assert not comma_separated_interfaces
     assert ampersand_separated_interfaces
-
-
-def test_graphql_core_contains_patched_function():
-    assert hasattr(schema_printer, "_print_object")
 
 
 @override_settings(DEBUG=False)
@@ -69,7 +63,7 @@ def test_check_if_query_contains_only_schema_with_schema_query():
         }
     }
     """
-    document = backend.document_from_string(schema, query)
+    document = parse(query)
 
     # when
     result = check_if_query_contains_only_schema(document)
@@ -90,7 +84,7 @@ def test_check_if_query_contains_only_schema_with_mixed_query():
         }
     }
     """
-    document = backend.document_from_string(schema, query)
+    document = parse(query)
 
     # then
     with pytest.raises(GraphQLError):
@@ -113,7 +107,7 @@ def test_check_if_query_contains_only_schema_with_mixed_query_and_fragments():
         }
     }
     """
-    document = backend.document_from_string(schema, query)
+    document = parse(query)
 
     # then
     with pytest.raises(GraphQLError):
@@ -135,7 +129,7 @@ def test_check_if_query_contains_only_schema_with_fragments():
         }
     }
     """
-    document = backend.document_from_string(schema, query)
+    document = parse(query)
 
     # when
     result = check_if_query_contains_only_schema(document)
@@ -155,7 +149,7 @@ def test_check_if_query_contains_only_schema_with_schema_query_and_inline_fragme
         }
     }
     """
-    document = backend.document_from_string(schema, query)
+    document = parse(query)
 
     # when
     result = check_if_query_contains_only_schema(document)
@@ -175,7 +169,7 @@ def test_check_if_query_contains_only_schema_with_schema_query_and_unconditional
         }
     }
     """
-    document = backend.document_from_string(schema, query)
+    document = parse(query)
 
     # when
     result = check_if_query_contains_only_schema(document)
@@ -197,7 +191,7 @@ def test_check_if_query_contains_only_schema_with_schema_query_and_named_fragmen
         ...SchemaFragment
     }
     """
-    document = backend.document_from_string(schema, query)
+    document = parse(query)
 
     # when
     result = check_if_query_contains_only_schema(document)
@@ -221,7 +215,7 @@ def test_check_if_query_contains_only_schema_with_schema_query_and_fragments():
         ...SchemaFragment
     }
     """
-    document = backend.document_from_string(schema, query)
+    document = parse(query)
 
     # when
     result = check_if_query_contains_only_schema(document)
@@ -330,7 +324,7 @@ def test_check_if_query_contains_only_schema_with_introspection():
             }
         }
     """
-    document = backend.document_from_string(schema, query)
+    document = parse(query)
 
     # when
     result = check_if_query_contains_only_schema(document)

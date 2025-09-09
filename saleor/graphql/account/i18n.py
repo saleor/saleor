@@ -80,9 +80,10 @@ class I18nMixin:
     ):
         phone = address_data.get("phone", None)
         params = {"address_type": address_type} if address_type else {}
+        country = address_data.get("country")
         if phone:
             try:
-                validate_possible_number(phone, address_data.get("country"))
+                validate_possible_number(phone, country)
             except ValidationError as exc:
                 if format_check:
                     raise ValidationError(
@@ -97,7 +98,7 @@ class I18nMixin:
 
         address_form = get_address_form(
             address_data,
-            address_data.get("country"),
+            country,
             instance=instance,
             enable_normalization=enable_normalization,
         )

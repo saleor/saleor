@@ -15,19 +15,20 @@ from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import Date
-from ...core.types import BaseInputObjectType, GiftCardError, NonNullList, PriceInput
-from ...core.utils import WebhookEventInfo
+from ...core.types import GiftCardError, NonNullList, PriceInput
 from ...core.validators import validate_price_precision
+from ...directives import doc, webhook_events
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
 
 
-class GiftCardInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+class GiftCardInput(graphene.InputObjectType):
     add_tags = NonNullList(
         graphene.String,
         description="The gift card tags to add.",
@@ -51,19 +52,13 @@ class GiftCardInput(BaseInputObjectType):
 
     # DEPRECATED
     start_date = Date(
-        description=(
-            f"Start date of the gift card in ISO 8601 format. {DEPRECATED_IN_3X_INPUT}"
-        )
+        description="Start date of the gift card in ISO 8601 format.",
+        deprecation_reason="",
     )
     end_date = Date(
-        description=(
-            "End date of the gift card in ISO 8601 format. "
-            f"{DEPRECATED_IN_3X_INPUT} Use `expiryDate` from `expirySettings` instead."
-        )
+        description="End date of the gift card in ISO 8601 format.",
+        deprecation_reason="Use `expiryDate` from `expirySettings` instead.",
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 class GiftCardCreateInput(GiftCardInput):
@@ -83,42 +78,15 @@ class GiftCardCreateInput(GiftCardInput):
     )
     code = graphene.String(
         required=False,
-        description=(
-            "Code to use the gift card. "
-            f"{DEPRECATED_IN_3X_INPUT} The code is now auto generated."
-        ),
+        description="Code to use the gift card.",
+        deprecation_reason="The code is now auto generated.",
     )
     note = graphene.String(description="The gift card note from the staff member.")
 
+
+class GiftCardMutationBase(DeprecatedModelMutation):
     class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
-
-
-class GiftCardCreate(DeprecatedModelMutation):
-    class Arguments:
-        input = GiftCardCreateInput(
-            required=True, description="Fields required to create a gift card."
-        )
-
-    class Meta:
-        description = "Creates a new gift card."
-        model = models.GiftCard
-        object_type = GiftCard
-        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
-        error_type_class = GiftCardError
-        error_type_field = "gift_card_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.GIFT_CARD_CREATED,
-                description="A gift card was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for created gift card.",
-            ),
-        ]
-        support_meta_field = True
-        support_private_meta_field = True
+        abstract = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -270,3 +238,27 @@ class GiftCardCreate(DeprecatedModelMutation):
             tags = cleaned_data.get("add_tags")
             if tags:
                 cls.assign_gift_card_tags(instance, tags)
+
+
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.GIFT_CARD_CREATED,
+        WebhookEventAsyncType.NOTIFY_USER,
+    }
+)
+class GiftCardCreate(GiftCardMutationBase):
+    class Arguments:
+        input = GiftCardCreateInput(
+            required=True, description="Fields required to create a gift card."
+        )
+
+    class Meta:
+        description = "Creates a new gift card."
+        model = models.GiftCard
+        object_type = GiftCard
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
+        support_meta_field = True
+        support_private_meta_field = True

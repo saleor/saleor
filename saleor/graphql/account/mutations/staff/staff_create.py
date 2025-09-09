@@ -22,6 +22,7 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import NonNullList, StaffError
 from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_groups_which_user_can_manage
@@ -37,6 +38,8 @@ class StaffInput(UserInput):
 
 
 class StaffCreateInput(StaffInput):
+    """Input for creating a staff user."""
+
     redirect_url = graphene.String(
         description=(
             "URL of a view where users should be redirected to "
@@ -44,46 +47,10 @@ class StaffCreateInput(StaffInput):
         )
     )
 
+
+class StaffMutationBase(DeprecatedModelMutation):
     class Meta:
-        description = "Fields required to create a staff user."
-        doc_category = DOC_CATEGORY_USERS
-
-
-class StaffCreate(DeprecatedModelMutation):
-    class Arguments:
-        input = StaffCreateInput(
-            description="Fields required to create a staff user.", required=True
-        )
-
-    class Meta:
-        description = (
-            "Creates a new staff user. Apps are not allowed to perform this mutation."
-        )
-        doc_category = DOC_CATEGORY_USERS
-        exclude = ["password"]
-        model = models.User
-        object_type = User
-        permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = StaffError
-        error_type_field = "staff_errors"
-        support_meta_field = True
-        support_private_meta_field = True
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.STAFF_CREATED,
-                description="A new staff account was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for setting the password.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
-                description=(
-                    "Setting a new password for the staff account is requested."
-                ),
-            ),
-        ]
+        abstract = True
 
     @classmethod
     def check_permissions(
@@ -251,3 +218,31 @@ class StaffCreate(DeprecatedModelMutation):
         cls._save_m2m(info, instance, cleaned_input)
         cls.post_save_action(info, instance, cleaned_input)
         return cls.success_response(instance)
+
+
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.STAFF_CREATED,
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
+    }
+)
+class StaffCreate(StaffMutationBase):
+    class Arguments:
+        input = StaffCreateInput(
+            description="Fields required to create a staff user.", required=True
+        )
+
+    class Meta:
+        description = (
+            "Creates a new staff user. Apps are not allowed to perform this mutation."
+        )
+        exclude = ["password"]
+        model = models.User
+        object_type = User
+        permissions = (AccountPermissions.MANAGE_STAFF,)
+        error_type_class = StaffError
+        error_type_field = "staff_errors"
+        support_meta_field = True
+        support_private_meta_field = True

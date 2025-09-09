@@ -29,6 +29,7 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.scalars import UUID
 from ....core.types import common as common_types
 from ....core.validators import validate_one_of_args_is_in_mutation
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionItem
 from ...utils import check_if_requestor_has_access
@@ -45,8 +46,7 @@ if TYPE_CHECKING:
 
 
 class TransactionUpdateInput(TransactionCreateInput):
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
+    pass
 
 
 class TransactionUpdate(TransactionCreate):
@@ -82,7 +82,6 @@ class TransactionUpdate(TransactionCreate):
             f"{PaymentPermissions.HANDLE_PAYMENTS.name} for staff users. "
             f"Staff user cannot update a transaction that is owned by the app."
         )
-        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
         object_type = TransactionItem

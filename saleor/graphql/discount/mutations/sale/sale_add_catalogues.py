@@ -7,11 +7,8 @@ from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
-from ....core.utils import (
-    WebhookEventInfo,
-    from_global_id_or_error,
-    raise_validation_error,
-)
+from ....core.utils import from_global_id_or_error, raise_validation_error
+from ....directives import doc, webhook_events
 from ...utils import (
     CatalogueInfo,
     convert_catalogue_info_into_predicate,
@@ -21,19 +18,14 @@ from ...utils import (
 from .sale_base_catalogue import SaleBaseCatalogueMutation
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.SALE_UPDATED})
 class SaleAddCatalogues(SaleBaseCatalogueMutation):
     class Meta:
         description = "Adds products, categories, collections to a sale."
-        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.SALE_UPDATED,
-                description="A sale was updated.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

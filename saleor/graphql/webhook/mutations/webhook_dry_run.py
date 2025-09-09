@@ -1,5 +1,6 @@
 import graphene
 from graphene.utils.str_converters import to_camel_case
+from graphql_relay import from_global_id
 
 from ....app.models import App
 from ....discount import models as discount_models
@@ -12,11 +13,13 @@ from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import WebhookDryRunError
 from ...core.utils import from_global_id_or_error, raise_validation_error
+from ...directives import doc
 from ..subscription_payload import generate_payload_from_subscription
 from ..subscription_query import SubscriptionQuery
 from ..subscription_types import WEBHOOK_TYPES_MAP
 
 
+@doc(category=DOC_CATEGORY_WEBHOOKS)
 class WebhookDryRun(BaseMutation):
     payload = JSONString(
         description="JSON payload, that would be sent out to webhook's target URL."
@@ -38,7 +41,6 @@ class WebhookDryRun(BaseMutation):
             "Supports a single event (the first, if multiple provided in the `query`). "
             "Requires permission relevant to processed event."
         )
-        doc_category = DOC_CATEGORY_WEBHOOKS
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
         error_type_class = WebhookDryRunError
 
@@ -58,7 +60,7 @@ class WebhookDryRun(BaseMutation):
     @classmethod
     def validate_event_type(cls, event_type, object_id):
         event = WEBHOOK_TYPES_MAP[event_type]
-        model, _ = graphene.Node.from_global_id(object_id)
+        model, _ = from_global_id(object_id)
         model_name = event._meta.root_type
         enable_dry_run = event._meta.enable_dry_run
 

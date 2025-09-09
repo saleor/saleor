@@ -24,7 +24,7 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import ChannelError, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import Channel
@@ -58,10 +58,14 @@ class ChannelUpdateInput(ChannelInput):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHANNELS
 
-
+@doc(category=DOC_CATEGORY_CHANNELS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.CHANNEL_UPDATED,
+        WebhookEventAsyncType.CHANNEL_METADATA_UPDATED,
+    }
+)
 class ChannelUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a channel to update.")
@@ -88,18 +92,6 @@ class ChannelUpdate(DeprecatedModelMutation):
         object_type = Channel
         error_type_class = ChannelError
         error_type_field = "channel_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHANNEL_UPDATED,
-                description="A channel was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHANNEL_METADATA_UPDATED,
-                description=(
-                    "Optionally triggered when public or private metadata is updated."
-                ),
-            ),
-        ]
         support_meta_field = True
         support_private_meta_field = True
 

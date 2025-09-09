@@ -11,14 +11,18 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
 
 INVALID_TOKEN = "Invalid or expired token."
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(async_events={WebhookEventAsyncType.ACCOUNT_CONFIRMED})
 class ConfirmAccount(BaseMutation):
+    """Confirm user account with token sent by email during registration."""
+
     user = graphene.Field(User, description="An activated user account.")
 
     class Arguments:
@@ -32,18 +36,8 @@ class ConfirmAccount(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Confirm user account with token sent by email during registration."
-        )
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ACCOUNT_CONFIRMED,
-                description="Account was confirmed.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

@@ -4,13 +4,16 @@ from ....giftcard import models
 from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import GiftCardError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+@webhook_events(async_events={WebhookEventAsyncType.GIFT_CARD_DELETED})
 class GiftCardDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(description="ID of the gift card to delete.", required=True)
@@ -22,12 +25,6 @@ class GiftCardDelete(ModelDeleteMutation):
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.GIFT_CARD_DELETED,
-                description="A gift card was deleted.",
-            )
-        ]
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

@@ -1,5 +1,5 @@
 import graphene
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ...giftcard import models
 from ...giftcard.search import search_gift_cards
@@ -11,6 +11,7 @@ from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from .bulk_mutations import (
     GiftCardBulkActivate,
     GiftCardBulkCreate,
@@ -33,50 +34,58 @@ from .types import GiftCard, GiftCardCountableConnection, GiftCardTagCountableCo
 
 
 class GiftCardQueries(graphene.ObjectType):
-    gift_card = PermissionsField(
-        GiftCard,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the gift card.", required=True
+    gift_card = doc(
+        DOC_CATEGORY_GIFT_CARDS,
+        PermissionsField(
+            GiftCard,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the gift card.", required=True
+            ),
+            description="Look up a gift card by ID.",
+            permissions=[
+                GiftcardPermissions.MANAGE_GIFT_CARD,
+            ],
         ),
-        description="Look up a gift card by ID.",
-        permissions=[
-            GiftcardPermissions.MANAGE_GIFT_CARD,
-        ],
-        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
-    gift_cards = FilterConnectionField(
-        GiftCardCountableConnection,
-        sort_by=GiftCardSortingInput(description="Sort gift cards."),
-        filter=GiftCardFilterInput(description="Filtering options for gift cards."),
-        search=graphene.String(
-            description="Search gift cards by email and name of user, "
-            "who created or used the gift card, and by code."
+    gift_cards = doc(
+        DOC_CATEGORY_GIFT_CARDS,
+        FilterConnectionField(
+            GiftCardCountableConnection,
+            sort_by=GiftCardSortingInput(description="Sort gift cards."),
+            filter=GiftCardFilterInput(description="Filtering options for gift cards."),
+            search=graphene.String(
+                description="Search gift cards by email and name of user, "
+                "who created or used the gift card, and by code."
+            ),
+            description="List of gift cards.",
+            permissions=[
+                GiftcardPermissions.MANAGE_GIFT_CARD,
+            ],
         ),
-        description="List of gift cards.",
-        permissions=[
-            GiftcardPermissions.MANAGE_GIFT_CARD,
-        ],
-        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
-    gift_card_currencies = PermissionsField(
-        NonNullList(graphene.String),
-        description="List of gift card currencies.",
-        required=True,
-        permissions=[
-            GiftcardPermissions.MANAGE_GIFT_CARD,
-        ],
-        doc_category=DOC_CATEGORY_GIFT_CARDS,
-    )
-    gift_card_tags = FilterConnectionField(
-        GiftCardTagCountableConnection,
-        filter=GiftCardTagFilterInput(
-            description="Filtering options for gift card tags."
+    gift_card_currencies = doc(
+        DOC_CATEGORY_GIFT_CARDS,
+        field=PermissionsField(
+            NonNullList(graphene.String),
+            description="List of gift card currencies.",
+            required=True,
+            permissions=[
+                GiftcardPermissions.MANAGE_GIFT_CARD,
+            ],
         ),
-        description="List of gift card tags.",
-        permissions=[
-            GiftcardPermissions.MANAGE_GIFT_CARD,
-        ],
-        doc_category=DOC_CATEGORY_GIFT_CARDS,
+    )
+    gift_card_tags = doc(
+        DOC_CATEGORY_GIFT_CARDS,
+        field=FilterConnectionField(
+            GiftCardTagCountableConnection,
+            filter=GiftCardTagFilterInput(
+                description="Filtering options for gift card tags."
+            ),
+            description="List of gift card tags.",
+            permissions=[
+                GiftcardPermissions.MANAGE_GIFT_CARD,
+            ],
+        ),
     )
 
     @staticmethod

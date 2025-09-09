@@ -23,6 +23,7 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .utils import try_payment_action
@@ -32,6 +33,7 @@ if TYPE_CHECKING:
     from ....plugins.manager import PluginsManager
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderMarkAsPaid(BaseMutation):
     order = graphene.Field(Order, description="Order marked as paid.")
 
@@ -43,7 +45,6 @@ class OrderMarkAsPaid(BaseMutation):
 
     class Meta:
         description = "Mark order as manually paid."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

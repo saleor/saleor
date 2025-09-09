@@ -7,13 +7,12 @@ from ....permission.enums import SitePermissions
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.enums import WeightUnitsEnum
 from ...core.mutations import BaseMutation
 from ...core.types import ShopError
 from ...core.types import common as common_types
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
@@ -93,28 +92,24 @@ class ShopSettingsInput(graphene.InputObjectType):
     )
     # deprecated
     include_taxes_in_prices = graphene.Boolean(
-        description=(
-            f"Include taxes in prices. {DEPRECATED_IN_3X_INPUT} Use "
-            "`taxConfigurationUpdate` mutation to configure this setting per channel "
-            "or country."
-        )
+        description="Include taxes in prices.",
+        deprecation_reason="Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.",
     )
     display_gross_prices = graphene.Boolean(
-        description=(
-            f"Display prices with tax in store. {DEPRECATED_IN_3X_INPUT} Use "
-            "`taxConfigurationUpdate` mutation to configure this setting per channel "
-            "or country."
-        )
+        description="Display prices with tax in store.",
+        deprecation_reason="Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.",
     )
     charge_taxes_on_shipping = graphene.Boolean(
-        description=(
-            f"Charge taxes on shipping. {DEPRECATED_IN_3X_INPUT} To enable taxes for "
-            "a shipping method, assign a tax class to the shipping method with "
-            "`shippingPriceCreate` or `shippingPriceUpdate` mutations."
+        description="Charge taxes on shipping.",
+        deprecation_reason=(
+            "To enable taxes for a shipping method, assign a tax class to the shipping "
+            "method with `shippingPriceCreate` or `shippingPriceUpdate` mutations."
         ),
     )
 
 
+@doc(category=DOC_CATEGORY_SHOP)
+@webhook_events(async_events={WebhookEventAsyncType.SHOP_METADATA_UPDATED})
 class ShopSettingsUpdate(BaseMutation):
     shop = graphene.Field(Shop, description="Updated shop.")
 
@@ -125,20 +120,11 @@ class ShopSettingsUpdate(BaseMutation):
 
     class Meta:
         description = "Updates shop settings."
-        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
         support_meta_field = True
         support_private_meta_field = True
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.SHOP_METADATA_UPDATED,
-                description=(
-                    "Optionally triggered when public or private metadata is updated."
-                ),
-            ),
-        ]
 
     @classmethod
     def clean_input(cls, _info, _instance, data):

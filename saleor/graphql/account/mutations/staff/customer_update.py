@@ -19,12 +19,22 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import BaseCustomerCreate, CustomerInput
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.CUSTOMER_UPDATED,
+        WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+    }
+)
 class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
+    """Updates an existing customer."""
+
     class Arguments:
         id = graphene.ID(description="ID of a customer to update.", required=False)
         external_reference = graphene.String(
@@ -36,8 +46,6 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         )
 
     class Meta:
-        description = "Updates an existing customer."
-        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -46,16 +54,6 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         error_type_field = "account_errors"
         support_meta_field = True
         support_private_meta_field = True
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
-                description="A new customer account was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
-                description="Optionally called when customer's metadata was updated.",
-            ),
-        ]
 
     @classmethod
     def generate_events(

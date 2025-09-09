@@ -10,12 +10,14 @@ from ...core import ResolveInfo
 from ...core.context import ChannelContext, disallow_replica_in_context
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
-from ...core.types import BaseInputObjectType, NonNullList, ProductError, Upload
+from ...core.types import NonNullList, ProductError, Upload
+from ...directives import doc
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 
 
-class DigitalContentInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class DigitalContentInput(graphene.InputObjectType):
     use_default_settings = graphene.Boolean(
         description="Use default digital content settings for this product.",
         required=True,
@@ -50,19 +52,14 @@ class DigitalContentInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
-
 
 class DigitalContentUploadInput(DigitalContentInput):
     content_file = Upload(
         required=True, description="Represents an file in a multipart request."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class DigitalContentCreate(BaseMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
@@ -82,7 +79,6 @@ class DigitalContentCreate(BaseMutation):
             "request. More detailed specs of the upload format can be found here: "
             "https://github.com/jaydenseric/graphql-multipart-request-spec"
         )
-        doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
@@ -158,6 +154,7 @@ class DigitalContentCreate(BaseMutation):
         return DigitalContentCreate(content=digital_content, variant=variant)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class DigitalContentDelete(BaseMutation):
     variant = graphene.Field(ProductVariant)
 
@@ -169,7 +166,6 @@ class DigitalContentDelete(BaseMutation):
 
     class Meta:
         description = "Remove digital content assigned to given variant."
-        doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
@@ -194,6 +190,7 @@ class DigitalContentDelete(BaseMutation):
         return DigitalContentDelete(variant=variant)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class DigitalContentUpdate(BaseMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
@@ -209,7 +206,6 @@ class DigitalContentUpdate(BaseMutation):
 
     class Meta:
         description = "Updates digital content."
-        doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
@@ -291,15 +287,13 @@ class DigitalContentUpdate(BaseMutation):
         return DigitalContentUpdate(content=digital_content, variant=variant)
 
 
-class DigitalContentUrlCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class DigitalContentUrlCreateInput(graphene.InputObjectType):
     content = graphene.ID(
         description="Digital content ID which URL will belong to.",
         name="content",
         required=True,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class DigitalContentUrlCreate(DeprecatedModelMutation):

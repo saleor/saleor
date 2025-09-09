@@ -13,25 +13,24 @@ from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.scalars import PositiveDecimal
-from ....core.types import BaseInputObjectType, DiscountError, NonNullList
-from ....core.utils import WebhookEventInfo
+from ....core.types import DiscountError, NonNullList
 from ....core.validators import validate_price_precision
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Voucher
 
 
-class VoucherChannelListingAddInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class VoucherChannelListingAddInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     discount_value = PositiveDecimal(description="Value of the voucher.")
     min_amount_spent = PositiveDecimal(
         description="Min purchase amount required to apply the voucher."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
-class VoucherChannelListingInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class VoucherChannelListingInput(graphene.InputObjectType):
     add_channels = NonNullList(
         VoucherChannelListingAddInput,
         description="List of channels to which the voucher should be assigned.",
@@ -43,10 +42,9 @@ class VoucherChannelListingInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.VOUCHER_UPDATED})
 class VoucherChannelListingUpdate(BaseChannelListingMutation):
     voucher = graphene.Field(Voucher, description="An updated voucher instance.")
 
@@ -59,16 +57,9 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage voucher's availability in channels."
-        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_UPDATED,
-                description="A voucher was updated.",
-            )
-        ]
 
     @classmethod
     def clean_discount_values_per_channel(cls, cleaned_input, voucher, error_dict):

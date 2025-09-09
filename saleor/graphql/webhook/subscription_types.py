@@ -1,6 +1,6 @@
 import graphene
 from django.conf import settings
-from graphene import AbstractType, Union
+from graphene import Union
 from rx import Observable
 
 from ... import __version__
@@ -51,7 +51,6 @@ from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_320,
     ADDED_IN_321,
-    DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -66,10 +65,10 @@ from ..core.doc_category import (
     DOC_CATEGORY_TAXES,
     DOC_CATEGORY_USERS,
 )
-from ..core.fields import BaseField
 from ..core.scalars import JSON, DateTime, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
+from ..directives import doc
 from ..order.dataloaders import OrderByIdLoader
 from ..order.types import Order, OrderGrantedRefund
 from ..payment.enums import TokenizedPaymentFlowEnum, TransactionActionEnum
@@ -149,7 +148,7 @@ class Event(graphene.Interface):
         return info.context.requestor
 
 
-class AccountOperationBase(AbstractType):
+class AccountOperationBase:
     redirect_url = graphene.String(
         description="The URL to redirect the user after he accepts the request.",
         required=False,
@@ -192,15 +191,16 @@ class AccountOperationBase(AbstractType):
         return Shop()
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountConfirmed(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account is confirmed."
-        doc_category = DOC_CATEGORY_USERS
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = None
@@ -210,9 +210,9 @@ class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase)
             "Event sent when account confirmation requested. This event is always sent."
             " enableAccountConfirmationByEmail flag set to True is not required."
         )
-        doc_category = DOC_CATEGORY_USERS
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
     new_email = graphene.String(
         description="The new email address the user wants to change to.",
@@ -223,7 +223,6 @@ class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account change email is requested."
-        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_new_email(root, _info: ResolveInfo):
@@ -231,6 +230,7 @@ class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
         return data["new_email"]
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountEmailChanged(SubscriptionObjectType, AccountOperationBase):
     new_email = graphene.String(
         description="The new email address.",
@@ -241,37 +241,36 @@ class AccountEmailChanged(SubscriptionObjectType, AccountOperationBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account email is changed."
-        doc_category = DOC_CATEGORY_USERS
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountSetPasswordRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when setting a new password is requested."
-        doc_category = DOC_CATEGORY_USERS
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account delete is requested."
-        doc_category = DOC_CATEGORY_USERS
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountDeleted(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when account is deleted."
-        doc_category = DOC_CATEGORY_USERS
 
 
-class AddressBase(AbstractType):
+class AddressBase:
     address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description="The address the event relates to.",
@@ -307,7 +306,7 @@ class AddressDeleted(SubscriptionObjectType, AddressBase):
         description = "Event sent when address is deleted."
 
 
-class AppBase(AbstractType):
+class AppBase:
     app = graphene.Field(
         "saleor.graphql.app.types.App",
         description="The application the event relates to.",
@@ -351,7 +350,7 @@ class AppStatusChanged(SubscriptionObjectType, AppBase):
         description = "Event sent when app status has changed."
 
 
-class AttributeBase(AbstractType):
+class AttributeBase:
     attribute = graphene.Field(
         "saleor.graphql.attribute.types.Attribute",
         description="The attribute the event relates to.",
@@ -387,7 +386,7 @@ class AttributeDeleted(SubscriptionObjectType, AttributeBase):
         description = "Event sent when attribute is deleted."
 
 
-class AttributeValueBase(AbstractType):
+class AttributeValueBase:
     attribute_value = graphene.Field(
         "saleor.graphql.attribute.types.AttributeValue",
         description="The attribute value the event relates to.",
@@ -423,7 +422,7 @@ class AttributeValueDeleted(SubscriptionObjectType, AttributeValueBase):
         description = "Event sent when attribute value is deleted."
 
 
-class CategoryBase(AbstractType):
+class CategoryBase:
     category = graphene.Field(
         "saleor.graphql.product.types.Category",
         description="The category the event relates to.",
@@ -459,7 +458,7 @@ class CategoryDeleted(SubscriptionObjectType, CategoryBase):
         description = "Event sent when category is deleted."
 
 
-class ChannelBase(AbstractType):
+class ChannelBase:
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",
         description="The channel the event relates to.",
@@ -511,7 +510,7 @@ class ChannelMetadataUpdated(SubscriptionObjectType, ChannelBase):
         description = "Event sent when channel metadata is updated."
 
 
-class OrderBase(AbstractType):
+class OrderBase:
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
         description="The order the event relates to.",
@@ -523,6 +522,7 @@ class OrderBase(AbstractType):
         return SyncWebhookControlContext(order)
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderCreated(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -531,6 +531,7 @@ class OrderCreated(SubscriptionObjectType, OrderBase):
         description = "Event sent when new order is created."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderUpdated(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -539,6 +540,7 @@ class OrderUpdated(SubscriptionObjectType, OrderBase):
         description = "Event sent when order is updated."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderConfirmed(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -547,6 +549,7 @@ class OrderConfirmed(SubscriptionObjectType, OrderBase):
         description = "Event sent when order is confirmed."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderFullyPaid(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -555,6 +558,7 @@ class OrderFullyPaid(SubscriptionObjectType, OrderBase):
         description = "Event sent when order is fully paid."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderPaid(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -563,6 +567,7 @@ class OrderPaid(SubscriptionObjectType, OrderBase):
         description = "Payment has been made. The order may be partially or fully paid."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderRefunded(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -573,6 +578,7 @@ class OrderRefunded(SubscriptionObjectType, OrderBase):
         )
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderFullyRefunded(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -581,6 +587,7 @@ class OrderFullyRefunded(SubscriptionObjectType, OrderBase):
         description = "The order is fully refunded."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderFulfilled(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -589,6 +596,7 @@ class OrderFulfilled(SubscriptionObjectType, OrderBase):
         description = "Event sent when order is fulfilled."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderCancelled(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -597,6 +605,7 @@ class OrderCancelled(SubscriptionObjectType, OrderBase):
         description = "Event sent when order is canceled."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderExpired(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -605,6 +614,7 @@ class OrderExpired(SubscriptionObjectType, OrderBase):
         description = "Event sent when order becomes expired."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -613,6 +623,7 @@ class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
         description = "Event sent when order metadata is updated."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderBulkCreated(SubscriptionObjectType):
     orders = NonNullList(
         Order,
@@ -629,9 +640,9 @@ class OrderBulkCreated(SubscriptionObjectType):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when orders are imported."
-        doc_category = DOC_CATEGORY_ORDERS
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class DraftOrderCreated(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -640,6 +651,7 @@ class DraftOrderCreated(SubscriptionObjectType, OrderBase):
         description = "Event sent when new draft order is created."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class DraftOrderUpdated(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -648,6 +660,7 @@ class DraftOrderUpdated(SubscriptionObjectType, OrderBase):
         description = "Event sent when draft order is updated."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class DraftOrderDeleted(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -656,7 +669,7 @@ class DraftOrderDeleted(SubscriptionObjectType, OrderBase):
         description = "Event sent when draft order is deleted."
 
 
-class GiftCardBase(AbstractType):
+class GiftCardBase:
     gift_card = graphene.Field(
         "saleor.graphql.giftcard.types.GiftCard",
         description="The gift card the event relates to.",
@@ -668,6 +681,7 @@ class GiftCardBase(AbstractType):
         return gift_card
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardCreated(SubscriptionObjectType, GiftCardBase):
     class Meta:
         root_type = "GiftCard"
@@ -676,6 +690,7 @@ class GiftCardCreated(SubscriptionObjectType, GiftCardBase):
         description = "Event sent when new gift card is created."
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardUpdated(SubscriptionObjectType, GiftCardBase):
     class Meta:
         root_type = "GiftCard"
@@ -684,6 +699,7 @@ class GiftCardUpdated(SubscriptionObjectType, GiftCardBase):
         description = "Event sent when gift card is updated."
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardDeleted(SubscriptionObjectType, GiftCardBase):
     class Meta:
         root_type = "GiftCard"
@@ -692,6 +708,7 @@ class GiftCardDeleted(SubscriptionObjectType, GiftCardBase):
         description = "Event sent when gift card is deleted."
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardSent(SubscriptionObjectType, GiftCardBase):
     channel = graphene.String(
         description="Slug of a channel for which this gift card email was sent."
@@ -705,7 +722,6 @@ class GiftCardSent(SubscriptionObjectType, GiftCardBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when gift card is e-mailed."
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
     @staticmethod
     def resolve_gift_card(root, info: ResolveInfo):
@@ -723,6 +739,7 @@ class GiftCardSent(SubscriptionObjectType, GiftCardBase):
         return data["sent_to_email"]
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardStatusChanged(SubscriptionObjectType, GiftCardBase):
     class Meta:
         root_type = "GiftCard"
@@ -731,6 +748,7 @@ class GiftCardStatusChanged(SubscriptionObjectType, GiftCardBase):
         description = "Event sent when gift card status has changed."
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardMetadataUpdated(SubscriptionObjectType, GiftCardBase):
     class Meta:
         root_type = "GiftCard"
@@ -739,6 +757,7 @@ class GiftCardMetadataUpdated(SubscriptionObjectType, GiftCardBase):
         description = "Event sent when gift card metadata is updated."
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
@@ -750,7 +769,6 @@ class GiftCardExportCompleted(SubscriptionObjectType):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when gift card export is completed."
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
     @staticmethod
     def resolve_export(root, info: ResolveInfo):
@@ -758,7 +776,7 @@ class GiftCardExportCompleted(SubscriptionObjectType):
         return export_file
 
 
-class MenuBase(AbstractType):
+class MenuBase:
     menu = graphene.Field(
         "saleor.graphql.menu.types.Menu",
         channel=graphene.String(
@@ -797,7 +815,7 @@ class MenuDeleted(SubscriptionObjectType, MenuBase):
         description = "Event sent when menu is deleted."
 
 
-class MenuItemBase(AbstractType):
+class MenuItemBase:
     menu_item = graphene.Field(
         "saleor.graphql.menu.types.MenuItem",
         channel=graphene.String(
@@ -836,7 +854,7 @@ class MenuItemDeleted(SubscriptionObjectType, MenuItemBase):
         description = "Event sent when menu item is deleted."
 
 
-class ProductBase(AbstractType):
+class ProductBase:
     product = graphene.Field(
         "saleor.graphql.product.types.Product",
         channel=graphene.String(
@@ -860,6 +878,7 @@ class ProductBase(AbstractType):
         return product.category
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductCreated(SubscriptionObjectType, ProductBase):
     class Meta:
         root_type = "Product"
@@ -868,6 +887,7 @@ class ProductCreated(SubscriptionObjectType, ProductBase):
         description = "Event sent when new product is created."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductUpdated(SubscriptionObjectType, ProductBase):
     class Meta:
         root_type = "Product"
@@ -876,6 +896,7 @@ class ProductUpdated(SubscriptionObjectType, ProductBase):
         description = "Event sent when product is updated."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductDeleted(SubscriptionObjectType, ProductBase):
     class Meta:
         root_type = "Product"
@@ -884,6 +905,7 @@ class ProductDeleted(SubscriptionObjectType, ProductBase):
         description = "Event sent when product is deleted."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
     class Meta:
         root_type = "Product"
@@ -892,7 +914,7 @@ class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
         description = "Event sent when product metadata is updated."
 
 
-class ProductMediaBase(AbstractType):
+class ProductMediaBase:
     product_media = graphene.Field(
         "saleor.graphql.product.types.ProductMedia",
         description="The product media the event relates to.",
@@ -904,6 +926,7 @@ class ProductMediaBase(AbstractType):
         return media
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductMediaCreated(SubscriptionObjectType, ProductMediaBase):
     class Meta:
         root_type = "ProductMedia"
@@ -912,6 +935,7 @@ class ProductMediaCreated(SubscriptionObjectType, ProductMediaBase):
         description = "Event sent when new product media is created."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
     class Meta:
         root_type = "ProductMedia"
@@ -920,6 +944,7 @@ class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
         description = "Event sent when product media is updated."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
     class Meta:
         root_type = "ProductMedia"
@@ -928,7 +953,7 @@ class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
         description = "Event sent when product media is deleted."
 
 
-class ProductVariantBase(AbstractType):
+class ProductVariantBase:
     product_variant = graphene.Field(
         "saleor.graphql.product.types.ProductVariant",
         channel=graphene.String(
@@ -943,6 +968,7 @@ class ProductVariantBase(AbstractType):
         return ChannelContext(node=variant, channel_slug=channel)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantCreated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
         root_type = "ProductVariant"
@@ -951,6 +977,7 @@ class ProductVariantCreated(SubscriptionObjectType, ProductVariantBase):
         description = "Event sent when new product variant is created."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantUpdated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
         root_type = "ProductVariant"
@@ -959,6 +986,7 @@ class ProductVariantUpdated(SubscriptionObjectType, ProductVariantBase):
         description = "Event sent when product variant is updated."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantDeleted(SubscriptionObjectType, ProductVariantBase):
     class Meta:
         root_type = "ProductVariant"
@@ -967,6 +995,7 @@ class ProductVariantDeleted(SubscriptionObjectType, ProductVariantBase):
         description = "Event sent when product variant is deleted."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantMetadataUpdated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
         root_type = "ProductVariant"
@@ -975,6 +1004,7 @@ class ProductVariantMetadataUpdated(SubscriptionObjectType, ProductVariantBase):
         description = "Event sent when product variant metadata is updated."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantOutOfStock(SubscriptionObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
@@ -998,6 +1028,7 @@ class ProductVariantOutOfStock(SubscriptionObjectType, ProductVariantBase):
         return stock.warehouse
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantBackInStock(SubscriptionObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
@@ -1021,6 +1052,7 @@ class ProductVariantBackInStock(SubscriptionObjectType, ProductVariantBase):
         return stock.warehouse
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
@@ -1031,7 +1063,6 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when product variant stock is updated."
-        doc_category = DOC_CATEGORY_PRODUCTS
 
     @staticmethod
     def resolve_product_variant(root, info: ResolveInfo, channel=None):
@@ -1048,6 +1079,7 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
         return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
@@ -1059,7 +1091,6 @@ class ProductExportCompleted(SubscriptionObjectType):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when product export is completed."
-        doc_category = DOC_CATEGORY_PRODUCTS
 
     @staticmethod
     def resolve_export(root, info: ResolveInfo):
@@ -1067,7 +1098,7 @@ class ProductExportCompleted(SubscriptionObjectType):
         return export_file
 
 
-class SaleBase(AbstractType):
+class SaleBase:
     sale = graphene.Field(
         "saleor.graphql.discount.types.Sale",
         channel=graphene.String(
@@ -1087,11 +1118,7 @@ class SaleCreated(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when new sale is created."
-            + DEPRECATED_IN_3X_EVENT
-            + " Use `PromotionCreated` event instead."
-        )
+        description = ("Event sent when new sale is created.",)
 
 
 class SaleUpdated(SubscriptionObjectType, SaleBase):
@@ -1099,11 +1126,7 @@ class SaleUpdated(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when sale is updated."
-            + DEPRECATED_IN_3X_EVENT
-            + " Use `PromotionUpdated` event instead."
-        )
+        description = "Event sent when sale is updated."
 
 
 class SaleDeleted(SubscriptionObjectType, SaleBase):
@@ -1111,11 +1134,7 @@ class SaleDeleted(SubscriptionObjectType, SaleBase):
         root_type = "Sale"
         enable_dry_run = True
         interfaces = (Event,)
-        description = (
-            "Event sent when sale is deleted."
-            + DEPRECATED_IN_3X_EVENT
-            + " Use `PromotionDeleted` event instead."
-        )
+        description = "Event sent when sale is deleted."
 
 
 class SaleToggle(SubscriptionObjectType, SaleBase):
@@ -1130,15 +1149,11 @@ class SaleToggle(SubscriptionObjectType, SaleBase):
     class Meta:
         root_type = "Sale"
         enable_dry_run = True
-        description = (
-            "The event informs about the start or end of the sale."
-            + DEPRECATED_IN_3X_EVENT
-            + " Use `PromotionStarted` and `PromotionEnded` events instead."
-        )
+        description = "The event informs about the start or end of the sale."
         interfaces = (Event,)
 
 
-class PromotionBase(AbstractType):
+class PromotionBase:
     promotion = graphene.Field(
         "saleor.graphql.discount.types.Promotion",
         description="The promotion the event relates to.",
@@ -1190,7 +1205,7 @@ class PromotionEnded(SubscriptionObjectType, PromotionBase):
         interfaces = (Event,)
 
 
-class PromotionRuleBase(AbstractType):
+class PromotionRuleBase:
     promotion_rule = graphene.Field(
         "saleor.graphql.discount.types.PromotionRule",
         description="The promotion rule the event relates to.",
@@ -1226,7 +1241,7 @@ class PromotionRuleDeleted(SubscriptionObjectType, PromotionRuleBase):
         description = "Event sent when new promotion rule is deleted."
 
 
-class InvoiceBase(AbstractType):
+class InvoiceBase:
     invoice = graphene.Field(
         "saleor.graphql.invoice.types.Invoice",
         description="The invoice the event relates to.",
@@ -1285,7 +1300,7 @@ class InvoiceSent(SubscriptionObjectType, InvoiceBase):
         description = "Event sent when invoice is sent."
 
 
-class FulfillmentBase(AbstractType):
+class FulfillmentBase:
     fulfillment = graphene.Field(
         "saleor.graphql.order.types.Fulfillment",
         description="The fulfillment the event relates to.",
@@ -1306,15 +1321,16 @@ class FulfillmentBase(AbstractType):
         return SyncWebhookControlContext(node=fulfillment.order)
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class FulfillmentTrackingNumberUpdated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         root_type = "Fulfillment"
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when the tracking number is updated."
-        doc_category = DOC_CATEGORY_ORDERS
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
     notify_customer = graphene.Boolean(
         description="If true, the app should send a notification to the customer.",
@@ -1326,7 +1342,6 @@ class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when new fulfillment is created."
-        doc_category = DOC_CATEGORY_ORDERS
 
     @staticmethod
     def resolve_fulfillment(root, info: ResolveInfo):
@@ -1344,6 +1359,7 @@ class FulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
         return data["notify_customer"]
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class FulfillmentCanceled(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         root_type = "Fulfillment"
@@ -1352,6 +1368,7 @@ class FulfillmentCanceled(SubscriptionObjectType, FulfillmentBase):
         description = "Event sent when fulfillment is canceled."
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class FulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
     notify_customer = graphene.Boolean(
         description="If true, send a notification to the customer.",
@@ -1363,7 +1380,6 @@ class FulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when fulfillment is approved."
-        doc_category = DOC_CATEGORY_ORDERS
 
     @staticmethod
     def resolve_fulfillment(root, info: ResolveInfo):
@@ -1381,6 +1397,7 @@ class FulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
         return data["notify_customer"]
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class FulfillmentMetadataUpdated(SubscriptionObjectType, FulfillmentBase):
     class Meta:
         root_type = "Fulfillment"
@@ -1389,7 +1406,7 @@ class FulfillmentMetadataUpdated(SubscriptionObjectType, FulfillmentBase):
         description = "Event sent when fulfillment metadata is updated."
 
 
-class UserBase(AbstractType):
+class UserBase:
     user = graphene.Field(
         "saleor.graphql.account.types.User",
         description="The user the event relates to.",
@@ -1401,6 +1418,7 @@ class UserBase(AbstractType):
         return user
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class CustomerCreated(SubscriptionObjectType, UserBase):
     class Meta:
         root_type = "User"
@@ -1409,6 +1427,7 @@ class CustomerCreated(SubscriptionObjectType, UserBase):
         description = "Event sent when new customer user is created."
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class CustomerUpdated(SubscriptionObjectType, UserBase):
     class Meta:
         root_type = "User"
@@ -1417,6 +1436,7 @@ class CustomerUpdated(SubscriptionObjectType, UserBase):
         description = "Event sent when customer user is updated."
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class CustomerMetadataUpdated(SubscriptionObjectType, UserBase):
     class Meta:
         root_type = "User"
@@ -1425,7 +1445,7 @@ class CustomerMetadataUpdated(SubscriptionObjectType, UserBase):
         description = "Event sent when customer user metadata is updated."
 
 
-class CollectionBase(AbstractType):
+class CollectionBase:
     collection = graphene.Field(
         "saleor.graphql.product.types.collections.Collection",
         channel=graphene.String(
@@ -1440,6 +1460,7 @@ class CollectionBase(AbstractType):
         return ChannelContext(node=collection, channel_slug=channel)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionCreated(SubscriptionObjectType, CollectionBase):
     class Meta:
         root_type = "Collection"
@@ -1448,6 +1469,7 @@ class CollectionCreated(SubscriptionObjectType, CollectionBase):
         description = "Event sent when new collection is created."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionUpdated(SubscriptionObjectType, CollectionBase):
     class Meta:
         root_type = "Collection"
@@ -1456,6 +1478,7 @@ class CollectionUpdated(SubscriptionObjectType, CollectionBase):
         description = "Event sent when collection is updated."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionDeleted(SubscriptionObjectType, CollectionBase):
     class Meta:
         root_type = "Collection"
@@ -1464,6 +1487,7 @@ class CollectionDeleted(SubscriptionObjectType, CollectionBase):
         description = "Event sent when collection is deleted."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionMetadataUpdated(SubscriptionObjectType, CollectionBase):
     class Meta:
         root_type = "Collection"
@@ -1472,7 +1496,7 @@ class CollectionMetadataUpdated(SubscriptionObjectType, CollectionBase):
         description = "Event sent when collection metadata is updated."
 
 
-class CheckoutBase(AbstractType):
+class CheckoutBase:
     checkout = graphene.Field(
         "saleor.graphql.checkout.types.Checkout",
         description="The checkout the event relates to.",
@@ -1484,6 +1508,7 @@ class CheckoutBase(AbstractType):
         return SyncWebhookControlContext(node=checkout)
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutCreated(SubscriptionObjectType, CheckoutBase):
     class Meta:
         root_type = "Checkout"
@@ -1492,6 +1517,7 @@ class CheckoutCreated(SubscriptionObjectType, CheckoutBase):
         description = "Event sent when new checkout is created."
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutUpdated(SubscriptionObjectType, CheckoutBase):
     class Meta:
         root_type = "Checkout"
@@ -1500,6 +1526,7 @@ class CheckoutUpdated(SubscriptionObjectType, CheckoutBase):
         description = "Event sent when checkout is updated."
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutFullyPaid(SubscriptionObjectType, CheckoutBase):
     class Meta:
         root_type = "Checkout"
@@ -1514,6 +1541,7 @@ class CheckoutFullyPaid(SubscriptionObjectType, CheckoutBase):
         )
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutMetadataUpdated(SubscriptionObjectType, CheckoutBase):
     class Meta:
         root_type = "Checkout"
@@ -1522,7 +1550,7 @@ class CheckoutMetadataUpdated(SubscriptionObjectType, CheckoutBase):
         description = "Event sent when checkout metadata is updated."
 
 
-class PageBase(AbstractType):
+class PageBase:
     page = graphene.Field(
         "saleor.graphql.page.types.Page", description="The page the event relates to."
     )
@@ -1557,7 +1585,7 @@ class PageDeleted(SubscriptionObjectType, PageBase):
         description = "Event sent when page is deleted."
 
 
-class PageTypeBase(AbstractType):
+class PageTypeBase:
     page_type = graphene.Field(
         "saleor.graphql.page.types.PageType",
         description="The page type the event relates to.",
@@ -1593,7 +1621,7 @@ class PageTypeDeleted(SubscriptionObjectType, PageTypeBase):
         description = "Event sent when page type is deleted."
 
 
-class PermissionGroupBase(AbstractType):
+class PermissionGroupBase:
     permission_group = graphene.Field(
         "saleor.graphql.account.types.Group",
         description="The permission group the event relates to.",
@@ -1629,7 +1657,7 @@ class PermissionGroupDeleted(SubscriptionObjectType, PermissionGroupBase):
         description = "Event sent when permission group is deleted."
 
 
-class ShippingPriceBase(AbstractType):
+class ShippingPriceBase:
     shipping_method = graphene.Field(
         "saleor.graphql.shipping.types.ShippingMethodType",
         channel=graphene.String(
@@ -1656,34 +1684,34 @@ class ShippingPriceBase(AbstractType):
         return ChannelContext(node=shipping_method.shipping_zone, channel_slug=channel)
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingPriceCreated(SubscriptionObjectType, ShippingPriceBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when new shipping price is created."
-        doc_category = DOC_CATEGORY_SHIPPING
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingPriceUpdated(SubscriptionObjectType, ShippingPriceBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when shipping price is updated."
-        doc_category = DOC_CATEGORY_SHIPPING
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingPriceDeleted(SubscriptionObjectType, ShippingPriceBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when shipping price is deleted."
-        doc_category = DOC_CATEGORY_SHIPPING
 
 
-class ShippingZoneBase(AbstractType):
+class ShippingZoneBase:
     shipping_zone = graphene.Field(
         "saleor.graphql.shipping.types.ShippingZone",
         channel=graphene.String(
@@ -1698,6 +1726,7 @@ class ShippingZoneBase(AbstractType):
         return ChannelContext(node=shipping_zone, channel_slug=channel)
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingZoneCreated(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
         root_type = "ShippingZone"
@@ -1706,6 +1735,7 @@ class ShippingZoneCreated(SubscriptionObjectType, ShippingZoneBase):
         description = "Event sent when new shipping zone is created."
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingZoneUpdated(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
         root_type = "ShippingZone"
@@ -1714,6 +1744,7 @@ class ShippingZoneUpdated(SubscriptionObjectType, ShippingZoneBase):
         description = "Event sent when shipping zone is updated."
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingZoneDeleted(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
         root_type = "ShippingZone"
@@ -1722,6 +1753,7 @@ class ShippingZoneDeleted(SubscriptionObjectType, ShippingZoneBase):
         description = "Event sent when shipping zone is deleted."
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingZoneMetadataUpdated(SubscriptionObjectType, ShippingZoneBase):
     class Meta:
         root_type = "ShippingZone"
@@ -1730,6 +1762,7 @@ class ShippingZoneMetadataUpdated(SubscriptionObjectType, ShippingZoneBase):
         description = "Event sent when shipping zone metadata is updated."
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class StaffCreated(SubscriptionObjectType, UserBase):
     class Meta:
         root_type = "User"
@@ -1738,6 +1771,7 @@ class StaffCreated(SubscriptionObjectType, UserBase):
         description = "Event sent when new staff user is created."
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class StaffUpdated(SubscriptionObjectType, UserBase):
     class Meta:
         root_type = "User"
@@ -1746,6 +1780,7 @@ class StaffUpdated(SubscriptionObjectType, UserBase):
         description = "Event sent when staff user is updated."
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class StaffDeleted(SubscriptionObjectType, UserBase):
     class Meta:
         root_type = "User"
@@ -1754,16 +1789,17 @@ class StaffDeleted(SubscriptionObjectType, UserBase):
         description = "Event sent when staff user is deleted."
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class StaffSetPasswordRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when setting a new password for staff is requested."
-        doc_category = DOC_CATEGORY_USERS
 
 
-class TransactionAction(SubscriptionObjectType, AbstractType):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class TransactionAction(SubscriptionObjectType):
     action_type = graphene.Field(
         TransactionActionEnum,
         required=True,
@@ -1778,9 +1814,6 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
-
     @staticmethod
     def resolve_amount(root: TransactionActionData, _info: ResolveInfo):
         return quantize_price(root.action_value, root.transaction.currency)
@@ -1790,7 +1823,7 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
         return root.transaction.currency
 
 
-class TransactionActionBase(AbstractType):
+class TransactionActionBase:
     transaction = graphene.Field(
         TransactionItem,
         description="Look up a transaction.",
@@ -1814,15 +1847,16 @@ class TransactionActionBase(AbstractType):
         return transaction_action_data
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
     class Meta:
         interfaces = (Event,)
         root_type = None
         enable_dry_run = False
         description = "Event sent when transaction charge is requested."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
     granted_refund = graphene.Field(
         OrderGrantedRefund,
@@ -1834,7 +1868,6 @@ class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
         root_type = None
         enable_dry_run = False
         description = "Event sent when transaction refund is requested."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
     @staticmethod
     def resolve_granted_refund(root, _info: ResolveInfo):
@@ -1843,15 +1876,16 @@ class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
         return SyncWebhookControlContext(transaction_action_data.granted_refund)
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectType):
     class Meta:
         interfaces = (Event,)
         root_type = None
         enable_dry_run = False
         description = "Event sent when transaction cancelation is requested."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentGatewayInitializeSession(SubscriptionObjectType):
     source_object = graphene.Field(
         OrderOrCheckout, description="Checkout or order", required=True
@@ -1870,7 +1904,6 @@ class PaymentGatewayInitializeSession(SubscriptionObjectType):
         root_type = None
         enable_dry_run = False
         description = "Event sent when user wants to initialize the payment gateway."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
     @staticmethod
     def resolve_source_object(root, _info: ResolveInfo):
@@ -1891,18 +1924,16 @@ class PaymentGatewayInitializeSession(SubscriptionObjectType):
         return amount
 
 
-class TransactionProcessAction(SubscriptionObjectType, AbstractType):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class TransactionProcessAction(SubscriptionObjectType):
     amount = PositiveDecimal(
         description="Transaction amount to process.", required=True
     )
     currency = graphene.String(description="Currency of the amount.", required=True)
     action_type = graphene.Field(TransactionFlowStrategyEnum, required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
-class TransactionSessionBase(SubscriptionObjectType, AbstractType):
+class TransactionSessionBase(SubscriptionObjectType):
     transaction = graphene.Field(
         TransactionItem, description="Look up a transaction.", required=True
     )
@@ -1973,6 +2004,7 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
         return transaction_session_data.customer_ip_address
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionInitializeSession(TransactionSessionBase):
     idempotency_key = graphene.String(
         description="Idempotency key assigned to the transaction initialize.",
@@ -1984,7 +2016,6 @@ class TransactionInitializeSession(TransactionSessionBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when user starts processing the payment."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
     @classmethod
     def resolve_idempotency_key(
@@ -1994,15 +2025,16 @@ class TransactionInitializeSession(TransactionSessionBase):
         return transaction_session_data.idempotency_key
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionProcessSession(TransactionSessionBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when user has additional payment action to process."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class ListStoredPaymentMethods(SubscriptionObjectType):
     user = graphene.Field(
         UserType,
@@ -2027,7 +2059,6 @@ class ListStoredPaymentMethods(SubscriptionObjectType):
             "List payment methods stored for the user by payment gateway."
             + PREVIEW_FEATURE
         )
-        doc_category = DOC_CATEGORY_PAYMENTS
 
     @classmethod
     def resolve_user(
@@ -2044,6 +2075,7 @@ class ListStoredPaymentMethods(SubscriptionObjectType):
         return payment_method_data.channel
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionItemMetadataUpdated(SubscriptionObjectType):
     transaction = graphene.Field(
         TransactionItem,
@@ -2055,7 +2087,6 @@ class TransactionItemMetadataUpdated(SubscriptionObjectType):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when transaction item metadata is updated."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
     @staticmethod
     def resolve_transaction(root, _info: ResolveInfo):
@@ -2063,6 +2094,7 @@ class TransactionItemMetadataUpdated(SubscriptionObjectType):
         return transaction_item
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class StoredPaymentMethodDeleteRequested(SubscriptionObjectType):
     user = graphene.Field(
         UserType,
@@ -2092,7 +2124,6 @@ class StoredPaymentMethodDeleteRequested(SubscriptionObjectType):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when user requests to delete a payment method."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
     @classmethod
     def resolve_user(
@@ -2116,7 +2147,7 @@ class StoredPaymentMethodDeleteRequested(SubscriptionObjectType):
         return payment_method_data.channel
 
 
-class PaymentMethodTokenizationBase(AbstractType):
+class PaymentMethodTokenizationBase:
     user = graphene.Field(
         UserType,
         description="The user related to the requested action.",
@@ -2160,6 +2191,7 @@ class PaymentMethodTokenizationBase(AbstractType):
         return payment_method_data.data
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentGatewayInitializeTokenizationSession(
     SubscriptionObjectType, PaymentMethodTokenizationBase
 ):
@@ -2171,9 +2203,9 @@ class PaymentGatewayInitializeTokenizationSession(
             "Event sent to initialize a new session in payment gateway to store the "
             "payment method. "
         )
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentMethodInitializeTokenizationSession(
     SubscriptionObjectType, PaymentMethodTokenizationBase
 ):
@@ -2189,7 +2221,6 @@ class PaymentMethodInitializeTokenizationSession(
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when user requests a tokenization of payment method."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
     @classmethod
     def resolve_payment_flow_to_support(
@@ -2201,6 +2232,7 @@ class PaymentMethodInitializeTokenizationSession(
         return payment_method_data.payment_flow_to_support
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentMethodProcessTokenizationSession(
     SubscriptionObjectType, PaymentMethodTokenizationBase
 ):
@@ -2217,7 +2249,6 @@ class PaymentMethodProcessTokenizationSession(
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when user continues a tokenization of payment method."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
     @classmethod
     def resolve_id(
@@ -2246,7 +2277,7 @@ class TranslationTypes(Union):
         return super().resolve_type(instance, info)
 
 
-class TranslationBase(AbstractType):
+class TranslationBase:
     translation = graphene.Field(
         TranslationTypes, description="The translation the event relates to."
     )
@@ -2257,25 +2288,25 @@ class TranslationBase(AbstractType):
         return translation
 
 
+@doc(category=DOC_CATEGORY_MISC)
 class TranslationCreated(SubscriptionObjectType, TranslationBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when new translation is created."
-        doc_category = DOC_CATEGORY_MISC
 
 
+@doc(category=DOC_CATEGORY_MISC)
 class TranslationUpdated(SubscriptionObjectType, TranslationBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when translation is updated."
-        doc_category = DOC_CATEGORY_MISC
 
 
-class VoucherBase(AbstractType):
+class VoucherBase:
     voucher = graphene.Field(
         "saleor.graphql.discount.types.Voucher",
         channel=graphene.String(
@@ -2290,6 +2321,7 @@ class VoucherBase(AbstractType):
         return ChannelContext(node=voucher, channel_slug=None)
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherCreated(SubscriptionObjectType, VoucherBase):
     class Meta:
         root_type = "Voucher"
@@ -2298,6 +2330,7 @@ class VoucherCreated(SubscriptionObjectType, VoucherBase):
         description = "Event sent when new voucher is created."
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherUpdated(SubscriptionObjectType, VoucherBase):
     class Meta:
         root_type = "Voucher"
@@ -2306,6 +2339,7 @@ class VoucherUpdated(SubscriptionObjectType, VoucherBase):
         description = "Event sent when voucher is updated."
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherDeleted(SubscriptionObjectType, VoucherBase):
     class Meta:
         root_type = "Voucher"
@@ -2314,7 +2348,7 @@ class VoucherDeleted(SubscriptionObjectType, VoucherBase):
         description = "Event sent when voucher is deleted."
 
 
-class VoucherCodeBase(AbstractType):
+class VoucherCodeBase:
     voucher_codes = NonNullList(
         "saleor.graphql.discount.types.VoucherCode",
         description="The voucher codes the event relates to.",
@@ -2326,6 +2360,7 @@ class VoucherCodeBase(AbstractType):
         return voucher_codes
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherCodesCreated(SubscriptionObjectType, VoucherCodeBase):
     class Meta:
         root_type = "VoucherCode"
@@ -2334,6 +2369,7 @@ class VoucherCodesCreated(SubscriptionObjectType, VoucherCodeBase):
         description = "Event sent when new voucher codes were created." + ADDED_IN_319
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherCodesDeleted(SubscriptionObjectType, VoucherCodeBase):
     class Meta:
         root_type = "VoucherCode"
@@ -2342,6 +2378,7 @@ class VoucherCodesDeleted(SubscriptionObjectType, VoucherCodeBase):
         description = "Event sent when voucher codes were deleted." + ADDED_IN_319
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
     class Meta:
         root_type = "Voucher"
@@ -2350,6 +2387,7 @@ class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
         description = "Event sent when voucher metadata is updated."
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherCodeExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
@@ -2361,7 +2399,6 @@ class VoucherCodeExportCompleted(SubscriptionObjectType):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when voucher code export is completed." + ADDED_IN_318
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @staticmethod
     def resolve_export(root, _info: ResolveInfo):
@@ -2369,7 +2406,7 @@ class VoucherCodeExportCompleted(SubscriptionObjectType):
         return export_file
 
 
-class ShopMetadataUpdated(SubscriptionObjectType, AbstractType):
+class ShopMetadataUpdated(SubscriptionObjectType):
     shop = graphene.Field(Shop, description="Shop data.")
 
     class Meta:
@@ -2383,7 +2420,7 @@ class ShopMetadataUpdated(SubscriptionObjectType, AbstractType):
         return Shop()
 
 
-class PaymentBase(AbstractType):
+class PaymentBase:
     payment = graphene.Field(
         "saleor.graphql.payment.types.Payment",
         description="Look up a payment.",
@@ -2395,69 +2432,70 @@ class PaymentBase(AbstractType):
         return payment
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentAuthorize(SubscriptionObjectType, PaymentBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Authorize payment."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentCaptureEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Capture payment."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentRefundEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Refund payment."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentVoidEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Void payment."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentConfirmEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Confirm payment."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentProcessEvent(SubscriptionObjectType, PaymentBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "Process payment."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
     class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
         description = "List payment gateways."
-        doc_category = DOC_CATEGORY_PAYMENTS
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
@@ -2478,9 +2516,9 @@ class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "List shipping methods for checkout."
-        doc_category = DOC_CATEGORY_CHECKOUT
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class CalculateTaxes(SubscriptionObjectType):
     tax_base = graphene.Field(
         "saleor.graphql.core.types.taxes.TaxableObject", required=True
@@ -2491,7 +2529,6 @@ class CalculateTaxes(SubscriptionObjectType):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Synchronous webhook for calculating checkout/order taxes."
-        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_tax_base(root, _info: ResolveInfo):
@@ -2499,6 +2536,7 @@ class CalculateTaxes(SubscriptionObjectType):
         return tax_base
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
@@ -2519,9 +2557,9 @@ class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Filter shipping methods for checkout."
-        doc_category = DOC_CATEGORY_CHECKOUT
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class OrderFilterShippingMethods(SubscriptionObjectType, OrderBase):
     shipping_methods = NonNullList(
         ShippingMethod,
@@ -2549,10 +2587,9 @@ class OrderFilterShippingMethods(SubscriptionObjectType, OrderBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Filter shipping methods for order."
-        doc_category = DOC_CATEGORY_ORDERS
 
 
-class WarehouseBase(AbstractType):
+class WarehouseBase:
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse",
         description="The warehouse the event relates to.",
@@ -2611,192 +2648,240 @@ channels_argument = graphene.Argument(
 )
 
 
+@doc(category=DOC_CATEGORY_MISC)
 class Subscription(SubscriptionObjectType):
     event = graphene.Field(
         Event,
         description="Look up subscription event.",
     )
-    draft_order_created = BaseField(
-        DraftOrderCreated,
-        description=(
-            "Event sent when new draft order is created."
-            + ADDED_IN_320
-            + PREVIEW_FEATURE
+    draft_order_created = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            DraftOrderCreated,
+            description=(
+                "Event sent when new draft order is created."
+                + ADDED_IN_320
+                + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    draft_order_updated = BaseField(
-        DraftOrderUpdated,
-        description=(
-            "Event sent when draft order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
+    draft_order_updated = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            DraftOrderUpdated,
+            description=(
+                "Event sent when draft order is updated."
+                + ADDED_IN_320
+                + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    draft_order_deleted = BaseField(
-        DraftOrderDeleted,
-        description=(
-            "Event sent when draft order is deleted." + ADDED_IN_320 + PREVIEW_FEATURE
+    draft_order_deleted = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            DraftOrderDeleted,
+            description=(
+                "Event sent when draft order is deleted."
+                + ADDED_IN_320
+                + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_created = BaseField(
-        OrderCreated,
-        description=(
-            "Event sent when new order is created." + ADDED_IN_320 + PREVIEW_FEATURE
+    order_created = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderCreated,
+            description=(
+                "Event sent when new order is created." + ADDED_IN_320 + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_updated = BaseField(
-        OrderUpdated,
-        description=(
-            "Event sent when order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
+    order_updated = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderUpdated,
+            description=(
+                "Event sent when order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_confirmed = BaseField(
-        OrderConfirmed,
-        description=(
-            "Event sent when order is confirmed." + ADDED_IN_320 + PREVIEW_FEATURE
+    order_confirmed = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderConfirmed,
+            description=(
+                "Event sent when order is confirmed." + ADDED_IN_320 + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_paid = BaseField(
-        OrderPaid,
-        description=(
-            "Payment has been made. The order may be partially or fully paid."
-            + ADDED_IN_320
-            + PREVIEW_FEATURE
+    order_paid = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderPaid,
+            description=(
+                "Payment has been made. The order may be partially or fully paid."
+                + ADDED_IN_320
+                + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_fully_paid = BaseField(
-        OrderFullyPaid,
-        description=(
-            "Event sent when order is fully paid." + ADDED_IN_320 + PREVIEW_FEATURE
+    order_fully_paid = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderFullyPaid,
+            description=(
+                "Event sent when order is fully paid." + ADDED_IN_320 + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_refunded = BaseField(
-        OrderRefunded,
-        description=(
-            "The order received a refund. The order may be partially or fully "
-            "refunded." + ADDED_IN_320 + PREVIEW_FEATURE
+    order_refunded = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderRefunded,
+            description=(
+                "The order received a refund. The order may be partially or fully "
+                "refunded." + ADDED_IN_320 + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_fully_refunded = BaseField(
-        OrderFullyRefunded,
-        description=("The order is fully refunded." + ADDED_IN_320 + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
-    )
-    order_fulfilled = BaseField(
-        OrderFulfilled,
-        description=(
-            "Event sent when order is fulfilled." + ADDED_IN_320 + PREVIEW_FEATURE
+    order_fully_refunded = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderFullyRefunded,
+            description=(
+                "The order is fully refunded." + ADDED_IN_320 + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_cancelled = BaseField(
-        OrderCancelled,
-        description=(
-            "Event sent when order is cancelled." + ADDED_IN_320 + PREVIEW_FEATURE
+    order_fulfilled = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderFulfilled,
+            description=(
+                "Event sent when order is fulfilled." + ADDED_IN_320 + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_expired = BaseField(
-        OrderExpired,
-        description=(
-            "Event sent when order becomes expired." + ADDED_IN_320 + PREVIEW_FEATURE
+    order_cancelled = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderCancelled,
+            description=(
+                "Event sent when order is cancelled." + ADDED_IN_320 + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_metadata_updated = BaseField(
-        OrderMetadataUpdated,
-        description=(
-            "Event sent when order metadata is updated."
-            + ADDED_IN_320
-            + PREVIEW_FEATURE
+    order_expired = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderExpired,
+            description=(
+                "Event sent when order becomes expired."
+                + ADDED_IN_320
+                + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_bulk_created = BaseField(
-        OrderBulkCreated,
-        description=(
-            "Event sent when orders are imported." + ADDED_IN_320 + PREVIEW_FEATURE
+    order_metadata_updated = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderMetadataUpdated,
+            description=(
+                "Event sent when order metadata is updated."
+                + ADDED_IN_320
+                + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_ORDERS,
+    )
+    order_bulk_created = doc(
+        DOC_CATEGORY_ORDERS,
+        graphene.Field(
+            OrderBulkCreated,
+            description=(
+                "Event sent when orders are imported." + ADDED_IN_320 + PREVIEW_FEATURE
+            ),
+            channels=channels_argument,
+        ),
     )
 
-    checkout_created = BaseField(
-        CheckoutCreated,
-        description=(
-            "Event sent when new checkout is created." + ADDED_IN_321 + PREVIEW_FEATURE
+    checkout_created = doc(
+        DOC_CATEGORY_CHECKOUT,
+        graphene.Field(
+            CheckoutCreated,
+            description=(
+                "Event sent when new checkout is created."
+                + ADDED_IN_321
+                + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_CHECKOUT,
     )
-    checkout_updated = BaseField(
-        CheckoutUpdated,
-        description=(
-            "Event sent when checkout is updated." + ADDED_IN_321 + PREVIEW_FEATURE
+    checkout_updated = doc(
+        DOC_CATEGORY_CHECKOUT,
+        graphene.Field(
+            CheckoutUpdated,
+            description=(
+                "Event sent when checkout is updated." + ADDED_IN_321 + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_CHECKOUT,
     )
-    checkout_fully_paid = BaseField(
-        CheckoutFullyPaid,
-        description=(
-            "Event sent when checkout is fully-paid." + ADDED_IN_321 + PREVIEW_FEATURE
+    checkout_fully_paid = doc(
+        DOC_CATEGORY_CHECKOUT,
+        graphene.Field(
+            CheckoutFullyPaid,
+            description=(
+                "Event sent when checkout is fully-paid."
+                + ADDED_IN_321
+                + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_CHECKOUT,
     )
-    checkout_metadata_updated = BaseField(
-        CheckoutMetadataUpdated,
-        description=(
-            "Event sent when checkout metadata is updated."
-            + ADDED_IN_321
-            + PREVIEW_FEATURE
+    checkout_metadata_updated = doc(
+        DOC_CATEGORY_CHECKOUT,
+        graphene.Field(
+            CheckoutMetadataUpdated,
+            description=(
+                "Event sent when checkout metadata is updated."
+                + ADDED_IN_321
+                + PREVIEW_FEATURE
+            ),
+            resolver=default_channel_filterable_resolver,
+            channels=channels_argument,
         ),
-        resolver=default_channel_filterable_resolver,
-        channels=channels_argument,
-        doc_category=DOC_CATEGORY_CHECKOUT,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_MISC
 
     @staticmethod
     def resolve_event(root, info: ResolveInfo):
@@ -2823,6 +2908,7 @@ class Subscription(SubscriptionObjectType):
         return Observable.from_([root])
 
 
+@doc(category=DOC_CATEGORY_MISC)
 class ThumbnailCreated(SubscriptionObjectType):
     id = graphene.ID(description="Thumbnail id.")
     url = graphene.String(description="Thumbnail url.")
@@ -2834,7 +2920,6 @@ class ThumbnailCreated(SubscriptionObjectType):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when thumbnail is created."
-        doc_category = DOC_CATEGORY_MISC
 
     @staticmethod
     def resolve_id(root, info: ResolveInfo):

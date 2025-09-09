@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
+from graphql_relay import from_global_id
 from prices import Money
 
 from ....checkout import models
@@ -379,7 +380,7 @@ def group_lines_input_on_add(
         force_new_line = line.get("force_new_line")
         metadata_list_from_input = line.get("metadata", [])
 
-        _, variant_db_id = graphene.Node.from_global_id(variant_id)
+        _, variant_db_id = from_global_id(variant_id)
 
         if force_new_line:
             line_data = CheckoutLineData(
@@ -387,7 +388,7 @@ def group_lines_input_on_add(
             )
             grouped_checkout_lines_data.append(line_data)
         else:
-            _, variant_db_id = graphene.Node.from_global_id(variant_id)
+            _, variant_db_id = from_global_id(variant_id)
 
             try:
                 line_db_id = find_line_id_when_variant_parameter_used(
@@ -446,10 +447,10 @@ def group_lines_input_data_on_update(
 
         line_db_id, variant_db_id = None, None
         if line_id:
-            _, line_db_id = graphene.Node.from_global_id(line_id)
+            _, line_db_id = from_global_id(line_id)
 
         if variant_id:
-            _, variant_db_id = graphene.Node.from_global_id(variant_id)
+            _, variant_db_id = from_global_id(variant_id)
             line_db_id = find_line_id_when_variant_parameter_used(
                 variant_db_id, existing_lines_info
             )

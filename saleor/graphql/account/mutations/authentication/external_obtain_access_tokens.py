@@ -5,13 +5,15 @@ from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.fields import JSONString
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
 from .utils import update_user_last_login_if_required
 
 
+@doc(category=DOC_CATEGORY_AUTH)
 class ExternalObtainAccessTokens(BaseMutation):
-    """Obtain external access tokens by a custom plugin."""
+    """Obtain session tokens from an external authentication mechanism."""
 
     token = graphene.String(description="The token, required to authenticate.")
     refresh_token = graphene.String(
@@ -32,8 +34,6 @@ class ExternalObtainAccessTokens(BaseMutation):
         )
 
     class Meta:
-        description = "Obtain external access tokens for user by custom plugin."
-        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 

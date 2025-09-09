@@ -8,7 +8,7 @@ from django.http import (
     HttpResponseNotFound,
     HttpResponseRedirect,
 )
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ..account.models import User
 from ..app.models import App, AppInstallation

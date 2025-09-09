@@ -19,15 +19,24 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import AccountErrorCode
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD, BaseCustomerCreate
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.CUSTOMER_CREATED,
+        WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
+    }
+)
 class CustomerCreate(BaseCustomerCreate):
+    """Creates a new customer."""
+
     class Meta:
-        description = "Creates a new customer."
-        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -36,24 +45,6 @@ class CustomerCreate(BaseCustomerCreate):
         support_private_meta_field = True
         error_type_class = AccountError
         error_type_field = "account_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_CREATED,
-                description="A new customer account was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
-                description="Optionally called when customer's metadata was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for setting the password.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
-                description="Setting a new password for the account is requested.",
-            ),
-        ]
 
     @classmethod
     def _save(cls, instance):

@@ -7,8 +7,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
-from graphql import get_default_backend, parse
-from graphql.error import GraphQLError
+from graphql import GraphQLError, execute_sync, parse
+from graphql_core_promise import PromiseExecutionContext
 from promise import Promise
 
 from ...account.models import User
@@ -105,19 +105,15 @@ def generate_payload_promise_from_subscription(
     from ..api import schema
     from ..context import get_context_value
 
-    graphql_backend = get_default_backend()
-    ast = parse(subscription_query)
-    document = graphql_backend.document_from_string(
-        schema,
-        ast,
-    )
+    document = parse(subscription_query)
     app_id = app.pk if app else None
     request.app = app
-    results_promise = document.execute(
-        allow_subscriptions=True,
-        root=(event_type, subscribable_object),
-        context=get_context_value(request),
-        return_promise=True,
+    results_promise = execute_sync(
+        schema=schema.graphql_schema,
+        document=document,
+        root_value=(event_type, subscribable_object),
+        context_value=get_context_value(request),
+        execution_context_class=PromiseExecutionContext,
     )
 
     def return_payload_promise(
@@ -188,18 +184,15 @@ def generate_payload_from_subscription(
     from ..api import schema
     from ..context import get_context_value
 
-    graphql_backend = get_default_backend()
-    ast = parse(subscription_query)
-    document = graphql_backend.document_from_string(
-        schema,
-        ast,
-    )
+    document = parse(subscription_query)
     app_id = app.pk if app else None
     request.app = app
-    results = document.execute(
-        allow_subscriptions=True,
-        root=(event_type, subscribable_object),
-        context=get_context_value(request),
+    results = execute_sync(
+        schema.graphql_schema,
+        document,
+        root_value=(event_type, subscribable_object),
+        context_value=get_context_value(request),
+        execution_context_class=PromiseExecutionContext,
     )
     if hasattr(results, "errors"):
         logger.warning(

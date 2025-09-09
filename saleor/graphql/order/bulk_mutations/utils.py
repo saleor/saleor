@@ -1,7 +1,7 @@
 from typing import Any
 
 from django.core.exceptions import ValidationError
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ....order.error_codes import OrderBulkCreateErrorCode
 from ...core.utils import from_global_id_or_error

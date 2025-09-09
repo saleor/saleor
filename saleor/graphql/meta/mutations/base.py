@@ -1,6 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphql.error.base import GraphQLError
+from graphql import GraphQLError
 
 from ....attribute import models as attribute_models
 from ....checkout import models as checkout_models

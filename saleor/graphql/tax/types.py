@@ -7,7 +7,8 @@ from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_319, ADDED_IN_321
 from ..core.doc_category import DOC_CATEGORY_TAXES
-from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
+from ..core.types import CountryDisplay, ModelObjectType, NonNullList
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from .dataloaders import (
     TaxClassByIdLoader,
@@ -91,9 +92,9 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
         return root.use_weighted_tax_for_shipping
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxConfigurationCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_TAXES
         node = TaxConfiguration
 
 
@@ -176,9 +177,9 @@ class TaxClass(ModelObjectType[models.TaxClass]):
         return TaxClassCountryRateByTaxClassIDLoader(info.context).load(root.pk)
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxClassCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_TAXES
         node = TaxClass
 
 
@@ -214,7 +215,8 @@ class TaxClassCountryRate(ModelObjectType[models.TaxClassCountryRate]):
         )
 
 
-class TaxCountryConfiguration(BaseObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxCountryConfiguration(graphene.ObjectType):
     country = graphene.Field(
         CountryDisplay,
         required=True,
@@ -226,7 +228,6 @@ class TaxCountryConfiguration(BaseObjectType):
 
     class Meta:
         description = "Tax class rates grouped by country."
-        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_country(root, _info: ResolveInfo, **kwargs):

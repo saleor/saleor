@@ -12,7 +12,7 @@ from asgiref.local import Local
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
-from graphql import GraphQLDocument
+from graphql import DocumentNode
 from pytimeparse import parse
 
 from ...core.utils import get_domain
@@ -117,7 +117,7 @@ def pop_events_with_remaining_size() -> tuple[list[bytes], int]:
 @dataclass
 class GraphQLOperationResponse:
     name: str | None = None
-    query: GraphQLDocument | None = None
+    query: DocumentNode | None = None
     variables: dict | None = None
     result: dict | None = None
     result_invalid: bool = False

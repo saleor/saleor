@@ -1,17 +1,17 @@
 from typing import Generic, TypeVar
 
+import graphene
 from django.db.models import Model
 from graphene.types.resolver import get_default_resolver
 
 from .. import ResolveInfo
 from ..context import SyncWebhookControlContext
-from . import BaseObjectType
 from .model import ModelObjectType
 
 N = TypeVar("N")
 
 
-class SyncWebhookControlContextObjectType(Generic[N], BaseObjectType):
+class SyncWebhookControlContextObjectType(Generic[N], graphene.ObjectType):
     class Meta:
         abstract = True
 

@@ -7,12 +7,11 @@ from ....permission.enums import ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
 from ...core.mutations import ModelWithExtRefMutation
-from ...core.types import AttributeError, BaseInputObjectType, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...core.types import AttributeError, NonNullList
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
@@ -23,11 +22,9 @@ from .mixins import AttributeMixin
 class AttributeValueUpdateInput(AttributeValueInput):
     name = graphene.String(required=False, description=AttributeValueDescriptions.NAME)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-class AttributeUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeUpdateInput(graphene.InputObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT, required=False)
@@ -49,27 +46,27 @@ class AttributeUpdateInput(BaseInputObjectType):
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
     )
     filterable_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
-        + DEPRECATED_IN_3X_INPUT
+        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT,
+        deprecation_reason="",
     )
     filterable_in_dashboard = graphene.Boolean(
         description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
     )
     storefront_search_position = graphene.Int(
         required=False,
-        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
-        + DEPRECATED_IN_3X_INPUT,
+        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION,
+        deprecation_reason="",
     )
     available_in_grid = graphene.Boolean(
         required=False,
-        description=AttributeDescriptions.AVAILABLE_IN_GRID + DEPRECATED_IN_3X_INPUT,
+        description=AttributeDescriptions.AVAILABLE_IN_GRID,
+        deprecation_reason="",
     )
     external_reference = graphene.String(
         description="External ID of this product.", required=False
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         description = (
             "Represents an input for update of attribute.\n\n"
             "NOTE: Deprecated fields `filterableInStorefront`, "
@@ -78,6 +75,8 @@ class AttributeUpdateInput(BaseInputObjectType):
         )
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(async_events={WebhookEventAsyncType.ATTRIBUTE_UPDATED})
 class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
@@ -102,12 +101,6 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
-                description="An attribute was updated.",
-            ),
-        ]
 
     @classmethod
     def clean_remove_values(cls, cleaned_input, instance):

@@ -10,18 +10,11 @@ from ..account.dataloaders import AddressByIdLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.context import ChannelContext, get_database_connection_name
-from ..core.descriptions import (
-    ADDED_IN_320,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ..core.descriptions import ADDED_IN_320
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import ConnectionField, PermissionsField
-from ..core.types import (
-    BaseInputObjectType,
-    BaseObjectType,
-    ModelObjectType,
-    NonNullList,
-)
+from ..core.types import ModelObjectType, NonNullList
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import ProductVariantByIdLoader
 from ..site.dataloaders import load_site_callback
@@ -29,15 +22,13 @@ from .dataloaders import StocksByWarehouseIdLoader, WarehouseByIdLoader
 from .enums import WarehouseClickAndCollectOptionEnum
 
 
-class WarehouseInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class WarehouseInput(graphene.InputObjectType):
     slug = graphene.String(description="Warehouse slug.")
     email = graphene.String(description="The email address of the warehouse.")
     external_reference = graphene.String(
         description="External ID of the warehouse.", required=False
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class WarehouseCreateInput(WarehouseInput):
@@ -49,13 +40,9 @@ class WarehouseCreateInput(WarehouseInput):
     )
     shipping_zones = NonNullList(
         graphene.ID,
-        description="Shipping zones supported by the warehouse."
-        + DEPRECATED_IN_3X_INPUT
-        + " Providing the zone ids will raise a ValidationError.",
+        description="Shipping zones supported by the warehouse.",
+        deprecation_reason="Providing the zone ids will raise a ValidationError.",
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class WarehouseUpdateInput(WarehouseInput):
@@ -74,10 +61,8 @@ class WarehouseUpdateInput(WarehouseInput):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class Warehouse(ModelObjectType[models.Warehouse]):
     id = graphene.GlobalID(required=True, description="The ID of the warehouse.")
     name = graphene.String(required=True, description="Warehouse name.")
@@ -172,12 +157,13 @@ class Warehouse(ModelObjectType[models.Warehouse]):
         )
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class WarehouseCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         node = Warehouse
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class Stock(ModelObjectType[models.Stock]):
     id = graphene.GlobalID(required=True, description="The ID of stock.")
     warehouse = graphene.Field(
@@ -265,13 +251,14 @@ class Stock(ModelObjectType[models.Stock]):
         )
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class StockCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         node = Stock
 
 
-class Allocation(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class Allocation(graphene.ObjectType):
     id = graphene.GlobalID(required=True, description="The ID of allocation.")
     quantity = PermissionsField(
         graphene.Int,
@@ -294,7 +281,6 @@ class Allocation(BaseObjectType):
 
     class Meta:
         description = "Represents allocation."
-        doc_category = DOC_CATEGORY_PRODUCTS
         model = models.Allocation
         interfaces = [graphene.relay.Node]
 

@@ -5,6 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from graphene.utils.str_converters import to_camel_case
+from graphql_relay import from_global_id
 
 from ....account import models
 from ....account.events import CustomerEvents
@@ -21,14 +22,10 @@ from ....webhook.utils import get_webhooks_for_event
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
-from ...core.types import (
-    BaseInputObjectType,
-    BaseObjectType,
-    CustomerBulkUpdateError,
-    NonNullList,
-)
-from ...core.utils import WebhookEventInfo, get_duplicated_values
+from ...core.types import CustomerBulkUpdateError, NonNullList
+from ...core.utils import get_duplicated_values
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...directives import doc, webhook_events
 from ...meta.inputs import MetadataInput
 from ...payment.utils import deprecated_metadata_contains_empty_key
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
@@ -41,7 +38,8 @@ from ..mutations.base import (
 from ..types import User
 
 
-class CustomerBulkResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_USERS)
+class CustomerBulkResult(graphene.ObjectType):
     customer = graphene.Field(User, required=False, description="Customer data.")
     errors = NonNullList(
         CustomerBulkUpdateError,
@@ -49,11 +47,9 @@ class CustomerBulkResult(BaseObjectType):
         description="List of errors that occurred during the update attempt.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
-
-class CustomerBulkUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_USERS)
+class CustomerBulkUpdateInput(graphene.InputObjectType):
     id = graphene.ID(description="ID of a customer to update.", required=False)
     external_reference = graphene.String(
         required=False,
@@ -63,11 +59,17 @@ class CustomerBulkUpdateInput(BaseInputObjectType):
         description="Fields required to update a customer.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
-
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.CUSTOMER_UPDATED,
+        WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+    }
+)
 class CustomerBulkUpdate(BaseMutation, I18nMixin):
+    """Updates customers."""
+
     count = graphene.Int(
         required=True,
         default_value=0,
@@ -76,7 +78,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     results = NonNullList(
         CustomerBulkResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the updated customers.",
     )
 
@@ -95,20 +97,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Updates customers."
-        doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = CustomerBulkUpdateError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
-                description="A customer account was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
-                description="Optionally called when customer's metadata was updated.",
-            ),
-        ]
 
     @classmethod
     def format_errors(cls, index, errors, index_error_map, field_prefix=None):
@@ -151,7 +141,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
 
         if customer_id:
             try:
-                type, customer_id = graphene.Node.from_global_id(customer_id)
+                type, customer_id = from_global_id(customer_id)
                 if type != "User":
                     index_error_map[index].append(
                         CustomerBulkUpdateError(

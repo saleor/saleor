@@ -9,11 +9,13 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import NonNullList, ProductError
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 from ...utils import update_ordered_media
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductMediaReorder(BaseMutation):
     product = graphene.Field(Product)
     media = NonNullList(ProductMedia)
@@ -31,7 +33,6 @@ class ProductMediaReorder(BaseMutation):
 
     class Meta:
         description = "Changes ordering of the product media."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

@@ -1,5 +1,5 @@
 from django.db.models import QuerySet
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import OrderDirection

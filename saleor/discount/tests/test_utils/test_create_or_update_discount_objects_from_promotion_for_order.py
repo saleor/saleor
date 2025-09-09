@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import graphene
+from graphql_relay import from_global_id
 
 from ....order.fetch import fetch_draft_order_lines_info
 from ....product.models import (
@@ -285,9 +286,7 @@ def test_multiple_rules_subtotal_and_catalogue_discount_applied(
     discounted_variant_global_id = rule_catalogue.catalogue_predicate[
         "variantPredicate"
     ]["ids"][0]
-    _, discounted_variant_id = graphene.Node.from_global_id(
-        discounted_variant_global_id
-    )
+    _, discounted_variant_id = from_global_id(discounted_variant_global_id)
 
     # when
     create_order_discount_objects_for_order_promotions(order, lines_info)
@@ -324,9 +323,7 @@ def test_multiple_rules_gift_and_catalogue_discount_applied(draft_order_and_prom
     discounted_variant_global_id = rule_catalogue.catalogue_predicate[
         "variantPredicate"
     ]["ids"][0]
-    _, discounted_variant_id = graphene.Node.from_global_id(
-        discounted_variant_global_id
-    )
+    _, discounted_variant_id = from_global_id(discounted_variant_global_id)
 
     # when
     create_order_discount_objects_for_order_promotions(order, lines_info)

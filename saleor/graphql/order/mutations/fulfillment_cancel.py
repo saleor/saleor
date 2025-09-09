@@ -14,23 +14,23 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
-from ...core.types import BaseInputObjectType, OrderError
+from ...core.types import OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, Order
 
 
-class FulfillmentCancelInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class FulfillmentCancelInput(graphene.InputObjectType):
     warehouse_id = graphene.ID(
         description="ID of a warehouse where items will be restocked. Optional "
         "when fulfillment is in WAITING_FOR_APPROVAL state.",
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class FulfillmentCancel(BaseMutation):
     fulfillment = graphene.Field(Fulfillment, description="A canceled fulfillment.")
     order = graphene.Field(Order, description="Order which fulfillment was cancelled.")
@@ -43,7 +43,6 @@ class FulfillmentCancel(BaseMutation):
 
     class Meta:
         description = "Cancels existing fulfillment and optionally restocks items."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

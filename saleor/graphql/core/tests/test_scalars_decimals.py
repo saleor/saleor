@@ -1,7 +1,7 @@
 import decimal
 
 import pytest
-from graphql.language.ast import FloatValue, IntValue, ObjectValue, StringValue
+from graphql import FloatValueNode, IntValueNode, ObjectValueNode, StringValueNode
 
 from ..scalars import Decimal, PositiveDecimal
 
@@ -17,10 +17,10 @@ def test_decimal_scalar_invalid_value(invalid_value):
 @pytest.mark.parametrize(
     ("valid_node", "expect"),
     [
-        (FloatValue(value="1.0"), 1),
-        (IntValue(value="1"), 1),
-        (IntValue(value="0"), 0),
-        (IntValue(value="-5"), -5),
+        (FloatValueNode(value="1.0"), 1),
+        (IntValueNode(value="1"), 1),
+        (IntValueNode(value="0"), 0),
+        (IntValueNode(value="-5"), -5),
     ],
 )
 def test_decimal_scalar_valid_literal(valid_node, expect):
@@ -31,8 +31,8 @@ def test_decimal_scalar_valid_literal(valid_node, expect):
 @pytest.mark.parametrize(
     "invalid_node",
     [
-        StringValue(value="1.0"),
-        ObjectValue(fields=[]),
+        StringValueNode(value="1.0"),
+        ObjectValueNode(fields=[]),
     ],
 )
 def test_decimal_scalar_invalid_literal(invalid_node):
@@ -46,8 +46,8 @@ def test_decimal_scalar_invalid_literal(invalid_node):
 @pytest.mark.parametrize(
     "node",
     [
-        FloatValue(value="1.0"),
-        IntValue(value="1"),
+        FloatValueNode(value="1.0"),
+        IntValueNode(value="1"),
     ],
 )
 def test_positive_decimal_scalar_valid_literal(node):
@@ -59,8 +59,8 @@ def test_positive_decimal_scalar_valid_literal(node):
 @pytest.mark.parametrize(
     "node",
     [
-        FloatValue(value="0.0"),
-        IntValue(value="0"),
+        FloatValueNode(value="0.0"),
+        IntValueNode(value="0"),
     ],
 )
 def test_positive_decimal_scalar_valid_literal_zero(node):
@@ -84,8 +84,8 @@ def test_positive_decimal_scalar_valid_value_zero():
 @pytest.mark.parametrize(
     "node",
     [
-        FloatValue(value="-1.0"),
-        IntValue(value="-1"),
+        FloatValueNode(value="-1.0"),
+        IntValueNode(value="-1"),
     ],
 )
 def test_positive_decimal_scalar_invalid_literal(node):

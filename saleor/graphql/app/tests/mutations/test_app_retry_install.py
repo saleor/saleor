@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 import graphene
+from graphql_relay import from_global_id
 
 from .....app.models import App, AppInstallation
 from .....app.tasks import install_app_task
@@ -62,7 +63,7 @@ def test_retry_install_app_mutation(
 
     # then
     app_installation = AppInstallation.objects.get()
-    _, app_id = graphene.Node.from_global_id(data["appInstallation"]["id"])
+    _, app_id = from_global_id(data["appInstallation"]["id"])
     assert int(app_id) == app_installation.id
     assert data["appInstallation"]["status"] == JobStatus.PENDING.upper()
     assert data["appInstallation"]["manifestUrl"] == app_installation.manifest_url
@@ -99,7 +100,7 @@ def test_retry_install_app_mutation_with_another_app_installed_but_marked_to_be_
 
     # then
     app_installation = AppInstallation.objects.get()
-    _, app_id = graphene.Node.from_global_id(data["appInstallation"]["id"])
+    _, app_id = from_global_id(data["appInstallation"]["id"])
     assert int(app_id) == app_installation.id
     assert data["appInstallation"]["status"] == JobStatus.PENDING.upper()
     assert data["appInstallation"]["manifestUrl"] == app_installation.manifest_url
@@ -135,7 +136,7 @@ def test_retry_install_app_mutation_by_app(
 
     # then
     app_installation = AppInstallation.objects.get()
-    _, app_id = graphene.Node.from_global_id(data["appInstallation"]["id"])
+    _, app_id = from_global_id(data["appInstallation"]["id"])
     assert int(app_id) == app_installation.id
     assert data["appInstallation"]["status"] == JobStatus.PENDING.upper()
     assert data["appInstallation"]["manifestUrl"] == app_installation.manifest_url
@@ -174,7 +175,7 @@ def test_retry_install_app_mutation_app_has_more_permission_than_user_requestor(
     assert not errors
 
     app_installation = AppInstallation.objects.get()
-    _, app_id = graphene.Node.from_global_id(data["appInstallation"]["id"])
+    _, app_id = from_global_id(data["appInstallation"]["id"])
     assert int(app_id) == app_installation.id
     assert data["appInstallation"]["status"] == JobStatus.PENDING.upper()
     assert data["appInstallation"]["manifestUrl"] == app_installation.manifest_url
@@ -212,7 +213,7 @@ def test_retry_install_app_mutation_app_has_more_permission_than_app_requestor(
     assert not errors
 
     app_installation = AppInstallation.objects.get()
-    _, app_id = graphene.Node.from_global_id(data["appInstallation"]["id"])
+    _, app_id = from_global_id(data["appInstallation"]["id"])
     assert int(app_id) == app_installation.id
     assert data["appInstallation"]["status"] == JobStatus.PENDING.upper()
     assert data["appInstallation"]["manifestUrl"] == app_installation.manifest_url

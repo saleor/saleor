@@ -15,6 +15,7 @@ from ..core.filters import (
     ListObjectTypeFilter,
     MetadataFilterBase,
 )
+from ..directives import doc
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_slug_list
 from ..warehouse.enums import WarehouseClickAndCollectOptionEnum
@@ -114,9 +115,9 @@ class WarehouseFilter(MetadataFilterBase):
         fields = ["click_and_collect_option"]
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class WarehouseFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = WarehouseFilter
 
 
@@ -128,7 +129,7 @@ class StockFilter(django_filters.FilterSet):
         fields = ["quantity"]
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class StockFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = StockFilter

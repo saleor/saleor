@@ -13,8 +13,8 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_MENU
 from ...core.mutations import BaseMutation
 from ...core.types import MenuError, NonNullList
-from ...core.utils import WebhookEventInfo
 from ...core.utils.reordering import perform_reordering
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..dataloaders import MenuItemsByParentMenuLoader
 from ..types import Menu, MenuItem, MenuItemMoveInput
@@ -28,6 +28,8 @@ class _MenuMoveOperation:
     sort_order: int
 
 
+@doc(category=DOC_CATEGORY_MENU)
+@webhook_events(async_events={WebhookEventAsyncType.MENU_ITEM_UPDATED})
 class MenuItemMove(BaseMutation):
     menu = graphene.Field(Menu, description="Assigned menu to move within.")
 
@@ -39,19 +41,9 @@ class MenuItemMove(BaseMutation):
 
     class Meta:
         description = "Moves items of menus."
-        doc_category = DOC_CATEGORY_MENU
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.MENU_ITEM_UPDATED,
-                description=(
-                    "Optionally triggered when sort order or parent changed for "
-                    "menu item."
-                ),
-            ),
-        ]
 
     @classmethod
     def success_response(cls, instance):

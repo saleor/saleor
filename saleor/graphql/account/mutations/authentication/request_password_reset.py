@@ -13,9 +13,17 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
+        WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
+    }
+)
 class RequestPasswordReset(BaseMutation):
     class Arguments:
         email = graphene.String(
@@ -39,25 +47,8 @@ class RequestPasswordReset(BaseMutation):
 
     class Meta:
         description = "Sends an email with the account password modification link."
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for password reset.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
-                description="Setting a new password for the account is requested.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
-                description=(
-                    "Setting a new password for the staff account is requested."
-                ),
-            ),
-        ]
 
     @classmethod
     def clean_user(cls, email, redirect_url):

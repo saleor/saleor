@@ -5,7 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models

@@ -15,17 +15,19 @@ from ....account.types import User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import NonNullList, StaffError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils.validators import check_for_duplicates
 from ...utils import (
     get_not_manageable_permissions_when_deactivate_or_remove_users,
     get_out_of_scope_users,
 )
-from .staff_create import StaffCreate, StaffInput
+from .staff_create import StaffInput, StaffMutationBase
 
 
 class StaffUpdateInput(StaffInput):
+    """Fields required to update a staff user."""
+
     remove_groups = NonNullList(
         graphene.ID,
         description=(
@@ -34,12 +36,15 @@ class StaffUpdateInput(StaffInput):
         required=False,
     )
 
-    class Meta:
-        description = "Fields required to update a staff user."
-        doc_category = DOC_CATEGORY_USERS
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(async_events={WebhookEventAsyncType.STAFF_UPDATED})
+class StaffUpdate(StaffMutationBase):
+    """Updates an existing staff user.
 
-class StaffUpdate(StaffCreate):
+    Apps are not allowed to perform this mutation.
+    """
+
     class Arguments:
         id = graphene.ID(description="ID of a staff user to update.", required=True)
         input = StaffUpdateInput(
@@ -47,11 +52,6 @@ class StaffUpdate(StaffCreate):
         )
 
     class Meta:
-        description = (
-            "Updates an existing staff user. "
-            "Apps are not allowed to perform this mutation."
-        )
-        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -60,12 +60,6 @@ class StaffUpdate(StaffCreate):
         error_type_field = "staff_errors"
         support_meta_field = True
         support_private_meta_field = True
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.STAFF_UPDATED,
-                description="A staff account was updated.",
-            ),
-        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

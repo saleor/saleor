@@ -26,6 +26,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_WEBHOOKS,
 )
 from ...core.scalars import DateTime, Decimal
+from ...directives import doc
 from ..descriptions import ADDED_IN_318
 from ..enums import (
     AccountErrorCode,
@@ -94,7 +95,6 @@ from ..enums import (
 )
 from ..scalars import Date, PositiveDecimal
 from ..tracing import traced_resolver
-from .base import BaseObjectType
 from .money import VAT
 from .upload import Upload
 
@@ -144,18 +144,18 @@ class LanguageDisplay(graphene.ObjectType):
     language = graphene.String(description="Full name of the language.", required=True)
 
 
-class Permission(BaseObjectType):
+@doc(category=DOC_CATEGORY_AUTH)
+class Permission(graphene.ObjectType):
     code = PermissionEnum(description="Internal code for permission.", required=True)
     name = graphene.String(
         description="Describe action(s) allowed to do by permission.", required=True
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_AUTH
         description = "Represents a permission object in a friendly form."
 
 
-class Error(BaseObjectType):
+class Error(graphene.ObjectType):
     field = graphene.String(
         description=(
             "Name of a field that caused the error. A value of `null` indicates that "
@@ -169,7 +169,7 @@ class Error(BaseObjectType):
         description = "Represents an error in the input of a mutation."
 
 
-class BulkError(BaseObjectType):
+class BulkError(graphene.ObjectType):
     path = graphene.String(
         description=(
             "Path to field that caused the error. A value of `null` indicates that "
@@ -183,24 +183,23 @@ class BulkError(BaseObjectType):
         description = "Represents an error in the input of a mutation."
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
     class Meta:
         description = "Represents errors in account mutations."
-        doc_category = DOC_CATEGORY_USERS
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class SendConfirmationEmailError(Error):
     code = SendConfirmationEmailErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
-
+@doc(category=DOC_CATEGORY_APPS)
 class AppError(Error):
     code = AppErrorCode(description="The error code.", required=True)
     permissions = NonNullList(
@@ -209,15 +208,10 @@ class AppError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_APPS
 
-
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeError(Error):
     code = AttributeErrorCode(description="The error code.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 class StaffError(AccountError):
@@ -237,10 +231,8 @@ class StaffError(AccountError):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
-
+@doc(category=DOC_CATEGORY_CHANNELS)
 class ChannelError(Error):
     code = ChannelErrorCode(description="The error code.", required=True)
     shipping_zones = NonNullList(
@@ -254,10 +246,8 @@ class ChannelError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHANNELS
 
-
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
     variants = NonNullList(
@@ -270,37 +260,35 @@ class CheckoutError(Error):
         description="List of line Ids which cause the error.",
         required=False,
     )
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
 
-
+@doc(category=DOC_CATEGORY_USERS)
 class CustomerBulkUpdateError(BulkError):
     code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductWithoutVariantError(Error):
     products = NonNullList(
         graphene.ID,
         description="List of products IDs which causes the error.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class DiscountError(ProductWithoutVariantError):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class DiscountError(Error):
     code = DiscountErrorCode(description="The error code.", required=True)
     channels = NonNullList(
         graphene.ID,
         description="List of channels IDs which causes the error.",
         required=False,
+    )
+    products = NonNullList(
+        graphene.ID,
+        description="List of products IDs which causes the error.",
     )
     voucher_codes = NonNullList(
         graphene.String,
@@ -308,10 +296,8 @@ class DiscountError(ProductWithoutVariantError):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherCodeBulkDeleteError(BulkError):
     code = VoucherCodeBulkDeleteErrorCode(description="The error code.", required=True)
     voucher_codes = NonNullList(
@@ -319,9 +305,6 @@ class VoucherCodeBulkDeleteError(BulkError):
         description="List of voucher codes which causes the error.",
         required=False,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class ExportError(Error):
@@ -334,31 +317,26 @@ class ExternalNotificationError(Error):
     )
 
 
+@doc(category=DOC_CATEGORY_MENU)
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_MENU
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderSettingsError(Error):
     code = OrderSettingsErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardSettingsError(Error):
     code = GiftCardSettingsErrorCode(description="The error code.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 class MetadataError(Error):
     code = MetadataErrorCode(description="The error code.", required=True)
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderError(Error):
     code = OrderErrorCode(description="The error code.", required=True)
     warehouse = graphene.ID(
@@ -375,28 +353,22 @@ class OrderError(Error):
         description="List of product variants that are associated with the error",
         required=False,
     )
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderBulkCreateError(BulkError):
     code = OrderBulkCreateErrorCode(description="The error code.", required=False)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class InvoiceError(Error):
     code = InvoiceErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_AUTH)
 class PermissionGroupError(Error):
     code = PermissionGroupErrorCode(description="The error code.", required=True)
     permissions = NonNullList(
@@ -415,10 +387,8 @@ class PermissionGroupError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductError(Error):
     code = ProductErrorCode(description="The error code.", required=True)
     attributes = NonNullList(
@@ -432,15 +402,14 @@ class ProductError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class CollectionError(ProductWithoutVariantError):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class CollectionError(Error):
     code = CollectionErrorCode(description="The error code.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
+    products = NonNullList(
+        graphene.ID,
+        description="List of products IDs which causes the error.",
+    )
 
 
 class ProductChannelListingError(ProductError):
@@ -455,9 +424,6 @@ class ProductChannelListingError(ProductError):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
-
 
 class CollectionChannelListingError(ProductError):
     channels = NonNullList(
@@ -466,22 +432,15 @@ class CollectionChannelListingError(ProductError):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeBulkCreateError(BulkError):
     code = AttributeBulkCreateErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeBulkUpdateError(BulkError):
     code = AttributeBulkUpdateErrorCode(description="The error code.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 class BulkProductError(ProductError):
@@ -499,10 +458,8 @@ class BulkProductError(ProductError):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductBulkCreateError(BulkError):
     code = ProductBulkCreateErrorCode(description="The error code.", required=True)
     attributes = NonNullList(
@@ -526,10 +483,8 @@ class ProductBulkCreateError(BulkError):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantBulkError(Error):
     code = ProductVariantBulkErrorCode(description="The error code.", required=True)
     path = graphene.String(
@@ -570,17 +525,13 @@ class ProductVariantBulkError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_SHOP)
 class ShopError(Error):
     code = ShopErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_SHOP
 
-
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingError(Error):
     code = ShippingErrorCode(description="The error code.", required=True)
     warehouses = NonNullList(
@@ -594,10 +545,8 @@ class ShippingError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
 
-
+@doc(category=DOC_CATEGORY_PAGES)
 class PageError(Error):
     code = PageErrorCode(description="The error code.", required=True)
     attributes = NonNullList(
@@ -611,10 +560,8 @@ class PageError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAGES
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentError(Error):
     code = PaymentErrorCode(description="The error code.", required=True)
     variants = NonNullList(
@@ -623,10 +570,8 @@ class PaymentError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductBulkTranslateError(BulkError):
     code = ProductTranslateErrorCode(description="The error code.", required=True)
 
@@ -637,111 +582,86 @@ class ProductVariantBulkTranslateError(BulkError):
     )
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionCreateError(Error):
     code = TransactionCreateErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionUpdateError(Error):
     code = TransactionUpdateErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionRequestActionError(Error):
     code = TransactionRequestActionErrorCode(
         description="The error code.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionRequestRefundForGrantedRefundError(Error):
     code = TransactionRequestRefundForGrantedRefundErrorCode(
         description="The error code.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionEventReportError(Error):
     code = TransactionEventReportErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionInitializeError(Error):
     code = TransactionInitializeErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionProcessError(Error):
     code = TransactionProcessErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentGatewayConfigError(Error):
     code = PaymentGatewayConfigErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentGatewayInitializeError(Error):
     code = PaymentGatewayInitializeErrorCode(
         description="The error code.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentMethodRequestDeleteError(Error):
     code = StoredPaymentMethodRequestDeleteErrorCode(
         description="The error code.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentGatewayInitializeTokenizationError(Error):
     code = PaymentGatewayInitializeTokenizationErrorCode(
         description="The error code.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentMethodInitializeTokenizationError(Error):
     code = PaymentMethodInitializeTokenizationErrorCode(
         description="The error code.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentMethodProcessTokenizationError(Error):
     code = PaymentMethodProcessTokenizationErrorCode(
         description="The error code.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardError(Error):
     code = GiftCardErrorCode(description="The error code.", required=True)
     tags = NonNullList(
@@ -750,19 +670,14 @@ class GiftCardError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
-
 
 class PluginError(Error):
     code = PluginErrorCode(description="The error code.", required=True)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class StockError(Error):
     code = StockErrorCode(description="The error code.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class BulkStockError(ProductError):
@@ -770,21 +685,17 @@ class BulkStockError(ProductError):
         description="Index of an input list item that caused the error."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class StockBulkUpdateError(Error):
     code = StockBulkUpdateErrorCode(description="The error code.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class UploadError(Error):
     code = UploadErrorCode(description="The error code.", required=True)
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class WarehouseError(Error):
     code = WarehouseErrorCode(description="The error code.", required=True)
     shipping_zones = NonNullList(
@@ -793,29 +704,20 @@ class WarehouseError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_WEBHOOKS)
 class WebhookError(Error):
     code = WebhookErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_WEBHOOKS
 
-
+@doc(category=DOC_CATEGORY_WEBHOOKS)
 class WebhookDryRunError(Error):
     code = WebhookDryRunErrorCode(description="The error code.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_WEBHOOKS
 
-
+@doc(category=DOC_CATEGORY_WEBHOOKS)
 class WebhookTriggerError(Error):
     code = WebhookTriggerErrorCode(description="The error code.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_WEBHOOKS
 
 
 class TranslationError(Error):
@@ -924,16 +826,14 @@ class TimePeriodInputType(graphene.InputObjectType):
     type = TimePeriodTypeEnum(description="The type of the period.", required=True)
 
 
-class TaxType(BaseObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxType(graphene.ObjectType):
     """Representation of tax types fetched from tax gateway."""
 
     description = graphene.String(description="Description of the tax type.")
     tax_code = graphene.String(
         description="External tax code used to identify given tax group."
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
 
 class Job(graphene.Interface):
@@ -975,8 +875,6 @@ class ThumbnailField(graphene.Field):
     )
 
     def __init__(self, of_type=Image, *args, **kwargs):
-        kwargs["size"] = self.size
-        kwargs["format"] = self.format
         super().__init__(of_type, *args, **kwargs)
 
 

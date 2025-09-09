@@ -3,7 +3,7 @@ from uuid import UUID
 import django_filters
 import graphene
 from django.db.models import Exists, OuterRef, Q
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ...account import models as account_models
 from ...giftcard import models
@@ -17,11 +17,8 @@ from ..core.filters import (
     MetadataFilterBase,
     ObjectTypeFilter,
 )
-from ..core.types import (
-    BaseInputObjectType,
-    NonNullList,
-    PriceRangeInput,
-)
+from ..core.types import NonNullList, PriceRangeInput
+from ..directives import doc
 from ..utils import resolve_global_ids_to_primary_keys
 from .enums import GiftCardEventsEnum
 
@@ -127,9 +124,9 @@ def check_currency_in_filter_data(filter_data: dict):
         )
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         filterset_class = GiftCardFilter
 
 
@@ -175,12 +172,10 @@ def _get_order_pks(order_ids: list[str], database_connection_name: str):
     )
 
 
-class GiftCardEventFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+class GiftCardEventFilterInput(graphene.InputObjectType):
     type = graphene.Argument(GiftCardEventsEnum)
     orders = NonNullList(graphene.ID)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 def filter_gift_card_tag_search(qs, _, value):
@@ -193,7 +188,7 @@ class GiftCardTagFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method=filter_gift_card_tag_search)
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardTagFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         filterset_class = GiftCardTagFilter

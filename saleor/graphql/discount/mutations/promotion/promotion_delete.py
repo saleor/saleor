@@ -12,16 +12,19 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import Error
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionDeleteErrorCode
 from ...types import Promotion
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionDeleteError(Error):
     code = PromotionDeleteErrorCode(description="The error code.", required=True)
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.PROMOTION_DELETED})
 class PromotionDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
@@ -34,13 +37,6 @@ class PromotionDelete(ModelDeleteMutation):
         object_type = Promotion
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionDeleteError
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_DELETED,
-                description="A promotion was deleted.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

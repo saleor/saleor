@@ -24,7 +24,8 @@ from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
 from ..core.scalars import Date, DateTime
 from ..core.tracing import traced_resolver
-from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList
+from ..core.types import ModelObjectType, Money, NonNullList
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader
@@ -41,7 +42,8 @@ from .filters import (
 )
 
 
-class GiftCardEventBalance(BaseObjectType):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+class GiftCardEventBalance(graphene.ObjectType):
     initial_balance = graphene.Field(
         Money,
         description="Initial balance of the gift card.",
@@ -59,9 +61,6 @@ class GiftCardEventBalance(BaseObjectType):
         Money,
         description="Previous current balance of the gift card.",
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
@@ -568,13 +567,13 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         return None
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         node = GiftCard
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardTagCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         node = GiftCardTag

@@ -5,11 +5,15 @@ from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.fields import JSONString
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
 
 
+@doc(category=DOC_CATEGORY_AUTH)
 class ExternalVerify(BaseMutation):
+    """Verify external authentication."""
+
     user = graphene.Field(User, description="User assigned to data.")
     is_valid = graphene.Boolean(
         required=True,
@@ -28,8 +32,6 @@ class ExternalVerify(BaseMutation):
         )
 
     class Meta:
-        description = "Verify external authentication data by plugin."
-        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 

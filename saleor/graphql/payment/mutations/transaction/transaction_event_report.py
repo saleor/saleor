@@ -41,8 +41,8 @@ from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import UUID, DateTime, PositiveDecimal
 from ....core.types import NonNullList
 from ....core.types import common as common_types
-from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_one_of_args_is_in_mutation
+from ....directives import doc, webhook_events
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
@@ -59,6 +59,14 @@ if TYPE_CHECKING:
     from .....plugins.manager import PluginsManager
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED,
+        WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+        WebhookEventAsyncType.ORDER_UPDATED,
+    }
+)
 class TransactionEventReport(DeprecatedModelMutation):
     already_processed = graphene.Boolean(
         description="Defines if the reported event hasn't been processed earlier."
@@ -156,34 +164,11 @@ class TransactionEventReport(DeprecatedModelMutation):
         )
         error_type_class = common_types.TransactionEventReportError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
-        doc_category = DOC_CATEGORY_PAYMENTS
         model = payment_models.TransactionEvent
         object_type = TransactionEvent
         auto_permission_message = False
         support_meta_field = True
         support_private_meta_field = True
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED,
-                description=(
-                    "Optionally called when transaction's metadata was updated."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
-                description=(
-                    "Optionally called when the checkout charge status "
-                    "changed to `FULL` or `OVERCHARGED`."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ORDER_UPDATED,
-                description=(
-                    "Optionally called when the transaction is related to the order "
-                    "and the order was updated."
-                ),
-            ),
-        ]
 
     @classmethod
     def _update_mutation_arguments_and_fields(cls, arguments, fields):

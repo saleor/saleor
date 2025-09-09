@@ -6,7 +6,7 @@ from babel.numbers import get_currency_precision
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_camel_case
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ....core.utils import generate_unique_slug
 from ....product.models import ProductVariantChannelListing

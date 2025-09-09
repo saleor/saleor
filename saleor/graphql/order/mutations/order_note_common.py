@@ -4,17 +4,15 @@ from django.core.exceptions import ValidationError
 from ....order.error_codes import OrderNoteAddErrorCode
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
-from ...core.types import BaseInputObjectType
 from ...core.validators import validate_required_string_field
+from ...directives import doc
 
 
-class OrderNoteInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderNoteInput(graphene.InputObjectType):
     message = graphene.String(
         description="Note message.", name="message", required=True
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderNoteCommon(BaseMutation):

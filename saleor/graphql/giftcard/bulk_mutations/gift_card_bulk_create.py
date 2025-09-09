@@ -17,15 +17,16 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Date
-from ...core.types import BaseInputObjectType, GiftCardError, NonNullList, PriceInput
-from ...core.utils import WebhookEventInfo
+from ...core.types import GiftCardError, NonNullList, PriceInput
 from ...core.validators import validate_price_precision
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations import GiftCardCreate
 from ..types import GiftCard
 
 
-class GiftCardBulkCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+class GiftCardBulkCreateInput(graphene.InputObjectType):
     count = graphene.Int(required=True, description="The number of cards to issue.")
     balance = graphene.Field(
         PriceInput, description="Balance of the gift card.", required=True
@@ -39,10 +40,14 @@ class GiftCardBulkCreateInput(BaseInputObjectType):
         required=True, description="Determine if gift card is active."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
-
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.GIFT_CARD_CREATED,
+        WebhookEventAsyncType.NOTIFY_USER,
+    }
+)
 class GiftCardBulkCreate(BaseMutation):
     count = graphene.Int(
         required=True,
@@ -52,7 +57,7 @@ class GiftCardBulkCreate(BaseMutation):
     gift_cards = NonNullList(
         GiftCard,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of created gift cards.",
     )
 
@@ -63,20 +68,9 @@ class GiftCardBulkCreate(BaseMutation):
 
     class Meta:
         description = "Creates gift cards."
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.GIFT_CARD_CREATED,
-                description="A gift card was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for created gift card.",
-            ),
-        ]
 
     @classmethod
     @traced_atomic_transaction()

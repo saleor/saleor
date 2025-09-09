@@ -12,10 +12,12 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantPreorderDeactivate(BaseMutation):
     product_variant = graphene.Field(
         ProductVariant, description="Product variant with ended preorder."
@@ -32,7 +34,6 @@ class ProductVariantPreorderDeactivate(BaseMutation):
             "Deactivates product variant preorder. "
             "It changes all preorder allocation into regular allocation."
         )
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
 

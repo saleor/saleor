@@ -5,24 +5,23 @@ from .....payment.interface import PaymentGatewayData
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import PaymentGatewayInitializeErrorCode
 from ....core.scalars import JSON, PositiveDecimal
-from ....core.types import BaseInputObjectType, BaseObjectType
 from ....core.types import common as common_types
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import TransactionSessionBase
 
 
-class PaymentGatewayConfig(BaseObjectType):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class PaymentGatewayConfig(graphene.ObjectType):
     id = graphene.String(required=True, description="The app identifier.")
     data = graphene.Field(
         JSON, description="The JSON data required to initialize the payment gateway."
     )
     errors = common_types.NonNullList(common_types.PaymentGatewayConfigError)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
-class PaymentGatewayToInitialize(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class PaymentGatewayToInitialize(graphene.InputObjectType):
     id = graphene.String(
         required=True,
         description="The identifier of the payment gateway app to initialize.",
@@ -31,10 +30,8 @@ class PaymentGatewayToInitialize(BaseInputObjectType):
         JSON, description="The data that will be passed to the payment gateway."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentGatewayInitialize(TransactionSessionBase):
     gateway_configs = common_types.NonNullList(
         PaymentGatewayConfig, description="List of payment gateway configurations."
@@ -60,7 +57,6 @@ class PaymentGatewayInitialize(TransactionSessionBase):
         )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Initializes a payment gateway session. It triggers the webhook "
             "`PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. "

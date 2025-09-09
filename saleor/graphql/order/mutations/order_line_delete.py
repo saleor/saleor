@@ -19,11 +19,13 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...core.utils import raise_validation_error
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderLine
 from .utils import EditableOrderValidationMixin, call_event_by_order_status
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
     order = graphene.Field(Order, description="A related order.")
     order_line = graphene.Field(
@@ -35,7 +37,6 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
 
     class Meta:
         description = "Deletes an order line from an order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

@@ -7,6 +7,7 @@ from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from .filters import PaymentFilterInput
 from .mutations import (
     PaymentCapture,
@@ -32,49 +33,55 @@ from .types import Payment, PaymentCountableConnection, TransactionItem
 
 
 class PaymentQueries(graphene.ObjectType):
-    payment = PermissionsField(
-        Payment,
-        description="Look up a payment by ID.",
-        id=graphene.Argument(
-            graphene.ID, description="ID of the payment.", required=True
-        ),
-        permissions=[
-            OrderPermissions.MANAGE_ORDERS,
-        ],
-        doc_category=DOC_CATEGORY_PAYMENTS,
-    )
-    payments = FilterConnectionField(
-        PaymentCountableConnection,
-        filter=PaymentFilterInput(description="Filtering options for payments."),
-        description="List of payments.",
-        permissions=[
-            OrderPermissions.MANAGE_ORDERS,
-        ],
-        doc_category=DOC_CATEGORY_PAYMENTS,
-    )
-    transaction = PermissionsField(
-        TransactionItem,
-        description="Look up a transaction by ID.",
-        id=graphene.Argument(
-            graphene.ID,
-            description=(
-                "ID of a transaction. Either it or token is required "
-                "to fetch the transaction data."
+    payment = doc(
+        DOC_CATEGORY_PAYMENTS,
+        PermissionsField(
+            Payment,
+            description="Look up a payment by ID.",
+            id=graphene.Argument(
+                graphene.ID, description="ID of the payment.", required=True
             ),
-            required=False,
+            permissions=[
+                OrderPermissions.MANAGE_ORDERS,
+            ],
         ),
-        token=graphene.Argument(
-            UUID,
-            description=(
-                "Token of a transaction. Either it or ID is required "
-                "to fetch the transaction data."
+    )
+    payments = doc(
+        DOC_CATEGORY_PAYMENTS,
+        FilterConnectionField(
+            PaymentCountableConnection,
+            filter=PaymentFilterInput(description="Filtering options for payments."),
+            description="List of payments.",
+            permissions=[
+                OrderPermissions.MANAGE_ORDERS,
+            ],
+        ),
+    )
+    transaction = doc(
+        DOC_CATEGORY_PAYMENTS,
+        PermissionsField(
+            TransactionItem,
+            description="Look up a transaction by ID.",
+            id=graphene.Argument(
+                graphene.ID,
+                description=(
+                    "ID of a transaction. Either it or token is required "
+                    "to fetch the transaction data."
+                ),
+                required=False,
             ),
-            required=False,
+            token=graphene.Argument(
+                UUID,
+                description=(
+                    "Token of a transaction. Either it or ID is required "
+                    "to fetch the transaction data."
+                ),
+                required=False,
+            ),
+            permissions=[
+                PaymentPermissions.HANDLE_PAYMENTS,
+            ],
         ),
-        permissions=[
-            PaymentPermissions.HANDLE_PAYMENTS,
-        ],
-        doc_category=DOC_CATEGORY_PAYMENTS,
     )
 
     @staticmethod

@@ -1,17 +1,17 @@
+import graphene
 from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
 from ...payment.models import Payment
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class CheckoutSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_CHECKOUT)
+class CheckoutSortField(graphene.Enum):
     CREATION_DATE = ["created_at", "pk"]
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
     PAYMENT = ["last_charge_status", "pk"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
 
     @property
     def description(self):
@@ -32,8 +32,8 @@ class CheckoutSortField(BaseEnum):
         )
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
         sort_enum = CheckoutSortField
         type_name = "checkouts"

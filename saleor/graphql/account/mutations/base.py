@@ -20,11 +20,11 @@ from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo, SaleorContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation, ModelDeleteMutation
-from ...core.types import BaseInputObjectType, NonNullList
+from ...core.types import NonNullList
+from ...directives import doc
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..utils import (
@@ -173,7 +173,8 @@ class BaseAddressDelete(ModelDeleteMutation):
         return response
 
 
-class UserInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_USERS)
+class UserInput(graphene.InputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     email = graphene.String(description="The unique email address of the user.")
@@ -196,20 +197,15 @@ class UserInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
-
-class UserAddressInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_USERS)
+class UserAddressInput(graphene.InputObjectType):
     default_billing_address = AddressInput(
         description="Billing address of the customer."
     )
     default_shipping_address = AddressInput(
         description="Shipping address of the customer."
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
 
 class CustomerInput(UserInput, UserAddressInput):
@@ -222,9 +218,6 @@ class CustomerInput(UserInput, UserAddressInput):
     is_confirmed = graphene.Boolean(
         required=False, description="User account is confirmed."
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
 
 class UserCreateInput(CustomerInput):
@@ -242,16 +235,12 @@ class UserCreateInput(CustomerInput):
     )
     is_confirmed = graphene.Boolean(
         required=False,
-        description=(
-            "User account is confirmed."
-            + DEPRECATED_IN_3X_INPUT
-            + "\n\nThe user will be always set as unconfirmed. "
+        description="User account is confirmed.",
+        deprecation_reason=(
+            "The user will be always set as unconfirmed. "
             "The confirmation will take place when the user sets the password."
         ),
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
 
 class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):

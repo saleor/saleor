@@ -14,7 +14,7 @@ from ...order import (
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import to_enum
-from ..core.types import BaseEnum
+from ..directives import doc
 
 
 def order_event_enum_description(enum):
@@ -23,60 +23,62 @@ def order_event_enum_description(enum):
     return None
 
 
-FulfillmentStatusEnum = to_enum(FulfillmentStatus, type_name="FulfillmentStatus")
-FulfillmentStatusEnum.doc_category = DOC_CATEGORY_ORDERS
-
-OrderEventsEnum = to_enum(OrderEvents, description=order_event_enum_description)
-OrderEventsEnum.doc_category = DOC_CATEGORY_ORDERS
-
-OrderEventsEmailsEnum = to_enum(OrderEventsEmails)
-OrderEventsEmailsEnum.doc_category = DOC_CATEGORY_ORDERS
-
-OrderOriginEnum = to_enum(OrderOrigin)
-OrderOriginEnum.doc_category = DOC_CATEGORY_ORDERS
-
-OrderStatusEnum = to_enum(OrderStatus, type_name="OrderStatus")
-OrderStatusEnum.doc_category = DOC_CATEGORY_ORDERS
-
-OrderAuthorizeStatusEnum = to_enum(
-    OrderAuthorizeStatus, description=OrderAuthorizeStatus.__doc__
+FulfillmentStatusEnum = doc(
+    DOC_CATEGORY_ORDERS, to_enum(FulfillmentStatus, type_name="FulfillmentStatus")
 )
-OrderAuthorizeStatusEnum.doc_category = DOC_CATEGORY_ORDERS
+
+OrderEventsEnum = doc(
+    DOC_CATEGORY_ORDERS, to_enum(OrderEvents, description=order_event_enum_description)
+)
+
+OrderEventsEmailsEnum = doc(DOC_CATEGORY_ORDERS, to_enum(OrderEventsEmails))
+
+OrderOriginEnum = doc(DOC_CATEGORY_ORDERS, to_enum(OrderOrigin))
+
+OrderStatusEnum = doc(
+    DOC_CATEGORY_ORDERS, to_enum(OrderStatus, type_name="OrderStatus")
+)
+
+OrderAuthorizeStatusEnum = doc(
+    DOC_CATEGORY_ORDERS,
+    to_enum(OrderAuthorizeStatus, description=OrderAuthorizeStatus.__doc__),
+)
 
 OrderChargeStatusEnum = to_enum(
     OrderChargeStatus, description=OrderChargeStatus.__doc__
 )
-StockUpdatePolicyEnum = to_enum(
-    StockUpdatePolicy, description=StockUpdatePolicy.__doc__
+
+StockUpdatePolicyEnum = doc(
+    DOC_CATEGORY_ORDERS,
+    to_enum(StockUpdatePolicy, description=StockUpdatePolicy.__doc__),
 )
-OrderChargeStatusEnum.doc_category = DOC_CATEGORY_ORDERS
 
 OrderGrantRefundCreateErrorCode = graphene.Enum.from_enum(
     error_codes.OrderGrantRefundCreateErrorCode
 )
+
 OrderGrantRefundCreateLineErrorCode = graphene.Enum.from_enum(
     error_codes.OrderGrantRefundCreateLineErrorCode
 )
 
-OrderGrantRefundUpdateLineErrorCode = graphene.Enum.from_enum(
-    error_codes.OrderGrantRefundUpdateLineErrorCode
+OrderGrantRefundUpdateLineErrorCode = doc(
+    DOC_CATEGORY_ORDERS,
+    graphene.Enum.from_enum(error_codes.OrderGrantRefundUpdateLineErrorCode),
 )
 
-OrderGrantRefundCreateErrorCode.doc_category = DOC_CATEGORY_ORDERS
-
-OrderGrantRefundUpdateErrorCode = graphene.Enum.from_enum(
-    error_codes.OrderGrantRefundUpdateErrorCode
+OrderGrantRefundUpdateErrorCode = doc(
+    DOC_CATEGORY_ORDERS,
+    graphene.Enum.from_enum(error_codes.OrderGrantRefundUpdateErrorCode),
 )
-OrderGrantRefundUpdateErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
-
-OrderGrantedRefundStatusEnum = to_enum(
-    OrderGrantedRefundStatus, description=OrderGrantedRefundStatus.__doc__
+OrderGrantedRefundStatusEnum = doc(
+    DOC_CATEGORY_ORDERS,
+    to_enum(OrderGrantedRefundStatus, description=OrderGrantedRefundStatus.__doc__),
 )
-OrderGrantedRefundStatusEnum.doc_category = DOC_CATEGORY_ORDERS
 
 
-class OrderStatusFilter(BaseEnum):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderStatusFilter(graphene.Enum):
     READY_TO_FULFILL = "ready_to_fulfill"
     READY_TO_CAPTURE = "ready_to_capture"
     UNFULFILLED = "unfulfilled"
@@ -84,6 +86,3 @@ class OrderStatusFilter(BaseEnum):
     PARTIALLY_FULFILLED = "partially fulfilled"
     FULFILLED = "fulfilled"
     CANCELED = "canceled"
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS

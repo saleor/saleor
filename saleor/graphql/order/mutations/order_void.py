@@ -12,6 +12,7 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .utils import clean_payment, try_payment_action
@@ -34,6 +35,7 @@ def clean_void_payment(
     return payment
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderVoid(BaseMutation):
     order = graphene.Field(Order, description="A voided order.")
 
@@ -42,7 +44,6 @@ class OrderVoid(BaseMutation):
 
     class Meta:
         description = "Void an order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

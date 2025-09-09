@@ -7,12 +7,13 @@ from ...permission.utils import message_one_of_permissions_required
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_USERS
-from ..core.fields import BaseField, FilterConnectionField, PermissionsField
+from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
+from ..directives import doc
 from .bulk_mutations import (
     CustomerBulkDelete,
     CustomerBulkUpdate,
@@ -93,118 +94,136 @@ from .types import (
 )
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class CustomerFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_USERS
         filterset_class = CustomerFilter
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class PermissionGroupFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_USERS
         filterset_class = PermissionGroupFilter
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class StaffUserInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_USERS
         filterset_class = StaffUserFilter
 
 
 class AccountQueries(graphene.ObjectType):
-    address_validation_rules = BaseField(
-        AddressValidationData,
-        description="Returns address validation rules.",
-        country_code=graphene.Argument(
-            CountryCodeEnum,
-            description="Two-letter ISO 3166-1 country code.",
-            required=True,
+    address_validation_rules = doc(
+        DOC_CATEGORY_USERS,
+        graphene.Field(
+            AddressValidationData,
+            description="Returns address validation rules.",
+            country_code=graphene.Argument(
+                CountryCodeEnum,
+                description="Two-letter ISO 3166-1 country code.",
+                required=True,
+            ),
+            country_area=graphene.Argument(
+                graphene.String,
+                description="Designation of a region, province or state.",
+            ),
+            city=graphene.Argument(graphene.String, description="City or a town name."),
+            city_area=graphene.Argument(
+                graphene.String, description="Sublocality like a district."
+            ),
         ),
-        country_area=graphene.Argument(
-            graphene.String, description="Designation of a region, province or state."
-        ),
-        city=graphene.Argument(graphene.String, description="City or a town name."),
-        city_area=graphene.Argument(
-            graphene.String, description="Sublocality like a district."
-        ),
-        doc_category=DOC_CATEGORY_USERS,
     )
-    address = BaseField(
-        Address,
-        id=graphene.Argument(
-            graphene.ID, description="ID of an address.", required=True
+    address = doc(
+        DOC_CATEGORY_USERS,
+        graphene.Field(
+            Address,
+            id=graphene.Argument(
+                graphene.ID, description="ID of an address.", required=True
+            ),
+            description="Look up an address by ID."
+            + message_one_of_permissions_required(
+                [AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
+            ),
         ),
-        description="Look up an address by ID."
-        + message_one_of_permissions_required(
-            [AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
-        ),
-        doc_category=DOC_CATEGORY_USERS,
     )
-    customers = FilterConnectionField(
-        UserCountableConnection,
-        filter=CustomerFilterInput(
-            description=(
-                f"Filtering options for customers. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
+    customers = doc(
+        DOC_CATEGORY_USERS,
+        FilterConnectionField(
+            UserCountableConnection,
+            filter=CustomerFilterInput(
+                description="Filtering options for customers.",
+                deprecation_reason="Use `where` filter instead.",
+            ),
+            where=CustomerWhereInput(
+                description="Where filtering options for customers." + ADDED_IN_322
+            ),
+            sort_by=UserSortingInput(description="Sort customers."),
+            search=graphene.String(description="Search customers." + ADDED_IN_322),
+            description="List of the shop's customers. This list includes all users who registered through the accountRegister mutation. Additionally, staff users who have placed an order using their account will also appear in this list.",
+            permissions=[
+                OrderPermissions.MANAGE_ORDERS,
+                AccountPermissions.MANAGE_USERS,
+            ],
         ),
-        where=CustomerWhereInput(
-            description="Where filtering options for customers." + ADDED_IN_322
-        ),
-        sort_by=UserSortingInput(description="Sort customers."),
-        search=graphene.String(description="Search customers." + ADDED_IN_322),
-        description="List of the shop's customers. This list includes all users who registered through the accountRegister mutation. Additionally, staff users who have placed an order using their account will also appear in this list.",
-        permissions=[OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS],
-        doc_category=DOC_CATEGORY_USERS,
     )
-    permission_groups = FilterConnectionField(
-        GroupCountableConnection,
-        filter=PermissionGroupFilterInput(
-            description="Filtering options for permission groups."
+    permission_groups = doc(
+        DOC_CATEGORY_USERS,
+        FilterConnectionField(
+            GroupCountableConnection,
+            filter=PermissionGroupFilterInput(
+                description="Filtering options for permission groups."
+            ),
+            sort_by=PermissionGroupSortingInput(description="Sort permission groups."),
+            description="List of permission groups.",
+            permissions=[AccountPermissions.MANAGE_STAFF],
         ),
-        sort_by=PermissionGroupSortingInput(description="Sort permission groups."),
-        description="List of permission groups.",
-        permissions=[AccountPermissions.MANAGE_STAFF],
-        doc_category=DOC_CATEGORY_USERS,
     )
-    permission_group = PermissionsField(
-        Group,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the group.", required=True
+    permission_group = doc(
+        DOC_CATEGORY_USERS,
+        PermissionsField(
+            Group,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the group.", required=True
+            ),
+            description="Look up permission group by ID.",
+            permissions=[AccountPermissions.MANAGE_STAFF],
         ),
-        description="Look up permission group by ID.",
-        permissions=[AccountPermissions.MANAGE_STAFF],
-        doc_category=DOC_CATEGORY_USERS,
     )
-    me = BaseField(
-        User,
-        description="Return the currently authenticated user.",
-        doc_category=DOC_CATEGORY_USERS,
-    )
-    staff_users = FilterConnectionField(
-        UserCountableConnection,
-        filter=StaffUserInput(description="Filtering options for staff users."),
-        sort_by=UserSortingInput(description="Sort staff users."),
-        description="List of the shop's staff users.",
-        permissions=[AccountPermissions.MANAGE_STAFF],
-        doc_category=DOC_CATEGORY_USERS,
-    )
-    user = PermissionsField(
-        User,
-        id=graphene.Argument(graphene.ID, description="ID of the user."),
-        email=graphene.Argument(
-            graphene.String, description="Email address of the user."
+    me = doc(
+        DOC_CATEGORY_USERS,
+        graphene.Field(
+            User,
+            description="Return the currently authenticated user.",
         ),
-        external_reference=graphene.Argument(
-            graphene.String, description="External ID of the user."
+    )
+    staff_users = doc(
+        DOC_CATEGORY_USERS,
+        FilterConnectionField(
+            UserCountableConnection,
+            filter=StaffUserInput(description="Filtering options for staff users."),
+            sort_by=UserSortingInput(description="Sort staff users."),
+            description="List of the shop's staff users.",
+            permissions=[AccountPermissions.MANAGE_STAFF],
         ),
-        permissions=[
-            AccountPermissions.MANAGE_STAFF,
-            AccountPermissions.MANAGE_USERS,
-            OrderPermissions.MANAGE_ORDERS,
-        ],
-        description="Look up a user by ID or email address.",
-        doc_category=DOC_CATEGORY_USERS,
+    )
+    user = doc(
+        DOC_CATEGORY_USERS,
+        PermissionsField(
+            User,
+            id=graphene.Argument(graphene.ID, description="ID of the user."),
+            email=graphene.Argument(
+                graphene.String, description="Email address of the user."
+            ),
+            external_reference=graphene.Argument(
+                graphene.String, description="External ID of the user."
+            ),
+            permissions=[
+                AccountPermissions.MANAGE_STAFF,
+                AccountPermissions.MANAGE_USERS,
+                OrderPermissions.MANAGE_ORDERS,
+            ],
+            description="Look up a user by ID or email address.",
+        ),
     )
 
     @staticmethod

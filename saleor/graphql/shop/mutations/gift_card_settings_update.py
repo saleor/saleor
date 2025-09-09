@@ -7,26 +7,22 @@ from ....site.error_codes import GiftCardSettingsErrorCode
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
-from ...core.types import (
-    BaseInputObjectType,
-    GiftCardSettingsError,
-    TimePeriodInputType,
-)
+from ...core.types import GiftCardSettingsError, TimePeriodInputType
+from ...directives import doc
 from ...site.dataloaders import get_site_promise
 from ..enums import GiftCardSettingsExpiryTypeEnum
 from ..types import GiftCardSettings
 
 
-class GiftCardSettingsUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+class GiftCardSettingsUpdateInput(graphene.InputObjectType):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="Defines gift card default expiry settings."
     )
     expiry_period = TimePeriodInputType(description="Defines gift card expiry period.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
-
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
 class GiftCardSettingsUpdate(BaseMutation):
     gift_card_settings = graphene.Field(
         GiftCardSettings, description="Gift card settings."
@@ -39,7 +35,6 @@ class GiftCardSettingsUpdate(BaseMutation):
 
     class Meta:
         description = "Update gift card settings."
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardSettingsError
 

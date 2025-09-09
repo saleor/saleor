@@ -1,59 +1,49 @@
+import graphene
+
 from ...product import ProductMediaTypes, ProductTypeKind
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import to_enum
-from ..core.types import BaseEnum
+from ..directives import doc
 
-ProductTypeKindEnum = to_enum(ProductTypeKind)
-ProductTypeKindEnum.doc_category = DOC_CATEGORY_PRODUCTS
+ProductTypeKindEnum = doc(DOC_CATEGORY_PRODUCTS, to_enum(ProductTypeKind))
 
-ProductMediaType = to_enum(ProductMediaTypes, type_name="ProductMediaType")
-ProductMediaType.doc_category = DOC_CATEGORY_PRODUCTS
+ProductMediaType = doc(
+    DOC_CATEGORY_PRODUCTS, to_enum(ProductMediaTypes, type_name="ProductMediaType")
+)
 
 
-class ProductAttributeType(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductAttributeType(graphene.Enum):
     PRODUCT = "PRODUCT"
     VARIANT = "VARIANT"
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class StockAvailability(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class StockAvailability(graphene.Enum):
     IN_STOCK = "AVAILABLE"
     OUT_OF_STOCK = "OUT_OF_STOCK"
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class CollectionPublished(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class CollectionPublished(graphene.Enum):
     PUBLISHED = "published"
     HIDDEN = "hidden"
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ProductTypeConfigurable(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductTypeConfigurable(graphene.Enum):
     CONFIGURABLE = "configurable"
     SIMPLE = "simple"
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ProductTypeEnum(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductTypeEnum(graphene.Enum):
     DIGITAL = "digital"
     SHIPPABLE = "shippable"
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class VariantAttributeScope(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class VariantAttributeScope(graphene.Enum):
     ALL = "all"
     VARIANT_SELECTION = "variant_selection"
     NOT_VARIANT_SELECTION = "not_variant_selection"
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS

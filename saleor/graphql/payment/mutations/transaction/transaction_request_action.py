@@ -24,6 +24,7 @@ from ....core.mutations import BaseMutation
 from ....core.scalars import UUID, PositiveDecimal
 from ....core.types import common as common_types
 from ....core.validators import validate_one_of_args_is_in_mutation
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum
 from ...types import TransactionItem
@@ -33,6 +34,7 @@ if TYPE_CHECKING:
     from .....account.models import User
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionRequestAction(BaseMutation):
     transaction = graphene.Field(TransactionItem)
 
@@ -64,7 +66,6 @@ class TransactionRequestAction(BaseMutation):
 
     class Meta:
         description = "Request an action for payment transaction."
-        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionRequestActionError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 

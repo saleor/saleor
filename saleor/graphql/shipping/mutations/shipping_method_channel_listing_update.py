@@ -16,8 +16,9 @@ from ...core import ResolveInfo
 from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.scalars import PositiveDecimal
-from ...core.types import BaseInputObjectType, NonNullList, ShippingError
+from ...core.types import NonNullList, ShippingError
 from ...core.validators import validate_decimal_max_value, validate_price_precision
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import ShippingMethodType
 from ..utils import get_shipping_model_by_object_id
@@ -28,7 +29,8 @@ if TYPE_CHECKING:
 ErrorType = defaultdict[str, list[ValidationError]]
 
 
-class ShippingMethodChannelListingAddInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_SHIPPING)
+class ShippingMethodChannelListingAddInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     price = PositiveDecimal(
         description="Shipping price of the shipping method in this channel."
@@ -40,11 +42,9 @@ class ShippingMethodChannelListingAddInput(BaseInputObjectType):
         description="Maximum order price to use this shipping method."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
 
-
-class ShippingMethodChannelListingInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_SHIPPING)
+class ShippingMethodChannelListingInput(graphene.InputObjectType):
     add_channels = NonNullList(
         ShippingMethodChannelListingAddInput,
         description="List of channels to which the shipping method should be assigned.",
@@ -58,10 +58,8 @@ class ShippingMethodChannelListingInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
 
-
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
     shipping_method = graphene.Field(
         ShippingMethodType, description="An updated shipping method instance."
@@ -78,7 +76,6 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage shipping method's availability in channels."
-        doc_category = DOC_CATEGORY_SHIPPING
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"

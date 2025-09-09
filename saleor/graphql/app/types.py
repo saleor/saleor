@@ -2,6 +2,7 @@ import base64
 import datetime
 
 import graphene
+from graphene_federation import key
 
 from ...app import models
 from ...app.types import AppExtensionHttpMethod, AppExtensionTarget
@@ -29,11 +30,10 @@ from ..core.context import get_database_connection_name
 from ..core.dataloaders import DataLoader
 from ..core.descriptions import ADDED_IN_319, ADDED_IN_321, ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_APPS
-from ..core.federation import federated_entity, resolve_federation_references
+from ..core.enums import IconThumbnailFormatEnum
+from ..core.federation import resolve_federation_references
 from ..core.scalars import DateTime
 from ..core.types import (
-    BaseEnum,
-    BaseObjectType,
     IconThumbnailField,
     Job,
     ModelObjectType,
@@ -41,6 +41,7 @@ from ..core.types import (
     Permission,
 )
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.dataloaders import WebhooksByAppIdLoader
@@ -105,7 +106,8 @@ def has_access_to_app_public_meta(root, info: ResolveInfo, app) -> bool:
     return requester.has_perm(AppPermission.MANAGE_APPS)
 
 
-class AppManifestExtension(BaseObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class AppManifestExtension(graphene.ObjectType):
     permissions = NonNullList(
         Permission,
         description="List of the app extension's permissions.",
@@ -125,9 +127,6 @@ class AppManifestExtension(BaseObjectType):
         description="Type of way how app extension will be opened.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_APPS
-
     @staticmethod
     def resolve_target(root, _info: ResolveInfo):
         return root.get("target") or AppExtensionTarget.POPUP
@@ -138,57 +137,53 @@ class AppManifestExtension(BaseObjectType):
         return resolve_app_extension_url(root)
 
 
-class HttpMethod(BaseEnum):
+class HttpMethod(graphene.Enum):
     POST = AppExtensionHttpMethod.POST
     GET = AppExtensionHttpMethod.GET
 
 
-class NewTabTargetOptions(BaseObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class NewTabTargetOptions(graphene.ObjectType):
+    """Represents the NEW_TAB target options for an app extension."""
+
     method = graphene.Field(
         HttpMethod,
         required=True,
         description="HTTP method for New Tab target (GET or POST)",
     )
 
-    class Meta:
-        description = "Represents the NEW_TAB target options for an app extension."
-        doc_category = DOC_CATEGORY_APPS
 
+@doc(category=DOC_CATEGORY_APPS)
+class WidgetTargetOptions(graphene.ObjectType):
+    """Represents the WIDGET target options for an app extension."""
 
-class WidgetTargetOptions(BaseObjectType):
     method = graphene.Field(
         HttpMethod,
         required=True,
         description="HTTP method for Widget target (GET or POST)",
     )
 
-    class Meta:
-        description = "Represents the WIDGET target options for an app extension."
-        doc_category = DOC_CATEGORY_APPS
 
+@doc(category=DOC_CATEGORY_APPS)
+class AppExtensionOptionsWidget(graphene.ObjectType):
+    """Represents the options for an app extension."""
 
-class AppExtensionOptionsWidget(BaseObjectType):
     widget_target = graphene.Field(
         WidgetTargetOptions,
         description="Options for displaying a Widget",
         required=False,
     )
 
-    class Meta:
-        description = "Represents the options for an app extension."
-        doc_category = DOC_CATEGORY_APPS
 
+@doc(category=DOC_CATEGORY_APPS)
+class AppExtensionOptionsNewTab(graphene.ObjectType):
+    """Represents the options for an app extension."""
 
-class AppExtensionOptionsNewTab(BaseObjectType):
     new_tab_target = graphene.Field(
         NewTabTargetOptions,
         description="Options controlling behavior of the NEW_TAB extension target",
         required=False,
     )
-
-    class Meta:
-        description = "Represents the options for an app extension."
-        doc_category = DOC_CATEGORY_APPS
 
 
 class AppExtensionPossibleOptions(graphene.Union):
@@ -197,6 +192,8 @@ class AppExtensionPossibleOptions(graphene.Union):
 
 
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
+    """Represents app data."""
+
     id = graphene.GlobalID(required=True, description="The ID of the app extension.")
     app = graphene.Field(
         "saleor.graphql.app.types.App",
@@ -212,7 +209,6 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     )
 
     class Meta:
-        description = "Represents app data."
         interfaces = [graphene.relay.Node]
         model = models.AppExtension
 
@@ -288,13 +284,14 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         return None
 
 
+@doc(category=DOC_CATEGORY_APPS)
 class AppExtensionCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_APPS
         node = AppExtension
 
 
-class AppManifestWebhook(BaseObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class AppManifestWebhook(graphene.ObjectType):
     name = graphene.String(description="The name of the webhook.", required=True)
     async_events = NonNullList(
         WebhookEventTypeAsyncEnum,
@@ -311,9 +308,6 @@ class AppManifestWebhook(BaseObjectType):
         description="The url to receive the payload.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_APPS
-
     @staticmethod
     def resolve_async_events(root, _info: ResolveInfo):
         return [WebhookEventTypeAsyncEnum[name] for name in root.get("asyncEvents", [])]
@@ -327,7 +321,8 @@ class AppManifestWebhook(BaseObjectType):
         return root["targetUrl"]
 
 
-class AppManifestRequiredSaleorVersion(BaseObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class AppManifestRequiredSaleorVersion(graphene.ObjectType):
     constraint = graphene.String(
         description="Required Saleor version as semver range.",
         required=True,
@@ -337,20 +332,16 @@ class AppManifestRequiredSaleorVersion(BaseObjectType):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_APPS
 
+@doc(category=DOC_CATEGORY_APPS)
+class AppManifestBrandLogo(graphene.ObjectType):
+    """Represents the app's manifest brand data."""
 
-class AppManifestBrandLogo(BaseObjectType):
     default = IconThumbnailField(
         graphene.String,
         description="Data URL with a base64 encoded logo image.",
         required=True,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_APPS
-        description = "Represents the app's manifest brand data."
 
     @staticmethod
     def resolve_default(
@@ -377,16 +368,15 @@ class AppManifestBrandLogo(BaseObjectType):
         return f"data:{mimetype};base64,{thumbnail_str}"
 
 
-class AppBrandLogo(BaseObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class AppBrandLogo(graphene.ObjectType):
+    """Represents the app's brand logo data."""
+
     default = IconThumbnailField(
         graphene.String,
         description="URL to the default logo image.",
         required=True,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_APPS
-        description = "Represents the app's brand logo data."
 
     @staticmethod
     def resolve_default(
@@ -394,14 +384,14 @@ class AppBrandLogo(BaseObjectType):
         info: ResolveInfo,
         *,
         size: int | None = None,
-        format: str | None = None,
+        format: IconThumbnailFormatEnum | None = None,
     ):
         if not root.brand_logo_default:
             return None
         if size == 0:
             return build_absolute_uri(root.brand_logo_default.url)
 
-        format = get_thumbnail_format(format)
+        format = get_thumbnail_format(format.value if format else None)
         selected_size = get_thumbnail_size(size)
 
         if isinstance(root, models.App):
@@ -426,35 +416,36 @@ class AppBrandLogo(BaseObjectType):
         )
 
 
-class AppBrand(BaseObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class AppBrand(graphene.ObjectType):
+    """Represents the app's brand data."""
+
     logo = graphene.Field(
         AppBrandLogo,
         required=True,
         description="App's logos details.",
     )
 
-    class Meta:
-        description = "Represents the app's brand data."
-        doc_category = DOC_CATEGORY_APPS
-
     @staticmethod
     def resolve_logo(root: models.App | models.AppInstallation, _info: ResolveInfo):
         return root
 
 
-class AppManifestBrand(BaseObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class AppManifestBrand(graphene.ObjectType):
+    """Represents the app's manifest brand data."""
+
     logo = graphene.Field(
         AppManifestBrandLogo,
         description="App's logos details.",
         required=True,
     )
 
-    class Meta:
-        description = "Represents the app's manifest brand data."
-        doc_category = DOC_CATEGORY_APPS
 
+@doc(category=DOC_CATEGORY_APPS)
+class Manifest(graphene.ObjectType):
+    """The manifest definition."""
 
-class Manifest(BaseObjectType):
     identifier = graphene.String(
         required=True, description="The identifier of the manifest for the app."
     )
@@ -519,10 +510,6 @@ class Manifest(BaseObjectType):
         description="App's brand data.",
     )
 
-    class Meta:
-        description = "The manifest definition."
-        doc_category = DOC_CATEGORY_APPS
-
     @staticmethod
     def resolve_extensions(root, _info: ResolveInfo):
         for extension in root.extensions:
@@ -530,14 +517,15 @@ class Manifest(BaseObjectType):
         return root.extensions
 
 
-class AppToken(BaseObjectType):
+@doc(category=DOC_CATEGORY_APPS)
+class AppToken(graphene.ObjectType):
+    """Represents an app token."""
+
     id = graphene.GlobalID(required=True, description="The ID of the app token.")
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
 
     class Meta:
-        description = "Represents token data."
-        doc_category = DOC_CATEGORY_APPS
         interfaces = [graphene.relay.Node]
         permissions = (AppPermission.MANAGE_APPS,)
 
@@ -555,8 +543,10 @@ class AppToken(BaseObjectType):
         return root.token_last_4
 
 
-@federated_entity("id")
+@key("id")
 class App(ModelObjectType[models.App]):
+    """Represents app data."""
+
     id = graphene.GlobalID(required=True, description="The ID of the app.")
     identifier = graphene.String(
         required=False, description="Canonical app ID from the manifest" + ADDED_IN_319
@@ -628,7 +618,6 @@ class App(ModelObjectType[models.App]):
     )
 
     class Meta:
-        description = "Represents app data."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.App
 
@@ -715,13 +704,15 @@ class App(ModelObjectType[models.App]):
         return None
 
 
+@doc(category=DOC_CATEGORY_APPS)
 class AppCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_APPS
         node = App
 
 
 class AppInstallation(ModelObjectType[models.AppInstallation]):
+    """Represents a pending installation of an app."""
+
     id = graphene.GlobalID(required=True, description="The ID of the app installation.")
     app_name = graphene.String(
         required=True, description="The name of the app installation."
@@ -734,7 +725,6 @@ class AppInstallation(ModelObjectType[models.AppInstallation]):
 
     class Meta:
         model = models.AppInstallation
-        description = "Represents ongoing installation of app."
         interfaces = [graphene.relay.Node, Job]
 
     @staticmethod

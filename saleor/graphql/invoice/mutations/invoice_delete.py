@@ -3,13 +3,18 @@ import graphene
 from ....invoice import events, models
 from ....order.search import update_order_search_vector
 from ....permission.enums import OrderPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import InvoiceError
+from ...directives import doc, webhook_events
 from ..types import Invoice
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
+@webhook_events(async_events={WebhookEventAsyncType.INVOICE_DELETED})
 class InvoiceDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to delete.")

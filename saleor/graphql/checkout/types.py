@@ -48,7 +48,7 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.enums import LanguageCodeEnum
-from ..core.fields import BaseField, PermissionsField
+from ..core.fields import PermissionsField
 from ..core.scalars import UUID, DateTime, PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import Money, NonNullList, TaxedMoney
@@ -56,8 +56,9 @@ from ..core.types.sync_webhook_control import (
     SyncWebhookControlContextModelObjectType,
     SyncWebhookControlContextObjectType,
 )
-from ..core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo, str_to_enum
+from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required
+from ..directives import doc, webhook_events
 from ..discount.dataloaders import VoucherByCodeLoader
 from ..giftcard.dataloaders import GiftCardsByCheckoutIdLoader
 from ..giftcard.types import GiftCard
@@ -142,6 +143,7 @@ def get_dataloaders_for_fetching_checkout_data(
     )
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutLineProblemInsufficientStock(
     SyncWebhookControlContextObjectType[problems.CheckoutLineProblemInsufficientStock],
 ):
@@ -163,7 +165,6 @@ class CheckoutLineProblemInsufficientStock(
             "Indicates insufficient stock for a given checkout line."
             "Placing the order will not be possible until solving this problem."
         )
-        doc_category = DOC_CATEGORY_CHECKOUT
 
     @staticmethod
     def resolve_line(
@@ -175,6 +176,7 @@ class CheckoutLineProblemInsufficientStock(
         )
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutLineProblemVariantNotAvailable(
     SyncWebhookControlContextObjectType[problems.CheckoutLineProblemVariantNotAvailable]
 ):
@@ -189,7 +191,6 @@ class CheckoutLineProblemVariantNotAvailable(
             "The variant assigned to the checkout line is not available."
             "Placing the order will not be possible until solving this problem."
         )
-        doc_category = DOC_CATEGORY_CHECKOUT
 
     @staticmethod
     def resolve_line(
@@ -219,6 +220,7 @@ def _resolve_line_problem_type(
     return None
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutLineProblem(graphene.Union):
     class Meta:
         types = (
@@ -226,7 +228,6 @@ class CheckoutLineProblem(graphene.Union):
             CheckoutLineProblemVariantNotAvailable,
         )
         description = "Represents an problem in the checkout line."
-        doc_category = DOC_CATEGORY_CHECKOUT
 
     @classmethod
     def resolve_type(
@@ -240,11 +241,11 @@ class CheckoutLineProblem(graphene.Union):
         return super().resolve_type(instance.node, info)
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutProblem(graphene.Union):
     class Meta:
         types = [] + list(CheckoutLineProblem._meta.types)
         description = "Represents an problem in the checkout."
-        doc_category = DOC_CATEGORY_CHECKOUT
 
     @classmethod
     def resolve_type(
@@ -269,16 +270,13 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
         required=True,
         description="The quantity of product variant assigned to the checkout line.",
     )
-    unit_price = BaseField(
-        TaxedMoney,
-        description="The unit price of the checkout line, with taxes and discounts.",
-        required=True,
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
-            ),
-        ],
+    unit_price = webhook_events(
+        sync_events={WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES},
+        field=graphene.Field(
+            TaxedMoney,
+            description="The unit price of the checkout line, with taxes and discounts.",
+            required=True,
+        ),
     )
     undiscounted_unit_price = graphene.Field(
         Money,
@@ -290,16 +288,13 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
         description="The unit price of the checkout line prior to promotion."
         + ADDED_IN_321,
     )
-    total_price = BaseField(
-        TaxedMoney,
-        description="The sum of the checkout line price, taxes and discounts.",
-        required=True,
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
-            ),
-        ],
+    total_price = webhook_events(
+        sync_events={WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES},
+        field=graphene.Field(
+            TaxedMoney,
+            description="The sum of the checkout line price, taxes and discounts.",
+            required=True,
+        ),
     )
     undiscounted_total_price = graphene.Field(
         Money,
@@ -579,9 +574,9 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
         return problems_dataloader.then(get_problem_for_line)
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutLineCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
         node = CheckoutLine
 
 
@@ -674,64 +669,41 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     voucher_code = graphene.String(
         description="The code of voucher assigned to the checkout."
     )
-    available_shipping_methods = BaseField(
-        NonNullList(ShippingMethod),
-        required=True,
-        description="Shipping methods that can be used with this checkout.",
-        deprecation_reason="Use `shippingMethods` instead.",
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                description=(
-                    "Optionally triggered when cached external shipping methods are "
-                    "invalid."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-                description=(
-                    "Optionally triggered when cached filtered shipping methods are "
-                    "invalid."
-                ),
-            ),
-        ],
+    available_shipping_methods = webhook_events(
+        sync_events={
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        },
+        field=graphene.Field(
+            NonNullList(ShippingMethod),
+            required=True,
+            description="Shipping methods that can be used with this checkout.",
+            deprecation_reason="Use `shippingMethods` instead.",
+        ),
     )
-    shipping_methods = BaseField(
-        NonNullList(ShippingMethod),
-        required=True,
-        description="Shipping methods that can be used with this checkout.",
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                description=(
-                    "Optionally triggered when cached external shipping methods are "
-                    "invalid."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-                description=(
-                    "Optionally triggered when cached filtered shipping methods are "
-                    "invalid."
-                ),
-            ),
-        ],
+    shipping_methods = webhook_events(
+        sync_events={
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        },
+        field=graphene.Field(
+            NonNullList(ShippingMethod),
+            required=True,
+            description="Shipping methods that can be used with this checkout.",
+        ),
     )
     available_collection_points = NonNullList(
         Warehouse,
         required=True,
         description="Collection points that can be used for this order.",
     )
-    available_payment_gateways = BaseField(
-        NonNullList(PaymentGateway),
-        description="List of available payment gateways.",
-        required=True,
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.PAYMENT_LIST_GATEWAYS,
-                description="Fetch payment gateways available for checkout.",
-            ),
-        ],
+    available_payment_gateways = webhook_events(
+        sync_events={WebhookEventSyncType.PAYMENT_LIST_GATEWAYS},
+        field=graphene.Field(
+            NonNullList(PaymentGateway),
+            description="List of available payment gateways.",
+            required=True,
+        ),
     )
     email = graphene.String(description="Email of a customer.", required=False)
     gift_cards = NonNullList(
@@ -757,102 +729,70 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         ),
         required=True,
     )
-    shipping_price = BaseField(
-        TaxedMoney,
-        description=(
-            "The price of the shipping, with all the taxes included. Set to 0 when no "
-            "delivery method is selected."
+    shipping_price = webhook_events(
+        sync_events={WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES},
+        field=graphene.Field(
+            TaxedMoney,
+            description=(
+                "The price of the shipping, with all the taxes included. Set to 0 when no "
+                "delivery method is selected."
+            ),
+            required=True,
         ),
-        required=True,
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
-            ),
-        ],
     )
-    shipping_method = BaseField(
-        ShippingMethod,
-        description="The shipping method related with checkout.",
-        deprecation_reason="Use `deliveryMethod` instead.",
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                description=(
-                    "Optionally triggered when cached external shipping methods are "
-                    "invalid."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-                description=(
-                    "Optionally triggered when cached filtered shipping methods are "
-                    "invalid."
-                ),
-            ),
-        ],
+    shipping_method = webhook_events(
+        sync_events={
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        },
+        field=graphene.Field(
+            ShippingMethod,
+            description="The shipping method related with checkout.",
+            deprecation_reason="Use `deliveryMethod` instead.",
+        ),
     )
-    delivery_method = BaseField(
-        DeliveryMethod,
-        description="The delivery method selected for this checkout.",
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                description=(
-                    "Optionally triggered when cached external shipping methods are "
-                    "invalid."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-                description=(
-                    "Optionally triggered when cached filtered shipping methods are "
-                    "invalid."
-                ),
-            ),
-        ],
+    delivery_method = webhook_events(
+        sync_events={
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        },
+        field=graphene.Field(
+            DeliveryMethod,
+            description="The delivery method selected for this checkout.",
+        ),
     )
-    subtotal_price = BaseField(
-        TaxedMoney,
-        description="The price of the checkout before shipping, with taxes included.",
-        required=True,
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
-            ),
-        ],
+    subtotal_price = webhook_events(
+        sync_events={WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES},
+        field=graphene.Field(
+            TaxedMoney,
+            description="The price of the checkout before shipping, with taxes included.",
+            required=True,
+        ),
     )
     tax_exemption = graphene.Boolean(
         description="Returns True if checkout has to be exempt from taxes.",
         required=True,
     )
     token = graphene.Field(UUID, description="The checkout's token.", required=True)
-    total_price = BaseField(
-        TaxedMoney,
-        description=(
-            "The sum of the checkout line prices, with all the taxes,"
-            "shipping costs, and discounts included."
-        ),
-        required=True,
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+    total_price = webhook_events(
+        sync_events={WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES},
+        field=graphene.Field(
+            TaxedMoney,
+            description=(
+                "The sum of the checkout line prices, with all the taxes,"
+                "shipping costs, and discounts included."
             ),
-        ],
+            required=True,
+        ),
     )
 
-    total_balance = BaseField(
-        Money,
-        description="The difference between the paid and the checkout total amount.",
-        required=True,
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
-            ),
-        ],
+    total_balance = webhook_events(
+        sync_events={WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES},
+        field=graphene.Field(
+            Money,
+            description="The difference between the paid and the checkout total amount.",
+            required=True,
+        ),
     )
 
     language_code = graphene.Field(
@@ -869,27 +809,21 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         description="Determines whether displayed prices should include taxes.",
         required=True,
     )
-    authorize_status = BaseField(
-        CheckoutAuthorizeStatusEnum,
-        description="The authorize status of the checkout.",
-        required=True,
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
-            ),
-        ],
+    authorize_status = webhook_events(
+        sync_events={WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES},
+        field=graphene.Field(
+            CheckoutAuthorizeStatusEnum,
+            description="The authorize status of the checkout.",
+            required=True,
+        ),
     )
-    charge_status = BaseField(
-        CheckoutChargeStatusEnum,
-        description="The charge status of the checkout.",
-        required=True,
-        webhook_events_info=[
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
-            ),
-        ],
+    charge_status = webhook_events(
+        sync_events={WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES},
+        field=graphene.Field(
+            CheckoutChargeStatusEnum,
+            description="The charge status of the checkout.",
+            required=True,
+        ),
     )
     stored_payment_methods = NonNullList(
         StoredPaymentMethod,
@@ -1645,7 +1579,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
         node = Checkout

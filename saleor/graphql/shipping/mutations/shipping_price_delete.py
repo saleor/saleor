@@ -9,10 +9,12 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.mutations import BaseMutation
 from ...core.types import ShippingError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import ShippingMethodType, ShippingZone
 
 
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingPriceDelete(BaseMutation):
     shipping_method = graphene.Field(
         ShippingMethodType, description="A shipping method to delete."
@@ -27,7 +29,6 @@ class ShippingPriceDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a shipping price."
-        doc_category = DOC_CATEGORY_SHIPPING
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"

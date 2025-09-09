@@ -3,8 +3,9 @@ import graphene
 from ...permission.auth_filters import AuthorizationFilters
 from ..core import ResolveInfo
 from ..core.doc_category import DOC_CATEGORY_CHANNELS
-from ..core.fields import BaseField, PermissionsField
+from ..core.fields import PermissionsField
 from ..core.types import NonNullList
+from ..directives import doc
 from .mutations import (
     ChannelActivate,
     ChannelCreate,
@@ -18,27 +19,31 @@ from .types import Channel
 
 
 class ChannelQueries(graphene.ObjectType):
-    channel = BaseField(
-        Channel,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the channel.", required=False
+    channel = doc(
+        DOC_CATEGORY_CHANNELS,
+        graphene.Field(
+            Channel,
+            id=graphene.Argument(
+                graphene.ID, description="ID of the channel.", required=False
+            ),
+            slug=graphene.Argument(
+                graphene.String,
+                description="Slug of the channel.",
+                required=False,
+            ),
+            description="Look up a channel by ID or slug.",
         ),
-        slug=graphene.Argument(
-            graphene.String,
-            description="Slug of the channel.",
-            required=False,
-        ),
-        description="Look up a channel by ID or slug.",
-        doc_category=DOC_CATEGORY_CHANNELS,
     )
-    channels = PermissionsField(
-        NonNullList(Channel),
-        description="List of all channels.",
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_APP,
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-        ],
-        doc_category=DOC_CATEGORY_CHANNELS,
+    channels = doc(
+        DOC_CATEGORY_CHANNELS,
+        PermissionsField(
+            NonNullList(Channel),
+            description="List of all channels.",
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_APP,
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            ],
+        ),
     )
 
     @staticmethod

@@ -12,13 +12,17 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
 from ..base import INVALID_TOKEN
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(async_events={WebhookEventAsyncType.ACCOUNT_DELETED})
 class AccountDelete(ModelDeleteMutation):
+    """Remove user account."""
+
     class Arguments:
         token = graphene.String(
             description=(
@@ -29,19 +33,11 @@ class AccountDelete(ModelDeleteMutation):
         )
 
     class Meta:
-        description = "Remove user account."
-        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ACCOUNT_DELETED,
-                description="Account was deleted.",
-            ),
-        ]
 
     @classmethod
     def clean_instance(cls, info: ResolveInfo, instance):

@@ -12,18 +12,23 @@ from ...discount import (
 )
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.enums import to_enum
-from ..core.types import BaseEnum
+from ..directives import doc
 
-OrderDiscountTypeEnum = to_enum(DiscountType, type_name="OrderDiscountType")
-OrderDiscountTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
-RewardValueTypeEnum = to_enum(RewardValueType, type_name="RewardValueTypeEnum")
-RewardValueTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
-RewardTypeEnum = to_enum(RewardType, type_name="RewardTypeEnum")
-RewardTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
-PromotionTypeEnum = to_enum(PromotionType, type_name="PromotionTypeEnum")
-PromotionTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
-PromotionEventsEnum = to_enum(PromotionEvents, type_name="PromotionEventsEnum")
-PromotionEventsEnum.doc_category = DOC_CATEGORY_DISCOUNTS
+OrderDiscountTypeEnum = doc(
+    DOC_CATEGORY_DISCOUNTS, to_enum(DiscountType, type_name="OrderDiscountType")
+)
+RewardValueTypeEnum = doc(
+    DOC_CATEGORY_DISCOUNTS, to_enum(RewardValueType, type_name="RewardValueTypeEnum")
+)
+RewardTypeEnum = doc(
+    DOC_CATEGORY_DISCOUNTS, to_enum(RewardType, type_name="RewardTypeEnum")
+)
+PromotionTypeEnum = doc(
+    DOC_CATEGORY_DISCOUNTS, to_enum(PromotionType, type_name="PromotionTypeEnum")
+)
+PromotionEventsEnum = doc(
+    DOC_CATEGORY_DISCOUNTS, to_enum(PromotionEvents, type_name="PromotionEventsEnum")
+)
 
 PromotionCreateErrorCode = graphene.Enum.from_enum(error_codes.PromotionCreateErrorCode)
 PromotionUpdateErrorCode = graphene.Enum.from_enum(error_codes.PromotionUpdateErrorCode)
@@ -39,44 +44,34 @@ PromotionRuleDeleteErrorCode = graphene.Enum.from_enum(
 )
 
 
-class SaleType(BaseEnum):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class SaleType(graphene.Enum):
     FIXED = DiscountValueType.FIXED
     PERCENTAGE = DiscountValueType.PERCENTAGE
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
-class DiscountValueTypeEnum(BaseEnum):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class DiscountValueTypeEnum(graphene.Enum):
     FIXED = DiscountValueType.FIXED
     PERCENTAGE = DiscountValueType.PERCENTAGE
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
-class VoucherTypeEnum(BaseEnum):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class VoucherTypeEnum(graphene.Enum):
     SHIPPING = VoucherType.SHIPPING
     ENTIRE_ORDER = VoucherType.ENTIRE_ORDER
     SPECIFIC_PRODUCT = VoucherType.SPECIFIC_PRODUCT
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
-class DiscountStatusEnum(BaseEnum):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class DiscountStatusEnum(graphene.Enum):
     ACTIVE = "active"
     EXPIRED = "expired"
     SCHEDULED = "scheduled"
 
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
-
-class VoucherDiscountType(BaseEnum):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class VoucherDiscountType(graphene.Enum):
     FIXED = "fixed"
     PERCENTAGE = "percentage"
     SHIPPING = "shipping"
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS

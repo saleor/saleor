@@ -18,13 +18,15 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import PermissionEnum
 from ....core.mutations import DeprecatedModelMutation
-from ....core.types import BaseInputObjectType, NonNullList, PermissionGroupError
+from ....core.types import NonNullList, PermissionGroupError
 from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Group
 
 
-class PermissionGroupInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_USERS)
+class PermissionGroupInput(graphene.InputObjectType):
     add_permissions = NonNullList(
         PermissionEnum,
         description="List of permission code names to assign to this group.",
@@ -39,9 +41,6 @@ class PermissionGroupInput(BaseInputObjectType):
         graphene.ID, description="List of channels to assign to this group."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
-
 
 class PermissionGroupCreateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=True)
@@ -53,32 +52,10 @@ class PermissionGroupCreateInput(PermissionGroupInput):
         required=False,
     )
 
+
+class PermissionGroupMutationBase(DeprecatedModelMutation):
     class Meta:
-        doc_category = DOC_CATEGORY_USERS
-
-
-class PermissionGroupCreate(DeprecatedModelMutation):
-    class Arguments:
-        input = PermissionGroupCreateInput(
-            description="Input fields to create permission group.", required=True
-        )
-
-    class Meta:
-        description = (
-            "Create new permission group. "
-            "Apps are not allowed to perform this mutation."
-        )
-        doc_category = DOC_CATEGORY_USERS
-        model = models.Group
-        object_type = Group
-        permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = PermissionGroupError
-        error_type_field = "permission_group_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PERMISSION_GROUP_CREATED,
-            )
-        ]
+        abstract = True
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
@@ -270,3 +247,23 @@ class PermissionGroupCreate(DeprecatedModelMutation):
         """Create ValidationError and add it to error list."""
         error = ValidationError(message=msg, code=code, params=params)
         errors[field].append(error)
+
+
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events({WebhookEventAsyncType.PERMISSION_GROUP_CREATED})
+class PermissionGroupCreate(PermissionGroupMutationBase):
+    class Arguments:
+        input = PermissionGroupCreateInput(
+            description="Input fields to create permission group.", required=True
+        )
+
+    class Meta:
+        description = (
+            "Create new permission group. "
+            "Apps are not allowed to perform this mutation."
+        )
+        model = models.Group
+        object_type = Group
+        permissions = (AccountPermissions.MANAGE_STAFF,)
+        error_type_class = PermissionGroupError
+        error_type_field = "permission_group_errors"

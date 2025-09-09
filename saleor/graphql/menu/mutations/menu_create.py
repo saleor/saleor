@@ -7,10 +7,11 @@ from ....permission.enums import MenuPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.doc_category import DOC_CATEGORY_MENU
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import MenuError, NonNullList
-from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_slug_and_generate_if_needed
+from ...directives import doc, webhook_events
 from ...page.types import Page
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import Category, Collection
@@ -27,6 +28,8 @@ class MenuCreateInput(graphene.InputObjectType):
     items = NonNullList(MenuItemInput, description="List of menu items.")
 
 
+@doc(category=DOC_CATEGORY_MENU)
+@webhook_events(async_events={WebhookEventAsyncType.MENU_CREATED})
 class MenuCreate(DeprecatedModelMutation):
     class Arguments:
         input = MenuCreateInput(
@@ -40,12 +43,6 @@ class MenuCreate(DeprecatedModelMutation):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.MENU_CREATED,
-                description="A menu was created.",
-            ),
-        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

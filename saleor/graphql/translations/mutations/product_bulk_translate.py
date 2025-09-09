@@ -1,28 +1,21 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ....permission.enums import SitePermissions
 from ....product import models
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import LanguageCodeEnum, ProductTranslateErrorCode
-from ...core.types import (
-    BaseInputObjectType,
-    BaseObjectType,
-    NonNullList,
-    ProductBulkTranslateError,
-)
-from ...core.utils import (
-    WebhookEventAsyncType,
-    WebhookEventInfo,
-    from_global_id_or_error,
-)
+from ...core.types import NonNullList, ProductBulkTranslateError
+from ...core.utils import WebhookEventAsyncType, from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...directives import doc, webhook_events
 from ...translations.types import ProductTranslation
 from .utils import BaseBulkTranslateMutation, TranslationInput
 
 
-class ProductBulkTranslateResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductBulkTranslateResult(graphene.ObjectType):
     translation = graphene.Field(
         ProductTranslation, description="Product translation data."
     )
@@ -32,11 +25,9 @@ class ProductBulkTranslateResult(BaseObjectType):
         description="List of errors occurred on translation attempt.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ProductBulkTranslateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductBulkTranslateInput(graphene.InputObjectType):
     id = graphene.ID(
         required=False,
         description="Product ID.",
@@ -53,15 +44,19 @@ class ProductBulkTranslateInput(BaseInputObjectType):
         description="Translation fields.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    }
+)
 class ProductBulkTranslate(BaseBulkTranslateMutation):
     results = NonNullList(
         ProductBulkTranslateResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the translations.",
     )
 
@@ -81,16 +76,6 @@ class ProductBulkTranslate(BaseBulkTranslateMutation):
         result_type = ProductBulkTranslateResult
         error_type_class = ProductBulkTranslateError
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.TRANSLATION_CREATED,
-                description="Called when a translation was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.TRANSLATION_UPDATED,
-                description="Called when a translation was updated.",
-            ),
-        ]
 
     @classmethod
     def clean_translations(cls, data_inputs, index_error_map):

@@ -12,8 +12,10 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError, Upload
 from ....core.validators.file import clean_image_file
+from ....directives import doc
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class UserAvatarUpdate(BaseMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
@@ -29,7 +31,6 @@ class UserAvatarUpdate(BaseMutation):
             "as a `multipart` request. More detailed specs of the upload format can be "
             "found here: https://github.com/jaydenseric/graphql-multipart-request-spec"
         )
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)

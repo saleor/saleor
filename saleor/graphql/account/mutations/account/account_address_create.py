@@ -14,7 +14,7 @@ from ....core.descriptions import ADDED_IN_319
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import AddressTypeEnum
 from ...i18n import I18nMixin
@@ -22,9 +22,24 @@ from ...mixins import AddressMetadataMixin, AppImpersonateMixin
 from ...types import Address, AddressInput, User
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.CUSTOMER_UPDATED,
+        WebhookEventAsyncType.ADDRESS_CREATED,
+    }
+)
 class AccountAddressCreate(
     AddressMetadataMixin, DeprecatedModelMutation, I18nMixin, AppImpersonateMixin
 ):
+    """Create a new address for the customer.
+
+    Requires one of following set of permissions:
+      AUTHENTICATED_USER
+    or
+      AUTHENTICATED_APP + IMPERSONATE_USER
+    """
+
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )
@@ -53,12 +68,6 @@ class AccountAddressCreate(
 
     class Meta:
         auto_permission_message = False
-        description = (
-            "Create a new address for the customer.\n\n"
-            "Requires one of following set of permissions: "
-            "AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER."
-        )
-        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         error_type_class = AccountError
@@ -67,16 +76,6 @@ class AccountAddressCreate(
             AuthorizationFilters.AUTHENTICATED_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         )
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
-                description="A customer account was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ADDRESS_CREATED,
-                description="An address was created.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

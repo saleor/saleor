@@ -14,6 +14,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Order
@@ -36,6 +37,7 @@ def clean_order_capture(
     return payment
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderCapture(BaseMutation):
     order = graphene.Field(Order, description="Captured order.")
 
@@ -47,7 +49,6 @@ class OrderCapture(BaseMutation):
 
     class Meta:
         description = "Capture an order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

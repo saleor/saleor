@@ -16,14 +16,17 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import LanguageCodeEnum
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError, NonNullList
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....site.dataloaders import get_site_promise
 from ...types import User
 from .base import AccountBaseInput
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class AccountRegisterInput(AccountBaseInput):
+    """Fields required to create a user."""
+
     email = graphene.String(description="The email address of the user.", required=True)
     password = graphene.String(description="Password.", required=True)
     first_name = graphene.String(description="Given name.")
@@ -52,12 +55,18 @@ class AccountRegisterInput(AccountBaseInput):
         )
     )
 
-    class Meta:
-        description = "Fields required to create a user."
-        doc_category = DOC_CATEGORY_USERS
 
-
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.CUSTOMER_CREATED,
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
+    }
+)
 class AccountRegister(DeprecatedModelMutation):
+    """Register a new user."""
+
     class Arguments:
         input = AccountRegisterInput(
             description="Fields required to create a user.", required=True
@@ -68,30 +77,11 @@ class AccountRegister(DeprecatedModelMutation):
     )
 
     class Meta:
-        description = "Register a new user."
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         model = models.User
         object_type = User
         support_meta_field = True
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_CREATED,
-                description="A new customer account was created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for account confirmation.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
-                description=(
-                    "An user confirmation was requested. "
-                    "This event is always sent regardless of settings."
-                ),
-            ),
-        ]
 
     @classmethod
     def mutate(cls, root, info: ResolveInfo, **data):

@@ -6,13 +6,15 @@ from ...core import ResolveInfo
 from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import BaseInputObjectType, NonNullList, ShippingError
+from ...core.types import NonNullList, ShippingError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import ShippingZone
 from .base import ShippingZoneMixin
 
 
-class ShippingZoneCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_SHIPPING)
+class ShippingZoneCreateInput(graphene.InputObjectType):
     name = graphene.String(
         description="Shipping zone's name. Visible only to the staff."
     )
@@ -35,10 +37,8 @@ class ShippingZoneCreateInput(BaseInputObjectType):
         description="List of channels to assign to the shipping zone.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
 
-
+@doc(category=DOC_CATEGORY_SHIPPING)
 class ShippingZoneCreate(ShippingZoneMixin, DeprecatedModelMutation):
     class Arguments:
         input = ShippingZoneCreateInput(

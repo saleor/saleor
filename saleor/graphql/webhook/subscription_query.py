@@ -3,15 +3,17 @@ from typing import cast
 
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_snake_case
-from graphql import get_default_backend, validate
-from graphql.error import GraphQLSyntaxError
-from graphql.language.ast import (
-    Document,
-    Field,
-    FragmentDefinition,
-    FragmentSpread,
-    InlineFragment,
-    OperationDefinition,
+from graphql import (
+    DocumentNode,
+    FieldNode,
+    FragmentDefinitionNode,
+    FragmentSpreadNode,
+    GraphQLError,
+    GraphQLSyntaxError,
+    InlineFragmentNode,
+    OperationDefinitionNode,
+    parse,
+    validate,
 )
 
 from ...webhook.error_codes import WebhookErrorCode
@@ -26,7 +28,7 @@ class SubscriptionQuery:
     def __init__(self, query: str):
         self.query: str = query
         self.is_valid: bool = False
-        self.ast: Document = Document("")
+        self.ast: DocumentNode = DocumentNode()
         self.events: list[str] = []
         self.error_code: str | None = None
         self.errors = self.validate_query()
@@ -43,28 +45,34 @@ class SubscriptionQuery:
             return []
         subscription = self._get_subscription(self.ast)
         # subscription is not optional as validation from init already passed
-        subscription = cast(OperationDefinition, subscription)
+        subscription = cast(OperationDefinitionNode, subscription)
 
         field_names = [
-            selection.name.value for selection in subscription.selection_set.selections
+            selection.name.value
+            for selection in subscription.selection_set.selections
+            if isinstance(selection, FieldNode | FragmentSpreadNode)
         ]
         # Skip if there is non-filterable subscription
         if len(field_names) > 1 or set(field_names) == {"event"}:
             return []
 
         selection = subscription.selection_set.selections[0]
-        if not selection.arguments:
-            return []
-        channels = []
-        for arg in selection.arguments:
-            argument_name = arg.name.value
-            argument_values = getattr(arg.value, "values", [])
-            if argument_name == "channels":
-                channels = [value.value for value in argument_values]
-                break
-        return channels
+        if isinstance(selection, FieldNode):
+            if not selection.arguments:
+                return []
+            channels = []
+            for arg in selection.arguments:
+                argument_name = arg.name.value
+                argument_values = getattr(arg.value, "values", [])
+                if argument_name == "channels":
+                    channels = [value.value for value in argument_values]
+                    break
+            return channels
+        return []
 
-    def _check_if_invalid_top_field_selection(self, subscription: OperationDefinition):
+    def _check_if_invalid_top_field_selection(
+        self, subscription: OperationDefinitionNode
+    ):
         """Check if subscription selects only one top field.
 
         Filterable subscription can select only one top field. If more than one field
@@ -72,19 +80,20 @@ class SubscriptionQuery:
         """
         is_invalid = False
         field_names = [
-            selection.name.value for selection in subscription.selection_set.selections
+            selection.name.value
+            for selection in subscription.selection_set.selections
+            if isinstance(selection, FieldNode | FragmentSpreadNode)
         ]
         if len(field_names) > 1 and set(field_names) != {"event"}:
             is_invalid = True
         return is_invalid
 
-    def validate_query(self) -> list[GraphQLSyntaxError | ValidationError]:
+    def validate_query(self) -> list[GraphQLError]:
         from ..api import schema
 
-        graphql_backend = get_default_backend()
         try:
-            document = graphql_backend.document_from_string(schema, self.query)
-            self.ast = document.document_ast
+            document = parse(self.query)
+            self.ast = document
             errors = validate(schema, self.ast)
         except GraphQLSyntaxError as e:
             self.error_code = WebhookErrorCode.SYNTAX.value
@@ -98,18 +107,18 @@ class SubscriptionQuery:
         if not subscription:
             self.error_code = WebhookErrorCode.MISSING_SUBSCRIPTION.value
             return [
-                ValidationError(
-                    message="Subscription operation can't be found.",
-                    code=WebhookErrorCode.MISSING_SUBSCRIPTION.value,
+                GraphQLError(
+                    "Subscription operation can't be found.",
+                    extensions={"code": WebhookErrorCode.MISSING_SUBSCRIPTION.value},
                 )
             ]
 
         if self._check_if_invalid_top_field_selection(subscription):
             self.error_code = WebhookErrorCode.INVALID.value
             return [
-                ValidationError(
-                    message="Subscription must select only one top field.",
-                    code=WebhookErrorCode.INVALID.value,
+                GraphQLError(
+                    "Subscription must select only one top field.",
+                    extensions={"code": WebhookErrorCode.INVALID.value},
                 )
             ]
 
@@ -117,7 +126,7 @@ class SubscriptionQuery:
             self.events = self.get_events_from_subscription(subscription)
         except ValidationError as err:
             self.error_code = err.code
-            return [err]
+            return [GraphQLError(str(err), extensions={"code": err.code})]
 
         self.is_valid = True
         return []
@@ -160,10 +169,10 @@ class SubscriptionQuery:
         return sorted(map(to_snake_case, events))
 
     @staticmethod
-    def _get_subscription(ast: Document) -> OperationDefinition | None:
+    def _get_subscription(ast: DocumentNode) -> OperationDefinitionNode | None:
         for definition in ast.definitions:
             if (
-                hasattr(definition, "operation")
+                isinstance(definition, OperationDefinitionNode)
                 and definition.operation == "subscription"
             ):
                 return definition
@@ -171,21 +180,21 @@ class SubscriptionQuery:
 
     @staticmethod
     def _get_event_types_from_subscription(
-        subscription: OperationDefinition,
-    ) -> list[Field]:
+        subscription: OperationDefinitionNode,
+    ) -> list[FieldNode]:
         return [
             field
             for field in subscription.selection_set.selections
-            if field.name.value == "event" and isinstance(field, Field)
+            if isinstance(field, FieldNode) and field.name.value == "event"
         ]
 
     @staticmethod
     def _get_events_from_field(
-        field: Field | FragmentDefinition,
+        field: FieldNode | FragmentDefinitionNode,
         events: dict[str, IsFragment],
     ) -> dict[str, IsFragment]:
         if (
-            isinstance(field, FragmentDefinition)
+            isinstance(field, FragmentDefinitionNode)
             and field.type_condition
             and field.type_condition.name.value != "Event"
         ):
@@ -194,18 +203,20 @@ class SubscriptionQuery:
 
         if field.selection_set:
             for f in field.selection_set.selections:
-                if isinstance(f, InlineFragment) and f.type_condition:
+                if isinstance(f, InlineFragmentNode) and f.type_condition:
                     events[f.type_condition.name.value] = IsFragment.FALSE
-                if isinstance(f, FragmentSpread):
+                if isinstance(f, FragmentSpreadNode):
                     events[f.name.value] = IsFragment.TRUE
             return events
 
         return events
 
     @staticmethod
-    def _get_fragment_definitions(ast: Document) -> dict[str, FragmentDefinition]:
-        fragments: dict[str, FragmentDefinition] = {}
+    def _get_fragment_definitions(
+        ast: DocumentNode,
+    ) -> dict[str, FragmentDefinitionNode]:
+        fragments: dict[str, FragmentDefinitionNode] = {}
         for definition in ast.definitions:
-            if isinstance(definition, FragmentDefinition):
+            if isinstance(definition, FragmentDefinitionNode):
                 fragments[definition.name.value] = definition
         return fragments

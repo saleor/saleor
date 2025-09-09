@@ -2924,18 +2924,18 @@ def test_create_deliveries_for_subscriptions_unsubscribable_event(
     assert len(deliveries) == 0
 
 
-@patch("saleor.graphql.webhook.subscription_payload.get_default_backend")
+@patch("saleor.graphql.webhook.subscription_payload.parse")
 @patch.object(logger, "info")
 def test_create_deliveries_for_subscriptions_document_executed_with_error(
     mocked_task_logger,
-    mocked_backend,
+    mocked_parse,
     product,
     subscription_product_updated_webhook,
 ):
     # given
     webhooks = [subscription_product_updated_webhook]
     event_type = WebhookEventAsyncType.ORDER_CREATED
-    mocked_backend.document_from_string.execute.errors = "errors"
+    mocked_parse.execute.errors = "errors"
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
     # then

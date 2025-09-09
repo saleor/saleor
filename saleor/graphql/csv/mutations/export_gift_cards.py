@@ -8,15 +8,16 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
-from ...core.types import BaseInputObjectType, ExportError, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...core.types import ExportError, NonNullList
+from ...directives import doc, webhook_events
 from ...giftcard.filters import GiftCardFilterInput
 from ...giftcard.types import GiftCard
 from ..enums import ExportScope, FileTypeEnum
 from .base_export import BaseExportMutation
 
 
-class ExportGiftCardsInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+class ExportGiftCardsInput(graphene.InputObjectType):
     scope = ExportScope(
         description="Determine which gift cards should be exported.", required=True
     )
@@ -30,10 +31,14 @@ class ExportGiftCardsInput(BaseInputObjectType):
     )
     file_type = FileTypeEnum(description="Type of exported file.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_GIFT_CARDS
 
-
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
+    }
+)
 class ExportGiftCards(BaseExportMutation):
     class Arguments:
         input = ExportGiftCardsInput(
@@ -42,19 +47,8 @@ class ExportGiftCards(BaseExportMutation):
 
     class Meta:
         description = "Export gift cards to csv file."
-        doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = ExportError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for the exported file.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
-                description="A notification for the exported file.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

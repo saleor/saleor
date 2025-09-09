@@ -5,7 +5,6 @@ import pytest
 from django.core.serializers.json import DjangoJSONEncoder
 
 from .....core.jwt import create_access_token
-from ....api import backend, schema
 from ....tests.utils import get_graphql_content
 from ....views import GraphQLView
 from .utils import (
@@ -39,7 +38,7 @@ def test_query_remove_SaleorContext_memory_cycles(rf, staff_user):
         # when
         # Execute the query as staff user.
         content = get_graphql_content(
-            GraphQLView(backend=backend, schema=schema).handle_query(
+            GraphQLView().handle_query(
                 rf.post(
                     path="/graphql/",
                     data=data,

@@ -16,6 +16,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
 from ...core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -24,6 +25,7 @@ from ..types import Checkout
 from ..utils import prepare_insufficient_stock_checkout_validation_error
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderCreateFromCheckoutError(Error):
     code = OrderCreateFromCheckoutErrorCode(
         description="The error code.", required=True
@@ -39,10 +41,23 @@ class OrderCreateFromCheckoutError(Error):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
+@webhook_events(
+    sync_events={
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+    },
+    async_events={
+        WebhookEventAsyncType.ORDER_CREATED,
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.ORDER_UPDATED,
+        WebhookEventAsyncType.ORDER_PAID,
+        WebhookEventAsyncType.ORDER_FULLY_PAID,
+        WebhookEventAsyncType.ORDER_CONFIRMED,
+    },
+)
 class OrderCreateFromCheckout(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
 
@@ -77,65 +92,11 @@ class OrderCreateFromCheckout(BaseMutation):
             "Create new order from existing checkout. Requires the "
             "following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS."
         )
-        doc_category = DOC_CATEGORY_ORDERS
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError
         support_meta_field = True
         support_private_meta_field = True
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                description=(
-                    "Optionally triggered when cached external shipping methods are "
-                    "invalid."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-                description=(
-                    "Optionally triggered when cached filtered shipping methods are "
-                    "invalid."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ORDER_CREATED,
-                description="Triggered when order is created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for order placement.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A staff notification for order placement.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ORDER_UPDATED,
-                description=(
-                    "Triggered when order received the update after placement."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ORDER_PAID,
-                description="Triggered when newly created order is paid.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ORDER_FULLY_PAID,
-                description="Triggered when newly created order is fully paid.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ORDER_CONFIRMED,
-                description=(
-                    "Optionally triggered when newly created order are automatically "
-                    "marked as confirmed."
-                ),
-            ),
-        ]
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):  # type: ignore[override]

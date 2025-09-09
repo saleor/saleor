@@ -9,6 +9,7 @@ from ..core.filters import (
     ListObjectTypeFilter,
     MetadataFilterBase,
 )
+from ..directives import doc
 from ..utils.filters import filter_by_id
 from .types import TaxClass, TaxConfiguration
 
@@ -30,9 +31,9 @@ class TaxConfigurationFilter(MetadataFilterBase):
         fields = []
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxConfigurationFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_TAXES
         filterset_class = TaxConfigurationFilter
 
 
@@ -47,7 +48,7 @@ class TaxClassFilter(MetadataFilterBase):
         fields = []
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxClassFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_TAXES
         filterset_class = TaxClassFilter

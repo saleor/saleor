@@ -14,27 +14,26 @@ from ....webhook.validators import (
 from ...app.dataloaders import get_app_promise
 from ...app.utils import validate_app_is_not_removed
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import BaseInputObjectType, NonNullList, WebhookError
+from ...core.types import NonNullList, WebhookError
 from ...core.utils import raise_validation_error
+from ...directives import doc
 from .. import enums
 from ..mixins import NotifyUserEventValidationMixin
 from ..subscription_query import SubscriptionQuery
 from ..types import Webhook
 
 
-class WebhookCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_WEBHOOKS)
+class WebhookCreateInput(graphene.InputObjectType):
     name = graphene.String(description="The name of the webhook.", required=False)
     target_url = graphene.String(description="The url to receive the payload.")
     events = NonNullList(
         enums.WebhookEventTypeEnum,
-        description=(
-            f"The events that webhook wants to subscribe. {DEPRECATED_IN_3X_INPUT} "
-            "Use `asyncEvents` or `syncEvents` instead."
-        ),
+        description="The events that webhook wants to subscribe.",
+        deprecation_reason="Use `asyncEvents` or `syncEvents` instead.",
     )
     async_events = NonNullList(
         enums.WebhookEventTypeAsyncEnum,
@@ -52,9 +51,8 @@ class WebhookCreateInput(BaseInputObjectType):
         description="Determine if webhook will be set active or not.", required=False
     )
     secret_key = graphene.String(
-        description="The secret key used to create a hash signature with each payload."
-        f"{DEPRECATED_IN_3X_INPUT} As of Saleor 3.5, webhook payloads default to "
-        "signing using a verifiable JWS.",
+        description="The secret key used to create a hash signature with each payload.",
+        deprecation_reason="As of Saleor 3.5, webhook payloads default to signing using a verifiable JWS.",
         required=False,
     )
     query = graphene.String(
@@ -68,9 +66,6 @@ class WebhookCreateInput(BaseInputObjectType):
         f"Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.",
         required=False,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_WEBHOOKS
 
 
 class WebhookCreate(DeprecatedModelMutation, NotifyUserEventValidationMixin):

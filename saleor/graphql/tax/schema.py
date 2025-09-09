@@ -13,6 +13,7 @@ from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from .filters import TaxClassFilterInput, TaxConfigurationFilterInput
 from .mutations import (
     TaxClassCreate,
@@ -34,78 +35,92 @@ from .types import (
 
 
 class TaxQueries(graphene.ObjectType):
-    tax_configuration = PermissionsField(
-        TaxConfiguration,
-        description="Look up a tax configuration.",
-        id=graphene.Argument(
-            graphene.ID, description="ID of a tax configuration.", required=True
+    tax_configuration = doc(
+        DOC_CATEGORY_TAXES,
+        PermissionsField(
+            TaxConfiguration,
+            description="Look up a tax configuration.",
+            id=graphene.Argument(
+                graphene.ID, description="ID of a tax configuration.", required=True
+            ),
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
         ),
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        doc_category=DOC_CATEGORY_TAXES,
     )
-    tax_configurations = FilterConnectionField(
-        TaxConfigurationCountableConnection,
-        description="List of tax configurations.",
-        filter=TaxConfigurationFilterInput(
-            description="Filtering options for tax configurations."
+    tax_configurations = doc(
+        DOC_CATEGORY_TAXES,
+        FilterConnectionField(
+            TaxConfigurationCountableConnection,
+            description="List of tax configurations.",
+            filter=TaxConfigurationFilterInput(
+                description="Filtering options for tax configurations."
+            ),
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
         ),
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        doc_category=DOC_CATEGORY_TAXES,
     )
-    tax_class = PermissionsField(
-        TaxClass,
-        description="Look up a tax class.",
-        id=graphene.Argument(
-            graphene.ID, description="ID of a tax class.", required=True
+    tax_class = doc(
+        DOC_CATEGORY_TAXES,
+        PermissionsField(
+            TaxClass,
+            description="Look up a tax class.",
+            id=graphene.Argument(
+                graphene.ID, description="ID of a tax class.", required=True
+            ),
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
         ),
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        doc_category=DOC_CATEGORY_TAXES,
     )
-    tax_classes = FilterConnectionField(
-        TaxClassCountableConnection,
-        description="List of tax classes.",
-        sort_by=TaxClassSortingInput(description="Sort tax classes."),
-        filter=TaxClassFilterInput(description="Filtering options for tax classes."),
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        doc_category=DOC_CATEGORY_TAXES,
-    )
-    tax_country_configuration = PermissionsField(
-        TaxCountryConfiguration,
-        country_code=graphene.Argument(
-            CountryCodeEnum,
-            description="Country for which to return tax class rates.",
-            required=True,
+    tax_classes = doc(
+        DOC_CATEGORY_TAXES,
+        FilterConnectionField(
+            TaxClassCountableConnection,
+            description="List of tax classes.",
+            sort_by=TaxClassSortingInput(description="Sort tax classes."),
+            filter=TaxClassFilterInput(
+                description="Filtering options for tax classes."
+            ),
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
         ),
-        description="Tax class rates grouped by country.",
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        doc_category=DOC_CATEGORY_TAXES,
     )
-    tax_country_configurations = PermissionsField(
-        NonNullList(
+    tax_country_configuration = doc(
+        DOC_CATEGORY_TAXES,
+        PermissionsField(
             TaxCountryConfiguration,
-            description="A list of countries with grouped tax class rates.",
-            required=True,
+            country_code=graphene.Argument(
+                CountryCodeEnum,
+                description="Country for which to return tax class rates.",
+                required=True,
+            ),
+            description="Tax class rates grouped by country.",
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
         ),
-        permissions=[
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
-            AuthorizationFilters.AUTHENTICATED_APP,
-        ],
-        doc_category=DOC_CATEGORY_TAXES,
+    )
+    tax_country_configurations = doc(
+        DOC_CATEGORY_TAXES,
+        PermissionsField(
+            NonNullList(
+                TaxCountryConfiguration,
+                description="A list of countries with grouped tax class rates.",
+                required=True,
+            ),
+            permissions=[
+                AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+                AuthorizationFilters.AUTHENTICATED_APP,
+            ],
+        ),
     )
 
     @staticmethod

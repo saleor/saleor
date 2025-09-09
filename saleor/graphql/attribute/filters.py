@@ -31,9 +31,9 @@ from ..core.filters.where_input import (
     StringFilterInput,
     WhereInputObjectType,
 )
-from ..core.types.base import BaseInputObjectType
 from ..core.types.common import NonNullList
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_ids, filter_slug_list, filter_where_by_value_field
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
@@ -150,19 +150,20 @@ class AttributeFilter(MetadataFilterBase):
         )
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeFilterInput(ChannelFilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         filterset_class = AttributeFilter
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeValueFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
         filterset_class = AttributeValueFilter
 
 
-class AttributeInputTypeEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeInputTypeEnumFilterInput(graphene.InputObjectType):
     eq = AttributeInputTypeEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         AttributeInputTypeEnum,
@@ -170,11 +171,9 @@ class AttributeInputTypeEnumFilterInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-class AttributeEntityTypeEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeEntityTypeEnumFilterInput(graphene.InputObjectType):
     eq = AttributeEntityTypeEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         AttributeEntityTypeEnum,
@@ -182,11 +181,9 @@ class AttributeEntityTypeEnumFilterInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-class AttributeTypeEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeTypeEnumFilterInput(graphene.InputObjectType):
     eq = AttributeTypeEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         AttributeTypeEnum,
@@ -194,20 +191,15 @@ class AttributeTypeEnumFilterInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-class MeasurementUnitsEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class MeasurementUnitsEnumFilterInput(graphene.InputObjectType):
     eq = MeasurementUnitsEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         MeasurementUnitsEnum,
         description=FilterInputDescriptions.ONE_OF,
         required=False,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 def filter_attribute_name(qs, _, value):
@@ -296,11 +288,11 @@ class AttributeWhere(MetadataWhereFilterBase):
         )
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeWhereInput(WhereInputObjectType):
     class Meta:
         filterset_class = AttributeWhere
         description = "Where filtering options."
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 class AttributeValueWhere(WhereFilterSet):
@@ -325,8 +317,8 @@ class AttributeValueWhere(WhereFilterSet):
         return filter_where_by_value_field(qs, "slug", value)
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeValueWhereInput(WhereInputObjectType):
     class Meta:
         filterset_class = AttributeValueWhere
         description = "Where filtering options for attribute values."
-        doc_category = DOC_CATEGORY_ATTRIBUTES

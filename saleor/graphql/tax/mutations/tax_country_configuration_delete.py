@@ -8,23 +8,23 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import BaseMutation
 from ...core.types import Error
+from ...directives import doc
 from ..types import TaxCountryConfiguration
 
-TaxCountryConfigurationDeleteErrorCode = graphene.Enum.from_enum(
-    error_codes.TaxCountryConfigurationDeleteErrorCode
+TaxCountryConfigurationDeleteErrorCode = doc(
+    DOC_CATEGORY_TAXES,
+    graphene.Enum.from_enum(error_codes.TaxCountryConfigurationDeleteErrorCode),
 )
-TaxCountryConfigurationDeleteErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxCountryConfigurationDeleteError(Error):
     code = TaxCountryConfigurationDeleteErrorCode(
         description="The error code.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxCountryConfigurationDelete(BaseMutation):
     tax_country_configuration = graphene.Field(
         TaxCountryConfiguration,
@@ -38,7 +38,6 @@ class TaxCountryConfigurationDelete(BaseMutation):
 
     class Meta:
         description = "Remove all tax class rates for a specific country."
-        doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxCountryConfigurationDeleteError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 

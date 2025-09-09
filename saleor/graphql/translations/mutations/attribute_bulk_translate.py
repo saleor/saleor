@@ -1,24 +1,21 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ....attribute import models
 from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeTranslation
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import AttributeTranslateErrorCode, LanguageCodeEnum
-from ...core.types import (
-    AttributeBulkTranslateError,
-    BaseInputObjectType,
-    BaseObjectType,
-    NonNullList,
-)
+from ...core.types import AttributeBulkTranslateError, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...directives import doc
 from .utils import BaseBulkTranslateMutation, NameTranslationInput
 
 
-class AttributeBulkTranslateResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeBulkTranslateResult(graphene.ObjectType):
     translation = graphene.Field(
         AttributeTranslation, description="Attribute translation data."
     )
@@ -28,11 +25,9 @@ class AttributeBulkTranslateResult(BaseObjectType):
         description="List of errors occurred on translation attempt.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
-class AttributeBulkTranslateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+class AttributeBulkTranslateInput(graphene.InputObjectType):
     id = graphene.ID(
         required=False,
         description="Attribute ID.",
@@ -49,15 +44,13 @@ class AttributeBulkTranslateInput(BaseInputObjectType):
         description="Translation fields.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
 class AttributeBulkTranslate(BaseBulkTranslateMutation):
     results = NonNullList(
         AttributeBulkTranslateResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the translations.",
     )
 

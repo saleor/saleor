@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.text import slugify
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 from text_unidecode import unidecode
 
 from ....attribute import AttributeEntityType, AttributeInputType

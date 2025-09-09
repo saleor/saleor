@@ -6,6 +6,8 @@ from typing import cast
 
 import graphene
 from graphene import relay
+from graphene_federation import key
+from graphql_relay import from_global_id
 from promise import Promise
 
 from ....attribute import models as attribute_models
@@ -62,10 +64,10 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_321, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ReportingPeriod
-from ...core.federation import federated_entity, resolve_federation_references
+from ...core.federation import resolve_federation_references
 from ...core.fields import (
     ConnectionField,
     FilterConnectionField,
@@ -75,7 +77,6 @@ from ...core.fields import (
 from ...core.scalars import Date, DateTime
 from ...core.tracing import traced_resolver
 from ...core.types import (
-    BaseObjectType,
     Image,
     ModelObjectType,
     NonNullList,
@@ -88,6 +89,7 @@ from ...core.types import (
 from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_query
+from ...directives import doc
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -167,7 +169,7 @@ destination_address_argument = graphene.Argument(
 )
 
 
-class BasePricingInfo(BaseObjectType):
+class BasePricingInfo(graphene.ObjectType):
     on_sale = graphene.Boolean(description="Whether it is in sale or not.")
     discount = graphene.Field(
         TaxedMoney, description="The discount amount if in sale (null otherwise)."
@@ -189,10 +191,10 @@ class BasePricingInfo(BaseObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents base type for pricing information of a product."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class VariantPricingInfo(BasePricingInfo):
     price = graphene.Field(
         TaxedMoney, description="The price, with any discount subtracted."
@@ -217,10 +219,10 @@ class VariantPricingInfo(BasePricingInfo):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents availability of a variant in the storefront."
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
         description="Determines whether displayed prices should include taxes.",
@@ -249,11 +251,11 @@ class ProductPricingInfo(BasePricingInfo):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents availability of a product in the storefront."
 
 
-class PreorderData(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class PreorderData(graphene.ObjectType):
     global_threshold = PermissionsField(
         graphene.Int,
         required=False,
@@ -269,7 +271,6 @@ class PreorderData(BaseObjectType):
     end_date = DateTime(required=False, description="Preorder end date.")
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents preorder settings for product variant."
 
     @staticmethod
@@ -281,7 +282,7 @@ class PreorderData(BaseObjectType):
         return root.global_sold_units
 
 
-@federated_entity("id channel")
+@key("id channel")
 class ProductVariant(ChannelContextType[models.ProductVariant]):
     id = graphene.GlobalID(required=True, description="The ID of the product variant.")
     name = graphene.String(
@@ -379,10 +380,8 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         address=destination_address_argument,
         country_code=graphene.Argument(
             CountryCodeEnum,
-            description=(
-                "Two-letter ISO 3166-1 country code. "
-                f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
-            ),
+            description="Two-letter ISO 3166-1 country code.",
+            deprecation_reason="Use `address` argument instead.",
         ),
         permissions=[
             ProductPermissions.MANAGE_PRODUCTS,
@@ -404,9 +403,9 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                 "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
                 "from a warehouse operating in shipping zones that contain this "
                 "country will be returned. Otherwise, it will return the maximum "
-                "quantity from all shipping zones. "
-                f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
+                "quantity from all shipping zones."
             ),
+            deprecation_reason="Use `address` argument instead.",
         ),
     )
     preorder = graphene.Field(
@@ -881,13 +880,13 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         return [variants.get(root_id) for root_id in roots_ids]
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         node = ProductVariant
 
 
-@federated_entity("id channel")
+@key("id channel")
 class Product(ChannelContextType[models.Product]):
     id = graphene.GlobalID(required=True, description="The ID of the product.")
     seo_title = graphene.String(description="SEO title of the product.")
@@ -995,10 +994,8 @@ class Product(ChannelContextType[models.Product]):
     product_variants = FilterConnectionField(
         ProductVariantCountableConnection,
         filter=ProductVariantFilterInput(
-            description=(
-                f"Filtering options for product variant. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
+            description="Filtering options for product variant.",
+            deprecation_reason="Use `where` filter instead.",
         ),
         where=ProductVariantWhereInput(
             description="Where filtering options for product variants."
@@ -1491,7 +1488,7 @@ class Product(ChannelContextType[models.Product]):
             product_variants,
         ) -> ProductVariant | None:
             if id:
-                id_type, variant_id = graphene.Node.from_global_id(id)
+                id_type, variant_id = from_global_id(id)
                 if id_type != "ProductVariant":
                     return None
 
@@ -1762,13 +1759,13 @@ class Product(ChannelContextType[models.Product]):
         return [products.get(root_id) for root_id in roots_ids]
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         node = Product
 
 
-@federated_entity("id")
+@key("id")
 class ProductType(ModelObjectType[models.ProductType]):
     id = graphene.GlobalID(required=True, description="The ID of the product type.")
     name = graphene.String(required=True, description="Name of the product type.")
@@ -1834,10 +1831,8 @@ class ProductType(ModelObjectType[models.ProductType]):
     available_attributes = FilterConnectionField(
         AttributeCountableConnection,
         filter=AttributeFilterInput(
-            description=(
-                "Filtering options for attributes of this product type. "
-                f"{DEPRECATED_IN_3X_INPUT} Use `where` filter instead."
-            )
+            description="Filtering options for attributes of this product type.",
+            deprecation_reason="Use `where` filter instead.",
         ),
         where=AttributeWhereInput(
             description="Where filtering options for attributes of this product type."
@@ -2046,13 +2041,13 @@ class ProductType(ModelObjectType[models.ProductType]):
         )
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductTypeCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         node = ProductType
 
 
-@federated_entity("id")
+@key("id")
 class ProductMedia(ModelObjectType[models.ProductMedia]):
     id = graphene.GlobalID(
         required=True, description="The unique ID of the product media."
@@ -2117,7 +2112,8 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         return graphene.Node.to_global_id("Product", root.product_id)
 
 
-class ProductImage(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductImage(graphene.ObjectType):
     id = graphene.ID(required=True, description="The ID of the image.")
     alt = graphene.String(description="The alt text of the image.")
     sort_order = graphene.Int(
@@ -2133,7 +2129,6 @@ class ProductImage(BaseObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents a product image."
 
     @staticmethod

@@ -1,4 +1,5 @@
 import graphene
+from graphene_federation import key
 
 from ...attribute import models as attribute_models
 from ...page import models
@@ -20,13 +21,14 @@ from ..core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ..core.descriptions import RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_PAGES
-from ..core.federation import federated_entity, resolve_federation_references
+from ..core.federation import resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.scalars import Date, DateTime
 from ..core.types import ModelObjectType, NonNullList
 from ..core.types.context import ChannelContextType
+from ..directives import doc
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
@@ -43,7 +45,7 @@ from .dataloaders import (
 )
 
 
-@federated_entity("id")
+@key("id")
 class PageType(ModelObjectType[models.PageType]):
     id = graphene.GlobalID(required=True, description="ID of the page type.")
     name = graphene.String(required=True, description="Name of the page type.")
@@ -54,8 +56,8 @@ class PageType(ModelObjectType[models.PageType]):
     available_attributes = FilterConnectionField(
         AttributeCountableConnection,
         filter=AttributeFilterInput(
-            description="Filtering options for attributes. "
-            f"{DEPRECATED_IN_3X_INPUT} Use `where` filter instead."
+            description="Filtering options for attributes.",
+            deprecation_reason="Use `where` filter instead.",
         ),
         where=AttributeWhereInput(
             description="Where filtering options for attributes."
@@ -141,9 +143,9 @@ class PageType(ModelObjectType[models.PageType]):
         )
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageTypeCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PAGES
         node = PageType
 
 
@@ -294,7 +296,7 @@ class Page(ChannelContextType[models.Page]):
         )
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PAGES
         node = Page

@@ -11,18 +11,20 @@ from ...attribute.types import AttributeValueInput
 from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.fields import JSONString
 from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import DateTime
-from ...core.types import BaseInputObjectType, NonNullList, PageError, SeoInput
+from ...core.types import NonNullList, PageError, SeoInput
 from ...core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Page
 
 
-class PageInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PAGES)
+class PageInput(graphene.InputObjectType):
     slug = graphene.String(description="Page internal name.")
     title = graphene.String(description="Page title.")
     content = JSONString(description="Page content." + RICH_CONTENT)
@@ -31,25 +33,17 @@ class PageInput(BaseInputObjectType):
         description="Determines if page is visible in the storefront."
     )
     publication_date = graphene.String(
-        description=(
-            f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT} "
-            "Use `publishedAt` field instead."
-        )
+        description="Publication date. ISO 8601 standard.",
+        deprecation_reason="Use `publishedAt` field instead.",
     )
     published_at = DateTime(description="Publication date time. ISO 8601 standard.")
     seo = SeoInput(description="Search engine optimization fields.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PAGES
 
 
 class PageCreateInput(PageInput):
     page_type = graphene.ID(
         description="ID of the page type that page belongs to.", required=True
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PAGES
 
 
 class PageCreate(DeprecatedModelMutation):

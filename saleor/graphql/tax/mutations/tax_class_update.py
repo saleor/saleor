@@ -7,15 +7,18 @@ from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import DeprecatedModelMutation
-from ...core.types import BaseInputObjectType, Error, NonNullList
+from ...core.types import Error, NonNullList
 from ...core.utils import get_duplicates_items
+from ...directives import doc
 from ..types import TaxClass
 
-TaxClassUpdateErrorCode = graphene.Enum.from_enum(error_codes.TaxClassUpdateErrorCode)
-TaxClassUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES
+TaxClassUpdateErrorCode = doc(
+    DOC_CATEGORY_TAXES, graphene.Enum.from_enum(error_codes.TaxClassUpdateErrorCode)
+)
 
 
-class CountryRateUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class CountryRateUpdateInput(graphene.InputObjectType):
     country_code = CountryCodeEnum(
         description="Country in which this rate applies.", required=True
     )
@@ -27,10 +30,8 @@ class CountryRateUpdateInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxClassUpdateError(Error):
     code = TaxClassUpdateErrorCode(description="The error code.", required=True)
     country_codes = NonNullList(
@@ -39,11 +40,9 @@ class TaxClassUpdateError(Error):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
-class TaxClassUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_TAXES)
+class TaxClassUpdateInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the tax class.")
     update_country_rates = NonNullList(
         CountryRateUpdateInput,
@@ -59,10 +58,8 @@ class TaxClassUpdateInput(BaseInputObjectType):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_TAXES
 
-
+@doc(category=DOC_CATEGORY_TAXES)
 class TaxClassUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of the tax class.", required=True)

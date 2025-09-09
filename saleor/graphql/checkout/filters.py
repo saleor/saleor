@@ -20,6 +20,7 @@ from ..core.filters import (
 )
 from ..core.types import DateRangeInput
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from ..discount.filters import DiscountedObjectWhere
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_range_field, filter_where_by_numeric_field
@@ -160,9 +161,9 @@ class CheckoutFilter(MetadataFilterBase):
         fields = ["customer", "created", "search"]
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
         filterset_class = CheckoutFilter
 
 

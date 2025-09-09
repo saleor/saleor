@@ -1,6 +1,8 @@
 from ...site import GiftCardSettingsExpiryType
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.enums import to_enum
+from ..directives import doc
 
-GiftCardSettingsExpiryTypeEnum = to_enum(GiftCardSettingsExpiryType)
-GiftCardSettingsExpiryTypeEnum.doc_category = DOC_CATEGORY_GIFT_CARDS
+GiftCardSettingsExpiryTypeEnum = doc(
+    DOC_CATEGORY_GIFT_CARDS, to_enum(GiftCardSettingsExpiryType)
+)

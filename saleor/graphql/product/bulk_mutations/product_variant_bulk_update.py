@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import F, Subquery
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
+from graphql_relay import from_global_id
 
 from ....core.tracing import traced_atomic_transaction
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
@@ -21,8 +22,9 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types import BaseInputObjectType, NonNullList, ProductVariantBulkError
+from ...core.types import NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
+from ...directives import doc
 from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
@@ -40,7 +42,8 @@ from .product_variant_bulk_create import (
 )
 
 
-class ProductVariantStocksUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductVariantStocksUpdateInput(graphene.InputObjectType):
     create = NonNullList(
         StockInput,
         description="List of warehouses to create stocks.",
@@ -57,11 +60,9 @@ class ProductVariantStocksUpdateInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ChannelListingUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ChannelListingUpdateInput(graphene.InputObjectType):
     channel_listing = graphene.ID(required=True, description="ID of a channel listing.")
     price = PositiveDecimal(description="Price of the particular variant in channel.")
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
@@ -70,11 +71,9 @@ class ChannelListingUpdateInput(BaseInputObjectType):
         description="The threshold for preorder variant in channel."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ProductVariantChannelListingUpdateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductVariantChannelListingUpdateInput(graphene.InputObjectType):
     create = NonNullList(
         ProductVariantChannelListingAddInput,
         description="List of channels to create variant channel listings.",
@@ -90,9 +89,6 @@ class ProductVariantChannelListingUpdateInput(BaseInputObjectType):
         description="List of channel listings to remove.",
         required=False,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductVariantBulkUpdateInput(ProductVariantBulkCreateInput):
@@ -116,9 +112,9 @@ class ProductVariantBulkUpdateInput(ProductVariantBulkCreateInput):
 
     class Meta:
         description = "Input fields to update product variants."
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantBulkUpdate(BaseMutation):
     count = graphene.Int(
         required=True,
@@ -128,7 +124,7 @@ class ProductVariantBulkUpdate(BaseMutation):
     results = NonNullList(
         ProductVariantBulkResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the updated variants.",
     )
 
@@ -153,7 +149,6 @@ class ProductVariantBulkUpdate(BaseMutation):
 
     class Meta:
         description = "Updates multiple product variants."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductVariantBulkError
         support_meta_field = True
@@ -294,7 +289,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                     )
                     continue
 
-                listings_to_remove.append(graphene.Node.from_global_id(listing_id)[1])
+                listings_to_remove.append(from_global_id(listing_id)[1])
             cleaned_input["channel_listings"]["remove"] = listings_to_remove
 
     @classmethod
@@ -373,7 +368,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                         )
                     )
                     continue
-                stocks_to_remove.append(graphene.Node.from_global_id(stock_id)[1])
+                stocks_to_remove.append(from_global_id(stock_id)[1])
             cleaned_input["stocks"]["remove"] = stocks_to_remove
 
     @classmethod
@@ -459,7 +454,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
         for stock in stocks:
             try:
-                warehouse_id = graphene.Node.from_global_id(stock["warehouse"])[1]
+                warehouse_id = from_global_id(stock["warehouse"])[1]
                 warehouses_from_input.append(warehouse_id)
             except UnicodeDecodeError:
                 continue

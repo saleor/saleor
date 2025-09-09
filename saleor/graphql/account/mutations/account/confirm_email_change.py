@@ -16,12 +16,22 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.CUSTOMER_UPDATED,
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED,
+    }
+)
 class ConfirmEmailChange(BaseMutation):
+    """Confirm the email change of the logged-in user."""
+
     user = graphene.Field(User, description="A user instance with a new email.")
 
     class Arguments:
@@ -36,25 +46,9 @@ class ConfirmEmailChange(BaseMutation):
         )
 
     class Meta:
-        description = "Confirm the email change of the logged-in user."
-        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
-                description="A customer account was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification that account email change was confirmed.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED,
-                description="An account email was changed.",
-            ),
-        ]
 
     @classmethod
     def get_token_payload(cls, token):

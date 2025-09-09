@@ -8,12 +8,14 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....directives import doc
 
 
+@doc(category=DOC_CATEGORY_AUTH)
 class DeactivateAllUserTokens(BaseMutation):
+    """Deactivate all JWT tokens of the currently authenticated user."""
+
     class Meta:
-        description = "Deactivate all JWT tokens of the currently authenticated user."
-        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)

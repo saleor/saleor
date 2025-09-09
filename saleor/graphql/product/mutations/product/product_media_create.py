@@ -12,14 +12,16 @@ from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
-from ....core.types import BaseInputObjectType, ProductError, Upload
+from ....core.types import ProductError, Upload
 from ....core.validators.file import clean_image_file, is_image_url, validate_image_url
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 from ...utils import ALT_CHAR_LIMIT
 
 
-class ProductMediaCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductMediaCreateInput(graphene.InputObjectType):
     alt = graphene.String(description="Alt text for a product media.")
     image = Upload(
         required=False, description="Represents an image file in a multipart request."
@@ -31,10 +33,8 @@ class ProductMediaCreateInput(BaseInputObjectType):
         required=False, description="Represents an URL to an external media."
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductMediaCreate(BaseMutation):
     product = graphene.Field(Product)
     media = graphene.Field(ProductMedia)
@@ -51,7 +51,6 @@ class ProductMediaCreate(BaseMutation):
             "More detailed specs of the upload format can be found here: "
             "https://github.com/jaydenseric/graphql-multipart-request-spec"
         )
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

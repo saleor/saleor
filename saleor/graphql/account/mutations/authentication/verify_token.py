@@ -6,10 +6,12 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....directives import doc
 from ...types import User
 from .utils import get_payload, get_user
 
 
+@doc(category=DOC_CATEGORY_AUTH)
 class VerifyToken(BaseMutation):
     """Mutation that confirms if token is valid and also returns user data."""
 
@@ -26,7 +28,6 @@ class VerifyToken(BaseMutation):
 
     class Meta:
         description = "Verify JWT token."
-        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 

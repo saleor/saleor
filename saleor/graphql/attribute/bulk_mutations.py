@@ -9,14 +9,17 @@ from ...product import models as product_models
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..core import ResolveInfo
+from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import AttributeError, NonNullList
-from ..core.utils import WebhookEventInfo
+from ..directives import doc, webhook_events
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import resolve_global_ids_to_primary_keys
 from .types import Attribute, AttributeValue
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(async_events={WebhookEventAsyncType.ATTRIBUTE_DELETED})
 class AttributeBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
@@ -30,12 +33,6 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_DELETED,
-                description="An attribute was deleted.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -85,6 +82,13 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
             cls.call_event(manager.attribute_deleted, attribute, webhooks=webhooks)
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
+        WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+    }
+)
 class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
@@ -100,16 +104,6 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
-                description="An attribute value was deleted.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
-                description="An attribute was updated.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

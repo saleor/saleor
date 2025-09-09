@@ -11,7 +11,6 @@ from opentelemetry.trace import StatusCode
 from requests_hardened import HTTPSession
 
 from ...core.telemetry import saleor_attributes
-from ...graphql.api import backend, schema
 from ...tests.utils import filter_spans_by_name, get_span_by_name
 from ..views import GraphQLView
 
@@ -552,7 +551,7 @@ def test_graphql_query_span_set_status_error_invalid_query(
     )
 
     # when
-    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view = GraphQLView.as_view()
     view(request)
 
     # then

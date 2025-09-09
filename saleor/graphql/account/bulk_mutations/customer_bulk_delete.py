@@ -8,7 +8,7 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import AccountError, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.base import CustomerDeleteMixin
 from ..types import User
@@ -24,21 +24,17 @@ class UserBulkDelete(ModelBulkDeleteMutation):
         abstract = True
 
 
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events(async_events={WebhookEventAsyncType.CUSTOMER_DELETED})
 class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
+    """Deletes customers."""
+
     class Meta:
-        description = "Deletes customers."
-        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CUSTOMER_DELETED,
-                description="A customer account was deleted.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):

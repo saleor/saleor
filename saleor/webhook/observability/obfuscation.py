@@ -1,34 +1,35 @@
 from typing import TYPE_CHECKING, Any, cast
 
 from graphql import (
+    DocumentNode,
+    FieldNode,
+    FragmentDefinitionNode,
+    FragmentSpreadNode,
     GraphQLError,
+    GraphQLField,
     GraphQLInterfaceType,
     GraphQLObjectType,
     GraphQLSchema,
-    get_default_backend,
+    InlineFragmentNode,
+    OperationDefinitionNode,
+    ValidationContext,
+    ValidationRule,
     get_named_type,
+    parse,
+    validate,
 )
-from graphql.language.ast import (
-    Field,
-    FragmentDefinition,
-    FragmentSpread,
-    InlineFragment,
-    OperationDefinition,
-)
-from graphql.type import GraphQLField
-from graphql.utils.type_info import TypeInfo
-from graphql.validation.rules.base import ValidationRule
-from graphql.validation.validation import ValidationContext, visit_using_rules
 
 from .sensitive_data import ALLOWED_HEADERS, SENSITIVE_HEADERS, SensitiveFieldsMap
 
 if TYPE_CHECKING:
-    from graphql import GraphQLDocument
-
     from .utils import GraphQLOperationResponse
 
 GraphQLNode = (
-    Field | FragmentDefinition | FragmentSpread | InlineFragment | OperationDefinition
+    FieldNode
+    | FragmentDefinitionNode
+    | FragmentSpreadNode
+    | InlineFragmentNode
+    | OperationDefinitionNode
 )
 MASK = "***"
 
@@ -61,7 +62,7 @@ class ContainSensitiveField(ValidationRule):
         self.context = context
         return self
 
-    def is_sensitive_field(self, node: Field, parent_type: str):
+    def is_sensitive_field(self, node: FieldNode, parent_type: str):
         if fields := self.sensitive_fields.get(parent_type):
             node_name = node.name.value
             if node_name in fields:
@@ -71,13 +72,13 @@ class ContainSensitiveField(ValidationRule):
                 )
 
     def contain_sensitive_field(self, node: GraphQLNode, type_def) -> bool:
-        if isinstance(node, FragmentSpread) or not node.selection_set:
+        if isinstance(node, FragmentSpreadNode) or not node.selection_set:
             return False
         fields: dict[str, GraphQLField] = {}
         if isinstance(type_def, GraphQLObjectType | GraphQLInterfaceType):
             fields = type_def.fields
         for child_node in node.selection_set.selections:
-            if isinstance(child_node, Field):
+            if isinstance(child_node, FieldNode):
                 field = fields.get(child_node.name.value)
                 if not field:
                     continue
@@ -85,36 +86,30 @@ class ContainSensitiveField(ValidationRule):
                 if type_def and type_def.name:
                     self.is_sensitive_field(child_node, type_def.name)
                 self.contain_sensitive_field(child_node, field_type)
-            if isinstance(child_node, FragmentSpread):
+            if isinstance(child_node, FragmentSpreadNode):
                 fragment = self.context.get_fragment(child_node.name.value)
                 if fragment:
-                    fragment_type = self.context.get_schema().get_type(
+                    fragment_type = self.context.schema.get_type(
                         fragment.type_condition.name.value
                     )
                     self.contain_sensitive_field(fragment, fragment_type)
-            if isinstance(child_node, InlineFragment):
+            if isinstance(child_node, InlineFragmentNode):
                 inline_fragment_type = type_def
                 if child_node.type_condition and child_node.type_condition.name:
-                    inline_fragment_type = self.context.get_schema().get_type(
+                    inline_fragment_type = self.context.schema.get_type(
                         child_node.type_condition.name.value
                     )
                 self.contain_sensitive_field(child_node, inline_fragment_type)
         return False
 
     def enter_operation_definition(self, node, key, parent, path, ancestors):  # pylint: disable=unused-argument
-        validate_sensitive_fields_map(self.sensitive_fields, self.context.get_schema())
+        validate_sensitive_fields_map(self.sensitive_fields, self.context.schema)
         if node.operation == "query":
-            self.contain_sensitive_field(
-                node, self.context.get_schema().get_query_type()
-            )
+            self.contain_sensitive_field(node, self.context.schema.query_type)
         elif node.operation == "mutation":
-            self.contain_sensitive_field(
-                node, self.context.get_schema().get_mutation_type()
-            )
+            self.contain_sensitive_field(node, self.context.schema.mutation_type)
         elif node.operation == "subscription":
-            self.contain_sensitive_field(
-                node, self.context.get_schema().get_subscription_type()
-            )
+            self.contain_sensitive_field(node, self.context.schema.subscription_type)
 
     def enter(
         self,
@@ -124,14 +119,14 @@ class ContainSensitiveField(ValidationRule):
         path: list[int | str],
         ancestors: list[Any],
     ):
-        if isinstance(node, OperationDefinition):
+        if isinstance(node, OperationDefinitionNode):
             self.enter_operation_definition(node, key, parent, path, ancestors)
 
 
 def validate_sensitive_fields_map(
     sensitive_fields: SensitiveFieldsMap, schema: GraphQLSchema
 ):
-    type_map = schema.get_type_map()
+    type_map = schema.type_map
     for type_name, type_fields in sensitive_fields.items():
         if type_name not in type_map:
             raise GraphQLError(
@@ -155,23 +150,20 @@ def validate_sensitive_fields_map(
 
 
 def _contain_sensitive_field(
-    document: "GraphQLDocument", sensitive_fields: SensitiveFieldsMap
+    document: DocumentNode, sensitive_fields: SensitiveFieldsMap
 ):
     validator = cast(
         type[ValidationRule], ContainSensitiveField(sensitive_fields=sensitive_fields)
     )
-    if not (
-        document.schema
-        and document.document_ast
-        and isinstance(document.schema, GraphQLSchema)
-    ):
+    from ...graphql.api import schema
+
+    if not document:
         return False
 
     try:
-        visit_using_rules(
-            document.schema,
-            TypeInfo(document.schema),
-            document.document_ast,
+        validate(
+            schema.graphql_schema,
+            document,
             [validator],
         )
     except SensitiveFieldError:
@@ -197,10 +189,7 @@ def anonymize_event_payload(
     if not subscription_query:
         return payload
 
-    from ...graphql.api import schema
-
-    graphql_backend = get_default_backend()
-    document = graphql_backend.document_from_string(schema, subscription_query)
+    document = parse(subscription_query)
     if _contain_sensitive_field(document, sensitive_fields):
         return MASK
     return payload

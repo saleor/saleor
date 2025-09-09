@@ -27,9 +27,9 @@ from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
@@ -51,7 +51,8 @@ if TYPE_CHECKING:
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 
 
-class CheckoutAddressValidationRules(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_CHECKOUT)
+class CheckoutAddressValidationRules(graphene.InputObjectType):
     check_required_fields = graphene.Boolean(
         description=(
             "Determines if an error should be raised when the provided address doesn't "
@@ -78,11 +79,9 @@ class CheckoutAddressValidationRules(BaseInputObjectType):
         default_value=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
 
-
-class CheckoutValidationRules(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_CHECKOUT)
+class CheckoutValidationRules(graphene.InputObjectType):
     shipping_address = CheckoutAddressValidationRules(
         description=(
             "The validation rules that can be applied to provided shipping address"
@@ -95,11 +94,9 @@ class CheckoutValidationRules(BaseInputObjectType):
         )
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
 
-
-class CheckoutLineInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_CHECKOUT)
+class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
     price = PositiveDecimal(
@@ -125,11 +122,9 @@ class CheckoutLineInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
 
-
-class CheckoutCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_CHECKOUT)
+class CheckoutCreateInput(graphene.InputObjectType):
     channel = graphene.String(
         description="Slug of a channel in which to create a checkout."
     )
@@ -204,10 +199,9 @@ class CheckoutCreateInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
 
-
+@doc(category=DOC_CATEGORY_CHECKOUT)
+@webhook_events(async_events={WebhookEventAsyncType.CHECKOUT_CREATED})
 class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
     created = graphene.Field(
         graphene.Boolean,
@@ -229,18 +223,11 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             "Create a new checkout.\n\n`skipValidation` field requires "
             "HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions."
         )
-        doc_category = DOC_CATEGORY_CHECKOUT
         model = models.Checkout
         object_type = Checkout
         return_field_name = "checkout"
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHECKOUT_CREATED,
-                description="A checkout was created.",
-            )
-        ]
 
         # This mutation *does* save metadata but not via "support_meta_field"
         # flags. Checkout metadata is held in separate objects

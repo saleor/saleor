@@ -5,18 +5,18 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import ShopError
+from ...directives import doc
 from ...site.dataloaders import get_site_promise
 from ..types import Shop
 
 
+@doc(category=DOC_CATEGORY_SHOP)
 class SiteDomainInput(graphene.InputObjectType):
     domain = graphene.String(description="Domain name for shop.")
     name = graphene.String(description="Shop site name.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_SHOP
 
-
+@doc(category=DOC_CATEGORY_SHOP)
 class ShopDomainUpdate(BaseMutation):
     shop = graphene.Field(Shop, description="Updated shop.")
 
@@ -25,7 +25,6 @@ class ShopDomainUpdate(BaseMutation):
 
     class Meta:
         description = "Updates site domain of the shop."
-        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"

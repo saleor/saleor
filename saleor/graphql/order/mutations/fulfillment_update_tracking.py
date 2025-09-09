@@ -13,12 +13,16 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Fulfillment, Order
 from .order_fulfill import FulfillmentUpdateTrackingInput
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
+@webhook_events(
+    async_events={WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED}
+)
 class FulfillmentUpdateTracking(BaseMutation):
     fulfillment = graphene.Field(
         Fulfillment, description="A fulfillment with updated tracking."
@@ -35,16 +39,9 @@ class FulfillmentUpdateTracking(BaseMutation):
 
     class Meta:
         description = "Updates a fulfillment for an order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED,
-                description="Fulfillment tracking number is updated.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

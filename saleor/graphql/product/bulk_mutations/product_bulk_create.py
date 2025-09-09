@@ -32,17 +32,11 @@ from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.scalars import DateTime, WeightScalar
-from ...core.types import (
-    BaseInputObjectType,
-    BaseObjectType,
-    MediaInput,
-    NonNullList,
-    ProductBulkCreateError,
-    SeoInput,
-)
+from ...core.types import MediaInput, NonNullList, ProductBulkCreateError, SeoInput
 from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
 from ...core.validators.file import clean_image_file, is_image_url, validate_image_url
+from ...directives import doc
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
@@ -71,7 +65,8 @@ def get_results(instances_data_with_errors_list, reject_everything=False):
     ]
 
 
-class ProductChannelListingCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductChannelListingCreateInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_published = graphene.Boolean(
         description="Determines if object is visible to customers."
@@ -98,20 +93,15 @@ class ProductChannelListingCreateInput(BaseInputObjectType):
         )
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ProductBulkResult(BaseObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductBulkResult(graphene.ObjectType):
     product = graphene.Field(Product, description="Product data.")
     errors = NonNullList(
         ProductBulkCreateError,
         required=False,
         description="List of errors occurred on create attempt.",
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductBulkCreateInput(ProductCreateInput):
@@ -171,10 +161,8 @@ class ProductBulkCreateInput(ProductCreateInput):
         description="Input list of product variants to create.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductBulkCreate(BaseMutation):
     count = graphene.Int(
         required=True,
@@ -183,7 +171,7 @@ class ProductBulkCreate(BaseMutation):
     results = NonNullList(
         ProductBulkResult,
         required=True,
-        default_value=[],
+        default_value=(),
         description="List of the created products.",
     )
 
@@ -201,7 +189,6 @@ class ProductBulkCreate(BaseMutation):
 
     class Meta:
         description = "Creates products."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductBulkCreateError
         support_meta_field = True

@@ -3,26 +3,21 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....product.types import Category, Collection, Product, ProductVariant
 from ...types import Voucher
 from .voucher_add_catalogues import VoucherBaseCatalogueMutation
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.VOUCHER_UPDATED})
 class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
     class Meta:
         description = "Removes products, categories, collections from a voucher."
-        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_UPDATED,
-                description="A voucher was updated.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

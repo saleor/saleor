@@ -12,10 +12,12 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import CollectionError, NonNullList
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection, Product
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class CollectionAddProducts(BaseMutation):
     collection = graphene.Field(
         Collection, description="Collection to which products will be added."
@@ -31,7 +33,6 @@ class CollectionAddProducts(BaseMutation):
 
     class Meta:
         description = "Adds products to a collection."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"

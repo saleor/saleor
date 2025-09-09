@@ -1,6 +1,5 @@
 import uuid
 from decimal import Decimal
-from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -28,8 +27,8 @@ from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_322
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
-from ....core.types import BaseInputObjectType
 from ....core.types import common as common_types
+from ....directives import doc
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum
@@ -42,11 +41,9 @@ from .shared import (
     validate_payment_method_details_input,
 )
 
-if TYPE_CHECKING:
-    pass
 
-
-class TransactionCreateInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class TransactionCreateInput(graphene.InputObjectType):
     name = graphene.String(description="Payment name of the transaction.")
     message = graphene.String(description="The message of the transaction.")
 
@@ -85,19 +82,15 @@ class TransactionCreateInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
-class TransactionEventInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PAYMENTS)
+class TransactionEventInput(graphene.InputObjectType):
     psp_reference = graphene.String(description="PSP Reference related to this action.")
 
     message = graphene.String(description="The message related to the event.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
 
-
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class TransactionCreate(BaseMutation):
     transaction = graphene.Field(TransactionItem)
 
@@ -116,7 +109,6 @@ class TransactionCreate(BaseMutation):
 
     class Meta:
         description = "Creates transaction for checkout or order."
-        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 

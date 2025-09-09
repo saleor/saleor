@@ -8,36 +8,9 @@ from graphene.relay import Connection, is_node
 from ...permission.utils import message_one_of_permissions_required
 from ..decorators import one_of_permissions_required
 from .connection import FILTERS_NAME, FILTERSET_CLASS, WHERE_FILTERSET_CLASS, WHERE_NAME
-from .utils import WebhookEventInfo, message_webhook_events
 
 
-class BaseField(graphene.Field):
-    description: str | None
-    doc_category: str | None
-    webhook_events_info: list[WebhookEventInfo] | None
-
-    def __init__(self, *args, **kwargs):
-        auto_webhook_events_info_message = kwargs.pop(
-            "auto_webhook_events_info_message", True
-        )
-        self.doc_category = kwargs.pop("doc_category", None)
-        self.webhook_events_info = kwargs.pop("webhook_events_info", None)
-
-        super().__init__(*args, **kwargs)
-
-        if self.webhook_events_info and auto_webhook_events_info_message:
-            description = self.description or ""
-            description += message_webhook_events(self.webhook_events_info)
-            self.description = description
-
-    def get_resolver(self, parent_resolver):
-        resolver = self.resolver or parent_resolver
-        setattr(resolver, "doc_category", self.doc_category)
-        setattr(resolver, "webhook_events_info", self.webhook_events_info)
-        return resolver
-
-
-class PermissionsField(BaseField):
+class PermissionsField(graphene.Field):
     description: str | None
 
     def __init__(self, *args, **kwargs):
@@ -58,7 +31,6 @@ class PermissionsField(BaseField):
         resolver = self.resolver or parent_resolver
         if self.permissions:
             resolver = one_of_permissions_required(self.permissions)(resolver)
-        resolver = super().get_resolver(resolver)
         return resolver
 
 

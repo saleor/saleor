@@ -21,7 +21,7 @@ from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.context import ChannelContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_TYPE, RICH_CONTENT
+from ..core.descriptions import ADDED_IN_321, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString, PermissionsField
 from ..core.tracing import traced_resolver
@@ -763,11 +763,7 @@ class SaleTranslation(BaseTranslationType[discount_models.PromotionTranslation])
     class Meta:
         model = discount_models.PromotionTranslation
         interfaces = [graphene.relay.Node]
-        description = (
-            "Represents sale translations."
-            + DEPRECATED_IN_3X_TYPE
-            + " Use `PromotionTranslation` instead."
-        )
+        description = "Represents sale translations."
 
     @staticmethod
     def resolve_translatable_content(root: discount_models.PromotionTranslation, info):
@@ -796,8 +792,6 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
         interfaces = [graphene.relay.Node]
         description = (
             "Represents sale's original translatable fields and related translations."
-            + DEPRECATED_IN_3X_TYPE
-            + " Use `PromotionTranslatableContent` instead."
         )
 
     @staticmethod

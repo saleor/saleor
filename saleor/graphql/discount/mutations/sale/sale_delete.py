@@ -12,11 +12,8 @@ from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
-from ....core.utils import (
-    WebhookEventInfo,
-    from_global_id_or_error,
-    raise_validation_error,
-)
+from ....core.utils import from_global_id_or_error, raise_validation_error
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Sale
 from ...utils import (
@@ -25,6 +22,8 @@ from ...utils import (
 )
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.SALE_DELETED})
 class SaleDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a sale to delete.")
@@ -34,16 +33,9 @@ class SaleDelete(ModelDeleteMutation):
         model = models.Promotion
         object_type = Sale
         return_field_name = "sale"
-        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.SALE_DELETED,
-                description="A sale was deleted.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

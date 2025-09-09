@@ -1,12 +1,11 @@
 from typing import Generic, TypeVar
 from uuid import UUID
 
+import graphene
 from django.db.models import Model, Q
 from graphene.types.objecttype import ObjectTypeOptions
 
-from ..doc_category import DOC_CATEGORY_MAP
 from . import TYPES_WITH_DOUBLE_ID_AVAILABLE
-from .base import BaseObjectType
 
 
 class ModelObjectOptions(ObjectTypeOptions):
@@ -16,15 +15,14 @@ class ModelObjectOptions(ObjectTypeOptions):
 MT = TypeVar("MT", bound=Model)
 
 
-class ModelObjectType(Generic[MT], BaseObjectType):
+class ModelObjectType(Generic[MT], graphene.ObjectType):
     @classmethod
-    def __init_subclass_with_meta__(  # type: ignore[override]
+    def __init_subclass_with_meta__(
         cls,
         interfaces=(),
         possible_types=(),
         default_resolver=None,
         _meta=None,
-        doc_category=None,
         **options,
     ):
         if not _meta:
@@ -44,12 +42,6 @@ class ModelObjectType(Generic[MT], BaseObjectType):
 
             model = options.pop("model")
             _meta.model = model
-
-            doc_category_key = f"{model._meta.app_label}.{model.__name__}"
-            if doc_category not in options:
-                options["doc_category"] = doc_category
-            if not options["doc_category"] and doc_category_key in DOC_CATEGORY_MAP:
-                options["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
         super().__init_subclass_with_meta__(
             interfaces=interfaces,

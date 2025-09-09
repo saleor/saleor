@@ -5,13 +5,16 @@ from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import GiftCardError, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
 
 
+@doc(category=DOC_CATEGORY_GIFT_CARDS)
+@webhook_events(async_events={WebhookEventAsyncType.GIFT_CARD_DELETED})
 class GiftCardBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
@@ -24,12 +27,6 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.GIFT_CARD_DELETED,
-                description="A gift card was deleted.",
-            )
-        ]
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):

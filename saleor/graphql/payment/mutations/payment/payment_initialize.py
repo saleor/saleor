@@ -9,10 +9,12 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.fields import JSONString
 from ....core.mutations import BaseMutation
 from ....core.types import common as common_types
+from ....directives import doc
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import PaymentInitialized
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
 class PaymentInitialize(BaseMutation):
     initialized_payment = graphene.Field(
         PaymentInitialized, required=False, description="Payment that was initialized."
@@ -35,7 +37,6 @@ class PaymentInitialize(BaseMutation):
 
     class Meta:
         description = "Initializes payment process when it is required by gateway."
-        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 

@@ -4,7 +4,6 @@ import json
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
 
-from ....api import backend, schema
 from ....tests.utils import get_graphql_content
 from ....views import GraphQLView
 from .utils import (
@@ -46,7 +45,7 @@ def test_query_remove_all_memory_cycles_in_promise(rf, product, channel_USD):
         # when
         # Execute the query.
         content = get_graphql_content(
-            GraphQLView(backend=backend, schema=schema).handle_query(
+            GraphQLView().handle_query(
                 rf.post(path="/graphql/", data=data, content_type="application/json")
             ),
             ignore_errors=True,

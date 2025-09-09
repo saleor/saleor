@@ -12,7 +12,7 @@ from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import Error
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionRuleDeleteErrorCode
 from ...types import PromotionRule
@@ -23,6 +23,8 @@ class PromotionRuleDeleteError(Error):
     code = PromotionRuleDeleteErrorCode(description="The error code.", required=True)
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.PROMOTION_RULE_DELETED})
 class PromotionRuleDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
@@ -35,13 +37,6 @@ class PromotionRuleDelete(ModelDeleteMutation):
         object_type = PromotionRule
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionRuleDeleteError
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PROMOTION_RULE_DELETED,
-                description="A promotion rule was deleted.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

@@ -18,8 +18,9 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime, WeightScalar
-from ....core.types import BaseInputObjectType, NonNullList, ProductError
+from ....core.types import NonNullList, ProductError
 from ....core.utils import get_duplicated_values
+from ....directives import doc
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....shop.utils import get_track_inventory_by_default
@@ -36,17 +37,16 @@ from . import product_variant_cleaner as cleaner
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
-class PreorderSettingsInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class PreorderSettingsInput(graphene.InputObjectType):
     global_threshold = graphene.Int(
         description="The global threshold for preorder variant."
     )
     end_date = DateTime(description="The end date for preorder.")
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ProductVariantInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ProductVariantInput(graphene.InputObjectType):
     attributes = NonNullList(
         AttributeValueInput,
         required=False,
@@ -89,9 +89,6 @@ class ProductVariantInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
-
 
 class ProductVariantCreateInput(ProductVariantInput):
     attributes = NonNullList(
@@ -110,10 +107,8 @@ class ProductVariantCreateInput(ProductVariantInput):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class ProductVariantCreate(DeprecatedModelMutation):
     class Arguments:
         input = ProductVariantCreateInput(

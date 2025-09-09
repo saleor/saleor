@@ -8,23 +8,24 @@ from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
-from ...core.types import BaseInputObjectType, Error, OrderError
+from ...core.types import Error, OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderEvent
 from .order_note_common import OrderNoteCommon
 from .utils import call_event_by_order_status
 
-OrderNoteAddErrorCode = graphene.Enum.from_enum(error_codes.OrderNoteAddErrorCode)
-OrderNoteAddErrorCode.doc_category = DOC_CATEGORY_ORDERS
+OrderNoteAddErrorCode = doc(
+    DOC_CATEGORY_ORDERS, graphene.Enum.from_enum(error_codes.OrderNoteAddErrorCode)
+)
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderNoteAddError(Error):
     code = OrderNoteAddErrorCode(description="The error code.", required=False)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderNoteAdd(OrderNoteCommon):
     order = graphene.Field(Order, description="Order with the note added.")
     event = graphene.Field(OrderEvent, description="Order note created.")
@@ -38,7 +39,6 @@ class OrderNoteAdd(OrderNoteCommon):
 
     class Meta:
         description = "Adds note to the order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderNoteAddError
 
@@ -66,15 +66,13 @@ class OrderNoteAdd(OrderNoteCommon):
         )
 
 
-class OrderAddNoteInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderAddNoteInput(graphene.InputObjectType):
     message = graphene.String(
         description="Note message.",
         name="message",
         required=True,
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderAddNote(OrderNoteAdd):
@@ -85,7 +83,6 @@ class OrderAddNote(OrderNoteAdd):
 
     class Meta:
         description = "Adds note to the order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

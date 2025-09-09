@@ -27,15 +27,6 @@ wheels = [
 ]
 
 [[package]]
-name = "aniso8601"
-version = "7.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7f/39/0da0982a3a42fd896beaa07425692fb3100a9d0e40723783efc20f1dec7c/aniso8601-7.0.0.tar.gz", hash = "sha256:513d2b6637b7853806ae79ffaca6f3e8754bdd547048f5ccc1420aec4b714f1e", size = 36465, upload-time = "2019-06-11T19:24:32.22Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/a4/b4fcadbdab46c2ec2d2f6f8b4ab3f64fd0040789ac7f065eba82119cd602/aniso8601-7.0.0-py2.py3-none-any.whl", hash = "sha256:d10a4bf949f619f719b227ef5386e31f49a2b6d453004b21f02661ccc8670c7b", size = 42031, upload-time = "2019-06-11T19:24:30.247Z" },
-]
-
-[[package]]
 name = "annotated-types"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1030,45 +1021,77 @@ grpc = [
 
 [[package]]
 name = "graphene"
-version = "2.1.9"
+version = "3.4.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "aniso8601", marker = "platform_python_implementation != 'PyPy'" },
     { name = "graphql-core", marker = "platform_python_implementation != 'PyPy'" },
     { name = "graphql-relay", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "six", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "python-dateutil", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "typing-extensions", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0a/9d/5a8890c7d14adbeda55e2d5f28120b4be2a7bfa0131674c340db1c162072/graphene-2.1.9.tar.gz", hash = "sha256:b9f2850e064eebfee9a3ef4a1f8aa0742848d97652173ab44c82cc8a62b9ed93", size = 44667, upload-time = "2021-07-16T20:10:21.856Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cc/f6/bf62ff950c317ed03e77f3f6ddd7e34aaa98fe89d79ebd660c55343d8054/graphene-3.4.3.tar.gz", hash = "sha256:2a3786948ce75fe7e078443d37f609cbe5bb36ad8d6b828740ad3b95ed1a0aaa", size = 44739, upload-time = "2024-11-09T20:44:25.757Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/a2/b3e68706bf45abc2f9d70f099a4b4ca6305779577f4a03458d78fb39cd42/graphene-2.1.9-py2.py3-none-any.whl", hash = "sha256:3d446eb1237c551052bc31155cf1a3a607053e4f58c9172b83a1b597beaa0868", size = 107374, upload-time = "2021-07-16T20:10:19.959Z" },
+    { url = "https://files.pythonhosted.org/packages/66/e0/61d8e98007182e6b2aca7cf65904721fb2e4bce0192272ab9cb6f69d8812/graphene-3.4.3-py2.py3-none-any.whl", hash = "sha256:820db6289754c181007a150db1f7fff544b94142b556d12e3ebc777a7bf36c71", size = 114894, upload-time = "2024-11-09T20:44:23.851Z" },
+]
+
+[[package]]
+name = "graphene-directives"
+version = "0.4.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "graphene", marker = "platform_python_implementation != 'PyPy'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f7/d1/cd3863516e1e07f194a44a6822074bac94e7ddacd67ac0b2a79a1eab9784/graphene_directives-0.4.7.tar.gz", hash = "sha256:a9a3acc424bd1a59bd16d479f4ce09605eed3cc98fe06f50bb53f0e1facf99fd", size = 13643, upload-time = "2025-07-23T16:50:36.211Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d9/0a/99588fb235e2f6de47155dce5b24114d69c2a3e976622512d0dcb18f0c2f/graphene_directives-0.4.7-py3-none-any.whl", hash = "sha256:61bb005dde580ae4d3be213e1911f7374534a0ad269e09d62fa5599de38b191e", size = 16888, upload-time = "2025-07-23T16:50:35.31Z" },
+]
+
+[[package]]
+name = "graphene-federation"
+version = "3.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "graphene", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "graphene-directives", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "graphql-core", marker = "platform_python_implementation != 'PyPy'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/db/8e/70b903cdfccad416ba851d7fb092faac29ac72a6e5456336f11f79d9d298/graphene-federation-3.2.0.tar.gz", hash = "sha256:fbe9036684036a3c6e92a9f7a9dde98674f09894dee0c418301c62cc4c838ce6", size = 27114, upload-time = "2024-06-15T09:00:53.23Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/37/37/2ef3c1cedf3dc7f7b5dba7bce70d3265427ca538682a15a1737c70c238e4/graphene_federation-3.2.0-py3-none-any.whl", hash = "sha256:513b57425fc4ded32cec0acafa5d82170b7f7ed8da1e0c1e538e2b531879a21e", size = 42546, upload-time = "2024-06-15T09:00:51.225Z" },
 ]
 
 [[package]]
 name = "graphql-core"
-version = "2.3.2"
+version = "3.2.6"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "promise", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "rx", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "six", marker = "platform_python_implementation != 'PyPy'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/88/a2/dd91d55a6f6dd88c4d3c284d387c94f1f933fedec43a86a4422940b9de18/graphql-core-2.3.2.tar.gz", hash = "sha256:aac46a9ac524c9855910c14c48fc5d60474def7f99fd10245e76608eba7af746", size = 104181, upload-time = "2020-05-12T22:29:20.625Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/16/7574029da84834349b60ed71614d66ca3afe46e9bf9c7b9562102acb7d4f/graphql_core-3.2.6.tar.gz", hash = "sha256:c08eec22f9e40f0bd61d805907e3b3b1b9a320bc606e23dc145eebca07c8fbab", size = 505353, upload-time = "2025-01-26T16:36:27.374Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/11/71/d51beba3d8986fa6d8670ec7bcba989ad6e852d5ae99d95633e5dacc53e7/graphql_core-2.3.2-py2.py3-none-any.whl", hash = "sha256:44c9bac4514e5e30c5a595fac8e3c76c1975cae14db215e8174c7fe995825bad", size = 252532, upload-time = "2020-05-12T22:29:19.082Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/4f/7297663840621022bc73c22d7d9d80dbc78b4db6297f764b545cd5dd462d/graphql_core-3.2.6-py3-none-any.whl", hash = "sha256:78b016718c161a6fb20a7d97bbf107f331cd1afe53e45566c59f776ed7f0b45f", size = 203416, upload-time = "2025-01-26T16:36:24.868Z" },
 ]
 
 [[package]]
-name = "graphql-relay"
-version = "2.0.1"
+name = "graphql-core-promise"
+version = "3.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "graphql-core", marker = "platform_python_implementation != 'PyPy'" },
     { name = "promise", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "six", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/16/59/afbf1ce02631910ff0be06e5e057cc9e2806192d9b9c8d6671ff39e4abe2/graphql-relay-2.0.1.tar.gz", hash = "sha256:870b6b5304123a38a0b215a79eace021acce5a466bf40cd39fa18cb8528afabb", size = 21052, upload-time = "2019-12-06T22:30:12.974Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f9/5b/95f0be191697fd7830116e8f651b57381b19d01bba194bf643e1f4f8a9cb/graphql_core_promise-3.4.2.tar.gz", hash = "sha256:350b5b939832273f7459a1f178046dea28444adb6e983da38eb8b26587e542d6", size = 9433, upload-time = "2025-03-07T16:36:24.082Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/94/48/6022ea2e89cb936c3b933a0409c6e29bf8a68c050fe87d97f98aff6e5e9e/graphql_relay-2.0.1-py3-none-any.whl", hash = "sha256:ac514cb86db9a43014d7e73511d521137ac12cf0101b2eaa5f0a3da2e10d913d", size = 20518, upload-time = "2019-12-06T22:30:11.61Z" },
+    { url = "https://files.pythonhosted.org/packages/56/d7/9fad0b4b8362c550d64a760772dbf5d77a8a5d361ab09f43ae3510a97f70/graphql_core_promise-3.4.2-py3-none-any.whl", hash = "sha256:1283b9dd5c48f71769cb0c5713755d3ccabed3fa18d3f789ffa17afa03239726", size = 7533, upload-time = "2025-03-07T16:36:22.957Z" },
+]
+
+[[package]]
+name = "graphql-relay"
+version = "3.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "graphql-core", marker = "platform_python_implementation != 'PyPy'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d1/13/98fbf8d67552f102488ffc16c6f559ce71ea15f6294728d33928ab5ff14d/graphql-relay-3.2.0.tar.gz", hash = "sha256:1ff1c51298356e481a0be009ccdff249832ce53f30559c1338f22a0e0d17250c", size = 50027, upload-time = "2022-04-16T11:03:45.447Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/74/16/a4cf06adbc711bd364a73ce043b0b08d8fa5aae3df11b6ee4248bcdad2e0/graphql_relay-3.2.0-py3-none-any.whl", hash = "sha256:c9b22bd28b170ba1fe674c74384a8ff30a76c8e26f88ac3aa1584dd3179953e5", size = 16940, upload-time = "2022-04-16T11:03:43.895Z" },
 ]
 
 [[package]]
@@ -2544,7 +2567,9 @@ dependencies = [
     { name = "google-cloud-storage", marker = "platform_python_implementation != 'PyPy'" },
     { name = "google-i18n-address", marker = "platform_python_implementation != 'PyPy'" },
     { name = "graphene", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "graphene-federation", marker = "platform_python_implementation != 'PyPy'" },
     { name = "graphql-core", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "graphql-core-promise", marker = "platform_python_implementation != 'PyPy'" },
     { name = "graphql-relay", marker = "platform_python_implementation != 'PyPy'" },
     { name = "html-to-draftjs", marker = "platform_python_implementation != 'PyPy'" },
     { name = "lxml", marker = "platform_python_implementation != 'PyPy'" },
@@ -2658,9 +2683,11 @@ requires-dist = [
     { name = "google-cloud-pubsub", specifier = ">=1.7,<3.0" },
     { name = "google-cloud-storage", specifier = ">=2.0.0,<3" },
     { name = "google-i18n-address", specifier = ">=3.1.0,<4" },
-    { name = "graphene", specifier = "<3.0" },
-    { name = "graphql-core", specifier = ">=2.3.2,<3" },
-    { name = "graphql-relay", specifier = ">=2.0.1,<3" },
+    { name = "graphene", specifier = ">=3" },
+    { name = "graphene-federation", specifier = ">=3.2.0" },
+    { name = "graphql-core", specifier = ">=3" },
+    { name = "graphql-core-promise", specifier = ">=3.4.2" },
+    { name = "graphql-relay", specifier = ">=3" },
     { name = "html-to-draftjs", specifier = ">=1.0.1,<2" },
     { name = "lxml", specifier = ">=4.9.3,<5" },
     { name = "markdown", specifier = ">=3.1.1,<4" },

@@ -12,11 +12,13 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
+from ...directives import doc
 from ...discount.types import OrderDiscount
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderDiscountDelete(OrderDiscountCommon):
     order = graphene.Field(Order, description="Order which has removed discount.")
 
@@ -27,7 +29,6 @@ class OrderDiscountDelete(OrderDiscountCommon):
 
     class Meta:
         description = "Remove discount from the order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

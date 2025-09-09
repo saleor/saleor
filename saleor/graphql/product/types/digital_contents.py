@@ -8,6 +8,7 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.scalars import UUID, DateTime
 from ...core.types import ModelObjectType, NonNullList
+from ...directives import doc
 from ...meta.types import ObjectWithMetadata
 from ..dataloaders import ProductVariantByIdLoader
 
@@ -93,8 +94,8 @@ class DigitalContent(ModelObjectType[models.DigitalContent]):
         )
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class DigitalContentCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         node = DigitalContent
         description = "A connection to a list of digital content items."

@@ -1,4 +1,5 @@
 import django_filters
+import graphene
 from django.db.models import Count, Exists, OuterRef
 
 from ...account.models import Address, User
@@ -22,12 +23,12 @@ from ..core.filters.where_input import (
     WhereInputObjectType,
 )
 from ..core.types import (
-    BaseInputObjectType,
     DateRangeInput,
     DateTimeRangeInput,
     IntRangeInput,
     NonNullList,
 )
+from ..directives import doc
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
@@ -112,7 +113,10 @@ class CustomerFilter(MetadataFilterBase):
         ]
 
 
-class CountryCodeEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_USERS)
+class CountryCodeEnumFilterInput(graphene.InputObjectType):
+    """Filter by country code."""
+
     eq = CountryCodeEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         CountryCodeEnum,
@@ -125,22 +129,17 @@ class CountryCodeEnumFilterInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
-        description = "Filter by country code."
 
+@doc(category=DOC_CATEGORY_USERS)
+class AddressFilterInput(graphene.InputObjectType):
+    """Filtering options for addresses."""
 
-class AddressFilterInput(BaseInputObjectType):
     phone_number = StringFilterInput(
         help_text="Filter by phone number.",
     )
     country = CountryCodeEnumFilterInput(
         help_text="Filter by country code.",
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
-        description = "Filtering options for addresses."
 
 
 class CustomerWhereFilterInput(MetadataWhereBase):
@@ -243,9 +242,9 @@ class CustomerWhereFilterInput(MetadataWhereBase):
         return filter_where_range_field_with_conditions(qs, "number_of_orders", value)
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class CustomerWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_USERS
         filterset_class = CustomerWhereFilterInput
 
 

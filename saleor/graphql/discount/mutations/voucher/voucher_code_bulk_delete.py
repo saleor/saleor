@@ -1,4 +1,5 @@
 import graphene
+from graphql_relay import from_global_id
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
@@ -9,11 +10,13 @@ from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.enums import VoucherCodeBulkDeleteErrorCode
 from ....core.mutations import BaseMutation
 from ....core.types import NonNullList, VoucherCodeBulkDeleteError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import VoucherCode
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+@webhook_events(async_events={WebhookEventAsyncType.VOUCHER_CODES_DELETED})
 class VoucherCodeBulkDelete(BaseMutation):
     count = graphene.Int(
         required=True, description="Returns how many codes were deleted."
@@ -32,13 +35,6 @@ class VoucherCodeBulkDelete(BaseMutation):
         object_type = VoucherCode
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = VoucherCodeBulkDeleteError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.VOUCHER_CODES_DELETED,
-                description="A voucher codes were deleted.",
-            ),
-        ]
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @classmethod
     def clean_codes(cls, codes, errors_list):
@@ -46,7 +42,7 @@ class VoucherCodeBulkDelete(BaseMutation):
         cleaned_ids = set()
 
         for code in codes:
-            obj_type, code_pk = graphene.Node.from_global_id(code)
+            obj_type, code_pk = from_global_id(code)
             if obj_type != "VoucherCode":
                 invalid_codes_ids.append(code)
                 continue

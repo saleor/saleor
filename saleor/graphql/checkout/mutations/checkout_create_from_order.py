@@ -16,8 +16,9 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
-from ...core.types import BaseObjectType, Error, common
+from ...core.types import Error, common
 from ...core.validators import get_not_available_variants_in_channel
+from ...directives import doc
 from ...order.types import Order
 from ...site.dataloaders import get_site_promise
 from ..enums import (
@@ -34,7 +35,8 @@ from .utils import (
 )
 
 
-class CheckoutCreateFromOrderUnavailableVariant(BaseObjectType):
+@doc(category=DOC_CATEGORY_CHECKOUT)
+class CheckoutCreateFromOrderUnavailableVariant(graphene.ObjectType):
     message = graphene.String(description="The error message.", required=True)
     code = CheckoutCreateFromOrderUnavailableVariantErrorCode(
         description="The error code.", required=True
@@ -46,19 +48,15 @@ class CheckoutCreateFromOrderUnavailableVariant(BaseObjectType):
         description="Order line ID that is unavailable.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
 
-
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutCreateFromOrderError(Error):
     code = CheckoutCreateFromOrderErrorCode(
         description="The error code.", required=True
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
 
-
+@doc(category=DOC_CATEGORY_CHECKOUT)
 class CheckoutCreateFromOrder(BaseMutation):
     unavailable_variants = common.NonNullList(
         CheckoutCreateFromOrderUnavailableVariant,
@@ -74,7 +72,6 @@ class CheckoutCreateFromOrder(BaseMutation):
 
     class Meta:
         description = "Creates a new checkout from existing order."
-        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutCreateFromOrderError
 
     @classmethod

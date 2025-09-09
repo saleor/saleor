@@ -30,13 +30,14 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_318, ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_318, ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types import BaseInputObjectType, NonNullList, OrderError
+from ...core.types import NonNullList, OrderError
 from ...core.utils import from_global_id_or_error
+from ...directives import doc
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
@@ -51,13 +52,11 @@ from . import draft_order_cleaner
 from .utils import ShippingMethodUpdateMixin, get_variant_rule_info_map, save_addresses
 
 
-class OrderLineInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderLineInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description="Number of variant items ordered.", required=True
     )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderLineCreateInput(OrderLineInput):
@@ -81,11 +80,9 @@ class OrderLineCreateInput(OrderLineInput):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class DraftOrderInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class DraftOrderInput(graphene.InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     save_billing_address = graphene.Boolean(
         description=(
@@ -101,11 +98,10 @@ class DraftOrderInput(BaseInputObjectType):
     )
     user_email = graphene.String(description="Email address of the customer.")
     discount = PositiveDecimal(
-        description=(
-            f"Discount amount for the order."
-            f"{DEPRECATED_IN_3X_INPUT} Providing a value for the field has no effect. "
-            f"Use `orderDiscountAdd` mutation instead."
-        )
+        description="Discount amount for the order.",
+        deprecation_reason=(
+            "Providing a value for the field has no effect. Use `orderDiscountAdd` mutation instead."
+        ),
     )
     shipping_address = AddressInput(description="Shipping address of the customer.")
     save_shipping_address = graphene.Boolean(
@@ -162,9 +158,6 @@ class DraftOrderInput(BaseInputObjectType):
         description=(f"Order language code.{ADDED_IN_321}"),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
-
 
 class DraftOrderCreateInput(DraftOrderInput):
     lines = NonNullList(
@@ -174,10 +167,8 @@ class DraftOrderCreateInput(DraftOrderInput):
         ),
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class DraftOrderCreate(
     AddressMetadataMixin,
     ModelWithRestrictedChannelAccessMutation,

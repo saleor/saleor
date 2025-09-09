@@ -22,12 +22,12 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import PermissionEnum
 from ....core.types import NonNullList, PermissionGroupError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils.validators import check_for_duplicates
 from ...dataloaders import AccessibleChannelsByGroupIdLoader
 from ...types import Group
-from .permission_group_create import PermissionGroupCreate, PermissionGroupInput
+from .permission_group_create import PermissionGroupInput, PermissionGroupMutationBase
 
 
 class PermissionGroupUpdateInput(PermissionGroupInput):
@@ -50,11 +50,10 @@ class PermissionGroupUpdateInput(PermissionGroupInput):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
-
-class PermissionGroupUpdate(PermissionGroupCreate):
+@doc(category=DOC_CATEGORY_USERS)
+@webhook_events({WebhookEventAsyncType.PERMISSION_GROUP_UPDATED})
+class PermissionGroupUpdate(PermissionGroupMutationBase):
     class Arguments:
         id = graphene.ID(description="ID of the group to update.", required=True)
         input = PermissionGroupUpdateInput(
@@ -65,17 +64,11 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         description = (
             "Update permission group. Apps are not allowed to perform this mutation."
         )
-        doc_category = DOC_CATEGORY_USERS
         model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PERMISSION_GROUP_UPDATED,
-            )
-        ]
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):

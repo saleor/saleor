@@ -8,10 +8,12 @@ from ..core.descriptions import (
     DEFAULT_DEPRECATION_REASON,
 )
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ..core.types import BaseEnum, ChannelSortInputObjectType, SortInputObjectType
+from ..core.types import ChannelSortInputObjectType, SortInputObjectType
+from ..directives import doc
 
 
-class SaleSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class SaleSortField(graphene.Enum):
     NAME = ["name", "pk"]
     START_DATE = ["start_date", "name", "pk"]
     END_DATE = ["end_date", "name", "pk"]
@@ -19,9 +21,6 @@ class SaleSortField(BaseEnum):
     TYPE = ["value_type", "name", "pk"]
     CREATED_AT = ["created_at", "name", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @property
     def description(self):
@@ -52,13 +51,14 @@ class SaleSortField(BaseEnum):
         return queryset.annotate(value_type=F("rules__reward_value_type"))
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class SaleSortingInput(ChannelSortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         sort_enum = SaleSortField
         type_name = "sales"
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherSortField(graphene.Enum):
     CODE = ["first_code", "pk"]
     NAME = ["name", "pk"]
@@ -68,9 +68,6 @@ class VoucherSortField(graphene.Enum):
     TYPE = ["type", "name", "pk"]
     USAGE_LIMIT = ["usage_limit", "name", "pk"]
     MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name", "pk"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @property
     def description(self):
@@ -126,21 +123,19 @@ class VoucherSortField(graphene.Enum):
         return queryset.annotate(first_code=Subquery(subquery))
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class VoucherSortingInput(ChannelSortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         sort_enum = VoucherSortField
         type_name = "vouchers"
 
 
-class PromotionSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class PromotionSortField(graphene.Enum):
     NAME = ["name", "pk"]
     START_DATE = ["start_date", "name", "pk"]
     END_DATE = ["end_date", "name", "pk"]
     CREATED_AT = ["created_at", "pk"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @property
     def description(self):
@@ -155,8 +150,8 @@ class PromotionSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class PromotionSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         sort_enum = PromotionSortField
         type_name = "promotions"

@@ -14,7 +14,8 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
-from ...core.types import BaseInputObjectType, OrderError
+from ...core.types import OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Order
@@ -25,17 +26,16 @@ from .utils import (
 )
 
 
-class OrderUpdateShippingInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderUpdateShippingInput(graphene.InputObjectType):
     shipping_method = graphene.ID(
         description="ID of the selected shipping method,"
         " pass null to remove currently assigned shipping method.",
         name="shippingMethod",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
     order = graphene.Field(Order, description="Order with updated shipping method.")
 
@@ -56,7 +56,6 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             " Requires shipping method ID to update, when null is passed "
             "then currently assigned shipping method is removed."
         )
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

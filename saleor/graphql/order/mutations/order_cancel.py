@@ -13,6 +13,7 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 
@@ -30,6 +31,7 @@ def clean_order_cancel(order: models.Order | None) -> models.Order:
     return order
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderCancel(BaseMutation):
     order = graphene.Field(Order, description="Canceled order.")
 
@@ -38,7 +40,6 @@ class OrderCancel(BaseMutation):
 
     class Meta:
         description = "Cancel an order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

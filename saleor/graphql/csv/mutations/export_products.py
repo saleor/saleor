@@ -10,8 +10,8 @@ from ...attribute.types import Attribute
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
-from ...core.types import BaseInputObjectType, ExportError, NonNullList
-from ...core.utils import WebhookEventInfo
+from ...core.types import ExportError, NonNullList
+from ...directives import doc, webhook_events
 from ...product.filters.product import ProductFilterInput
 from ...product.types import Product
 from ...warehouse.types import Warehouse
@@ -19,7 +19,8 @@ from ..enums import ExportScope, FileTypeEnum, ProductFieldEnum
 from .base_export import BaseExportMutation
 
 
-class ExportInfoInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ExportInfoInput(graphene.InputObjectType):
     attributes = NonNullList(
         graphene.ID,
         description="List of attribute ids witch should be exported.",
@@ -37,11 +38,9 @@ class ExportInfoInput(BaseInputObjectType):
         description="List of product fields witch should be exported.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
-class ExportProductsInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class ExportProductsInput(graphene.InputObjectType):
     scope = ExportScope(
         description="Determine which products should be exported.", required=True
     )
@@ -59,10 +58,14 @@ class ExportProductsInput(BaseInputObjectType):
     )
     file_type = FileTypeEnum(description="Type of exported file.", required=True)
 
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
-
+@doc(category=DOC_CATEGORY_PRODUCTS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.NOTIFY_USER,
+        WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED,
+    }
+)
 class ExportProducts(BaseExportMutation):
     class Arguments:
         input = ExportProductsInput(
@@ -71,20 +74,9 @@ class ExportProducts(BaseExportMutation):
 
     class Meta:
         description = "Export products to csv file."
-        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ExportError
         error_type_field = "export_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.NOTIFY_USER,
-                description="A notification for the exported file.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED,
-                description="A notification for the exported file.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

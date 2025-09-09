@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django.test import override_settings
 from freezegun import freeze_time
+from graphql_relay import from_global_id
 
 from ......account.error_codes import AccountErrorCode
 from ......account.models import Address
@@ -130,7 +131,7 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     user.refresh_from_db()
     assert user.addresses.count() == user_addresses_count + 1
     assert user.default_shipping_address.id == int(
-        graphene.Node.from_global_id(data["address"]["id"])[1]
+        from_global_id(data["address"]["id"])[1]
     )
 
     address_type = AddressType.BILLING.upper()
@@ -143,7 +144,7 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     user.refresh_from_db()
     assert user.addresses.count() == user_addresses_count + 2
     assert user.default_billing_address.id == int(
-        graphene.Node.from_global_id(data["address"]["id"])[1]
+        from_global_id(data["address"]["id"])[1]
     )
 
 

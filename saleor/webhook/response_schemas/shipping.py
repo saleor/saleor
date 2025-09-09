@@ -2,7 +2,7 @@ import logging
 from decimal import Decimal
 from typing import Annotated, TypeVar
 
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 from prices import Money
 from pydantic import (
     BaseModel,

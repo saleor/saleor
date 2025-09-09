@@ -8,13 +8,14 @@ from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..types import Attribute, AttributeValue
+from ..types import AttributeValue
 from .attribute_update import AttributeValueUpdateInput
-from .attribute_value_create import AttributeValueCreate
+from .attribute_value_create import AttributeValueMutationBase
 
 PRODUCTS_BATCH_SIZE = 10000
 
@@ -38,9 +39,14 @@ def queryset_in_batches(queryset):
         start_pk = pks[-1]
 
 
-class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
-    attribute = graphene.Field(Attribute, description="The updated attribute.")
-
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED,
+        WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+    }
+)
+class AttributeValueUpdate(AttributeValueMutationBase, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(
             required=False, description="ID of an AttributeValue to update."
@@ -60,16 +66,6 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED,
-                description="An attribute value was updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
-                description="An attribute was updated.",
-            ),
-        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -83,7 +79,9 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
-        return super(AttributeValueCreate, cls).perform_mutation(root, info, **data)
+        return super(AttributeValueMutationBase, cls).perform_mutation(
+            root, info, **data
+        )
 
     @classmethod
     def success_response(cls, instance):

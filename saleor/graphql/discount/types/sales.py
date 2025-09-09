@@ -13,12 +13,12 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import DEPRECATED_IN_3X_TYPE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.scalars import DateTime
-from ...core.types import BaseObjectType, ModelObjectType, NonNullList
+from ...core.types import ModelObjectType, NonNullList
 from ...core.types.context import ChannelContextType
+from ...directives import doc
 from ...meta.types import ObjectWithMetadata
 from ...product.types import (
     CategoryCountableConnection,
@@ -37,7 +37,8 @@ from ..dataloaders import (
 from ..enums import SaleType
 
 
-class SaleChannelListing(BaseObjectType):
+@doc(category=DOC_CATEGORY_DISCOUNTS)
+class SaleChannelListing(graphene.ObjectType):
     id = graphene.GlobalID(required=True, description="The ID of the channel listing.")
     channel = graphene.Field(
         Channel,
@@ -54,15 +55,11 @@ class SaleChannelListing(BaseObjectType):
     )
 
     class Meta:
-        description = (
-            "Represents sale channel listing."
-            + DEPRECATED_IN_3X_TYPE
-            + " Use `PromotionRule` type instead."
-        )
+        description = "Represents sale channel listing."
         interfaces = [relay.Node]
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class Sale(ChannelContextType, ModelObjectType[models.Promotion]):
     id = graphene.GlobalID(required=True, description="The ID of the sale.")
     name = graphene.String(required=True, description="The name of the sale.")
@@ -122,12 +119,9 @@ class Sale(ChannelContextType, ModelObjectType[models.Promotion]):
         description = (
             "Sales allow creating discounts for categories, collections or products "
             "and are visible to all the customers."
-            + DEPRECATED_IN_3X_TYPE
-            + " Use `Promotion` type instead."
         )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Promotion
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @staticmethod
     def resolve_id(root: ChannelContext[models.Promotion], _info: ResolveInfo):
@@ -273,7 +267,7 @@ class Sale(ChannelContextType, ModelObjectType[models.Promotion]):
         )
 
 
+@doc(category=DOC_CATEGORY_DISCOUNTS)
 class SaleCountableConnection(CountableConnection):
     class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
         node = Sale

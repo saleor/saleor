@@ -10,11 +10,15 @@ from ....core.enums import PaymentMethodProcessTokenizationErrorCode
 from ....core.mutations import BaseMutation
 from ....core.scalars import JSON
 from ....core.types.common import PaymentMethodProcessTokenizationError
-from ....core.utils import WebhookEventInfo
+from ....directives import doc, webhook_events
 from ...enums import PaymentMethodTokenizationResultEnum
 from .utils import handle_payment_method_action
 
 
+@doc(category=DOC_CATEGORY_PAYMENTS)
+@webhook_events(
+    sync_events={WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION}
+)
 class PaymentMethodProcessTokenization(BaseMutation):
     result = PaymentMethodTokenizationResultEnum(
         description="A status of the payment method tokenization.", required=True
@@ -42,14 +46,7 @@ class PaymentMethodProcessTokenization(BaseMutation):
         )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PAYMENTS
         description = "Tokenize payment method."
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=(WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION),
-                description="The customer continues payment method tokenization.",
-            ),
-        ]
         error_type_class = PaymentMethodProcessTokenizationError
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 

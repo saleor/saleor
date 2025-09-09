@@ -7,17 +7,19 @@ from ....checkout.utils import invalidate_checkout
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...core.utils import WebhookEventInfo, raise_validation_error
+from ...core.utils import raise_validation_error
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout, CheckoutLine
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
+@webhook_events(async_events={WebhookEventAsyncType.CHECKOUT_UPDATED})
 class CheckoutLineDelete(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
@@ -27,28 +29,21 @@ class CheckoutLineDelete(BaseMutation):
             required=False,
         )
         token = UUID(
-            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            description="Checkout token.",
+            deprecation_reason="Use `id` instead.",
             required=False,
         )
         checkout_id = graphene.ID(
             required=False,
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
-            ),
+            description="The ID of the checkout.",
+            deprecation_reason="Use `id` instead.",
         )
         line_id = graphene.ID(description="ID of the checkout line to delete.")
 
     class Meta:
         description = "Deletes a CheckoutLine."
-        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
-                description="A checkout was updated.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

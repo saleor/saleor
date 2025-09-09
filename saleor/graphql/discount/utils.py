@@ -3,10 +3,10 @@ from copy import deepcopy
 from enum import Enum
 from typing import Any, cast
 
-import graphene
 from django.conf import settings
 from django.db.models import Exists, OuterRef, QuerySet
 from graphene.utils.str_converters import to_snake_case
+from graphql_relay import from_global_id
 
 from ...checkout.models import Checkout
 from ...discount.models import Promotion, PromotionRule
@@ -396,7 +396,7 @@ def convert_migrated_sale_predicate_to_model_ids(
             for item in catalogue_predicate["OR"]
         }
         for key, ids in predicates.items():
-            predicates[key] = [graphene.Node.from_global_id(id)[1] for id in ids]
+            predicates[key] = [from_global_id(id)[1] for id in ids]
         return predicates
     return None
 

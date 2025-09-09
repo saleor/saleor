@@ -7,13 +7,21 @@ from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
-from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 
 
+@doc(category=DOC_CATEGORY_ATTRIBUTES)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
+        WebhookEventAsyncType.ATTRIBUTE_UPDATED,
+    }
+)
 class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
@@ -31,16 +39,6 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_VALUE_DELETED,
-                description="An attribute value was deleted.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ATTRIBUTE_UPDATED,
-                description="An attribute was updated.",
-            ),
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

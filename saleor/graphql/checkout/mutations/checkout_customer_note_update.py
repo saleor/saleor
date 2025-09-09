@@ -9,10 +9,13 @@ from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.types import CheckoutError
 from ...core.utils import WebhookEventInfo
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
+@webhook_events(async_events={WebhookEventAsyncType.CHECKOUT_UPDATED})
 class CheckoutCustomerNoteUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
@@ -29,15 +32,8 @@ class CheckoutCustomerNoteUpdate(BaseMutation):
         description = (
             "Updates customer note in the existing checkout object." + ADDED_IN_321
         )
-        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
-                description="A checkout was updated.",
-            )
-        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

@@ -1,24 +1,29 @@
 import json
 from collections.abc import Callable, Iterable
 from decimal import Decimal, InvalidOperation
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import graphene
 from django.conf import settings
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
-from graphene.relay import Connection
-from graphql import GraphQLError
-from graphql.language.ast import FragmentSpread, InlineFragment, SelectionSet
-from graphql_relay.connection.arrayconnection import connection_from_list_slice
-from graphql_relay.connection.connectiontypes import Edge, PageInfo
+from graphene.relay import Connection, PageInfo
+from graphql import (
+    FieldNode,
+    FragmentSpreadNode,
+    GraphQLError,
+    InlineFragmentNode,
+    SelectionSetNode,
+)
+from graphql_relay.connection.arrayconnection import connection_from_array
 from graphql_relay.utils import base64, unbase64
 
 from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.context import ChannelContext, ChannelQsContext
 from ..core.enums import OrderDirection
-from ..core.types import BaseConnection, NonNullList
+from ..core.types import NonNullList
+from ..directives import doc
 from ..utils.sorting import sort_queryset_for_connection
 from .context import SyncWebhookControlContext
 
@@ -248,8 +253,6 @@ def connection_from_queryset_slice(
     qs: QuerySet,
     args: ConnectionArguments | None = None,
     connection_type: Any = Connection,
-    edge_type: Any = Edge,
-    pageinfo_type: Any = PageInfo,
 ) -> Connection:
     """Create a connection object from a QuerySet."""
     args = args or {}
@@ -289,7 +292,7 @@ def connection_from_queryset_slice(
         raise GraphQLError("Received cursor is invalid.") from e
     filtered_qs = filtered_qs[:end_margin]
     edges, page_info = _get_edges_for_connection(
-        edge_type, filtered_qs, args, sorting_fields
+        connection_type.Edge, filtered_qs, args, sorting_fields
     )
 
     if "total_count" in connection_type._meta.fields:
@@ -299,13 +302,13 @@ def connection_from_queryset_slice(
 
         return connection_type(
             edges=edges,
-            page_info=pageinfo_type(**page_info),
+            page_info=PageInfo(**page_info),
             total_count=get_total_count,
         )
 
     return connection_type(
         edges=edges,
-        page_info=pageinfo_type(**page_info),
+        page_info=PageInfo(**page_info),
     )
 
 
@@ -314,8 +317,6 @@ def create_connection_slice(
     info: "ResolveInfo",
     args,
     connection_type,
-    edge_type=None,
-    pageinfo_type=graphene.relay.PageInfo,
     max_limit: int | None = None,
 ):
     _validate_slice_args(info, args, max_limit)
@@ -325,8 +326,6 @@ def create_connection_slice(
             iterable,
             args,
             connection_type,
-            edge_type,
-            pageinfo_type,
         )
 
     if isinstance(iterable, ChannelQsContext):
@@ -343,13 +342,7 @@ def create_connection_slice(
     from ...core.db.connection import allow_writer_in_context
 
     with allow_writer_in_context(info.context):
-        slice = connection_from_queryset_slice(
-            queryset,
-            args,
-            connection_type,
-            edge_type or connection_type.Edge,
-            pageinfo_type or graphene.relay.PageInfo,
-        )
+        slice = connection_from_queryset_slice(queryset, args, connection_type)
 
     if isinstance(iterable, ChannelQsContext):
         edges_with_context = []
@@ -397,11 +390,11 @@ def _validate_slice_args(
             args["last"] = min(last, max_limit)
 
 
-def _edges_in_selections(selection_set: SelectionSet, info: "ResolveInfo") -> bool:
+def _edges_in_selections(selection_set: SelectionSetNode, info: "ResolveInfo") -> bool:
     values = [
         field.name.value
         for field in selection_set.selections
-        if not isinstance(field, InlineFragment)
+        if isinstance(field, FieldNode | FragmentSpreadNode)
     ]
     if "edges" in values:
         return True
@@ -409,12 +402,13 @@ def _edges_in_selections(selection_set: SelectionSet, info: "ResolveInfo") -> bo
     fragments = [
         field.name.value
         for field in selection_set.selections
-        if isinstance(field, FragmentSpread)
+        if isinstance(field, FragmentSpreadNode)
     ]
     for fragment in fragments:
         fragment_values = [
             field.name.value
             for field in info.fragments[fragment].selection_set.selections
+            if isinstance(field, FieldNode | FragmentSpreadNode)
         ]
         if "edges" in fragment_values:
             return True
@@ -422,7 +416,7 @@ def _edges_in_selections(selection_set: SelectionSet, info: "ResolveInfo") -> bo
     sub_selection_sets = [
         field.selection_set
         for field in selection_set.selections
-        if isinstance(field, InlineFragment)
+        if isinstance(field, InlineFragmentNode)
     ]
     for sub_selection_set in sub_selection_sets:
         if _edges_in_selections(sub_selection_set, info):
@@ -433,29 +427,26 @@ def _edges_in_selections(selection_set: SelectionSet, info: "ResolveInfo") -> bo
 
 def _is_first_or_last_required(info: "ResolveInfo") -> bool:
     """Disable `enforce_first_or_last` if not querying for `edges`."""
-    selection_set = info.field_asts[0].selection_set
+    selection_set = info.field_nodes[0].selection_set
+    if not selection_set:
+        return False
     return _edges_in_selections(selection_set, info)
 
 
 def slice_connection_iterable(
     iterable,
     args,
-    connection_type,
-    edge_type=None,
-    pageinfo_type=None,
+    connection_type: type["CountableConnection"],
 ):
     _len = len(iterable)
 
-    slice = connection_from_list_slice(
+    slice = connection_from_array(
         iterable,
         args,
-        slice_start=0,
-        list_length=_len,
-        list_slice_length=_len,
         connection_type=connection_type,
-        edge_type=edge_type or connection_type.Edge,
-        pageinfo_type=pageinfo_type or graphene.relay.PageInfo,
+        edge_type=connection_type.Edge,
     )
+    slice = cast(CountableConnection, slice)
 
     if "total_count" in connection_type._meta.fields:
         slice.total_count = _len
@@ -673,12 +664,12 @@ def create_connection_slice_for_sync_webhook_control_context(
 #     return queryset
 
 
-class NonNullConnection(BaseConnection):
+class NonNullConnection(graphene.Connection):
     class Meta:
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, node=None, name=None, **options):  # type: ignore[override]
+    def __init_subclass_with_meta__(cls, node=None, name=None, **options):
         super().__init_subclass_with_meta__(node=node, name=name, **options)
 
         # Override the original EdgeBase type to make to `node` field required.
@@ -696,7 +687,8 @@ class NonNullConnection(BaseConnection):
         edge_name = cls.Edge._meta.name
         edge_bases = (EdgeBase, graphene.ObjectType)
         edge = type(edge_name, edge_bases, {})
-        edge.doc_category = options.get("doc_category")  # type: ignore[attr-defined]
+        if "doc_category" in options:
+            edge = doc(options["doc_category"], edge)
         cls.Edge = edge
 
         # Override the `edges` field to make it non-null list

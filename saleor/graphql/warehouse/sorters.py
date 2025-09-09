@@ -1,12 +1,13 @@
+import graphene
+
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class WarehouseSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_PRODUCTS)
+class WarehouseSortField(graphene.Enum):
     NAME = ["name", "slug"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -16,8 +17,8 @@ class WarehouseSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_PRODUCTS)
 class WarehouseSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = WarehouseSortField
         type_name = "warehouses"

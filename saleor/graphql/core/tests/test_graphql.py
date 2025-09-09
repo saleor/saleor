@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import graphene
 import pytest
 from django.urls import reverse
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 from graphql_relay import to_global_id
 
 from ....order import models as order_models

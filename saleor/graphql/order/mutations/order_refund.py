@@ -15,6 +15,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
+from ...directives import doc
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .utils import clean_payment, try_payment_action
@@ -49,6 +50,7 @@ def clean_order_refund(order: models.Order) -> models.Order:
     return order
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderRefund(BaseMutation):
     order = graphene.Field(Order, description="A refunded order.")
 
@@ -60,7 +62,6 @@ class OrderRefund(BaseMutation):
 
     class Meta:
         description = "Refund an order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

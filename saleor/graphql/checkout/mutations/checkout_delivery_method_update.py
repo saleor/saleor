@@ -20,12 +20,12 @@ from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...core.utils import WebhookEventInfo, from_global_id_or_error
+from ...core.utils import from_global_id_or_error
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ...warehouse.types import Warehouse
@@ -41,6 +41,11 @@ if TYPE_CHECKING:
     from ....plugins.manager import PluginsManager
 
 
+@doc(category=DOC_CATEGORY_CHECKOUT)
+@webhook_events(
+    sync_events={WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT},
+    async_events={WebhookEventAsyncType.CHECKOUT_UPDATED},
+)
 class CheckoutDeliveryMethodUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
@@ -50,7 +55,8 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             required=False,
         )
         token = UUID(
-            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            description="Checkout token.",
+            deprecation_reason="Use `id` instead.",
             required=False,
         )
 
@@ -66,21 +72,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             "Updates the checkout shipping_address for click and collect delivery "
             "for a warehouse address. "
         )
-        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                description=(
-                    "Triggered when updating the checkout delivery method with "
-                    "the external one."
-                ),
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
-                description="A checkout was updated.",
-            ),
-        ]
 
     @classmethod
     def get_collection_point_as_delivery_method_data(

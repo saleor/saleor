@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db.models import Exists, OuterRef, Q, QuerySet, Value
 from django.utils import timezone
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 
 from ...core.postgres import FlatConcat
 from ...giftcard import GiftCardEvents
@@ -48,13 +48,9 @@ from ..core.filters.where_input import (
     WhereInputObjectType,
 )
 from ..core.scalars import UUID as UUIDScalar
-from ..core.types import (
-    BaseInputObjectType,
-    DateRangeInput,
-    DateTimeRangeInput,
-    NonNullList,
-)
+from ..core.types import DateRangeInput, DateTimeRangeInput, NonNullList
 from ..core.utils import from_global_id_or_error
+from ..directives import doc
 from ..discount.filters import DiscountedObjectWhere
 from ..payment.enums import PaymentChargeStatusEnum, PaymentMethodTypeEnum
 from ..utils import resolve_global_ids_to_primary_keys
@@ -409,7 +405,8 @@ class OrderFilter(DraftOrderFilter):
         return super().is_valid()
 
 
-class OrderStatusEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderStatusEnumFilterInput(graphene.InputObjectType):
     eq = OrderStatusEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         OrderStatusEnum,
@@ -418,11 +415,11 @@ class OrderStatusEnumFilterInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter by order status."
 
 
-class OrderAuthorizeStatusEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderAuthorizeStatusEnumFilterInput(graphene.InputObjectType):
     eq = OrderAuthorizeStatusEnum(
         description=FilterInputDescriptions.EQ, required=False
     )
@@ -433,11 +430,11 @@ class OrderAuthorizeStatusEnumFilterInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter by authorize status."
 
 
-class OrderChargeStatusEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderChargeStatusEnumFilterInput(graphene.InputObjectType):
     eq = OrderChargeStatusEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         OrderChargeStatusEnum,
@@ -446,21 +443,21 @@ class OrderChargeStatusEnumFilterInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter by charge status."
 
 
-class InvoiceFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class InvoiceFilterInput(graphene.InputObjectType):
     created_at = DateTimeRangeInput(
         description="Filter invoices by creation date.",
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter input for invoices."
 
 
-class FulfillmentStatusEnumFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class FulfillmentStatusEnumFilterInput(graphene.InputObjectType):
     eq = FulfillmentStatusEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         FulfillmentStatusEnum,
@@ -469,11 +466,11 @@ class FulfillmentStatusEnumFilterInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter by fulfillment status."
 
 
-class FulfillmentWarehouseFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class FulfillmentWarehouseFilterInput(graphene.InputObjectType):
     id = GlobalIDFilterInput(
         description="Filter fulfillments by warehouse ID.",
         required=False,
@@ -488,11 +485,11 @@ class FulfillmentWarehouseFilterInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter input for fulfillment warehouses."
 
 
-class FulfillmentFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class FulfillmentFilterInput(graphene.InputObjectType):
     status = FulfillmentStatusEnumFilterInput(
         description="Filter by fulfillment status."
     )
@@ -503,21 +500,20 @@ class FulfillmentFilterInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter input for order fulfillments data."
 
 
-class LinesFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class LinesFilterInput(graphene.InputObjectType):
     metadata = MetadataFilterInput(
         description="Filter by metadata fields of order lines."
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter input for order lines data."
 
 
-class OrderEventTypeEnumFilterInput(BaseInputObjectType):
+class OrderEventTypeEnumFilterInput(graphene.InputObjectType):
     eq = OrderEventsEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         OrderEventsEnum,
@@ -526,7 +522,8 @@ class OrderEventTypeEnumFilterInput(BaseInputObjectType):
     )
 
 
-class OrderEventFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderEventFilterInput(graphene.InputObjectType):
     date = DateTimeRangeInput(
         description="Filter order events by date.",
     )
@@ -535,11 +532,10 @@ class OrderEventFilterInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter input for order events data."
 
 
-class PaymentMethodTypeEnumFilterInput(BaseInputObjectType):
+class PaymentMethodTypeEnumFilterInput(graphene.InputObjectType):
     eq = PaymentMethodTypeEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         PaymentMethodTypeEnum,
@@ -548,13 +544,13 @@ class PaymentMethodTypeEnumFilterInput(BaseInputObjectType):
     )
 
 
-class PaymentMethodDetailsCardFilterInput(BaseInputObjectType):
+class PaymentMethodDetailsCardFilterInput(graphene.InputObjectType):
     brand = StringFilterInput(
         description="Filter by payment method brand used to pay for the order.",
     )
 
 
-class PaymentMethodDetailsFilterInput(BaseInputObjectType):
+class PaymentMethodDetailsFilterInput(graphene.InputObjectType):
     type = PaymentMethodTypeEnumFilterInput(
         description="Filter by payment method type used to pay for the order.",
     )
@@ -585,7 +581,8 @@ class PaymentMethodDetailsFilterInput(BaseInputObjectType):
         return transaction_qs
 
 
-class TransactionFilterInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class TransactionFilterInput(graphene.InputObjectType):
     payment_method_details = PaymentMethodDetailsFilterInput(
         description="Filter by payment method details used to pay for the order.",
     )
@@ -594,7 +591,6 @@ class TransactionFilterInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         description = "Filter input for transactions."
 
     @staticmethod
@@ -971,9 +967,9 @@ class OrderWhere(MetadataWhereBase):
         return filter_fulfillments(qs, value)
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class OrderWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = OrderWhere
 
 
@@ -1081,9 +1077,9 @@ class DraftOrderWhere(MetadataWhereBase):
     )
 
 
+@doc(category=DOC_CATEGORY_ORDERS)
 class DraftOrderWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = DraftOrderWhere
 
 

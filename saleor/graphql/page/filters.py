@@ -3,6 +3,7 @@ from typing import Literal
 import django_filters
 import graphene
 from django.db.models import Exists, OuterRef, Q, QuerySet
+from graphql_relay import from_global_id
 
 from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributeValue
 from ...page import models
@@ -41,6 +42,7 @@ from ..core.filters.where_input import (
     StringFilterInput,
     WhereInputObjectType,
 )
+from ..directives import doc
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import (
     Number,
@@ -393,18 +395,18 @@ def filter_by_contains_referenced_object_ids(
     contains_all = attr_value.get("contains_all")
     contains_any = attr_value.get("contains_any")
 
-    variant_ids = set()
-    product_ids = set()
-    page_ids = set()
+    variant_ids: set[int] = set()
+    product_ids: set[int] = set()
+    page_ids: set[int] = set()
 
     for obj_id in contains_any or contains_all or []:
-        type_, id_ = graphene.Node.from_global_id(obj_id)
+        type_, id_ = from_global_id(obj_id)
         if type_ == "Page":
-            page_ids.add(id_)
+            page_ids.add(int(id_))
         elif type_ == "Product":
-            product_ids.add(id_)
+            product_ids.add(int(id_))
         elif type_ == "ProductVariant":
-            variant_ids.add(id_)
+            variant_ids.add(int(id_))
 
     if contains_all:
         return _filter_by_contains_all_referenced_object_ids(
@@ -603,15 +605,15 @@ class PageFilter(MetadataFilterBase):
         fields = ["search"]
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PAGES
         filterset_class = PageFilter
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageWhereInput(WhereInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PAGES
         filterset_class = PageWhere
 
 
@@ -620,7 +622,7 @@ class PageTypeFilter(django_filters.FilterSet):
     slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
 
+@doc(category=DOC_CATEGORY_PAGES)
 class PageTypeFilterInput(FilterInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_PAGES
         filterset_class = PageTypeFilter

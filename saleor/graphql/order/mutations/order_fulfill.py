@@ -16,8 +16,9 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
-from ...core.types import BaseInputObjectType, NonNullList, OrderError
-from ...core.utils import WebhookEventInfo, get_duplicated_values
+from ...core.types import NonNullList, OrderError
+from ...core.utils import get_duplicated_values
+from ...directives import doc, webhook_events
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ...warehouse.types import Warehouse
@@ -25,7 +26,8 @@ from ..types import Fulfillment, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
 
 
-class OrderFulfillStockInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderFulfillStockInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description="The number of line items to be fulfilled from given warehouse.",
         required=True,
@@ -35,11 +37,9 @@ class OrderFulfillStockInput(BaseInputObjectType):
         required=True,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderFulfillLineInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderFulfillLineInput(graphene.InputObjectType):
     order_line_id = graphene.ID(
         description="The ID of the order line.", name="orderLineId"
     )
@@ -49,11 +49,9 @@ class OrderFulfillLineInput(BaseInputObjectType):
         description="List of stock items to create.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class OrderFulfillInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class OrderFulfillInput(graphene.InputObjectType):
     lines = NonNullList(
         OrderFulfillLineInput,
         required=True,
@@ -72,21 +70,25 @@ class OrderFulfillInput(BaseInputObjectType):
         required=False,
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
-class FulfillmentUpdateTrackingInput(BaseInputObjectType):
+@doc(category=DOC_CATEGORY_ORDERS)
+class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
     tracking_number = graphene.String(description="Fulfillment tracking number.")
     notify_customer = graphene.Boolean(
         default_value=False,
         description="If true, send an email notification to the customer.",
     )
 
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
-
+@doc(category=DOC_CATEGORY_ORDERS)
+@webhook_events(
+    async_events={
+        WebhookEventAsyncType.FULFILLMENT_CREATED,
+        WebhookEventAsyncType.ORDER_FULFILLED,
+        WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED,
+        WebhookEventAsyncType.FULFILLMENT_APPROVED,
+    }
+)
 class OrderFulfill(BaseMutation):
     fulfillments = NonNullList(Fulfillment, description="List of created fulfillments.")
     order = graphene.Field(Order, description="Fulfilled order.")
@@ -101,28 +103,9 @@ class OrderFulfill(BaseMutation):
 
     class Meta:
         description = "Creates new fulfillments for an order."
-        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
-        webhook_events_info = [
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.FULFILLMENT_CREATED,
-                description="A new fulfillment is created.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.ORDER_FULFILLED,
-                description="Order is fulfilled.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED,
-                description="Sent when fulfillment tracking number is updated.",
-            ),
-            WebhookEventInfo(
-                type=WebhookEventAsyncType.FULFILLMENT_APPROVED,
-                description="A fulfillment is approved.",
-            ),
-        ]
 
     @classmethod
     def clean_lines(cls, order_lines, quantities_for_lines):

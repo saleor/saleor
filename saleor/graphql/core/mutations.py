@@ -18,7 +18,8 @@ from django.db.models import Model, Q, QuerySet
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
-from graphql.error import GraphQLError
+from graphql import GraphQLError
+from graphql_relay import from_global_id
 
 from ...core.db.connection import allow_writer
 from ...core.exceptions import PermissionDenied
@@ -72,7 +73,7 @@ def get_error_fields(error_type_class, error_type_field, deprecation_reason=None
             error_type_class,
             description="List of errors that occurred executing the mutation.",
         ),
-        default_value=[],
+        default_value=(),
         required=True,
     )
     if deprecation_reason is not None:
@@ -125,7 +126,6 @@ def attach_error_params(error, params: dict | None, error_class_fields: set):
 
 
 class ModelMutationOptions(MutationOptions):
-    doc_category = None
     exclude = None
     model = None
     object_type = None
@@ -156,7 +156,6 @@ class BaseMutation(graphene.Mutation):
         cls,
         auto_permission_message=True,
         description=None,
-        doc_category=None,
         permissions: Collection[BasePermissionEnum] | None = None,
         _meta=None,
         error_type_class=None,
@@ -165,7 +164,6 @@ class BaseMutation(graphene.Mutation):
         support_meta_field=False,
         support_private_meta_field=False,
         auto_webhook_events_message: bool = True,
-        webhook_events_info: list[WebhookEventInfo] | None = None,
         exclude=None,
         **options,
     ):
@@ -173,7 +171,9 @@ class BaseMutation(graphene.Mutation):
             _meta = MutationOptions(cls)
 
         if not description:
-            raise ImproperlyConfigured("No description provided in Meta")
+            description = cls.__doc__
+            if not description:
+                raise ImproperlyConfigured("No description provided in Meta")
 
         if not error_type_class:
             raise ImproperlyConfigured("No error_type_class provided in Meta.")
@@ -195,13 +195,6 @@ class BaseMutation(graphene.Mutation):
         if permissions and auto_permission_message:
             permissions_msg = message_one_of_permissions_required(permissions)
             description = f"{description} {permissions_msg}"
-
-        if webhook_events_info and auto_webhook_events_message:
-            description += message_webhook_events(webhook_events_info)
-
-        cls.webhook_events_info = webhook_events_info
-
-        cls.doc_category = doc_category
 
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options
@@ -564,7 +557,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def check_metadata_permissions(cls, info: ResolveInfo, object_id, private=False):
-        type_name, db_id = graphene.Node.from_global_id(object_id)
+        type_name, db_id = from_global_id(object_id)
 
         if private:
             meta_permission = PRIVATE_META_PERMISSION_MAP.get(type_name)

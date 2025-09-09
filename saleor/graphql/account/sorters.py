@@ -1,19 +1,19 @@
+import graphene
 from django.db.models import Count, QuerySet
 
 from ..core.doc_category import DOC_CATEGORY_USERS
-from ..core.types import BaseEnum, SortInputObjectType
+from ..core.types import SortInputObjectType
+from ..directives import doc
 
 
-class UserSortField(BaseEnum):
+@doc(category=DOC_CATEGORY_USERS)
+class UserSortField(graphene.Enum):
     FIRST_NAME = ["first_name", "last_name", "pk"]
     LAST_NAME = ["last_name", "first_name", "pk"]
     EMAIL = ["email"]
     ORDER_COUNT = ["order_count", "email"]
     CREATED_AT = ["date_joined", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "pk"]
-
-    class Meta:
-        doc_category = DOC_CATEGORY_USERS
 
     @property
     def description(self):
@@ -27,19 +27,18 @@ class UserSortField(BaseEnum):
         return queryset.annotate(order_count=Count("orders__id"))
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class UserSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_USERS
         sort_enum = UserSortField
         type_name = "users"
 
 
-class PermissionGroupSortField(BaseEnum):
-    NAME = ["name"]
+@doc(category=DOC_CATEGORY_USERS)
+class PermissionGroupSortField(graphene.Enum):
+    """Sorting options for permission groups."""
 
-    class Meta:
-        description = "Sorting options for permission groups."
-        doc_category = DOC_CATEGORY_USERS
+    NAME = ["name"]
 
     @property
     def description(self):
@@ -50,8 +49,8 @@ class PermissionGroupSortField(BaseEnum):
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
+@doc(category=DOC_CATEGORY_USERS)
 class PermissionGroupSortingInput(SortInputObjectType):
     class Meta:
-        doc_category = DOC_CATEGORY_USERS
         sort_enum = PermissionGroupSortField
         type_name = "permission group"

@@ -7,10 +7,9 @@ import graphene
 import pytest
 from django.shortcuts import render
 from django.test import override_settings
-from graphql.execution.base import ExecutionResult
+from graphql import ExecutionResult
 
 from .... import __version__ as saleor_version
-from ....graphql.api import backend, schema
 from ....graphql.utils import INTERNAL_ERROR_MESSAGE
 from ...tests.fixtures import API_PATH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
@@ -372,7 +371,7 @@ def test_graphql_view_clears_context(rf, staff_user, product, channel_USD):
     request.user = staff_user
 
     # when
-    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view = GraphQLView.as_view()
     response = view(request)
 
     # then
@@ -403,7 +402,7 @@ def test_playground_is_rendered_with_proper_api_url_if_public_url_is_set(
     settings.PUBLIC_URL = public_url
 
     # when
-    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view = GraphQLView.as_view()
     view(request)
 
     # then
