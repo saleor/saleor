@@ -1503,10 +1503,11 @@ class CheckoutFullyPaid(SubscriptionObjectType, CheckoutBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when checkout is fully paid with transactions."
-            "The checkout is considered as fully paid when the "
-            "`checkout.chargeStatus` is `FULL` or `OVERCHARGED`. "
-            "The event is not sent when the checkout is fully authorized."
+            "Event sent when a checkout is fully paid. A checkout is "
+            "considered fully paid when `checkout.chargeStatus` is `FULL` "
+            "or `OVERCHARGED`. This event is not sent if payments are only "
+            "authorized but not fully charged.\nIt is triggered only for "
+            "checkouts whose payments are processed through the Transaction API."
         )
 
 
@@ -1516,9 +1517,10 @@ class CheckoutFullyAuthorized(SubscriptionObjectType, CheckoutBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when checkout is fully authorized with transactions. "
-            "The checkout is considered as fully authorized when the "
-            "`checkout.authorizeStatus` is `FULL`. "
+            "Event sent when a checkout is fully authorized. A checkout is "
+            "considered fully authorized when `checkout.authorizeStatus` is `FULL`.\n"
+            "It is triggered only for checkouts whose payments are processed through "
+            "the Transaction API."
         )
 
 
