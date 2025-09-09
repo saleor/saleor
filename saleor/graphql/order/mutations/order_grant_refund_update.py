@@ -1,7 +1,6 @@
 from typing import Any, cast
 
 import graphene
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphql import GraphQLError
@@ -21,6 +20,7 @@ from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.types import TransactionItem
 from ...payment.utils import validate_refund_reason_requirement
+from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -420,13 +420,12 @@ class OrderGrantRefundUpdate(BaseMutation):
 
             reason_reference_id = cleaned_input["reason_reference"]
 
-            settings = Site.objects.get_current().settings
-            refund_reason_reference_type = settings.refund_reason_reference_type
+            site = get_site_promise(info.context).get()
+            refund_reason_reference_type = site.settings.refund_reason_reference_type
 
             is_passing_reason_reference_required = (
                 refund_reason_reference_type is not None
             )
-
 
             # If feature is not enabled, ignore it from the input
             if not is_passing_reason_reference_required:

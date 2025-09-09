@@ -2,7 +2,6 @@ import decimal
 from typing import Any
 
 import graphene
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
@@ -21,6 +20,7 @@ from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.mutations.transaction.utils import get_transaction_item
 from ...payment.utils import validate_refund_reason_requirement
+from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -265,8 +265,8 @@ class OrderGrantRefundCreate(BaseMutation):
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
-        settings = Site.objects.get_current().settings
-        refund_reason_reference_type = settings.refund_reason_reference_type
+        site = get_site_promise(info.context).get()
+        refund_reason_reference_type = site.settings.refund_reason_reference_type
 
         is_passing_reason_reference_required = refund_reason_reference_type is not None
 

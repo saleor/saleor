@@ -49,9 +49,10 @@ class RefundSettingsUpdate(BaseMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         input = data.get("input")
 
-        refund_reason_reference_type = input.get("refund_reason_reference_type")
+        refund_reason_reference_type = (
+            input.get("refund_reason_reference_type") if input else None
+        )
 
-        # todo should we use this loader, or get_current?
         site = get_site_promise(info.context).get()
         settings = site.settings
 

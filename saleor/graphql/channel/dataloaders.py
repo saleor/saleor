@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from uuid import UUID
 
 from django.db.models import Exists, OuterRef
@@ -67,7 +68,7 @@ class ChannelWithHasOrdersByIdLoader(DataLoader[int, Channel]):
 class ChannelByTransactionIdLoader(DataLoader[int, Channel]):
     context_key = "channel_by_transaction_id"
 
-    def batch_load(self, keys: list[str]):
+    def batch_load(self, keys: Iterable[int]):
         transaction_item_ids = keys
 
         # Order doesn't have relation to transaction item, so we first need to do reverse
