@@ -24,7 +24,6 @@ from ...warehouse.models import (
     Warehouse,
 )
 from ...warehouse.reservations import is_reservation_enabled
-from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
 from ..shipping.dataloaders import (
     ShippingZonesByChannelIdLoader,
@@ -508,6 +507,8 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
             ).then(with_shipping_zones)
 
         channel_slugs = list({key[2] for key in keys if key[2]})
+        from saleor.graphql.channel.dataloaders import ChannelBySlugLoader
+
         return (
             ChannelBySlugLoader(self.context)
             .load_many(channel_slugs)

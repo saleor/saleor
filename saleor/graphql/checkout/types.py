@@ -30,10 +30,9 @@ from ...warehouse.reservations import is_reservation_enabled
 from ...webhook.event_types import WebhookEventSyncType
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
-from ..channel.dataloaders import ChannelByIdLoader
+from ..channel.dataloaders import ChannelByCheckoutIDLoader, ChannelByIdLoader
 from ..channel.types import Channel
 from ..checkout.dataloaders import (
-    ChannelByCheckoutIDLoader,
     CheckoutLinesProblemsByCheckoutIdLoader,
     CheckoutProblemsByCheckoutIdDataloader,
 )

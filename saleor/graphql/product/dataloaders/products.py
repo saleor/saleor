@@ -19,7 +19,6 @@ from ....product.models import (
     VariantChannelListingPromotionRule,
     VariantMedia,
 )
-from ...channel.dataloaders import ChannelBySlugLoader
 from ...core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
 
 ProductIdAndChannelSlug = tuple[int, str]
@@ -243,6 +242,8 @@ class ProductVariantsByProductIdAndChannel(
 
             return [variant_map.get(key, []) for key in keys]
 
+        from saleor.graphql.channel.dataloaders import ChannelBySlugLoader
+
         return (
             ChannelBySlugLoader(self.context)
             .load_many(product_ids_by_channel.keys())
@@ -319,6 +320,8 @@ class VariantChannelListingByVariantIdAndChannelSlugLoader(
             return VariantChannelListingByVariantIdAndChannelIdLoader(
                 self.context
             ).load_many(variant_id_channel_id_keys)
+
+        from saleor.graphql.channel.dataloaders import ChannelBySlugLoader
 
         return (
             ChannelBySlugLoader(self.context)

@@ -21,7 +21,6 @@ from ...discount.models import (
     VoucherCode,
 )
 from ...product.models import ProductVariant
-from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
 
 if TYPE_CHECKING:
@@ -421,6 +420,8 @@ class PromotionRulesByPromotionIdAndChannelSlugLoader(
     def batch_load(self, keys):
         promotion_ids = [key[0] for key in keys]
         channel_slug = keys[0][1]
+        from saleor.graphql.channel.dataloaders import ChannelBySlugLoader
+
         channel = ChannelBySlugLoader(self.context).load(channel_slug)
 
         def with_channel(data):

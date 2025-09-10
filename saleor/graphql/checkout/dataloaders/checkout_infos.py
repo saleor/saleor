@@ -8,7 +8,6 @@ from ....core.db.connection import allow_writer_in_context
 from ....discount import VoucherType
 from ....discount.utils.voucher import attach_voucher_to_line_info
 from ...account.dataloaders import AddressByIdLoader, UserByUserIdLoader
-from ...channel.dataloaders import ChannelByIdLoader
 from ...core.dataloaders import DataLoader
 from ...discount.dataloaders import (
     CheckoutDiscountByCheckoutIdLoader,
@@ -22,11 +21,9 @@ from ...product.dataloaders import (
     ProductByVariantIdLoader,
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
-    VariantChannelListingByVariantIdAndChannelIdLoader,
 )
 from ...shipping.dataloaders import (
     ShippingMethodByIdLoader,
-    ShippingMethodChannelListingByChannelSlugLoader,
 )
 from ...tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChannelId
 from ...warehouse.dataloaders import WarehouseByIdLoader
@@ -74,6 +71,11 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     shipping_method_ids
                 )
                 channel_slugs = [channel.slug for channel in channels]
+
+                from ...shipping.dataloaders import (
+                    ShippingMethodChannelListingByChannelSlugLoader,
+                )
+
                 shipping_method_channel_listings = (
                     ShippingMethodChannelListingByChannelSlugLoader(
                         self.context
@@ -200,6 +202,8 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         tax_configurations,
                     ]
                 ).then(with_checkout_info)
+
+            from ...channel.dataloaders import ChannelByIdLoader
 
             return (
                 ChannelByIdLoader(self.context)
@@ -361,9 +365,15 @@ class CheckoutLinesInfoByCheckoutTokenLoader(
                     [(line.variant_id, channel_id) for line in lines]
                 )
 
+            from saleor.graphql.product.dataloaders import (
+                VariantChannelListingByVariantIdAndChannelIdLoader,
+            )
+
             channel_listings = VariantChannelListingByVariantIdAndChannelIdLoader(
                 self.context
             ).load_many(variant_ids_channel_ids)
+
+            from saleor.graphql.channel.dataloaders import ChannelByIdLoader
 
             channels = ChannelByIdLoader(self.context).load_many(channel_pks)
             return Promise.all(
