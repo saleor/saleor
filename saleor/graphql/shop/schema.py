@@ -1,7 +1,7 @@
 import graphene
 
 from ...channel import models as channel_models
-from ...permission.enums import GiftcardPermissions, OrderPermissions, SitePermissions
+from ...permission.enums import GiftcardPermissions, OrderPermissions
 from ..channel.types import OrderSettings
 from ..core.context import get_database_connection_name
 from ..core.descriptions import DEFAULT_DEPRECATION_REASON
@@ -57,7 +57,7 @@ class ShopQueries(graphene.ObjectType):
         RefundSettings,
         description="Refunds related settings from site settings.",
         required=True,
-        permissions=[SitePermissions.MANAGE_SETTINGS],
+        permissions=[],
         doc_category=DOC_CATEGORY_SHOP,
     )
 

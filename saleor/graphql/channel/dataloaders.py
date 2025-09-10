@@ -2,10 +2,12 @@ from collections.abc import Iterable
 from uuid import UUID
 
 from django.db.models import Exists, OuterRef
+from promise import Promise
 
 from ...channel.models import Channel
 from ...order.models import Order
 from ...payment.models import TransactionItem
+from ..checkout.dataloaders.models import CheckoutByTokenLoader
 from ..core.dataloaders import DataLoader
 from ..order.dataloaders import OrderByIdLoader
 
@@ -64,6 +66,27 @@ class ChannelWithHasOrdersByIdLoader(DataLoader[int, Channel]):
         )
         return [channels.get(channel_id) for channel_id in keys]
 
+class ChannelByCheckoutIDLoader(DataLoader[UUID, Channel]):
+    context_key = "channel_by_checkout"
+
+    def batch_load(self, keys):
+        def with_checkouts(checkouts):
+            def with_channels(channels):
+                channel_map = {channel.id: channel for channel in channels}
+                return [
+                    channel_map.get(checkout.channel_id) if checkout else None
+                    for checkout in checkouts
+                ]
+
+            channel_ids = {checkout.channel_id for checkout in checkouts if checkout}
+            return (
+                ChannelByIdLoader(self.context)
+                .load_many(channel_ids)
+                .then(with_channels)
+            )
+
+        return CheckoutByTokenLoader(self.context).load_many(keys).then(with_checkouts)
+
 
 class ChannelByTransactionIdLoader(DataLoader[int, Channel]):
     context_key = "channel_by_transaction_id"
@@ -72,14 +95,22 @@ class ChannelByTransactionIdLoader(DataLoader[int, Channel]):
         transaction_item_ids = keys
 
         # Order doesn't have relation to transaction item, so we first need to do reverse
-        transaction_items_with_order_ids_only = (
+        transaction_items_with_foreign_ids_only = (
             TransactionItem.objects.using(self.database_connection_name)
-            .only("order_id")
+            .only("order_id", "checkout_id")
             .in_bulk(transaction_item_ids)
         )
 
         order_ids = [
-            item.order_id for item in transaction_items_with_order_ids_only.values()
+            item.order_id for item in transaction_items_with_foreign_ids_only.values()
         ]
 
-        return ChannelByOrderIdLoader(self.context).load_many(order_ids)
+        checkout_ids = [
+            item.checkout_id for item in transaction_items_with_foreign_ids_only.values()
+        ]
+
+        channel_by_order_promise = ChannelByOrderIdLoader(self.context).load_many(order_ids)
+        channel_by_checkout_promise = ChannelByCheckoutIDLoader(self.context).load_many(checkout_ids)
+
+        return Promise.all([channel_by_order_promise, channel_by_checkout_promise])
+
