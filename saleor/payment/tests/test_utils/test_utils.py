@@ -820,8 +820,10 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 def test_create_transaction_event_from_request_when_paid(
     mocked_checkout_fully_paid,
+    mocked_checkout_fully_authorized,
     mocked_automatic_checkout_completion_task,
     transaction_item_generator,
     app,
@@ -860,14 +862,17 @@ def test_create_transaction_event_from_request_when_paid(
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     mocked_automatic_checkout_completion_task.assert_not_called()
 
 
 @patch.object(logger, "error")
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 def test_create_transaction_event_from_request_when_authorized_logs_warnning(
     mocked_checkout_fully_paid,
+    mocked_checkout_fully_authorized,
     mocked_automatic_checkout_completion_task,
     mocked_logger,
     transaction_item_generator,
@@ -913,6 +918,7 @@ def test_create_transaction_event_from_request_when_authorized_logs_warnning(
     assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
     checkout.refresh_from_db()
     mocked_checkout_fully_paid.assert_not_called()
+    mocked_checkout_fully_authorized.assert_not_called()
     mocked_automatic_checkout_completion_task.assert_not_called()
     assert mocked_logger.call_count == 1
     assert len(mocked_logger.call_args) == 2
@@ -920,8 +926,10 @@ def test_create_transaction_event_from_request_when_authorized_logs_warnning(
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 def test_create_transaction_event_from_request_when_paid_triggers_checkout_completion(
     mocked_checkout_fully_paid,
+    mocked_checkout_fully_authorized,
     mocked_automatic_checkout_completion_task,
     transaction_item_generator,
     app,
@@ -967,6 +975,7 @@ def test_create_transaction_event_from_request_when_paid_triggers_checkout_compl
     checkout.refresh_from_db()
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     mocked_automatic_checkout_completion_task.assert_called_once_with(
         checkout.pk, None, app.id
     )

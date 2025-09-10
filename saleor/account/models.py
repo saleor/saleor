@@ -198,7 +198,7 @@ class User(
     number_of_orders = models.PositiveIntegerField(default=0, db_default=0)
 
     USERNAME_FIELD = "email"
-    RETURN_ID_IN_API_RESPONSE = True
+    NEWLY_CREATED_USER = False
 
     objects = UserManager()
 

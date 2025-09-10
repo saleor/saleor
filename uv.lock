@@ -1729,9 +1729,12 @@ wheels = [
 
 [[package]]
 name = "petl"
-version = "1.7.15"
+version = "1.7.17"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ad/c2/7623e54990bd11fb577d8a823603d72314e98bd93c978d6cece50222e776/petl-1.7.15.tar.gz", hash = "sha256:8e31438380ad51552539865ad3b1ab655de1b531bd03980c871ec2cff4a8c414", size = 414085, upload-time = "2024-03-12T21:29:07.887Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/07/16a40e30700f7c6975e62cba01c2f94afbb347dd8ed224a5918c686a47fe/petl-1.7.17.tar.gz", hash = "sha256:802696187c2ef35894c4acf3c0ff9fecff6035cb335944c194416b9a18e8390b", size = 424376, upload-time = "2025-07-10T20:47:13.523Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9f/5c/ea831abc18dd3268046d7d9a0119f1f8ddc69642e0a5245f839602b8114d/petl-1.7.17-py3-none-any.whl", hash = "sha256:53785128bcdf46eb4472638ad572acc6d87cc83f80b567fed06ee4a947eea5d1", size = 233093, upload-time = "2025-07-10T20:47:12.03Z" },
+]
 
 [[package]]
 name = "pexpect"
@@ -2165,14 +2168,14 @@ wheels = [
 
 [[package]]
 name = "pytest-django"
-version = "4.9.0"
+version = "4.11.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pytest", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/02/c0/43c8b2528c24d7f1a48a47e3f7381f5ab2ae8c64634b0c3f4bd843063955/pytest_django-4.9.0.tar.gz", hash = "sha256:8bf7bc358c9ae6f6fc51b6cebb190fe20212196e6807121f11bd6a3b03428314", size = 84067, upload-time = "2024-09-02T15:49:18.407Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b1/fb/55d580352db26eb3d59ad50c64321ddfe228d3d8ac107db05387a2fadf3a/pytest_django-4.11.1.tar.gz", hash = "sha256:a949141a1ee103cb0e7a20f1451d355f83f5e4a5d07bdd4dcfdd1fd0ff227991", size = 86202, upload-time = "2025-04-03T18:56:09.338Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/47/fe/54f387ee1b41c9ad59e48fb8368a361fad0600fe404315e31a12bacaea7d/pytest_django-4.9.0-py3-none-any.whl", hash = "sha256:1d83692cb39188682dbb419ff0393867e9904094a549a7d38a3154d5731b2b99", size = 23723, upload-time = "2024-09-02T15:49:17.127Z" },
+    { url = "https://files.pythonhosted.org/packages/be/ac/bd0608d229ec808e51a21044f3f2f27b9a37e7a0ebaca7247882e67876af/pytest_django-4.11.1-py3-none-any.whl", hash = "sha256:1b63773f648aa3d8541000c26929c1ea63934be1cfa674c76436966d73fe6a10", size = 25281, upload-time = "2025-04-03T18:56:07.678Z" },
 ]
 
 [[package]]
@@ -2674,7 +2677,7 @@ requires-dist = [
     { name = "opentelemetry-distro", extras = ["otlp"], specifier = ">=0.53b1,<0.54" },
     { name = "opentelemetry-sdk", specifier = ">=1.32.1,<2" },
     { name = "opentelemetry-semantic-conventions", specifier = ">=0.53b1,<0.54" },
-    { name = "petl", specifier = "==1.7.15" },
+    { name = "petl", specifier = "==1.7.17" },
     { name = "phonenumberslite", specifier = ">=9.0.7,<10" },
     { name = "pillow", specifier = ">=11.1.0,<12" },
     { name = "pillow-avif-plugin", specifier = ">=1.5.2,<2" },
@@ -2724,7 +2727,7 @@ dev = [
     { name = "pytest-asyncio", specifier = ">=1.0.0,<2" },
     { name = "pytest-celery", specifier = ">=1.0.1,<2" },
     { name = "pytest-cov", specifier = ">=6.0.0,<7" },
-    { name = "pytest-django", specifier = "==4.9.0" },
+    { name = "pytest-django", specifier = "==4.11.1" },
     { name = "pytest-django-queries", specifier = ">=1.2,<1.3" },
     { name = "pytest-memray", specifier = ">=1.5.0,<2" },
     { name = "pytest-mock", specifier = ">=3.6.1,<4" },
