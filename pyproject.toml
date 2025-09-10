@@ -186,7 +186,6 @@ pillow = "PIL"
 python-magic-bin = "magic"
 
 [tool.deptry.per_rule_ignores]
-DEP001 = ["pkg_resources"]
 DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb"]
 
 [tool.django-stubs]
