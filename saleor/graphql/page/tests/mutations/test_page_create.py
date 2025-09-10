@@ -980,6 +980,23 @@ def test_create_page_with_reference_attributes_and_reference_types_defined(
     for attr_data in data["attributes"]:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = data["assignedAttributes"]
+    expected_page_ref_assigned_attribute = {
+        "attribute": {"slug": page_type_page_reference_attribute.slug},
+        "pages": [{"slug": page.slug}],
+    }
+    assert expected_page_ref_assigned_attribute in assigned_attributes
+    expected_product_ref_assigned_attribute = {
+        "attribute": {"slug": page_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug}],
+    }
+    assert expected_product_ref_assigned_attribute in assigned_attributes
+    expected_variant_ref_assigned_attribute = {
+        "attribute": {"slug": page_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant.sku}],
+    }
+    assert expected_variant_ref_assigned_attribute in assigned_attributes
+
 
 @freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_create_page_with_date_attribute(

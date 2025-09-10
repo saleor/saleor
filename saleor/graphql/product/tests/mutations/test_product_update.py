@@ -1569,6 +1569,13 @@ def test_update_product_with_page_reference_attribute_value_and_reference_types(
     }
     assert expected_file_att_data in attributes
 
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_page_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_page_reference_attribute.slug},
+        "pages": [{"slug": page.slug}],
+    }
+    assert expected_page_ref_assigned_attribute in assigned_attributes
+
     updated_webhook_mock.assert_called_once_with(product)
 
     product_type_page_reference_attribute.refresh_from_db()
@@ -1638,6 +1645,13 @@ def test_update_product_with_variant_single_ref_attribute_value_and_reference_ty
         ],
     }
     assert expected_file_att_data in attributes
+
+    assigned_attributes = data["product"]["assignedAttributes"]
+    expected_page_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_variant_single_reference_attribute.slug},
+        "variant": {"sku": variant.sku},
+    }
+    assert expected_page_ref_assigned_attribute in assigned_attributes
 
     updated_webhook_mock.assert_called_once_with(product)
 

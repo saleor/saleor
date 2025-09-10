@@ -26,72 +26,176 @@ PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
         $errorPolicy: ErrorPolicyEnum
     ) {
         productVariantBulkUpdate(
-            variants: $variants, product: $productId, errorPolicy: $errorPolicy
-            ) {
-                results{
-                    errors {
-                        field
-                        path
-                        message
-                        code
-                        warehouses
-                        channels
-                    }
-                    productVariant{
-                        metadata {
-                            key
-                            value
-                        }
-                        id
-                        name
-                        sku
-                        stocks {
-                            warehouse {
-                                slug
-                            }
-                            quantity
-                        }
-                        channelListings {
-                            channel {
-                                slug
-                            }
-                            price {
-                                currency
-                                amount
-                            }
-                            costPrice {
-                                currency
-                                amount
-                            }
-                            priorPrice {
-                                currency
-                                amount
-                            }
-                            preorderThreshold {
-                                quantity
-                            }
-                        }
-                        attributes{
-                            attribute{
-                            slug
-                            }
-                            values{
-                            value
-                            reference
-                            }
-                        }
-                        preorder {
-                            globalThreshold
-                            endDate
-                        }
-                    }
-                }
-                count
-                errors{
+            variants: $variants,
+            product: $productId,
+            errorPolicy: $errorPolicy
+        ) {
+            results {
+                errors {
                     field
+                    path
                     message
                     code
+                    warehouses
+                    channels
                 }
+                productVariant {
+                    metadata {
+                        key
+                        value
+                    }
+                    id
+                    name
+                    sku
+                    stocks {
+                        warehouse {
+                            slug
+                        }
+                        quantity
+                    }
+                    channelListings {
+                        channel {
+                            slug
+                        }
+                        price {
+                            currency
+                            amount
+                        }
+                        costPrice {
+                            currency
+                            amount
+                        }
+                        priorPrice {
+                            currency
+                            amount
+                        }
+                        preorderThreshold {
+                            quantity
+                        }
+                    }
+                    attributes {
+                        attribute {
+                            slug
+                        }
+                        values {
+                            value
+                            reference
+                        }
+                    }
+                    assignedAttributes(limit: 10) {
+                        attribute {
+                            slug
+                        }
+                        ... on AssignedNumericAttribute {
+                            value
+                        }
+                        ... on AssignedTextAttribute {
+                            text: value
+                        }
+                        ... on AssignedPlainTextAttribute {
+                            plain_text: value
+                        }
+                        ... on AssignedFileAttribute {
+                            file: value {
+                                contentType
+                                url
+                            }
+                        }
+                        ... on AssignedMultiPageReferenceAttribute {
+                            pages: value {
+                                slug
+                            }
+                        }
+                        ... on AssignedMultiProductReferenceAttribute {
+                            products: value {
+                                slug
+                            }
+                        }
+                        ... on AssignedMultiCategoryReferenceAttribute {
+                            categories: value {
+                                slug
+                            }
+                        }
+                        ... on AssignedMultiCollectionReferenceAttribute {
+                            collections: value {
+                                slug
+                            }
+                        }
+                        ... on AssignedSinglePageReferenceAttribute {
+                            page: value {
+                                slug
+                            }
+                        }
+                        ... on AssignedSingleProductReferenceAttribute {
+                            product: value {
+                                slug
+                            }
+                        }
+                        ... on AssignedSingleProductVariantReferenceAttribute {
+                            variant: value {
+                                sku
+                            }
+                        }
+                        ... on AssignedSingleCategoryReferenceAttribute {
+                            category: value {
+                                slug
+                            }
+                        }
+                        ... on AssignedSingleCollectionReferenceAttribute {
+                            collection: value {
+                                slug
+                            }
+                        }
+                        ... on AssignedMultiProductVariantReferenceAttribute {
+                            variants: value {
+                                sku
+                            }
+                        }
+                        ... on AssignedSingleChoiceAttribute {
+                            choice: value {
+                                name
+                                slug
+                            }
+                        }
+                        ... on AssignedMultiChoiceAttribute {
+                            multi: value {
+                                name
+                                slug
+                            }
+                        }
+                        ... on AssignedSwatchAttribute {
+                            swatch: value {
+                                name
+                                slug
+                                hexColor
+                                file {
+                                    url
+                                    contentType
+                                }
+                            }
+                        }
+                        ... on AssignedBooleanAttribute {
+                            bool: value
+                        }
+                        ... on AssignedDateAttribute {
+                            date: value
+                        }
+                        ... on AssignedDateTimeAttribute {
+                            datetime: value
+                        }
+                    }
+                    preorder {
+                        globalThreshold
+                        endDate
+                    }
+                }
+            }
+            count
+            errors {
+                field
+                message
+                code
+            }
         }
     }
 """
@@ -902,9 +1006,27 @@ def test_product_variant_bulk_update_with_ref_attributes_and_reference_types_def
             "values": [{"reference": variant_ref, "value": ""}],
         },
     ]
+    expected_assigned_attributes = [
+        {
+            "attribute": {"slug": product_type_page_single_reference_attribute.slug},
+            "page": {"slug": page.slug},
+        },
+        {
+            "attribute": {"slug": product_type_product_reference_attribute.slug},
+            "products": [{"slug": product.slug}],
+        },
+        {
+            "attribute": {"slug": product_type_variant_reference_attribute.slug},
+            "variants": [{"sku": variant.sku}],
+        },
+    ]
 
     for i, result in enumerate(data["results"]):
         assert expected_attributes[i] in result["productVariant"]["attributes"]
+        assert (
+            expected_assigned_attributes[i]
+            in result["productVariant"]["assignedAttributes"]
+        )
 
 
 def test_product_variant_bulk_update_with_ref_attributes__refs_not_in_available_choices(

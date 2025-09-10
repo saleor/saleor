@@ -1437,9 +1437,26 @@ def test_product_bulk_create_with_reference_attributes_and_reference_types_defin
             "values": [{"reference": variant_ref, "value": ""}],
         },
     ]
+    expected_assigned_attributes = [
+        {
+            "attribute": {"slug": product_type_page_single_reference_attribute.slug},
+            "page": {"slug": page.slug},
+        },
+        {
+            "attribute": {"slug": product_type_product_reference_attribute.slug},
+            "products": [{"slug": product.slug}],
+        },
+        {
+            "attribute": {"slug": product_type_variant_reference_attribute.slug},
+            "variants": [{"sku": variant.sku}],
+        },
+    ]
 
     for i, result in enumerate(data["results"]):
         assert expected_attributes[i] in result["product"]["attributes"]
+        assert (
+            expected_assigned_attributes[i] in result["product"]["assignedAttributes"]
+        )
 
 
 def test_product_bulk_create_with_reference_attributes_refs_not_in_available_choices(

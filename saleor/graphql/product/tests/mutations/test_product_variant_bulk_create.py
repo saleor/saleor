@@ -1056,6 +1056,20 @@ def test_product_variant_bulk_create_with_ref_attributes_and_reference_types_def
             "reference": variant_ref,
         },
     ]
+    expected_assigned_attributes = [
+        {
+            "attribute": {"slug": product_type_page_single_reference_attribute.slug},
+            "page": {"slug": page.slug},
+        },
+        {
+            "attribute": {"slug": product_type_product_reference_attribute.slug},
+            "products": [{"slug": product.slug}],
+        },
+        {
+            "attribute": {"slug": product_type_variant_reference_attribute.slug},
+            "variants": [{"sku": variant.sku}],
+        },
+    ]
 
     for i, result in enumerate(data["results"]):
         matching_attribute = next(
@@ -1067,6 +1081,10 @@ def test_product_variant_bulk_create_with_ref_attributes_and_reference_types_def
         assert (
             matching_attribute["values"][0]["reference"]
             == expected_attributes[i]["reference"]
+        )
+        assert (
+            expected_assigned_attributes[i]
+            in result["productVariant"]["assignedAttributes"]
         )
 
 
