@@ -2528,6 +2528,23 @@ def test_update_product_variant_with_reference_attributes_and_reference_types_de
     for attr_data in variant_data["attributes"]:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = variant_data["assignedAttributes"]
+    expected_page_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_page_reference_attribute.slug},
+        "pages": [{"slug": page.slug}],
+    }
+    assert expected_page_ref_assigned_attribute in assigned_attributes
+    expected_product_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_product_reference_attribute.slug},
+        "products": [{"slug": reference_product.slug}],
+    }
+    assert expected_product_ref_assigned_attribute in assigned_attributes
+    expected_variant_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_variant_reference_attribute.slug},
+        "variants": [{"sku": reference_variant.sku}],
+    }
+    assert expected_variant_ref_assigned_attribute in assigned_attributes
+
 
 def test_update_product_variant_with_single_reference_attributes(
     staff_api_client,

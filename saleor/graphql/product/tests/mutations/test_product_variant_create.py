@@ -1652,6 +1652,23 @@ def test_create_variant_with_reference_attributes_and_reference_types_defined(
     for attr_data in data["attributes"]:
         assert attr_data in expected_attributes_data
 
+    assigned_attributes = data["assignedAttributes"]
+    expected_page_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_page_reference_attribute.slug},
+        "pages": [{"slug": page.slug}],
+    }
+    assert expected_page_ref_assigned_attribute in assigned_attributes
+    expected_product_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug}],
+    }
+    assert expected_product_ref_assigned_attribute in assigned_attributes
+    expected_variant_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant.sku}],
+    }
+    assert expected_variant_ref_assigned_attribute in assigned_attributes
+
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_create_variant_with_single_reference_attributes(
