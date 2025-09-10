@@ -1,4 +1,5 @@
 import datetime
+import importlib.metadata
 import logging
 import os
 import os.path
@@ -10,7 +11,6 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 import django_stubs_ext
-import pkg_resources
 import sentry_sdk
 import sentry_sdk.utils
 from celery.schedules import crontab
@@ -862,9 +862,9 @@ BUILTIN_PLUGINS = [
 
 # Plugin discovery
 EXTERNAL_PLUGINS = []
-installed_plugins = pkg_resources.iter_entry_points("saleor.plugins")
+installed_plugins = importlib.metadata.entry_points(group="saleor.plugins")
 for entry_point in installed_plugins:
-    plugin_path = f"{entry_point.module_name}.{entry_point.attrs[0]}"
+    plugin_path = f"{entry_point.module}.{entry_point.attr}"
     if plugin_path not in BUILTIN_PLUGINS and plugin_path not in EXTERNAL_PLUGINS:
         if entry_point.name not in INSTALLED_APPS:
             INSTALLED_APPS.append(entry_point.name)
