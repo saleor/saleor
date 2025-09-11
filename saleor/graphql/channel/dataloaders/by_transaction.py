@@ -46,6 +46,7 @@ class ChannelByTransactionIdLoader(DataLoader[int, Channel]):
             if (checkout_id := checkouts_ref_dict.get(transaction_id)) is not None
         ]
 
+        # Resolve flatten channels and maintain order
         def with_loaded_data(loaded_data):
             checkout_channels, order_channels = loaded_data
 

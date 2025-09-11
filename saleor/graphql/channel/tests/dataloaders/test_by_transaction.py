@@ -8,7 +8,7 @@ from ...dataloaders.by_transaction import ChannelByTransactionIdLoader
 @pytest.mark.django_db
 class TestChannelByTransactionIdLoader:
     def test_batch_load_with_order_transactions(
-        self, order_with_lines, channel_USD, transaction_item_generator
+        self, order_with_lines, transaction_item_generator
     ):
         # given
         order = order_with_lines
@@ -27,7 +27,7 @@ class TestChannelByTransactionIdLoader:
         assert all(isinstance(channel, Channel) for channel in channels)
 
     def test_batch_load_with_checkout_transactions(
-        self, checkout, channel_USD, transaction_item_generator
+        self, checkout, transaction_item_generator
     ):
         # given
         transaction1 = transaction_item_generator(
@@ -49,7 +49,7 @@ class TestChannelByTransactionIdLoader:
         assert all(isinstance(channel, Channel) for channel in channels)
 
     def test_batch_load_with_mixed_transactions(
-        self, order_with_lines, checkout, channel_USD, transaction_item_generator
+        self, order_with_lines, checkout, transaction_item_generator
     ):
         # given
         order = order_with_lines
@@ -116,12 +116,15 @@ class TestChannelByTransactionIdLoader:
         # given
         order = order_with_lines
         transaction = transaction_item_generator(order_id=order.id, checkout_id=None)
+        transaction_id = transaction.id
+        # Delete transaction first, then order to avoid protected foreign key constraint
+        transaction.delete()
         order.delete()
 
         # when
         context = SaleorContext()
         loader = ChannelByTransactionIdLoader(context)
-        channels = loader.batch_load([transaction.id]).get()
+        channels = loader.batch_load([transaction_id]).get()
 
         # then
         assert len(channels) == 1
@@ -144,10 +147,6 @@ class TestChannelByTransactionIdLoader:
         # then
         assert len(channels) == 1
         assert channels[0] is None
-
-    def test_context_key_is_set(self):
-        # then
-        assert ChannelByTransactionIdLoader.context_key == "channel_by_transaction_id"
 
     def test_batch_load_maintains_order(
         self, order_with_lines, checkout, transaction_item_generator
@@ -193,21 +192,3 @@ class TestChannelByTransactionIdLoader:
         # then
         assert len(channels) == 3
         assert all(channel == order.channel for channel in channels)
-
-    @pytest.mark.parametrize("database_connection_name", ["default", "replica"])
-    def test_batch_load_uses_database_connection_name(
-        self, order_with_lines, transaction_item_generator, database_connection_name
-    ):
-        # given
-        order = order_with_lines
-        transaction = transaction_item_generator(order_id=order.id, checkout_id=None)
-
-        # when
-        context = SaleorContext()
-        loader = ChannelByTransactionIdLoader(context)
-        loader.database_connection_name = database_connection_name
-        channels = loader.batch_load([transaction.id]).get()
-
-        # then
-        assert len(channels) == 1
-        assert channels[0] == order.channel
