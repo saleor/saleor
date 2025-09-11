@@ -38,6 +38,10 @@ mutation RegisterAccount($input: AccountRegisterInput!) {
       }
       metafield(key: "test")
       metafields(keys: ["test1"])
+      checkout{
+        id
+      }
+      checkoutTokens
       checkoutIds
       checkouts(first: 10) {
         edges {
