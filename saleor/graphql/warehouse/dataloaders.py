@@ -24,7 +24,7 @@ from ...warehouse.models import (
     Warehouse,
 )
 from ...warehouse.reservations import is_reservation_enabled
-from ..channel.dataloaders import ChannelBySlugLoader
+from ..channel.dataloaders.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
 from ..shipping.dataloaders import (
     ShippingZonesByChannelIdLoader,

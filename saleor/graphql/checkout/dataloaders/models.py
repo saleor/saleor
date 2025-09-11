@@ -7,7 +7,7 @@ from django.db.models import F
 from ....channel.models import Channel
 from ....checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ....payment.models import TransactionItem
-from ...channel.dataloaders import ChannelByIdLoader
+from ...channel.dataloaders.dataloaders import ChannelByIdLoader
 from ...core.dataloaders import DataLoader
 
 

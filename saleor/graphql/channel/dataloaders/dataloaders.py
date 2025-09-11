@@ -2,10 +2,10 @@ from uuid import UUID
 
 from django.db.models import Exists, OuterRef
 
-from ...channel.models import Channel
-from ...order.models import Order
-from ..core.dataloaders import DataLoader
-from ..order.dataloaders import OrderByIdLoader
+from ....channel.models import Channel
+from ....order.models import Order
+from ...core.dataloaders import DataLoader
+from ...order.dataloaders import OrderByIdLoader
 
 
 class ChannelByIdLoader(DataLoader[int, Channel]):

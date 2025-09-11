@@ -196,7 +196,7 @@ class ChannelsByShippingZoneIdLoader(DataLoader):
     context_key = "channels_by_shippingzone"
 
     def batch_load(self, keys):
-        from ..channel.dataloaders import ChannelByIdLoader
+        from ..channel.dataloaders.dataloaders import ChannelByIdLoader
 
         channel_and_zone_is_pairs = (
             Channel.objects.using(self.database_connection_name)

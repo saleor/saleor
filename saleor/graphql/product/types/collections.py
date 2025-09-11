@@ -12,7 +12,7 @@ from ....thumbnail.utils import (
     get_thumbnail_format,
     get_thumbnail_size,
 )
-from ...channel.dataloaders import ChannelBySlugLoader
+from ...channel.dataloaders.dataloaders import ChannelBySlugLoader
 from ...core import ResolveInfo
 from ...core.connection import (
     CountableConnection,
