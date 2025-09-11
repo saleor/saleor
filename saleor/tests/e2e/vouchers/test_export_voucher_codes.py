@@ -80,12 +80,12 @@ def test_export_valid_voucher_ids_CORE_0925(
         e2e_staff_api_client, channel_id
     )
 
-    voucher_id_array_index = [voucher_ids[voucher_id_array_index]]
+    voucher_id = voucher_ids[voucher_id_array_index]
 
     # Step 1 - Export voucher codes and check status
     input_data = {
         "fileType": file_type,
-        "voucherId": voucher_id_array_index,
+        "voucherId": voucher_id,
     }
     response = export_voucher_codes(e2e_staff_api_client, input_data)
 
@@ -310,15 +310,17 @@ def test_export_voucher_codes_without_voucher_id_nor_codes_CORE_0925(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    ("file_type", "voucher_id"),
+    ("file_type", "voucher_id", "similar"),
     [
         (
             "",
             "{voucher_id}",
+            "CSV",
         ),
         (
             "SVG",
             "{voucher_id}",
+            "CSV",
         ),
     ],
 )
@@ -357,14 +359,9 @@ def test_export_voucher_codes_with_invalid_file_type_CORE_0925(
 
     response_errors = response.get("errors")
 
-    expected_error_message = f'Variable "$input" got invalid value {{"fileType": "{file_type}", "voucherId": "{voucher_id}"}}.\nIn field "fileType": Expected type "FileTypesEnum", found "{file_type}".'
-
-    expected_error = {
-        "extensions": {"exception": {"code": "GraphQLError"}},
-        "locations": [{"column": 24, "line": 2}],
-        "message": expected_error_message,
-    }
-
-    expected_errors_list = [expected_error]
-
-    assert response_errors == expected_errors_list
+    (error,) = response_errors
+    assert error["extensions"] == {"exception": {"code": "GraphQLError"}}
+    assert error["locations"] == [{"column": 24, "line": 2}]
+    assert error["message"].starts_with(
+        f"Variable '$input' got invalid value '{file_type}' at 'input.fileType'; Value '{file_type}' does not exist in 'FileTypesEnum' enum."
+    )

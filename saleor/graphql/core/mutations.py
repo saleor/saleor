@@ -798,7 +798,7 @@ class DeprecatedModelMutation(BaseMutation):
 
     @classmethod
     def perform_mutation(
-        cls, _root, info: ResolveInfo, /, input: graphene.InputObjectType
+        cls, _root, info: ResolveInfo, /, input: graphene.InputObjectType, **kwargs
     ):  # type: ignore[override]
         """Perform model mutation.
 
@@ -808,7 +808,7 @@ class DeprecatedModelMutation(BaseMutation):
         created based on the model associated with this mutation.
         """
         instance_tracker = None
-        instance = cls.get_instance(info, input=input)
+        instance = cls.get_instance(info, input=input, **kwargs)
         if cls._meta.instance_tracker_fields:
             instance_tracker = InstanceTracker(
                 instance, cls._meta.instance_tracker_fields

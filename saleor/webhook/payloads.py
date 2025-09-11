@@ -1166,6 +1166,8 @@ def generate_sample_payload(event_name: str) -> dict | None:
     if event_name in user_events:
         user = generate_fake_user()
         user.pk = 1
+        if user.address:
+            user.address.pk = 1
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
         product = _get_sample_object(Product.objects.all())

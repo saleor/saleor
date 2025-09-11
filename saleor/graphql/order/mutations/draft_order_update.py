@@ -374,7 +374,7 @@ class DraftOrderUpdate(
         /,
         input: DraftOrderInput,
         id: str | None,
-        external_reference: str | None,
+        external_reference: str | None = None,
     ):
         instance = cls.get_instance(
             info, input=input, id=id, external_reference=external_reference

@@ -99,7 +99,7 @@ def test_create_page_with_each_of_attribute_types_core_0701(
         },
         {"id": attr_plain_text_id, "plainText": "test plain text"},
         {"id": attr_rich_text_id, "richText": expected_rich_text},
-        {"id": attr_numeric_id, "numeric": 10},
+        {"id": attr_numeric_id, "numeric": "10"},
         {"id": attr_bool_id, "boolean": True},
         {"id": attr_swatch_id, "values": ["blue"]},
         {"id": attr_reference_id, "references": [product_id]},
