@@ -1,3 +1,4 @@
+import enum
 import os.path
 import secrets
 from collections.abc import Collection, Iterable
@@ -796,7 +797,9 @@ class DeprecatedModelMutation(BaseMutation):
         """Perform an action after saving an object and its m2m."""
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+    def perform_mutation(
+        cls, _root, info: ResolveInfo, /, input: graphene.InputObjectType
+    ):  # type: ignore[override]
         """Perform model mutation.
 
         Depending on the input data, `mutate` either creates a new instance or
@@ -805,13 +808,13 @@ class DeprecatedModelMutation(BaseMutation):
         created based on the model associated with this mutation.
         """
         instance_tracker = None
-        instance = cls.get_instance(info, **data)
+        instance = cls.get_instance(info, input=input)
         if cls._meta.instance_tracker_fields:
             instance_tracker = InstanceTracker(
                 instance, cls._meta.instance_tracker_fields
             )
 
-        data = data.get("input")
+        data = input
         cleaned_input = cls.clean_input(info, instance, data)
 
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)

@@ -42,7 +42,12 @@ class ShopSettingsTranslate(BaseMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, input, language_code
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        input: ShopSettingsTranslationInput,
+        language_code: str,
     ):
         site = get_site_promise(info.context).get()
         instance = site.settings

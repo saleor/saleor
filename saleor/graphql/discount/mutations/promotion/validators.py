@@ -118,7 +118,7 @@ def _clean_predicates(
             errors["catalogue_predicate"].append(
                 ValidationError(
                     message=(
-                        "For `catalogue` predicate type, `cataloguePredicate` "
+                        "For `CATALOGUE` predicate type, `cataloguePredicate` "
                         "must be provided."
                     ),
                     code=error_class.REQUIRED.value,
@@ -130,8 +130,8 @@ def _clean_predicates(
             errors["order_predicate"].append(
                 ValidationError(
                     message=(
-                        "`Order` predicate cannot be provided for promotion rule with "
-                        "`catalogue` predicate type."
+                        "`orderPredicate` cannot be provided for promotion rule with "
+                        "`CATALOGUE` predicate type."
                     ),
                     code=error_class.INVALID.value,
                     params={"index": index} if index is not None else {},
@@ -143,7 +143,7 @@ def _clean_predicates(
             errors["order_predicate"].append(
                 ValidationError(
                     message=(
-                        "For `order` predicate type, `orderPredicate` must be provided."
+                        "For `ORDER` predicate type, `orderPredicate` must be provided."
                     ),
                     code=error_class.REQUIRED.value,
                     params={"index": index} if index is not None else {},
@@ -154,8 +154,8 @@ def _clean_predicates(
             errors["catalogue_predicate"].append(
                 ValidationError(
                     message=(
-                        "`Catalogue` predicate cannot be provided for promotion rule "
-                        "with `order` predicate type."
+                        "`cataloguePredicate` cannot be provided for promotion rule "
+                        "with `ORDER` predicate type."
                     ),
                     code=error_class.INVALID.value,
                     params={"index": index} if index is not None else {},
@@ -531,7 +531,7 @@ def clean_predicate(predicate, error_class, index=None):
 
 
 def _contains_operator(input: dict[str, dict | str]):
-    return any(operator in input for operator in ["AND", "OR"])
+    return any(operator in input and input[operator] for operator in ["AND", "OR"])
 
 
 def clean_fixed_discount_value(
@@ -558,7 +558,7 @@ def clean_percentage_discount_value(
         )
 
 
-def get_from_input_or_instance(field: str, input: dict, instance: PromotionRule):
+def get_from_input_or_instance(field: str, input: dict, instance: PromotionRule | None):
     if field in input:
         return input[field]
     if instance:

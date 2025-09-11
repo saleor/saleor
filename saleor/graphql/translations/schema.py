@@ -112,7 +112,9 @@ class TranslationQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_translations(_root, info: ResolveInfo, *, kind, **kwargs):
+    def resolve_translations(
+        _root, info: ResolveInfo, *, kind: TranslatableKinds, **kwargs
+    ):
         if kind == TranslatableKinds.PRODUCT:
             qs = resolve_products(info)
         elif kind == TranslatableKinds.COLLECTION:
@@ -143,25 +145,25 @@ class TranslationQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, TranslatableItemConnection)
 
     @staticmethod
-    def resolve_translation(_root, info: ResolveInfo, *, id, kind):
+    def resolve_translation(_root, info: ResolveInfo, *, id, kind: TranslatableKinds):
         _type, kind_id = from_global_id_or_error(id)
         if not _type == kind:
             return None
         models = {
-            TranslatableKinds.PRODUCT.value: Product,  # type: ignore[attr-defined]
-            TranslatableKinds.COLLECTION.value: Collection,  # type: ignore[attr-defined] # noqa: E501
-            TranslatableKinds.CATEGORY.value: Category,  # type: ignore[attr-defined]
-            TranslatableKinds.ATTRIBUTE.value: Attribute,  # type: ignore[attr-defined]
-            TranslatableKinds.ATTRIBUTE_VALUE.value: AttributeValue,  # type: ignore[attr-defined] # noqa: E501
-            TranslatableKinds.VARIANT.value: ProductVariant,  # type: ignore[attr-defined] # noqa: E501
-            TranslatableKinds.PAGE.value: Page,  # type: ignore[attr-defined]
-            TranslatableKinds.SHIPPING_METHOD.value: ShippingMethod,  # type: ignore[attr-defined] # noqa: E501
-            TranslatableKinds.VOUCHER.value: Voucher,  # type: ignore[attr-defined]
-            TranslatableKinds.MENU_ITEM.value: MenuItem,  # type: ignore[attr-defined]
-            TranslatableKinds.PROMOTION.value: Promotion,  # type: ignore[attr-defined]
-            TranslatableKinds.PROMOTION_RULE.value: PromotionRule,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.PRODUCT: Product,  # type: ignore[attr-defined]
+            TranslatableKinds.COLLECTION: Collection,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.CATEGORY: Category,  # type: ignore[attr-defined]
+            TranslatableKinds.ATTRIBUTE: Attribute,  # type: ignore[attr-defined]
+            TranslatableKinds.ATTRIBUTE_VALUE: AttributeValue,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.VARIANT: ProductVariant,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.PAGE: Page,  # type: ignore[attr-defined]
+            TranslatableKinds.SHIPPING_METHOD: ShippingMethod,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.VOUCHER: Voucher,  # type: ignore[attr-defined]
+            TranslatableKinds.MENU_ITEM: MenuItem,  # type: ignore[attr-defined]
+            TranslatableKinds.PROMOTION: Promotion,  # type: ignore[attr-defined]
+            TranslatableKinds.PROMOTION_RULE: PromotionRule,  # type: ignore[attr-defined] # noqa: E501
         }
-        if kind == TranslatableKinds.SALE.value:  # type: ignore[attr-defined]
+        if kind == TranslatableKinds.SALE:  # type: ignore[attr-defined]
             return (
                 Promotion.objects.using(get_database_connection_name(info.context))
                 .filter(old_sale_id=kind_id)

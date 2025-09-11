@@ -111,7 +111,7 @@ def serialize_gql_operation_result(
         name = JsonTruncText.truncate(operation.name, bytes_limit)
         bytes_limit -= name.byte_size
         payload["name"] = name
-    if operation.query:
+    if operation.query and operation.query_string:
         query = JsonTruncText.truncate(operation.query_string, bytes_limit // 2)
         bytes_limit -= query.byte_size
         payload["query"] = query

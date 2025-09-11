@@ -37,7 +37,14 @@ class SaleTranslate(BaseTranslateMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, root, info: ResolveInfo, /, *, id, input, language_code
+        cls,
+        root,
+        info: ResolveInfo,
+        /,
+        *,
+        id: str,
+        input: NameTranslationInput,
+        language_code: str,
     ):
         instance = cls.get_promotion_instance(id)
         cls.validate_input(input)

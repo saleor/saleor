@@ -39,10 +39,11 @@ class WarehouseCreate(
         cls.call_event(manager.warehouse_created, instance)
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        instance = cls.get_instance(info, **data)
-        data = data.get("input")
-        cleaned_input = cls.clean_input(info, instance, data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, input: WarehouseCreateInput
+    ):
+        instance = cls.get_instance(info, input=input)
+        cleaned_input = cls.clean_input(info, instance, input)
         cleaned_input["address"] = cls.prepare_address(cleaned_input, info)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)

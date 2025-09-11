@@ -1,7 +1,6 @@
 {
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "python.languageServer": "Pylance",
     "python.analysis.typeCheckingMode": "basic",
     "cSpell.words": [
         "dataloaders",

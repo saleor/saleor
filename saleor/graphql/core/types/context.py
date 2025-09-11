@@ -27,7 +27,7 @@ class ChannelContextTypeForObjectType(Generic[N], graphene.ObjectType):
 
     @staticmethod
     def resolve_translation(
-        root: ChannelContext[N], info: ResolveInfo, *, language_code
+        root: ChannelContext[N], info: ResolveInfo, *, language_code: str
     ):
         # Resolver for TranslationField; needs to be manually specified.
         return resolve_translation(root.node, info, language_code=language_code)

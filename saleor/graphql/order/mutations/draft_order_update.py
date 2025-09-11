@@ -104,21 +104,21 @@ class DraftOrderUpdate(
 
     @classmethod
     def clean_input(
-        cls, info: ResolveInfo, instance: models.Order, data: dict, **kwargs
+        cls, info: ResolveInfo, instance: models.Order, data: DraftOrderInput, **kwargs
     ):
         cls.clean_channel_id(instance, data)
-        shipping_address = data.pop("shipping_address", None)
-        billing_address = data.pop("billing_address", None)
-        redirect_url = data.pop("redirect_url", "")
+        shipping_address = data.shipping_address
+        billing_address = data.billing_address
+        redirect_url = data.redirect_url
 
         shipping_method_input = cls.clean_shipping_method(instance, data)
 
-        if email := data.get("user_email", None):
+        if email := data.user_email:
             try:
                 user = User.objects.get(email=email, is_active=True)
-                data["user"] = graphene.Node.to_global_id("User", user.id)
+                data.user = graphene.Node.to_global_id("User", user.id)
             except User.DoesNotExist:
-                data["user"] = None
+                data.user = None
 
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
@@ -367,8 +367,18 @@ class DraftOrderUpdate(
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        instance = cls.get_instance(info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        input: DraftOrderInput,
+        id: str | None,
+        external_reference: str | None,
+    ):
+        instance = cls.get_instance(
+            info, input=input, id=id, external_reference=external_reference
+        )
         channel_id = instance.channel_id
         cls.check_channel_permissions(info, [channel_id])
 
@@ -384,7 +394,7 @@ class DraftOrderUpdate(
 
         old_voucher = instance.voucher
         old_voucher_code = instance.voucher_code
-        data = data["input"]
+        data = input
         cleaned_input = cls.clean_input(info, instance, data)
 
         cls.handle_metadata(instance, cleaned_input)

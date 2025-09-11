@@ -36,7 +36,14 @@ class ProductVariantTranslate(BaseTranslateMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        id: str,
+        input: NameTranslationInput,
+        language_code: str,
     ):
         node_id = cls.clean_node_id(id)[0]
         variant_pk = cls.get_global_id_or_error(node_id, only_type=ProductVariant)

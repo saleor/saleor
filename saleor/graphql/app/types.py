@@ -384,14 +384,14 @@ class AppBrandLogo(graphene.ObjectType):
         info: ResolveInfo,
         *,
         size: int | None = None,
-        format: IconThumbnailFormatEnum | None = None,
+        format: str | None = None,
     ):
         if not root.brand_logo_default:
             return None
         if size == 0:
             return build_absolute_uri(root.brand_logo_default.url)
 
-        format = get_thumbnail_format(format.value if format else None)
+        format = get_thumbnail_format(format)
         selected_size = get_thumbnail_size(size)
 
         if isinstance(root, models.App):

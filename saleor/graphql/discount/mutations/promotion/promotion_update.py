@@ -59,11 +59,12 @@ class PromotionUpdate(DeprecatedModelMutation):
         error_type_class = PromotionUpdateError
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        instance = cls.get_instance(info, **data)
+    def perform_mutation(
+        cls, _root, info: ResolveInfo, /, id: str, input: PromotionUpdateInput
+    ):
+        instance = cls.get_instance(info, id=id, input=input)
         previous_end_date = instance.end_date
-        data: dict = data["input"]
-        cleaned_input: dict = cls.clean_input(info, instance, data)
+        cleaned_input: dict = cls.clean_input(info, instance, input)
         with transaction.atomic():
             instance = cls.construct_instance(instance, cleaned_input)
             cls.clean_instance(info, instance)

@@ -30,7 +30,7 @@ def resolve_price_range(info, channel_slug):
 
 
 def resolve_shipping_translation(
-    root: ShippingMethodData, info: ResolveInfo, *, language_code
+    root: ShippingMethodData, info: ResolveInfo, *, language_code: str
 ):
     if root.is_external:
         return None

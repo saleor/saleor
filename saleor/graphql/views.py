@@ -215,6 +215,7 @@ class GraphQLView(View):
             if execution_result:
                 response = {}
                 if execution_result.errors:
+                    print("!!!", execution_result.errors)
                     response["errors"] = [
                         self.format_error(e) for e in execution_result.errors
                     ]

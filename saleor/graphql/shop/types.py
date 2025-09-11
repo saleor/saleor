@@ -1,3 +1,5 @@
+import enum
+
 import graphene
 from django.conf import settings
 from django_countries import countries
@@ -519,7 +521,7 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @load_site_callback
-    def resolve_translation(_, info, site, *, language_code):
+    def resolve_translation(_, info, site, *, language_code: str):
         return resolve_translation(site.settings, info, language_code=language_code)
 
     @staticmethod

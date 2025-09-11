@@ -44,7 +44,14 @@ class ShippingPriceTranslate(BaseTranslateMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, root, info: ResolveInfo, /, *, id, input, language_code
+        cls,
+        root,
+        info: ResolveInfo,
+        /,
+        *,
+        id: str,
+        input: ShippingPriceTranslationInput,
+        language_code: str,
     ):
         response = super().perform_mutation(
             root, info, id=id, input=input, language_code=language_code

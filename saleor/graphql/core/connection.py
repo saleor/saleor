@@ -552,7 +552,9 @@ def where_filter_qs(
         - the name cannot be equal to `ABV`
     """
     # when any operator appear there cannot be any more data in filter input
-    if contains_filter_operator(filter_input) and len(filter_input) > 1:
+    if contains_filter_operator(filter_input) and contains_nonoperator_fields(
+        filter_input
+    ):
         raise GraphQLError("Cannot mix operators with other filter inputs.")
 
     and_filter_input = filter_input.pop("AND", None)
@@ -598,7 +600,13 @@ def where_filter_qs(
 
 
 def contains_filter_operator(input: dict[str, dict | str]):
-    return any(operator in input for operator in ["AND", "OR", "NOT"])
+    return any(input.get(field) is not None for field in {"AND", "OR", "NOT"})
+
+
+def contains_nonoperator_fields(input: dict[str, dict | str]):
+    return any(
+        field not in {"AND", "OR", "NOT"} for field in input if input[field] is not None
+    )
 
 
 def _handle_and_filter_input(

@@ -115,16 +115,16 @@ class PromotionCreate(DeprecatedModelMutation):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
-        start_date = cleaned_input.get("start_date") or instance.start_date
-        end_date = cleaned_input.get("end_date")
+        start_date = cleaned_input["start_date"] or instance.start_date
+        end_date = cleaned_input["end_date"]
         try:
             validate_end_is_after_start(start_date, end_date)
         except ValidationError as error:
             error.code = PromotionCreateErrorCode.INVALID.value
             errors["end_date"].append(error)
 
-        promotion_type = cleaned_input.get("type")
-        if rules := cleaned_input.get("rules"):
+        promotion_type = cleaned_input["type"]
+        if rules := cleaned_input["rules"]:
             cleaned_rules, errors = cls.clean_rules(info, rules, promotion_type, errors)
             cleaned_input["rules"] = cleaned_rules
 

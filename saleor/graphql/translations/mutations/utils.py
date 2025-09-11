@@ -77,7 +77,7 @@ def validate_input_against_model(model: type[Model], input_data: dict):
 
 
 def validate_slug_already_exists(
-    instance, translation_instance, input_data, language_code
+    instance, translation_instance, input_data, language_code: str
 ):
     slug = input_data.get("slug")
 
@@ -136,12 +136,12 @@ class BaseTranslateMutation(DeprecatedModelMutation):
         validate_input_against_model(cls._meta.model, input_data)
 
     @classmethod
-    def pre_update_or_create(cls, instance, input_data, language_code):
+    def pre_update_or_create(cls, instance, input_data, language_code: str):
         return input_data
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+        cls, _root, info: ResolveInfo, /, *, id: str, input, language_code: str
     ):
         node_id, model_type = cls.clean_node_id(id)
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
@@ -167,7 +167,7 @@ class BaseTranslateMutationWithSlug(BaseTranslateMutation):
         abstract = True
 
     @classmethod
-    def pre_update_or_create(cls, instance, input_data, language_code):
+    def pre_update_or_create(cls, instance, input_data, language_code: str):
         if input_data.get("slug") is not None:
             translation_instance = instance.translations.filter(
                 language_code=language_code

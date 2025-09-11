@@ -70,8 +70,7 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
     )
     errors = data["errors"]
     assert errors[0]["message"] == (
-        "`Order` predicate cannot be provided for promotion rule with "
-        "`catalogue` predicate type."
+        "`orderPredicate` cannot be provided for promotion rule with `CATALOGUE` predicate type."
     )
     assert errors[0]["code"] == "INVALID"
     assert errors[0]["field"] == "orderPredicate"
@@ -104,10 +103,13 @@ def test_unable_to_have_promotion_rule_with_mixed_predicates_CORE_2125(
     data = raw_update_promotion_rule(
         e2e_staff_api_client, promotion_rule_id, update_input
     )
-    error = data["errors"][0]
-    assert (
-        error["message"]
-        == "`Catalogue` predicate cannot be provided for promotion rule with `order` predicate type."
-    )
-    assert error["code"] == "INVALID"
-    assert error["field"] == "cataloguePredicate"
+    found = False
+    for error in data["errors"]:
+        if error["field"] != "cataloguePredicate":
+            continue
+        assert error["message"] == (
+            "`cataloguePredicate` cannot be provided for promotion rule with `ORDER` predicate type."
+        )
+        assert error["code"] == "INVALID"
+        found = True
+    assert found

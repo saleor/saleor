@@ -142,7 +142,7 @@ def test_staff_can_change_promotion_rule_channel_core_2113(
         50,
         "PERCENTAGE",
         predicate_input,
-        channel_id=[us_channel_id],
+        channel_id=us_channel_id,
     )
 
     # Step 1 Update promotion rule: switch channels

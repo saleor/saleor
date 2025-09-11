@@ -40,7 +40,14 @@ class PromotionRuleTranslate(BaseTranslateMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        id: str,
+        input: PromotionRuleTranslationInput,
+        language_code: str,
     ):
         node_id, model_type = cls.clean_node_id(id)
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)

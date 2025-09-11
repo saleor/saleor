@@ -1,6 +1,9 @@
+import enum
+
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 from graphene_federation import LATEST_VERSION, build_schema
+from graphql import GraphQLSchema, GraphQLEnumType
 
 from ..graphql.notifications.schema import ExternalNotificationMutations
 from .account.schema import AccountMutations, AccountQueries
@@ -94,6 +97,27 @@ class Mutation(
     pass
 
 
+def wrap_enum(resolver):
+    def wrapped_resolver(*args, **kwargs):
+        result = resolver(*args, **kwargs)
+        if isinstance(result, enum.Enum):
+            return result.value
+        return result
+
+    return wrapped_resolver
+
+
+def patch_schema(schema: GraphQLSchema):
+    """GraphQL Core 3.x returns enum values by default.
+
+    Saleor is not ready for that.
+    """
+    for type in schema.type_map.values():
+        if isinstance(type, GraphQLEnumType):
+            type.parse_literal = wrap_enum(type.parse_literal)
+            type.parse_value = wrap_enum(type.parse_value)
+
+
 schema = build_schema(
     query=Query,
     mutation=Mutation,
@@ -102,3 +126,4 @@ schema = build_schema(
     directives=(DocDirective, WebhookEventsDirective),
     federation_version=LATEST_VERSION,
 )
+patch_schema(schema.graphql_schema)

@@ -47,7 +47,7 @@ TYPE_TO_TRANSLATION_LOADER_MAP: dict[type, type[DataLoader]] = {
 }
 
 
-def resolve_translation(instance, info: ResolveInfo, *, language_code):
+def resolve_translation(instance, info: ResolveInfo, *, language_code: str):
     """Get translation object from instance based on language code."""
 
     loader = TYPE_TO_TRANSLATION_LOADER_MAP.get(type(instance))
