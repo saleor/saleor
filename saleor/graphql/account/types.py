@@ -512,7 +512,7 @@ class User(ModelObjectType[models.User]):
     @staticmethod
     def resolve_checkout(root: models.User, info: ResolveInfo):
         if is_newly_created_user(root):
-            return []
+            return None
         database_connection_name = get_database_connection_name(info.context)
         checkout = get_user_checkout(
             root, database_connection_name=database_connection_name
