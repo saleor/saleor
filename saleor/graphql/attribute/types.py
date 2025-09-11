@@ -700,13 +700,13 @@ class SelectedAttribute(ChannelContextTypeForObjectType):
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[list[ChannelContext[models.AttributeValue]]]:
         def _wrap_with_channel_context(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> list[ChannelContext[models.AttributeValue]]:
-            if not av:
+            if not attribute_values:
                 return []
             return [
                 ChannelContext(node=value, channel_slug=root.attribute.channel_slug)
-                for value in av
+                for value in attribute_values
             ]
 
         return get_attribute_values(root, info, limit=None).then(
@@ -753,10 +753,12 @@ class AssignedNumericAttribute(BaseObjectType):
     def resolve_value(
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[float | None]:
-        def get_numeric_value(av: list[models.AttributeValue]) -> float | None:
-            if not av:
+        def get_numeric_value(
+            attribute_values: list[models.AttributeValue],
+        ) -> float | None:
+            if not attribute_values:
                 return None
-            return av[0].numeric
+            return attribute_values[0].numeric
 
         return get_attribute_values(root, info, limit=1).then(get_numeric_value)
 
@@ -787,10 +789,10 @@ class AssignedTextAttribute(BaseObjectType):
     def resolve_value(
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[JSON | None]:
-        def get_rich_text(av: list[models.AttributeValue]) -> JSON | None:
-            if not av:
+        def get_rich_text(attribute_values: list[models.AttributeValue]) -> JSON | None:
+            if not attribute_values:
                 return None
-            return av[0].rich_text
+            return attribute_values[0].rich_text
 
         return get_attribute_values(root, info, limit=1).then(get_rich_text)
 
@@ -806,13 +808,13 @@ class AssignedTextAttribute(BaseObjectType):
             return translation.rich_text
 
         def with_attribute_value(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[JSON | None] | None:
-            if not av:
+            if not attribute_values:
                 return None
             return (
                 AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
-                .load((av[0].id, language_code))
+                .load((attribute_values[0].id, language_code))
                 .then(get_translation)
             )
 
@@ -844,10 +846,10 @@ class AssignedPlainTextAttribute(BaseObjectType):
     def resolve_value(
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[str | None]:
-        def get_plain_text(av: list[models.AttributeValue]) -> str | None:
-            if not av:
+        def get_plain_text(attribute_values: list[models.AttributeValue]) -> str | None:
+            if not attribute_values:
                 return None
-            return av[0].plain_text
+            return attribute_values[0].plain_text
 
         return get_attribute_values(root, info, limit=1).then(get_plain_text)
 
@@ -863,13 +865,13 @@ class AssignedPlainTextAttribute(BaseObjectType):
             return translation.plain_text
 
         def with_attribute_value(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[str | None] | None:
-            if not av:
+            if not attribute_values:
                 return None
             return (
                 AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
-                .load((av[0].id, language_code))
+                .load((attribute_values[0].id, language_code))
                 .then(get_translation)
             )
 
@@ -888,10 +890,13 @@ class AssignedFileAttribute(BaseObjectType):
     def resolve_value(
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[File | None]:
-        def get_file(av: list[models.AttributeValue]) -> File | None:
-            if not av:
+        def get_file(attribute_values: list[models.AttributeValue]) -> File | None:
+            if not attribute_values:
                 return None
-            return File(url=av[0].file_url, content_type=av[0].content_type)
+            return File(
+                url=attribute_values[0].file_url,
+                content_type=attribute_values[0].content_type,
+            )
 
         return get_attribute_values(root, info, limit=1).then(get_file)
 
@@ -913,11 +918,11 @@ class AssignedSinglePageReferenceAttribute(BaseObjectType):
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[Promise[ChannelContext[page_models.Page]] | None]:
         def get_page(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[ChannelContext[page_models.Page]] | None:
-            if not av:
+            if not attribute_values:
                 return None
-            referenced_value = av[0]
+            referenced_value = attribute_values[0]
             if not referenced_value.reference_page_id:
                 return None
             channel_slug = root.attribute.channel_slug
@@ -947,11 +952,11 @@ class AssignedSingleProductReferenceAttribute(BaseObjectType):
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[Promise[ChannelContext[product_models.Product]] | None]:
         def get_product(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[ChannelContext[product_models.Product]] | None:
-            if not av:
+            if not attribute_values:
                 return None
-            referenced_value = av[0]
+            referenced_value = attribute_values[0]
             if not referenced_value.reference_product_id:
                 return None
             channel_slug = root.attribute.channel_slug
@@ -987,11 +992,11 @@ class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[Promise[ChannelContext[product_models.ProductVariant]] | None]:
         def get_variant(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[ChannelContext[product_models.ProductVariant]] | None:
-            if not av:
+            if not attribute_values:
                 return None
-            attr_value = av[0]
+            attr_value = attribute_values[0]
             if not attr_value.reference_variant_id:
                 return None
 
@@ -1026,11 +1031,11 @@ class AssignedSingleCategoryReferenceAttribute(BaseObjectType):
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[Promise[product_models.Category] | None]:
         def get_category(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[product_models.Category] | None:
-            if not av:
+            if not attribute_values:
                 return None
-            attr_value = av[0]
+            attr_value = attribute_values[0]
             if not attr_value.reference_category_id:
                 return None
             return CategoryByIdLoader(info.context).load(
@@ -1057,11 +1062,11 @@ class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[Promise[ChannelContext[product_models.Collection]] | None]:
         def get_collection(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[ChannelContext[product_models.Collection]] | None:
-            if not av:
+            if not attribute_values:
                 return None
-            attr_value = av[0]
+            attr_value = attribute_values[0]
             if not attr_value.reference_collection_id:
                 return None
             channel_slug = root.attribute.channel_slug
@@ -1114,12 +1119,14 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
             ]
 
         def get_pages(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[list[ChannelContext[page_models.Page]]]:
-            if not av:
+            if not attribute_values:
                 return Promise.resolve([])
             page_ids = [
-                value.reference_page_id for value in av if value.reference_page_id
+                value.reference_page_id
+                for value in attribute_values
+                if value.reference_page_id
             ]
             return (
                 PageByIdLoader(info.context)
@@ -1166,12 +1173,14 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
             ]
 
         def get_products(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[list[ChannelContext[product_models.Product]]]:
-            if not av:
+            if not attribute_values:
                 return Promise.resolve([])
             product_ids = [
-                value.reference_product_id for value in av if value.reference_product_id
+                value.reference_product_id
+                for value in attribute_values
+                if value.reference_product_id
             ]
             return (
                 ProductByIdLoader(info.context)
@@ -1220,13 +1229,15 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
             ]
 
         def get_variants(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[list[ChannelContext[product_models.ProductVariant]]]:
-            if not av:
+            if not attribute_values:
                 return Promise.resolve([])
 
             variant_ids = [
-                value.reference_variant_id for value in av if value.reference_variant_id
+                value.reference_variant_id
+                for value in attribute_values
+                if value.reference_variant_id
             ]
             return (
                 ProductVariantByIdLoader(info.context)
@@ -1263,14 +1274,14 @@ class AssignedMultiCategoryReferenceAttribute(BaseObjectType):
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[Promise[list[product_models.Category]]]:
         def get_categories(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[list[product_models.Category]]:
-            if not av:
+            if not attribute_values:
                 return Promise.resolve([])
 
             category_ids = [
                 value.reference_category_id
-                for value in av
+                for value in attribute_values
                 if value.reference_category_id
             ]
             return CategoryByIdLoader(info.context).load_many(category_ids)
@@ -1316,14 +1327,14 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
             ]
 
         def get_collections(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> Promise[list[ChannelContext[product_models.Collection]]]:
-            if not av:
+            if not attribute_values:
                 return Promise.resolve([])
 
             collection_ids = [
                 value.reference_collection_id
-                for value in av
+                for value in attribute_values
                 if value.reference_collection_id
             ]
             return (
@@ -1381,11 +1392,11 @@ class AssignedSingleChoiceAttribute(BaseObjectType):
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[models.AttributeValue | None]:
         def get_single_choice(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> models.AttributeValue | None:
-            if not av:
+            if not attribute_values:
                 return None
-            return av[0]
+            return attribute_values[0]
 
         return get_attribute_values(root, info, limit=1).then(get_single_choice)
 
@@ -1416,11 +1427,11 @@ class AssignedMultiChoiceAttribute(BaseObjectType):
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ) -> Promise[list[models.AttributeValue]]:
         def get_multi_choice(
-            av: list[models.AttributeValue],
+            attribute_values: list[models.AttributeValue],
         ) -> list[models.AttributeValue]:
-            if not av:
+            if not attribute_values:
                 return []
-            return av
+            return attribute_values
 
         return get_attribute_values(root, info, limit=limit).then(get_multi_choice)
 
@@ -1477,10 +1488,12 @@ class AssignedSwatchAttribute(BaseObjectType):
     def resolve_value(
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[models.AttributeValue | None]:
-        def get_swatch(av: list[models.AttributeValue]) -> models.AttributeValue | None:
-            if not av:
+        def get_swatch(
+            attribute_values: list[models.AttributeValue],
+        ) -> models.AttributeValue | None:
+            if not attribute_values:
                 return None
-            return av[0]
+            return attribute_values[0]
 
         return get_attribute_values(root, info, limit=1).then(get_swatch)
 
@@ -1500,10 +1513,10 @@ class AssignedBooleanAttribute(BaseObjectType):
     def resolve_value(
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[bool | None]:
-        def get_boolean(av: list[models.AttributeValue]) -> bool | None:
-            if not av:
+        def get_boolean(attribute_values: list[models.AttributeValue]) -> bool | None:
+            if not attribute_values:
                 return None
-            return av[0].boolean
+            return attribute_values[0].boolean
 
         return get_attribute_values(root, info, limit=1).then(get_boolean)
 
@@ -1524,10 +1537,14 @@ class AssignedDateAttribute(BaseObjectType):
     def resolve_value(
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[date | None]:
-        def get_date(av: list[models.AttributeValue]) -> date | None:
-            if not av:
+        def get_date(attribute_values: list[models.AttributeValue]) -> date | None:
+            if not attribute_values:
                 return None
-            return av[0].date_time.date() if av[0].date_time else None
+            return (
+                attribute_values[0].date_time.date()
+                if attribute_values[0].date_time
+                else None
+            )
 
         return get_attribute_values(root, info, limit=1).then(get_date)
 
@@ -1548,10 +1565,12 @@ class AssignedDateTimeAttribute(BaseObjectType):
     def resolve_value(
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[datetime | None]:
-        def get_datetime(av: list[models.AttributeValue]) -> datetime | None:
-            if not av:
+        def get_datetime(
+            attribute_values: list[models.AttributeValue],
+        ) -> datetime | None:
+            if not attribute_values:
                 return None
-            return av[0].date_time
+            return attribute_values[0].date_time
 
         return get_attribute_values(root, info, limit=1).then(get_datetime)
 
