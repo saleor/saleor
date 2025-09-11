@@ -13,75 +13,58 @@ class ChannelByTransactionIdLoader(DataLoader[int, Channel]):
     context_key = "channel_by_transaction_id"
 
     def batch_load(self, keys: Iterable[int]):
-        transaction_item_ids = list(keys)
+        transaction_ids = list(keys)
 
-        transaction_items_with_order_ids_only = (
+        transaction_items = (
             TransactionItem.objects.using(self.database_connection_name)
             .only("order_id", "checkout_id", "id")
-            .in_bulk(transaction_item_ids)
+            .in_bulk(transaction_ids)
         )
 
-        orders_ref_dict = {
+        transaction_to_order = {
             item.id: item.order_id
-            for item in transaction_items_with_order_ids_only.values()
+            for item in transaction_items.values()
             if item.order_id
         }
 
-        checkouts_ref_dict = {
+        transaction_to_checkout = {
             item.id: item.checkout_id
-            for item in transaction_items_with_order_ids_only.values()
+            for item in transaction_items.values()
             if item.checkout_id
         }
 
-        # Get unique order IDs and checkout IDs to load
-        order_ids_to_load = [
+        order_ids = [
             order_id
-            for transaction_id in transaction_item_ids
-            if (order_id := orders_ref_dict.get(transaction_id)) is not None
+            for transaction_id in transaction_ids
+            if (order_id := transaction_to_order.get(transaction_id)) is not None
         ]
 
-        checkout_ids_to_load = [
+        checkout_ids = [
             checkout_id
-            for transaction_id in transaction_item_ids
-            if (checkout_id := checkouts_ref_dict.get(transaction_id)) is not None
+            for transaction_id in transaction_ids
+            if (checkout_id := transaction_to_checkout.get(transaction_id)) is not None
         ]
 
-        # Resolve flatten channels and maintain order
-        def with_loaded_data(loaded_data):
+        def resolve_channels(loaded_data):
             checkout_channels, order_channels = loaded_data
 
-            # Create lookup maps
-            order_id_to_channel = {}
-            for i, order_id in enumerate(order_ids_to_load):
-                if i < len(order_channels):
-                    order_id_to_channel[order_id] = order_channels[i]
+            order_to_channel = dict(zip(order_ids, order_channels, strict=False))
+            checkout_to_channel = dict(
+                zip(checkout_ids, checkout_channels, strict=False)
+            )
 
-            checkout_id_to_channel = {}
-            for i, checkout_id in enumerate(checkout_ids_to_load):
-                if i < len(checkout_channels):
-                    checkout_id_to_channel[checkout_id] = checkout_channels[i]
+            def get_channel_for_transaction(transaction_id):
+                if order_id := transaction_to_order.get(transaction_id):
+                    return order_to_channel.get(order_id)
+                if checkout_id := transaction_to_checkout.get(transaction_id):
+                    return checkout_to_channel.get(checkout_id)
+                return None
 
-            # Map each transaction ID to its channel
-            result = []
-            for transaction_id in transaction_item_ids:
-                channel = None
-                if transaction_id in orders_ref_dict:
-                    order_id = orders_ref_dict[transaction_id]
-                    channel = order_id_to_channel.get(order_id)
-                elif transaction_id in checkouts_ref_dict:
-                    checkout_id = checkouts_ref_dict[transaction_id]
-                    channel = checkout_id_to_channel.get(checkout_id)
-                result.append(channel)
+            return [get_channel_for_transaction(tid) for tid in transaction_ids]
 
-            return result
-
-        by_checkout_promise = ChannelByCheckoutIDLoader(self.context).load_many(
-            checkout_ids_to_load
+        checkout_promise = ChannelByCheckoutIDLoader(self.context).load_many(
+            checkout_ids
         )
-        by_order_promise = ChannelByOrderIdLoader(self.context).load_many(
-            order_ids_to_load
-        )
+        order_promise = ChannelByOrderIdLoader(self.context).load_many(order_ids)
 
-        return Promise.all([by_checkout_promise, by_order_promise]).then(
-            with_loaded_data
-        )
+        return Promise.all([checkout_promise, order_promise]).then(resolve_channels)
