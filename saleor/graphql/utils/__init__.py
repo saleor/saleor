@@ -2,7 +2,7 @@ import hashlib
 import logging
 import traceback
 from collections.abc import Iterable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 from uuid import UUID
 
 import graphene
@@ -43,13 +43,13 @@ REVERSED_DIRECTION = {
 }
 
 # List of error types of which messages can be returned in the GraphQL API.
-ALLOWED_ERRORS = [
+ALLOWED_ERRORS = (
     CircularSubscriptionSyncEvent,
     GraphQLError,
     InvalidTokenError,
     PermissionDenied,
     ValidationError,
-]
+)
 
 AVAILABLE_SOURCE_SERVICE_NAMES_FOR_SPAN_TAG = {
     "saleor.dashboard",
@@ -276,7 +276,9 @@ def query_fingerprint(document: DocumentNode, query: str) -> str:
     return f"{label}:{query_hash}"
 
 
-def format_error(error, handled_exceptions, query=None):
+def format_error(
+    error: Exception, handled_exceptions: tuple[type[Exception], ...], query=None
+):
     result: GraphQLFormattedError
     if isinstance(error, GraphQLError):
         result = format_graphql_error(error)
@@ -287,7 +289,7 @@ def format_error(error, handled_exceptions, query=None):
         result["extensions"] = {}
 
     exc = error
-    while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
+    while isinstance(exc, GraphQLError) and exc.original_error:
         exc = exc.original_error
     if isinstance(exc, AssertionError):
         exc = GraphQLError(str(exc))
@@ -299,9 +301,7 @@ def format_error(error, handled_exceptions, query=None):
     # If DEBUG mode is disabled we allow only certain error messages to be returned in
     # the API. This prevents from leaking internals that might be included in Python
     # exceptions' error messages.
-    is_allowed_err = type(exc) in ALLOWED_ERRORS or any(
-        isinstance(exc, allowed_err) for allowed_err in ALLOWED_ERRORS
-    )
+    is_allowed_err = isinstance(exc, ALLOWED_ERRORS)
     if not is_allowed_err and not settings.DEBUG:
         result["message"] = INTERNAL_ERROR_MESSAGE
 

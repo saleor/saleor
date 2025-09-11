@@ -502,7 +502,7 @@ class GraphQLView(View):
             variables = operations.get("variables")
         return query, variables, operation_name
 
-    def format_error(self, error):
+    def format_error(self, error: Exception):
         return format_error(error, self.HANDLED_EXCEPTIONS, self._query)
 
     def format_span_error_description(

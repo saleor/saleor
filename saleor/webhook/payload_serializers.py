@@ -21,6 +21,8 @@ class PythonSerializer(PythonBaseSerializer):
         self.extra_model_fields = extra_model_fields
 
     def get_dump_object(self, obj):
+        if not obj.pk:
+            print("Object has no PK!", type(obj), obj.__dict__)
         obj_id = graphene.Node.to_global_id(obj._meta.object_name, obj.pk)
         data = OrderedDict([("type", str(obj._meta.object_name)), ("id", obj_id)])
         data.update(self._current)  # type: ignore[attr-defined] # internals of serializer # noqa: E501

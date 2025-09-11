@@ -298,7 +298,10 @@ def connection_from_queryset_slice(
     )
 
     if "total_count" in connection_type._meta.fields:
+        # hack because saleor.core imports saleor.graphql (and it shouldn't!)
+        from ...core.db.connection import allow_writer
 
+        @allow_writer()
         def get_total_count():
             return qs.count()
 
