@@ -105,7 +105,7 @@ def test_manual_order_discount_with_entire_order_voucher_CORE_0940(
     update_country_tax_rates(
         e2e_staff_api_client,
         "US",
-        [{"rate": (tax_rate - 1) * 100}],
+        [{"rate": float((tax_rate - 1) * 100)}],
     )
 
     variant_price = Decimal(20)

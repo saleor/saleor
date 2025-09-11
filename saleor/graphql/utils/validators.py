@@ -71,7 +71,7 @@ def __queries_or_introspection_in_inline_fragment(
 def __queries_or_introspection_in_operation_definition(
     definition: OperationDefinitionNode,
 ):
-    if definition.operation != "query":
+    if definition.operation.value != "query":
         return False, False
     selections = definition.selection_set.selections
     return __queries_or_introspection_in_selections(selections, is_query=True)

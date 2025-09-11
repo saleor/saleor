@@ -78,7 +78,9 @@ class Collection(ChannelContextType[models.Collection]):
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
-    background_image = ThumbnailField(description="Background image of the collection.")
+    background_image = ThumbnailField(
+        Image, description="Background image of the collection."
+    )
     translation = TranslationField(
         CollectionTranslation,
         type_name="collection",

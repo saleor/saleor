@@ -952,7 +952,7 @@ class OrderLine(
         required=True, description="Rate of tax applied on product variant."
     )
     digital_content_url = graphene.Field(DigitalContentUrl)
-    thumbnail = ThumbnailField()
+    thumbnail = ThumbnailField(Image)
     unit_price = graphene.Field(
         TaxedMoney,
         description=(

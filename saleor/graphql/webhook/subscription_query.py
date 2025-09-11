@@ -173,7 +173,7 @@ class SubscriptionQuery:
         for definition in ast.definitions:
             if (
                 isinstance(definition, OperationDefinitionNode)
-                and definition.operation == "subscription"
+                and definition.operation.value == "subscription"
             ):
                 return definition
         return None

@@ -859,33 +859,46 @@ class TimePeriod(graphene.ObjectType):
 
 
 class ThumbnailField(graphene.Field):
-    size = graphene.Int(
-        description=(
-            "Desired longest side the image in pixels. Defaults to 4096. "
-            "Images are never cropped. "
-            "Pass 0 to retrieve the original size (not recommended)."
-        ),
-    )
-    format = ThumbnailFormatEnum(
-        default_value="ORIGINAL",
-        description=(
-            "The format of the image. When not provided, format of the original "
-            "image will be used."
-        ),
-    )
-
-    def __init__(self, of_type=Image, *args, **kwargs):
-        super().__init__(of_type, *args, **kwargs)
+    def __init__(self, *args, **extra_kwargs):
+        extra_kwargs.setdefault(
+            "size",
+            graphene.Argument(
+                graphene.Int,
+                description=(
+                    "Desired longest side the image in pixels. Defaults to 4096. "
+                    "Images are never cropped. "
+                    "Pass 0 to retrieve the original size (not recommended)."
+                ),
+            ),
+        )
+        extra_kwargs.setdefault(
+            "format",
+            graphene.Argument(
+                ThumbnailFormatEnum,
+                default_value=ThumbnailFormatEnum.ORIGINAL,
+                description=(
+                    "The format of the image. When not provided, format of the original "
+                    "image will be used."
+                ),
+            ),
+        )
+        super().__init__(*args, **extra_kwargs)
 
 
 class IconThumbnailField(ThumbnailField):
-    format = IconThumbnailFormatEnum(
-        default_value="ORIGINAL",
-        description=(
-            "The format of the image. When not provided, format of the original "
-            "image will be used."
-        ),
-    )
+    def __init__(self, *args, **extra_kwargs):
+        extra_kwargs.setdefault(
+            "format",
+            graphene.Argument(
+                IconThumbnailFormatEnum,
+                default_value=IconThumbnailFormatEnum.ORIGINAL,
+                description=(
+                    "The format of the image. When not provided, format of the original "
+                    "image will be used."
+                ),
+            ),
+        )
+        super().__init__(*args, **extra_kwargs)
 
 
 class MediaInput(graphene.InputObjectType):

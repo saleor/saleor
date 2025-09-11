@@ -924,7 +924,7 @@ class Product(ChannelContextType[models.Product]):
         description="Description of the product." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
     )
-    thumbnail = ThumbnailField(description="Thumbnail of the product.")
+    thumbnail = ThumbnailField(Image, description="Thumbnail of the product.")
     pricing = graphene.Field(
         ProductPricingInfo,
         address=destination_address_argument,

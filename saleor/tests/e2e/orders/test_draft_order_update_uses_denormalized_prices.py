@@ -86,7 +86,7 @@ def test_draft_order_update_uses_denormalized_prices_CORE_0251(
     update_country_tax_rates(
         e2e_staff_api_client,
         "US",
-        [{"rate": (tax_rate - 1) * 100}],
+        [{"rate": float((tax_rate - 1) * 100)}],
     )
 
     (
@@ -129,7 +129,7 @@ def test_draft_order_update_uses_denormalized_prices_CORE_0251(
     update_discounted_prices_for_promotion(Product.objects.all())
 
     # Step 1 - Create a draft order for a product with fixed promotion
-    initial_quantity = Decimal(2)
+    initial_quantity = 2
     input = {
         "channelId": channel_id,
         "billingAddress": DEFAULT_ADDRESS,

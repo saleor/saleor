@@ -3,7 +3,7 @@ import enum
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 from graphene_federation import LATEST_VERSION, build_schema
-from graphql import GraphQLSchema, GraphQLEnumType
+from graphql import GraphQLEnumType, GraphQLSchema
 
 from ..graphql.notifications.schema import ExternalNotificationMutations
 from .account.schema import AccountMutations, AccountQueries
@@ -25,6 +25,7 @@ from .page.schema import PageMutations, PageQueries
 from .payment.schema import PaymentMutations, PaymentQueries
 from .plugins.schema import PluginsMutations, PluginsQueries
 from .product.schema import ProductMutations, ProductQueries
+from .schema import patch_federation_schema
 from .shipping.schema import ShippingMutations, ShippingQueries
 from .shop.schema import ShopMutations, ShopQueries
 from .tax.schema import TaxMutations, TaxQueries
@@ -118,10 +119,11 @@ def patch_schema(schema: GraphQLSchema):
             type.parse_value = wrap_enum(type.parse_value)
 
 
+patch_federation_schema()
 schema = build_schema(
     query=Query,
     mutation=Mutation,
-    types=unit_enums + list(WEBHOOK_TYPES_MAP.values()),
+    types=list(WEBHOOK_TYPES_MAP.values()),
     subscription=Subscription,
     directives=(DocDirective, WebhookEventsDirective),
     federation_version=LATEST_VERSION,

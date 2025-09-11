@@ -95,7 +95,7 @@ def test_serialize_gql_operation_result(gql_operation_factory):
     payload, _ = serialize_gql_operation_result(operation_result, bytes_limit)
     assert payload == GraphQLOperation(
         name=JsonTruncText("FirstQuery", False),
-        operation_type="QUERY",
+        operation_type="query",
         query=JsonTruncText(query, False),
         result=JsonTruncText(pretty_json(result), False),
         result_invalid=False,
@@ -129,7 +129,7 @@ def test_serialize_gql_operation_result_when_minimal_bytes_limit(gql_operation_f
     )
     assert payload == GraphQLOperation(
         name=JsonTruncText("", True),
-        operation_type="QUERY",
+        operation_type="query",
         query=JsonTruncText("", True),
         result=JsonTruncText("", True),
         result_invalid=False,
@@ -147,7 +147,7 @@ def test_serialize_gql_operation_result_when_truncated(gql_operation_factory):
     payload, left_bytes = serialize_gql_operation_result(operation_result, bytes_limit)
     assert payload == GraphQLOperation(
         name=JsonTruncText("FirstQuery", False),
-        operation_type="QUERY",
+        operation_type="query",
         query=JsonTruncText("query FirstQue", True),
         result=JsonTruncText('{\n  "data": ', True),
         result_invalid=False,
@@ -165,14 +165,14 @@ def test_serialize_gql_operation_results(gql_operation_factory):
     assert payloads == [
         GraphQLOperation(
             name=JsonTruncText("FirstQuery", False),
-            operation_type="QUERY",
+            operation_type="query",
             query=JsonTruncText(query, False),
             result=JsonTruncText(pretty_json(result), False),
             result_invalid=False,
         ),
         GraphQLOperation(
             name=JsonTruncText("SecondQuery", False),
-            operation_type="QUERY",
+            operation_type="query",
             query=JsonTruncText(query, False),
             result=JsonTruncText(pretty_json(result), False),
             result_invalid=False,
@@ -193,14 +193,14 @@ def test_serialize_gql_operation_results_when_minimal_bytes_limit(
     assert payloads == [
         GraphQLOperation(
             name=JsonTruncText("", True),
-            operation_type="QUERY",
+            operation_type="query",
             query=JsonTruncText("", True),
             result=JsonTruncText("", True),
             result_invalid=False,
         ),
         GraphQLOperation(
             name=JsonTruncText("", True),
-            operation_type="QUERY",
+            operation_type="query",
             query=JsonTruncText("", True),
             result=JsonTruncText("", True),
             result_invalid=False,
@@ -293,14 +293,14 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
             gql_operations=[
                 GraphQLOperation(
                     name=JsonTruncText("FirstQuery", False),
-                    operation_type="QUERY",
+                    operation_type="query",
                     query=JsonTruncText(query_a, False),
                     result=JsonTruncText(pretty_json(result_a), False),
                     result_invalid=False,
                 ),
                 GraphQLOperation(
                     name=JsonTruncText("SecondQuery", False),
-                    operation_type="QUERY",
+                    operation_type="query",
                     query=JsonTruncText(query_b, False),
                     result=JsonTruncText(pretty_json(result_b), False),
                     result_invalid=False,

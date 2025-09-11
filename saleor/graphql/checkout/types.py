@@ -1296,7 +1296,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 lambda metadata_storage: (
                     MetaResolvers.resolve_metadata(metadata_storage.metadata)
                     if metadata_storage
-                    else {}
+                    else []
                 )
             )
         )

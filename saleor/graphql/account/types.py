@@ -442,7 +442,7 @@ class User(ModelObjectType[models.User]):
             "one user group has `restrictedAccessToChannels` set to False."
         ),
     )
-    avatar = ThumbnailField(description="The avatar of the user.")
+    avatar = ThumbnailField(Image, description="The avatar of the user.")
     events = PermissionsField(
         NonNullList(CustomerEvent),
         description="List of events associated with the user.",

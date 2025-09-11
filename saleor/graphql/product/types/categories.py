@@ -85,7 +85,9 @@ class Category(ModelObjectType[models.Category]):
         lambda: CategoryCountableConnection,
         description="List of children of the category.",
     )
-    background_image = ThumbnailField(description="Background image of the category.")
+    background_image = ThumbnailField(
+        Image, description="Background image of the category."
+    )
     translation = TranslationField(CategoryTranslation, type_name="category")
 
     class Meta:

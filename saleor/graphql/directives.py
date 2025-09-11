@@ -79,34 +79,3 @@ def webhook_events(
         sync_events=sync_event_list,
         field=field,
     )
-
-
-def patch_directives():
-    """Works around an issue in graphql-directives.
-
-    https://github.com/strollby/graphene-directives/issues/14
-    """
-    from copy import copy
-
-    from graphene_directives import schema
-    from graphql import (
-        GraphQLEnumType,
-        GraphQLField,
-        GraphQLInputField,
-        GraphQLInputObjectType,
-        GraphQLObjectType,
-    )
-
-    def get_single_field_type(
-        entity: GraphQLEnumType | GraphQLInputObjectType | GraphQLObjectType,
-        field_name: str,
-        field_type: GraphQLInputField | GraphQLField,
-        is_enum_type: bool = False,
-    ) -> GraphQLEnumType | GraphQLInputObjectType | GraphQLObjectType:
-        new_entity = copy(entity)
-        setattr(
-            new_entity, "values" if is_enum_type else "fields", {field_name: field_type}
-        )
-        return new_entity
-
-    schema.get_single_field_type = get_single_field_type
