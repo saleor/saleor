@@ -52,7 +52,7 @@ from ...attribute.types import (
     SelectedAttribute,
 )
 from ...attribute.utils.shared import AssignedAttributeData
-from ...channel.dataloaders.dataloaders import ChannelBySlugLoader
+from ...channel.dataloaders.by_self import ChannelBySlugLoader
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
     CountableConnection,
