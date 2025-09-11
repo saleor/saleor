@@ -19,8 +19,6 @@ from django.core.cache import CacheKeyWarning
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from django.core.validators import URLValidator
-
-# from graphql.execution import executor
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -33,9 +31,8 @@ from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.rlimit import validate_and_set_rlimit
 from .core.schedules import initiated_promotion_webhook_schedule
-
-# from .graphql.executor import patch_executor
 from .graphql.directives import patch_directives
+from .graphql.executor import patch_executor
 from .graphql.promise import patch_promise
 from .patch_local import patch_local
 
@@ -955,7 +952,7 @@ PRODUCT_MAX_INDEXED_VARIANTS = 1000
 
 # executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore[assignment,misc]
 
-# patch_executor()
+patch_executor()
 patch_directives()
 
 # Optional queue names for Celery tasks.

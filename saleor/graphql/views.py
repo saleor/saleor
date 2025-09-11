@@ -483,9 +483,9 @@ class GraphQLView(View):
         query = data.get("query")
         variables = data.get("variables")
         operation_name = data.get("operationName")
-        if not isinstance(query, str):
+        if query is not None and not isinstance(query, str):
             raise ValueError("Query must be a string.")
-        if variables and not isinstance(variables, dict):
+        if variables is not None and not isinstance(variables, dict):
             raise ValueError("Variables must be an object.")
         if operation_name == "null":
             operation_name = None
