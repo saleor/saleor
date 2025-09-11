@@ -28,7 +28,7 @@ query variant(
         id
         sku
         externalReference
-        assignedAttributes(variantSelection: $variantSelection) {
+        assignedAttributes {
             attribute {
                 slug
             }
@@ -581,20 +581,12 @@ def test_get_variant_by_id_with_variant_selection_filter(
             data["attributes"][0]["attribute"]["slug"]
             == file_attribute_with_file_input_type_without_values.slug
         )
-        assert len(data["assignedAttributes"]) == 1
-        assert (
-            data["assignedAttributes"][0]["attribute"]["slug"]
-            == file_attribute_with_file_input_type_without_values.slug
-        )
     elif variant_selection == VariantAttributeScope.VARIANT_SELECTION.name:
         assert len(data["attributes"]) == 1
         assert data["attributes"][0]["attribute"]["slug"] == size_attribute.slug
 
-        assert len(data["assignedAttributes"]) == 1
-        assert data["assignedAttributes"][0]["attribute"]["slug"] == size_attribute.slug
     else:
         assert len(data["attributes"]) == 2
-        assert len(data["assignedAttributes"]) == 2
 
 
 def test_get_variant_with_sorted_attribute_values(
