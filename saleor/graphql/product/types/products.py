@@ -371,6 +371,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             VariantAttributeScope,
             description="Define scope of returned attributes.",
         ),
+        deprecation_reason="Use the `assignedAttributes` field instead.",
     )
     margin = graphene.Int(description="Gross margin percentage value.")
     quantity_ordered = PermissionsField(
@@ -1077,11 +1078,13 @@ class Product(ChannelContextType[models.Product]):
             required=True,
         ),
         description="Get a single attribute attached to product by attribute slug.",
+        deprecation_reason="Use the `assignedAttribute` field instead.",
     )
     attributes = NonNullList(
         SelectedAttribute,
         required=True,
         description="List of attributes assigned to this product.",
+        deprecation_reason="Use the `assignedAttributes` field instead.",
     )
     channel_listings = PermissionsField(
         NonNullList(ProductChannelListing),
