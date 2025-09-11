@@ -1,11 +1,8 @@
-import pytest
-
 from .....channel.models import Channel
 from ....context import SaleorContext
 from ...dataloaders.by_transaction import ChannelByTransactionIdLoader
 
 
-@pytest.mark.django_db
 def test_batch_load_with_order_transactions(
     order_with_lines, transaction_item_generator
 ):
@@ -26,7 +23,6 @@ def test_batch_load_with_order_transactions(
     assert all(isinstance(channel, Channel) for channel in channels)
 
 
-@pytest.mark.django_db
 def test_batch_load_with_checkout_transactions(checkout, transaction_item_generator):
     # given
     transaction1 = transaction_item_generator(checkout_id=checkout.token, order_id=None)
@@ -44,7 +40,6 @@ def test_batch_load_with_checkout_transactions(checkout, transaction_item_genera
     assert all(isinstance(channel, Channel) for channel in channels)
 
 
-@pytest.mark.django_db
 def test_batch_load_with_mixed_transactions(
     order_with_lines, checkout, transaction_item_generator
 ):
@@ -66,7 +61,6 @@ def test_batch_load_with_mixed_transactions(
     assert channels[1] == checkout.channel
 
 
-@pytest.mark.django_db
 def test_batch_load_with_nonexistent_transaction_ids():
     # given
     nonexistent_ids = [99999, 88888]
@@ -82,7 +76,6 @@ def test_batch_load_with_nonexistent_transaction_ids():
     assert channels[1] is None
 
 
-@pytest.mark.django_db
 def test_batch_load_with_transaction_without_order_or_checkout(
     transaction_item_generator,
 ):
@@ -99,7 +92,6 @@ def test_batch_load_with_transaction_without_order_or_checkout(
     assert channels[0] is None
 
 
-@pytest.mark.django_db
 def test_batch_load_empty_keys():
     # when
     context = SaleorContext()
@@ -110,7 +102,6 @@ def test_batch_load_empty_keys():
     assert channels == []
 
 
-@pytest.mark.django_db
 def test_batch_load_with_deleted_order(order_with_lines, transaction_item_generator):
     # given
     order = order_with_lines
@@ -130,7 +121,6 @@ def test_batch_load_with_deleted_order(order_with_lines, transaction_item_genera
     assert channels[0] is None
 
 
-@pytest.mark.django_db
 def test_batch_load_with_deleted_checkout(checkout, transaction_item_generator):
     # given
     transaction = transaction_item_generator(checkout_id=checkout.token, order_id=None)
@@ -146,7 +136,6 @@ def test_batch_load_with_deleted_checkout(checkout, transaction_item_generator):
     assert channels[0] is None
 
 
-@pytest.mark.django_db
 def test_batch_load_maintains_order(
     order_with_lines, checkout, transaction_item_generator
 ):
@@ -172,7 +161,6 @@ def test_batch_load_maintains_order(
     assert channels[2] == order.channel  # transaction3 -> order
 
 
-@pytest.mark.django_db
 def test_batch_load_handles_duplicate_transaction_ids(
     order_with_lines, transaction_item_generator
 ):
