@@ -64,7 +64,7 @@ def validate_and_resolve_refund_reason_context(
     ):
         raise ValidationError(
             {
-                "reason_reference": ValidationError(
+                "refund_reason_reference": ValidationError(
                     "Reason reference is required when refund reason reference type is configured.",
                     code=TransactionRequestActionErrorCode.REQUIRED.value,
                 )
