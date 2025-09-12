@@ -58,6 +58,15 @@ class AccountRegisterInput(AccountBaseInput):
 
 
 class AccountRegister(DeprecatedModelMutation):
+    user = graphene.Field(
+        User,
+        deprecation_reason=(
+            "The field always returns a `User` object constructed from the input data. "
+            "The `user.id` is always empty. To determine whether the user exists "
+            "in Saleor, query via an external app with the required permissions."
+        ),
+    )
+
     class Arguments:
         input = AccountRegisterInput(
             description="Fields required to create a user.", required=True
