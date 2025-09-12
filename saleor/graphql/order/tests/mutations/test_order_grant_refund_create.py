@@ -1225,8 +1225,6 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_user(
     site_settings,
 ):
     # Given
-    # Page type for refunds exist with {ID}
-    # Settings refund_reason_reference_type are set to use {ID}
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
@@ -1247,19 +1245,14 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_user(
         "input": {
             "amount": amount,
             "reason": "Damaged product refund",
-            # "reasonReference": page_id,  # Not provided
             "transactionId": transaction_item_id,
         },
     }
 
     # When
-    # user calls ORDER_GRANT_REFUND_CREATE mutation
-    # Reason reference is not provided
     response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
 
     # Then
-    # validation error is raised
-    # granted refund is NOT created
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
@@ -1268,7 +1261,6 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_user(
     assert error["field"] == "reasonReference"
     assert error["code"] == OrderGrantRefundCreateErrorCode.REQUIRED.name
 
-    # Check that no granted refund was created
     assert order.granted_refunds.count() == 0
 
 
@@ -1280,8 +1272,6 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_app(
     site_settings,
 ):
     # Given
-    # Page type for refunds exist with {ID}
-    # Settings refund_reason_reference_type are set to use {ID}
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
@@ -1302,19 +1292,14 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_app(
         "input": {
             "amount": amount,
             "reason": "Damaged product refund",
-            # "reasonReference": page_id,  # Not provided
             "transactionId": transaction_item_id,
         },
     }
 
     # When
-    # app calls ORDER_GRANT_REFUND_CREATE mutation
-    # Reason reference is not provided
     response = app_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
 
     # Then
-    # validation error is NOT raised
-    # granted refund is created
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
@@ -1326,7 +1311,6 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_app(
     granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
     assert granted_refund_assigned_to_order == data["grantedRefund"]
 
-    # reasonReference should be None for apps
     assert granted_refund_assigned_to_order["reasonReference"] is None
     assert granted_refund_from_db.reason_reference is None
 
@@ -1339,7 +1323,6 @@ def test_grant_refund_with_reference_not_required_created_by_user_ignores_refere
     site_settings,
 ):
     # Given
-    # Settings refund_reason_reference_type are set to None
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     page = Page.objects.create(
         slug="damaged-product",
@@ -1348,7 +1331,6 @@ def test_grant_refund_with_reference_not_required_created_by_user_ignores_refere
         is_published=True,
     )
 
-    # site_settings.refund_reason_reference_type is already None from fixture
     assert site_settings.refund_reason_reference_type is None
 
     order_id = to_global_id_or_none(order)
@@ -1368,20 +1350,15 @@ def test_grant_refund_with_reference_not_required_created_by_user_ignores_refere
         "input": {
             "amount": amount,
             "reason": "Damaged product refund",
-            "reasonReference": page_id,  # Provided but should be ignored
+            "reasonReference": page_id,
             "transactionId": transaction_item_id,
         },
     }
 
     # When
-    # user calls ORDER_GRANT_REFUND_CREATE mutation
-    # Reason reference is provided
     response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
 
     # Then
-    # validation error is NOT raised
-    # granted refund is created
-    # Reason reference is null
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
@@ -1393,7 +1370,6 @@ def test_grant_refund_with_reference_not_required_created_by_user_ignores_refere
     granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
     assert granted_refund_assigned_to_order == data["grantedRefund"]
 
-    # reasonReference should be None even though it was provided
     assert granted_refund_assigned_to_order["reasonReference"] is None
     assert granted_refund_from_db.reason_reference is None
 
@@ -1406,7 +1382,6 @@ def test_grant_refund_with_reference_not_required_created_by_app_ignores_referen
     site_settings,
 ):
     # Given
-    # Settings refund_reason_reference_type are set to None
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     page = Page.objects.create(
         slug="damaged-product",
@@ -1415,7 +1390,6 @@ def test_grant_refund_with_reference_not_required_created_by_app_ignores_referen
         is_published=True,
     )
 
-    # site_settings.refund_reason_reference_type is already None from fixture
     assert site_settings.refund_reason_reference_type is None
 
     order_id = to_global_id_or_none(order)
@@ -1435,20 +1409,15 @@ def test_grant_refund_with_reference_not_required_created_by_app_ignores_referen
         "input": {
             "amount": amount,
             "reason": "Damaged product refund",
-            "reasonReference": page_id,  # Provided but should be ignored
+            "reasonReference": page_id,
             "transactionId": transaction_item_id,
         },
     }
 
     # When
-    # app calls ORDER_GRANT_REFUND_CREATE mutation
-    # Reason reference is provided
     response = app_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
 
     # Then
-    # validation error is NOT raised
-    # granted refund is created
-    # Reason reference is null
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
@@ -1460,7 +1429,6 @@ def test_grant_refund_with_reference_not_required_created_by_app_ignores_referen
     granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
     assert granted_refund_assigned_to_order == data["grantedRefund"]
 
-    # reasonReference should be None even though it was provided
     assert granted_refund_assigned_to_order["reasonReference"] is None
     assert granted_refund_from_db.reason_reference is None
 
@@ -1473,8 +1441,6 @@ def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid
     site_settings,
 ):
     # Given
-    # Page type for refunds exist with {ID}
-    # Settings refund_reason_reference_type are set to use {ID}
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
@@ -1490,7 +1456,6 @@ def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid
         "TransactionItem", transaction_item.token
     )
 
-    # Use an invalid page ID (non-existent)
     invalid_page_id = graphene.Node.to_global_id("Page", 99999)
 
     variables = {
@@ -1498,19 +1463,15 @@ def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid
         "input": {
             "amount": amount,
             "reason": "Damaged product refund",
-            "reasonReference": invalid_page_id,  # Invalid ID provided
+            "reasonReference": invalid_page_id,
             "transactionId": transaction_item_id,
         },
     }
 
     # When
-    # user calls ORDER_GRANT_REFUND_CREATE mutation
-    # Reason reference is provided to be invalid ID
     response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
 
     # Then
-    # validation error is raised
-    # granted refund is NOT created
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
@@ -1519,5 +1480,4 @@ def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid
     assert error["field"] == "reasonReference"
     assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
 
-    # Check that no granted refund was created
     assert order.granted_refunds.count() == 0
