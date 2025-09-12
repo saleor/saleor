@@ -261,7 +261,9 @@ type Query {
   """
   giftCardSettings: GiftCardSettings! @doc(category: "Gift cards")
 
-  """Refunds related settings from site settings."""
+  """
+  Refunds related settings. Returns `RefundSettings` configuration, global for the entire shop.
+  """
   refundSettings: RefundSettings! @doc(category: "Shop")
 
   """

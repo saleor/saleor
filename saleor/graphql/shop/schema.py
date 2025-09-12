@@ -55,7 +55,7 @@ class ShopQueries(graphene.ObjectType):
     )
     refund_settings = PermissionsField(
         RefundSettings,
-        description="Refunds related settings from site settings.",
+        description="Refunds related settings. Returns `RefundSettings` configuration, global for the entire shop.",
         required=True,
         permissions=[],
         doc_category=DOC_CATEGORY_SHOP,
