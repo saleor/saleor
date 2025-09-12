@@ -690,7 +690,9 @@ class DeprecatedModelMutation(BaseMutation):
                 f"GraphQL type for model {cls._meta.model.__name__} could not be "
                 f"resolved for {cls.__name__}"
             )
-        fields = {return_field_name: graphene.Field(model_type)}
+        fields = {}
+        if not cls._meta.fields.get(return_field_name):
+            fields[return_field_name] = graphene.Field(model_type)
 
         cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
