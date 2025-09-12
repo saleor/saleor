@@ -9,6 +9,7 @@ from ...shipping.models import (
     ShippingMethodPostalCodeRule,
     ShippingZone,
 )
+from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..core.dataloaders import DataLoader
 
 
@@ -196,8 +197,6 @@ class ChannelsByShippingZoneIdLoader(DataLoader):
     context_key = "channels_by_shippingzone"
 
     def batch_load(self, keys):
-        from ..channel.dataloaders import ChannelByIdLoader
-
         channel_and_zone_is_pairs = (
             Channel.objects.using(self.database_connection_name)
             .filter(shipping_zones__id__in=keys)

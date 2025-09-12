@@ -3,7 +3,7 @@ from graphene import relay
 
 from ....discount import models
 from ....permission.enums import DiscountPermissions
-from ...channel.dataloaders import ChannelByIdLoader
+from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
 from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice

@@ -13,7 +13,7 @@ from ...payment.interface import PaymentMethodData
 from ...permission.enums import OrderPermissions
 from ..account.dataloaders import UserByUserIdLoader
 from ..app.dataloaders import ActiveAppsByAppIdentifierLoader, AppByIdLoader
-from ..channel.dataloaders import ChannelByTransactionIdLoader
+from ..channel.dataloaders.by_transaction import ChannelByTransactionIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection

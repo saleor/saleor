@@ -1,7 +1,7 @@
 import graphene
 
 from ...tax import models
-from ..channel.dataloaders import ChannelByIdLoader
+from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..channel.types import Channel
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection

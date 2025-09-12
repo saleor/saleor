@@ -19,7 +19,7 @@ from ....tax.utils import (
     get_tax_rate_for_country,
 )
 from ...account import types as account_types
-from ...channel.dataloaders import ChannelByIdLoader
+from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS

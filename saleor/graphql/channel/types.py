@@ -38,7 +38,7 @@ from ..meta.types import ObjectWithMetadata
 from ..tax.dataloaders import TaxConfigurationByChannelId
 from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
-from .dataloaders import ChannelWithHasOrdersByIdLoader
+from .dataloaders.by_order import ChannelWithHasOrdersByIdLoader
 from .enums import (
     AllocationStrategyEnum,
     MarkAsPaidStrategyEnum,
