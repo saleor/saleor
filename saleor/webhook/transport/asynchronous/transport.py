@@ -613,13 +613,11 @@ def send_webhook_request_async(
     domain = get_domain()
     attempt = create_attempt(delivery, self.request.id)
     response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
-    payload_size = 0
+    retry_on_failure = False
 
-    try:
-        if not delivery.payload:
-            raise ValueError(
-                f"Event delivery id: %{event_delivery_id}r has no payload."
-            )
+    if not delivery.payload:
+        response.content = f"Event delivery id: %{event_delivery_id}r has no payload."
+    else:
         data = delivery.payload.get_payload()
         # Covert payload to bytes if it's not already.
         data = data if isinstance(data, bytes) else data.encode("utf-8")
@@ -634,40 +632,39 @@ def send_webhook_request_async(
             app=webhook.app,
             span_links=telemetry_context.links,
         ) as span:
-            response = send_webhook_using_scheme_method(
-                webhook.target_url,
-                domain,
-                webhook.secret_key,
-                delivery.event_type,
-                data,
-                webhook.custom_headers,
-            )
+            try:
+                response = send_webhook_using_scheme_method(
+                    webhook.target_url,
+                    domain,
+                    webhook.secret_key,
+                    delivery.event_type,
+                    data,
+                    webhook.custom_headers,
+                )
+                retry_on_failure = True
+            except ValueError as e:
+                response.content = str(e)
             if response.status == EventDeliveryStatus.FAILED:
                 span.set_status(StatusCode.ERROR)
-
-        record_async_webhooks_count(delivery, response.status)
-        if response.status == EventDeliveryStatus.FAILED:
-            attempt_update(attempt, response)
-            handle_webhook_retry(self, webhook, response, delivery, attempt)
-            delivery_update(delivery, EventDeliveryStatus.FAILED)
-        elif response.status == EventDeliveryStatus.SUCCESS:
-            task_logger.info(
-                "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
-                webhook.id,
-                sanitize_url_for_logging(webhook.target_url),
-                delivery.event_type,
-                delivery.id,
-            )
-            delivery.status = EventDeliveryStatus.SUCCESS
-            # update attempt without save to provide proper data in observability
-            attempt_update(attempt, response, with_save=False)
-    except ValueError as e:
-        response.content = str(e)
-        attempt_update(attempt, response)
-        delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-    finally:
         record_external_request(webhook.target_url, response, payload_size)
+        record_async_webhooks_count(delivery, response.status)
 
+    if response.status == EventDeliveryStatus.FAILED:
+        attempt_update(attempt, response)
+        if retry_on_failure:
+            handle_webhook_retry(self, webhook, response, delivery, attempt)
+        delivery_update(delivery, EventDeliveryStatus.FAILED)
+    elif response.status == EventDeliveryStatus.SUCCESS:
+        task_logger.info(
+            "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
+            webhook.id,
+            sanitize_url_for_logging(webhook.target_url),
+            delivery.event_type,
+            delivery.id,
+        )
+        delivery.status = EventDeliveryStatus.SUCCESS
+        # update attempt without save to provide proper data in observability
+        attempt_update(attempt, response, with_save=False)
     observability.report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
 

@@ -178,3 +178,18 @@ def test_send_webhook_request_async_record_external_request_with_unknown_webhook
     assert external_request_content_length.attributes == attributes
     assert external_request_content_length.count == 1
     assert external_request_content_length.sum == payload_size
+
+
+@patch("saleor.webhook.transport.asynchronous.transport.webhooks_otel_trace")
+def test_send_webhook_request_async_fails_when_exception_raised_by_webhooks_otel_trace(
+    mock_webhooks_otel_trace,
+    event_delivery,
+):
+    # given
+    mock_webhooks_otel_trace.side_effect = ValueError("OTel error")
+
+    # when & then
+    with pytest.raises(ValueError, match="OTel error"):
+        send_webhook_request_async(
+            event_delivery_id=event_delivery.id, telemetry_context={}
+        )
