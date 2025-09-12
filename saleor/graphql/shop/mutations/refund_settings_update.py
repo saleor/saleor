@@ -46,12 +46,10 @@ class RefundSettingsUpdate(BaseMutation):
         error_type_field = "refund_settings_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        input = data.get("input")
-
-        refund_reason_reference_type = (
-            input.get("refund_reason_reference_type") if input else None
-        )
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, input
+    ):
+        refund_reason_reference_type = input.get("refund_reason_reference_type")
 
         site = get_site_promise(info.context).get()
         settings = site.settings

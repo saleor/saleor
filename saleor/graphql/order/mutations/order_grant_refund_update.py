@@ -368,7 +368,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         if should_apply:
             try:
                 type_, reason_reference_pk = from_global_id_or_error(
-                    reason_reference_id, only_type="Page"
+                    str(reason_reference_id), only_type="Page"
                 )
                 if reason_reference_pk:
                     # todo check if page is type of reference type
@@ -403,7 +403,6 @@ class OrderGrantRefundUpdate(BaseMutation):
         order: models.Order,
         granted_refund: models.OrderGrantedRefund,
         cleaned_input: dict,
-        info: ResolveInfo,
     ):
         lines_to_remove = cleaned_input.get("remove_lines")
         lines_to_add = cleaned_input.get("add_lines")
@@ -473,9 +472,7 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         cleaned_input = cls.clean_input(info, granted_refund, input)
 
-        cls.process_update_for_granted_refund(
-            order, granted_refund, cleaned_input, info
-        )
+        cls.process_update_for_granted_refund(order, granted_refund, cleaned_input)
         update_order_charge_data(order)
         return cls(
             order=SyncWebhookControlContext(order),

@@ -280,7 +280,7 @@ class OrderGrantRefundCreate(BaseMutation):
         if should_apply:
             try:
                 type_, reason_reference_pk = from_global_id_or_error(
-                    reason_reference_id, only_type="Page"
+                    str(reason_reference_id), only_type="Page"
                 )
                 if reason_reference_pk:
                     reason_reference_instance = Page.objects.get(

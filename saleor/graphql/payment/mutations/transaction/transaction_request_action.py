@@ -182,14 +182,21 @@ class TransactionRequestAction(BaseMutation):
         reason_exists = reason or reason_reference_id
 
         if reason_exists and action_type != TransactionAction.REFUND:
-            raise ValidationError(
-                {
-                    "reason": ValidationError(
-                        "Reason and reason reference can be set only for REFUND action.",
-                        code=TransactionRequestActionErrorCode.INVALID.value,
-                    )
-                }
-            )
+            errors = {}
+
+            if reason:
+                errors["reason"] = ValidationError(
+                    "Reason can be set only for REFUND action.",
+                    code=TransactionRequestActionErrorCode.INVALID.value,
+                )
+
+            if reason_reference_id:
+                errors["reason_reference"] = ValidationError(
+                    "Reason reference can be set only for REFUND action.",
+                    code=TransactionRequestActionErrorCode.INVALID.value,
+                )
+
+            raise ValidationError(errors)
 
     @classmethod
     def _prepare_refund_reason(cls, info: ResolveInfo, /, **data):
@@ -215,7 +222,7 @@ class TransactionRequestAction(BaseMutation):
         if refund_reason_context["should_apply"]:
             try:
                 type_, reason_reference_pk = from_global_id_or_error(
-                    reason_reference_id, only_type="Page"
+                    str(reason_reference_id), only_type="Page"
                 )
                 if reason_reference_pk:
                     reason_reference_instance = Page.objects.get(

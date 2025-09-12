@@ -1754,3 +1754,70 @@ def test_transaction_request_charge_ignores_reason_and_reference(
     # For charge actions, reason and reason_reference should not be set
     assert request_event.message is None
     assert request_event.reason_reference is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_with_reason_reference_wrong_page_type_created_by_user(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+    site_settings,
+):
+    # Given
+    mocked_is_active.return_value = False
+
+    page_type1 = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    site_settings.refund_reason_reference_type = page_type1
+    site_settings.save()
+
+    page_type2 = PageType.objects.create(name="Different Type", slug="different-type")
+    page_wrong_type = Page.objects.create(
+        slug="wrong-type-page",
+        title="Wrong Type Page",
+        page_type=page_type2,
+        is_published=True,
+    )
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+
+    wrong_page_id = to_global_id_or_none(page_wrong_type)
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "refund_reason": "Product was damaged during shipping",
+        "refund_reason_reference": wrong_page_id,
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # When
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # Then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "refundReasonReference"
+    assert error["code"] == TransactionRequestActionErrorCode.INVALID.name
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+    assert request_event is None

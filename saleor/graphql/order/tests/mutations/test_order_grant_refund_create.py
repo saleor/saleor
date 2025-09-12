@@ -1473,3 +1473,61 @@ def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid
     assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
 
     assert order.granted_refunds.count() == 0
+
+
+def test_grant_refund_with_reason_reference_wrong_page_type_created_by_user(
+    staff_api_client,
+    permission_manage_orders,
+    order,
+    transaction_item_generator,
+    site_settings,
+):
+    # Given
+    page_type1 = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    site_settings.refund_reason_reference_type = page_type1
+    site_settings.save()
+
+    page_type2 = PageType.objects.create(name="Different Type", slug="different-type")
+    page_wrong_type = Page.objects.create(
+        slug="wrong-type-page",
+        title="Wrong Type Page",
+        page_type=page_type2,
+        is_published=True,
+    )
+
+    order_id = to_global_id_or_none(order)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    amount = Decimal("10.00")
+    transaction_item = transaction_item_generator(
+        charged_value=amount, order_id=order.id
+    )
+    transaction_item_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    wrong_page_id = to_global_id_or_none(page_wrong_type)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "amount": amount,
+            "reason": "Damaged product refund",
+            "reasonReference": wrong_page_id,
+            "transactionId": transaction_item_id,
+        },
+    }
+
+    # When
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # Then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "reasonReference"
+    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+
+    assert order.granted_refunds.count() == 0
