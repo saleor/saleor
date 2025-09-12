@@ -2602,9 +2602,11 @@ def test_product_bulk_create_with_media_incorrect_alt(
     error_1 = data["results"][0]["errors"]
     assert error_1
     assert len(error_1) == 2
-    for error in error_1:
+    for index, error in enumerate(error_1):
         assert error["code"] == ProductBulkCreateErrorCode.INVALID.name
+        assert error["path"] == f"media.{index}.alt"
     error_2 = data["results"][1]["errors"]
     assert error_2[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error_2[0]["path"] == "media.0.alt"
     assert len(error_2) == 1
     assert data["count"] == 0
