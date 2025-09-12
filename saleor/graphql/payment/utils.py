@@ -57,6 +57,16 @@ def validate_and_resolve_refund_reason_context(
         refund_reason_reference_type is not None
     )
 
+    if not refund_reason_reference_type and reason_reference_id:
+        raise ValidationError(
+            {
+                "refund_reason_reference": ValidationError(
+                    "Reason reference type is not configured.",
+                    code=TransactionRequestActionErrorCode.INVALID.value,
+                )
+            }
+        ) from None
+
     if (
         is_passing_reason_reference_required
         and reason_reference_id is None

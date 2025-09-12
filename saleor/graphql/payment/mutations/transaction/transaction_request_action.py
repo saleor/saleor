@@ -214,6 +214,7 @@ class TransactionRequestAction(BaseMutation):
                 )
                 if reason_reference_pk:
                     reason_reference_instance = Page.objects.get(pk=reason_reference_pk)
+
             except (Page.DoesNotExist, ValueError):
                 raise ValidationError(
                     {
