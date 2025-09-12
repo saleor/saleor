@@ -1348,7 +1348,6 @@ def test_transaction_request_refund_with_reason_reference_required_created_by_us
         is_published=True,
     )
 
-    # Configure site settings to require reason reference
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
 
@@ -1408,7 +1407,6 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
     # Given
     mocked_is_active.return_value = False
 
-    # Create page type for refund reasons and configure site settings
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
@@ -1426,7 +1424,6 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "refund_reason": "Product was damaged during shipping",
-        # "reason_reference": page_id,  # Not provided
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
 
@@ -1442,10 +1439,9 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
     errors = data["errors"]
     assert len(errors) == 1
     error = errors[0]
-    assert error["field"] == "reasonReference"
+    assert error["field"] == "refundReasonReference"
     assert error["code"] == TransactionRequestActionErrorCode.REQUIRED.name
 
-    # Check that no transaction event was created
     request_event = TransactionEvent.objects.filter(
         type=TransactionEventType.REFUND_REQUEST,
     ).first()
@@ -1467,7 +1463,6 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
     # Given
     mocked_is_active.return_value = False
 
-    # Create page type for refund reasons and configure site settings
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
@@ -1485,7 +1480,6 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "refund_reason": "Product was damaged during shipping",
-        # "reason_reference": page_id,  # Not provided
     }
     app_api_client.app.permissions.add(permission_manage_payments)
 
@@ -1496,7 +1490,6 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
     )
 
     # Then
-    # For apps, reason reference is not required even when configured
     content = get_graphql_content(response)
     data = content["data"]["transactionRequestAction"]
     errors = data["errors"]
@@ -1527,7 +1520,6 @@ def test_transaction_request_refund_with_reason_reference_not_configured_created
     # Given
     mocked_is_active.return_value = False
 
-    # Create page type and page but dont configure site settings
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     page = Page.objects.create(
         slug="damaged-product",
@@ -1536,7 +1528,6 @@ def test_transaction_request_refund_with_reason_reference_not_configured_created
         is_published=True,
     )
 
-    # site_settings.refund_reason_reference_type is already None from fixture
     assert site_settings.refund_reason_reference_type is None
 
     transaction_request_webhook.events.create(
@@ -1564,7 +1555,6 @@ def test_transaction_request_refund_with_reason_reference_not_configured_created
     )
 
     # Then
-    # When not configured, reason reference should be ignored
     content = get_graphql_content(response)
     data = content["data"]["transactionRequestAction"]
     errors = data["errors"]
@@ -1596,7 +1586,6 @@ def test_transaction_request_refund_with_reason_reference_required_created_by_us
     # Given
     mocked_is_active.return_value = False
 
-    # Create page type and configure site settings
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
@@ -1610,14 +1599,13 @@ def test_transaction_request_refund_with_reason_reference_required_created_by_us
         app=transaction_request_webhook.app,
     )
 
-    # Use an invalid page ID (non-existent)
     invalid_page_id = graphene.Node.to_global_id("Page", 99999)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "refund_reason": "Product was damaged during shipping",
-        "refund_reason_reference": invalid_page_id,  # Invalid ID provided
+        "refund_reason_reference": invalid_page_id,
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
 
@@ -1633,10 +1621,9 @@ def test_transaction_request_refund_with_reason_reference_required_created_by_us
     errors = data["errors"]
     assert len(errors) == 1
     error = errors[0]
-    assert error["field"] == "reasonReference"
+    assert error["field"] == "refundReasonReference"
     assert error["code"] == TransactionRequestActionErrorCode.INVALID.name
 
-    # Check that no transaction event was created
     request_event = TransactionEvent.objects.filter(
         type=TransactionEventType.REFUND_REQUEST,
     ).first()
@@ -1659,7 +1646,6 @@ def test_transaction_request_refund_with_reason_only_no_reference(
     # Given
     mocked_is_active.return_value = False
 
-    # site_settings.refund_reason_reference_type is already None from fixture
     assert site_settings.refund_reason_reference_type is None
 
     transaction_request_webhook.events.create(
@@ -1675,7 +1661,6 @@ def test_transaction_request_refund_with_reason_only_no_reference(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "refund_reason": "Product was damaged during shipping",
-        # No reason_reference provided
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
 
@@ -1717,7 +1702,6 @@ def test_transaction_request_charge_ignores_reason_and_reference(
     # Given
     mocked_is_active.return_value = False
 
-    # Create page type and page
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     page = Page.objects.create(
         slug="damaged-product",
@@ -1726,7 +1710,6 @@ def test_transaction_request_charge_ignores_reason_and_reference(
         is_published=True,
     )
 
-    # Configure site settings
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
 

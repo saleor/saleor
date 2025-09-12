@@ -47,13 +47,15 @@ def check_if_requestor_has_access(
     return False
 
 
-def validate_refund_reason_requirement(
+def validate_and_resolve_refund_reason_context(
     *, reason_reference_id: str | None, requestor_is_user: bool
 ):
     settings = Site.objects.get_current().settings
     refund_reason_reference_type = settings.refund_reason_reference_type
 
-    is_passing_reason_reference_required = refund_reason_reference_type is not None
+    is_passing_reason_reference_required: bool = (
+        refund_reason_reference_type is not None
+    )
 
     if (
         is_passing_reason_reference_required
@@ -68,3 +70,13 @@ def validate_refund_reason_requirement(
                 )
             }
         ) from None
+
+    should_apply = bool(
+        reason_reference_id is not None and refund_reason_reference_type
+    )
+
+    return {
+        "is_passing_reason_reference_required": is_passing_reason_reference_required,
+        "refund_reason_reference_type": refund_reason_reference_type,
+        "should_apply": should_apply,
+    }

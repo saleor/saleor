@@ -28,10 +28,9 @@ from ....core.types import common as common_types
 from ....core.utils import from_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ....site.dataloaders import get_site_promise
 from ...enums import TransactionActionEnum
 from ...types import TransactionItem
-from ...utils import validate_refund_reason_requirement
+from ...utils import validate_and_resolve_refund_reason_context
 from .utils import get_transaction_item
 
 if TYPE_CHECKING:
@@ -193,39 +192,22 @@ class TransactionRequestAction(BaseMutation):
             )
 
     @classmethod
-    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
-        id = data.get("id")
-        token = data.get("token")
-        action_type = data["action_type"]
-        action_value = data.get("amount")
-        reason = data.get("refund_reason")
-        reason_reference_id = data.get("refund_reason_reference")
-
-        if not reason_reference_id:
-            reason_reference_id = None
-
+    def _prepare_refund_reason(cls, info: ResolveInfo, /, **data):
         cls._validate_reason_and_event(data)
+
+        reason_reference_id = data.get("refund_reason_reference")
 
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
-        site = get_site_promise(info.context).get()
-        refund_reason_reference_type = site.settings.refund_reason_reference_type
-
-        is_passing_reason_reference_required = refund_reason_reference_type is not None
-
-        validate_refund_reason_requirement(
+        refund_reason_context = validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
         )
 
-        # If feature is not enabled, ignore it from the input
-        if not is_passing_reason_reference_required:
-            reason_reference_id = None
+        reason_reference_instance: Page | None = None
 
-        reason_reference_instance = None
-
-        if reason_reference_id:
+        if refund_reason_context["should_apply"]:
             try:
                 type_, reason_reference_pk = from_global_id_or_error(
                     reason_reference_id, only_type="Page"
@@ -235,12 +217,24 @@ class TransactionRequestAction(BaseMutation):
             except (Page.DoesNotExist, ValueError):
                 raise ValidationError(
                     {
-                        "reason_reference": ValidationError(
+                        "refund_reason_reference": ValidationError(
                             "Invalid reason reference.",
                             code=TransactionRequestActionErrorCode.INVALID.value,
                         )
                     }
                 ) from None
+
+        return reason_reference_instance
+
+    @classmethod
+    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
+        id = data.get("id")
+        token = data.get("token")
+        action_type = data["action_type"]
+        action_value = data.get("amount")
+        reason = data.get("refund_reason")
+
+        reason_reference_instance = cls._prepare_refund_reason(info, **data)
 
         validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction = get_transaction_item(id, token)

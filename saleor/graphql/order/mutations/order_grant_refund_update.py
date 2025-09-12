@@ -19,7 +19,7 @@ from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.types import TransactionItem
-from ...payment.utils import validate_refund_reason_requirement
+from ...payment.utils import validate_and_resolve_refund_reason_context
 from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineErrorCode
 from ..types import Order, OrderGrantedRefund
@@ -356,7 +356,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         if not reason_reference:
             reason_reference = None
 
-        validate_refund_reason_requirement(
+        validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference,
             requestor_is_user=bool(requestor_is_user),
         )
