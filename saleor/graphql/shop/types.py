@@ -18,6 +18,7 @@ from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_319,
+    ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -40,6 +41,7 @@ from ..core.types import (
 )
 from ..core.utils import str_to_enum
 from ..meta.types import ObjectWithMetadata
+from ..page.types import PageType
 from ..payment.types import PaymentGateway
 from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..shipping.types import ShippingMethod
@@ -77,6 +79,20 @@ class OrderSettings(ModelObjectType[site_models.SiteSettings]):
         description = "Order related settings from site settings."
         doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
+
+
+class RefundSettings(ModelObjectType[site_models.SiteSettings]):
+    reason_reference_type = graphene.Field(
+        PageType, description="Model type used for refund reasons."
+    )
+
+    class Meta:
+        description = "Refund related settings from site settings." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ORDERS
+        model = site_models.SiteSettings
+
+    def resolve_reason_reference_type(root, info):
+        return root.refund_reason_reference_type
 
 
 class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):

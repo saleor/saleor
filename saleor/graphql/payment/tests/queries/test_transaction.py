@@ -5,6 +5,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .....page.models import Page
 from .....payment import PaymentMethodType, TransactionEventType
 from .....payment.models import TransactionEvent
 from ....core.utils import to_global_id_or_none
@@ -73,6 +74,9 @@ TRANSACTION_QUERY = """
                     ... on App {
                         id
                     }
+                }
+                reasonReference{
+                    id
                 }
             }
             name
@@ -951,3 +955,90 @@ def test_transaction_query_by_staff_with_payment_method_other(
     data = content["data"]["transaction"]
     assert data["paymentMethodDetails"]["__typename"] == "OtherPaymentMethodDetails"
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
+
+
+def test_transaction_event_with_reason_reference(
+    staff_api_client,
+    transaction_item_created_by_user,
+    permission_manage_payments,
+    permission_manage_staff,
+    page_type,
+    channel_USD,
+):
+    # given
+    page = Page.objects.create(
+        slug="refund-policy",
+        title="Refund Policy",
+        page_type=page_type,
+        is_published=True,
+    )
+
+    TransactionEvent.objects.create(
+        transaction=transaction_item_created_by_user,
+        psp_reference="psp-ref-123",
+        message="Refund with reason",
+        currency="USD",
+        type=TransactionEventType.REFUND_SUCCESS,
+        amount_value=Decimal("10.00"),
+        external_url=f"http://{TEST_SERVER_DOMAIN}/test",
+        user=staff_api_client.user,
+        reason_reference=page,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.token
+        )
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_QUERY,
+        variables,
+        permissions=[permission_manage_payments, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = content["data"]["transaction"]["events"]
+    event_data = next(e for e in events if e["pspReference"] == "psp-ref-123")
+    assert event_data["reasonReference"]["id"] == to_global_id_or_none(page)
+
+
+def test_transaction_event_without_reason_reference(
+    staff_api_client,
+    transaction_item_created_by_user,
+    permission_manage_payments,
+    permission_manage_staff,
+):
+    # given
+    TransactionEvent.objects.create(
+        transaction=transaction_item_created_by_user,
+        psp_reference="psp-ref-no-reason",
+        message="Regular event",
+        currency="USD",
+        type=TransactionEventType.CHARGE_SUCCESS,
+        amount_value=Decimal("10.00"),
+        external_url=f"http://{TEST_SERVER_DOMAIN}/test",
+        user=staff_api_client.user,
+        reason_reference=None,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.token
+        )
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_QUERY,
+        variables,
+        permissions=[permission_manage_payments, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = content["data"]["transaction"]["events"]
+    event_data = next(e for e in events if e["pspReference"] == "psp-ref-no-reason")
+    assert event_data["reasonReference"] is None
