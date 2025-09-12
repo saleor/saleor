@@ -2588,7 +2588,6 @@ dependencies = [
     { name = "semantic-version", marker = "platform_python_implementation != 'PyPy'" },
     { name = "sendgrid", marker = "platform_python_implementation != 'PyPy'" },
     { name = "sentry-sdk", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "setuptools", marker = "platform_python_implementation != 'PyPy'" },
     { name = "stripe", marker = "platform_python_implementation != 'PyPy'" },
     { name = "text-unidecode", marker = "platform_python_implementation != 'PyPy'" },
     { name = "urllib3", marker = "platform_python_implementation != 'PyPy'" },
@@ -2627,7 +2626,6 @@ dev = [
     { name = "types-python-dateutil", marker = "platform_python_implementation != 'PyPy'" },
     { name = "types-redis", marker = "platform_python_implementation != 'PyPy'" },
     { name = "types-requests", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "types-setuptools", marker = "platform_python_implementation != 'PyPy'" },
     { name = "types-six", marker = "platform_python_implementation != 'PyPy'" },
     { name = "vcrpy", marker = "platform_python_implementation != 'PyPy'" },
 ]
@@ -2703,7 +2701,6 @@ requires-dist = [
     { name = "semantic-version", specifier = ">=2.10.0,<3" },
     { name = "sendgrid", specifier = ">=6.7.1,<7" },
     { name = "sentry-sdk", specifier = "~=2.12" },
-    { name = "setuptools", specifier = ">=76.0.0,<77" },
     { name = "stripe", specifier = ">=3.0.0,<4" },
     { name = "text-unidecode", specifier = "~=1.2" },
     { name = "urllib3", specifier = ">=2.4.0,<3" },
@@ -2742,7 +2739,6 @@ dev = [
     { name = "types-python-dateutil", specifier = ">=2.9.0,<3" },
     { name = "types-redis", specifier = ">=4.6.0,<5" },
     { name = "types-requests", specifier = ">=2.32.4,<3" },
-    { name = "types-setuptools", specifier = ">=80.9.0.20250529,<81" },
     { name = "types-six", specifier = ">=1.17.0,<2" },
     { name = "vcrpy", specifier = ">=7.0.0,<8" },
 ]

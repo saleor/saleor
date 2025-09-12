@@ -5750,10 +5750,10 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   attribute(
     """Slug of the attribute"""
     slug: String!
-  ): SelectedAttribute
+  ): SelectedAttribute @deprecated(reason: "Use the `assignedAttribute` field instead.")
 
   """List of attributes assigned to this product."""
-  attributes: [SelectedAttribute!]!
+  attributes: [SelectedAttribute!]! @deprecated(reason: "Use the `assignedAttributes` field instead.")
 
   """
   List of availability in channels for the product.
@@ -7500,7 +7500,7 @@ type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes 
   attributes(
     """Define scope of returned attributes."""
     variantSelection: VariantAttributeScope
-  ): [SelectedAttribute!]!
+  ): [SelectedAttribute!]! @deprecated(reason: "Use the `assignedAttributes` field instead.")
 
   """Gross margin percentage value."""
   margin: Int

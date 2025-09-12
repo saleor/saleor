@@ -8,7 +8,7 @@ from ....core.db.connection import allow_writer_in_context
 from ....discount import VoucherType
 from ....discount.utils.voucher import attach_voucher_to_line_info
 from ...account.dataloaders import AddressByIdLoader, UserByUserIdLoader
-from ...channel.dataloaders import ChannelByIdLoader
+from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...core.dataloaders import DataLoader
 from ...discount.dataloaders import (
     CheckoutDiscountByCheckoutIdLoader,

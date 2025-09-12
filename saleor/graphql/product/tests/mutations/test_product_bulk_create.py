@@ -1,10 +1,11 @@
 import datetime
 import json
 import os
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from uuid import uuid4
 
 import graphene
+import PIL
 import pytest
 
 from .....attribute.tests.model_helpers import (
@@ -14,7 +15,11 @@ from .....attribute.tests.model_helpers import (
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
-from .....product.tests.utils import create_image
+from .....product.tests.utils import (
+    create_image,
+    create_image_without_extension,
+    create_zip_file_with_image_ext,
+)
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import (
     get_graphql_content,
@@ -710,6 +715,272 @@ def test_product_bulk_create_with_media(
     assert file_3_name.endswith(format)
 
 
+def test_product_bulk_create_with_media_invalid_extension(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+    product_name_2 = "test name 2"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    image_file_1, image_name_1 = create_image(image_name="prod1_img1")
+    image_file_2, image_name_2 = create_image(image_name="prod1_img2")
+    invalid_image_file, invalid_image_name = create_image_without_extension(
+        image_name="prod2_img1_invalid"
+    )
+
+    media_1 = {
+        "alt": "",
+        "image": image_name_1,
+    }
+
+    media_2 = {
+        "alt": "",
+        "image": image_name_2,
+    }
+
+    media_3 = {
+        "alt": "",
+        "image": invalid_image_name,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "media": [media_1, media_2],
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_2,
+            "slug": f"{base_product_slug}-2",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "media": [media_3],
+        },
+    ]
+
+    files = [image_file_1, image_file_2, invalid_image_file]
+
+    map_dict = {
+        0: ["variables.products.0.media.0.image"],
+        1: ["variables.products.0.media.1.image"],
+        2: ["variables.products.1.media.0.image"],
+    }
+
+    # when
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}, files, map_dict
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    # Check in first product we have no errors
+    error_1 = data["results"][0]["errors"]
+    assert not error_1
+    # Check in second product we have error related to invalid image extension
+    error_2 = data["results"][1]["errors"]
+    assert error_2[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error_2[0]["path"] == "media.0.image"
+    assert error_2[0]["message"] == "Lack of file extension."
+    assert len(error_2) == 1
+
+
+def test_product_bulk_create_with_media_invalid_media_type(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+    product_name_2 = "test name 2"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    image_file_1, image_name_1 = create_image(image_name="prod1_img1")
+    image_file_2, image_name_2 = create_image(image_name="prod1_img2")
+    invalid_image_file, invalid_image_name = create_zip_file_with_image_ext()
+
+    media_1 = {
+        "alt": "",
+        "image": image_name_1,
+    }
+
+    media_2 = {
+        "alt": "",
+        "image": image_name_2,
+    }
+
+    media_3 = {
+        "alt": "",
+        "image": invalid_image_name,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "media": [media_1, media_2],
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_2,
+            "slug": f"{base_product_slug}-2",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "media": [media_3],
+        },
+    ]
+
+    files = [image_file_1, image_file_2, invalid_image_file]
+
+    map_dict = {
+        0: ["variables.products.0.media.0.image"],
+        1: ["variables.products.0.media.1.image"],
+        2: ["variables.products.1.media.0.image"],
+    }
+
+    # when
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}, files, map_dict
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    # Check in first product we have no errors
+    error_1 = data["results"][0]["errors"]
+    assert not error_1
+    # Check in second product we have error related to invalid image extension
+    error_2 = data["results"][1]["errors"]
+    assert error_2[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error_2[0]["path"] == "media.0.image"
+    assert error_2[0]["message"] == "Invalid file type."
+    assert len(error_2) == 1
+
+
+@patch("saleor.graphql.core.validators.file.Image.open")
+def test_product_bulk_create_with_media_image_with_invalid_exif(
+    mocked_image_open,
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    image_file_1, image_name_1 = create_image(image_name="img_with_invalid_exif")
+
+    def open_image_side_effect(img_file, *args, **kwargs):
+        img = PIL.Image.open(img_file)
+        img.getexif = Mock(side_effect=PIL.UnidentifiedImageError)
+        return img
+
+    mocked_image_open.return_value = open_image_side_effect
+
+    media_1 = {
+        "alt": "",
+        "image": image_name_1,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "media": [media_1],
+        },
+    ]
+
+    files = [image_file_1]
+
+    map_dict = {
+        0: ["variables.products.0.media.0.image"],
+    }
+
+    # when
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}, files, map_dict
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    error_1 = data["results"][0]["errors"]
+    assert error_1[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error_1[0]["path"] == "media.0.image"
+    assert error_1[0]["message"].startswith(
+        "Invalid file. The following error was raised during the attempt"
+    )
+    assert len(error_1) == 1
+
+
 @pytest.mark.vcr
 def test_product_bulk_create_with_media_with_media_url(
     staff_api_client,
@@ -802,6 +1073,75 @@ def test_product_bulk_create_with_media_with_media_url(
     assert oembed_data["thumbnail_url"] == (
         "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
     )
+
+
+@patch(
+    "saleor.graphql.core.validators.file.is_supported_image_mimetype",
+    return_value=False,
+)
+@patch(
+    "saleor.graphql.core.validators.file.HTTPClient",
+)
+def test_product_bulk_create_with_media_with_media_url_invalid_image_type(
+    mocked_http_client,
+    mocked_is_supported_image_mimetype,
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    alt = "Invalid_image"
+    url = "https://www.example.com/image.png"
+
+    media_1 = {
+        "alt": alt,
+        "mediaUrl": url,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "media": [media_1],
+        },
+    ]
+
+    # when
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}, [], {}
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    error_1 = data["results"][0]["errors"]
+    assert error_1[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error_1[0]["path"] == "media.0.mediaUrl"
+    assert error_1[0]["message"] == "Invalid file type."
+    assert len(error_1) == 1
 
 
 def test_product_bulk_create_with_attributes(
@@ -2262,9 +2602,11 @@ def test_product_bulk_create_with_media_incorrect_alt(
     error_1 = data["results"][0]["errors"]
     assert error_1
     assert len(error_1) == 2
-    for error in error_1:
+    for index, error in enumerate(error_1):
         assert error["code"] == ProductBulkCreateErrorCode.INVALID.name
+        assert error["path"] == f"media.{index}.alt"
     error_2 = data["results"][1]["errors"]
     assert error_2[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error_2[0]["path"] == "media.0.alt"
     assert len(error_2) == 1
     assert data["count"] == 0

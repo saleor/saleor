@@ -7,7 +7,7 @@ from ...permission.enums import (
     CheckoutPermissions,
     PaymentPermissions,
 )
-from ..channel.dataloaders import ChannelByIdLoader
+from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
 from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
