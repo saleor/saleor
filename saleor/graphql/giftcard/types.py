@@ -16,7 +16,7 @@ from ..account.utils import (
 )
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
-from ..channel.dataloaders import ChannelByIdLoader
+from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..core.connection import CountableConnection
 from ..core.context import ChannelContext, get_database_connection_name
 from ..core.descriptions import DEFAULT_DEPRECATION_REASON

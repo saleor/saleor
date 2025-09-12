@@ -4,7 +4,7 @@ from graphene import relay
 from ....discount import DiscountValueType, models
 from ....permission.enums import DiscountPermissions
 from ....product.models import Category, Collection, Product, ProductVariant
-from ...channel.dataloaders import ChannelBySlugLoader
+from ...channel.dataloaders.by_self import ChannelBySlugLoader
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection, create_connection_slice

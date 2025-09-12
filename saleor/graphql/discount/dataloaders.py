@@ -21,7 +21,7 @@ from ...discount.models import (
     VoucherCode,
 )
 from ...product.models import ProductVariant
-from ..channel.dataloaders import ChannelBySlugLoader
+from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
 
 if TYPE_CHECKING:

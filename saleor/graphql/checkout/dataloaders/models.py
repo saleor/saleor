@@ -1,13 +1,10 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from uuid import UUID
 
 from django.db.models import F
 
-from ....channel.models import Channel
 from ....checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ....payment.models import TransactionItem
-from ...channel.dataloaders import ChannelByIdLoader
 from ...core.dataloaders import DataLoader
 
 
@@ -76,28 +73,6 @@ class CheckoutLinesByCheckoutTokenLoader(DataLoader[str, list[CheckoutLine]]):
         for line in lines.iterator(chunk_size=1000):
             line_map[line.checkout_id].append(line)
         return [line_map.get(checkout_id, []) for checkout_id in keys]
-
-
-class ChannelByCheckoutIDLoader(DataLoader[UUID, Channel]):
-    context_key = "channel_by_checkout"
-
-    def batch_load(self, keys):
-        def with_checkouts(checkouts):
-            def with_channels(channels):
-                channel_map = {channel.id: channel for channel in channels}
-                return [
-                    channel_map.get(checkout.channel_id) if checkout else None
-                    for checkout in checkouts
-                ]
-
-            channel_ids = {checkout.channel_id for checkout in checkouts if checkout}
-            return (
-                ChannelByIdLoader(self.context)
-                .load_many(channel_ids)
-                .then(with_channels)
-            )
-
-        return CheckoutByTokenLoader(self.context).load_many(keys).then(with_checkouts)
 
 
 class CheckoutMetadataByCheckoutIdLoader(DataLoader[str, CheckoutMetadata]):
