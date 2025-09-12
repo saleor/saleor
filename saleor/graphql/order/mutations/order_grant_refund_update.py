@@ -359,6 +359,9 @@ class OrderGrantRefundUpdate(BaseMutation):
         )
 
         should_apply = refund_reason_context["should_apply"]
+        refund_reason_reference_type = refund_reason_context[
+            "refund_reason_reference_type"
+        ]
 
         reason_reference_instance: Page | None = None
 
@@ -369,7 +372,9 @@ class OrderGrantRefundUpdate(BaseMutation):
                 )
                 if reason_reference_pk:
                     # todo check if page is type of reference type
-                    reason_reference_instance = Page.objects.get(pk=reason_reference_pk)
+                    reason_reference_instance = Page.objects.get(
+                        pk=reason_reference_pk, page_type=refund_reason_reference_type
+                    )
             except (Page.DoesNotExist, ValueError):
                 raise ValidationError(
                     {
