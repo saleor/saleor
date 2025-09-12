@@ -14,7 +14,7 @@ from uuid import UUID
 import boto3
 from botocore.exceptions import ClientError
 from celery import Task
-from celery.exceptions import MaxRetriesExceededError
+from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db.models import Count
@@ -37,6 +37,7 @@ from ...core.tasks import delete_files_from_private_storage_task
 from ...core.telemetry import tracer
 from ...core.utils import build_absolute_uri
 from ...core.utils.url import sanitize_url_for_logging
+from .. import observability
 from ..const import APP_ID_PREFIX
 from ..models import Webhook
 from . import signature_for_payload
@@ -341,6 +342,7 @@ def handle_webhook_retry(
     Calls retry to re-run the celery_task by raising Retry exception.
     When MaxRetriesExceededError is raised the function will end without exception.
     """
+    is_success = True
     log_extra_details = {
         "webhook": {
             "id": webhook.id,
@@ -375,7 +377,12 @@ def handle_webhook_retry(
     try:
         countdown = celery_task.retry_backoff * (2**celery_task.request.retries)
         celery_task.retry(countdown=countdown, **celery_task.retry_kwargs)
+    except Retry as retry_error:
+        next_retry = observability.task_next_retry_date(retry_error)
+        observability.report_event_delivery_attempt(delivery_attempt, next_retry)
+        raise retry_error
     except MaxRetriesExceededError:
+        is_success = False
         task_logger.info(
             "[Webhook ID: %r] Failed request to %r: exceeded retry limit. Delivery ID: %r",
             webhook.id,
@@ -383,8 +390,7 @@ def handle_webhook_retry(
             delivery.id,
             extra=log_extra_details,
         )
-        return False
-    return True
+    return is_success
 
 
 def get_delivery_for_webhook(

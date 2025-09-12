@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from celery import group
-from celery.exceptions import Retry
 from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
@@ -653,12 +652,7 @@ def send_webhook_request_async(
     if response.status == EventDeliveryStatus.FAILED:
         attempt_update(attempt, response)
         if retry_on_failure:
-            try:
-                handle_webhook_retry(self, webhook, response, delivery, attempt)
-            except Retry as retry_error:
-                next_retry = observability.task_next_retry_date(retry_error)
-                observability.report_event_delivery_attempt(attempt, next_retry)
-                raise retry_error
+            handle_webhook_retry(self, webhook, response, delivery, attempt)
         delivery_update(delivery, EventDeliveryStatus.FAILED)
     elif response.status == EventDeliveryStatus.SUCCESS:
         task_logger.info(
