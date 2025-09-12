@@ -20,7 +20,6 @@ from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.types import TransactionItem
 from ...payment.utils import validate_and_resolve_refund_reason_context
-from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -267,7 +266,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         add_lines = input.get("add_lines", [])
         remove_lines = input.get("remove_lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", None)
-        reason_reference = input.get("reason_reference")
+        reason_reference_id = input.get("reason_reference")
 
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
@@ -353,22 +352,43 @@ class OrderGrantRefundUpdate(BaseMutation):
         if errors:
             raise ValidationError(errors)
 
-        if not reason_reference:
-            reason_reference = None
-
-        validate_and_resolve_refund_reason_context(
-            reason_reference_id=reason_reference,
+        refund_reason_context = validate_and_resolve_refund_reason_context(
+            reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
+            refund_reference_field_name="reason_reference",
         )
+
+        should_apply = refund_reason_context["should_apply"]
+
+        reason_reference_instance: Page | None = None
+
+        if should_apply:
+            try:
+                type_, reason_reference_pk = from_global_id_or_error(
+                    reason_reference_id, only_type="Page"
+                )
+                if reason_reference_pk:
+                    # todo check if page is type of reference type
+                    reason_reference_instance = Page.objects.get(pk=reason_reference_pk)
+            except (Page.DoesNotExist, ValueError):
+                raise ValidationError(
+                    {
+                        "reason_reference": ValidationError(
+                            "Invalid reason reference. Must be an ID of a Model (Page)",
+                            code=OrderGrantRefundUpdateErrorCode.INVALID.value,
+                        )
+                    }
+                ) from None
 
         cleaned_input = {
             "amount": amount,
             "reason": reason,
-            "reason_reference": reason_reference,
+            "reason_reference": reason_reference_id,
             "add_lines": lines_to_add,
             "remove_lines": line_ids_to_remove,
             "grant_refund_for_shipping": grant_refund_for_shipping,
             "transaction_item": transaction_item,
+            "reason_reference_instance": reason_reference_instance,
         }
         return cleaned_input
 
@@ -418,38 +438,10 @@ class OrderGrantRefundUpdate(BaseMutation):
             if reason is not None:
                 granted_refund.reason = reason
 
-            reason_reference_id = cleaned_input["reason_reference"]
+            reason_reference_instance = cleaned_input["reason_reference_instance"]
 
-            site = get_site_promise(info.context).get()
-            refund_reason_reference_type = site.settings.refund_reason_reference_type
-
-            is_passing_reason_reference_required = (
-                refund_reason_reference_type is not None
-            )
-
-            # If feature is not enabled, ignore it from the input
-            if not is_passing_reason_reference_required:
-                reason_reference_id = None
-
-            if reason_reference_id:
-                try:
-                    type_, reason_reference_pk = from_global_id_or_error(
-                        reason_reference_id, only_type="Page"
-                    )
-                    if reason_reference_pk:
-                        reason_reference_instance = Page.objects.get(
-                            pk=reason_reference_pk
-                        )
-                        granted_refund.reason_reference = reason_reference_instance
-                except (Page.DoesNotExist, ValueError):
-                    raise ValidationError(
-                        {
-                            "reason_reference": ValidationError(
-                                "Invalid reason reference. Must be an ID of a Model (Page)",
-                                code=OrderGrantRefundUpdateErrorCode.INVALID.value,
-                            )
-                        }
-                    ) from None
+            if reason_reference_instance:
+                granted_refund.reason_reference = reason_reference_instance
 
             granted_refund.save(
                 update_fields=[

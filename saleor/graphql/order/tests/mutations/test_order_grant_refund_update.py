@@ -2334,7 +2334,6 @@ def test_grant_refund_update_with_reference_required_by_user(
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
 
-    # Create an existing granted refund to update
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
     granted_refund = order.granted_refunds.create(
@@ -2399,13 +2398,10 @@ def test_grant_refund_update_with_reference_required_but_not_provided_by_user(
     app,
 ):
     # Given
-    # Page type for refunds exist with {ID}
-    # Settings refund_reason_reference_type are set to use {ID}
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
 
-    # Create an existing granted refund to update
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
     granted_refund = order.granted_refunds.create(
@@ -2431,19 +2427,14 @@ def test_grant_refund_update_with_reference_required_but_not_provided_by_user(
         "input": {
             "amount": amount,
             "reason": "Damaged product refund",
-            # "reasonReference": page_id,  # Not provided
             "transactionId": transaction_item_id,
         },
     }
 
     # When
-    # user calls ORDER_GRANT_REFUND_UPDATE mutation
-    # Reason reference is not provided
     response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
 
     # Then
-    # validation error is raised
-    # granted refund is NOT updated
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundUpdate"]
     errors = data["errors"]
@@ -2452,7 +2443,6 @@ def test_grant_refund_update_with_reference_required_but_not_provided_by_user(
     assert error["field"] == "reasonReference"
     assert error["code"] == OrderGrantRefundUpdateErrorCode.REQUIRED.name
 
-    # Check that granted refund was not updated
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
     assert granted_refund.reason == current_reason
@@ -2467,13 +2457,10 @@ def test_grant_refund_update_with_reference_required_but_not_provided_by_app(
     staff_user,
 ):
     # Given
-    # Page type for refunds exist with {ID}
-    # Settings refund_reason_reference_type are set to use {ID}
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
 
-    # Create an existing granted refund to update
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
     granted_refund = order.granted_refunds.create(
@@ -2505,13 +2492,9 @@ def test_grant_refund_update_with_reference_required_but_not_provided_by_app(
     }
 
     # When
-    # app calls ORDER_GRANT_REFUND_UPDATE mutation
-    # Reason reference is not provided
     response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
 
     # Then
-    # validation error is NOT raised
-    # granted refund is updated successfully
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundUpdate"]
     errors = data["errors"]
@@ -2524,12 +2507,11 @@ def test_grant_refund_update_with_reference_required_but_not_provided_by_app(
     granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
     assert granted_refund_assigned_to_order == data["grantedRefund"]
 
-    # reasonReference should be None for apps
     assert granted_refund_assigned_to_order["reasonReference"] is None
     assert granted_refund.reason_reference is None
 
 
-def test_grant_refund_update_with_reference_not_required_by_user_ignores_reference(
+def test_grant_refund_update_with_reference_not_enabled_by_user_rejects(
     staff_api_client,
     permission_manage_orders,
     order,
@@ -2538,7 +2520,6 @@ def test_grant_refund_update_with_reference_not_required_by_user_ignores_referen
     app,
 ):
     # Given
-    # Settings refund_reason_reference_type are set to None
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     page = Page.objects.create(
         slug="damaged-product",
@@ -2547,10 +2528,8 @@ def test_grant_refund_update_with_reference_not_required_by_user_ignores_referen
         is_published=True,
     )
 
-    # site_settings.refund_reason_reference_type is already None from fixture
     assert site_settings.refund_reason_reference_type is None
 
-    # Create an existing granted refund to update
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
     granted_refund = order.granted_refunds.create(
@@ -2577,38 +2556,25 @@ def test_grant_refund_update_with_reference_not_required_by_user_ignores_referen
         "input": {
             "amount": amount,
             "reason": "Damaged product refund",
-            "reasonReference": page_id,  # Provided but should be ignored
+            "reasonReference": page_id,
             "transactionId": transaction_item_id,
         },
     }
 
     # When
-    # user calls ORDER_GRANT_REFUND_UPDATE mutation
-    # Reason reference is provided
     response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
 
     # Then
-    # validation error is NOT raised
-    # granted refund is updated
-    # Reason reference is null
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundUpdate"]
     errors = data["errors"]
-    assert not errors
-
-    order_id = to_global_id_or_none(order)
-    assert order_id == data["order"]["id"]
-    assert len(data["order"]["grantedRefunds"]) == 1
-    granted_refund.refresh_from_db()
-    granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
-    assert granted_refund_assigned_to_order == data["grantedRefund"]
-
-    # reasonReference should be None even though it was provided
-    assert granted_refund_assigned_to_order["reasonReference"] is None
-    assert granted_refund.reason_reference is None
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "reasonReference"
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
 
 
-def test_grant_refund_update_with_reference_not_required_by_app_ignores_reference(
+def test_grant_refund_update_with_reference_not_enabled_by_app_rejects(
     app_api_client,
     permission_manage_orders,
     order,
@@ -2617,7 +2583,6 @@ def test_grant_refund_update_with_reference_not_required_by_app_ignores_referenc
     staff_user,
 ):
     # Given
-    # Settings refund_reason_reference_type are set to None
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     page = Page.objects.create(
         slug="damaged-product",
@@ -2626,10 +2591,8 @@ def test_grant_refund_update_with_reference_not_required_by_app_ignores_referenc
         is_published=True,
     )
 
-    # site_settings.refund_reason_reference_type is already None from fixture
     assert site_settings.refund_reason_reference_type is None
 
-    # Create an existing granted refund to update
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
     granted_refund = order.granted_refunds.create(
@@ -2656,35 +2619,22 @@ def test_grant_refund_update_with_reference_not_required_by_app_ignores_referenc
         "input": {
             "amount": amount,
             "reason": "Damaged product refund",
-            "reasonReference": page_id,  # Provided but should be ignored
+            "reasonReference": page_id,
             "transactionId": transaction_item_id,
         },
     }
 
     # When
-    # app calls ORDER_GRANT_REFUND_UPDATE mutation
-    # Reason reference is provided
     response = app_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
 
     # Then
-    # validation error is NOT raised
-    # granted refund is updated
-    # Reason reference is null
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundUpdate"]
     errors = data["errors"]
-    assert not errors
-
-    order_id = to_global_id_or_none(order)
-    assert order_id == data["order"]["id"]
-    assert len(data["order"]["grantedRefunds"]) == 1
-    granted_refund.refresh_from_db()
-    granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
-    assert granted_refund_assigned_to_order == data["grantedRefund"]
-
-    # reasonReference should be None even though it was provided
-    assert granted_refund_assigned_to_order["reasonReference"] is None
-    assert granted_refund.reason_reference is None
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "reasonReference"
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
 
 
 def test_grant_refund_update_with_reference_required_by_user_throws_for_invalid_id(
@@ -2696,13 +2646,10 @@ def test_grant_refund_update_with_reference_required_by_user_throws_for_invalid_
     app,
 ):
     # Given
-    # Page type for refunds exist with {ID}
-    # Settings refund_reason_reference_type are set to use {ID}
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
 
-    # Create an existing granted refund to update
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
     granted_refund = order.granted_refunds.create(
@@ -2723,7 +2670,6 @@ def test_grant_refund_update_with_reference_required_by_user_throws_for_invalid_
         "TransactionItem", transaction_item.token
     )
 
-    # Use an invalid page ID (non-existent)
     invalid_page_id = graphene.Node.to_global_id("Page", 99999)
 
     variables = {
@@ -2731,19 +2677,15 @@ def test_grant_refund_update_with_reference_required_by_user_throws_for_invalid_
         "input": {
             "amount": amount,
             "reason": "Damaged product refund",
-            "reasonReference": invalid_page_id,  # Invalid ID provided
+            "reasonReference": invalid_page_id,
             "transactionId": transaction_item_id,
         },
     }
 
     # When
-    # user calls ORDER_GRANT_REFUND_UPDATE mutation
-    # Reason reference is provided to be invalid ID
     response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
 
     # Then
-    # validation error is raised
-    # granted refund is NOT updated
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundUpdate"]
     errors = data["errors"]
@@ -2752,7 +2694,6 @@ def test_grant_refund_update_with_reference_required_by_user_throws_for_invalid_
     assert error["field"] == "reasonReference"
     assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
 
-    # Check that granted refund was not updated
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
     assert granted_refund.reason == current_reason
