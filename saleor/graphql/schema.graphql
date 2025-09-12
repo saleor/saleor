@@ -261,11 +261,7 @@ type Query {
   """
   giftCardSettings: GiftCardSettings! @doc(category: "Gift cards")
 
-  """
-  Refunds related settings from site settings.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
+  """Refunds related settings from site settings."""
   refundSettings: RefundSettings! @doc(category: "Shop")
 
   """
@@ -12504,7 +12500,11 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   """Message related to the transaction's event."""
   message: String!
 
-  """Reason model of the transaction refund."""
+  """
+  Reason model of the transaction refund.
+  
+  Added in Saleor 3.22.
+  """
   reasonReference: Page
 
   """
@@ -12895,7 +12895,11 @@ enum TimePeriodTypeEnum {
   YEAR
 }
 
-"""Refund related settings from site settings."""
+"""
+Refund related settings from site settings.
+
+Added in Saleor 3.22.
+"""
 type RefundSettings @doc(category: "Orders") {
   """Model type used for refund reasons."""
   reasonReferenceType: PageType
@@ -15386,7 +15390,7 @@ type Mutation {
   ): RefundSettingsUpdate @doc(category: "Shop")
 
   """
-  Clear refundReasonReference setting
+  Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer required for staff user.
   
   Added in Saleor 3.22. 
   
@@ -20824,11 +20828,11 @@ Requires one of the following permissions: MANAGE_SETTINGS.
 type RefundSettingsUpdate @doc(category: "Shop") {
   """Refund settings."""
   refundSettings: RefundSettings!
-  refundSettingsErrors: [RefundSettingsError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [RefundSettingsError!]!
+  refundSettingsErrors: [RefundSettingsUpdateError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [RefundSettingsUpdateError!]!
 }
 
-type RefundSettingsError @doc(category: "Shop") {
+type RefundSettingsUpdateError @doc(category: "Shop") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20837,7 +20841,7 @@ type RefundSettingsError @doc(category: "Shop") {
   """The error message."""
   message: String
 
-  """The error code."""
+  """Failed to update Refund Settings"""
   code: RefundSettingsErrorCode!
 }
 
@@ -20857,7 +20861,7 @@ input RefundSettingsUpdateInput @doc(category: "Shop") {
 }
 
 """
-Clear refundReasonReference setting
+Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer required for staff user.
 
 Added in Saleor 3.22. 
 
@@ -20866,8 +20870,21 @@ Requires one of the following permissions: MANAGE_SETTINGS.
 type RefundReasonReferenceTypeClear @doc(category: "Orders") {
   """Refund settings."""
   refundSettings: RefundSettings!
-  refundSettingsErrors: [RefundSettingsError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [RefundSettingsError!]!
+  refundSettingsErrors: [RefundReasonReferenceTypeClearError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [RefundReasonReferenceTypeClearError!]!
+}
+
+type RefundReasonReferenceTypeClearError @doc(category: "Shop") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """Failed to clear refund reason reference type"""
+  code: RefundSettingsErrorCode!
 }
 
 """

@@ -18,6 +18,7 @@ from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_319,
+    ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -86,7 +87,7 @@ class RefundSettings(ModelObjectType[site_models.SiteSettings]):
     )
 
     class Meta:
-        description = "Refund related settings from site settings."
+        description = "Refund related settings from site settings." + ADDED_IN_322
         doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
 
