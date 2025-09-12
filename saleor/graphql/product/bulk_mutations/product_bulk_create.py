@@ -459,7 +459,7 @@ class ProductBulkCreate(BaseMutation):
             if alt and len(alt) > ALT_CHAR_LIMIT:
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
-                        path=f"media.{index}",
+                        path=f"media.{index}.alt",
                         message=f"Alt field exceeds the character "
                         f"limit of {ALT_CHAR_LIMIT}.",
                         code=ProductBulkCreateErrorCode.INVALID.value,
