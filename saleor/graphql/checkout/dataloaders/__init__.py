@@ -3,7 +3,6 @@ from .checkout_infos import (
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
 from .models import (
-    ChannelByCheckoutIDLoader,
     CheckoutByTokenLoader,
     CheckoutByUserAndChannelLoader,
     CheckoutByUserLoader,
@@ -19,7 +18,6 @@ from .problems import (
 from .promotion_rule_infos import VariantPromotionRuleInfoByCheckoutLineIdLoader
 
 __all__ = [
-    "ChannelByCheckoutIDLoader",
     "CheckoutByTokenLoader",
     "CheckoutByUserAndChannelLoader",
     "CheckoutByUserLoader",

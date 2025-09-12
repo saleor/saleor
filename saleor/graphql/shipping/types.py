@@ -9,7 +9,7 @@ from ...product import models as product_models
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
 from ..account.enums import CountryCodeEnum
-from ..channel.dataloaders import ChannelByIdLoader
+from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.context import (

@@ -17,7 +17,7 @@ from ....order.models import Order, OrderLine
 from ....order.utils import get_order_country
 from ....tax.utils import get_charge_taxes
 from ...account.dataloaders import AddressByIdLoader
-from ...channel.dataloaders import ChannelByIdLoader
+from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
 from ...checkout import types as checkout_types
 from ...checkout.dataloaders import (
