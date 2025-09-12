@@ -11,7 +11,6 @@ from ....attribute import AttributeEntityType, AttributeInputType
 from ....attribute import models as attribute_models
 from ....page import models as page_models
 from ....product import models as product_models
-from ...core.context import ChannelContext
 from ...product.utils import get_used_attribute_values_for_variant
 
 if TYPE_CHECKING:
@@ -30,8 +29,8 @@ T_REFERENCE = (
 
 @dataclass
 class AssignedAttributeData:
-    attribute: ChannelContext[attribute_models.Attribute]
-
+    attribute: attribute_models.Attribute
+    channel_slug: str
     product_id: int | None = None
     page_id: int | None = None
     variant_id: int | None = None

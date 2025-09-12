@@ -291,8 +291,9 @@ class Page(ChannelContextType[models.Page]):
                 )
                 response.append(
                     AssignedAttributeData(
-                        attribute=ChannelContext(attribute, root.channel_slug),
+                        attribute=attribute,
                         page_id=root.node.id,
+                        channel_slug=root.channel_slug,
                     )
                 )
             response = response[:limit] if limit is not None else response
@@ -335,7 +336,8 @@ class Page(ChannelContextType[models.Page]):
             attribute = cast(attribute_models.Attribute, attribute_data["attribute"])
 
             return AssignedAttributeData(
-                attribute=ChannelContext(attribute, root.channel_slug),
+                attribute=attribute,
+                channel_slug=root.channel_slug,
                 page_id=root.node.id,
             )
 
