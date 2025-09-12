@@ -1315,7 +1315,7 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_app(
     assert granted_refund_from_db.reason_reference is None
 
 
-def test_grant_refund_with_reference_not_required_created_by_user_ignores_reference(
+def test_grant_refund_with_reference_not_enabled_created_by_user_rejected(
     staff_api_client,
     permission_manage_orders,
     order,
@@ -1362,19 +1362,16 @@ def test_grant_refund_with_reference_not_required_created_by_user_ignores_refere
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
-    assert not errors
 
-    assert order_id == data["order"]["id"]
-    assert len(data["order"]["grantedRefunds"]) == 1
-    granted_refund_from_db = order.granted_refunds.first()
-    granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
-    assert granted_refund_assigned_to_order == data["grantedRefund"]
+    assert len(errors) == 1
 
-    assert granted_refund_assigned_to_order["reasonReference"] is None
-    assert granted_refund_from_db.reason_reference is None
+    error = errors[0]
+
+    assert error["field"] == "reasonReference"
+    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
 
 
-def test_grant_refund_with_reference_not_required_created_by_app_ignores_reference(
+def test_grant_refund_with_reference_not_enabled_created_by_app_rejects(
     app_api_client,
     permission_manage_orders,
     order,
@@ -1421,16 +1418,10 @@ def test_grant_refund_with_reference_not_required_created_by_app_ignores_referen
     content = get_graphql_content(response)
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
-    assert not errors
-
-    assert order_id == data["order"]["id"]
-    assert len(data["order"]["grantedRefunds"]) == 1
-    granted_refund_from_db = order.granted_refunds.first()
-    granted_refund_assigned_to_order = data["order"]["grantedRefunds"][0]
-    assert granted_refund_assigned_to_order == data["grantedRefund"]
-
-    assert granted_refund_assigned_to_order["reasonReference"] is None
-    assert granted_refund_from_db.reason_reference is None
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "reasonReference"
+    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
 
 
 def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid_id(

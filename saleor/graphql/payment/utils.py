@@ -47,8 +47,12 @@ def check_if_requestor_has_access(
     return False
 
 
+# todo test
 def validate_and_resolve_refund_reason_context(
-    *, reason_reference_id: str | None, requestor_is_user: bool
+    *,
+    reason_reference_id: str | None,
+    requestor_is_user: bool,
+    refund_reference_field_name: str,
 ):
     settings = Site.objects.get_current().settings
     refund_reason_reference_type = settings.refund_reason_reference_type
@@ -60,7 +64,7 @@ def validate_and_resolve_refund_reason_context(
     if not refund_reason_reference_type and reason_reference_id:
         raise ValidationError(
             {
-                "refund_reason_reference": ValidationError(
+                refund_reference_field_name: ValidationError(
                     "Reason reference type is not configured.",
                     code=TransactionRequestActionErrorCode.INVALID.value,
                 )
@@ -74,7 +78,7 @@ def validate_and_resolve_refund_reason_context(
     ):
         raise ValidationError(
             {
-                "refund_reason_reference": ValidationError(
+                refund_reference_field_name: ValidationError(
                     "Reason reference is required when refund reason reference type is configured.",
                     code=TransactionRequestActionErrorCode.REQUIRED.value,
                 )

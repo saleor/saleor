@@ -203,6 +203,7 @@ class TransactionRequestAction(BaseMutation):
         refund_reason_context = validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
+            refund_reference_field_name="refund_reason_reference",
         )
 
         reason_reference_instance: Page | None = None

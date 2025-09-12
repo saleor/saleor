@@ -20,7 +20,6 @@ from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.mutations.transaction.utils import get_transaction_item
 from ...payment.utils import validate_and_resolve_refund_reason_context
-from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -265,28 +264,23 @@ class OrderGrantRefundCreate(BaseMutation):
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
-        site = get_site_promise(info.context).get()
-        refund_reason_reference_type = site.settings.refund_reason_reference_type
-
-        is_passing_reason_reference_required = refund_reason_reference_type is not None
-
-        validate_and_resolve_refund_reason_context(
+        refund_reason_context = validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
+            refund_reference_field_name="reason_reference",
         )
 
-        # If feature is not enabled, ignore it from the input
-        if not is_passing_reason_reference_required:
-            reason_reference_id = None
+        should_apply = refund_reason_context["should_apply"]
 
-        reason_reference_instance = None
+        reason_reference_instance: Page | None = None
 
-        if reason_reference_id:
+        if should_apply:
             try:
                 type_, reason_reference_pk = from_global_id_or_error(
                     reason_reference_id, only_type="Page"
                 )
                 if reason_reference_pk:
+                    # todo check if page is type of reference type
                     reason_reference_instance = Page.objects.get(pk=reason_reference_pk)
             except (Page.DoesNotExist, ValueError):
                 raise ValidationError(
