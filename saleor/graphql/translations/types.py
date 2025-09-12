@@ -1,3 +1,4 @@
+from itertools import chain
 from typing import TypeVar
 
 import graphene
@@ -19,7 +20,16 @@ from ...permission.enums import (
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
-from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
+from ..attribute.dataloaders import (
+    AttributesByAttributeId,
+    AttributesByProductIdAndLimitLoader,
+    AttributesByProductVariantIdAndSelectionAndLimitLoader,
+    AttributesVisibleToCustomerByProductIdAndLimitLoader,
+    AttributesVisibleToCustomerByProductVariantIdAndSelectionAndLimitLoader,
+    AttributeValueByIdLoader,
+    AttributeValuesByProductIdAndAttributeIdAndLimitLoader,
+    AttributeValuesByVariantIdAndAttributeIdAndLimitLoader,
+)
 from ..core.context import ChannelContext, get_database_connection_name
 from ..core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_TYPE, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
@@ -39,9 +49,6 @@ from ..page.dataloaders import (
     PageByIdLoader,
 )
 from ..product.dataloaders import (
-    AssignedAttributesAllByProductIdLoader,
-    AssignedAttributesByProductVariantIdLoader,
-    AssignedAttributesVisibleInStorefrontByProductIdLoader,
     CategoryByIdLoader,
     CollectionByIdLoader,
     ProductByIdLoader,
@@ -51,18 +58,18 @@ from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..utils import get_user_or_app_from_context
 from .fields import TranslationField
 
+type ATTRIBUTE_ID = int
 
-def get_translatable_attribute_values(attributes: list) -> list[AttributeValue]:
-    """Filter the list of passed attributes.
 
-    Return those which are translatable attributes.
-    """
-    translatable_values: list[AttributeValue] = []
-    for assignment in attributes:
-        attr = assignment["attribute"]
-        if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
-            translatable_values.extend(assignment["values"])
-    return translatable_values
+def get_translatable_attribute_values(
+    attributes: list[attribute_models.Attribute],
+) -> list[ATTRIBUTE_ID]:
+    attribute_ids = []
+    for attribute in attributes:
+        if attribute.input_type not in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
+            continue
+        attribute_ids.append(attribute.id)
+    return attribute_ids
 
 
 T = TypeVar("T", bound=Model)
@@ -293,10 +300,39 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
 
     @staticmethod
     def resolve_attribute_values(root: product_models.ProductVariant, info):
+        def with_attribute_values(attribute_values: list[list[AttributeValue]]):
+            return list(chain.from_iterable(attribute_values))
+
+        def with_attributes(attributes: list[attribute_models.Attribute]):
+            attribute_ids = get_translatable_attribute_values(attributes)
+            limit = None
+            return (
+                AttributeValuesByVariantIdAndAttributeIdAndLimitLoader(info.context)
+                .load_many(
+                    [(root.id, attribute_id, limit) for attribute_id in attribute_ids]
+                )
+                .then(with_attribute_values)
+            )
+
+        requestor = get_user_or_app_from_context(info.context)
+        limit = None
+        variant_selection = None
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        ):
+            return (
+                AttributesByProductVariantIdAndSelectionAndLimitLoader(info.context)
+                .load((root.id, variant_selection, limit))
+                .then(with_attributes)
+            )
         return (
-            AssignedAttributesByProductVariantIdLoader(info.context)
-            .load(root.id)
-            .then(get_translatable_attribute_values)
+            AttributesVisibleToCustomerByProductVariantIdAndSelectionAndLimitLoader(
+                info.context
+            )
+            .load((root.id, variant_selection, limit))
+            .then(with_attributes)
         )
 
     @staticmethod
@@ -389,6 +425,20 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
 
     @staticmethod
     def resolve_attribute_values(root: product_models.Product, info):
+        def with_attribute_values(attribute_values: list[list[AttributeValue]]):
+            return list(chain.from_iterable(attribute_values))
+
+        def with_attributes(attributes: list[attribute_models.Attribute]):
+            attribute_ids = get_translatable_attribute_values(attributes)
+            limit = None
+            return (
+                AttributeValuesByProductIdAndAttributeIdAndLimitLoader(info.context)
+                .load_many(
+                    [(root.id, attribute_id, limit) for attribute_id in attribute_ids]
+                )
+                .then(with_attribute_values)
+            )
+
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
@@ -396,14 +446,15 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
             and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
         ):
             return (
-                AssignedAttributesAllByProductIdLoader(info.context)
-                .load(root.id)
-                .then(get_translatable_attribute_values)
+                AttributesByProductIdAndLimitLoader(info.context)
+                .load((root.id, None))
+                .then(with_attributes)
             )
+
         return (
-            AssignedAttributesVisibleInStorefrontByProductIdLoader(info.context)
-            .load(root.id)
-            .then(get_translatable_attribute_values)
+            AttributesVisibleToCustomerByProductIdAndLimitLoader(info.context)
+            .load((root.id, None))
+            .then(with_attributes)
         )
 
     @staticmethod
@@ -673,6 +724,18 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
 
     @staticmethod
     def resolve_attribute_values(root: page_models.Page, info):
+        def with_attributes(attributes):
+            """Filter the list of passed attributes.
+
+            Return those which are translatable attributes.
+            """
+            translatable_values: list[AttributeValue] = []
+            for assignment in attributes:
+                attr = assignment["attribute"]
+                if attr.input_type in AttributeInputType.TRANSLATABLE_ATTRIBUTES:
+                    translatable_values.extend(assignment["values"])
+            return translatable_values
+
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
@@ -682,12 +745,12 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
             return (
                 AssignedAttributesAllByPageIdLoader(info.context)
                 .load(root.id)
-                .then(get_translatable_attribute_values)
+                .then(with_attributes)
             )
         return (
             AssignedAttributesVisibleInStorefrontPageIdLoader(info.context)
             .load(root.id)
-            .then(get_translatable_attribute_values)
+            .then(with_attributes)
         )
 
     @staticmethod
