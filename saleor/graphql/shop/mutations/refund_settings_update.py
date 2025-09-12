@@ -8,7 +8,7 @@ from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
-from ...core.types.common import RefundSettingsError
+from ...core.types.common import RefundSettingsUpdateError
 from ...site.dataloaders import get_site_promise
 from ..types import RefundSettings
 
@@ -42,7 +42,7 @@ class RefundSettingsUpdate(BaseMutation):
         description = "Update refund settings across all channels." + ADDED_IN_322
         doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
-        error_type_class = RefundSettingsError
+        error_type_class = RefundSettingsUpdateError
         error_type_field = "refund_settings_errors"
 
     @classmethod
@@ -66,12 +66,12 @@ class RefundSettingsUpdate(BaseMutation):
             except PageType.DoesNotExist:
                 raise ValidationError(
                     {
-                        "refund_reason_model_type": ValidationError(
+                        "refund_reason_reference_type": ValidationError(
                             "PageType with given ID does not exist.", code="not_found"
                         )
                     }
                 ) from None
 
-        settings.save()
+        settings.save(update_fields=["refund_reason_reference_type"])
 
         return RefundSettingsUpdate(refund_settings=settings)

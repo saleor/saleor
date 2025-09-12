@@ -182,7 +182,7 @@ class TransactionRequestAction(BaseMutation):
 
         reason_exists = reason or reason_reference_id
 
-        if reason_exists and action_type is not TransactionAction.REFUND:
+        if reason_exists and action_type != TransactionAction.REFUND:
             raise ValidationError(
                 {
                     "reason": ValidationError(

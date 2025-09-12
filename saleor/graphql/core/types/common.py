@@ -353,8 +353,19 @@ class GiftCardSettingsError(Error):
         doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
-class RefundSettingsError(Error):
-    code = RefundSettingsErrorCode(description="The error code.", required=True)
+class RefundSettingsUpdateError(Error):
+    code = RefundSettingsErrorCode(
+        description="Failed to update Refund Settings", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
+
+
+class RefundReasonReferenceTypeClearError(Error):
+    code = RefundSettingsErrorCode(
+        description="Failed to clear refund reason reference type", required=True
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_SHOP

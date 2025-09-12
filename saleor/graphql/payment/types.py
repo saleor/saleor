@@ -350,7 +350,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
     reason_reference = graphene.Field(
         Page,
         required=False,
-        description="Reason model of the transaction refund.",
+        description="Reason model of the transaction refund." + ADDED_IN_322,
     )
     external_url = graphene.String(
         description=(
