@@ -2123,6 +2123,31 @@ class WebhookPlugin(BasePlugin):
             )
         return previous_value
 
+    def checkout_fully_authorized(
+        self, checkout: "Checkout", previous_value: None, webhooks=None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CHECKOUT_FULLY_AUTHORIZED
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, checkout.channel.slug, webhooks
+        ):
+            checkout_data_generator = partial(
+                generate_checkout_payload,
+                checkout,
+                self.requestor,
+            )
+            self.trigger_webhooks_async(
+                None,
+                event_type,
+                webhooks,
+                checkout,
+                self.requestor,
+                legacy_data_generator=checkout_data_generator,
+                queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+            )
+        return previous_value
+
     def checkout_fully_paid(
         self, checkout: "Checkout", previous_value: None, webhooks=None
     ) -> None:

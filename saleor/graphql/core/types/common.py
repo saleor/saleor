@@ -117,10 +117,7 @@ class NonNullList(graphene.List):
 class SecureGlobalID(graphene.GlobalID):
     @staticmethod
     def id_resolver(parent_resolver, node, root, info, parent_type_name=None, **args):
-        if (
-            hasattr(root, "RETURN_ID_IN_API_RESPONSE")
-            and not root.RETURN_ID_IN_API_RESPONSE
-        ):
+        if hasattr(root, "NEWLY_CREATED_USER") and root.NEWLY_CREATED_USER:
             return ""
         return graphene.GlobalID.id_resolver(
             parent_resolver, node, root, info, parent_type_name, **args

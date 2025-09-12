@@ -22,7 +22,7 @@ jobs:
 
       - name: Get branches from open PRs with "test deployment" label
         id: get-branches
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             // Get all open PRs - pagination is needed or otherwise we would retrieve only first 30

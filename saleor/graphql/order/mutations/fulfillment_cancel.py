@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from ....account.models import User
 from ....giftcard.utils import order_has_gift_card_lines
 from ....order import FulfillmentStatus
-from ....order.actions import cancel_fulfillment, cancel_waiting_fulfillment
+from ....order.actions import cancel_fulfillment
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
@@ -112,12 +112,8 @@ class FulfillmentCancel(BaseMutation):
 
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
-        if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
-            cancel_waiting_fulfillment(fulfillment, user, app, manager)
-            fulfillment_response = None
-        else:
-            fulfillment = cancel_fulfillment(fulfillment, user, app, warehouse, manager)
-            fulfillment_response = SyncWebhookControlContext(node=fulfillment)
+        fulfillment = cancel_fulfillment(fulfillment, user, app, warehouse, manager)
+        fulfillment_response = SyncWebhookControlContext(node=fulfillment)
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(
             fulfillment=fulfillment_response, order=SyncWebhookControlContext(order)

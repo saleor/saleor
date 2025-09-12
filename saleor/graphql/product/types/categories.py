@@ -11,7 +11,7 @@ from ....thumbnail.utils import (
     get_thumbnail_format,
     get_thumbnail_size,
 )
-from ...channel.dataloaders import ChannelBySlugLoader
+from ...channel.dataloaders.by_self import ChannelBySlugLoader
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
     CountableConnection,

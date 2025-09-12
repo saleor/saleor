@@ -1,5 +1,4 @@
 import graphene
-import pytest
 from django.contrib.sites.models import Site
 from measurement.measures import Weight
 
@@ -8,7 +7,6 @@ from .....core.units import WeightUnits
 from .....warehouse import WarehouseClickAndCollectOption
 from ....core.enums import WeightUnitsEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import VariantAttributeScope
 
 QUERY_VARIANT = """query ProductVariantDetails(
         $id: ID!, $address: AddressInput, $countryCode: CountryCode, $channel: String
@@ -861,73 +859,6 @@ def test_query_product_variant_for_federation_as_staff_user_without_chanel(
             "name": variant.name,
         }
     ]
-
-
-@pytest.mark.parametrize(
-    "variant_selection",
-    [
-        VariantAttributeScope.ALL.name,
-        VariantAttributeScope.VARIANT_SELECTION.name,
-    ],
-)
-def test_applies_limit_on_product_assigned_attributes(
-    variant,
-    channel_USD,
-    user_api_client,
-    size_attribute,
-    weight_attribute,
-    variant_selection,
-):
-    # given
-    query = """
-    query productVariant($id: ID!, $channel: String, $variantSelection: VariantAttributeScope) {
-      productVariant(id: $id, channel: $channel) {
-        assignedAttributes(limit: 1, variantSelection: $variantSelection) {
-          attribute {
-            slug
-          }
-        }
-      }
-    }
-    """
-
-    product_type = variant.product.product_type
-    product_type.variant_attributes.set([size_attribute, weight_attribute])
-
-    weight_attribute.storefront_search_position = (
-        size_attribute.storefront_search_position + 1
-    )
-    weight_attribute.save(update_fields=["storefront_search_position"])
-
-    associate_attribute_values_to_instance(
-        variant,
-        {
-            size_attribute.pk: [size_attribute.values.first()],
-            weight_attribute.pk: [weight_attribute.values.first()],
-        },
-    )
-
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    variables = {
-        "id": variant_id,
-        "channel": channel_USD.slug,
-        "variantSelection": variant_selection,
-    }
-
-    # when
-    response = user_api_client.post_graphql(query, variables)
-
-    # then
-    content = get_graphql_content(response)
-
-    expected_limit = 1
-    assert (
-        len(content["data"]["productVariant"]["assignedAttributes"]) == expected_limit
-    )
-    assert (
-        content["data"]["productVariant"]["assignedAttributes"][0]["attribute"]["slug"]
-        == size_attribute.slug
-    )
 
 
 QUERY_PRODUCT_VARIANT_WITH_ASSIGNED_ATTRIBUTE = """

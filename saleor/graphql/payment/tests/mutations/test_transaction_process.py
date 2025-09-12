@@ -1125,9 +1125,11 @@ def test_app_attached_to_transaction_doesnt_exist(
 )
 @mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
 def test_checkout_fully_paid(
     mocked_process,
+    mocked_fully_authorized,
     mocked_fully_paid,
     mocked_automatic_checkout_completion_task,
     result,
@@ -1184,15 +1186,18 @@ def test_checkout_fully_paid(
 
     checkout.refresh_from_db()
     mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     mocked_automatic_checkout_completion_task.assert_not_called()
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
 def test_checkout_fully_paid_automatic_completion(
     mocked_process,
+    mocked_fully_authorized,
     mocked_fully_paid,
     user_api_client,
     checkout_with_prices,
@@ -1257,13 +1262,16 @@ def test_checkout_fully_paid_automatic_completion(
     assert order.events.filter(
         type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
     ).exists()
+    mocked_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
 def test_checkout_fully_paid_pending_automatic_completion(
     mocked_process,
+    mocked_fully_authorized,
     mocked_fully_paid,
     user_api_client,
     checkout_with_prices,
@@ -1326,6 +1334,7 @@ def test_checkout_fully_paid_pending_automatic_completion(
     assert order.charge_status == CheckoutChargeStatus.NONE
     assert order.authorize_status == CheckoutAuthorizeStatus.NONE
     mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_fully_authorized.assert_called_once_with(checkout, webhooks=set())
 
 
 @pytest.mark.parametrize(
@@ -1336,11 +1345,13 @@ def test_checkout_fully_paid_pending_automatic_completion(
     ],
 )
 @mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
 def test_checkout_fully_authorized(
     mocked_process,
     mocked_fully_paid,
+    mocked_fully_authorized,
     mocked_automatic_checkout_completion_task,
     result,
     user_api_client,
@@ -1397,14 +1408,17 @@ def test_checkout_fully_authorized(
     checkout.refresh_from_db()
     mocked_fully_paid.assert_not_called()
     mocked_automatic_checkout_completion_task.assert_not_called()
+    mocked_fully_authorized.assert_called_once_with(checkout, webhooks=set())
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
 def test_checkout_fully_authorized_automatic_completion(
     mocked_process,
+    mocked_fully_authorized,
     mocked_fully_paid,
     user_api_client,
     checkout_with_prices,
@@ -1470,12 +1484,15 @@ def test_checkout_fully_authorized_automatic_completion(
         type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
     ).exists()
     mocked_fully_paid.assert_not_called()
+    mocked_fully_authorized.assert_called_once_with(checkout, webhooks=set())
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
 def test_checkout_fully_authorized_pending_automatic_completion(
     mocked_process,
+    mocked_fully_authorized,
     mocked_fully_paid,
     user_api_client,
     checkout_with_prices,
@@ -1538,6 +1555,7 @@ def test_checkout_fully_authorized_pending_automatic_completion(
     assert order.charge_status == CheckoutChargeStatus.NONE
     assert order.authorize_status == CheckoutAuthorizeStatus.NONE
     mocked_fully_paid.assert_not_called()
+    mocked_fully_authorized.assert_called_once_with(checkout, webhooks=set())
 
 
 def test_transaction_process_doesnt_accept_old_id(

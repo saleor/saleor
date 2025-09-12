@@ -1804,6 +1804,18 @@ CHECKOUT_FULLY_PAID = """
     }
 """
 
+CHECKOUT_FULLY_AUTHORIZED = """
+    subscription{
+      event{
+        ...on CheckoutFullyAuthorized{
+          checkout{
+            id
+          }
+        }
+      }
+    }
+"""
+
 CHECKOUT_METADATA_UPDATED = """
     subscription{
       event{

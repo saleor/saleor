@@ -2052,6 +2052,19 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+
+  """
+  A checkout was fully authorized (its `authorizeStatus` is `FULL`).
+  
+  This event is emitted only for checkouts whose payments are processed through the Transaction API.
+  """
+  CHECKOUT_FULLY_AUTHORIZED
+
+  """
+  A checkout was fully paid (its `chargeStatus` is `FULL` or `OVERCHARGED`). This event is not sent if payments are only authorized but not fully charged.
+  
+  This event is emitted only for checkouts whose payments are processed through the Transaction API.
+  """
   CHECKOUT_FULLY_PAID
 
   """A checkout metadata is updated."""
@@ -2614,6 +2627,19 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+
+  """
+  A checkout was fully authorized (its `authorizeStatus` is `FULL`).
+  
+  This event is emitted only for checkouts whose payments are processed through the Transaction API.
+  """
+  CHECKOUT_FULLY_AUTHORIZED
+
+  """
+  A checkout was fully paid (its `chargeStatus` is `FULL` or `OVERCHARGED`). This event is not sent if payments are only authorized but not fully charged.
+  
+  This event is emitted only for checkouts whose payments are processed through the Transaction API.
+  """
   CHECKOUT_FULLY_PAID
 
   """A checkout metadata is updated."""
@@ -3425,6 +3451,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_VARIANT_STOCK_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
+  CHECKOUT_FULLY_AUTHORIZED
   CHECKOUT_FULLY_PAID
   CHECKOUT_METADATA_UPDATED
   NOTIFY_USER
@@ -5578,7 +5605,7 @@ type ProductCountableEdge @doc(category: "Products") {
 }
 
 """Represents an individual item for sale in the storefront."""
-type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
+type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Products") {
   """The ID of the product."""
   id: ID!
 
@@ -5611,6 +5638,26 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   """
   metafields(keys: [String!]): Metadata
+
+  """
+  Get a single attribute attached to product by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to this product.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
 
   """SEO title of the product."""
   seoTitle: String
@@ -5699,34 +5746,14 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """A type of tax. Assigned by enabled tax gateway"""
   taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
 
-  """
-  Get a single attribute attached to product by attribute slug.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): AssignedAttribute
-
-  """
-  List of attributes assigned to this product.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttributes(
-    """Maximum number of attributes to return. Default is 100."""
-    limit: PositiveInt = 100
-  ): [AssignedAttribute!]!
-
   """Get a single attribute attached to product by attribute slug."""
   attribute(
     """Slug of the attribute"""
     slug: String!
-  ): SelectedAttribute
+  ): SelectedAttribute @deprecated(reason: "Use the `assignedAttribute` field instead.")
 
   """List of attributes assigned to this product."""
-  attributes: [SelectedAttribute!]!
+  attributes: [SelectedAttribute!]! @deprecated(reason: "Use the `assignedAttributes` field instead.")
 
   """
   List of availability in channels for the product.
@@ -5836,215 +5863,40 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
 }
 
 """
-Represents a type of product. It defines what attributes are available to products of this type.
+An object with attributes.
+
+Added in Saleor 3.22.
 """
-type ProductType implements Node & ObjectWithMetadata @doc(category: "Products") {
-  """The ID of the product type."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
+interface ObjectWithAttributes @doc(category: "Attributes") {
   """
-  A single key from private metadata. Requires staff permissions to access.
+  Get a single attribute attached to the object by attribute slug.
   
-  Tip: Use GraphQL aliases to fetch multiple keys.
+  Added in Saleor 3.22.
   """
-  privateMetafield(key: String!): String
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute @doc(category: "Attributes")
 
   """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
+  List of attributes assigned to the object.
   
-  Tip: Use GraphQL aliases to fetch multiple keys.
+  Added in Saleor 3.22.
   """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the product type."""
-  name: String!
-
-  """Slug of the product type."""
-  slug: String!
-
-  """Whether the product type has variants."""
-  hasVariants: Boolean!
-
-  """Whether shipping is required for this product type."""
-  isShippingRequired: Boolean!
-
-  """Whether the product type is digital."""
-  isDigital: Boolean!
-
-  """Weight of the product type."""
-  weight: Weight
-
-  """The product type kind."""
-  kind: ProductTypeKindEnum!
-
-  """List of products of this type."""
-  products(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductCountableConnection @deprecated(reason: "Use the top-level `products` query with the `productTypes` filter.")
-
-  """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
-
-  """
-  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
-  """
-  taxClass: TaxClass
-
-  """Variant attributes of that product type."""
-  variantAttributes(
-    """Define scope of returned attributes."""
-    variantSelection: VariantAttributeScope
-  ): [Attribute!] @deprecated(reason: "Use `assignedVariantAttributes` instead.")
-
-  """
-  Variant attributes of that product type with attached variant selection.
-  """
-  assignedVariantAttributes(
-    """Define scope of returned attributes."""
-    variantSelection: VariantAttributeScope
-  ): [AssignedVariantAttribute!]
-
-  """Product attributes of that product type."""
-  productAttributes: [Attribute!]
-
-  """
-  List of attributes which can be assigned to this product type.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  availableAttributes(
-    """Filtering options for attributes of this product type."""
-    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for attributes of this product type."""
-    where: AttributeWhereInput
-
-    """Search attributes."""
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeCountableConnection
-}
-
-enum ProductTypeKindEnum @doc(category: "Products") {
-  NORMAL
-  GIFT_CARD
-}
-
-"""Representation of tax types fetched from tax gateway."""
-type TaxType @doc(category: "Taxes") {
-  """Description of the tax type."""
-  description: String
-
-  """External tax code used to identify given tax group."""
-  taxCode: String
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
 }
 
 """
-Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
+Represents an attribute assigned to an object.
+
+Added in Saleor 3.22.
 """
-type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
-  """The ID of the object."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the tax class."""
-  name: String!
-
-  """Country-specific tax rates for this tax class."""
-  countries: [TaxClassCountryRate!]!
-}
-
-"""
-Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
-"""
-type TaxClassCountryRate @doc(category: "Taxes") {
-  """Country in which this tax rate applies."""
-  country: CountryDisplay!
-
-  """Tax rate value."""
-  rate: Float!
-
-  """Related tax class."""
-  taxClass: TaxClass
+interface AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
 }
 
 """
@@ -6541,6 +6393,218 @@ type ProductTypeCountableEdge @doc(category: "Products") {
   cursor: String!
 }
 
+"""
+Represents a type of product. It defines what attributes are available to products of this type.
+"""
+type ProductType implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the product type."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the product type."""
+  name: String!
+
+  """Slug of the product type."""
+  slug: String!
+
+  """Whether the product type has variants."""
+  hasVariants: Boolean!
+
+  """Whether shipping is required for this product type."""
+  isShippingRequired: Boolean!
+
+  """Whether the product type is digital."""
+  isDigital: Boolean!
+
+  """Weight of the product type."""
+  weight: Weight
+
+  """The product type kind."""
+  kind: ProductTypeKindEnum!
+
+  """List of products of this type."""
+  products(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection @deprecated(reason: "Use the top-level `products` query with the `productTypes` filter.")
+
+  """A type of tax. Assigned by enabled tax gateway"""
+  taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
+
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxClass: TaxClass
+
+  """Variant attributes of that product type."""
+  variantAttributes(
+    """Define scope of returned attributes."""
+    variantSelection: VariantAttributeScope
+  ): [Attribute!] @deprecated(reason: "Use `assignedVariantAttributes` instead.")
+
+  """
+  Variant attributes of that product type with attached variant selection.
+  """
+  assignedVariantAttributes(
+    """Define scope of returned attributes."""
+    variantSelection: VariantAttributeScope
+  ): [AssignedVariantAttribute!]
+
+  """Product attributes of that product type."""
+  productAttributes: [Attribute!]
+
+  """
+  List of attributes which can be assigned to this product type.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  availableAttributes(
+    """Filtering options for attributes of this product type."""
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for attributes of this product type."""
+    where: AttributeWhereInput
+
+    """Search attributes."""
+    search: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
+}
+
+enum ProductTypeKindEnum @doc(category: "Products") {
+  NORMAL
+  GIFT_CARD
+}
+
+"""Representation of tax types fetched from tax gateway."""
+type TaxType @doc(category: "Taxes") {
+  """Description of the tax type."""
+  description: String
+
+  """External tax code used to identify given tax group."""
+  taxCode: String
+}
+
+"""
+Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
+"""
+type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the tax class."""
+  name: String!
+
+  """Country-specific tax rates for this tax class."""
+  countries: [TaxClassCountryRate!]!
+}
+
+"""
+Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
+"""
+type TaxClassCountryRate @doc(category: "Taxes") {
+  """Country in which this tax rate applies."""
+  country: CountryDisplay!
+
+  """Tax rate value."""
+  rate: Float!
+
+  """Related tax class."""
+  taxClass: TaxClass
+}
+
 enum VariantAttributeScope @doc(category: "Products") {
   ALL
   VARIANT_SELECTION
@@ -6659,6 +6723,13 @@ input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
   """The value included in."""
   oneOf: [MeasurementUnitsEnum!]
 }
+
+"""
+Positive Integer scalar implementation.
+
+Should be used in places where value must be positive (greater than 0).
+"""
+scalar PositiveInt
 
 """
 Represents a single category of products. Categories allow to organize products in a tree-hierarchies which can be used for navigation in the storefront.
@@ -7329,7 +7400,7 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
 }
 
 """Represents a version of a product such as different size or color."""
-type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Products") {
+type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Products") {
   """The ID of the product variant."""
   id: ID!
 
@@ -7362,6 +7433,26 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   """
   metafields(keys: [String!]): Metadata
+
+  """
+  Get a single attribute attached to product by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to this variant.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
 
   """The name of the product variant."""
   name: String!
@@ -7405,34 +7496,11 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
     address: AddressInput
   ): VariantPricingInfo
 
-  """
-  Get a single attribute attached to product by attribute slug.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): AssignedAttribute
-
-  """
-  List of attributes assigned to this variant.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttributes(
-    """Define scope of returned attributes."""
-    variantSelection: VariantAttributeScope
-
-    """Maximum number of attributes to return. Default is 100."""
-    limit: PositiveInt = 100
-  ): [AssignedAttribute!]!
-
   """List of attributes assigned to this variant."""
   attributes(
     """Define scope of returned attributes."""
     variantSelection: VariantAttributeScope
-  ): [SelectedAttribute!]!
+  ): [SelectedAttribute!]! @deprecated(reason: "Use the `assignedAttributes` field instead.")
 
   """Gross margin percentage value."""
   margin: Int
@@ -7668,23 +7736,6 @@ input MetadataInput {
   """Value of a metadata item."""
   value: String!
 }
-
-"""
-Represents an attribute assigned to an object.
-
-Added in Saleor 3.22.
-"""
-interface AssignedAttribute @doc(category: "Attributes") {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-}
-
-"""
-Positive Integer scalar implementation.
-
-Should be used in places where value must be positive (greater than 0).
-"""
-scalar PositiveInt
 
 """Represents an assigned attribute to an object."""
 type SelectedAttribute @doc(category: "Attributes") {
@@ -8671,7 +8722,7 @@ type PageTranslation implements Node @doc(category: "Pages") {
 """
 A static page that can be manually added by a shop operator through the dashboard.
 """
-type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
+type Page implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Pages") {
   """ID of the page."""
   id: ID!
 
@@ -8704,6 +8755,26 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   """
   metafields(keys: [String!]): Metadata
+
+  """
+  Get a single attribute attached to page by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to this page.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
 
   """Title of the page for SEO."""
   seoTitle: String
@@ -8755,26 +8826,6 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
     """Slug of the attribute"""
     slug: String!
   ): SelectedAttribute @deprecated(reason: "Use `assignedAttribute` field instead.")
-
-  """
-  Get a single attribute attached to page by attribute slug.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): AssignedAttribute
-
-  """
-  List of attributes assigned to this page.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttributes(
-    """Maximum number of attributes to return. Default is 100."""
-    limit: PositiveInt = 100
-  ): [AssignedAttribute!]!
 
   """List of attributes assigned to this page."""
   attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
@@ -31017,6 +31068,20 @@ type Subscription @doc(category: "Miscellaneous") {
   ): CheckoutFullyPaid @doc(category: "Checkout")
 
   """
+  Event sent when checkout is fully authorized.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutFullyAuthorized(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): CheckoutFullyAuthorized @doc(category: "Checkout")
+
+  """
   Event sent when checkout metadata is updated.
   
   Added in Saleor 3.21.
@@ -31356,9 +31421,33 @@ type CheckoutUpdated implements Event @doc(category: "Checkout") {
 }
 
 """
-Event sent when checkout is fully paid with transactions. The checkout is considered as fully paid when the checkout `charge_status` is `FULL` or `OVERCHARGED`. The event is not sent when the checkout authorization flow strategy is used.
+Event sent when a checkout was fully paid. A checkout is considered fully paid when its `chargeStatus` is `FULL` or `OVERCHARGED`. This event is not sent if payments are only authorized but not fully charged.
+
+It is triggered only for checkouts whose payments are processed through the Transaction API.
 """
 type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""
+Event sent when a checkout was fully authorized. A checkout is considered fully authorized when its `authorizeStatus` is `FULL`.
+
+It is triggered only for checkouts whose payments are processed through the Transaction API.
+"""
+type CheckoutFullyAuthorized implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 

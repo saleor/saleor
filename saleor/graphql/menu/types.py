@@ -5,7 +5,7 @@ from ...menu import models
 from ...permission.enums import PagePermissions
 from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
-from ..channel.dataloaders import ChannelBySlugLoader
+from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.context import ChannelContext
