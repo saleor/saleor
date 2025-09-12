@@ -74,6 +74,74 @@ def test_reference_handler_clean_and_validate_variant_reference(
     assert set(handler.values_input.reference_objects) == set(product_variant_list)
 
 
+def test_reference_handler_clean_and_validate_product_reference_with_reference_types(
+    product_type_product_reference_attribute, product_list, product_type
+):
+    # given
+    product_type_product_reference_attribute.reference_product_types.add(product_type)
+    product_ids = [graphene.Node.to_global_id("Product", p.id) for p in product_list]
+    attribute = product_type_product_reference_attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    values_input = AttrValuesInput(global_id=attribute_id, references=product_ids)
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert not attribute_errors
+    assert handler.values_input.references
+    assert handler.values_input.reference_objects
+    assert set(handler.values_input.reference_objects) == set(product_list)
+
+
+def test_reference_handler_clean_and_validate_page_reference_with_reference_types(
+    product_type_page_reference_attribute, page_list, page_type
+):
+    # given
+    product_type_page_reference_attribute.reference_page_types.add(page_type)
+    page_ids = [graphene.Node.to_global_id("Page", p.id) for p in page_list]
+    attribute = product_type_page_reference_attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    values_input = AttrValuesInput(global_id=attribute_id, references=page_ids)
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert not attribute_errors
+    assert handler.values_input.references
+    assert handler.values_input.reference_objects
+    assert set(handler.values_input.reference_objects) == set(page_list)
+
+
+def test_reference_handler_clean_and_validate_variant_reference_with_reference_types(
+    page_type_variant_reference_attribute, product_variant_list, product_type
+):
+    # given
+    page_type_variant_reference_attribute.reference_product_types.add(product_type)
+    variant_ids = [
+        graphene.Node.to_global_id("ProductVariant", v.id) for v in product_variant_list
+    ]
+    attribute = page_type_variant_reference_attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    values_input = AttrValuesInput(global_id=attribute_id, references=variant_ids)
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert not attribute_errors
+    assert handler.values_input.references
+    assert handler.values_input.reference_objects
+    assert set(handler.values_input.reference_objects) == set(product_variant_list)
+
+
 def test_reference_handler_clean_and_validate_category_reference(
     product_type_category_reference_attribute, category_list
 ):
@@ -116,6 +184,74 @@ def test_reference_handler_clean_and_validate_collection_reference(
     assert handler.values_input.references
     assert handler.values_input.reference_objects
     assert set(handler.values_input.reference_objects) == set(collection_list)
+
+
+def test_reference_handler_clean_and_validate_invalid_product_reference_type(
+    product_type_product_reference_attribute,
+    product,
+    product_type_with_variant_attributes,
+):
+    # given
+    attribute = product_type_product_reference_attribute
+    product_type_product_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+    values_input = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", attribute.id),
+        references=[graphene.Node.to_global_id("Product", product.id)],
+    )
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert attribute_errors[AttributeInputErrors.INVALID_REFERENCE_TYPE]
+
+
+def test_reference_handler_clean_and_validate_invalid_product_variant_ref_type(
+    product_type_variant_reference_attribute,
+    variant,
+    product_type_with_variant_attributes,
+):
+    # given
+    attribute = product_type_variant_reference_attribute
+    product_type_variant_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+    values_input = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", attribute.id),
+        references=[graphene.Node.to_global_id("ProductVariant", variant.id)],
+    )
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert attribute_errors[AttributeInputErrors.INVALID_REFERENCE_TYPE]
+
+
+def test_reference_handler_clean_and_validate_invalid_page_reference_type(
+    product_type_page_reference_attribute, page, page_type_list
+):
+    # given
+    attribute = product_type_page_reference_attribute
+    product_type_page_reference_attribute.reference_page_types.add(page_type_list[1])
+    values_input = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", attribute.id),
+        references=[graphene.Node.to_global_id("Page", page.id)],
+    )
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert attribute_errors[AttributeInputErrors.INVALID_REFERENCE_TYPE]
 
 
 def test_single_reference_handler_clean_and_validate_page_reference(
@@ -192,6 +328,73 @@ def test_single_reference_handler_clean_and_validate_collection_reference(
     # then
     assert not attribute_errors
     assert handler.values_input.reference_objects == [collection]
+
+
+def test_single_reference_handler_clean_and_validate_product_ref_with_reference_types(
+    product_type_product_single_reference_attribute, product, product_type
+):
+    # given
+    product_type_product_single_reference_attribute.reference_product_types.add(
+        product_type
+    )
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    attribute = product_type_product_single_reference_attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    values_input = AttrValuesInput(global_id=attribute_id, reference=product_id)
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert not attribute_errors
+    assert handler.values_input.reference
+    assert handler.values_input.reference_objects == [product]
+
+
+def test_single_reference_handler_clean_and_validate_page_ref_with_reference_types(
+    product_type_page_single_reference_attribute, page, page_type
+):
+    # given
+    product_type_page_single_reference_attribute.reference_page_types.add(page_type)
+    page_id = graphene.Node.to_global_id("Page", page.id)
+    attribute = product_type_page_single_reference_attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    values_input = AttrValuesInput(global_id=attribute_id, reference=page_id)
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert not attribute_errors
+    assert handler.values_input.reference
+    assert handler.values_input.reference_objects == [page]
+
+
+def test_single_reference_handler_clean_and_validate_variant_ref_with_reference_types(
+    page_type_variant_single_reference_attribute, variant, product_type
+):
+    # given
+    page_type_variant_single_reference_attribute.reference_product_types.add(
+        product_type
+    )
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    attribute = page_type_variant_single_reference_attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    values_input = AttrValuesInput(global_id=attribute_id, reference=variant_id)
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert not attribute_errors
+    assert handler.values_input.reference
+    assert handler.values_input.reference_objects == [variant]
 
 
 def test_single_reference_handler_clean_and_validate_success(
@@ -293,6 +496,76 @@ def test_single_reference_handler_clean_and_validate_invalid_reference(
 
     # then
     assert attribute_errors[AttributeInputErrors.INVALID_REFERENCE]
+
+
+def test_single_reference_handler_clean_and_validate_invalid_product_reference_type(
+    product_type_product_single_reference_attribute,
+    product,
+    product_type_with_variant_attributes,
+):
+    # given
+    attribute = product_type_product_single_reference_attribute
+    product_type_product_single_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+    values_input = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", attribute.id),
+        reference=graphene.Node.to_global_id("Product", product.id),
+    )
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert attribute_errors[AttributeInputErrors.INVALID_REFERENCE_TYPE]
+
+
+def test_single_reference_handler_clean_and_validate_invalid_product_variant_ref_type(
+    product_type_variant_single_reference_attribute,
+    variant,
+    product_type_with_variant_attributes,
+):
+    # given
+    attribute = product_type_variant_single_reference_attribute
+    product_type_variant_single_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+    values_input = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", attribute.id),
+        reference=graphene.Node.to_global_id("ProductVariant", variant.id),
+    )
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert attribute_errors[AttributeInputErrors.INVALID_REFERENCE_TYPE]
+
+
+def test_single_reference_handler_clean_and_validate_invalid_page_reference_type(
+    product_type_page_single_reference_attribute, page, page_type_list
+):
+    # given
+    attribute = product_type_page_single_reference_attribute
+    product_type_page_single_reference_attribute.reference_page_types.add(
+        page_type_list[1]
+    )
+    values_input = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", attribute.id),
+        reference=graphene.Node.to_global_id("Page", page.id),
+    )
+    handler = ReferenceAttributeHandler(attribute, values_input)
+    attribute_errors = defaultdict(list)
+
+    # when
+    handler.clean_and_validate(attribute_errors)
+
+    # then
+    assert attribute_errors[AttributeInputErrors.INVALID_REFERENCE_TYPE]
 
 
 def test_reference_handler_pre_save_value(

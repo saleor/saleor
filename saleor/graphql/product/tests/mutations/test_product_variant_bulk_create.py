@@ -964,6 +964,216 @@ def test_product_variant_bulk_create_with_single_reference_attribute(
     assert product_variant_count + 1 == ProductVariant.objects.count()
 
 
+def test_product_variant_bulk_create_with_ref_attributes_and_reference_types_defined(
+    staff_api_client,
+    product,
+    product_type,
+    product_type_page_single_reference_attribute,
+    product_type_product_reference_attribute,
+    product_type_variant_reference_attribute,
+    page,
+    variant,
+    permission_manage_products,
+):
+    # given
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(
+        product_type_page_single_reference_attribute,
+        product_type_product_reference_attribute,
+        product_type_variant_reference_attribute,
+    )
+
+    product_type_page_single_reference_attribute.reference_page_types.add(
+        page.page_type
+    )
+    product_type_product_reference_attribute.reference_product_types.add(
+        product.product_type
+    )
+    product_type_variant_reference_attribute.reference_product_types.add(
+        variant.product.product_type
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_single_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.id
+    )
+    page_ref = graphene.Node.to_global_id("Page", page.pk)
+    product_ref = graphene.Node.to_global_id("Product", product.pk)
+    variant_ref = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    sku1 = str(uuid4())[:12]
+    sku2 = str(uuid4())[:12]
+    sku3 = str(uuid4())[:12]
+
+    variants = [
+        {
+            "sku": sku1,
+            "attributes": [{"id": page_ref_attr_id, "reference": page_ref}],
+        },
+        {
+            "sku": sku2,
+            "attributes": [{"id": product_ref_attr_id, "references": [product_ref]}],
+        },
+        {
+            "sku": sku3,
+            "attributes": [{"id": variant_ref_attr_id, "references": [variant_ref]}],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION,
+        {"productId": product_id, "variants": variants},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert not data["results"][2]["errors"]
+    assert data["count"] == 3
+
+    expected_attributes = [
+        {
+            "slug": product_type_page_single_reference_attribute.slug,
+            "reference": page_ref,
+        },
+        {
+            "slug": product_type_product_reference_attribute.slug,
+            "reference": product_ref,
+        },
+        {
+            "slug": product_type_variant_reference_attribute.slug,
+            "reference": variant_ref,
+        },
+    ]
+    expected_assigned_attributes = [
+        {
+            "attribute": {"slug": product_type_page_single_reference_attribute.slug},
+            "page": {"slug": page.slug},
+        },
+        {
+            "attribute": {"slug": product_type_product_reference_attribute.slug},
+            "products": [{"slug": product.slug}],
+        },
+        {
+            "attribute": {"slug": product_type_variant_reference_attribute.slug},
+            "variants": [{"sku": variant.sku}],
+        },
+    ]
+
+    for i, result in enumerate(data["results"]):
+        matching_attribute = next(
+            attr
+            for attr in result["productVariant"]["attributes"]
+            if attr["attribute"]["slug"] == expected_attributes[i]["slug"]
+        )
+        assert len(matching_attribute["values"]) == 1
+        assert (
+            matching_attribute["values"][0]["reference"]
+            == expected_attributes[i]["reference"]
+        )
+        assert (
+            expected_assigned_attributes[i]
+            in result["productVariant"]["assignedAttributes"]
+        )
+
+
+def test_product_variant_bulk_create_with_ref_attributes_refs_not_in_available_choices(
+    staff_api_client,
+    product,
+    product_type,
+    product_type_page_single_reference_attribute,
+    product_type_product_reference_attribute,
+    product_type_variant_reference_attribute,
+    page,
+    variant,
+    permission_manage_products,
+    product_type_with_variant_attributes,
+    page_type_list,
+):
+    # given
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(
+        product_type_page_single_reference_attribute,
+        product_type_product_reference_attribute,
+        product_type_variant_reference_attribute,
+    )
+
+    product_type_page_single_reference_attribute.reference_page_types.add(
+        page_type_list[1]
+    )
+    product_type_product_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+    product_type_variant_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_single_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.id
+    )
+    page_ref = graphene.Node.to_global_id("Page", page.pk)
+    product_ref = graphene.Node.to_global_id("Product", product.pk)
+    variant_ref = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    sku1 = str(uuid4())[:12]
+    sku2 = str(uuid4())[:12]
+    sku3 = str(uuid4())[:12]
+
+    variants = [
+        {
+            "sku": sku1,
+            "attributes": [{"id": page_ref_attr_id, "reference": page_ref}],
+        },
+        {
+            "sku": sku2,
+            "attributes": [{"id": product_ref_attr_id, "references": [product_ref]}],
+        },
+        {
+            "sku": sku3,
+            "attributes": [{"id": variant_ref_attr_id, "references": [variant_ref]}],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION,
+        {"productId": product_id, "variants": variants},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert len(data["results"][0]["errors"]) == 1
+    assert len(data["results"][1]["errors"]) == 1
+    assert len(data["results"][2]["errors"]) == 1
+    assert data["count"] == 0
+
+    for result in data["results"]:
+        assert len(result["errors"]) == 1
+        assert result["errors"][0]["code"] == ProductVariantBulkErrorCode.INVALID.name
+        assert result["errors"][0]["path"] == "attributes"
+
+
 def test_product_variant_bulk_create_with_dropdown_attribute(
     staff_api_client,
     product,

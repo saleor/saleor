@@ -81,7 +81,7 @@ def test_product_variants_query_with_attr_slug_and_attribute_value_reference_to_
         "where": {
             "attributes": [
                 {
-                    "slug": "page-reference",
+                    "slug": "product-page-reference",
                     "value": {
                         "reference": {
                             "pageSlugs": {

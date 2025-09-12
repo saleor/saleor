@@ -861,6 +861,143 @@ def test_create_page_with_page_reference_attribute(
     assert page_type_page_reference_attribute.values.count() == values_count + 1
 
 
+def test_create_page_with_reference_attributes_and_reference_types_defined(
+    staff_api_client,
+    page_type,
+    page_type_page_reference_attribute,
+    page_type_product_reference_attribute,
+    page_type_variant_reference_attribute,
+    page,
+    product,
+    variant,
+    permission_manage_pages,
+):
+    # given
+    page_type.page_attributes.clear()
+    page_type.page_attributes.add(
+        page_type_page_reference_attribute,
+        page_type_product_reference_attribute,
+        page_type_variant_reference_attribute,
+    )
+
+    page_type_page_reference_attribute.reference_page_types.add(page.page_type)
+    page_type_product_reference_attribute.reference_product_types.add(
+        product.product_type
+    )
+    page_type_variant_reference_attribute.reference_product_types.add(
+        variant.product.product_type
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_page_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_variant_reference_attribute.id
+    )
+    page_ref = graphene.Node.to_global_id("Page", page.pk)
+    product_ref = graphene.Node.to_global_id("Product", product.pk)
+    variant_ref = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    page_title = "test title"
+    page_slug = "test-slug"
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    variables = {
+        "input": {
+            "title": page_title,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [
+                {"id": page_ref_attr_id, "references": [page_ref]},
+                {"id": product_ref_attr_id, "references": [product_ref]},
+                {"id": variant_ref_attr_id, "references": [variant_ref]},
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["pageCreate"]
+
+    assert not content["errors"]
+    data = content["page"]
+    assert data["title"] == page_title
+    assert data["slug"] == page_slug
+    page_id = data["id"]
+    _, page_pk = graphene.Node.from_global_id(page_id)
+    assert len(data["attributes"]) == len(variables["input"]["attributes"])
+    expected_attributes_data = [
+        {
+            "attribute": {"slug": page_type_page_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{page_pk}_{page.id}",
+                    "file": None,
+                    "plainText": None,
+                    "reference": page_ref,
+                    "name": page.title,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+        {
+            "attribute": {"slug": page_type_product_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{page_pk}_{product.id}",
+                    "file": None,
+                    "plainText": None,
+                    "reference": product_ref,
+                    "name": product.name,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+        {
+            "attribute": {"slug": page_type_variant_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{page_pk}_{variant.id}",
+                    "file": None,
+                    "plainText": None,
+                    "reference": variant_ref,
+                    "name": f"{variant.product.name}: {variant.name}",
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+    ]
+    for attr_data in data["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_page_ref_assigned_attribute = {
+        "attribute": {"slug": page_type_page_reference_attribute.slug},
+        "pages": [{"slug": page.slug}],
+    }
+    assert expected_page_ref_assigned_attribute in assigned_attributes
+    expected_product_ref_assigned_attribute = {
+        "attribute": {"slug": page_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug}],
+    }
+    assert expected_product_ref_assigned_attribute in assigned_attributes
+    expected_variant_ref_assigned_attribute = {
+        "attribute": {"slug": page_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant.sku}],
+    }
+    assert expected_variant_ref_assigned_attribute in assigned_attributes
+
+
 @freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_create_page_with_date_attribute(
     staff_api_client,
@@ -1173,6 +1310,87 @@ def test_create_page_with_page_reference_attribute_required_no_references_given(
     assert errors[0]["code"] == PageErrorCode.REQUIRED.name
     assert errors[0]["field"] == "attributes"
     assert errors[0]["attributes"] == [reference_attribute_id]
+
+
+def test_create_page_with_reference_attributes_ref_not_in_available_choices(
+    staff_api_client,
+    page_type,
+    page_type_page_reference_attribute,
+    page_type_product_reference_attribute,
+    page_type_variant_reference_attribute,
+    page,
+    product,
+    variant,
+    page_type_list,
+    permission_manage_pages,
+    product_type_with_variant_attributes,
+):
+    # given
+    page_type.page_attributes.clear()
+    page_type.page_attributes.add(
+        page_type_page_reference_attribute,
+        page_type_product_reference_attribute,
+        page_type_variant_reference_attribute,
+    )
+
+    # assigned reference types that do not match product/page types of references
+    # that are provided in the input
+    page_type_page_reference_attribute.reference_page_types.add(page_type_list[1])
+    page_type_product_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+    page_type_variant_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_page_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", page_type_variant_reference_attribute.id
+    )
+    page_ref = graphene.Node.to_global_id("Page", page.pk)
+    product_ref = graphene.Node.to_global_id("Product", product.pk)
+    variant_ref = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    page_title = "test title"
+    page_slug = "test-slug"
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    variables = {
+        "input": {
+            "title": page_title,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [
+                {"id": page_ref_attr_id, "references": [page_ref]},
+                {"id": product_ref_attr_id, "references": [product_ref]},
+                {"id": variant_ref_attr_id, "references": [variant_ref]},
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["pageCreate"]
+
+    errors = content["errors"]
+    assert not content["page"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PageErrorCode.INVALID.name
+    assert errors[0]["field"] == "attributes"
+    assert set(errors[0]["attributes"]) == {
+        page_ref_attr_id,
+        product_ref_attr_id,
+        variant_ref_attr_id,
+    }
 
 
 def test_create_page_with_product_reference_attribute(

@@ -4,6 +4,7 @@ from operator import add, mul
 from typing import Any, cast
 
 from graphql import (
+    GraphQLArgument,
     GraphQLError,
     GraphQLInterfaceType,
     GraphQLObjectType,
@@ -88,6 +89,8 @@ class CostValidator(ValidationRule):
                     report_error(self.context, e)
                     field_args = {}
 
+                field_args = self.update_empty_args_with_default(field_args, field.args)
+
                 if not self.cost_map:
                     return 0
 
@@ -154,6 +157,17 @@ class CostValidator(ValidationRule):
                 fragment_map_cost[fragment_name] += interfaces_cost
             total += max(fragment_map_cost.values(), default=0)
         return total
+
+    def update_empty_args_with_default(
+        self, field_args: dict[str, Any], args_defs: dict[str, GraphQLArgument]
+    ) -> dict[str, Any]:
+        """Update empty args with default values from argument definition."""
+        for arg_name, value in field_args.items():
+            if value is None and arg_name in args_defs:
+                arg_def = args_defs[arg_name]
+                if arg_def.default_value is not None:
+                    field_args[arg_name] = arg_def.default_value
+        return field_args
 
     def enter_operation_definition(self, node, key, parent, path, ancestors):  # pylint: disable=unused-argument
         if self.cost_map:
