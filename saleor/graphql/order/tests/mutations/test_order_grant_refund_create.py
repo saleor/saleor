@@ -1448,6 +1448,7 @@ def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid
     )
 
     invalid_page_id = graphene.Node.to_global_id("Page", 99999)
+    assert Page.objects.count() == 0
 
     variables = {
         "id": order_id,

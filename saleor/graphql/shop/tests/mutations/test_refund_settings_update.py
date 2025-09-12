@@ -26,7 +26,6 @@ REFUND_SETTINGS_UPDATE_MUTATION = """
 def test_refund_settings_update_by_staff_success(
     staff_api_client, site_settings, permission_manage_settings, page_type
 ):
-    """Test successful refund settings update by staff user."""
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
@@ -59,7 +58,6 @@ def test_refund_settings_update_by_staff_success(
 def test_refund_settings_update_by_app_success(
     app_api_client, site_settings, permission_manage_settings, page_type
 ):
-    """Test successful refund settings update by app."""
     # given
     app_api_client.app.permissions.add(permission_manage_settings)
 
@@ -89,7 +87,6 @@ def test_refund_settings_update_by_app_success(
 def test_refund_settings_update_change_page_type(
     staff_api_client, site_settings, permission_manage_settings, page_type
 ):
-    """Test updating refund settings to a different page type."""
     # given - set initial page type
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
@@ -124,7 +121,6 @@ def test_refund_settings_update_change_page_type(
 def test_refund_settings_update_empty_id_success(
     staff_api_client, permission_manage_settings, site_settings
 ):
-    """Test successful update when providing empty ID (clears the setting)."""
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
@@ -149,7 +145,6 @@ def test_refund_settings_update_empty_id_success(
 def test_refund_settings_update_invalid_id_format(
     staff_api_client, permission_manage_settings
 ):
-    """Test validation error when providing invalid ID format."""
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
@@ -170,7 +165,6 @@ def test_refund_settings_update_invalid_id_format(
 def test_refund_settings_update_nonexistent_page_type(
     staff_api_client, permission_manage_settings
 ):
-    """Test validation error when PageType doesn't exist."""
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
@@ -189,10 +183,9 @@ def test_refund_settings_update_nonexistent_page_type(
     assert "errors" in content
 
 
-def test_refund_settings_update_wrong_model_type(
+def test_refund_settings_update_wrong_page_type(
     staff_api_client, permission_manage_settings, product
 ):
-    """Test validation error when providing ID of wrong model type."""
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
@@ -212,7 +205,6 @@ def test_refund_settings_update_wrong_model_type(
 
 
 def test_refund_settings_update_no_permission_staff(staff_api_client, page_type):
-    """Test permission denied for staff without proper permissions."""
     # given
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}
@@ -225,7 +217,6 @@ def test_refund_settings_update_no_permission_staff(staff_api_client, page_type)
 
 
 def test_refund_settings_update_no_permission_customer(user_api_client, page_type):
-    """Test permission denied for customer users."""
     # given
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}
@@ -238,7 +229,6 @@ def test_refund_settings_update_no_permission_customer(user_api_client, page_typ
 
 
 def test_refund_settings_update_no_permission_anonymous(api_client, page_type):
-    """Test permission denied for anonymous users."""
     # given
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}
@@ -251,7 +241,6 @@ def test_refund_settings_update_no_permission_anonymous(api_client, page_type):
 
 
 def test_refund_settings_update_app_no_permission(app_api_client, page_type):
-    """Test permission denied for app without proper permissions."""
     # given
     page_type_id = graphene.Node.to_global_id("PageType", page_type.id)
     variables = {"input": {"refundReasonReferenceType": page_type_id}}

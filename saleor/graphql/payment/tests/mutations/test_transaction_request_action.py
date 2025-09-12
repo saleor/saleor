@@ -1601,6 +1601,8 @@ def test_transaction_request_refund_with_reason_reference_required_created_by_us
 
     invalid_page_id = graphene.Node.to_global_id("Page", 99999)
 
+    assert Page.objects.count() == 0
+
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,

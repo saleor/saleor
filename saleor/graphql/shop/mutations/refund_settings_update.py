@@ -67,7 +67,8 @@ class RefundSettingsUpdate(BaseMutation):
                 raise ValidationError(
                     {
                         "refund_reason_reference_type": ValidationError(
-                            "PageType with given ID does not exist.", code="not_found"
+                            "PageType with given ID does not exist.",
+                            code=RefundSettingsUpdateError.code,
                         )
                     }
                 ) from None
