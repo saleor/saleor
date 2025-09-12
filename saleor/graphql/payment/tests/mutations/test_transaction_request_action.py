@@ -1558,16 +1558,10 @@ def test_transaction_request_refund_with_reason_reference_not_configured_created
     content = get_graphql_content(response)
     data = content["data"]["transactionRequestAction"]
     errors = data["errors"]
-    assert not errors
-
-    request_event = TransactionEvent.objects.filter(
-        type=TransactionEventType.REFUND_REQUEST,
-    ).first()
-
-    assert request_event
-    assert request_event.app == app_api_client.app
-    assert request_event.message == "Product was damaged during shipping"
-    assert request_event.reason_reference is None
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "refundReasonReference"
+    assert error["code"] == TransactionRequestActionErrorCode.INVALID.name
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
