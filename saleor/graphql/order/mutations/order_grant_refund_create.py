@@ -17,7 +17,6 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
-from ...core.utils import from_global_id_or_error
 from ...payment.mutations.transaction.utils import get_transaction_item
 from ...payment.utils import validate_and_resolve_refund_reason_context
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
@@ -278,15 +277,16 @@ class OrderGrantRefundCreate(BaseMutation):
         reason_reference_instance: Page | None = None
 
         if should_apply:
+            reason_reference_pk = cls.get_global_id_or_error(
+                reason_reference_id, only_type=Page, field="reason_reference"
+            )
+
             try:
-                type_, reason_reference_pk = from_global_id_or_error(
-                    str(reason_reference_id), only_type="Page"
-                )
                 reason_reference_instance = Page.objects.get(
                     pk=reason_reference_pk, page_type=refund_reason_reference_type
                 )
 
-            except (Page.DoesNotExist, ValueError):
+            except Page.DoesNotExist:
                 raise ValidationError(
                     {
                         "reason_reference": ValidationError(
