@@ -11086,7 +11086,7 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   reason: String
 
   """
-  Reason `Page` (model) for refund.
+  Reason `Page` (Model) for refund.
   
   Added in Saleor 3.22.
   """
