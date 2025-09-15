@@ -1726,7 +1726,7 @@ def test_transaction_request_charge_ignores_reason_and_reference(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,
         "refund_reason": "Some reason that should be ignored",
-        "refund_reason_reference": page_id,  # Should be ignored for charge actions
+        "refund_reason_reference": page_id,
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
 

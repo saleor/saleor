@@ -88,7 +88,6 @@ class ShopQueries(graphene.ObjectType):
     def resolve_gift_card_settings(self, _info, site):
         return site.settings
 
-    # TODO What does it do? Should refund setting be available on Shop?
     @load_site_callback
     def resolve_refund_settings(self, _info, site):
         return site.settings
