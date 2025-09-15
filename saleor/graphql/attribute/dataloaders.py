@@ -7,7 +7,7 @@ from django.db.models.query import QuerySet
 from promise import Promise
 
 from ...attribute.models import Attribute, AttributeValue
-from ...attribute.models.page import AssignedPageAttributeValue
+from ...attribute.models.page import AssignedPageAttributeValue, AttributePage
 from ...attribute.models.product import AssignedProductAttributeValue, AttributeProduct
 from ...attribute.models.product_variant import (
     AssignedVariantAttribute,
@@ -15,6 +15,7 @@ from ...attribute.models.product_variant import (
     AttributeVariant,
 )
 from ...core.db.connection import allow_writer_in_context
+from ...page import models as page_models
 from ...product import models as product_models
 from ..core.dataloaders import DataLoader
 from ..product.dataloaders.products import ProductByIdLoader, ProductByVariantIdLoader
@@ -415,6 +416,152 @@ class AttributesVisibleToCustomerByProductVariantIdAndSelectionAndLimitLoader(
     ) -> QuerySet[AttributeVariant]:
         return AttributeVariant.objects.using(self.database_connection_name).filter(
             attribute__visible_in_storefront=True, product_type__in=product_type_ids
+        )
+
+
+class AttributesByPageIdAndLimitLoader(
+    DataLoader[tuple[PAGE_ID, LIMIT], list[Attribute]]
+):
+    context_key = "attribute_ids_by_page_id_and_limit"
+
+    def get_attribute_page_qs(self, page_type_ids: set[int]) -> QuerySet[AttributePage]:
+        return AttributePage.objects.using(self.database_connection_name).filter(
+            page_type__in=page_type_ids
+        )
+
+    def batch_load(self, keys: Iterable[tuple[PAGE_ID, LIMIT]]):
+        @allow_writer_in_context(self.context)
+        def with_pages(pages: list[page_models.Page]):
+            page_id_to_page_type_id_map = {
+                page.id: page.page_type_id for page in pages if page
+            }
+            page_type_ids = set(page_id_to_page_type_id_map.values())
+
+            attribute_pages = (
+                self.get_attribute_page_qs(page_type_ids)
+                .using(self.database_connection_name)
+                .values_list("attribute_id", "page_type_id")
+            )
+
+            page_type_id_to_attribute_ids = defaultdict(list)
+
+            for attribute_id, attr_page_type_id in attribute_pages:
+                page_type_id_to_attribute_ids[attr_page_type_id].append(attribute_id)
+
+            attribute_ids = set()
+            for page_id, limit in keys:
+                page_type_id = page_id_to_page_type_id_map.get(page_id)
+                if not page_type_id:
+                    continue
+                attribute_ids.update(
+                    page_type_id_to_attribute_ids.get(page_type_id, [])[:limit]
+                )
+
+            def get_attributes_for_pages(attributes: list[Attribute]):
+                attribute_map = {attr.id: attr for attr in attributes}
+
+                response = []
+                for page_id, limit in keys:
+                    single_response_entry: list[Attribute] = []
+                    page_type_id = page_id_to_page_type_id_map.get(page_id)
+                    if not page_type_id:
+                        response.append(single_response_entry)
+                        continue
+                    page_attribute_ids = page_type_id_to_attribute_ids.get(
+                        page_type_id, []
+                    )[:limit]
+                    for page_attribute_id in page_attribute_ids:
+                        attribute = attribute_map.get(page_attribute_id)
+                        if not attribute:
+                            continue
+                        single_response_entry.append(attribute)
+                    response.append(single_response_entry)
+                return response
+
+            return (
+                AttributesByAttributeId(self.context)
+                .load_many(attribute_ids)
+                .then(get_attributes_for_pages)
+            )
+
+        # FIXME: To be addressed in separate PR
+        from ..page.dataloaders import PageByIdLoader
+
+        page_ids = [page_id for page_id, _ in keys]
+        return PageByIdLoader(self.context).load_many(page_ids).then(with_pages)
+
+
+class AttributesVisibleToCustomerByPageIdAndLimitLoader(
+    AttributesByPageIdAndLimitLoader
+):
+    context_key = "attributes_visible_to_customer_by_page_id_and_limit"
+
+    def get_attribute_page_qs(self, page_type_ids: set[int]) -> QuerySet[AttributePage]:
+        return AttributePage.objects.using(self.database_connection_name).filter(
+            attribute__visible_in_storefront=True,
+            page_type__in=page_type_ids,
+        )
+
+
+class AttributeByPageIdAndAttributeSlugLoader(
+    DataLoader[tuple[PAGE_ID, ATTRIBUTE_SLUG], Attribute | None]
+):
+    context_key = "attribute_by_page_id_and_attribute_slug"
+
+    def batch_load(self, keys: Iterable[tuple[PAGE_ID, ATTRIBUTE_SLUG]]):
+        page_ids = [page_id for page_id, _ in keys]
+        attribute_slugs = [attribute_slug for _, attribute_slug in keys]
+
+        def with_pages_and_attributes(
+            data: tuple[list[page_models.Page], list[Attribute]],
+        ):
+            pages, attributes = data
+            page_type_ids = {page.page_type_id for page in pages if page is not None}
+            page_map = {page.id: page for page in pages if page is not None}
+            attribute_map = {attr.slug: attr for attr in attributes if attr is not None}
+            attribute_pages = (
+                AttributePage.objects.using(self.database_connection_name)
+                .filter(
+                    attribute__in=[attr.id for attr in attribute_map.values()],
+                    page_type__in=page_type_ids,
+                )
+                .values_list("attribute_id", "page_type_id")
+            )
+
+            page_type_id_to_attribute_ids = defaultdict(set)
+            for attribute_id, page_type_id in attribute_pages:
+                page_type_id_to_attribute_ids[page_type_id].add(attribute_id)
+
+            response: list[Attribute | None] = []
+            for page_id, attribute_slug in keys:
+                attribute = attribute_map.get(attribute_slug)
+                if not attribute:
+                    response.append(None)
+                    continue
+
+                page = page_map.get(page_id)
+                if not page:
+                    response.append(None)
+                    continue
+                page_type_id = page.page_type_id
+                attributes_assigned_to_page_type = page_type_id_to_attribute_ids.get(
+                    page_type_id, set()
+                )
+                if attribute.id in attributes_assigned_to_page_type:
+                    response.append(attribute)
+                else:
+                    response.append(None)
+            return response
+
+        # FIXME: To be addressed in separate PR
+        from ..page.dataloaders import PageByIdLoader
+
+        pages_loader = PageByIdLoader(self.context).load_many(page_ids)
+        attributes_loader = AttributesBySlugLoader(self.context).load_many(
+            attribute_slugs
+        )
+        return Promise.all([pages_loader, attributes_loader]).then(
+            with_pages_and_attributes
         )
 
 
