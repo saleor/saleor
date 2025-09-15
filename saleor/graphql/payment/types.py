@@ -634,7 +634,7 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     reason_reference = graphene.Field(
         Page,
         required=False,
-        description="Reason `Page` (model) for refund." + ADDED_IN_322,
+        description="Reason `Page` (Model) for refund." + ADDED_IN_322,
     )
 
     class Meta:

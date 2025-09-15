@@ -46,7 +46,6 @@ def check_if_requestor_has_access(
     return False
 
 
-# todo test
 def validate_and_resolve_refund_reason_context(
     *,
     reason_reference_id: str | None,

@@ -185,13 +185,13 @@ class TransactionRequestAction(BaseMutation):
 
             if reason:
                 errors["reason"] = ValidationError(
-                    "Reason can be set only for REFUND action.",
+                    f"Reason can be set only for {TransactionActionEnum.REFUND.name} action.",
                     code=TransactionRequestActionErrorCode.INVALID.value,
                 )
 
             if reason_reference_id:
                 errors["reason_reference"] = ValidationError(
-                    "Reason reference can be set only for REFUND action.",
+                    f"Reason reference can be set only for {TransactionActionEnum.REFUND.name} action.",
                     code=TransactionRequestActionErrorCode.INVALID.value,
                 )
 
