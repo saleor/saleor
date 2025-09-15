@@ -25,7 +25,6 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.scalars import UUID, PositiveDecimal
 from ....core.types import common as common_types
-from ....core.utils import from_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum
@@ -211,6 +210,7 @@ class TransactionRequestAction(BaseMutation):
             reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
             refund_reference_field_name="refund_reason_reference",
+            error_code_enum=TransactionRequestActionErrorCode,
         )
 
         refund_reason_reference_type = refund_reason_context[
@@ -221,9 +221,10 @@ class TransactionRequestAction(BaseMutation):
 
         if refund_reason_context["should_apply"]:
             try:
-                type_, reason_reference_pk = from_global_id_or_error(
-                    str(reason_reference_id), only_type="Page"
+                reason_reference_pk = cls.get_global_id_or_error(
+                    reason_reference_id, only_type="Page", field="reason_reference"
                 )
+
                 reason_reference_instance = Page.objects.get(
                     pk=reason_reference_pk, page_type=refund_reason_reference_type
                 )

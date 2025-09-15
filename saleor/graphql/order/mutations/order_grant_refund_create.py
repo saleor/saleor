@@ -267,6 +267,7 @@ class OrderGrantRefundCreate(BaseMutation):
             reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
             refund_reference_field_name="reason_reference",
+            error_code_enum=OrderGrantRefundCreateErrorCode,
         )
 
         should_apply = refund_reason_context["should_apply"]
@@ -278,7 +279,7 @@ class OrderGrantRefundCreate(BaseMutation):
 
         if should_apply:
             reason_reference_pk = cls.get_global_id_or_error(
-                reason_reference_id, only_type=Page, field="reason_reference"
+                reason_reference_id, only_type="Page", field="reason_reference"
             )
 
             try:

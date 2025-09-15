@@ -10,7 +10,6 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
-    get_graphql_content_from_response,
 )
 from ...enums import (
     OrderChargeStatusEnum,
@@ -1581,8 +1580,9 @@ def test_grant_refund_with_reason_reference_not_valid_page_id(
     errors = data["errors"]
     assert len(errors) == 1
     error = errors[0]
+
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert error["code"] == "GRAPHQL_ERROR"
 
     assert order.granted_refunds.count() == 0
 
@@ -1627,14 +1627,12 @@ def test_grant_refund_with_reason_reference_not_valid_id_created_by_user(
     response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
 
     # Then
-    content = get_graphql_content_from_response(response)
-    assert "errors" in content
-    errors = content["errors"]
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
     assert len(errors) == 1
     error = errors[0]
-    assert "Invalid ID" in error["message"]
-    assert "Expected: Page" in error["message"]
-    assert "extensions" in error
-    assert error["extensions"]["exception"]["code"] == "GraphQLError"
+    assert error["field"] == "reasonReference"
+    assert error["code"] == "GRAPHQL_ERROR"
 
     assert order.granted_refunds.count() == 0
