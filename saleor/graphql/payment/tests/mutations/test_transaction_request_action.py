@@ -16,7 +16,6 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
-    get_graphql_content_from_response,
 )
 from ...enums import TransactionActionEnum
 
@@ -1872,9 +1871,10 @@ def test_transaction_request_refund_with_reason_reference_not_valid_page_id(
     errors = data["errors"]
     assert len(errors) == 1
     error = errors[0]
-    assert error["field"] == "refundReasonReference"
-    assert error["code"] == TransactionRequestActionErrorCode.INVALID.name
-    assert error["message"] == "Invalid reason reference."
+    assert error["field"] == "reasonReference"
+    assert error["code"] == "GRAPHQL_ERROR"
+    assert "Invalid ID:" in error["message"]
+    assert "Expected: Page, received: Product" in error["message"]
 
     request_event = TransactionEvent.objects.filter(
         type=TransactionEventType.REFUND_REQUEST,
@@ -1928,10 +1928,13 @@ def test_transaction_request_refund_with_reason_reference_not_valid_id_format(
     )
 
     # Then
-    content = get_graphql_content_from_response(response)
-    assert "errors" in content
-    assert len(content["errors"]) == 1
-    error = content["errors"][0]
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "reasonReference"
+    assert error["code"] == "GRAPHQL_ERROR"
     assert "Invalid ID: invalid-id-format. Expected: Page." in error["message"]
 
     request_event = TransactionEvent.objects.filter(

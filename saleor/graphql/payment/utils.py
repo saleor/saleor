@@ -4,9 +4,6 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 
 from ...payment import models as payment_models
-from ..core.enums import TransactionRequestActionErrorCode
-from ..order.mutations.order_grant_refund_create import OrderGrantRefundCreateError
-from ..order.mutations.order_grant_refund_update import OrderGrantRefundUpdateError
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -55,9 +52,7 @@ def validate_and_resolve_refund_reason_context(
     reason_reference_id: str | None,
     requestor_is_user: bool,
     refund_reference_field_name: str,
-    error_code_enum=TransactionRequestActionErrorCode
-    | OrderGrantRefundCreateError
-    | OrderGrantRefundUpdateError,
+    error_code_enum,
 ):
     settings = Site.objects.get_current().settings
     refund_reason_reference_type = settings.refund_reason_reference_type

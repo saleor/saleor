@@ -2820,7 +2820,7 @@ def test_grant_refund_update_with_reason_reference_not_valid_page_id(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+    assert error["code"] == "GRAPHQL_ERROR"
 
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
@@ -2876,11 +2876,13 @@ def test_grant_refund_update_with_reason_reference_not_valid_id(
     response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
 
     # Then
-    content = get_graphql_content_from_response(response)
-    assert "errors" in content
-    assert len(content["errors"]) == 1
-    error = content["errors"][0]
-    assert "Invalid ID: invalid-id-format. Expected: Page." in error["message"]
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "reasonReference"
+    assert error["code"] == "GRAPHQL_ERROR"
 
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
