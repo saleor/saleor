@@ -224,10 +224,9 @@ class TransactionRequestAction(BaseMutation):
                 type_, reason_reference_pk = from_global_id_or_error(
                     str(reason_reference_id), only_type="Page"
                 )
-                if reason_reference_pk:
-                    reason_reference_instance = Page.objects.get(
-                        pk=reason_reference_pk, page_type=refund_reason_reference_type
-                    )
+                reason_reference_instance = Page.objects.get(
+                    pk=reason_reference_pk, page_type=refund_reason_reference_type
+                )
 
             except (Page.DoesNotExist, ValueError):
                 raise ValidationError(

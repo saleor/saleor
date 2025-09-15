@@ -2763,3 +2763,125 @@ def test_grant_refund_update_with_reason_reference_wrong_page_type_created_by_us
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
     assert granted_refund.reason == current_reason
+
+
+def test_grant_refund_update_with_reason_reference_not_valid_page_id(
+    staff_api_client,
+    permission_manage_orders,
+    order,
+    transaction_item_generator,
+    site_settings,
+    app,
+):
+    # Given
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
+
+    current_reason = "Original reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order.currency,
+        reason=current_reason,
+        app=app,
+    )
+
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    amount = Decimal("15.00")
+    transaction_item = transaction_item_generator(
+        charged_value=amount, order_id=order.id
+    )
+    transaction_item_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    invalid_page_id = graphene.Node.to_global_id("Product", 12345)
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": amount,
+            "reason": "Damaged product refund",
+            "reasonReference": invalid_page_id,
+            "transactionId": transaction_item_id,
+        },
+    }
+
+    # When
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # Then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "reasonReference"
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+
+    granted_refund.refresh_from_db()
+    assert granted_refund.amount_value == current_amount
+    assert granted_refund.reason == current_reason
+
+
+def test_grant_refund_update_with_reason_reference_not_valid_id(
+    staff_api_client,
+    permission_manage_orders,
+    order,
+    transaction_item_generator,
+    site_settings,
+    app,
+):
+    # Given
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
+
+    current_reason = "Original reason."
+    current_amount = Decimal("10.00")
+    granted_refund = order.granted_refunds.create(
+        amount_value=current_amount,
+        currency=order.currency,
+        reason=current_reason,
+        app=app,
+    )
+
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    amount = Decimal("15.00")
+    transaction_item = transaction_item_generator(
+        charged_value=amount, order_id=order.id
+    )
+    transaction_item_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
+
+    invalid_id = "invalid-id-format"
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "amount": amount,
+            "reason": "Damaged product refund",
+            "reasonReference": invalid_id,
+            "transactionId": transaction_item_id,
+        },
+    }
+
+    # When
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # Then
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+    assert len(content["errors"]) == 1
+    error = content["errors"][0]
+    assert "Invalid ID: invalid-id-format. Expected: Page." in error["message"]
+
+    granted_refund.refresh_from_db()
+    assert granted_refund.amount_value == current_amount
+    assert granted_refund.reason == current_reason
