@@ -30,7 +30,7 @@ T_REFERENCE = (
 @dataclass
 class AssignedAttributeData:
     attribute: attribute_models.Attribute
-    channel_slug: str
+    channel_slug: str | None
     product_id: int | None = None
     page_id: int | None = None
     variant_id: int | None = None
