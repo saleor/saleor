@@ -1,7 +1,5 @@
 import graphene
-from django.core.exceptions import ValidationError
 
-from ....page.models import PageType
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
@@ -24,7 +22,6 @@ class RefundSettingsUpdateInput(BaseInputObjectType):
     )
 
     class Meta:
-        # Orders or Shop?
         doc_category = DOC_CATEGORY_SHOP
 
 
@@ -55,21 +52,14 @@ class RefundSettingsUpdate(BaseMutation):
         settings = site.settings
 
         if refund_reason_reference_type:
-            try:
-                page_type_id = cls.get_global_id_or_error(
-                    refund_reason_reference_type, "PageType"
-                )
-                model_type = PageType.objects.get(pk=page_type_id)
-                settings.refund_reason_reference_type = model_type
-            except PageType.DoesNotExist:
-                raise ValidationError(
-                    {
-                        "refund_reason_reference_type": ValidationError(
-                            "PageType with given ID does not exist.",
-                            code=RefundSettingsUpdateError.code,
-                        )
-                    }
-                ) from None
+            model_type = cls.get_node_or_error(
+                info,
+                refund_reason_reference_type,
+                only_type="PageType",
+                field="refund_reason_reference_type",
+            )
+
+            settings.refund_reason_reference_type = model_type
 
         settings.save(update_fields=["refund_reason_reference_type"])
 

@@ -17,7 +17,7 @@ class RefundReasonReferenceTypeClear(BaseMutation):
 
     class Meta:
         description = (
-            "Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer required for staff user."
+            "Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer accepted and will raise error."
             + ADDED_IN_322
         )
         doc_category = DOC_CATEGORY_ORDERS

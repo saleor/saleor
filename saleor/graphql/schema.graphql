@@ -15392,7 +15392,7 @@ type Mutation {
   ): RefundSettingsUpdate @doc(category: "Shop")
 
   """
-  Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer required for staff user.
+  Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer accepted and will raise error.
   
   Added in Saleor 3.22. 
   
@@ -20863,7 +20863,7 @@ input RefundSettingsUpdateInput @doc(category: "Shop") {
 }
 
 """
-Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer required for staff user.
+Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer accepted and will raise error.
 
 Added in Saleor 3.22. 
 
