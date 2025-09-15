@@ -188,6 +188,31 @@ class OrderGrantRefundCreate(BaseMutation):
             )
 
     @classmethod
+    def _resolve_refund_reason_instance(
+        cls, /, reason_reference_id: str, refund_reason_reference_type: str
+    ):
+        reason_reference_pk = cls.get_global_id_or_error(
+            reason_reference_id, only_type="Page", field="reason_reference"
+        )
+
+        try:
+            reason_reference_instance = Page.objects.get(
+                pk=reason_reference_pk, page_type=refund_reason_reference_type
+            )
+
+            return reason_reference_instance
+
+        except Page.DoesNotExist:
+            raise ValidationError(
+                {
+                    "reason_reference": ValidationError(
+                        "Invalid reason reference. Must be an ID of a Model (Page)",
+                        code=OrderGrantRefundCreateErrorCode.INVALID.value,
+                    )
+                }
+            ) from None
+
+    @classmethod
     def clean_input(
         cls,
         info: ResolveInfo,
@@ -278,24 +303,9 @@ class OrderGrantRefundCreate(BaseMutation):
         reason_reference_instance: Page | None = None
 
         if should_apply:
-            reason_reference_pk = cls.get_global_id_or_error(
-                reason_reference_id, only_type="Page", field="reason_reference"
+            reason_reference_instance = cls._resolve_refund_reason_instance(
+                reason_reference_id, refund_reason_reference_type
             )
-
-            try:
-                reason_reference_instance = Page.objects.get(
-                    pk=reason_reference_pk, page_type=refund_reason_reference_type
-                )
-
-            except Page.DoesNotExist:
-                raise ValidationError(
-                    {
-                        "reason_reference": ValidationError(
-                            "Invalid reason reference. Must be an ID of a Model (Page)",
-                            code=OrderGrantRefundCreateErrorCode.INVALID.value,
-                        )
-                    }
-                ) from None
 
         return {
             "amount": amount,
@@ -303,7 +313,6 @@ class OrderGrantRefundCreate(BaseMutation):
             "lines": cleaned_input_lines,
             "grant_refund_for_shipping": grant_refund_for_shipping,
             "transaction_item": transaction_item,
-            "reason_reference": reason_reference_id,
             "reason_reference_instance": reason_reference_instance,
         }
 
