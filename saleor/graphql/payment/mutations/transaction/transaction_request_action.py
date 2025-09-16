@@ -223,7 +223,7 @@ class TransactionRequestAction(BaseMutation):
         if refund_reason_context["should_apply"]:
             try:
                 reason_reference_pk = cls.get_global_id_or_error(
-                    reason_reference_id, only_type="Page", field="reason_reference"
+                    str(reason_reference_id), only_type="Page", field="reason_reference"
                 )
 
                 reason_reference_instance = Page.objects.get(

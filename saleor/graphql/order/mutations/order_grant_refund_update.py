@@ -258,7 +258,8 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         try:
             return Page.objects.get(
-                pk=reason_reference_pk, page_type=refund_reason_reference_type
+                pk=reason_reference_pk,
+                page_type=refund_reason_reference_type,  # type: ignore[misc]
             )
 
         except (Page.DoesNotExist, ValueError):
@@ -391,7 +392,8 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         if should_apply:
             reason_reference_instance = cls._resolve_refund_reason_instance(
-                reason_reference_id, refund_reason_reference_type
+                reason_reference_id,
+                refund_reason_reference_type,  # type: ignore[arg-type]
             )
 
         cleaned_input = {
