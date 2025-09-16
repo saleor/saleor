@@ -189,7 +189,7 @@ class OrderGrantRefundCreate(BaseMutation):
 
     @classmethod
     def _resolve_refund_reason_instance(
-        cls, /, reason_reference_id: str, refund_reason_reference_type: str
+        cls, /, reason_reference_id: str, refund_reason_reference_type_id: int
     ):
         reason_reference_pk = cls.get_global_id_or_error(
             reason_reference_id, only_type="Page", field="reason_reference"
@@ -198,7 +198,7 @@ class OrderGrantRefundCreate(BaseMutation):
         try:
             reason_reference_instance = Page.objects.get(
                 pk=reason_reference_pk,
-                page_type=refund_reason_reference_type,  # type: ignore[misc]
+                page_type=refund_reason_reference_type_id,
             )
 
             return reason_reference_instance
