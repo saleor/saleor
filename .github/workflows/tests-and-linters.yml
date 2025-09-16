@@ -88,26 +88,25 @@ jobs:
         if: needs.check_changes.outputs.should_run == 'false'
         run: echo "No relevant files changed - skipping unit tests"
 
+      - name: Early return if no changes
+        if: needs.check_changes.outputs.should_run == 'false'
+        run: exit 0
+
       - uses: actions/checkout@v5
-        if: needs.check_changes.outputs.should_run == 'true'
 
       - name: Install system dependencies
-        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           apt-get install -y libpq-dev
 
       - uses: astral-sh/setup-uv@4959332f0f014c5280e7eac8b70c90cb574c9f9b # v6.0.0
-        if: needs.check_changes.outputs.should_run == 'true'
         with:
           enable-cache: true
 
       - name: Install dependencies
-        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           uv sync --locked
 
       - name: Run unit tests
-        if: needs.check_changes.outputs.should_run == 'true'
         env:
           COVERAGE_CORE: sysmon
         run: |
@@ -121,19 +120,18 @@ jobs:
             -n logical
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() && needs.check_changes.outputs.should_run == 'true' }} # Run even if tests fail
+        if: ${{ !cancelled() }} # Run even if tests fail
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       # Publish coverage and test results
       - uses: codecov/codecov-action@v5
-        if: needs.check_changes.outputs.should_run == 'true'
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - uses: actions/upload-artifact@v4
-        if: ${{ always() && needs.check_changes.outputs.should_run == 'true' }}
+        if: ${{ always() }}
         with:
           name: pytest-results
           path: junit/test-results.xml
@@ -144,7 +142,7 @@ jobs:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
           diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
           diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
-        if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor' && needs.check_changes.outputs.should_run == 'true'
+        if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor'
 
       # Save results for future comparison against pull requests
       - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
@@ -152,7 +150,7 @@ jobs:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
           upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
           upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
-        if: github.event_name == 'push' && github.repository == 'saleor/saleor' && needs.check_changes.outputs.should_run == 'true'
+        if: github.event_name == 'push' && github.repository == 'saleor/saleor'
 
   linters:
     runs-on: ubuntu-latest
@@ -165,26 +163,25 @@ jobs:
         if: needs.check_changes.outputs.should_run == 'false'
         run: echo "No relevant files changed - skipping linters"
 
+      - name: Early return if no changes
+        if: needs.check_changes.outputs.should_run == 'false'
+        run: exit 0
+
       - uses: actions/checkout@v5
-        if: needs.check_changes.outputs.should_run == 'true'
 
       - name: Install system dependencies
-        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           apt-get install -y libpq-dev
 
       - uses: astral-sh/setup-uv@4959332f0f014c5280e7eac8b70c90cb574c9f9b # v6.0.0
-        if: needs.check_changes.outputs.should_run == 'true'
         with:
           enable-cache: true
 
       - name: Install dependencies
-        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           uv sync --locked
 
       - uses: actions/cache@v4
-        if: needs.check_changes.outputs.should_run == 'true'
         with:
           path: ~/.cache/pre-commit
           key: ${{ runner.os }}-pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
@@ -194,7 +191,6 @@ jobs:
       # Run linters and Django related checks
       # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
       - name: Run Linters and Checks
-        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           uv run pre-commit run --all --show-diff-on-failure
