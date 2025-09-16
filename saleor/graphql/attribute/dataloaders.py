@@ -3,15 +3,21 @@ from collections.abc import Iterable
 
 from django.db.models import F, Window
 from django.db.models.functions import RowNumber
+from django.db.models.query import QuerySet
+from promise import Promise
 
 from ...attribute.models import Attribute, AttributeValue
 from ...attribute.models.page import AssignedPageAttributeValue
-from ...attribute.models.product import AssignedProductAttributeValue
+from ...attribute.models.product import AssignedProductAttributeValue, AttributeProduct
 from ...attribute.models.product_variant import (
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
+    AttributeVariant,
 )
+from ...core.db.connection import allow_writer_in_context
+from ...product import models as product_models
 from ..core.dataloaders import DataLoader
+from ..product.dataloaders.products import ProductByIdLoader, ProductByVariantIdLoader
 
 
 class AttributeValuesByAttributeIdLoader(DataLoader[int, list[AttributeValue]]):
@@ -59,11 +65,357 @@ class AttributeValueByIdLoader(DataLoader[int, AttributeValue]):
         return [attribute_values.get(attribute_value_id) for attribute_value_id in keys]
 
 
-PRODUCT_ID = int
-PAGE_ID = int
-VARIANT_ID = int
-ATTRIBUTE_ID = int
-LIMIT = int | None
+type PRODUCT_ID = int
+type PRODUCT_TYPE_ID = int
+type PAGE_ID = int
+type VARIANT_ID = int
+type ATTRIBUTE_ID = int
+type ATTRIBUTE_SLUG = str
+type LIMIT = int | None
+type VARIANT_SELECTION = bool | None
+
+
+class AttributesByProductIdAndLimitLoader(
+    DataLoader[tuple[PRODUCT_ID, LIMIT], list[Attribute]]
+):
+    context_key = "attribute_ids_by_product_id_and_limit"
+
+    def get_attribute_product_qs(
+        self, product_type_ids: set[int]
+    ) -> QuerySet[AttributeProduct]:
+        return AttributeProduct.objects.using(self.database_connection_name).filter(
+            product_type__in=product_type_ids
+        )
+
+    def batch_load(self, keys: Iterable[tuple[PRODUCT_ID, LIMIT]]):
+        @allow_writer_in_context(self.context)
+        def with_products(products: list[product_models.Product]):
+            product_id_to_product_type_id_map = {
+                product.id: product.product_type_id for product in products if product
+            }
+            product_type_ids = set(product_id_to_product_type_id_map.values())
+
+            attribute_products = (
+                self.get_attribute_product_qs(product_type_ids)
+                .using(self.database_connection_name)
+                .values_list("attribute_id", "product_type_id")
+            )
+
+            product_type_id_to_attribute_ids = defaultdict(list)
+
+            for attribute_id, attr_product_type_id in attribute_products:
+                product_type_id_to_attribute_ids[attr_product_type_id].append(
+                    attribute_id
+                )
+
+            attribute_ids = set()
+            for product_id, limit in keys:
+                product_type_id = product_id_to_product_type_id_map.get(product_id)
+                if not product_type_id:
+                    continue
+                attribute_ids.update(
+                    product_type_id_to_attribute_ids.get(product_type_id, [])[:limit]
+                )
+
+            def get_attributes_for_products(attributes: list[Attribute]):
+                attribute_map = {attr.id: attr for attr in attributes}
+
+                response = []
+                for product_id, limit in keys:
+                    single_response_entry: list[Attribute] = []
+                    product_type_id = product_id_to_product_type_id_map.get(product_id)
+                    if not product_type_id:
+                        response.append(single_response_entry)
+                        continue
+                    product_attribute_ids = product_type_id_to_attribute_ids.get(
+                        product_type_id, []
+                    )[:limit]
+                    for product_attribute_id in product_attribute_ids:
+                        attribute = attribute_map.get(product_attribute_id)
+                        if not attribute:
+                            continue
+                        single_response_entry.append(attribute)
+                    response.append(single_response_entry)
+                return response
+
+            return (
+                AttributesByAttributeId(self.context)
+                .load_many(attribute_ids)
+                .then(get_attributes_for_products)
+            )
+
+        product_ids = [product_id for product_id, _ in keys]
+        return (
+            ProductByIdLoader(self.context).load_many(product_ids).then(with_products)
+        )
+
+
+class AttributesVisibleToCustomerByProductIdAndLimitLoader(
+    AttributesByProductIdAndLimitLoader
+):
+    context_key = "attributes_visible_to_customer_by_product_id_and_limit"
+
+    def get_attribute_product_qs(
+        self, product_type_ids: set[int]
+    ) -> QuerySet[AttributeProduct]:
+        return AttributeProduct.objects.using(self.database_connection_name).filter(
+            attribute__visible_in_storefront=True,
+            product_type__in=product_type_ids,
+        )
+
+
+class AttributeByProductIdAndAttributeSlugLoader(
+    DataLoader[tuple[PRODUCT_ID, ATTRIBUTE_SLUG], Attribute | None]
+):
+    context_key = "attribute_by_product_id_and_attribute_slug"
+
+    def batch_load(self, keys: Iterable[tuple[PRODUCT_ID, ATTRIBUTE_SLUG]]):
+        product_ids = [product_id for product_id, _ in keys]
+        attribute_slugs = [attribute_slug for _, attribute_slug in keys]
+
+        def with_attributes_and_products(
+            data: tuple[list[product_models.Product], list[Attribute]],
+        ):
+            products, attributes = data
+            product_type_ids = {
+                product.product_type_id for product in products if product is not None
+            }
+            product_map = {
+                product.id: product for product in products if product is not None
+            }
+            attribute_map = {attr.slug: attr for attr in attributes if attr is not None}
+            attribute_products = (
+                AttributeProduct.objects.using(self.database_connection_name)
+                .filter(
+                    attribute__in=[attr.id for attr in attribute_map.values()],
+                    product_type__in=product_type_ids,
+                )
+                .values_list("attribute_id", "product_type_id")
+            )
+
+            product_type_id_to_attribute_ids = defaultdict(set)
+            for attribute_id, product_type_id in attribute_products:
+                product_type_id_to_attribute_ids[product_type_id].add(attribute_id)
+
+            response: list[Attribute | None] = []
+            for product_id, attribute_slug in keys:
+                attribute = attribute_map.get(attribute_slug)
+                if not attribute:
+                    response.append(None)
+                    continue
+
+                product = product_map.get(product_id)
+                if not product:
+                    response.append(None)
+                    continue
+                product_type_id = product.product_type_id
+                attributes_assigned_to_product_type = (
+                    product_type_id_to_attribute_ids.get(product_type_id, set())
+                )
+                if attribute.id in attributes_assigned_to_product_type:
+                    response.append(attribute)
+                else:
+                    response.append(None)
+            return response
+
+        products_loader = ProductByIdLoader(self.context).load_many(product_ids)
+        attributes_loader = AttributesBySlugLoader(self.context).load_many(
+            attribute_slugs
+        )
+        return Promise.all([products_loader, attributes_loader]).then(
+            with_attributes_and_products
+        )
+
+
+class AttributeByProductVariantIdAndAttributeSlugLoader(
+    DataLoader[tuple[VARIANT_ID, ATTRIBUTE_SLUG], Attribute | None]
+):
+    context_key = "attribute_by_product_variant_id_and_attribute_slug"
+
+    def batch_load(self, keys: Iterable[tuple[VARIANT_ID, ATTRIBUTE_SLUG]]):
+        variant_ids = [variant_id for variant_id, _ in keys]
+        attribute_slugs = [attribute_slug for _, attribute_slug in keys]
+
+        def with_attributes_and_products(
+            data: tuple[list[product_models.Product], list[Attribute]],
+        ):
+            products, attributes = data
+            product_type_ids = {
+                product.product_type_id for product in products if product is not None
+            }
+            variant_id_to_product_map = {
+                variant_id: product
+                for (variant_id, _), product in zip(keys, products, strict=False)
+            }
+            attribute_map = {attr.slug: attr for attr in attributes if attr is not None}
+
+            attribute_variants = (
+                AttributeVariant.objects.using(self.database_connection_name)
+                .filter(
+                    attribute__in=[attr.id for attr in attribute_map.values()],
+                    product_type__in=product_type_ids,
+                )
+                .values_list("attribute_id", "product_type_id")
+            )
+            product_type_id_to_attribute_ids = defaultdict(set)
+            for attribute_id, attr_product_type_id in attribute_variants:
+                product_type_id_to_attribute_ids[attr_product_type_id].add(attribute_id)
+
+            response: list[Attribute | None] = []
+            for variant_id, attribute_slug in keys:
+                attribute = attribute_map.get(attribute_slug)
+                if not attribute:
+                    response.append(None)
+                    continue
+
+                product = variant_id_to_product_map.get(variant_id)
+                if not product:
+                    response.append(None)
+                    continue
+                product_type_id = product.product_type_id
+                attributes_assigned_to_product_type = (
+                    product_type_id_to_attribute_ids.get(product_type_id, set())
+                )
+                if attribute.id in attributes_assigned_to_product_type:
+                    response.append(attribute)
+                else:
+                    response.append(None)
+            return response
+
+        products_loader = ProductByVariantIdLoader(self.context).load_many(variant_ids)
+        attributes_loader = AttributesBySlugLoader(self.context).load_many(
+            attribute_slugs
+        )
+        return Promise.all([products_loader, attributes_loader]).then(
+            with_attributes_and_products
+        )
+
+
+class AttributesByProductVariantIdAndSelectionAndLimitLoader(
+    DataLoader[tuple[VARIANT_ID, LIMIT, VARIANT_SELECTION], list[Attribute]]
+):
+    context_key = "attribute_ids_by_product_variant_id_and_limit"
+
+    def get_attribute_variant_qs(
+        self, product_type_ids: set[int]
+    ) -> QuerySet[AttributeVariant]:
+        return AttributeVariant.objects.using(self.database_connection_name).filter(
+            product_type__in=product_type_ids
+        )
+
+    def batch_load(self, keys: Iterable[tuple[VARIANT_ID, LIMIT, VARIANT_SELECTION]]):
+        @allow_writer_in_context(self.context)
+        def with_products(products: list[product_models.Product]):
+            # get attribute variants assigned to product type of the variants
+            variant_id_to_product_id_map = {
+                variant_id: product.id
+                for (variant_id, _, _), product in zip(keys, products, strict=False)
+            }
+            product_id_to_product_type_id_map = {
+                product.id: product.product_type_id for product in products
+            }
+            product_type_ids = set(product_id_to_product_type_id_map.values())
+            attribute_variants = self.get_attribute_variant_qs(
+                product_type_ids
+            ).values_list("attribute_id", "product_type_id", "variant_selection")
+
+            # create list of attribute ids to fetch for each variant. Use limit and
+            # selection to reduce the number of attributes to fetch
+            product_type_id_to_attribute_id_and_variant_selection = defaultdict(list)
+            for (
+                attribute_id,
+                attr_product_type_id,
+                variant_selection,
+            ) in attribute_variants:
+                product_type_id_to_attribute_id_and_variant_selection[
+                    attr_product_type_id
+                ].append((attribute_id, variant_selection))
+
+            attribute_ids = set()
+            for variant_id, limit, variant_selection in keys:
+                product_id = variant_id_to_product_id_map.get(variant_id)
+                if not product_id:
+                    continue
+                product_type_id = product_id_to_product_type_id_map.get(product_id)
+                if not product_type_id:
+                    continue
+                attribute_ids_and_selections: list[tuple[int, bool]] = (
+                    product_type_id_to_attribute_id_and_variant_selection.get(
+                        product_type_id, []
+                    )
+                )
+
+                attribute_ids_to_include = []
+                for attr_id, is_variant_selection in attribute_ids_and_selections:
+                    if (
+                        variant_selection is not None
+                        and variant_selection != is_variant_selection
+                    ):
+                        continue
+                    attribute_ids_to_include.append(attr_id)
+                attribute_ids.update(attribute_ids_to_include[:limit])
+
+            def get_attributes_for_variants(attributes: list[Attribute]):
+                attribute_map = {attr.id: attr for attr in attributes}
+
+                response = []
+                # loop over keys to build the response based on the variant_id, limit number and
+                # selection provided as an input
+                for variant_id, limit, variant_selection in keys:
+                    single_response_entry: list[Attribute] = []
+                    product_id = variant_id_to_product_id_map.get(variant_id)
+                    if not product_id:
+                        response.append(single_response_entry)
+                        continue
+                    product_type_id = product_id_to_product_type_id_map.get(product_id)
+                    if not product_type_id:
+                        response.append(single_response_entry)
+                        continue
+                    attribute_ids_and_selections: list[tuple[int, bool]] = (
+                        product_type_id_to_attribute_id_and_variant_selection.get(
+                            product_type_id, []
+                        )[:limit]
+                    )
+                    for (
+                        variant_attribute_id,
+                        attribute_selection,
+                    ) in attribute_ids_and_selections:
+                        if (
+                            variant_selection is not None
+                            and variant_selection != attribute_selection
+                        ):
+                            continue
+                        attribute = attribute_map.get(variant_attribute_id)
+                        if not attribute:
+                            continue
+                        single_response_entry.append(attribute)
+                    response.append(single_response_entry)
+                return response
+
+            return (
+                AttributesByAttributeId(self.context)
+                .load_many(attribute_ids)
+                .then(get_attributes_for_variants)
+            )
+
+        return (
+            ProductByVariantIdLoader(self.context)
+            .load_many([variant_id for variant_id, _, _ in keys])
+            .then(with_products)
+        )
+
+
+class AttributesVisibleToCustomerByProductVariantIdAndSelectionAndLimitLoader(
+    AttributesByProductVariantIdAndSelectionAndLimitLoader
+):
+    context_key = "attribute_ids_visible_to_customer_by_product_variant_id_and_limit"
+
+    def get_attribute_variant_qs(
+        self, product_type_ids: set[int]
+    ) -> QuerySet[AttributeVariant]:
+        return AttributeVariant.objects.using(self.database_connection_name).filter(
+            attribute__visible_in_storefront=True, product_type__in=product_type_ids
+        )
 
 
 class AttributeValuesByProductIdAndAttributeIdAndLimitLoader(

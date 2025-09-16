@@ -668,14 +668,14 @@ def get_attribute_values(
     if root.variant_id:
         return AttributeValuesByVariantIdAndAttributeIdAndLimitLoader(
             info.context
-        ).load((root.variant_id, root.attribute.node.id, limit))
+        ).load((root.variant_id, root.attribute.id, limit))
     if root.product_id:
         return AttributeValuesByProductIdAndAttributeIdAndLimitLoader(
             info.context
-        ).load((root.product_id, root.attribute.node.id, limit))
+        ).load((root.product_id, root.attribute.id, limit))
     if root.page_id:
         return AttributeValuesByPageIdAndAttributeIdAndLimitLoader(info.context).load(
-            (root.page_id, root.attribute.node.id, limit)
+            (root.page_id, root.attribute.id, limit)
         )
     return Promise.resolve([])
 
@@ -696,6 +696,12 @@ class SelectedAttribute(ChannelContextTypeForObjectType):
         description = "Represents an assigned attribute to an object."
 
     @staticmethod
+    def resolve_attribute(
+        root: AssignedAttributeData, _info: ResolveInfo
+    ) -> ChannelContext[models.Attribute]:
+        return ChannelContext(node=root.attribute, channel_slug=root.channel_slug)
+
+    @staticmethod
     def resolve_values(
         root: AssignedAttributeData, info: ResolveInfo
     ) -> Promise[list[ChannelContext[models.AttributeValue]]]:
@@ -705,7 +711,7 @@ class SelectedAttribute(ChannelContextTypeForObjectType):
             if not attribute_values:
                 return []
             return [
-                ChannelContext(node=value, channel_slug=root.attribute.channel_slug)
+                ChannelContext(node=value, channel_slug=root.channel_slug)
                 for value in attribute_values
             ]
 
@@ -728,14 +734,17 @@ class AssignedAttribute(BaseInterface):
 
     @staticmethod
     def resolve_type(instance: AssignedAttributeData, _info):
-        if instance.attribute.node.input_type == AttributeInputType.SINGLE_REFERENCE:
-            entity_type = cast(str, instance.attribute.node.entity_type)
+        if instance.attribute.input_type == AttributeInputType.SINGLE_REFERENCE:
+            entity_type = cast(str, instance.attribute.entity_type)
             return ASSIGNED_SINGLE_REFERENCE_MAP.get(entity_type)
-        if instance.attribute.node.input_type == AttributeInputType.REFERENCE:
-            entity_type = cast(str, instance.attribute.node.entity_type)
+        if instance.attribute.input_type == AttributeInputType.REFERENCE:
+            entity_type = cast(str, instance.attribute.entity_type)
             return ASSIGNED_MULTI_REFERENCE_MAP.get(entity_type)
-        attr_type = ASSIGNED_ATTRIBUTE_MAP[instance.attribute.node.input_type]
+        attr_type = ASSIGNED_ATTRIBUTE_MAP[instance.attribute.input_type]
         return attr_type
+
+    def resolve_attribute(root: AssignedAttributeData, _info: ResolveInfo):
+        return ChannelContext(node=root.attribute, channel_slug=root.channel_slug)
 
 
 class AssignedNumericAttribute(BaseObjectType):
@@ -925,7 +934,7 @@ class AssignedSinglePageReferenceAttribute(BaseObjectType):
             referenced_value = attribute_values[0]
             if not referenced_value.reference_page_id:
                 return None
-            channel_slug = root.attribute.channel_slug
+            channel_slug = root.channel_slug
             return (
                 PageByIdLoader(info.context)
                 .load(referenced_value.reference_page_id)
@@ -959,7 +968,7 @@ class AssignedSingleProductReferenceAttribute(BaseObjectType):
             referenced_value = attribute_values[0]
             if not referenced_value.reference_product_id:
                 return None
-            channel_slug = root.attribute.channel_slug
+            channel_slug = root.channel_slug
             return (
                 ProductByIdLoader(info.context)
                 .load(referenced_value.reference_product_id)
@@ -1000,7 +1009,7 @@ class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
             if not attr_value.reference_variant_id:
                 return None
 
-            channel_slug = root.attribute.channel_slug
+            channel_slug = root.channel_slug
             return (
                 ProductVariantByIdLoader(info.context)
                 .load(attr_value.reference_variant_id)
@@ -1069,7 +1078,7 @@ class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
             attr_value = attribute_values[0]
             if not attr_value.reference_collection_id:
                 return None
-            channel_slug = root.attribute.channel_slug
+            channel_slug = root.channel_slug
             return (
                 CollectionByIdLoader(info.context)
                 .load(attr_value.reference_collection_id)
@@ -1114,7 +1123,7 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
             if not pages:
                 return []
             return [
-                ChannelContext(node=page, channel_slug=root.attribute.channel_slug)
+                ChannelContext(node=page, channel_slug=root.channel_slug)
                 for page in pages
             ]
 
@@ -1168,7 +1177,7 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
             if not products:
                 return []
             return [
-                ChannelContext(node=product, channel_slug=root.attribute.channel_slug)
+                ChannelContext(node=product, channel_slug=root.channel_slug)
                 for product in products
             ]
 
@@ -1224,7 +1233,7 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
             if not variants:
                 return []
             return [
-                ChannelContext(node=variant, channel_slug=root.attribute.channel_slug)
+                ChannelContext(node=variant, channel_slug=root.channel_slug)
                 for variant in variants
             ]
 
@@ -1320,9 +1329,7 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
             if not collections:
                 return []
             return [
-                ChannelContext(
-                    node=collection, channel_slug=root.attribute.channel_slug
-                )
+                ChannelContext(node=collection, channel_slug=root.channel_slug)
                 for collection in collections
             ]
 
