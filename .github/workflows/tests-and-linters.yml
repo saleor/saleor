@@ -3,29 +3,23 @@ name: Tests & Linters
 on:
   pull_request:
     types: [ opened, synchronize, reopened ]
-    paths:
-      - "**.py"
-      - Dockerfile
-      - "saleor/**"
-      - .github/workflows/tests-and-linters.yml
-      - pyproject.toml
-      - uv.lock
   push:
     branches:
       - main
       - ci/*
-    paths:
-      - "**.py"
-      - Dockerfile
-      - "saleor/**"
-      - .github/workflows/tests-and-linters.yml
-      - pyproject.toml
-      - uv.lock
 
 env:
   BENCH_PATH: ./queries-results.json
   DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
   SECRET_KEY: ci-test
+  # File patterns that trigger tests and linters
+  RELEVANT_FILES: |
+    \.py$
+    ^Dockerfile$
+    ^saleor/
+    ^\.github/workflows/tests-and-linters\.yml$
+    ^pyproject\.toml$
+    ^uv\.lock$
 
 # Will group same workflow in the PR. Once new commit is pushed, old workflow will be cancelled
 # This is saving resources and prevents unnecessary queues when fresh jobs wait for stale ones
@@ -34,10 +28,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Check for relevant changes
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # For push events, check changes in the last commit
+            CHANGED_FILES=$(git diff --name-only HEAD~1)
+          else
+            # For pull requests, check changes against base branch
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }})
+          fi
+
+          echo "Changed files: $CHANGED_FILES"
+
+          # Build regex pattern from environment variable
+          PATTERNS=$(echo "$RELEVANT_FILES" | tr '\n' '|' | sed 's/|$//')
+          echo "Using patterns: $PATTERNS"
+
+          # Check if any relevant files changed
+          if echo "$CHANGED_FILES" | grep -E "$PATTERNS"; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "Relevant files changed - will run tests and linters"
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "No relevant files changed - will skip tests and linters"
+          fi
+        env:
+          RELEVANT_FILES: ${{ env.RELEVANT_FILES }}
+
   unit_tests:
     runs-on: ubuntu-latest
     container: python:3.12
     name: Run unit tests
+    needs: check_changes
 
     services:
       postgres:
@@ -52,21 +84,30 @@ jobs:
           --health-retries 5
 
     steps:
+      - name: Skip tests (no relevant changes)
+        if: needs.check_changes.outputs.should_run == 'false'
+        run: echo "No relevant files changed - skipping unit tests"
+
       - uses: actions/checkout@v5
+        if: needs.check_changes.outputs.should_run == 'true'
 
       - name: Install system dependencies
+        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           apt-get install -y libpq-dev
 
       - uses: astral-sh/setup-uv@4959332f0f014c5280e7eac8b70c90cb574c9f9b # v6.0.0
+        if: needs.check_changes.outputs.should_run == 'true'
         with:
           enable-cache: true
 
       - name: Install dependencies
+        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           uv sync --locked
 
       - name: Run unit tests
+        if: needs.check_changes.outputs.should_run == 'true'
         env:
           COVERAGE_CORE: sysmon
         run: |
@@ -80,21 +121,22 @@ jobs:
             -n logical
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }} # Run even if tests fail
+        if: ${{ !cancelled() && needs.check_changes.outputs.should_run == 'true' }} # Run even if tests fail
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       # Publish coverage and test results
       - uses: codecov/codecov-action@v5
+        if: needs.check_changes.outputs.should_run == 'true'
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - uses: actions/upload-artifact@v4
+        if: ${{ always() && needs.check_changes.outputs.should_run == 'true' }}
         with:
           name: pytest-results
           path: junit/test-results.xml
-        if: ${{ always() }}
 
       # Publish detected differences as comment
       - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
@@ -102,7 +144,7 @@ jobs:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
           diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
           diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
-        if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor'
+        if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor' && needs.check_changes.outputs.should_run == 'true'
 
       # Save results for future comparison against pull requests
       - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
@@ -110,29 +152,39 @@ jobs:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
           upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
           upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
-        if: github.event_name == 'push' && github.repository == 'saleor/saleor'
+        if: github.event_name == 'push' && github.repository == 'saleor/saleor' && needs.check_changes.outputs.should_run == 'true'
 
   linters:
     runs-on: ubuntu-latest
     container: python:3.12
     name: Run linters
+    needs: check_changes
 
     steps:
+      - name: Skip linters (no relevant changes)
+        if: needs.check_changes.outputs.should_run == 'false'
+        run: echo "No relevant files changed - skipping linters"
+
       - uses: actions/checkout@v5
+        if: needs.check_changes.outputs.should_run == 'true'
 
       - name: Install system dependencies
+        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           apt-get install -y libpq-dev
 
       - uses: astral-sh/setup-uv@4959332f0f014c5280e7eac8b70c90cb574c9f9b # v6.0.0
+        if: needs.check_changes.outputs.should_run == 'true'
         with:
           enable-cache: true
 
       - name: Install dependencies
+        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           uv sync --locked
 
       - uses: actions/cache@v4
+        if: needs.check_changes.outputs.should_run == 'true'
         with:
           path: ~/.cache/pre-commit
           key: ${{ runner.os }}-pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
@@ -142,7 +194,7 @@ jobs:
       # Run linters and Django related checks
       # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
       - name: Run Linters and Checks
+        if: needs.check_changes.outputs.should_run == 'true'
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           uv run pre-commit run --all --show-diff-on-failure
-        if: ${{ always() }}
