@@ -1,5 +1,8 @@
 from typing import TYPE_CHECKING, Optional
 
+from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
+
 from ...payment import models as payment_models
 
 if TYPE_CHECKING:
@@ -41,3 +44,52 @@ def check_if_requestor_has_access(
         if transaction.app_identifier and transaction.app_identifier == app.identifier:
             return True
     return False
+
+
+def validate_and_resolve_refund_reason_context(
+    *,
+    reason_reference_id: str | None,
+    requestor_is_user: bool,
+    refund_reference_field_name: str,
+    error_code_enum,
+):
+    settings = Site.objects.get_current().settings
+    refund_reason_reference_type = settings.refund_reason_reference_type
+
+    is_passing_reason_reference_required: bool = (
+        refund_reason_reference_type is not None
+    )
+
+    if not refund_reason_reference_type and reason_reference_id:
+        raise ValidationError(
+            {
+                refund_reference_field_name: ValidationError(
+                    "Reason reference type is not configured.",
+                    code=error_code_enum.INVALID.value,
+                )
+            }
+        ) from None
+
+    if (
+        is_passing_reason_reference_required
+        and reason_reference_id is None
+        and requestor_is_user
+    ):
+        raise ValidationError(
+            {
+                refund_reference_field_name: ValidationError(
+                    "Reason reference is required when refund reason reference type is configured.",
+                    code=error_code_enum.REQUIRED.value,
+                )
+            }
+        ) from None
+
+    should_apply = bool(
+        reason_reference_id is not None and refund_reason_reference_type
+    )
+
+    return {
+        "is_passing_reason_reference_required": is_passing_reason_reference_required,
+        "refund_reason_reference_type": refund_reason_reference_type,
+        "should_apply": should_apply,
+    }

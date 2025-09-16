@@ -922,6 +922,9 @@ class OrderGrantedRefund(models.Model):
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
     )
     reason = models.TextField(blank=True, default="")
+    reason_reference = models.ForeignKey(
+        "page.Page", related_name="+", on_delete=models.SET_NULL, null=True, blank=True
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,

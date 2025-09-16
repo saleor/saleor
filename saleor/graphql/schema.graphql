@@ -262,6 +262,11 @@ type Query {
   giftCardSettings: GiftCardSettings! @doc(category: "Gift cards")
 
   """
+  Refunds related settings. Returns `RefundSettings` configuration, global for the entire shop.
+  """
+  refundSettings: RefundSettings! @doc(category: "Shop")
+
+  """
   Look up a shipping zone by ID.
   
   Requires one of the following permissions: MANAGE_SHIPPING.
@@ -11072,6 +11077,20 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Added in Saleor 3.22.
   """
   paymentMethodDetails: PaymentMethodDetails
+
+  """
+  Reason of the refund.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  Reason `Page` (Model) for refund.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 }
 
 """
@@ -12388,8 +12407,19 @@ type OrderGrantedRefund @doc(category: "Orders") {
   """Refund amount."""
   amount: Money!
 
-  """Reason of the refund."""
+  """
+  Reason of the refund.
+  
+  Added in Saleor 3.22.
+  """
   reason: String
+
+  """
+  Reason Model (Page) reference for refund.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 
   """
   User who performed the action. Requires of of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
@@ -12471,6 +12501,13 @@ type TransactionEvent implements Node @doc(category: "Payments") {
 
   """Message related to the transaction's event."""
   message: String!
+
+  """
+  Reason model of the transaction refund.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
@@ -12858,6 +12895,16 @@ enum TimePeriodTypeEnum {
   WEEK
   MONTH
   YEAR
+}
+
+"""
+Refund related settings from site settings.
+
+Added in Saleor 3.22.
+"""
+type RefundSettings @doc(category: "Orders") {
+  """Model type used for refund reasons."""
+  reasonReferenceType: PageType
 }
 
 input ShippingZoneFilterInput @doc(category: "Shipping") {
@@ -15333,6 +15380,27 @@ type Mutation {
   ): GiftCardSettingsUpdate @doc(category: "Gift cards")
 
   """
+  Update refund settings across all channels.
+  
+  Added in Saleor 3.22. 
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  refundSettingsUpdate(
+    """Fields required to update refund settings."""
+    input: RefundSettingsUpdateInput!
+  ): RefundSettingsUpdate @doc(category: "Shop")
+
+  """
+  Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer accepted and will raise error.
+  
+  Added in Saleor 3.22. 
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  refundReasonReferenceClear: RefundReasonReferenceTypeClear @doc(category: "Orders")
+
+  """
   Manage shipping method's availability in channels. 
   
   Requires one of the following permissions: MANAGE_SHIPPING.
@@ -16341,6 +16409,20 @@ type Mutation {
 
     """The ID of the transaction. One of field id or token is required."""
     id: ID
+
+    """
+    Reason of the refund
+    
+    Added in Saleor 3.22.
+    """
+    refundReason: String
+
+    """
+    ID of a `Page` (Model) to reference in reason.
+    
+    Added in Saleor 3.22.
+    """
+    refundReasonReference: ID
 
     """The token of the transaction. One of field id or token is required."""
     token: UUID
@@ -20739,6 +20821,75 @@ input TimePeriodInputType {
 }
 
 """
+Update refund settings across all channels.
+
+Added in Saleor 3.22. 
+
+Requires one of the following permissions: MANAGE_SETTINGS.
+"""
+type RefundSettingsUpdate @doc(category: "Shop") {
+  """Refund settings."""
+  refundSettings: RefundSettings!
+  refundSettingsErrors: [RefundSettingsUpdateError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [RefundSettingsUpdateError!]!
+}
+
+type RefundSettingsUpdateError @doc(category: "Shop") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """Failed to update Refund Settings"""
+  code: RefundSettingsErrorCode!
+}
+
+enum RefundSettingsErrorCode @doc(category: "Shop") {
+  INVALID
+  REQUIRED
+  GRAPHQL_ERROR
+}
+
+input RefundSettingsUpdateInput @doc(category: "Shop") {
+  """
+  The ID of a model type, that will be used to reference refund reasons. All models with of this type will be accepted as refund reasons. 
+  
+  Added in Saleor 3.22.
+  """
+  refundReasonReferenceType: ID!
+}
+
+"""
+Updates RefundSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to refund mutations is no longer accepted and will raise error.
+
+Added in Saleor 3.22. 
+
+Requires one of the following permissions: MANAGE_SETTINGS.
+"""
+type RefundReasonReferenceTypeClear @doc(category: "Orders") {
+  """Refund settings."""
+  refundSettings: RefundSettings!
+  refundSettingsErrors: [RefundReasonReferenceTypeClearError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [RefundReasonReferenceTypeClearError!]!
+}
+
+type RefundReasonReferenceTypeClearError @doc(category: "Shop") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """Failed to clear refund reason reference type"""
+  code: RefundSettingsErrorCode!
+}
+
+"""
 Manage shipping method's availability in channels. 
 
 Requires one of the following permissions: MANAGE_SHIPPING.
@@ -23578,6 +23729,7 @@ type TransactionRequestActionError @doc(category: "Payments") {
 
 enum TransactionRequestActionErrorCode @doc(category: "Payments") {
   INVALID
+  REQUIRED
   GRAPHQL_ERROR
   NOT_FOUND
   MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
@@ -24902,6 +25054,13 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   """Reason of the granted refund."""
   reason: String
 
+  """
+  ID of a `Page` (Model) to reference in reason.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
+
   """Lines to assign to granted refund."""
   lines: [OrderGrantRefundCreateLineInput!]
 
@@ -25001,6 +25160,13 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
 
   """Reason of the granted refund."""
   reason: String
+
+  """
+  ID of a `Page` (Model) to reference in reason.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 
   """Lines to assign to granted refund."""
   addLines: [OrderGrantRefundUpdateLineAddInput!]
@@ -34964,7 +35130,7 @@ type AssignedMultiCollectionReferenceAttribute implements AssignedAttribute @doc
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order | PageType
+union _Entity = App | PageType | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order
 
 """_Service manifest as defined by Federation spec."""
 type _Service {
