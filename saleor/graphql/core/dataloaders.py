@@ -10,7 +10,6 @@ from ...core.telemetry import saleor_attributes, tracer
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
-from .const import DEFAULT_NESTED_LIST_LIMIT
 from .context import get_database_connection_name
 
 K = TypeVar("K")
@@ -77,20 +76,20 @@ class DataLoader[K, R](BaseLoader):
         raise NotImplementedError()
 
 
-class DataLoaderWithLimit(DataLoader[K, R]):
-    """Data loader base class that support a limit on the number of items returned."""
+# class DataLoaderWithLimit(DataLoader[K, R]):
+#     """Data loader base class that support a limit on the number of items returned."""
 
-    def __new__(cls, context: SaleorContext, limit: int = DEFAULT_NESTED_LIST_LIMIT):
-        loader = super().__new__(cls, context)
-        loader.limit = limit
-        return loader
+#     def __new__(cls, context: SaleorContext, limit: int = DEFAULT_NESTED_LIST_LIMIT):
+#         loader = super().__new__(cls, context)
+#         loader.limit = limit
+#         return loader
 
-    def __init__(
-        self, context: SaleorContext, limit: int = DEFAULT_NESTED_LIST_LIMIT
-    ) -> None:
-        if getattr(self, "limit", None) != limit:
-            self.limit = limit
-        super().__init__(context=context)
+#     def __init__(
+#         self, context: SaleorContext, limit: int = DEFAULT_NESTED_LIST_LIMIT
+#     ) -> None:
+#         if getattr(self, "limit", None) != limit:
+#             self.limit = limit
+#         super().__init__(context=context)
 
 
 class BaseThumbnailBySizeAndFormatLoader(
