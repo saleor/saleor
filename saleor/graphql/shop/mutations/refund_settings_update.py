@@ -61,6 +61,6 @@ class RefundSettingsUpdate(BaseMutation):
 
             settings.refund_reason_reference_type = model_type  # type: ignore[assignment]
 
-        settings.save(update_fields=["refund_reason_reference_type"])
+            settings.save(update_fields=["refund_reason_reference_type"])
 
         return RefundSettingsUpdate(refund_settings=settings)
