@@ -1215,3 +1215,81 @@ def test_get_attribute_by_external_reference(
     data = content["data"]["attribute"]
     assert data["externalReference"] == ext_ref
     assert data["id"] == graphene.Node.to_global_id("Attribute", attribute.id)
+
+
+QUERY_ATTRIBUTE_TWO_LIMITS = """
+    query($id: ID, $limit1: PositiveInt, $limit2: PositiveInt) {
+        limit1: attribute(id: $id) {
+            id
+            name
+            slug
+            referenceTypes(limit: $limit1) {
+                ... on ProductType {
+                    id
+                    name
+                }
+                ... on PageType {
+                    id
+                    name
+                }
+            }
+        }
+        limit2: attribute(id: $id) {
+            id
+            name
+            slug
+            referenceTypes(limit: $limit2) {
+                ... on ProductType {
+                    id
+                    name
+                }
+                ... on PageType {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_get_reference_product_attribute_with_reference_types_and_different_limits(
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    product_type_with_variant_attributes,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute = product_type_product_reference_attribute
+    reference_product_types = [product_type, product_type_with_product_attributes]
+    attribute.reference_product_types.add(*reference_product_types)
+
+    query = QUERY_ATTRIBUTE_TWO_LIMITS
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    limit1 = 1
+    limit2 = 2
+    variables = {"id": attribute_id, "limit1": limit1, "limit2": limit2}
+
+    # when
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # then
+    attribute_data = content["data"]
+    limit1_data = attribute_data["limit1"]
+    limit2_data = attribute_data["limit2"]
+
+    assert limit1_data["id"] == attribute_id
+    assert limit1_data["slug"] == attribute.slug
+
+    reference_types = limit1_data["referenceTypes"]
+    assert len(reference_types) == limit1
+
+    assert limit2_data["id"] == attribute_id
+    assert limit2_data["slug"] == attribute.slug
+
+    reference_types = limit2_data["referenceTypes"]
+    assert len(reference_types) == limit2

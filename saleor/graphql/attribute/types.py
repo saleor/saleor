@@ -60,10 +60,12 @@ from ..translations.dataloaders import (
 )
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import (
+from .dataloaders.attributes import (
+    AttributesByAttributeId,
+)
+from .dataloaders.reference_types import (
     AttributeReferencePageTypesByAttributeIdAndLimitLoader,
     AttributeReferenceProductTypesByAttributeIdAndLimitLoader,
-    AttributesByAttributeId,
 )
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
