@@ -392,8 +392,8 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         if should_apply:
             reason_reference_instance = cls._resolve_refund_reason_instance(
-                reason_reference_id,
-                refund_reason_reference_type,  # type: ignore[arg-type]
+                str(reason_reference_id),
+                refund_reason_reference_type.pk,
             )
 
         cleaned_input = {

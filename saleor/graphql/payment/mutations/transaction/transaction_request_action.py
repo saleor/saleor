@@ -227,7 +227,7 @@ class TransactionRequestAction(BaseMutation):
                 )
 
                 reason_reference_instance = Page.objects.get(
-                    pk=reason_reference_pk, page_type=refund_reason_reference_type
+                    pk=reason_reference_pk, page_type=refund_reason_reference_type.pk
                 )
 
             except (Page.DoesNotExist, ValueError):

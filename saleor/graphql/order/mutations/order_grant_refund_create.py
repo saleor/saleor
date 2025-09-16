@@ -305,7 +305,7 @@ class OrderGrantRefundCreate(BaseMutation):
 
         if should_apply:
             reason_reference_instance = cls._resolve_refund_reason_instance(
-                str(reason_reference_id), str(refund_reason_reference_type)
+                str(reason_reference_id), refund_reason_reference_type.pk
             )
 
         return {
