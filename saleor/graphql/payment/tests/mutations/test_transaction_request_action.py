@@ -1352,7 +1352,7 @@ def test_transaction_request_refund_with_reason_reference_required_created_by_us
     )
 
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     transaction_request_webhook.events.create(
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
@@ -1412,7 +1412,7 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
 
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     transaction_request_webhook.events.create(
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
@@ -1468,7 +1468,7 @@ def test_transaction_request_refund_with_reason_reference_required_but_not_provi
 
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     transaction_request_webhook.events.create(
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
@@ -1585,7 +1585,7 @@ def test_transaction_request_refund_with_reason_reference_required_created_by_us
 
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     transaction_request_webhook.events.create(
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
@@ -1710,7 +1710,7 @@ def test_transaction_request_charge_rejects_reason_and_reference(
     )
 
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     transaction_request_webhook.events.create(
         event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
@@ -1858,7 +1858,7 @@ def test_transaction_request_refund_with_reason_reference_not_valid_page_id(
 
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     transaction_request_webhook.events.create(
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
@@ -1920,7 +1920,7 @@ def test_transaction_request_refund_with_reason_reference_not_valid_id_format(
 
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     transaction_request_webhook.events.create(
         event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED

@@ -737,7 +737,7 @@ def test_grant_refund_update_with_same_line_in_add_and_remove(
     )
     last_order_line = order_with_lines.lines.last()
     last_order_line.quantity = 2
-    last_order_line.save()
+    last_order_line.save(update_fields=["quantity"])
     granted_refund_line_to_remove = granted_refund.lines.create(
         order_line=last_order_line, quantity=1
     )
@@ -2332,7 +2332,7 @@ def test_grant_refund_update_with_reference_required_by_user(
     )
 
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
@@ -2400,7 +2400,7 @@ def test_grant_refund_update_with_reference_required_but_not_provided_by_user(
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
@@ -2459,7 +2459,7 @@ def test_grant_refund_update_with_reference_required_but_not_provided_by_app(
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
@@ -2648,7 +2648,7 @@ def test_grant_refund_update_with_reference_required_by_user_throws_for_invalid_
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     current_reason = "Original reason"
     current_amount = Decimal("10.00")
@@ -2776,7 +2776,7 @@ def test_grant_refund_update_with_reason_reference_not_valid_page_id(
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     current_reason = "Original reason."
     current_amount = Decimal("10.00")
@@ -2838,7 +2838,7 @@ def test_grant_refund_update_with_reason_reference_not_valid_id(
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     current_reason = "Original reason."
     current_amount = Decimal("10.00")

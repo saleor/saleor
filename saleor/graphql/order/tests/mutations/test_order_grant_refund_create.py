@@ -1173,7 +1173,7 @@ def test_grant_refund_with_reference_required_created_by_user(
     )
 
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     order_id = to_global_id_or_none(order)
     page_id = to_global_id_or_none(page)
@@ -1230,7 +1230,7 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_user(
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     order_id = to_global_id_or_none(order)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -1277,7 +1277,7 @@ def test_grant_refund_with_reference_required_but_not_provided_created_by_app(
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     order_id = to_global_id_or_none(order)
     app_api_client.app.permissions.set([permission_manage_orders])
@@ -1437,7 +1437,7 @@ def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     order_id = to_global_id_or_none(order)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -1546,7 +1546,7 @@ def test_grant_refund_with_reason_reference_not_valid_page_id(
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     order_id = to_global_id_or_none(order)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -1597,7 +1597,7 @@ def test_grant_refund_with_reason_reference_not_valid_id_created_by_user(
     # Given
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
+    site_settings.save(update_fields=["refund_reason_reference_type"])
 
     order_id = to_global_id_or_none(order)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
