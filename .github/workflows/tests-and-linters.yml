@@ -84,13 +84,9 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Skip tests (no relevant changes)
-        if: needs.check_changes.outputs.should_run == 'false'
-        run: echo "No relevant files changed - skipping unit tests"
-
       - name: Early return if no changes
         if: needs.check_changes.outputs.should_run == 'false'
-        run: exit 0
+        run: echo "No relevant files changed - skipping unit tests" && exit 0
 
       - uses: actions/checkout@v5
 

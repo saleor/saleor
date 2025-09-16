@@ -76,13 +76,11 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Skip E2E tests (no relevant changes)
-        if: github.event_name == 'pull_request' && needs.check_changes.outputs.should_run == 'false'
-        run: echo "No relevant files changed - skipping E2E tests"
+
 
       - name: Early return if no changes
         if: github.event_name == 'pull_request' && needs.check_changes.outputs.should_run == 'false'
-        run: exit 0
+        run: echo "No relevant files changed - skipping E2E tests" && exit 0
 
       - uses: actions/checkout@v5
 
