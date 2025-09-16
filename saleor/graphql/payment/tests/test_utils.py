@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 from django.core.exceptions import ValidationError
 
@@ -8,17 +6,13 @@ from ....payment.error_codes import (
     TransactionRequestActionErrorCode,
     TransactionRequestRefundForGrantedRefundErrorCode,
 )
-from ....site.models import SiteSettings
 from ..utils import validate_and_resolve_refund_reason_context
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
-def test_no_reference_type_configured_no_reference_id_provided(mock_get_current):
+def test_no_reference_type_configured_no_reference_id_provided(site_settings):
     # Given
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = None
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
+    site_settings.refund_reason_reference_type = None
+    site_settings.save()
 
     # When
     result = validate_and_resolve_refund_reason_context(
@@ -36,15 +30,12 @@ def test_no_reference_type_configured_no_reference_id_provided(mock_get_current)
     }
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
 def test_no_reference_type_configured_reference_id_provided_raises_invalid(
-    mock_get_current,
+    site_settings,
 ):
     # Given
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = None
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
+    site_settings.refund_reason_reference_type = None
+    site_settings.save()
 
     # When / Then
     with pytest.raises(ValidationError) as exc_info:
@@ -66,16 +57,14 @@ def test_no_reference_type_configured_reference_id_provided_raises_invalid(
     )
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
 def test_reference_type_configured_no_reference_id_user_requestor_raises_required(
-    mock_get_current,
+    site_settings,
 ):
     # Given
     page_type = PageType(name="Refund Reasons", slug="refund-reasons")
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = page_type
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
+    page_type.save()
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
 
     # When / Then
     with pytest.raises(ValidationError) as exc_info:
@@ -95,17 +84,15 @@ def test_reference_type_configured_no_reference_id_user_requestor_raises_require
     assert "Reason reference is required" in str(error_dict["refundReasonReference"][0])
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
 def test_reference_type_configured_no_reference_id_app_requestor_success(
-    mock_get_current,
+    site_settings,
 ):
     """Test when reference type is configured, no reference ID provided, but requestor is app - should succeed."""
     # Given
     page_type = PageType(name="Refund Reasons", slug="refund-reasons")
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = page_type
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
+    page_type.save()
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
 
     # When
     result = validate_and_resolve_refund_reason_context(
@@ -123,15 +110,13 @@ def test_reference_type_configured_no_reference_id_app_requestor_success(
     }
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
-def test_reference_type_configured_reference_id_provided_success(mock_get_current):
+def test_reference_type_configured_reference_id_provided_success(site_settings):
     """Test when reference type is configured and reference ID is provided - should succeed."""
     # Given
     page_type = PageType(name="Refund Reasons", slug="refund-reasons")
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = page_type
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
+    page_type.save()
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
 
     # When
     result = validate_and_resolve_refund_reason_context(
@@ -149,17 +134,15 @@ def test_reference_type_configured_reference_id_provided_success(mock_get_curren
     }
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
 def test_reference_type_configured_reference_id_provided_app_requestor_success(
-    mock_get_current,
+    site_settings,
 ):
     """Test when reference type is configured, reference ID is provided, and requestor is app - should succeed."""
     # Given
     page_type = PageType(name="Refund Reasons", slug="refund-reasons")
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = page_type
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
+    page_type.save()
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
 
     # When
     result = validate_and_resolve_refund_reason_context(
@@ -177,13 +160,10 @@ def test_reference_type_configured_reference_id_provided_app_requestor_success(
     }
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
-def test_custom_field_name_in_error_message(mock_get_current):
+def test_custom_field_name_in_error_message(site_settings):
     # Given
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = None
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
+    site_settings.refund_reason_reference_type = None
+    site_settings.save()
     custom_field_name = "customReasonReference"
 
     # When / Then
@@ -203,14 +183,12 @@ def test_custom_field_name_in_error_message(mock_get_current):
     )
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
-def test_custom_field_name_in_required_error_message(mock_get_current):
+def test_custom_field_name_in_required_error_message(site_settings):
     # Given
     page_type = PageType(name="Refund Reasons", slug="refund-reasons")
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = page_type
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
+    page_type.save()
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
     custom_field_name = "customReasonReference"
 
     # When / Then
@@ -230,14 +208,11 @@ def test_custom_field_name_in_required_error_message(mock_get_current):
     )
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
-def test_different_error_code_enum(mock_get_current):
+def test_different_error_code_enum(site_settings):
     """Test that the function works with different error code enums."""
     # Given
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = None
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
+    site_settings.refund_reason_reference_type = None
+    site_settings.save()
 
     # When / Then
     with pytest.raises(ValidationError) as exc_info:
@@ -256,16 +231,12 @@ def test_different_error_code_enum(mock_get_current):
     )
 
 
-@patch("saleor.graphql.payment.utils.Site.objects.get_current")
-def test_is_passing_reason_reference_required_logic(mock_get_current):
-    page_type = PageType(name="Refund Reasons", slug="refund-reasons")
+def test_is_passing_reason_reference_required_when_no_reference_type(site_settings):
+    # Given: No reference type configured
+    site_settings.refund_reason_reference_type = None
+    site_settings.save()
 
-    # Case 1: No reference type configured
-    mock_settings = SiteSettings()
-    mock_settings.refund_reason_reference_type = None
-    mock_site = type("Site", (), {"settings": mock_settings})()
-    mock_get_current.return_value = mock_site
-
+    # When
     result = validate_and_resolve_refund_reason_context(
         reason_reference_id=None,
         requestor_is_user=False,
@@ -273,11 +244,20 @@ def test_is_passing_reason_reference_required_logic(mock_get_current):
         error_code_enum=TransactionRequestActionErrorCode,
     )
 
+    # Then
     assert result["is_passing_reason_reference_required"] is False
 
-    # Case 2: Reference type configured
-    mock_settings.refund_reason_reference_type = page_type
 
+def test_is_passing_reason_reference_required_when_reference_type_configured(
+    site_settings,
+):
+    # Given: Reference type configured
+    page_type = PageType(name="Refund Reasons", slug="refund-reasons")
+    page_type.save()
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save()
+
+    # When
     result = validate_and_resolve_refund_reason_context(
         reason_reference_id=None,
         requestor_is_user=False,
@@ -285,4 +265,5 @@ def test_is_passing_reason_reference_required_logic(mock_get_current):
         error_code_enum=TransactionRequestActionErrorCode,
     )
 
+    # Then
     assert result["is_passing_reason_reference_required"] is True
