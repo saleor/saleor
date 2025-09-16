@@ -1687,7 +1687,7 @@ def test_transaction_request_refund_with_reason_only_no_reference(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
-def test_transaction_request_charge_ignores_reason_and_reference(
+def test_transaction_request_charge_rejects_reason_and_reference(
     mocked_payment_action_request,
     mocked_is_active,
     checkout,
@@ -1725,7 +1725,7 @@ def test_transaction_request_charge_ignores_reason_and_reference(
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,
-        "refund_reason": "Some reason that should be ignored",
+        "refund_reason": "Some reason that should be rejected",
         "refund_reason_reference": page_id,
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
@@ -1740,17 +1740,37 @@ def test_transaction_request_charge_ignores_reason_and_reference(
     content = get_graphql_content(response)
     data = content["data"]["transactionRequestAction"]
     errors = data["errors"]
-    assert not errors
+    assert len(errors) == 2
 
+    # Check that both refund_reason and refund_reason_reference errors are present
+    error_fields = [error["field"] for error in errors]
+    assert "refundReason" in error_fields
+    assert "refundReasonReference" in error_fields
+
+    # Check error codes
+    for error in errors:
+        assert error["code"] == TransactionRequestActionErrorCode.INVALID.name
+
+    # Check error messages
+    reason_error = next(error for error in errors if error["field"] == "refundReason")
+    reference_error = next(
+        error for error in errors if error["field"] == "refundReasonReference"
+    )
+
+    assert "Reason can be set only for REFUND action" in reason_error["message"]
+    assert (
+        "Reason reference can be set only for REFUND action"
+        in reference_error["message"]
+    )
+
+    # No transaction event should be created since validation failed
     request_event = TransactionEvent.objects.filter(
         type=TransactionEventType.CHARGE_REQUEST,
     ).first()
+    assert request_event is None
 
-    assert request_event
-    assert request_event.user == staff_api_client.user
-    # For charge actions, reason and reason_reference should not be set
-    assert request_event.message is None
-    assert request_event.reason_reference is None
+    # Payment action should not be called
+    assert not mocked_payment_action_request.called
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")

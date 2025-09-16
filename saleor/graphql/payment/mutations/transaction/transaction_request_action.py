@@ -173,10 +173,11 @@ class TransactionRequestAction(BaseMutation):
             reason_reference=reason_reference_to_set,
         )
 
-    def _validate_reason_and_event(input: dict[str, Any]):
+    @classmethod
+    def _validate_reason_and_event(cls, input: dict[str, Any]):
         action_type = input["action_type"]
-        reason = input.get("reason")
-        reason_reference_id = input.get("reason_reference")
+        reason = input.get("refund_reason")
+        reason_reference_id = input.get("refund_reason_reference")
 
         reason_exists = reason or reason_reference_id
 
@@ -184,13 +185,13 @@ class TransactionRequestAction(BaseMutation):
             errors = {}
 
             if reason:
-                errors["reason"] = ValidationError(
+                errors["refund_reason"] = ValidationError(
                     f"Reason can be set only for {TransactionActionEnum.REFUND.name} action.",
                     code=TransactionRequestActionErrorCode.INVALID.value,
                 )
 
             if reason_reference_id:
-                errors["reason_reference"] = ValidationError(
+                errors["refund_reason_reference"] = ValidationError(
                     f"Reason reference can be set only for {TransactionActionEnum.REFUND.name} action.",
                     code=TransactionRequestActionErrorCode.INVALID.value,
                 )
