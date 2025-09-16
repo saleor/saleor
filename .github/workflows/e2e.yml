@@ -7,23 +7,61 @@ on:
     - cron: "00 2 * * 1,3,5"
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - "**.py"
-      - Dockerfile
-      - "saleor/**"
-      - ".github/workflows/e2e.yml"
-      - pyproject.toml
-      - uv.lock
 
 env:
   DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
   SECRET_KEY: ci-test
+  # File patterns that trigger E2E tests
+  RELEVANT_FILES: |
+    \.py$
+    ^Dockerfile$
+    ^saleor/
+    ^\.github/workflows/e2e\.yml$
+    ^pyproject\.toml$
+    ^uv\.lock$
 
 jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    # Skip change detection for scheduled runs and manual workflow_dispatch
+    if: github.event_name == 'pull_request'
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Check for relevant changes
+        id: changes
+        run: |
+          # For pull requests, check changes against base branch
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }})
+
+          echo "Changed files: $CHANGED_FILES"
+
+          # Build regex pattern from environment variable
+          PATTERNS=$(echo "$RELEVANT_FILES" | tr '\n' '|' | sed 's/|$//')
+          echo "Using patterns: $PATTERNS"
+
+          # Check if any relevant files changed
+          if echo "$CHANGED_FILES" | grep -E "$PATTERNS"; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "Relevant files changed - will run E2E tests"
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "No relevant files changed - will skip E2E tests"
+          fi
+        env:
+          RELEVANT_FILES: ${{ env.RELEVANT_FILES }}
+
   e2e-tests:
     runs-on: ubuntu-22.04
     container: python:3.12
     name: Run E2E tests
+    needs: [check_changes]
+    # Always run for scheduled/manual runs, conditionally run for PRs
+    if: always() && (github.event_name != 'pull_request' || needs.check_changes.result != 'skipped')
 
     services:
       postgres:
@@ -38,6 +76,14 @@ jobs:
           --health-retries 5
 
     steps:
+      - name: Skip E2E tests (no relevant changes)
+        if: github.event_name == 'pull_request' && needs.check_changes.outputs.should_run == 'false'
+        run: echo "No relevant files changed - skipping E2E tests"
+
+      - name: Early return if no changes
+        if: github.event_name == 'pull_request' && needs.check_changes.outputs.should_run == 'false'
+        run: exit 0
+
       - uses: actions/checkout@v5
 
       - name: Install system dependencies
