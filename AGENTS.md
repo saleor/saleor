@@ -1,4 +1,4 @@
-# AGENTS.md
+# Saleor
 
 # Testing
 
