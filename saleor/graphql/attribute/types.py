@@ -60,10 +60,12 @@ from ..translations.dataloaders import (
 )
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import (
-    AttributeReferencePageTypesByAttributeIdLoader,
-    AttributeReferenceProductTypesByAttributeIdLoader,
+from .dataloaders.attributes import (
     AttributesByAttributeId,
+)
+from .dataloaders.reference_types import (
+    AttributeReferencePageTypesByAttributeIdAndLimitLoader,
+    AttributeReferenceProductTypesByAttributeIdAndLimitLoader,
 )
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
@@ -418,13 +420,13 @@ class Attribute(ChannelContextType[models.Attribute]):
             AttributeEntityTypeEnum.PRODUCT.value,
             AttributeEntityTypeEnum.PRODUCT_VARIANT.value,
         ]:
-            return AttributeReferenceProductTypesByAttributeIdLoader(
-                info.context, limit=limit
-            ).load(attr.id)
+            return AttributeReferenceProductTypesByAttributeIdAndLimitLoader(
+                info.context
+            ).load((attr.id, limit))
         if attr.entity_type == AttributeEntityTypeEnum.PAGE.value:
-            return AttributeReferencePageTypesByAttributeIdLoader(
-                info.context, limit=limit
-            ).load(attr.id)
+            return AttributeReferencePageTypesByAttributeIdAndLimitLoader(
+                info.context
+            ).load((attr.id, limit))
         return []
 
     @staticmethod

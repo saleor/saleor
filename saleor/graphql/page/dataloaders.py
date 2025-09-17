@@ -5,7 +5,7 @@ from promise import Promise
 
 from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributePage
 from ...page.models import Page, PageType
-from ..attribute.dataloaders import (
+from ..attribute.dataloaders.attributes import (
     AttributesByAttributeId,
     AttributesBySlugLoader,
     AttributeValueByIdLoader,
