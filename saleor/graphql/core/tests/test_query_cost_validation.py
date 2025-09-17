@@ -3,6 +3,7 @@ import pytest
 from django.test import override_settings
 
 from ...query_cost_map import COST_MAP
+from ..const import DEFAULT_NESTED_LIST_LIMIT
 
 
 @override_settings(GRAPHQL_QUERY_MAX_COMPLEXITY=1)
@@ -468,3 +469,82 @@ def test_query_cost_for_spread_and_inline_fragments_on_interface(api_client):
         + assigned_attributes_limit * assigned_multi_category_limit
     )
     assert query_cost == expected_cost
+
+
+ATTRIBUTE_QUERY_WITH_LIMIT = """
+query($limit: PositiveInt) {
+  attributes(first:100) {
+    edges {
+      node {
+        id
+        name
+        referenceTypes(limit: $limit) {
+          ... on ProductType{
+            id
+            slug
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_query_with_empty_not_required_limit_argument(
+    api_client,
+    product_type_product_single_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    product_type_variant_single_reference_attribute,
+):
+    # given
+    product_type_product_single_reference_attribute.reference_product_types.add(
+        product_type, product_type_with_product_attributes
+    )
+    product_type_variant_single_reference_attribute.reference_product_types.add(
+        product_type
+    )
+
+    variables = {"limit": None}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTE_QUERY_WITH_LIMIT, variables)
+    json_response = response.json()
+
+    # then
+    assert "errors" not in json_response
+    assert json_response["data"]["attributes"]["edges"]
+    query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
+    assert (
+        query_cost == 100 * 1 + 100 * DEFAULT_NESTED_LIST_LIMIT
+    )  # 100 attributes + 100 product types (limit value) per attribute
+
+
+def test_query_with_not_required_limit_argument_not_provided(
+    api_client,
+    product_type_product_single_reference_attribute,
+    product_type,
+    product_type_with_product_attributes,
+    product_type_variant_single_reference_attribute,
+):
+    # given
+    product_type_product_single_reference_attribute.reference_product_types.add(
+        product_type, product_type_with_product_attributes
+    )
+    product_type_variant_single_reference_attribute.reference_product_types.add(
+        product_type
+    )
+    variables = {}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTE_QUERY_WITH_LIMIT, variables)
+    json_response = response.json()
+
+    # then
+    assert "errors" not in json_response
+    assert json_response["data"]["attributes"]["edges"]
+    query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
+    assert (
+        query_cost == 100 * 1 + 100 * DEFAULT_NESTED_LIST_LIMIT
+    )  # 100 attributes + 100 product types (limit value) per attribute

@@ -3,7 +3,7 @@ from .collection import create_collection
 from .collection_add_products import add_product_to_collection
 from .collection_listing_update import create_collection_channel_listing
 from .digital_content import create_digital_content
-from .product import create_product
+from .product import create_product, raw_create_product
 from .product_attribute_assignment_update import (
     update_product_type_assignment_attribute,
 )
@@ -33,6 +33,7 @@ __all__ = [
     "create_product_variant",
     "raw_create_product_variant",
     "create_product",
+    "raw_create_product",
     "raw_create_product_channel_listing",
     "create_variants_in_bulk",
     "update_product_type_assignment_attribute",

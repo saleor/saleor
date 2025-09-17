@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from ...attribute.models import Attribute, AttributePage
 from ...page.models import Page, PageType
-from ..attribute.dataloaders import (
+from ..attribute.dataloaders.attributes import (
     AttributesByAttributeId,
 )
 from ..core.dataloaders import DataLoader

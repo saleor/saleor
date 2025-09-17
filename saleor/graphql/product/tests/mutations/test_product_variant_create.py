@@ -1520,6 +1520,156 @@ def test_create_variant_with_collection_reference_attribute(
     created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
+def test_create_variant_with_reference_attributes_and_reference_types_defined(
+    staff_api_client,
+    product,
+    product_type,
+    product_type_page_reference_attribute,
+    product_type_product_reference_attribute,
+    product_type_variant_reference_attribute,
+    page,
+    permission_manage_products,
+    warehouse,
+    variant,
+):
+    # given
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(
+        product_type_page_reference_attribute,
+        product_type_product_reference_attribute,
+        product_type_variant_reference_attribute,
+    )
+
+    product_type_page_reference_attribute.reference_page_types.add(page.page_type)
+    product_type_product_reference_attribute.reference_product_types.add(
+        product.product_type
+    )
+    product_type_variant_reference_attribute.reference_product_types.add(
+        variant.product.product_type
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.id
+    )
+    variant_ref = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    page_ref = graphene.Node.to_global_id("Page", page.pk)
+    product_ref = graphene.Node.to_global_id("Product", product.pk)
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "input": {
+            "product": product_id,
+            "sku": sku,
+            "stocks": stocks,
+            "attributes": [
+                {"id": page_ref_attr_id, "references": [page_ref]},
+                {"id": product_ref_attr_id, "references": [product_ref]},
+                {"id": variant_ref_attr_id, "references": [variant_ref]},
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+
+    assert not content["errors"]
+    data = content["productVariant"]
+    assert data["sku"] == sku
+    variant_id = data["id"]
+    _, variant_pk = graphene.Node.from_global_id(variant_id)
+    assert len(data["attributes"]) == len(variables["input"]["attributes"])
+    expected_attributes_data = [
+        {
+            "attribute": {"slug": product_type_page_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{variant_pk}_{page.id}",
+                    "file": None,
+                    "richText": None,
+                    "plainText": None,
+                    "reference": page_ref,
+                    "name": page.title,
+                    "boolean": None,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+        {
+            "attribute": {"slug": product_type_product_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{variant_pk}_{product.id}",
+                    "file": None,
+                    "richText": None,
+                    "plainText": None,
+                    "reference": product_ref,
+                    "name": product.name,
+                    "boolean": None,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+        {
+            "attribute": {"slug": product_type_variant_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{variant_pk}_{variant.id}",
+                    "file": None,
+                    "richText": None,
+                    "plainText": None,
+                    "reference": variant_ref,
+                    "name": f"{variant.product.name}: {variant.name}",
+                    "boolean": None,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+    ]
+    for attr_data in data["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    assigned_attributes = data["assignedAttributes"]
+    expected_page_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_page_reference_attribute.slug},
+        "pages": [{"slug": page.slug}],
+    }
+    assert expected_page_ref_assigned_attribute in assigned_attributes
+    expected_product_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_product_reference_attribute.slug},
+        "products": [{"slug": product.slug}],
+    }
+    assert expected_product_ref_assigned_attribute in assigned_attributes
+    expected_variant_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_variant_reference_attribute.slug},
+        "variants": [{"sku": variant.sku}],
+    }
+    assert expected_variant_ref_assigned_attribute in assigned_attributes
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_create_variant_with_single_reference_attributes(
     created_webhook_mock,
@@ -2015,6 +2165,95 @@ def test_create_variant_invalid_variant_attributes(
     ]
     for error in expected_errors:
         assert error in errors
+
+
+def test_create_variant_with_reference_attributes_ref_not_in_available_choices(
+    staff_api_client,
+    product,
+    product_type,
+    product_type_with_variant_attributes,
+    product_type_page_reference_attribute,
+    product_type_product_reference_attribute,
+    product_type_variant_reference_attribute,
+    page,
+    page_type_list,
+    permission_manage_products,
+    warehouse,
+    variant,
+):
+    # given
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(
+        product_type_page_reference_attribute,
+        product_type_product_reference_attribute,
+        product_type_variant_reference_attribute,
+    )
+
+    # assigned reference types that do not match product/page types of references
+    # that are provided in the input
+    product_type_page_reference_attribute.reference_page_types.add(page_type_list[1])
+    product_type_product_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+    product_type_variant_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.id
+    )
+    variant_ref = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    page_ref = graphene.Node.to_global_id("Page", page.pk)
+    product_ref = graphene.Node.to_global_id("Product", product.pk)
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "input": {
+            "product": product_id,
+            "sku": sku,
+            "stocks": stocks,
+            "attributes": [
+                {"id": page_ref_attr_id, "references": [page_ref]},
+                {"id": product_ref_attr_id, "references": [product_ref]},
+                {"id": variant_ref_attr_id, "references": [variant_ref]},
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["productVariantCreate"]
+
+    errors = data["errors"]
+    assert not data["productVariant"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["field"] == "attributes"
+    assert set(errors[0]["attributes"]) == {
+        page_ref_attr_id,
+        product_ref_attr_id,
+        variant_ref_attr_id,
+    }
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")

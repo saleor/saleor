@@ -8,7 +8,7 @@ from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
-from ..attribute.dataloaders import (
+from ..attribute.dataloaders.attributes import (
     AttributeByProductIdAndAttributeSlugLoader,
     AttributeByProductVariantIdAndAttributeSlugLoader,
     AttributesByProductIdAndLimitLoader,

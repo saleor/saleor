@@ -792,6 +792,7 @@ mutation updateVariant($id: ID!, $sku: String, $attributes: [AttributeValueInput
       field
       code
       message
+      attributes
     }
   }
 }
@@ -1973,11 +1974,11 @@ def test_update_product_variant_with_duplicated_attribute(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]
-    assert data["errors"][0] == {
-        "field": "attributes",
-        "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
-        "message": ANY,
-    }
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert set(errors[0]["attributes"]) == {color_attribute_id, size_attribute_id}
 
 
 def test_update_product_variant_with_current_file_attribute(
@@ -2084,11 +2085,11 @@ def test_update_product_variant_with_duplicated_file_attribute(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]
-    assert data["errors"][0] == {
-        "field": "attributes",
-        "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
-        "message": ANY,
-    }
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert set(errors[0]["attributes"]) == {file_attribute_id}
 
 
 def test_update_product_variant_with_file_attribute_new_value_is_not_created(
@@ -2400,6 +2401,151 @@ def test_update_product_variant_with_category_reference_attribute(
     assert expected_assigned_attribute in assigned_attributes
 
 
+def test_update_product_variant_with_reference_attributes_and_reference_types_defined(
+    staff_api_client,
+    product_list,
+    page,
+    product_type_page_reference_attribute,
+    product_type_product_reference_attribute,
+    product_type_variant_reference_attribute,
+    permission_manage_products,
+):
+    # given
+    variant = product_list[0].variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
+    product_type = variant.product.product_type
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(
+        product_type_page_reference_attribute,
+        product_type_product_reference_attribute,
+        product_type_variant_reference_attribute,
+    )
+
+    reference_product = product_list[1]
+    reference_variant = product_list[2].variants.first()
+    product_type_page_reference_attribute.reference_page_types.add(page.page_type)
+    product_type_product_reference_attribute.reference_product_types.add(
+        reference_product.product_type
+    )
+    product_type_variant_reference_attribute.reference_product_types.add(
+        variant.product.product_type
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.id
+    )
+    variant_ref = graphene.Node.to_global_id("ProductVariant", reference_variant.pk)
+    page_ref = graphene.Node.to_global_id("Page", page.pk)
+    product_ref = graphene.Node.to_global_id("Product", reference_product.pk)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": page_ref_attr_id, "references": [page_ref]},
+            {"id": product_ref_attr_id, "references": [product_ref]},
+            {"id": variant_ref_attr_id, "references": [variant_ref]},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant_data = data["productVariant"]
+    assert variant_data["sku"] == sku
+    assert len(variant_data["attributes"]) == len(variables["attributes"])
+    expected_attributes_data = [
+        {
+            "attribute": {"slug": product_type_page_reference_attribute.slug},
+            "values": [
+                {
+                    "id": ANY,
+                    "slug": f"{variant.pk}_{page.id}",
+                    "file": None,
+                    "richText": None,
+                    "plainText": None,
+                    "reference": page_ref,
+                    "name": page.title,
+                    "boolean": None,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+        {
+            "attribute": {"slug": product_type_product_reference_attribute.slug},
+            "values": [
+                {
+                    "id": ANY,
+                    "slug": f"{variant.pk}_{reference_product.id}",
+                    "file": None,
+                    "richText": None,
+                    "plainText": None,
+                    "reference": product_ref,
+                    "name": reference_product.name,
+                    "boolean": None,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+        {
+            "attribute": {"slug": product_type_variant_reference_attribute.slug},
+            "values": [
+                {
+                    "id": ANY,
+                    "slug": f"{variant.pk}_{reference_variant.id}",
+                    "file": None,
+                    "richText": None,
+                    "plainText": None,
+                    "reference": variant_ref,
+                    "name": f"{reference_variant.product.name}: {reference_variant.name}",
+                    "boolean": None,
+                    "date": None,
+                    "dateTime": None,
+                }
+            ],
+        },
+    ]
+    for attr_data in variant_data["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    assigned_attributes = variant_data["assignedAttributes"]
+    expected_page_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_page_reference_attribute.slug},
+        "pages": [{"slug": page.slug}],
+    }
+    assert expected_page_ref_assigned_attribute in assigned_attributes
+    expected_product_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_product_reference_attribute.slug},
+        "products": [{"slug": reference_product.slug}],
+    }
+    assert expected_product_ref_assigned_attribute in assigned_attributes
+    expected_variant_ref_assigned_attribute = {
+        "attribute": {"slug": product_type_variant_reference_attribute.slug},
+        "variants": [{"sku": reference_variant.sku}],
+    }
+    assert expected_variant_ref_assigned_attribute in assigned_attributes
+
+
 def test_update_product_variant_with_single_reference_attributes(
     staff_api_client,
     product,
@@ -2694,11 +2840,12 @@ def test_update_product_variant_requires_values(
     assert len(content["data"]["productVariantUpdate"]["errors"]) == 1, (
         f"expected: {message}"
     )
-    assert content["data"]["productVariantUpdate"]["errors"][0] == {
-        "field": "attributes",
-        "message": message,
-        "code": code,
-    }
+    errors = content["data"]["productVariantUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == code
+    assert errors[0]["message"] == message
+    assert set(errors[0]["attributes"]) == {attr_id}
     assert not variant.product.variants.filter(sku=sku).exists()
 
 
@@ -2731,13 +2878,96 @@ def test_update_product_variant_requires_attr_value_when_is_required(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    assert len(content["data"]["productVariantUpdate"]["errors"]) == 1
-    assert content["data"]["productVariantUpdate"]["errors"][0] == {
-        "field": "attributes",
-        "message": "Attribute expects a value but none were given.",
-        "code": "REQUIRED",
-    }
+    errors = content["data"]["productVariantUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["message"] == "Attribute expects a value but none were given."
+    assert set(errors[0]["attributes"]) == {attr_id}
     assert not variant.product.variants.filter(sku=sku).exists()
+
+
+def test_update_product_variant_with_reference_attributes_ref_not_in_available_choices(
+    staff_api_client,
+    product_list,
+    page,
+    product_type_page_reference_attribute,
+    product_type_product_reference_attribute,
+    product_type_variant_reference_attribute,
+    permission_manage_products,
+    page_type_list,
+    product_type_with_variant_attributes,
+):
+    # given
+    variant = product_list[0].variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
+    product_type = variant.product.product_type
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(
+        product_type_page_reference_attribute,
+        product_type_product_reference_attribute,
+        product_type_variant_reference_attribute,
+    )
+
+    reference_product = product_list[1]
+    reference_variant = product_list[2].variants.first()
+    # assigned reference types that do not match product/page types of references
+    # that are provided in the input
+    product_type_page_reference_attribute.reference_page_types.add(page_type_list[1])
+    product_type_product_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+    product_type_variant_reference_attribute.reference_product_types.add(
+        product_type_with_variant_attributes
+    )
+
+    page_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    product_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.id
+    )
+    variant_ref_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_variant_reference_attribute.id
+    )
+    variant_ref = graphene.Node.to_global_id("ProductVariant", reference_variant.pk)
+    page_ref = graphene.Node.to_global_id("Page", page.pk)
+    product_ref = graphene.Node.to_global_id("Product", reference_product.pk)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": page_ref_attr_id, "references": [page_ref]},
+            {"id": product_ref_attr_id, "references": [product_ref]},
+            {"id": variant_ref_attr_id, "references": [variant_ref]},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    errors = data["errors"]
+    assert not data["productVariant"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["field"] == "attributes"
+    assert set(errors[0]["attributes"]) == {
+        page_ref_attr_id,
+        product_ref_attr_id,
+        variant_ref_attr_id,
+    }
 
 
 def test_update_product_variant_with_price_does_not_raise_price_validation_error(

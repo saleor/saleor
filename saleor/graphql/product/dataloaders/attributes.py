@@ -5,7 +5,7 @@ from ....attribute.models import (
     AttributeProduct,
     AttributeVariant,
 )
-from ...attribute.dataloaders import AttributesByAttributeId
+from ...attribute.dataloaders.attributes import AttributesByAttributeId
 from ...core.dataloaders import DataLoader
 
 

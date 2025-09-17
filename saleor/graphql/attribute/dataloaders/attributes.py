@@ -6,19 +6,19 @@ from django.db.models.functions import RowNumber
 from django.db.models.query import QuerySet
 from promise import Promise
 
-from ...attribute.models import Attribute, AttributeValue
-from ...attribute.models.page import AssignedPageAttributeValue, AttributePage
-from ...attribute.models.product import AssignedProductAttributeValue, AttributeProduct
-from ...attribute.models.product_variant import (
+from ....attribute.models import Attribute, AttributeValue
+from ....attribute.models.page import AssignedPageAttributeValue, AttributePage
+from ....attribute.models.product import AssignedProductAttributeValue, AttributeProduct
+from ....attribute.models.product_variant import (
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     AttributeVariant,
 )
-from ...core.db.connection import allow_writer_in_context
-from ...page import models as page_models
-from ...product import models as product_models
-from ..core.dataloaders import DataLoader
-from ..product.dataloaders.products import ProductByIdLoader, ProductByVariantIdLoader
+from ....core.db.connection import allow_writer_in_context
+from ....page import models as page_models
+from ....product import models as product_models
+from ...core.dataloaders import DataLoader
+from ...product.dataloaders.products import ProductByIdLoader, ProductByVariantIdLoader
 
 
 class AttributeValuesByAttributeIdLoader(DataLoader[int, list[AttributeValue]]):
@@ -485,7 +485,7 @@ class AttributesByPageIdAndLimitLoader(
             )
 
         # FIXME: To be addressed in separate PR
-        from ..page.dataloaders import PageByIdLoader
+        from ...page.dataloaders import PageByIdLoader
 
         page_ids = [page_id for page_id, _ in keys]
         return PageByIdLoader(self.context).load_many(page_ids).then(with_pages)
@@ -554,7 +554,7 @@ class AttributeByPageIdAndAttributeSlugLoader(
             return response
 
         # FIXME: To be addressed in separate PR
-        from ..page.dataloaders import PageByIdLoader
+        from ...page.dataloaders import PageByIdLoader
 
         pages_loader = PageByIdLoader(self.context).load_many(page_ids)
         attributes_loader = AttributesBySlugLoader(self.context).load_many(
