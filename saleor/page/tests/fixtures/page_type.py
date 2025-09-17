@@ -14,7 +14,9 @@ def page_type(db, size_page_attribute, tag_page_attribute):
 
 @pytest.fixture
 def page_type_with_rich_text_attribute(db, rich_text_attribute_page_type):
-    page_type = PageType.objects.create(name="Test page type", slug="test-page-type")
+    page_type = PageType.objects.create(
+        name="Test page type", slug="test-page-type-rich"
+    )
     page_type.page_attributes.add(rich_text_attribute_page_type)
     return page_type
 

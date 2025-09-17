@@ -5947,6 +5947,18 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   """The entity type which can be used as a reference."""
   entityType: AttributeEntityTypeEnum
 
+  """
+  The reference types (product or page type) that are used to narrow down the choices of reference objects.
+  
+  Added in Saleor 3.22.
+  """
+  referenceTypes(
+    """
+    Maximum number of objects to return. Value must be greater than 0. Default is 100.
+    """
+    limit: PositiveInt = 100
+  ): [ReferenceType!]
+
   """Name of an attribute displayed in the interface."""
   name: String
 
@@ -6108,295 +6120,12 @@ enum AttributeEntityTypeEnum @doc(category: "Attributes") {
   COLLECTION
 }
 
-enum AttributeTypeEnum @doc(category: "Attributes") {
-  PRODUCT_TYPE
-  PAGE_TYPE
-}
-
-enum MeasurementUnitsEnum {
-  MM
-  CM
-  DM
-  M
-  KM
-  FT
-  YD
-  INCH
-  SQ_MM
-  SQ_CM
-  SQ_DM
-  SQ_M
-  SQ_KM
-  SQ_FT
-  SQ_YD
-  SQ_INCH
-  CUBIC_MILLIMETER
-  CUBIC_CENTIMETER
-  CUBIC_DECIMETER
-  CUBIC_METER
-  LITER
-  CUBIC_FOOT
-  CUBIC_INCH
-  CUBIC_YARD
-  QT
-  PINT
-  FL_OZ
-  ACRE_IN
-  ACRE_FT
-  G
-  LB
-  OZ
-  KG
-  TONNE
-}
-
-type AttributeValueCountableConnection @doc(category: "Attributes") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [AttributeValueCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type AttributeValueCountableEdge @doc(category: "Attributes") {
-  """The item at the end of the edge."""
-  node: AttributeValue!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-"""Represents a value of an attribute."""
-type AttributeValue implements Node @doc(category: "Attributes") {
-  """The ID of the attribute value."""
-  id: ID!
-
-  """Name of a value displayed in the interface."""
-  name: String
-
-  """Internal representation of a value (unique per attribute)."""
-  slug: String
-
-  """
-  Represent value of the attribute value (e.g. color values for swatch attributes).
-  """
-  value: String
-
-  """Returns translated attribute value fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute value."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeValueTranslation
-
-  """The input type to use for entering attribute values in the dashboard."""
-  inputType: AttributeInputTypeEnum
-
-  """The ID of the referenced object."""
-  reference: ID
-
-  """Represents file URL and content type (if attribute value is a file)."""
-  file: File
-
-  """
-  Represents the text of the attribute value, includes formatting.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  richText: JSONString
-
-  """
-  Represents the text of the attribute value, plain text without formatting.
-  """
-  plainText: String
-
-  """Represents the boolean value of the attribute value."""
-  boolean: Boolean
-
-  """Represents the date value of the attribute value."""
-  date: Date
-
-  """Represents the date/time value of the attribute value."""
-  dateTime: DateTime
-
-  """External ID of this attribute value."""
-  externalReference: String
-}
-
-"""Represents attribute value translations."""
-type AttributeValueTranslation implements Node @doc(category: "Attributes") {
-  """The ID of the attribute value translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated attribute value name."""
-  name: String!
-
-  """
-  Translated rich-text attribute value.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  richText: JSONString
-
-  """Translated plain text attribute value ."""
-  plainText: String
-
-  """Represents the attribute value fields to translate."""
-  translatableContent: AttributeValueTranslatableContent
-}
-
 """
-Represents attribute value's original translatable fields and related translations.
+The reference types (product or page type) that are used to narrow down the choices of reference objects.
+ProductType applicable for reference attribute with `PRODUCT` or `PRODUCT_VARIANT` entity type.
+PageType applicable for reference attribute with `PAGE` entity type.
 """
-type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute value translatable content."""
-  id: ID!
-
-  """The ID of the attribute value to translate."""
-  attributeValueId: ID!
-
-  """Name of the attribute value to translate."""
-  name: String!
-
-  """
-  Attribute value.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  richText: JSONString
-
-  """Attribute plain text value."""
-  plainText: String
-
-  """Returns translated attribute value fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute value."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeValueTranslation
-
-  """Represents a value of an attribute."""
-  attributeValue: AttributeValue @deprecated(reason: "Get model fields from the root level queries.")
-
-  """Associated attribute that can be translated."""
-  attribute: AttributeTranslatableContent
-}
-
-"""
-Represents attribute's original translatable fields and related translations.
-"""
-type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute translatable content."""
-  id: ID!
-
-  """The ID of the attribute to translate."""
-  attributeId: ID!
-
-  """Name of the attribute to translate."""
-  name: String!
-
-  """Returns translated attribute fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeTranslation
-
-  """Custom attribute of a product."""
-  attribute: Attribute @deprecated(reason: "Get model fields from the root level queries.")
-}
-
-"""Represents attribute translations."""
-type AttributeTranslation implements Node @doc(category: "Attributes") {
-  """The ID of the attribute translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated attribute name."""
-  name: String!
-
-  """Represents the attribute fields to translate."""
-  translatableContent: AttributeTranslatableContent
-}
-
-type File {
-  """The URL of the file."""
-  url: String!
-
-  """Content type of the file."""
-  contentType: String
-}
-
-"""
-The `Date` scalar type represents a Date
-value as specified by
-[iso8601](https://en.wikipedia.org/wiki/ISO_8601).
-"""
-scalar Date
-
-input AttributeChoicesSortingInput @doc(category: "Attributes") {
-  """Specifies the direction in which to sort attribute choices."""
-  direction: OrderDirection!
-
-  """Sort attribute choices by the selected field."""
-  field: AttributeChoicesSortField!
-}
-
-enum AttributeChoicesSortField @doc(category: "Attributes") {
-  """Sort attribute choice by name."""
-  NAME
-
-  """Sort attribute choice by slug."""
-  SLUG
-}
-
-input AttributeValueFilterInput @doc(category: "Attributes") {
-  search: String
-  ids: [ID!]
-  slugs: [String!]
-}
-
-"""Where filtering options for attribute values."""
-input AttributeValueWhereInput @doc(category: "Attributes") {
-  ids: [ID!]
-  name: StringFilterInput
-  slug: StringFilterInput
-
-  """List of conditions that must be met."""
-  AND: [AttributeValueWhereInput!]
-
-  """A list of conditions of which at least one must be met."""
-  OR: [AttributeValueWhereInput!]
-}
-
-"""Define the filtering options for string fields."""
-input StringFilterInput {
-  """The value equal to."""
-  eq: String
-
-  """The value included in."""
-  oneOf: [String!]
-}
-
-type ProductTypeCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [ProductTypeCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type ProductTypeCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: ProductType!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
+union ReferenceType = ProductType | PageType
 
 """
 Represents a type of product. It defines what attributes are available to products of this type.
@@ -6673,6 +6402,11 @@ input MetadataFilter {
   value: String
 }
 
+enum AttributeTypeEnum @doc(category: "Attributes") {
+  PRODUCT_TYPE
+  PAGE_TYPE
+}
+
 """Where filtering options."""
 input AttributeWhereInput @doc(category: "Attributes") {
   metadata: [MetadataFilter!]
@@ -6695,6 +6429,15 @@ input AttributeWhereInput @doc(category: "Attributes") {
 
   """A list of conditions of which at least one must be met."""
   OR: [AttributeWhereInput!]
+}
+
+"""Define the filtering options for string fields."""
+input StringFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
 }
 
 input AttributeInputTypeEnumFilterInput @doc(category: "Attributes") {
@@ -6729,12 +6472,374 @@ input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
   oneOf: [MeasurementUnitsEnum!]
 }
 
+enum MeasurementUnitsEnum {
+  MM
+  CM
+  DM
+  M
+  KM
+  FT
+  YD
+  INCH
+  SQ_MM
+  SQ_CM
+  SQ_DM
+  SQ_M
+  SQ_KM
+  SQ_FT
+  SQ_YD
+  SQ_INCH
+  CUBIC_MILLIMETER
+  CUBIC_CENTIMETER
+  CUBIC_DECIMETER
+  CUBIC_METER
+  LITER
+  CUBIC_FOOT
+  CUBIC_INCH
+  CUBIC_YARD
+  QT
+  PINT
+  FL_OZ
+  ACRE_IN
+  ACRE_FT
+  G
+  LB
+  OZ
+  KG
+  TONNE
+}
+
+"""
+Represents a type of page. It defines what attributes are available to pages of this type.
+"""
+type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page type."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the page type."""
+  name: String!
+
+  """Slug of the page type."""
+  slug: String!
+
+  """Page attributes of that page type."""
+  attributes: [Attribute!]
+
+  """
+  Attributes that can be assigned to the page type.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  availableAttributes(
+    """Filtering options for attributes."""
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for attributes."""
+    where: AttributeWhereInput
+
+    """Search attributes."""
+    search: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
+
+  """
+  Whether page type has pages assigned.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  hasPages: Boolean
+}
+
 """
 Positive Integer scalar implementation.
 
 Should be used in places where value must be positive (greater than 0).
 """
 scalar PositiveInt
+
+type AttributeValueCountableConnection @doc(category: "Attributes") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [AttributeValueCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type AttributeValueCountableEdge @doc(category: "Attributes") {
+  """The item at the end of the edge."""
+  node: AttributeValue!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+"""Represents a value of an attribute."""
+type AttributeValue implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value."""
+  id: ID!
+
+  """Name of a value displayed in the interface."""
+  name: String
+
+  """Internal representation of a value (unique per attribute)."""
+  slug: String
+
+  """
+  Represent value of the attribute value (e.g. color values for swatch attributes).
+  """
+  value: String
+
+  """Returns translated attribute value fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute value."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeValueTranslation
+
+  """The input type to use for entering attribute values in the dashboard."""
+  inputType: AttributeInputTypeEnum
+
+  """The ID of the referenced object."""
+  reference: ID
+
+  """Represents file URL and content type (if attribute value is a file)."""
+  file: File
+
+  """
+  Represents the text of the attribute value, includes formatting.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  richText: JSONString
+
+  """
+  Represents the text of the attribute value, plain text without formatting.
+  """
+  plainText: String
+
+  """Represents the boolean value of the attribute value."""
+  boolean: Boolean
+
+  """Represents the date value of the attribute value."""
+  date: Date
+
+  """Represents the date/time value of the attribute value."""
+  dateTime: DateTime
+
+  """External ID of this attribute value."""
+  externalReference: String
+}
+
+"""Represents attribute value translations."""
+type AttributeValueTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated attribute value name."""
+  name: String!
+
+  """
+  Translated rich-text attribute value.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  richText: JSONString
+
+  """Translated plain text attribute value ."""
+  plainText: String
+
+  """Represents the attribute value fields to translate."""
+  translatableContent: AttributeValueTranslatableContent
+}
+
+"""
+Represents attribute value's original translatable fields and related translations.
+"""
+type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translatable content."""
+  id: ID!
+
+  """The ID of the attribute value to translate."""
+  attributeValueId: ID!
+
+  """Name of the attribute value to translate."""
+  name: String!
+
+  """
+  Attribute value.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  richText: JSONString
+
+  """Attribute plain text value."""
+  plainText: String
+
+  """Returns translated attribute value fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute value."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeValueTranslation
+
+  """Represents a value of an attribute."""
+  attributeValue: AttributeValue @deprecated(reason: "Get model fields from the root level queries.")
+
+  """Associated attribute that can be translated."""
+  attribute: AttributeTranslatableContent
+}
+
+"""
+Represents attribute's original translatable fields and related translations.
+"""
+type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute translatable content."""
+  id: ID!
+
+  """The ID of the attribute to translate."""
+  attributeId: ID!
+
+  """Name of the attribute to translate."""
+  name: String!
+
+  """Returns translated attribute fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeTranslation
+
+  """Custom attribute of a product."""
+  attribute: Attribute @deprecated(reason: "Get model fields from the root level queries.")
+}
+
+"""Represents attribute translations."""
+type AttributeTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated attribute name."""
+  name: String!
+
+  """Represents the attribute fields to translate."""
+  translatableContent: AttributeTranslatableContent
+}
+
+type File {
+  """The URL of the file."""
+  url: String!
+
+  """Content type of the file."""
+  contentType: String
+}
+
+"""
+The `Date` scalar type represents a Date
+value as specified by
+[iso8601](https://en.wikipedia.org/wiki/ISO_8601).
+"""
+scalar Date
+
+input AttributeChoicesSortingInput @doc(category: "Attributes") {
+  """Specifies the direction in which to sort attribute choices."""
+  direction: OrderDirection!
+
+  """Sort attribute choices by the selected field."""
+  field: AttributeChoicesSortField!
+}
+
+enum AttributeChoicesSortField @doc(category: "Attributes") {
+  """Sort attribute choice by name."""
+  NAME
+
+  """Sort attribute choice by slug."""
+  SLUG
+}
+
+input AttributeValueFilterInput @doc(category: "Attributes") {
+  search: String
+  ids: [ID!]
+  slugs: [String!]
+}
+
+"""Where filtering options for attribute values."""
+input AttributeValueWhereInput @doc(category: "Attributes") {
+  ids: [ID!]
+  name: StringFilterInput
+  slug: StringFilterInput
+
+  """List of conditions that must be met."""
+  AND: [AttributeValueWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [AttributeValueWhereInput!]
+}
+
+type ProductTypeCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [ProductTypeCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type ProductTypeCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: ProductType!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
 
 """
 Represents a single category of products. Categories allow to organize products in a tree-hierarchies which can be used for navigation in the storefront.
@@ -8834,92 +8939,6 @@ type Page implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(categ
 
   """List of attributes assigned to this page."""
   attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
-}
-
-"""
-Represents a type of page. It defines what attributes are available to pages of this type.
-"""
-type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
-  """ID of the page type."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the page type."""
-  name: String!
-
-  """Slug of the page type."""
-  slug: String!
-
-  """Page attributes of that page type."""
-  attributes: [Attribute!]
-
-  """
-  Attributes that can be assigned to the page type.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  availableAttributes(
-    """Filtering options for attributes."""
-    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for attributes."""
-    where: AttributeWhereInput
-
-    """Search attributes."""
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeCountableConnection
-
-  """
-  Whether page type has pages assigned.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  hasPages: Boolean
 }
 
 """
@@ -29037,6 +29056,15 @@ input AttributeCreateInput @doc(category: "Attributes") {
 
   """External ID of this attribute."""
   externalReference: String
+
+  """
+  Specifies reference types to narrow down the choices of reference objects. Applicable only for `REFERENCE` and `SINGLE_REFERENCE` attributes with `PRODUCT`, `PRODUCT_VARIANT` and `PAGE` entity types. Accepts `ProductType` IDs for `PRODUCT` and `PRODUCT_VARIANT` entity types, and `PageType` IDs for `PAGE` entity type. If omitted, all objects of the selected entity type are available as attribute values.
+  
+  A maximum of 100 reference types can be specified.
+  
+  Added in Saleor 3.22.
+  """
+  referenceTypes: [ID!]
 }
 
 input AttributeValueCreateInput @doc(category: "Attributes") {
@@ -29145,6 +29173,15 @@ input AttributeUpdateInput @doc(category: "Attributes") {
 
   """External ID of this product."""
   externalReference: String
+
+  """
+  Specifies reference types to narrow down the choices of reference objects. Applicable only for `REFERENCE` and `SINGLE_REFERENCE` attributes with `PRODUCT`, `PRODUCT_VARIANT` and `PAGE` entity types. Accepts `ProductType` IDs for `PRODUCT` and `PRODUCT_VARIANT` entity types, and `PageType` IDs for `PAGE` entity type. If omitted, all objects of the selected entity type are available as attribute values.
+  
+  A maximum of 100 reference types can be specified.
+  
+  Added in Saleor 3.22.
+  """
+  referenceTypes: [ID!]
 }
 
 input AttributeValueUpdateInput @doc(category: "Attributes") {
