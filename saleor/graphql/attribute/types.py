@@ -60,11 +60,13 @@ from ..translations.dataloaders import (
 )
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders.attributes import (
-    AttributesByAttributeId,
+from .dataloaders.assigned_attributes import (
     AttributeValuesByPageIdAndAttributeIdAndLimitLoader,
     AttributeValuesByProductIdAndAttributeIdAndLimitLoader,
     AttributeValuesByVariantIdAndAttributeIdAndLimitLoader,
+)
+from .dataloaders.attributes import (
+    AttributesByAttributeId,
 )
 from .dataloaders.reference_types import (
     AttributeReferencePageTypesByAttributeIdAndLimitLoader,

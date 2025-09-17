@@ -4,7 +4,7 @@ from ...attribute import models as attribute_models
 from ...page import models
 from ...permission.enums import PagePermissions, PageTypePermissions
 from ...permission.utils import all_permissions_required
-from ..attribute.dataloaders.attributes import (
+from ..attribute.dataloaders.assigned_attributes import (
     AttributeByPageIdAndAttributeSlugLoader,
     AttributesByPageIdAndLimitLoader,
     AttributesVisibleToCustomerByPageIdAndLimitLoader,

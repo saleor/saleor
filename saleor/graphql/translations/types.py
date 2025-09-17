@@ -21,7 +21,7 @@ from ...permission.utils import all_permissions_required
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
-from ..attribute.dataloaders.attributes import (
+from ..attribute.dataloaders.assigned_attributes import (
     AttributesByAttributeId,
     AttributesByPageIdAndLimitLoader,
     AttributesByProductIdAndLimitLoader,
