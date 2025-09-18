@@ -6,6 +6,19 @@ from .i18n import AddressMetaForm, get_address_form_class
 def get_address_form(
     data, country_code, initial=None, instance=None, enable_normalization=True, **kwargs
 ):
+    """返回一个给定国家/地区的地址表单。
+
+    Args:
+        data (dict): 表单数据。
+        country_code (str): 国家的 ISO 3166-1 alpha-2 代码。
+        initial (dict, optional): 表单的初始数据。默认为 None。
+        instance (Address, optional): 要绑定的地址模型实例。默认为 None。
+        enable_normalization (bool, optional): 是否启用地址标准化。默认为 True。
+        **kwargs: 传递给表单类的其他关键字参数。
+
+    Returns:
+        Form: 一个地址表单实例。
+    """
     country_form = AddressMetaForm(data, initial=initial)
     if country_form.is_valid():
         country_code = country_form.cleaned_data["country"]

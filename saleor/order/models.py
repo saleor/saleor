@@ -48,27 +48,28 @@ if TYPE_CHECKING:
 
 
 class OrderQueryset(models.QuerySet["Order"]):
+    """订单模型的自定义查询集。"""
+
     def get_by_checkout_token(self, token):
-        """Return non-draft order with matched checkout token."""
+        """通过结帐令牌返回非草稿订单。"""
         return self.non_draft().filter(checkout_token=token).first()
 
     def confirmed(self):
-        """Return orders that aren't draft or unconfirmed."""
+        """返回已确认的订单（非草稿或未确认）。"""
         return self.exclude(status__in=[OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 
     def non_draft(self):
-        """Return orders that aren't draft."""
+        """返回非草稿订单。"""
         return self.exclude(status=OrderStatus.DRAFT)
 
     def drafts(self):
-        """Return draft orders."""
+        """返回草稿订单。"""
         return self.filter(status=OrderStatus.DRAFT)
 
     def ready_to_fulfill(self):
-        """Return orders that can be fulfilled.
+        """返回可履行的订单。
 
-        Orders ready to fulfill are fully paid but unfulfilled (or partially
-        fulfilled).
+        可履行的订单是已完全付款但未履行（或部分履行）的订单。
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         payments = Payment.objects.filter(is_active=True).values("id")
@@ -79,11 +80,10 @@ class OrderQueryset(models.QuerySet["Order"]):
         )
 
     def ready_to_capture(self):
-        """Return orders with payments to capture.
+        """返回有待收款的订单。
 
-        Orders ready to capture are those which are not draft or canceled and
-        have a preauthorized payment. The preauthorized payment can not
-        already be partially or fully captured.
+        有待收款的订单是指那些非草稿或已取消，并且具有预授权付款的订单。
+        预授权付款不能已经被部分或全部收款。
         """
         payments = Payment.objects.filter(
             is_active=True, charge_status=ChargeStatus.NOT_CHARGED
@@ -94,7 +94,7 @@ class OrderQueryset(models.QuerySet["Order"]):
         )
 
     def ready_to_confirm(self):
-        """Return unconfirmed orders."""
+        """返回未确认的订单。"""
         return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
@@ -102,6 +102,7 @@ OrderManager = models.Manager.from_queryset(OrderQueryset)
 
 
 def get_order_number():
+    """从数据库序列中获取下一个订单号。"""
     with connection.cursor() as cursor:
         cursor.execute("SELECT nextval('order_order_number_seq')")
         result = cursor.fetchone()
@@ -109,6 +110,19 @@ def get_order_number():
 
 
 class Order(ModelWithMetadata, ModelWithExternalReference):
+    """订单模型。
+
+    代表客户的订单。
+
+    Attributes:
+        status (str): 订单的状态。
+        user (User): 与此订单关联的用户。
+        billing_address (Address): 账单地址。
+        shipping_address (Address): 送货地址。
+        total (TaxedMoney): 订单的总金额。
+        ... (许多其他字段)
+    """
+
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     number = models.IntegerField(unique=True, default=get_order_number, editable=False)
     use_old_id = models.BooleanField(default=False)
@@ -422,12 +436,15 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return copy.deepcopy(model_to_dict(self, fields=self.comparison_fields))
 
     def is_fully_paid(self):
+        """检查订单是否已完全付款。"""
         return self.total_charged >= self.total.gross
 
     def is_partly_paid(self):
+        """检查订单是否已部分付款。"""
         return self.total_charged_amount > 0
 
     def get_customer_email(self):
+        """获取客户的电子邮件地址。"""
         if self.user_email:
             return self.user_email
         if self.user_id:
@@ -441,6 +458,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return f"#{self.id}"
 
     def get_last_payment(self) -> Payment | None:
+        """获取订单的最后一次付款。
+
+        跳过部分付款。
+        """
         # Skipping a partial payment is a temporary workaround for storing a basic data
         # about partial payment from Adyen plugin. This is something that will removed
         # in 3.1 by introducing a partial payments feature.
@@ -450,6 +471,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return max(payments, default=None, key=attrgetter("pk"))
 
     def is_pre_authorized(self):
+        """检查订单是否有成功的预授权付款。"""
         return (
             self.payments.filter(
                 is_active=True,
@@ -461,6 +483,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         )
 
     def is_captured(self):
+        """检查订单是否有成功的收款。"""
         return (
             self.payments.filter(
                 is_active=True,
@@ -472,33 +495,41 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         )
 
     def get_subtotal(self):
+        """获取订单的小计。"""
         return get_subtotal(self.lines.all(), self.currency)
 
     def is_shipping_required(
         self, database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
     ):
+        """检查订单是否需要配送。"""
         return any(
             line.is_shipping_required
             for line in self.lines.using(database_connection_name).all()
         )
 
     def get_total_quantity(self):
+        """获取订单中所有商品的总数量。"""
         return sum([line.quantity for line in self.lines.all()])
 
     def is_draft(self):
+        """检查订单是否为草稿。"""
         return self.status == OrderStatus.DRAFT
 
     def is_unconfirmed(self):
+        """检查订单是否未确认。"""
         return self.status == OrderStatus.UNCONFIRMED
 
     def is_expired(self):
+        """检查订单是否已过期。"""
         return self.status == OrderStatus.EXPIRED
 
     def is_open(self):
+        """检查订单是否为开放状态（未履行或部分履行）。"""
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.status in statuses
 
     def can_cancel(self):
+        """检查订单是否可以取消。"""
         statuses_allowed_to_cancel = [
             FulfillmentStatus.CANCELED,
             FulfillmentStatus.REFUNDED,
@@ -517,6 +548,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         }
 
     def can_capture(self, payment=None):
+        """检查订单是否可以收款。"""
         if not payment:
             payment = self.get_last_payment()
         if not payment:
@@ -529,6 +561,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return payment.can_capture() and order_status_ok
 
     def can_void(self, payment=None):
+        """检查订单是否可以作废付款。"""
         if not payment:
             payment = self.get_last_payment()
         if not payment:
@@ -536,6 +569,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return payment.can_void()
 
     def can_refund(self, payment=None):
+        """检查订单是否可以退款。"""
         if not payment:
             payment = self.get_last_payment()
         if not payment:
@@ -543,6 +577,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return payment.can_refund()
 
     def can_mark_as_paid(self, payments=None):
+        """检查订单是否可以标记为已付款。"""
         if not payments:
             payments = self.payments.all()
         return len(payments) == 0
@@ -553,14 +588,16 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
 
 
 class OrderLineQueryset(models.QuerySet["OrderLine"]):
+    """订单行模型的自定义查询集。"""
+
     def digital(self):
-        """Return lines with digital products."""
+        """返回包含电子产品的订单行。"""
         for line in self.all():
             if line.is_digital:
                 yield line
 
     def physical(self):
-        """Return lines with physical products."""
+        """返回包含实体产品的订单行。"""
         for line in self.all():
             if not line.is_digital:
                 yield line
@@ -570,6 +607,19 @@ OrderLineManager = models.Manager.from_queryset(OrderLineQueryset)
 
 
 class OrderLine(ModelWithMetadata):
+    """订单行模型。
+
+    代表订单中的一个项目。
+
+    Attributes:
+        order (Order): 此订单行所属的订单。
+        variant (ProductVariant): 关联的产品变体。
+        quantity (int): 订购的数量。
+        unit_price (TaxedMoney): 商品的单价。
+        total_price (TaxedMoney): 此行的总价。
+        ... (许多其他字段)
+    """
+
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -767,11 +817,12 @@ class OrderLine(ModelWithMetadata):
 
     @property
     def quantity_unfulfilled(self):
+        """返回未履行的数量。"""
         return self.quantity - self.quantity_fulfilled
 
     @property
     def is_digital(self) -> bool:
-        """Check if a variant is digital and contains digital content."""
+        """检查变体是否为电子产品并包含电子内容。"""
         if not self.variant:
             return False
         is_digital = self.variant.is_digital()
@@ -780,6 +831,17 @@ class OrderLine(ModelWithMetadata):
 
 
 class Fulfillment(ModelWithMetadata):
+    """履行模型。
+
+    代表订单的一部分或全部商品的配送。
+
+    Attributes:
+        fulfillment_order (int): 履行的顺序号。
+        order (Order): 此履行所属的订单。
+        status (str): 履行的状态。
+        tracking_number (str): 运单号。
+    """
+
     fulfillment_order = models.PositiveIntegerField(editable=False)
     order = models.ForeignKey(
         Order,
@@ -818,7 +880,7 @@ class Fulfillment(ModelWithMetadata):
         return iter(self.lines.all())
 
     def save(self, *args, **kwargs):
-        """Assign an auto incremented value as a fulfillment order."""
+        """分配一个自动递增的值作为履行顺序。"""
         if not self.pk:
             groups = self.order.fulfillments.all()
             existing_max = groups.aggregate(Max("fulfillment_order"))
@@ -828,20 +890,29 @@ class Fulfillment(ModelWithMetadata):
 
     @property
     def composed_id(self):
+        """返回组合的 ID（订单号-履行顺序）。"""
         return f"{self.order.number}-{self.fulfillment_order}"
 
     def can_edit(self):
+        """检查履行是否可以编辑。"""
         return self.status != FulfillmentStatus.CANCELED
 
     def get_total_quantity(self):
+        """获取此履行中所有商品的总数量。"""
         return sum([line.quantity for line in self.lines.all()])
 
     @property
     def is_tracking_number_url(self):
+        """检查运单号是否为 URL。"""
         return bool(match(r"^[-\w]+://", self.tracking_number))
 
 
 class FulfillmentLine(models.Model):
+    """履行行模型。
+
+    代表履行中的一个项目。
+    """
+
     order_line = models.ForeignKey(
         OrderLine,
         related_name="fulfillment_lines",
@@ -861,11 +932,11 @@ class FulfillmentLine(models.Model):
 
 
 class OrderEvent(models.Model):
-    """Model used to store events that happened during the order lifecycle.
+    """用于存储订单生命周期中发生的事件的模型。
 
     Args:
-        parameters: Values needed to display the event on the storefront
-        type: Type of an order
+        parameters: 在店面显示事件所需的值
+        type: 订单的类型
 
     """
 
@@ -907,7 +978,7 @@ class OrderEvent(models.Model):
 
 
 class OrderGrantedRefund(models.Model):
-    """Model used to store granted refund for the order."""
+    """用于存储订单已批准退款的模型。"""
 
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
@@ -956,7 +1027,7 @@ class OrderGrantedRefund(models.Model):
 
 
 class OrderGrantedRefundLine(models.Model):
-    """Model used to store granted refund line for the order."""
+    """用于存储订单已批准退款行的模型。"""
 
     order_line = models.ForeignKey(
         OrderLine, related_name="granted_refund_lines", on_delete=models.CASCADE

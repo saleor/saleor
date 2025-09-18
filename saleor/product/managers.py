@@ -27,7 +27,17 @@ from ..permission.utils import has_one_of_permissions
 
 
 class ProductsQueryset(models.QuerySet):
+    """产品模型的自定义查询集。"""
+
     def published(self, channel: Channel):
+        """返回在给定渠道中已发布的产品。
+
+        Args:
+            channel (Channel): 要筛选的渠道。
+
+        Returns:
+            QuerySet: 已发布产品的查询集。
+        """
         from .models import ProductChannelListing
 
         if not channel.is_active:
@@ -45,6 +55,14 @@ class ProductsQueryset(models.QuerySet):
         return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
 
     def not_published(self, channel: Channel):
+        """返回在给定渠道中未发布的产品。
+
+        Args:
+            channel (Channel): 要筛选的渠道。
+
+        Returns:
+            QuerySet: 未发布产品的查询集。
+        """
         today = datetime.datetime.now(tz=datetime.UTC)
         return self.annotate_publication_info(channel).filter(
             Q(published_at__gt=today) & Q(is_published=True)
@@ -53,6 +71,14 @@ class ProductsQueryset(models.QuerySet):
         )
 
     def published_with_variants(self, channel: Channel):
+        """返回在给定渠道中已发布且具有可用变体的产品。
+
+        Args:
+            channel (Channel): 要筛选的渠道。
+
+        Returns:
+            QuerySet: 已发布且有变体的产品的查询集。
+        """
         from .models import ProductVariant, ProductVariantChannelListing
 
         if not channel.is_active:
@@ -78,20 +104,16 @@ class ProductsQueryset(models.QuerySet):
         channel: Channel | None,
         limited_channel_access: bool,
     ):
-        """Determine which products should be visible to user.
+        """确定哪些产品对用户可见。
 
-        For user without permission we require channel to be passed to determine which
-        products are visible to user.
-        For user with permission we can return:
-        - all products if the channel is not passed and the query is not limited
-          to the provided channel.
-            (channel=None, limited_channel_access=False)
-        - no products if the channel is not passed and the query is limited
-          to the provided channel.
-            (channel=None, limited_channel_access=True)
-        - all products assigned to the channel if the channel is passed and
-          the query is limited to the provided channel.
-            (channel=Channel, limited_channel_access=True)
+        对于没有权限的用户，我们需要传递渠道来确定哪些产品对用户可见。
+        对于有权限的用户，我们可以返回：
+        - 如果未传递渠道且查询未限制到提供的渠道，则返回所有产品。
+          (channel=None, limited_channel_access=False)
+        - 如果未传递渠道且查询限制到提供的渠道，则不返回任何产品。
+          (channel=None, limited_channel_access=True)
+        - 如果传递了渠道且查询限制到提供的渠道，则返回分配给该渠道的所有产品。
+          (channel=Channel, limited_channel_access=True)
         """
         from .models import ALL_PRODUCTS_PERMISSIONS, ProductChannelListing
 
@@ -113,9 +135,11 @@ class ProductsQueryset(models.QuerySet):
         return self.published_with_variants(channel)
 
     def annotate_publication_info(self, channel: Channel):
+        """为查询集添加发布信息的注解。"""
         return self.annotate_is_published(channel).annotate_published_at(channel)
 
     def annotate_is_published(self, channel: Channel):
+        """为查询集添加 `is_published` 注解。"""
         from .models import ProductChannelListing
 
         query = Subquery(
@@ -128,6 +152,7 @@ class ProductsQueryset(models.QuerySet):
         )
 
     def annotate_published_at(self, channel: Channel):
+        """为查询集添加 `published_at` 注解。"""
         from .models import ProductChannelListing
 
         query = Subquery(
@@ -140,6 +165,7 @@ class ProductsQueryset(models.QuerySet):
         )
 
     def annotate_visible_in_listings(self, channel: Channel | None):
+        """为查询集添加 `visible_in_listings` 注解。"""
         from .models import ProductChannelListing
 
         if not channel:
@@ -156,11 +182,11 @@ class ProductsQueryset(models.QuerySet):
         )
 
     def sort_by_attribute(self, attribute_pk: int | str, descending: bool = False):
-        """Sort a query set by the values of the given product attribute.
+        """按给定产品属性的值对查询集进行排序。
 
-        :param attribute_pk: The database ID (must be a numeric) of the attribute
-                             to sort by.
-        :param descending: The sorting direction.
+        Args:
+            attribute_pk (int | str): 要排序的属性的数据库 ID（必须是数字）。
+            descending (bool, optional): 排序方向。默认为 False。
         """
         from ..attribute.models import (
             AssignedProductAttributeValue,
@@ -237,6 +263,7 @@ class ProductsQueryset(models.QuerySet):
         )
 
     def prefetched_for_webhook(self, single_object=True):
+        """为 webhook 预取相关的字段。"""
         common_fields = (
             "media",
             "variants__attributes__values",
@@ -256,15 +283,16 @@ ProductManager = models.Manager.from_queryset(ProductsQueryset)
 
 
 class ProductVariantQueryset(models.QuerySet):
-    def annotate_quantities(self):
-        """Annotate the queryset with quantity-related fields.
+    """产品变体模型的自定义查询集。"""
 
-        This method annotates the queryset with the following fields:
-        - `quantity`: The total quantity in stock for each product variant.
-        - `quantity_allocated`: The total quantity allocated from the stock
-          for each product variant.
-        - `available_quantity`: The available quantity for each product variant,
-          which is calculated as `quantity - quantity_allocated`.
+    def annotate_quantities(self):
+        """为查询集添加与数量相关的字段的注解。
+
+        此方法为查询集添加以下字段的注解：
+        - `quantity`: 每个产品变体的总库存数量。
+        - `quantity_allocated`: 每个产品变体从库存中分配的总数量。
+        - `available_quantity`: 每个产品变体的可用数量，
+          计算方式为 `quantity - quantity_allocated`。
         """
 
         from saleor.warehouse.models import Allocation
@@ -295,6 +323,7 @@ class ProductVariantQueryset(models.QuerySet):
         )
 
     def available_in_channel(self, channel: Channel | None):
+        """返回在给定渠道中可用的变体。"""
         from .models import ProductVariantChannelListing
 
         if not channel:
@@ -307,6 +336,7 @@ class ProductVariantQueryset(models.QuerySet):
         return self.filter(Exists(channel_listings.filter(variant_id=OuterRef("pk"))))
 
     def prefetched_for_webhook(self):
+        """为 webhook 预取相关的字段。"""
         return self.prefetch_related(
             "attributes__values",
             "attributes__assignment__attribute",
@@ -319,6 +349,7 @@ class ProductVariantQueryset(models.QuerySet):
         channel: Channel | None,
         limited_channel_access: bool,
     ):
+        """确定哪些变体对用户可见。"""
         from .models import ALL_PRODUCTS_PERMISSIONS
 
         # User with product permissions can see all variants. If channel is given,
@@ -360,7 +391,10 @@ ProductVariantManager = models.Manager.from_queryset(ProductVariantQueryset)
 
 
 class ProductVariantChannelListingQuerySet(models.QuerySet):
+    """产品变体渠道列表模型的自定义查询集。"""
+
     def annotate_preorder_quantity_allocated(self):
+        """为查询集添加 `preorder_quantity_allocated` 注解。"""
         return self.annotate(
             preorder_quantity_allocated=Coalesce(
                 Sum("preorder_allocations__quantity"), 0
@@ -374,7 +408,10 @@ ProductVariantChannelListingManager = models.Manager.from_queryset(
 
 
 class CollectionsQueryset(models.QuerySet):
+    """产品系列模型的自定义查询集。"""
+
     def published(self, channel_slug: str):
+        """返回在给定渠道中已发布的产品系列。"""
         today = datetime.datetime.now(tz=datetime.UTC)
         return self.filter(
             Q(channel_listings__published_at__lte=today)
@@ -387,6 +424,7 @@ class CollectionsQueryset(models.QuerySet):
     def visible_to_user(
         self, requestor: Union["User", "App", None], channel_slug: str | None
     ):
+        """确定哪些产品系列对用户可见。"""
         from .models import ALL_PRODUCTS_PERMISSIONS
 
         if has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):

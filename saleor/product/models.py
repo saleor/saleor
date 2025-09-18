@@ -55,6 +55,20 @@ ALL_PRODUCTS_PERMISSIONS = [
 
 
 class Category(ModelWithMetadata, MPTTModel, SeoModel):
+    """产品类别模型。
+
+    用于组织产品的层次结构。
+
+    Attributes:
+        name (str): 类别名称。
+        slug (str): URL友好的类别名称。
+        description (SanitizedJSONField): 类别的描述（富文本）。
+        description_plaintext (str): 类别的纯文本描述。
+        parent (Category): 父类别。
+        background_image (ImageField): 类别的背景图片。
+        background_image_alt (str): 背景图片的替代文本。
+    """
+
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
@@ -88,6 +102,8 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
 
 
 class CategoryTranslation(SeoModelTranslationWithSlug):
+    """产品类别翻译模型。"""
+
     category = models.ForeignKey(
         Category, related_name="translations", on_delete=models.CASCADE
     )
@@ -111,9 +127,11 @@ class CategoryTranslation(SeoModelTranslationWithSlug):
         return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, category_pk={self.category_id!r})"
 
     def get_translated_object_id(self):
+        """返回被翻译对象的ID。"""
         return "Category", self.category_id
 
     def get_translated_keys(self):
+        """返回一个包含已翻译字段的字典。"""
         translated_keys = super().get_translated_keys()
         translated_keys.update(
             {
@@ -125,6 +143,21 @@ class CategoryTranslation(SeoModelTranslationWithSlug):
 
 
 class ProductType(ModelWithMetadata):
+    """产品类型模型。
+
+    用于定义产品的通用属性，例如是否需要配送、是否为电子产品等。
+
+    Attributes:
+        name (str): 产品类型的名称。
+        slug (str): URL友好的产品类型名称。
+        kind (str): 产品类型的种类（例如，普通产品、礼品卡）。
+        has_variants (bool): 此类型的产品是否有变体。
+        is_shipping_required (bool): 此类型的产品是否需要配送。
+        is_digital (bool): 此类型的产品是否为电子产品。
+        weight (MeasurementField): 产品类型的重量。
+        tax_class (TaxClass): 与此产品类型关联的税收类别。
+    """
+
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     kind = models.CharField(max_length=32, choices=ProductTypeKind.CHOICES)
@@ -172,6 +205,22 @@ class ProductType(ModelWithMetadata):
 
 
 class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
+    """产品模型。
+
+    代表一个实际销售的商品。
+
+    Attributes:
+        product_type (ProductType): 产品的类型。
+        name (str): 产品的名称。
+        slug (str): URL友好的产品名称。
+        description (SanitizedJSONField): 产品的描述（富文本）。
+        category (Category): 产品所属的类别。
+        weight (MeasurementField): 产品的重量。
+        default_variant (ProductVariant): 产品的默认变体。
+        rating (float): 产品的评分。
+        tax_class (TaxClass): 与此产品关联的税收类别。
+    """
+
     product_type = models.ForeignKey(
         ProductType, related_name="products", on_delete=models.CASCADE
     )
@@ -256,16 +305,20 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
         return self.name
 
     def get_first_image(self):
+        """返回产品的第一张图片。"""
         all_media = self.media.all()
         images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
         return images[0] if images else None
 
     @staticmethod
     def sort_by_attribute_fields() -> list:
+        """返回用于按属性排序的字段列表。"""
         return ["concatenated_values_order", "concatenated_values", "name"]
 
 
 class ProductTranslation(SeoModelTranslationWithSlug):
+    """产品翻译模型。"""
+
     product = models.ForeignKey(
         Product, related_name="translations", on_delete=models.CASCADE
     )
@@ -289,9 +342,11 @@ class ProductTranslation(SeoModelTranslationWithSlug):
         return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, product_pk={self.product_id!r})"
 
     def get_translated_object_id(self):
+        """返回被翻译对象的ID。"""
         return "Product", self.product_id
 
     def get_translated_keys(self):
+        """返回一个包含已翻译字段的字典。"""
         translated_keys = super().get_translated_keys()
         translated_keys.update(
             {
@@ -303,6 +358,19 @@ class ProductTranslation(SeoModelTranslationWithSlug):
 
 
 class ProductChannelListing(PublishableModel):
+    """产品渠道列表模型。
+
+    将产品与特定渠道关联起来，并定义其在该渠道中的可用性和价格。
+
+    Attributes:
+        product (Product): 关联的产品。
+        channel (Channel): 关联的渠道。
+        visible_in_listings (bool): 产品是否在渠道列表中可见。
+        available_for_purchase_at (datetime): 产品可供购买的日期和时间。
+        currency (str): 价格的货币。
+        discounted_price (Money): 折扣后的价格。
+    """
+
     product = models.ForeignKey(
         Product,
         null=False,
@@ -340,6 +408,7 @@ class ProductChannelListing(PublishableModel):
         ]
 
     def is_available_for_purchase(self):
+        """检查产品是否可供购买。"""
         return (
             self.available_for_purchase_at is not None
             and datetime.datetime.now(tz=datetime.UTC) >= self.available_for_purchase_at
@@ -347,6 +416,20 @@ class ProductChannelListing(PublishableModel):
 
 
 class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReference):
+    """产品变体模型。
+
+    代表产品的特定版本（例如，特定尺寸和颜色的 T 恤）。
+
+    Attributes:
+        sku (str): 产品的库存单位 (SKU)。
+        name (str): 变体的名称。
+        product (Product): 此变体所属的产品。
+        media (ManyToManyField): 与此变体关联的媒体文件。
+        track_inventory (bool): 是否跟踪此变体的库存。
+        is_preorder (bool): 此变体是否为预购商品。
+        weight (MeasurementField): 变体的重量。
+    """
+
     sku = models.CharField(max_length=255, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255, blank=True)
     product = models.ForeignKey(
@@ -382,6 +465,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         return self.name or self.sku or f"ID:{self.pk}"
 
     def get_global_id(self):
+        """返回此变体的 GraphQL 全局 ID。"""
         return graphene.Node.to_global_id("ProductVariant", self.id)
 
     def get_base_price(
@@ -389,7 +473,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
     ) -> "Money":
-        """Return the base variant price before applying the promotion discounts."""
+        """在应用促销折扣之前返回基础变体价格。"""
         return (
             channel_listing.price
             if price_override is None
@@ -402,10 +486,9 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         price_override: Optional["Decimal"] = None,
         promotion_rules: Iterable["PromotionRule"] | None = None,
     ) -> "Money":
-        """Return the variant discounted price with applied promotions.
+        """返回应用了促销活动的变体折扣价。
 
-        If a custom price is provided, return the price with applied discounts from
-        valid promotion rules for this variant.
+        如果提供了自定义价格，则返回应用了此变体有效促销规则折扣的价格。
         """
         from ..discount.utils.promotion import calculate_discounted_price_for_rules
 
@@ -421,25 +504,31 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         self,
         channel_listing: Optional["ProductVariantChannelListing"],
     ) -> Decimal | None:
+        """返回变体之前的价格金额。"""
         if channel_listing is None or channel_listing.prior_price is None:
             return None
 
         return channel_listing.prior_price.amount
 
     def get_weight(self):
+        """返回变体的重量。"""
         return self.weight or self.product.weight or self.product.product_type.weight
 
     def is_shipping_required(self) -> bool:
+        """检查此变体是否需要配送。"""
         return self.product.product_type.is_shipping_required
 
     def is_gift_card(self) -> bool:
+        """检查此变体是否为礼品卡。"""
         return self.product.product_type.kind == ProductTypeKind.GIFT_CARD
 
     def is_digital(self) -> bool:
+        """检查此变体是否为电子产品。"""
         is_digital = self.product.product_type.is_digital
         return not self.is_shipping_required() and is_digital
 
     def display_product(self, translated: bool = False) -> str:
+        """返回产品的显示名称，包括变体信息。"""
         if translated:
             product = get_translation(self.product).name or ""
             variant_display = get_translation(self).name
@@ -452,15 +541,18 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         return product_display
 
     def get_ordering_queryset(self):
+        """返回用于排序的查询集。"""
         return self.product.variants.all()
 
     def is_preorder_active(self):
+        """检查预购是否有效。"""
         return self.is_preorder and (
             self.preorder_end_date is None or timezone.now() <= self.preorder_end_date
         )
 
     @property
     def comparison_fields(self):
+        """返回用于比较的字段列表。"""
         return [
             "sku",
             "name",
@@ -476,10 +568,13 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         ]
 
     def serialize_for_comparison(self):
+        """序列化用于比较的变体数据。"""
         return copy.deepcopy(model_to_dict(self, fields=self.comparison_fields))
 
 
 class ProductVariantTranslation(Translation):
+    """产品变体翻译模型。"""
+
     product_variant = models.ForeignKey(
         ProductVariant, related_name="translations", on_delete=models.CASCADE
     )
@@ -496,13 +591,28 @@ class ProductVariantTranslation(Translation):
         return self.name or str(self.product_variant)
 
     def get_translated_object_id(self):
+        """返回被翻译对象的ID。"""
         return "ProductVariant", self.product_variant_id
 
     def get_translated_keys(self):
+        """返回一个包含已翻译字段的字典。"""
         return {"name": self.name}
 
 
 class ProductVariantChannelListing(models.Model):
+    """产品变体渠道列表模型。
+
+    将产品变体与特定渠道关联起来，并定义其在该渠道中的价格和成本。
+
+    Attributes:
+        variant (ProductVariant): 关联的产品变体。
+        channel (Channel): 关联的渠道。
+        currency (str): 价格的货币。
+        price (Money): 变体在该渠道中的价格。
+        cost_price (Money): 变体在该渠道中的成本价。
+        prior_price (Money): 变体之前的价格。
+    """
+
     variant = models.ForeignKey(
         ProductVariant,
         null=False,
@@ -573,6 +683,17 @@ class ProductVariantChannelListing(models.Model):
 
 
 class VariantChannelListingPromotionRule(models.Model):
+    """变体渠道列表促销规则模型。
+
+    将变体渠道列表与促销规则关联起来，并存储折扣金额。
+
+    Attributes:
+        variant_channel_listing (ProductVariantChannelListing): 关联的变体渠道列表。
+        promotion_rule (PromotionRule): 关联的促销规则。
+        discount_amount (Decimal): 折扣金额。
+        currency (str): 折扣的货币。
+    """
+
     variant_channel_listing = models.ForeignKey(
         ProductVariantChannelListing,
         related_name="variantlistingpromotionrule",
@@ -598,6 +719,19 @@ class VariantChannelListingPromotionRule(models.Model):
 
 
 class DigitalContent(ModelWithMetadata):
+    """电子内容模型。
+
+    代表可供下载的电子产品。
+
+    Attributes:
+        use_default_settings (bool): 是否使用默认设置。
+        automatic_fulfillment (bool): 是否自动履行。
+        product_variant (ProductVariant): 关联的产品变体。
+        content_file (FileField): 内容文件。
+        max_downloads (int): 最大下载次数。
+        url_valid_days (int): URL 有效天数。
+    """
+
     FILE = "file"
     TYPE_CHOICES = ((FILE, "digital_product"),)
     use_default_settings = models.BooleanField(default=True)
@@ -611,10 +745,23 @@ class DigitalContent(ModelWithMetadata):
     url_valid_days = models.IntegerField(blank=True, null=True)
 
     def create_new_url(self) -> "DigitalContentUrl":
+        """创建一个新的下载 URL。"""
         return self.urls.create()
 
 
 class DigitalContentUrl(models.Model):
+    """电子内容 URL 模型。
+
+    代表一个用于下载电子内容的唯一 URL。
+
+    Attributes:
+        token (UUIDField): 用于访问 URL 的唯一令牌。
+        content (DigitalContent): 关联的电子内容。
+        created_at (datetime): URL 的创建日期。
+        download_num (int): 下载次数。
+        line (OrderLine): 关联的订单行。
+    """
+
     token = models.UUIDField(editable=False, unique=True)
     content = models.ForeignKey(
         DigitalContent, related_name="urls", on_delete=models.CASCADE
@@ -637,11 +784,25 @@ class DigitalContentUrl(models.Model):
         super().save(force_insert, force_update, using, update_fields)
 
     def get_absolute_url(self) -> str | None:
+        """返回此下载 URL 的绝对 URL。"""
         url = reverse("digital-product", kwargs={"token": str(self.token)})
         return build_absolute_uri(url)
 
 
 class ProductMedia(SortableModel, ModelWithMetadata):
+    """产品媒体模型。
+
+    代表产品的图片或视频。
+
+    Attributes:
+        product (Product): 关联的产品。
+        image (ImageField): 图片文件。
+        alt (str): 图片的替代文本。
+        type (str): 媒体类型（图片或视频）。
+        external_url (str): 外部视频的 URL。
+        oembed_data (JSONField): oEmbed 数据。
+    """
+
     product = models.ForeignKey(
         Product,
         related_name="media",
@@ -667,6 +828,7 @@ class ProductMedia(SortableModel, ModelWithMetadata):
         app_label = "product"
 
     def get_ordering_queryset(self):
+        """返回用于排序的查询集。"""
         if not self.product:
             return ProductMedia.objects.none()
         return self.product.media.all()
@@ -677,6 +839,11 @@ class ProductMedia(SortableModel, ModelWithMetadata):
 
 
 class VariantMedia(models.Model):
+    """变体媒体模型。
+
+    将产品变体与产品媒体关联起来。
+    """
+
     variant = models.ForeignKey(
         "ProductVariant", related_name="variant_media", on_delete=models.CASCADE
     )
@@ -689,6 +856,8 @@ class VariantMedia(models.Model):
 
 
 class CollectionProduct(SortableModel):
+    """产品系列关联模型。"""
+
     collection = models.ForeignKey(
         "Collection", related_name="collectionproduct", on_delete=models.CASCADE
     )
@@ -700,10 +869,24 @@ class CollectionProduct(SortableModel):
         unique_together = (("collection", "product"),)
 
     def get_ordering_queryset(self):
+        """返回用于排序的查询集。"""
         return self.product.collectionproduct.all()
 
 
 class Collection(SeoModel, ModelWithMetadata):
+    """产品系列模型。
+
+    用于将产品分组到系列中。
+
+    Attributes:
+        name (str): 系列的名称。
+        slug (str): URL友好的系列名称。
+        products (ManyToManyField): 系列中的产品。
+        background_image (ImageField): 系列的背景图片。
+        background_image_alt (str): 背景图片的替代文本。
+        description (SanitizedJSONField): 系列的描述（富文本）。
+    """
+
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     products = models.ManyToManyField(
@@ -739,6 +922,11 @@ class Collection(SeoModel, ModelWithMetadata):
 
 
 class CollectionChannelListing(PublishableModel):
+    """产品系列渠道列表模型。
+
+    将产品系列与特定渠道关联起来，并定义其在该渠道中的可用性。
+    """
+
     collection = models.ForeignKey(
         Collection,
         null=False,
@@ -760,6 +948,8 @@ class CollectionChannelListing(PublishableModel):
 
 
 class CollectionTranslation(SeoModelTranslationWithSlug):
+    """产品系列翻译模型。"""
+
     collection = models.ForeignKey(
         Collection, related_name="translations", on_delete=models.CASCADE
     )
@@ -783,9 +973,11 @@ class CollectionTranslation(SeoModelTranslationWithSlug):
         return self.name if self.name else str(self.pk)
 
     def get_translated_object_id(self):
+        """返回被翻译对象的ID。"""
         return "Collection", self.collection_id
 
     def get_translated_keys(self):
+        """返回一个包含已翻译字段的字典。"""
         translated_keys = super().get_translated_keys()
         translated_keys.update(
             {

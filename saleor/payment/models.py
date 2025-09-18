@@ -28,6 +28,11 @@ from . import (
 
 
 class TransactionItem(ModelWithMetadata):
+    """交易项目模型。
+
+    代表一个支付交易，例如授权、收款或退款。
+    """
+
     token = models.UUIDField(unique=True, default=uuid4)
     use_old_id = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -164,6 +169,11 @@ class TransactionItem(ModelWithMetadata):
 
 
 class TransactionEvent(models.Model):
+    """交易事件模型。
+
+    代表交易生命周期中的一个事件。
+    """
+
     created_at = models.DateTimeField(default=timezone.now)
     idempotency_key = models.CharField(max_length=512, blank=True, null=True)
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
@@ -223,18 +233,16 @@ class TransactionEvent(models.Model):
 
 
 class Payment(ModelWithMetadata):
-    """A model that represents a single payment.
+    """支付模型。
 
-    This might be a transactable payment information such as credit card
-    details, gift card information or a customer's authorization to charge
-    their PayPal account.
+    代表一次支付。
+    这可能是一个可交易的支付信息，如信用卡详细信息、礼品卡信息或客户
+    授权向其 PayPal 帐户收费。
 
-    All payment process related pieces of information are stored
-    at the gateway level, we are operating on the reusable token
-    which is a unique identifier of the customer for given gateway.
+    所有与支付流程相关的信息都存储在网关级别，我们操作的是可重用令牌，
+    该令牌是给定网关的客户的唯一标识符。
 
-    Several payment methods can be used within a single order. Each payment
-    method may consist of multiple transactions.
+    一个订单中可以使用多种支付方式。每种支付方式可能包含多个交易。
     """
 
     gateway = models.CharField(max_length=255)
@@ -328,12 +336,15 @@ class Payment(ModelWithMetadata):
         )
 
     def get_last_transaction(self):
+        """获取最后一次交易。"""
         return max(self.transactions.all(), default=None, key=attrgetter("pk"))
 
     def get_total(self):
+        """获取支付的总金额。"""
         return Money(self.total, self.currency)
 
     def get_authorized_amount(self):
+        """获取已授权的金额。"""
         money = zero_money(self.currency)
 
         # Query all the transactions which should be prefetched
@@ -366,14 +377,16 @@ class Payment(ModelWithMetadata):
         return money
 
     def get_captured_amount(self):
+        """获取已收款的金额。"""
         return Money(self.captured_amount, self.currency)
 
     def get_charge_amount(self):
-        """Retrieve the maximum capture possible."""
+        """检索可能的最大收款金额。"""
         return self.total - self.captured_amount
 
     @property
     def is_authorized(self):
+        """检查支付是否已授权。"""
         return any(
             txn.kind == TransactionKind.AUTH
             and txn.is_success
@@ -383,20 +396,25 @@ class Payment(ModelWithMetadata):
 
     @property
     def not_charged(self):
+        """检查支付是否未收款。"""
         return self.charge_status == ChargeStatus.NOT_CHARGED
 
     def can_authorize(self):
+        """检查支付是否可以授权。"""
         return self.is_active and self.not_charged
 
     def can_capture(self):
+        """检查支付是否可以收款。"""
         if not (self.is_active and self.not_charged):
             return False
         return True
 
     def can_void(self):
+        """检查支付是否可以作废。"""
         return self.not_charged and self.is_authorized
 
     def can_refund(self):
+        """检查支付是否可以退款。"""
         can_refund_charge_status = (
             ChargeStatus.PARTIALLY_CHARGED,
             ChargeStatus.FULLY_CHARGED,
@@ -405,17 +423,18 @@ class Payment(ModelWithMetadata):
         return self.charge_status in can_refund_charge_status
 
     def can_confirm(self):
+        """检查支付是否可以确认。"""
         return self.is_active and self.not_charged
 
     def is_manual(self):
+        """检查支付是否为手动支付。"""
         return self.gateway == CustomPaymentChoices.MANUAL
 
 
 class Transaction(models.Model):
-    """Represents a single payment operation.
+    """代表一次支付操作。
 
-    Transaction is an attempt to transfer money between your store
-    and your customers, with a chosen payment method.
+    交易是您的商店和客户之间使用选定的支付方式进行资金转移的尝试。
     """
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
@@ -471,4 +490,5 @@ class Transaction(models.Model):
         )
 
     def get_amount(self):
+        """获取交易金额。"""
         return Money(self.amount, self.currency)

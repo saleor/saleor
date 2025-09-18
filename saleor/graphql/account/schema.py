@@ -87,47 +87,55 @@ from .types import (
 
 
 class CustomerFilterInput(FilterInputObjectType):
+    """客户筛选的输入类型。"""
+
     class Meta:
         doc_category = DOC_CATEGORY_USERS
         filterset_class = CustomerFilter
 
 
 class PermissionGroupFilterInput(FilterInputObjectType):
+    """权限组筛选的输入类型。"""
+
     class Meta:
         doc_category = DOC_CATEGORY_USERS
         filterset_class = PermissionGroupFilter
 
 
 class StaffUserInput(FilterInputObjectType):
+    """员工用户筛选的输入类型。"""
+
     class Meta:
         doc_category = DOC_CATEGORY_USERS
         filterset_class = StaffUserFilter
 
 
 class AccountQueries(graphene.ObjectType):
+    """账户相关的查询。"""
+
     address_validation_rules = BaseField(
         AddressValidationData,
-        description="Returns address validation rules.",
+        description="返回地址验证规则。",
         country_code=graphene.Argument(
             CountryCodeEnum,
-            description="Two-letter ISO 3166-1 country code.",
+            description="两位字母的 ISO 3166-1 国家代码。",
             required=True,
         ),
         country_area=graphene.Argument(
-            graphene.String, description="Designation of a region, province or state."
+            graphene.String, description="地区、省或州的名称。"
         ),
-        city=graphene.Argument(graphene.String, description="City or a town name."),
+        city=graphene.Argument(graphene.String, description="城市或城镇的名称。"),
         city_area=graphene.Argument(
-            graphene.String, description="Sublocality like a district."
+            graphene.String, description="像区一样的子区域。"
         ),
         doc_category=DOC_CATEGORY_USERS,
     )
     address = BaseField(
         Address,
         id=graphene.Argument(
-            graphene.ID, description="ID of an address.", required=True
+            graphene.ID, description="地址的 ID。", required=True
         ),
-        description="Look up an address by ID."
+        description="通过 ID 查找地址。"
         + message_one_of_permissions_required(
             [AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
         ),
@@ -135,59 +143,59 @@ class AccountQueries(graphene.ObjectType):
     )
     customers = FilterConnectionField(
         UserCountableConnection,
-        filter=CustomerFilterInput(description="Filtering options for customers."),
-        sort_by=UserSortingInput(description="Sort customers."),
-        description="List of the shop's customers. This list includes all users who registered through the accountRegister mutation. Additionally, staff users who have placed an order using their account will also appear in this list.",
+        filter=CustomerFilterInput(description="客户的筛选选项。"),
+        sort_by=UserSortingInput(description="对客户进行排序。"),
+        description="商店的客户列表。此列表包括通过 accountRegister 突变注册的所有用户。此外，使用其帐户下订单的员工用户也将显示在此列表中。",
         permissions=[OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS],
         doc_category=DOC_CATEGORY_USERS,
     )
     permission_groups = FilterConnectionField(
         GroupCountableConnection,
         filter=PermissionGroupFilterInput(
-            description="Filtering options for permission groups."
+            description="权限组的筛选选项。"
         ),
-        sort_by=PermissionGroupSortingInput(description="Sort permission groups."),
-        description="List of permission groups.",
+        sort_by=PermissionGroupSortingInput(description="对权限组进行排序。"),
+        description="权限组列表。",
         permissions=[AccountPermissions.MANAGE_STAFF],
         doc_category=DOC_CATEGORY_USERS,
     )
     permission_group = PermissionsField(
         Group,
         id=graphene.Argument(
-            graphene.ID, description="ID of the group.", required=True
+            graphene.ID, description="组的 ID。", required=True
         ),
-        description="Look up permission group by ID.",
+        description="通过 ID 查找权限组。",
         permissions=[AccountPermissions.MANAGE_STAFF],
         doc_category=DOC_CATEGORY_USERS,
     )
     me = BaseField(
         User,
-        description="Return the currently authenticated user.",
+        description="返回当前已验证的用户。",
         doc_category=DOC_CATEGORY_USERS,
     )
     staff_users = FilterConnectionField(
         UserCountableConnection,
-        filter=StaffUserInput(description="Filtering options for staff users."),
-        sort_by=UserSortingInput(description="Sort staff users."),
-        description="List of the shop's staff users.",
+        filter=StaffUserInput(description="员工用户的筛选选项。"),
+        sort_by=UserSortingInput(description="对员工用户进行排序。"),
+        description="商店的员工用户列表。",
         permissions=[AccountPermissions.MANAGE_STAFF],
         doc_category=DOC_CATEGORY_USERS,
     )
     user = PermissionsField(
         User,
-        id=graphene.Argument(graphene.ID, description="ID of the user."),
+        id=graphene.Argument(graphene.ID, description="用户的 ID。"),
         email=graphene.Argument(
-            graphene.String, description="Email address of the user."
+            graphene.String, description="用户的电子邮件地址。"
         ),
         external_reference=graphene.Argument(
-            graphene.String, description="External ID of the user."
+            graphene.String, description="用户的外部 ID。"
         ),
         permissions=[
             AccountPermissions.MANAGE_STAFF,
             AccountPermissions.MANAGE_USERS,
             OrderPermissions.MANAGE_ORDERS,
         ],
-        description="Look up a user by ID or email address.",
+        description="通过 ID 或电子邮件地址查找用户。",
         doc_category=DOC_CATEGORY_USERS,
     )
 
@@ -259,6 +267,8 @@ class AccountQueries(graphene.ObjectType):
 
 
 class AccountMutations(graphene.ObjectType):
+    """账户相关的变更。"""
+
     # Base mutations
     token_create = CreateToken.Field()
     token_refresh = RefreshToken.Field()

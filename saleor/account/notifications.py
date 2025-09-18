@@ -9,6 +9,14 @@ from .models import User
 
 
 def get_default_user_payload(user: User):
+    """为给定的用户生成默认的 payload。
+
+    Args:
+        user (User): 要为其生成 payload 的用户。
+
+    Returns:
+        dict: 包含用户基本信息的字典。
+    """
     payload = {
         "id": to_global_id_or_none(user),
         "email": user.email,
@@ -27,6 +35,14 @@ def get_default_user_payload(user: User):
 
 
 def get_user_custom_payload(user: User):
+    """为给定的用户生成自定义的 payload。
+
+    Args:
+        user (User): 要为其生成 payload 的用户。
+
+    Returns:
+        dict: 包含用户和站点上下文信息的字典。
+    """
     payload = {
         "user": get_default_user_payload(user),
         "recipient_email": user.email,
@@ -38,7 +54,7 @@ def get_user_custom_payload(user: User):
 def send_password_reset_notification(
     redirect_url, user, manager, channel_slug: str | None, staff=False
 ):
-    """Trigger sending a password reset notification for the given customer/staff."""
+    """为给定的客户/员工触发发送密码重置通知。"""
 
     def _generate_payload():
         token = token_generator.make_token(user)
@@ -65,7 +81,7 @@ def send_password_reset_notification(
 
 
 def send_account_confirmation(user, redirect_url, manager, channel_slug, token=None):
-    """Trigger sending an account confirmation notification for the given user."""
+    """为给定的用户触发发送帐户确认通知。"""
 
     def _generate_payload():
         if not token:
@@ -96,7 +112,7 @@ def send_account_confirmation(user, redirect_url, manager, channel_slug, token=N
 def send_request_user_change_email_notification(
     redirect_url, user, new_email, token, manager, channel_slug
 ):
-    """Trigger sending a notification change email for the given user."""
+    """为给定的用户触发发送更改电子邮件的通知。"""
 
     def _generate_payload():
         params = urlencode({"token": token})
@@ -122,7 +138,7 @@ def send_request_user_change_email_notification(
 
 
 def send_user_change_email_notification(recipient_email, user, manager, channel_slug):
-    """Trigger sending an email change notification for the given user."""
+    """为给定的用户触发发送电子邮件更改通知。"""
 
     def _generate_payload():
         payload = {
@@ -146,7 +162,7 @@ def send_user_change_email_notification(recipient_email, user, manager, channel_
 def send_account_delete_confirmation_notification(
     redirect_url, user, manager, channel_slug, token=None
 ):
-    """Trigger sending an account delete notification for the given user."""
+    """为给定的用户触发发送帐户删除通知。"""
 
     def _generate_payload():
         if not token:
@@ -176,7 +192,7 @@ def send_account_delete_confirmation_notification(
 def send_set_password_notification(
     redirect_url, user, manager, channel_slug, staff=False
 ):
-    """Trigger sending a set password notification for the given customer/staff."""
+    """为给定的客户/员工触发发送设置密码通知。"""
 
     def _generate_payload():
         token = token_generator.make_token(user)

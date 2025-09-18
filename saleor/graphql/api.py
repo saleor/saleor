@@ -76,6 +76,11 @@ class Query(
     WarehouseQueries,
     WebhookQueries,
 ):
+    """GraphQL API 的主查询入口点。
+
+    这个类通过继承所有特定模块的查询类来组合成一个单一的根查询类型。
+    """
+
     pass
 
 
@@ -105,16 +110,21 @@ class Mutation(
     WarehouseMutations,
     WebhookMutations,
 ):
+    """GraphQL API 的主变更入口点。
+
+    这个类通过继承所有特定模块的变更类来组合成一个单一的根变更类型。
+    """
+
     pass
 
 
 GraphQLDocDirective = graphql.GraphQLDirective(
     name="doc",
-    description="Groups fields and operations into named groups.",
+    description="将字段和操作分组到命名的组中。",
     args={
         "category": graphql.GraphQLArgument(
             type_=graphql.GraphQLNonNull(graphql.GraphQLString),
-            description="Name of the grouping category",
+            description="分组类别的名称",
         )
     },
     locations=[
@@ -128,24 +138,25 @@ GraphQLDocDirective = graphql.GraphQLDirective(
 
 
 def serialize_webhook_event(value):
+    """序列化 webhook 事件。"""
     return value
 
 
 GraphQLWebhookEventAsyncType = GraphQLScalarType(
     name="WebhookEventTypeAsyncEnum",
-    description="",
+    description="异步 Webhook 事件类型枚举。",
     serialize=serialize_webhook_event,
 )
 
 GraphQLWebhookEventSyncType = GraphQLScalarType(
     name="WebhookEventTypeSyncEnum",
-    description="",
+    description="同步 Webhook 事件类型枚举。",
     serialize=serialize_webhook_event,
 )
 
 GraphQLWebhookEventsInfoDirective = graphql.GraphQLDirective(
     name="webhookEventsInfo",
-    description="Webhook events triggered by a specific location.",
+    description="由特定位置触发的 Webhook 事件。",
     args={
         "asyncEvents": graphql.GraphQLArgument(
             type_=graphql.GraphQLNonNull(
@@ -153,17 +164,13 @@ GraphQLWebhookEventsInfoDirective = graphql.GraphQLDirective(
                     graphql.GraphQLNonNull(GraphQLWebhookEventAsyncType)
                 )
             ),
-            description=(
-                "List of asynchronous webhook events triggered by a specific location."
-            ),
+            description="由特定位置触发的异步 webhook 事件列表。",
         ),
         "syncEvents": graphql.GraphQLArgument(
             type_=graphql.GraphQLNonNull(
                 graphql.GraphQLList(graphql.GraphQLNonNull(GraphQLWebhookEventSyncType))
             ),
-            description=(
-                "List of synchronous webhook events triggered by a specific location."
-            ),
+            description="由特定位置触发的同步 webhook 事件列表。",
         ),
     },
     locations=[

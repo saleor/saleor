@@ -29,11 +29,22 @@ if TYPE_CHECKING:
 
 
 def get_default_country():
+    """返回默认国家/地区。"""
     return settings.DEFAULT_COUNTRY
 
 
 class Checkout(models.Model):
-    """A shopping checkout."""
+    """一个购物结帐。
+
+    Attributes:
+        user (User): 与此结帐关联的用户。
+        email (str): 客户的电子邮件地址。
+        token (UUIDField): 结帐的唯一令牌。
+        billing_address (Address): 账单地址。
+        shipping_address (Address): 送货地址。
+        total (TaxedMoney): 结帐的总金额。
+        ... (许多其他字段)
+    """
 
     created_at = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now=True, db_index=True)
@@ -237,6 +248,7 @@ class Checkout(models.Model):
         return iter(self.lines.all())
 
     def get_customer_email(self) -> str | None:
+        """获取客户的电子邮件地址。"""
         if self.email:
             return self.email
         if self.user:
@@ -244,10 +256,11 @@ class Checkout(models.Model):
         return None
 
     def is_shipping_required(self) -> bool:
-        """Return `True` if any of the lines requires shipping."""
+        """如果任何订单行需要配送，则返回 `True`。"""
         return any(line.is_shipping_required() for line in self)
 
     def is_checkout_locked(self) -> bool:
+        """检查结帐是否被锁定。"""
         return bool(
             self.completing_started_at
             and (
@@ -259,7 +272,7 @@ class Checkout(models.Model):
     def get_total_gift_cards_balance(
         self, database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
     ) -> Money:
-        """Return the total balance of the gift cards assigned to the checkout."""
+        """返回分配给结帐的礼品卡的总余额。"""
         balance = (
             self.gift_cards.using(database_connection_name)
             .active(date=datetime.datetime.now(tz=datetime.UTC).date())
@@ -272,18 +285,19 @@ class Checkout(models.Model):
         return Money(balance, self.currency)
 
     def get_line(self, variant: "ProductVariant") -> Optional["CheckoutLine"]:
-        """Return a line matching the given variant and data if any."""
+        """如果存在，则返回与给定变体匹配的行。"""
         matching_lines = (line for line in self if line.variant.pk == variant.pk)
         return next(matching_lines, None)
 
     def get_last_active_payment(self) -> Optional["Payment"]:
+        """返回最后一次活动的付款。"""
         payments = [payment for payment in self.payments.all() if payment.is_active]
         return max(payments, default=None, key=attrgetter("pk"))
 
     def set_country(
         self, country_code: str, commit: bool = False, replace: bool = True
     ):
-        """Set country for checkout."""
+        """为结帐设置国家/地区。"""
         if not replace and self.country is not None:
             return
         self.country = Country(country_code)
@@ -291,6 +305,7 @@ class Checkout(models.Model):
             self.save(update_fields=["country"])
 
     def get_country(self):
+        """获取结帐的国家/地区。"""
         address = self.shipping_address or self.billing_address
         saved_country = self.country
         if address is None or not address.country:
@@ -303,10 +318,16 @@ class Checkout(models.Model):
 
 
 class CheckoutLine(ModelWithMetadata):
-    """A single checkout line.
+    """一个结帐行。
 
-    Multiple lines in the same checkout can refer to the same product variant if
-    their `data` field is different.
+    如果 `data` 字段不同，同一次结帐中的多个行可以引用相同的产品变体。
+
+    Attributes:
+        checkout (Checkout): 此结帐行所属的结帐。
+        variant (ProductVariant): 关联的产品变体。
+        quantity (int): 订购的数量。
+        total_price (TaxedMoney): 此行的总价。
+        ... (许多其他字段)
     """
 
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
@@ -397,13 +418,19 @@ class CheckoutLine(ModelWithMetadata):
         self.variant, self.quantity = data
 
     def is_shipping_required(self) -> bool:
-        """Return `True` if the related product variant requires shipping."""
+        """如果相关的产品变体需要配送，则返回 `True`。"""
         return self.variant.is_shipping_required()
 
 
 # Checkout metadata is moved to separate model so it can be used when checkout model is
 # locked by select_for_update during complete_checkout.
 class CheckoutMetadata(ModelWithMetadata):
+    """结帐元数据模型。
+
+    将结帐元数据移动到单独的模型中，以便在 `complete_checkout` 期间
+    `checkout` 模型被 `select_for_update` 锁定时可以使用它。
+    """
+
     checkout = models.OneToOneField(
         Checkout, related_name="metadata_storage", on_delete=models.CASCADE
     )
