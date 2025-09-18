@@ -20,6 +20,7 @@ from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.types import TransactionItem
 from ...payment.utils import validate_and_resolve_refund_reason_context
+from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -376,11 +377,14 @@ class OrderGrantRefundUpdate(BaseMutation):
         if errors:
             raise ValidationError(errors)
 
+        site = get_site_promise(info.context).get()
+
         refund_reason_context = validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
             refund_reference_field_name="reason_reference",
             error_code_enum=OrderGrantRefundUpdateErrorCode,
+            site_settings=site.settings,
         )
 
         should_apply = refund_reason_context["should_apply"]

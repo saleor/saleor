@@ -91,6 +91,7 @@ class RefundSettings(ModelObjectType[site_models.SiteSettings]):
         doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
 
+    @staticmethod
     def resolve_reason_reference_type(root, info):
         return root.refund_reason_reference_type
 
@@ -108,9 +109,11 @@ class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
         doc_category = DOC_CATEGORY_GIFT_CARDS
         model = site_models.SiteSettings
 
+    @staticmethod
     def resolve_expiry_type(root, info):
         return root.gift_card_expiry_type
 
+    @staticmethod
     def resolve_expiry_period(root, info):
         if root.gift_card_expiry_period_type is None:
             return None
