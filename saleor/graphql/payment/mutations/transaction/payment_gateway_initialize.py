@@ -77,6 +77,9 @@ class PaymentGatewayInitialize(TransactionSessionBase):
         payment_gateways_response: list[PaymentGatewayData],
     ) -> list[PaymentGatewayConfig]:
         response = []
+        # ✅ Fix: Handle case where payment_gateways_response is None
+        if not payment_gateways_response:
+            payment_gateways_response = []
         payment_gateways_response_dict = {
             gateway.app_identifier: gateway for gateway in payment_gateways_response
         }
@@ -145,6 +148,8 @@ class PaymentGatewayInitialize(TransactionSessionBase):
         response_data = manager.payment_gateway_initialize_session(
             amount, payment_gateways_data, source_object
         )
+        if response_data is None:
+            response_data = []
         return cls(
             gateway_configs=cls.prepare_response(payment_gateways_data, response_data),
             errors=[],
