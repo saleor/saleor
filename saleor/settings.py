@@ -1077,6 +1077,10 @@ TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
 # Disabled by default to prevent disruptions caused by unexpected unit conversion issues
 TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
 
+# Additional hash suffix, allowing to invalidate cached schema. In production usually we want this to be empty.
+# For development envs, where schema may change often, it may be convenient to set it to e.g. commit hash value.
+GRAPHQL_CACHE_SUFFIX = os.environ.get("GRAPHQL_CACHE_SUFFIX", "")
+
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
 i18n_rules_override()
