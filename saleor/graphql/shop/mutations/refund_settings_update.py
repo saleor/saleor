@@ -1,5 +1,4 @@
 import graphene
-from django.contrib.sites.models import Site
 
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
@@ -8,6 +7,7 @@ from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
 from ...core.types.common import RefundSettingsUpdateError
+from ...site.dataloaders import get_site_promise
 from ..types import RefundSettings
 
 
@@ -48,7 +48,8 @@ class RefundSettingsUpdate(BaseMutation):
     ):
         refund_reason_reference_type = input.get("refund_reason_reference_type")
 
-        settings = Site.objects.get_current().settings
+        site = get_site_promise(info.context).get()
+        settings = site.settings
 
         if refund_reason_reference_type:
             model_type = cls.get_node_or_error(

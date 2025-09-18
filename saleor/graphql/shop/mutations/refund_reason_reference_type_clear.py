@@ -1,5 +1,4 @@
 import graphene
-from django.contrib.sites.models import Site
 
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
@@ -7,6 +6,7 @@ from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types.common import RefundReasonReferenceTypeClearError
+from ...site.dataloaders import get_site_promise
 from ..types import RefundSettings
 
 
@@ -27,7 +27,8 @@ class RefundReasonReferenceTypeClear(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        settings = Site.objects.get_current().settings
+        site = get_site_promise(info.context).get()
+        settings = site.settings
 
         settings.refund_reason_reference_type = None
 
