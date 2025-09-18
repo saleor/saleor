@@ -563,7 +563,7 @@ def instantiate_middleware(middlewares):
 
 def generate_cache_key(raw_query: str) -> str:
     hashed_query = hashlib.sha256(str(raw_query).encode("utf-8")).hexdigest()
-    return f"{saleor_version}-{hashed_query}"
+    return f"{saleor_version}-{hashed_query}-{settings.GRAPHQL_CACHE_SUFFIX}"
 
 
 def set_query_cost_on_result(execution_result: ExecutionResult, query_cost):
