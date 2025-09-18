@@ -2,7 +2,6 @@ import sys
 from collections import defaultdict
 from dataclasses import asdict
 from decimal import Decimal
-from typing import cast
 
 import graphene
 from graphene import relay
@@ -52,7 +51,6 @@ from ...attribute.types import (
     ObjectWithAttributes,
     SelectedAttribute,
 )
-from ...attribute.utils.shared import AssignedAttributeData
 from ...channel.dataloaders.by_self import ChannelBySlugLoader
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
@@ -132,9 +130,6 @@ from ...warehouse.dataloaders import (
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
-    AssignedAttributesAllByProductIdLoader,
-    AssignedAttributesByProductVariantIdLoader,
-    AssignedAttributesVisibleInStorefrontByProductIdLoader,
     CategoryByIdLoader,
     CollectionChannelListingByCollectionIdAndChannelSlugLoader,
     CollectionsByProductIdLoader,
@@ -162,7 +157,14 @@ from ..filters.product_variant import (
     ProductVariantFilterInput,
     ProductVariantWhereInput,
 )
-from ..resolvers import resolve_product_variants, resolve_products
+from ..resolvers import (
+    resolve_product_attribute,
+    resolve_product_attributes,
+    resolve_product_variants,
+    resolve_products,
+    resolve_variant_attribute,
+    resolve_variant_attributes,
+)
 from ..sorters import MediaSortingInput, ProductVariantSortingInput
 from .channels import ProductChannelListing, ProductVariantChannelListing
 from .digital_contents import DigitalContent
@@ -621,40 +623,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     def resolve_assigned_attribute(
         cls, root: ChannelContext[models.ProductVariant], info, slug
     ):
-        def get_selected_attribute_by_slug(
-            attributes: (
-                list[
-                    dict[
-                        str,
-                        attribute_models.Attribute
-                        | list[attribute_models.AttributeValue],
-                    ]
-                ]
-                | None
-            ),
-        ) -> AssignedAttributeData | None:
-            if attributes is None:
-                return None
-
-            for atr in attributes:
-                attribute = atr["attribute"]
-                attribute = cast(attribute_models.Attribute, attribute)
-                if attribute.slug == slug:
-                    values = atr["values"]
-                    values = cast(list[attribute_models.AttributeValue], values)
-                    return AssignedAttributeData(
-                        attribute=ChannelContext(attribute, root.channel_slug),
-                        values=[
-                            ChannelContext(value, root.channel_slug) for value in values
-                        ],
-                    )
-            return None
-
-        return (
-            AssignedAttributesByProductVariantIdLoader(info.context)
-            .load(root.node.id)
-            .then(get_selected_attribute_by_slug)
-        )
+        return resolve_variant_attribute(root, info, slug)
 
     @classmethod
     def resolve_attributes(
@@ -663,7 +632,15 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         info,
         variant_selection: VariantAttributeScope | None = None,
     ):
-        return cls._resolve_attributes(root, info, variant_selection)
+        if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
+            selection_bool = True
+        elif variant_selection == VariantAttributeScope.NOT_VARIANT_SELECTION:
+            selection_bool = False
+        else:
+            selection_bool = None
+        return resolve_variant_attributes(
+            root, info, variant_selection=selection_bool, limit=None
+        )
 
     @classmethod
     def resolve_assigned_attributes(
@@ -672,78 +649,8 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         info,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ):
-        variant_selection = None
-        return cls._resolve_attributes(root, info, variant_selection, limit)
-
-    @classmethod
-    def _resolve_attributes(
-        cls,
-        root: ChannelContext[models.ProductVariant],
-        info,
-        variant_selection: str | None = None,
-        limit: int | None = None,
-    ):
-        def apply_variant_selection_filter(
-            selected_attributes,
-        ) -> list[AssignedAttributeData]:
-            if not variant_selection or variant_selection == VariantAttributeScope.ALL:
-                selected_attributes = (
-                    selected_attributes[:limit] if limit else selected_attributes
-                )
-                return [
-                    AssignedAttributeData(
-                        attribute=ChannelContext(
-                            selected_att["attribute"], root.channel_slug
-                        ),
-                        values=[
-                            ChannelContext(value, root.channel_slug)
-                            for value in selected_att["values"]
-                        ],
-                    )
-                    for selected_att in selected_attributes
-                ]
-            attributes = [
-                (selected_att["attribute"], selected_att["variant_selection"])
-                for selected_att in selected_attributes
-            ]
-            attributes = cast(list[tuple[attribute_models.Attribute, bool]], attributes)
-            variant_selection_attrs = [
-                attr for attr, _ in get_variant_selection_attributes(attributes)
-            ]
-
-            if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
-                attributes_to_return = [
-                    selected_att
-                    for selected_att in selected_attributes
-                    if selected_att["attribute"] in variant_selection_attrs
-                ]
-            else:
-                attributes_to_return = [
-                    selected_att
-                    for selected_att in selected_attributes
-                    if selected_att["attribute"] not in variant_selection_attrs
-                ]
-            attributes_to_return = (
-                attributes_to_return[:limit] if limit else attributes_to_return
-            )
-
-            return [
-                AssignedAttributeData(
-                    attribute=ChannelContext(
-                        selected_att["attribute"], root.channel_slug
-                    ),
-                    values=[
-                        ChannelContext(value, root.channel_slug)
-                        for value in selected_att["values"]
-                    ],
-                )
-                for selected_att in attributes_to_return
-            ]
-
-        return (
-            AssignedAttributesByProductVariantIdLoader(info.context)
-            .load(root.node.id)
-            .then(apply_variant_selection_filter)
+        return resolve_variant_attributes(
+            root, info, variant_selection=None, limit=limit
         )
 
     @staticmethod
@@ -1462,59 +1369,11 @@ class Product(ChannelContextType[models.Product]):
     def resolve_assigned_attribute(
         cls, root: ChannelContext[models.Product], info, slug
     ):
-        return cls._resolve_attribute(root, info, slug)
+        return resolve_product_attribute(root, info, slug)
 
     @classmethod
     def resolve_attribute(cls, root: ChannelContext[models.Product], info, slug):
-        return cls._resolve_attribute(root, info, slug)
-
-    @classmethod
-    def _resolve_attribute(cls, root: ChannelContext[models.Product], info, slug):
-        def get_selected_attribute_by_slug(
-            attributes: (
-                list[
-                    dict[
-                        str,
-                        attribute_models.Attribute
-                        | list[attribute_models.AttributeValue],
-                    ]
-                ]
-                | None
-            ),
-        ) -> AssignedAttributeData | None:
-            if attributes is None:
-                return None
-
-            for atr in attributes:
-                attribute = atr["attribute"]
-                attribute = cast(attribute_models.Attribute, attribute)
-                if attribute.slug == slug:
-                    values = atr["values"]
-                    values = cast(list[attribute_models.AttributeValue], values)
-                    return AssignedAttributeData(
-                        attribute=ChannelContext(attribute, root.channel_slug),
-                        values=[
-                            ChannelContext(value, root.channel_slug) for value in values
-                        ],
-                    )
-            return None
-
-        requestor = get_user_or_app_from_context(info.context)
-        if (
-            requestor
-            and requestor.is_active
-            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
-        ):
-            return (
-                AssignedAttributesAllByProductIdLoader(info.context)
-                .load(root.node.id)
-                .then(get_selected_attribute_by_slug)
-            )
-        return (
-            AssignedAttributesVisibleInStorefrontByProductIdLoader(info.context)
-            .load(root.node.id)
-            .then(get_selected_attribute_by_slug)
-        )
+        return resolve_product_attribute(root, info, slug)
 
     @classmethod
     def resolve_assigned_attributes(
@@ -1523,64 +1382,11 @@ class Product(ChannelContextType[models.Product]):
         info,
         limit: int = DEFAULT_NESTED_LIST_LIMIT,
     ):
-        return cls._resolve_attributes(root, info, limit)
+        return resolve_product_attributes(root, info, limit=limit)
 
     @classmethod
     def resolve_attributes(cls, root: ChannelContext[models.Product], info):
-        return cls._resolve_attributes(root, info)
-
-    @classmethod
-    def _resolve_attributes(
-        cls, root: ChannelContext[models.Product], info, limit: int | None = None
-    ):
-        def wrap_with_channel_context(
-            attributes: (
-                list[
-                    dict[
-                        str,
-                        attribute_models.Attribute
-                        | list[attribute_models.AttributeValue],
-                    ]
-                ]
-                | None
-            ),
-        ) -> list[AssignedAttributeData] | None:
-            if attributes is None:
-                return None
-
-            response = []
-            for attr_data in attributes:
-                attribute = attr_data["attribute"]
-                attribute = cast(attribute_models.Attribute, attribute)
-                values = attr_data["values"]
-                values = cast(list[attribute_models.AttributeValue], values)
-                response.append(
-                    AssignedAttributeData(
-                        attribute=ChannelContext(attribute, root.channel_slug),
-                        values=[
-                            ChannelContext(value, root.channel_slug) for value in values
-                        ],
-                    )
-                )
-            response = response[:limit] if limit else response
-            return response
-
-        requestor = get_user_or_app_from_context(info.context)
-        if (
-            requestor
-            and requestor.is_active
-            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
-        ):
-            return (
-                AssignedAttributesAllByProductIdLoader(info.context)
-                .load(root.node.id)
-                .then(wrap_with_channel_context)
-            )
-        return (
-            AssignedAttributesVisibleInStorefrontByProductIdLoader(info.context)
-            .load(root.node.id)
-            .then(wrap_with_channel_context)
-        )
+        return resolve_product_attributes(root, info, limit=None)
 
     @staticmethod
     def resolve_media_by_id(root: ChannelContext[models.Product], info, *, id):
