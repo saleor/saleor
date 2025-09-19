@@ -16,7 +16,11 @@ from prices import Money
 from ..account.models import User
 from ..checkout.fetch import update_delivery_method_lists_for_checkout_info
 from ..core.db.connection import allow_writer
-from ..core.exceptions import NonExistingCheckoutLines, ProductNotPublished
+from ..core.exceptions import (
+    NonExistingCheckout,
+    NonExistingCheckoutLines,
+    ProductNotPublished,
+)
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..core.utils.metadata_manager import (
@@ -61,7 +65,10 @@ from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
 from . import AddressType, base_calculations, calculations
 from .error_codes import CheckoutErrorCode
-from .lock_objects import checkout_lines_qs_select_for_update
+from .lock_objects import (
+    checkout_lines_qs_select_for_update,
+    checkout_qs_select_for_update,
+)
 from .models import Checkout, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
@@ -306,6 +313,17 @@ def add_variants_to_checkout(
     """
     country_code = checkout.get_country()
     with transaction.atomic():
+        # We need to lock checkout first to avoid deadlocks.
+        # When this function try to create new lines, the checkout is locked after
+        # the lines are locked manually. We should always lock checkout first to
+        # avoid deadlocks.
+        try:
+            _locked_checkout = (
+                checkout_qs_select_for_update().only("pk").get(token=checkout.token)
+            )
+        except Checkout.DoesNotExist as e:
+            raise NonExistingCheckout(checkout.token) from e
+
         checkout_lines = list(
             checkout_lines_qs_select_for_update()
             .select_related("variant")
@@ -357,6 +375,8 @@ def add_variants_to_checkout(
             )
 
         if to_create:
+            # This operation is safe to do without locking as we already locked checkout
+            # on the beginning of this transaction.
             CheckoutLine.objects.bulk_create(to_create)
 
         to_reserve = to_create + to_update
