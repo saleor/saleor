@@ -1,5 +1,4 @@
 from collections import defaultdict
-from collections.abc import Iterable
 
 from django.conf import settings
 from django.db import transaction
@@ -7,6 +6,7 @@ from django.db.models import Value, prefetch_related_objects
 
 from ..attribute.models import AssignedPageAttributeValue, AttributeValue
 from ..attribute.search import get_search_vectors_for_attribute_values
+from ..core.db.connection import allow_writer
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from ..core.utils.editorjs import clean_editor_js
 from .lock_objects import page_qs_select_for_update
@@ -19,56 +19,13 @@ PAGE_FIELDS_TO_PREFETCH = [
 PAGE_BATCH_SIZE = 100
 
 
-def update_pages_search_vector(page_ids: Iterable[int]):
-    db_conn = settings.DATABASE_CONNECTION_REPLICA_NAME
-    page_ids = list(page_ids)
-    pages = Page.objects.using(db_conn).filter(pk__in=page_ids).order_by("pk")
-    for page_pks in queryset_in_batches(pages):
-        value_ids = (
-            AssignedPageAttributeValue.objects.using(db_conn)
-            .filter(page_id__in=page_pks)
-            .values_list("value_id", flat=True)
-        )
-        value_to_page_id = (
-            AttributeValue.objects.using(db_conn)
-            .filter(id__in=value_ids, reference_page_id__isnull=False)
-            .values_list("id", "reference_page_id")
-        )
-        page_id_to_title_map = dict(
-            Page.objects.using(db_conn)
-            .filter(id__in=[page_id for _, page_id in value_to_page_id])
-            .values_list("id", "title")
-        )
-
-        pages_batch = list(Page.objects.using(db_conn).filter(id__in=page_pks))
-        _prepare_pages_search_vector_index(pages_batch, page_id_to_title_map)
-
-
-def queryset_in_batches(queryset):
-    """Slice a queryset into batches.
-
-    Input queryset should be sorted be pk.
-    """
-    start_pk = 0
-
-    while True:
-        qs = queryset.filter(pk__gt=start_pk)[:PAGE_BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
-
-        if not pks:
-            break
-
-        yield pks
-
-        start_pk = pks[-1]
-
-
-def _prepare_pages_search_vector_index(
+@allow_writer()
+def update_pages_search_vector(
     pages: list[Page],
     page_id_to_title_map: dict[int, str] | None = None,
 ) -> None:
     prefetch_related_objects(pages, *PAGE_FIELDS_TO_PREFETCH)
-
+    page_id_to_title_map = get_page_to_title_map(pages)
     for page in pages:
         page.search_vector = FlatConcatSearchVector(
             *prepare_page_search_vector_value(page, page_id_to_title_map)
@@ -82,6 +39,27 @@ def _prepare_pages_search_vector_index(
             .values_list("id", flat=True)
         )
         Page.objects.bulk_update(pages, ["search_vector", "search_index_dirty"])
+
+
+def get_page_to_title_map(pages: list[Page]):
+    db_conn = settings.DATABASE_CONNECTION_REPLICA_NAME
+    page_ids = [page.id for page in pages]
+    value_ids = (
+        AssignedPageAttributeValue.objects.using(db_conn)
+        .filter(page_id__in=page_ids)
+        .values_list("value_id", flat=True)
+    )
+    value_to_page_id = (
+        AttributeValue.objects.using(db_conn)
+        .filter(id__in=value_ids, reference_page_id__isnull=False)
+        .values_list("id", "reference_page_id")
+    )
+    page_id_to_title_map = dict(
+        Page.objects.using(db_conn)
+        .filter(id__in=[page_id for _, page_id in value_to_page_id])
+        .values_list("id", "title")
+    )
+    return page_id_to_title_map
 
 
 def prepare_page_search_vector_value(
