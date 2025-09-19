@@ -31,6 +31,7 @@ from .....warehouse.models import Reservation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.transport.asynchronous.transport import send_webhook_request_async
 from .....webhook.transport.utils import WebhookResponse
+from ....core.mutations import MISSING_NODE_ERROR_MESSAGE_PREFIX
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...mutations.utils import update_checkout_shipping_method_if_invalid
@@ -1973,3 +1974,49 @@ def test_checkout_lines_update_checkout_updated_during_price_recalculation(
 
     checkout.refresh_from_db()
     assert checkout.email == expected_email
+
+
+def test_checkout_lines_update_checkout_removed_before_adding_variants_to_checkout(
+    user_api_client,
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    checkout_global_id = to_global_id_or_none(checkout)
+
+    variables = {
+        "id": checkout_global_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    def delete_checkout(*args, **kwargs):
+        # Simulate checkout deletion. We can't run `delete()` on `checkout_with_prices`, because
+        # it's would pass `checkout` without `pk` to `checkout_info`.
+        Checkout.objects.filter(pk=checkout.pk).delete()
+
+    with race_condition.RunBefore(
+        "saleor.graphql.checkout.mutations.checkout_lines_add.add_variants_to_checkout",
+        delete_checkout,
+    ):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_LINES_UPDATE, variables
+        )
+
+    content = get_graphql_content(response)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["checkout"]
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+    # Ensure that checkout removed during the mutation execution was handled in same way
+    # as if it was removed before the mutation execution.
+    assert (
+        data["errors"][0]["message"]
+        == f"{MISSING_NODE_ERROR_MESSAGE_PREFIX} {checkout_global_id}"
+    )

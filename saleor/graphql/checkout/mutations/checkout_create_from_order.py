@@ -402,6 +402,9 @@ class CheckoutCreateFromOrder(BaseMutation):
         )
 
         if variants and valid_order_lines:
+            # Doesn't make sense to handle `NonExistingCheckout` here,
+            # as we just created the checkout above. No-one knows checkout's
+            # token except us.
             checkout = add_variants_to_checkout(
                 checkout,
                 variants,
