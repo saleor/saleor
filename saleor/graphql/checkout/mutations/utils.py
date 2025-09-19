@@ -378,6 +378,9 @@ def group_lines_input_on_add(
         variant_id = cast(str, line.get("variant_id"))
         force_new_line = line.get("force_new_line")
         metadata_list_from_input = line.get("metadata", [])
+        # if metadata is None in input, it should be treated as empty list
+        if not metadata_list_from_input:
+            metadata_list_from_input = []
 
         _, variant_db_id = graphene.Node.from_global_id(variant_id)
 
