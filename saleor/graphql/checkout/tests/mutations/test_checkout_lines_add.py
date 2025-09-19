@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest import mock
 from unittest.mock import patch
 
+import before_after
 import graphene
 import pytest
 import pytz
@@ -32,8 +33,12 @@ from .....warehouse.tests.utils import get_available_quantity_for_stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.transport.asynchronous.transport import send_webhook_request_async
 from .....webhook.transport.utils import WebhookResponse
+from ....core.mutations import MISSING_NODE_ERROR_MESSAGE_PREFIX
 from ....core.utils import to_global_id_or_none
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+)
 from ...mutations.utils import update_checkout_shipping_method_if_invalid
 
 MUTATION_CHECKOUT_LINES_ADD = """
@@ -2009,3 +2014,49 @@ def test_checkout_lines_add_when_line_deleted(user_api_client, checkout_with_ite
     ).first()
     assert newly_created_checkout_line
     assert newly_created_checkout_line.id != line.id
+
+
+def test_checkout_lines_add_checkout_removed_before_adding_variants_to_checkout(
+    user_api_client,
+    checkout_with_item,
+    stock,
+):
+    # given
+    variant = stock.product_variant
+    checkout = checkout_with_item
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_global_id = to_global_id_or_none(checkout)
+
+    variables = {
+        "id": checkout_global_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    def delete_checkout(*args, **kwargs):
+        # Simulate checkout deletion. We can't run `delete()` on `checkout_with_prices`, because
+        # it's would pass `checkout` without `pk` to `checkout_info`.
+        Checkout.objects.filter(pk=checkout.pk).delete()
+
+    with before_after.before(
+        "saleor.graphql.checkout.mutations.checkout_lines_add.add_variants_to_checkout",
+        delete_checkout,
+    ):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_LINES_ADD,
+            variables,
+        )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["checkout"]
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+    # Ensure that checkout removed during the mutation execution was handled in same way
+    # as if it was removed before the mutation execution.
+    assert (
+        data["errors"][0]["message"]
+        == f"{MISSING_NODE_ERROR_MESSAGE_PREFIX} {checkout_global_id}"
+    )
