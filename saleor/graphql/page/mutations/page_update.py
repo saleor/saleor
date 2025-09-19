@@ -31,9 +31,7 @@ class PageUpdate(PageCreate):
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
-        instance_tracker_fields = [
-            "title",
-        ]
+        instance_tracker_fields = ["title", "slug", "content"]
 
     @classmethod
     def clean_attributes(cls, attributes: list[dict], page_type: models.PageType):
@@ -51,14 +49,18 @@ class PageUpdate(PageCreate):
         cleaned_input,
         instance_tracker: InstanceTracker | None = None,
     ):
-        super(PageCreate, cls).save(info, instance, cleaned_input)
+        modified_instance_fields = (
+            instance_tracker.get_modified_fields() if instance_tracker else []
+        )
+        if modified_instance_fields or cleaned_input.get("attributes"):
+            instance.search_index_dirty = True
+        instance.save()
+
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_updated, instance)
 
-        if instance_tracker is not None:
-            modified_instance_fields = instance_tracker.get_modified_fields()
-            if "title" in modified_instance_fields:
-                cls.update_products_search_index(instance)
+        if "title" in modified_instance_fields:
+            cls.update_products_search_index(instance)
 
     @classmethod
     def update_products_search_index(cls, instance):

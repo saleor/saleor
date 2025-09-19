@@ -13,6 +13,7 @@ def page(db, page_type, size_page_attribute):
         "content": dummy_editorjs("Test content."),
         "is_published": True,
         "page_type": page_type,
+        "search_index_dirty": False,
     }
     page = Page.objects.create(**data)
 

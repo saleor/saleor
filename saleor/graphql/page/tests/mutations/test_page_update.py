@@ -154,6 +154,7 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     page_title = page.title
     new_slug = "new-slug"
     assert new_slug != page.slug
+    assert page.search_index_dirty is False
 
     page_id = graphene.Node.to_global_id("Page", page.id)
 
@@ -231,6 +232,9 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     assert expected_size_assigned_attribute in assigned_attributes
     assert expected_tag_assigned_attribute in assigned_attributes
 
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
+
 
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
@@ -299,6 +303,7 @@ def test_update_page_only_title(staff_api_client, permission_manage_pages, page)
     page_title = page.title
     new_slug = "new-slug"
     assert new_slug != page.slug
+    assert page.search_index_dirty is False
 
     page_id = graphene.Node.to_global_id("Page", page.id)
 
@@ -364,6 +369,9 @@ def test_update_page_only_title(staff_api_client, permission_manage_pages, page)
     assert expected_size_assigned_attribute in assigned_attributes
     assert expected_tag_assigned_attribute in assigned_attributes
 
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
+
 
 def test_update_page_with_file_attribute_value(
     staff_api_client, permission_manage_pages, page, page_file_attribute
@@ -376,6 +384,7 @@ def test_update_page_with_file_attribute_value(
     page_file_attribute_id = graphene.Node.to_global_id(
         "Attribute", page_file_attribute.pk
     )
+    assert page.search_index_dirty is False
 
     page_id = graphene.Node.to_global_id("Page", page.id)
     file_name = "test.txt"
@@ -423,6 +432,10 @@ def test_update_page_with_file_attribute_value(
         },
     }
     assert expected_assigned_attribute in assigned_attributes
+
+    # ensure updating only attributes mark the page search index as dirty
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
 
 
 def test_update_page_with_file_attribute_new_value_is_not_created(
@@ -1496,10 +1509,12 @@ def test_public_page_sets_publication_date(
 def test_update_page_publication_date(
     staff_api_client, permission_manage_pages, page_type
 ):
+    # given
     data = {
         "slug": "test-url",
         "title": "Test page",
         "page_type": page_type,
+        "search_index_dirty": False,
     }
     page = Page.objects.create(**data)
     published_at = datetime.datetime.now(tz=datetime.UTC).replace(
@@ -1508,17 +1523,25 @@ def test_update_page_publication_date(
     page_id = graphene.Node.to_global_id("Page", page.id)
     variables = {
         "id": page_id,
-        "input": {"isPublished": True, "slug": page.slug, "publishedAt": published_at},
+        "input": {"isPublished": True, "publishedAt": published_at},
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["pageUpdate"]
 
     assert not data["errors"]
     assert data["page"]["isPublished"] is True
     assert data["page"]["publishedAt"] == published_at.isoformat()
+
+    # ensure that updating publish dates do not affect search_index_dirty flag
+    page.refresh_from_db()
+    assert page.search_index_dirty is False
 
 
 @pytest.mark.parametrize("slug_value", [None, ""])
