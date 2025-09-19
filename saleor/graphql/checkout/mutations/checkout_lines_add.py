@@ -9,6 +9,7 @@ from ....checkout.fetch import (
     update_delivery_method_lists_for_checkout_info,
 )
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout
+from ....core.exceptions import NonExistingCheckout
 from ....core.utils import metadata_manager
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
@@ -18,7 +19,7 @@ from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import MetadataErrorCode
-from ...core.mutations import BaseMutation
+from ...core.mutations import MISSING_NODE_ERROR_MESSAGE_PREFIX, BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.utils import WebhookEventInfo
@@ -122,18 +123,29 @@ class CheckoutLinesAdd(BaseMutation):
     ):
         if variants and checkout_lines_data:
             site = get_site_promise(info.context).get()
-            checkout = add_variants_to_checkout(
-                checkout,
-                variants,
-                checkout_lines_data,
-                checkout_info.channel,
-                replace=replace,
-                replace_reservations=True,
-                reservation_length=get_reservation_length(
-                    site=site, user=info.context.user
-                ),
-                raise_error_for_missing_lines=raise_error_for_missing_lines,
-            )
+            try:
+                checkout = add_variants_to_checkout(
+                    checkout,
+                    variants,
+                    checkout_lines_data,
+                    checkout_info.channel,
+                    replace=replace,
+                    replace_reservations=True,
+                    reservation_length=get_reservation_length(
+                        site=site, user=info.context.user
+                    ),
+                    raise_error_for_missing_lines=raise_error_for_missing_lines,
+                )
+            except NonExistingCheckout as e:
+                graphql_id = graphene.Node.to_global_id("Checkout", e.checkout_token)
+                raise ValidationError(
+                    {
+                        "id": ValidationError(
+                            f"{MISSING_NODE_ERROR_MESSAGE_PREFIX} {graphql_id}",
+                            code=CheckoutErrorCode.NOT_FOUND.value,
+                        )
+                    }
+                ) from e
 
         lines, _ = fetch_checkout_lines(checkout)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
