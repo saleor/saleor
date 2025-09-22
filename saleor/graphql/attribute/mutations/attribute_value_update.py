@@ -4,6 +4,7 @@ from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
 from ....core.utils.batches import queryset_in_batches
+from ....page import models as page_models
 from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ....product.lock_objects import product_qs_select_for_update
@@ -84,6 +85,11 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
 
     @classmethod
     def mark_search_index_dirty(cls, instance):
+        cls._mark_products_search_index_dirty(instance)
+        cls._mark_pages_search_index_dirty(instance)
+
+    @classmethod
+    def _mark_products_search_index_dirty(cls, instance):
         variants = product_models.ProductVariant.objects.filter(
             Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
         )
@@ -108,5 +114,21 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
                     product_qs_select_for_update().filter(pk__in=batch_pks)
                 )
                 product_models.Product.objects.filter(pk__in=batch_pks).update(
+                    search_index_dirty=True
+                )
+
+    @classmethod
+    def _mark_pages_search_index_dirty(cls, instance):
+        pages = page_models.Page.objects.filter(
+            Exists(instance.pagevalueassignment.filter(page_id=OuterRef("id")))
+        ).order_by("pk")
+        for batch_pks in queryset_in_batches(pages, BATCH_SIZE):
+            with transaction.atomic():
+                _pages = list(
+                    page_models.Page.objects.select_for_update().filter(
+                        pk__in=batch_pks
+                    )
+                )
+                page_models.Page.objects.filter(pk__in=batch_pks).update(
                     search_index_dirty=True
                 )
