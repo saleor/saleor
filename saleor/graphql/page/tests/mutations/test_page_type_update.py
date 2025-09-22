@@ -39,6 +39,7 @@ PAGE_TYPE_UPDATE_MUTATION = """
 def test_page_type_update_as_staff(
     staff_api_client,
     page_type,
+    page,
     permission_manage_page_types_and_attributes,
     author_page_attribute,
     size_page_attribute,
@@ -47,6 +48,7 @@ def test_page_type_update_as_staff(
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+    assert page.search_index_dirty is False
 
     slug = "new-slug"
     name = "new-name"
@@ -82,6 +84,8 @@ def test_page_type_update_as_staff(
         tag_page_attribute.slug,
         author_page_attribute.slug,
     }
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -93,6 +97,7 @@ def test_page_type_update_trigger_webhook(
     any_webhook,
     staff_api_client,
     page_type,
+    page,
     permission_manage_page_types_and_attributes,
     author_page_attribute,
     size_page_attribute,
@@ -105,6 +110,7 @@ def test_page_type_update_trigger_webhook(
 
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+    assert page.search_index_dirty is False
 
     slug = "new-slug"
 
@@ -144,6 +150,8 @@ def test_page_type_update_trigger_webhook(
         SimpleLazyObject(lambda: staff_user),
         allow_replica=False,
     )
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
 
 
 def test_page_type_update_as_staff_no_perm(staff_api_client, page_type):
@@ -163,6 +171,7 @@ def test_page_type_update_as_staff_no_perm(staff_api_client, page_type):
 def test_page_type_update_as_app(
     staff_api_client,
     page_type,
+    page,
     permission_manage_page_types_and_attributes,
     author_page_attribute,
     size_page_attribute,
@@ -171,6 +180,7 @@ def test_page_type_update_as_app(
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+    assert page.search_index_dirty is False
 
     slug = "new-slug"
     name = "new-name"
@@ -206,6 +216,8 @@ def test_page_type_update_as_app(
         tag_page_attribute.slug,
         author_page_attribute.slug,
     }
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
 
 
 def test_page_type_update_as_app_no_perm(app_api_client, page_type):
@@ -422,3 +434,125 @@ def test_page_type_update_multiple_errors(
     assert errors[0]["code"] == PageErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["field"] == "attributes"
     assert errors[0]["attributes"] == [author_page_attr_id]
+
+
+def test_page_type_update_only_name(
+    staff_api_client,
+    page_type,
+    page,
+    permission_manage_page_types_and_attributes,
+):
+    # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+    assert page.search_index_dirty is False
+
+    name = "new-name"
+
+    variables = {
+        "id": graphene.Node.to_global_id("PageType", page_type.pk),
+        "input": {
+            "name": name,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_TYPE_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageTypeUpdate"]
+    errors = data["errors"]
+    page_type_data = data["pageType"]
+
+    page_type.refresh_from_db()
+    assert not errors
+    assert page_type_data["name"] == name
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
+
+
+def test_page_type_update_only_add_attributes(
+    staff_api_client,
+    page_type,
+    page,
+    permission_manage_page_types_and_attributes,
+    author_page_attribute,
+    size_page_attribute,
+    tag_page_attribute,
+):
+    # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+    assert page.search_index_dirty is False
+
+    variables = {
+        "id": graphene.Node.to_global_id("PageType", page_type.pk),
+        "input": {
+            "addAttributes": [
+                graphene.Node.to_global_id("Attribute", author_page_attribute.pk)
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_TYPE_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageTypeUpdate"]
+    errors = data["errors"]
+    page_type_data = data["pageType"]
+
+    page_type.refresh_from_db()
+    assert not errors
+    assert page_type_data["name"] == page_type.name
+    assert page_type_data["slug"] == page_type.slug
+    assert {attr["slug"] for attr in page_type_data["attributes"]} == {
+        tag_page_attribute.slug,
+        size_page_attribute.slug,
+        author_page_attribute.slug,
+    }
+    # only adding attributes should not mark pages for search index update
+    page.refresh_from_db()
+    assert page.search_index_dirty is False
+
+
+def test_page_type_update_only_remove_attributes(
+    staff_api_client,
+    page_type,
+    page,
+    permission_manage_page_types_and_attributes,
+    size_page_attribute,
+    tag_page_attribute,
+):
+    # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+    assert page.search_index_dirty is False
+
+    variables = {
+        "id": graphene.Node.to_global_id("PageType", page_type.pk),
+        "input": {
+            "removeAttributes": [
+                graphene.Node.to_global_id("Attribute", size_page_attribute.pk)
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_TYPE_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageTypeUpdate"]
+    errors = data["errors"]
+    page_type_data = data["pageType"]
+
+    page_type.refresh_from_db()
+    assert not errors
+    assert {attr["slug"] for attr in page_type_data["attributes"]} == {
+        tag_page_attribute.slug,
+    }
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
