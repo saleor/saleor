@@ -2,6 +2,7 @@ import graphene
 from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
+from ....page import models as page_models
 from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
@@ -47,20 +48,19 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
-        product_ids = cls.get_product_ids_to_update(instance)
+        product_ids = cls.get_product_ids_to_search_index_update(instance)
+        page_ids = cls.get_page_ids_to_search_index_update(instance)
         response = super().perform_mutation(
             _root, info, external_reference=external_reference, id=id
         )
-        product_models.Product.objects.filter(id__in=product_ids).update(
-            search_index_dirty=True
-        )
+        cls.mark_search_index_dirty(product_ids, page_ids)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_deleted, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)
         return response
 
     @classmethod
-    def get_product_ids_to_update(cls, instance):
+    def get_product_ids_to_search_index_update(cls, instance):
         variants = product_models.ProductVariant.objects.filter(
             Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
         )
@@ -69,6 +69,20 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
             | Q(Exists(variants.filter(product_id=OuterRef("id"))))
         ).values_list("id", flat=True)
         return list(product_ids)
+
+    @classmethod
+    def get_page_ids_to_search_index_update(cls, instance):
+        page_ids = page_models.Page.objects.filter(
+            Exists(instance.pagevalueassignment.filter(page_id=OuterRef("id")))
+        ).values_list("id", flat=True)
+        return list(page_ids)
+
+    @classmethod
+    def mark_search_index_dirty(cls, product_ids, page_ids):
+        product_models.Product.objects.filter(id__in=product_ids).update(
+            search_index_dirty=True
+        )
+        page_models.Page.objects.filter(id__in=page_ids).update(search_index_dirty=True)
 
     @classmethod
     def success_response(cls, instance):
