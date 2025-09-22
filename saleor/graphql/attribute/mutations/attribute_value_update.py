@@ -3,8 +3,10 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
+from ....core.utils.batches import queryset_in_batches
 from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
+from ....product.lock_objects import product_qs_select_for_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -16,26 +18,7 @@ from ..types import Attribute, AttributeValue
 from .attribute_update import AttributeValueUpdateInput
 from .attribute_value_create import AttributeValueCreate
 
-PRODUCTS_BATCH_SIZE = 10000
-
-
-def queryset_in_batches(queryset):
-    """Slice a queryset into batches.
-
-    Input queryset should be sorted be pk.
-    """
-    start_pk = 0
-
-    while True:
-        qs = queryset.filter(pk__gt=start_pk)[:PRODUCTS_BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
-
-        if not pks:
-            break
-
-        yield pks
-
-        start_pk = pks[-1]
+BATCH_SIZE = 10000
 
 
 class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
@@ -94,35 +77,36 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
-        with transaction.atomic():
-            variants = product_models.ProductVariant.objects.filter(
-                Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
-            )
-            # SELECT … FOR UPDATE needs to lock rows in a consistent order
-            # to avoid deadlocks between updates touching the same rows.
-
-            qs = (
-                product_models.Product.objects.select_for_update(of=("self",))
-                .filter(
-                    Q(search_index_dirty=False)
-                    & (
-                        Q(
-                            Exists(
-                                instance.productvalueassignment.filter(
-                                    product_id=OuterRef("id")
-                                )
-                            )
-                        )
-                        | Q(Exists(variants.filter(product_id=OuterRef("id"))))
-                    )
-                )
-                .order_by("pk")
-            )
-            for batch_pks in queryset_in_batches(qs):
-                product_models.Product.objects.filter(pk__in=batch_pks).update(
-                    search_index_dirty=True
-                )
-
+        cls.mark_search_index_dirty(instance)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_updated, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)
+
+    @classmethod
+    def mark_search_index_dirty(cls, instance):
+        variants = product_models.ProductVariant.objects.filter(
+            Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
+        )
+        products = product_models.Product.objects.filter(
+            Q(search_index_dirty=False)
+            & (
+                Q(
+                    Exists(
+                        instance.productvalueassignment.filter(
+                            product_id=OuterRef("id")
+                        )
+                    )
+                )
+                | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+            )
+        ).order_by("pk")
+        for batch_pks in queryset_in_batches(products, BATCH_SIZE):
+            with transaction.atomic():
+                # SELECT … FOR UPDATE needs to lock rows in a consistent order
+                # to avoid deadlocks between updates touching the same rows.
+                _products = list(
+                    product_qs_select_for_update().filter(pk__in=batch_pks)
+                )
+                product_models.Product.objects.filter(pk__in=batch_pks).update(
+                    search_index_dirty=True
+                )

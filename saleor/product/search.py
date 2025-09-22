@@ -9,6 +9,7 @@ from django.db.models import F, Q, Value, prefetch_related_objects
 from ..attribute import AttributeInputType
 from ..attribute.models import AssignedProductAttributeValue, Attribute, AttributeValue
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
+from ..core.utils.batches import queryset_in_batches
 from ..core.utils.editorjs import clean_editor_js
 from ..page.models import Page
 from ..product.models import Product
@@ -50,30 +51,11 @@ def _prep_product_search_vector_index(
     )
 
 
-def queryset_in_batches(queryset):
-    """Slice a queryset into batches.
-
-    Input queryset should be sorted be pk.
-    """
-    start_pk = 0
-
-    while True:
-        qs = queryset.filter(pk__gt=start_pk)[:PRODUCTS_BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
-
-        if not pks:
-            break
-
-        yield pks
-
-        start_pk = pks[-1]
-
-
 def update_products_search_vector(product_ids: Iterable[int]):
     db_conn = settings.DATABASE_CONNECTION_REPLICA_NAME
     product_ids = list(product_ids)
     products = Product.objects.using(db_conn).filter(pk__in=product_ids).order_by("pk")
-    for product_pks in queryset_in_batches(products):
+    for product_pks in queryset_in_batches(products, PRODUCTS_BATCH_SIZE):
         value_ids = (
             AssignedProductAttributeValue.objects.using(db_conn)
             .filter(product_id__in=product_pks)
