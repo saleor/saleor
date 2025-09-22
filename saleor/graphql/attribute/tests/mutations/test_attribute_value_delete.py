@@ -80,7 +80,7 @@ def test_delete_attribute_value_update_search_index_dirty_in_page(
     # given
     attribute_value = page.attributevalues.first()
     query = ATTRIBUTE_VALUE_DELETE_MUTATION
-    node_id = graphene.Node.to_global_id("AttributeValue", attribute_value.value.id)
+    node_id = graphene.Node.to_global_id("AttributeValue", attribute_value.value_id)
     variables = {"id": node_id}
     assert page.search_index_dirty is False
 
