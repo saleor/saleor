@@ -1,5 +1,6 @@
 import graphene
 
+from ....page import models
 from ....permission.enums import PageTypePermissions
 from ...attribute.types import Attribute
 from ...core import ResolveInfo
@@ -45,5 +46,9 @@ class PageAttributeUnassign(BaseMutation):
         _, attr_pks = resolve_global_ids_to_primary_keys(attribute_ids, Attribute)
 
         page_type.page_attributes.remove(*attr_pks)
+
+        models.Page.objects.filter(page_type_id=page_type.pk).update(
+            search_index_dirty=True
+        )
 
         return cls(page_type=page_type)
