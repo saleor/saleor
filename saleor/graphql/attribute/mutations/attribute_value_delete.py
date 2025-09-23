@@ -60,7 +60,9 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         return response
 
     @classmethod
-    def get_product_ids_to_search_index_update(cls, instance):
+    def get_product_ids_to_search_index_update(
+        cls, instance: models.AttributeValue
+    ) -> list[int]:
         variants = product_models.ProductVariant.objects.filter(
             Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
         )
@@ -71,21 +73,23 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         return list(product_ids)
 
     @classmethod
-    def get_page_ids_to_search_index_update(cls, instance):
+    def get_page_ids_to_search_index_update(
+        cls, instance: models.AttributeValue
+    ) -> list[int]:
         page_ids = page_models.Page.objects.filter(
             Exists(instance.pagevalueassignment.filter(page_id=OuterRef("id")))
         ).values_list("id", flat=True)
         return list(page_ids)
 
     @classmethod
-    def mark_search_index_dirty(cls, product_ids, page_ids):
+    def mark_search_index_dirty(cls, product_ids: list[int], page_ids: list[int]):
         product_models.Product.objects.filter(id__in=product_ids).update(
             search_index_dirty=True
         )
         page_models.Page.objects.filter(id__in=page_ids).update(search_index_dirty=True)
 
     @classmethod
-    def success_response(cls, instance):
+    def success_response(cls, instance: models.AttributeValue):
         response = super().success_response(instance)
         response.attribute = ChannelContext(instance.attribute, None)
         response.attributeValue = ChannelContext(instance, None)

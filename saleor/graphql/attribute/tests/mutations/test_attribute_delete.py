@@ -6,6 +6,9 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....attribute.tests.model_helpers import (
+    get_product_attributes,
+)
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
@@ -128,6 +131,51 @@ def test_delete_file_attribute(
     assert data["attribute"]["id"] == variables["id"]
     with pytest.raises(attribute._meta.model.DoesNotExist):
         attribute.refresh_from_db()
+
+
+def test_delete_attribute_update_search_index_dirty_in_product(
+    staff_api_client,
+    product,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    first_attribute = get_product_attributes(product).first()
+    node_id = graphene.Node.to_global_id("Attribute", first_attribute.id)
+    variables = {"id": node_id}
+
+    # when
+    staff_api_client.post_graphql(
+        ATTRIBUTE_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+    product.refresh_from_db(fields=["search_index_dirty"])
+
+    # then
+    assert product.search_index_dirty is True
+
+
+def test_delete_attribute_update_search_index_dirty_in_page(
+    staff_api_client,
+    page,
+    page_type,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    attribute = page_type.page_attributes.first()
+    variables = {"id": graphene.Node.to_global_id("Attribute", attribute.id)}
+    assert page.search_index_dirty is False
+
+    # when
+    staff_api_client.post_graphql(
+        ATTRIBUTE_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    page.refresh_from_db(fields=["search_index_dirty"])
+    assert page.search_index_dirty is True
 
 
 ATTRIBUTE_DELETE_BY_EXTERNAL_REFERENCE_MUTATION = """
