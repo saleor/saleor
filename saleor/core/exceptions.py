@@ -29,6 +29,12 @@ class NonExistingCheckoutLines(Exception):
         super().__init__("Checkout lines don't exist.")
 
 
+class NonExistingCheckout(Exception):
+    def __init__(self, checkout_token: UUID):
+        self.checkout_token = checkout_token
+        super().__init__(f"Checkout: {checkout_token} doesn't exist.")
+
+
 class InsufficientStock(Exception):
     def __init__(self, items: list[InsufficientStockData]):
         details = [str(item.variant or item.order_line) for item in items]

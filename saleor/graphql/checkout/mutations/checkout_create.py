@@ -482,6 +482,9 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             checkout_lines_data = cleaned_input.get("lines_data")
             if variants and checkout_lines_data:
                 site = get_site_promise(info.context).get()
+                # Doesn't make sense to handle `NonExistingCheckout` here,
+                # as we just created the checkout above. No-one knows checkout's
+                # token except us.
                 add_variants_to_checkout(
                     instance,
                     variants,
