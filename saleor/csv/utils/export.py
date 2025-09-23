@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from ...core.db.connection import allow_writer
+from ...core.utils.batches import queryset_in_batches
 from ...discount.models import VoucherCode
 from ...giftcard.models import GiftCard
 from ...product.models import Product
@@ -201,7 +202,7 @@ def export_products_in_batches(
     attributes = export_info.get("attributes")
     channels = export_info.get("channels")
 
-    for batch_pks in queryset_in_batches(queryset):
+    for batch_pks in queryset_in_batches(queryset, BATCH_SIZE):
         product_batch = (
             Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
             .filter(pk__in=batch_pks)
@@ -228,7 +229,7 @@ def export_gift_cards_in_batches(
     temporary_file: Any,
     file_type: str,
 ):
-    for batch_pks in queryset_in_batches(queryset):
+    for batch_pks in queryset_in_batches(queryset, BATCH_SIZE):
         gift_card_batch = GiftCard.objects.using(
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).filter(pk__in=batch_pks)
@@ -245,7 +246,7 @@ def export_voucher_codes_in_batches(
     temporary_file: Any,
     file_type: str,
 ):
-    for batch_pks in queryset_in_batches(queryset):
+    for batch_pks in queryset_in_batches(queryset, BATCH_SIZE):
         voucher_codes_batch = VoucherCode.objects.using(
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).filter(pk__in=batch_pks)
@@ -253,25 +254,6 @@ def export_voucher_codes_in_batches(
         export_data = list(voucher_codes_batch.values(*export_fields))
 
         append_to_file(export_data, export_fields, temporary_file, file_type, delimiter)
-
-
-def queryset_in_batches(queryset):
-    """Slice a queryset into batches.
-
-    Input queryset should be sorted be pk.
-    """
-    start_pk = 0
-
-    while True:
-        qs = queryset.order_by("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
-
-        if not pks:
-            break
-
-        yield pks
-
-        start_pk = pks[-1]
 
 
 def append_to_file(
