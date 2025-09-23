@@ -1,9 +1,12 @@
 import graphene
 from django.db import transaction
+from django.db.models import Exists, OuterRef
 
 from ....attribute import models as models
 from ....attribute.lock_objects import attribute_value_qs_select_for_update
+from ....page import models as page_models
 from ....permission.enums import ProductTypePermissions
+from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -53,8 +56,9 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     ):
         """Perform a mutation that deletes a model instance."""
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
+        product_ids = cls.get_product_ids_to_search_index_update(instance)
+        page_ids = cls.get_page_ids_to_search_index_update(instance)
 
-        cls.clean_instance(info, instance)
         db_id = instance.id
         with transaction.atomic():
             # Lock the attribute values to prevent concurrent modifications
@@ -68,4 +72,37 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
         cls.post_save_action(info, instance, None)
+        cls.mark_search_index_dirty(product_ids, page_ids)
         return cls.success_response(instance)
+
+    @classmethod
+    def get_product_ids_to_search_index_update(
+        cls, instance: models.Attribute
+    ) -> list[int]:
+        product_types = product_models.ProductType.objects.filter(
+            Exists(instance.attributevariant.filter(product_type_id=OuterRef("id")))
+            | Exists(instance.attributeproduct.filter(product_type_id=OuterRef("id")))
+        )
+        product_ids = product_models.Product.objects.filter(
+            Exists(product_types.filter(id=OuterRef("product_type_id")))
+        ).values_list("id", flat=True)
+        return list(product_ids)
+
+    @classmethod
+    def get_page_ids_to_search_index_update(
+        cls, instance: models.Attribute
+    ) -> list[int]:
+        page_types = page_models.PageType.objects.filter(
+            Exists(instance.attributepage.filter(page_type_id=OuterRef("id")))
+        )
+        page_ids = page_models.Page.objects.filter(
+            Exists(page_types.filter(id=OuterRef("page_type_id")))
+        ).values_list("id", flat=True)
+        return list(page_ids)
+
+    @classmethod
+    def mark_search_index_dirty(cls, product_ids: list[int], page_ids: list[int]):
+        product_models.Product.objects.filter(id__in=product_ids).update(
+            search_index_dirty=True
+        )
+        page_models.Page.objects.filter(id__in=page_ids).update(search_index_dirty=True)
