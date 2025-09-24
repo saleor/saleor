@@ -70,6 +70,9 @@ class AppExtensionMount:
     MENU_OVERVIEW_MORE_ACTIONS = "menu_overview_more_actions"
     MENU_DETAILS_MORE_ACTIONS = "menu_details_more_actions"
 
+    # - Maybe single one for all translations?
+    TRANSLATION_PRODUCT_FORM = "translations_product_form"
+
     CHOICES = [
         (CATEGORY_OVERVIEW_CREATE, "category_overview_create"),
         (CATEGORY_OVERVIEW_MORE_ACTIONS, "category_overview_more_actions"),
@@ -120,6 +123,7 @@ class AppExtensionMount:
         (MENU_OVERVIEW_CREATE, "menu_overview_create"),
         (MENU_OVERVIEW_MORE_ACTIONS, "menu_overview_more_actions"),
         (MENU_DETAILS_MORE_ACTIONS, "menu_details_more_actions"),
+        (TRANSLATION_PRODUCT_FORM, "translations_product_form"),
     ]
 
 
