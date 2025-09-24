@@ -349,6 +349,7 @@ LOGGING = {
             "datefmt": "%Y-%m-%dT%H:%M:%SZ",
             "format": (
                 "%(asctime)s %(levelname)s %(celeryTaskId)s %(celeryTaskName)s "
+                "%(message)s "
             ),
         },
         "celery_task_json": {
@@ -413,6 +414,11 @@ LOGGING = {
             "propagate": False,
         },
         "celery.app.trace": {
+            "handlers": ["celery_app"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "celery.worker": {
             "handlers": ["celery_app"],
             "level": "INFO",
             "propagate": False,
