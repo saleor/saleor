@@ -1,4 +1,5 @@
 import datetime
+import json
 from decimal import Decimal
 from unittest import mock
 
@@ -48,7 +49,7 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ....shipping.models import ShippingMethodTranslation
+from ....shipping.models import ShippingMethod, ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
 from ....tests import race_condition
 from ....tests.utils import dummy_editorjs
@@ -539,6 +540,7 @@ query getCheckout($id: ID) {
     checkout(id: $id) {
 		shippingMethods{
             id
+            name
         }
     }
 }
@@ -604,6 +606,68 @@ def test_query_checkout_with_address_with_shipping_method_without_exclude_webhoo
     # then webhook plugin is not executing excluded_shipping_methods_for_checkout
 
     mock_excluded_shipping_methods_for_checkout.assert_called_once()
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_preventing_circular_payload_generation_when_listing_shipping_methods_for_checkout(
+    mock_send_webhook_request_sync,
+    api_client,
+    checkout_with_item,
+    address,
+    subscription_shipping_list_methods_for_checkout_webhook,
+    caplog,
+):
+    # This test ensures that the listing external shipping methods are resistant to circular webhooks calls.
+    # We call `shipping_methods` field inside `ShippingListMethodsForCheckout` subscription. This resolver should
+    # always return only internal shipping methods.
+    # given
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    expected_external_shipping_name = "Provider - Economy"
+    mock_send_webhook_request_sync.return_value = [
+        {
+            "amount": "10",
+            "currency": checkout_with_item.currency,
+            "id": "abcd",
+            "name": expected_external_shipping_name,
+        },
+    ]
+
+    # when
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    response = api_client.post_graphql(GET_CHECKOUT_SHIPPING_METHODS_QUERY, variables)
+
+    # then
+    shipping_method = ShippingMethod.objects.get()
+    content = get_graphql_content(response)
+    # Check if webhook was called with correct payload
+    assert mock_send_webhook_request_sync.call_count == 1
+    event_delivery = mock_send_webhook_request_sync.call_args[0][0]
+    payload = event_delivery.payload.get_payload()
+    assert json.loads(payload) == {
+        "checkout": {
+            "id": to_global_id_or_none(checkout_with_item),
+        },
+        "shippingMethods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", shipping_method.id),
+                "name": shipping_method.name,
+            },
+        ],
+    }
+    # Check if shipping methods are correct
+    shipping_method_names = {
+        shipping_method_data["name"]
+        for shipping_method_data in content["data"]["checkout"]["shippingMethods"]
+    }
+    assert shipping_method_names == {
+        expected_external_shipping_name,
+        shipping_method.name,
+    }
+    # Ensure that any logs are generated via circular webhook calls. When webhooks are called in this way, they can
+    # generate the 'Subscription did not return a payload' log.
+    assert len(caplog.records) == 0
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
