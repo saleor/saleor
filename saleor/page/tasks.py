@@ -24,4 +24,5 @@ def update_pages_search_vector_task():
     )
     if not pages:
         return
+
     update_pages_search_vector(pages)
