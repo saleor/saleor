@@ -1187,7 +1187,6 @@ def test_update_attribute_add_value_does_not_mark_product_search_index_dirty(
 ):
     # given
     attribute = get_product_attributes(product).first()
-
     assert product.search_index_dirty is False
 
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
