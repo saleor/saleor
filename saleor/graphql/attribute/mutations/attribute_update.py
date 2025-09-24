@@ -1,12 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef
 
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....page import models as page_models
 from ....permission.enums import ProductTypePermissions
-from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -21,6 +18,11 @@ from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
 from .attribute_create import AttributeValueInput
 from .mixins import REFERENCE_TYPES_LIMIT, AttributeMixin
+from .utils import (
+    get_page_ids_to_search_index_update_for_attribute_values,
+    get_product_ids_to_search_index_update_for_attribute_values,
+    mark_search_index_dirty,
+)
 
 
 class AttributeValueUpdateInput(AttributeValueInput):
@@ -161,8 +163,12 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         cls.clean_attribute(instance, cleaned_input)
         cls.clean_values(cleaned_input, instance)
         remove_values = cls.clean_remove_values(cleaned_input, instance)
-        product_ids = cls.get_product_ids_to_search_index_update(remove_values)
-        page_ids = cls.get_page_ids_to_search_index_update(remove_values)
+        product_ids = get_product_ids_to_search_index_update_for_attribute_values(
+            remove_values
+        )
+        page_ids = get_page_ids_to_search_index_update_for_attribute_values(
+            remove_values
+        )
 
         # Construct the attribute
         instance = cls.construct_instance(instance, cleaned_input)
@@ -173,7 +179,7 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         cls._save_m2m(info, instance, cleaned_input)
         cls.post_save_action(info, instance, cleaned_input)
         if remove_values:
-            cls.mark_search_index_dirty(product_ids, page_ids)
+            mark_search_index_dirty(product_ids, page_ids)
 
         # Return the attribute that was created
         return AttributeUpdate(attribute=ChannelContext(instance, None))
@@ -182,48 +188,3 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_updated, instance)
-
-    @classmethod
-    def get_product_ids_to_search_index_update(
-        cls, remove_values: list[models.AttributeValue]
-    ) -> list[int]:
-        if not remove_values:
-            return []
-        assigned_variant_values = models.AssignedVariantAttributeValue.objects.filter(
-            value_id__in=[v.id for v in remove_values]
-        )
-        assigned_attributes = models.AssignedVariantAttribute.objects.filter(
-            Exists(assigned_variant_values.filter(assignment_id=OuterRef("id")))
-        )
-        variants = product_models.ProductVariant.objects.filter(
-            Exists(assigned_attributes.filter(variant_id=OuterRef("id")))
-        )
-        assigned_product_values = models.AssignedProductAttributeValue.objects.filter(
-            value_id__in=[v.id for v in remove_values]
-        )
-        product_ids = product_models.Product.objects.filter(
-            Exists(assigned_product_values.filter(product_id=OuterRef("id")))
-            | Exists(variants.filter(product_id=OuterRef("id")))
-        ).values_list("id", flat=True)
-        return list(product_ids)
-
-    @classmethod
-    def get_page_ids_to_search_index_update(
-        cls, remove_values: list[models.AttributeValue]
-    ) -> list[int]:
-        if not remove_values:
-            return []
-        assigned_values = models.AssignedPageAttributeValue.objects.filter(
-            value_id__in=[v.id for v in remove_values]
-        )
-        page_ids = page_models.Page.objects.filter(
-            Exists(assigned_values.filter(page_id=OuterRef("id")))
-        ).values_list("id", flat=True)
-        return list(page_ids)
-
-    @classmethod
-    def mark_search_index_dirty(cls, product_ids: list[int], page_ids: list[int]):
-        product_models.Product.objects.filter(id__in=product_ids).update(
-            search_index_dirty=True
-        )
-        page_models.Page.objects.filter(id__in=page_ids).update(search_index_dirty=True)

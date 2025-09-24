@@ -1,10 +1,9 @@
+from typing import cast
+
 import graphene
-from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
-from ....page import models as page_models
 from ....permission.enums import ProductTypePermissions
-from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -13,6 +12,11 @@ from ...core.types import AttributeError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
+from .utils import (
+    get_page_ids_to_search_index_update_for_attribute_values,
+    get_product_ids_to_search_index_update_for_attribute_values,
+    mark_search_index_dirty,
+)
 
 
 class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
@@ -48,45 +52,19 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
-        product_ids = cls.get_product_ids_to_search_index_update(instance)
-        page_ids = cls.get_page_ids_to_search_index_update(instance)
+        instance = cast(models.AttributeValue, instance)
+        product_ids = get_product_ids_to_search_index_update_for_attribute_values(
+            [instance]
+        )
+        page_ids = get_page_ids_to_search_index_update_for_attribute_values([instance])
         response = super().perform_mutation(
             _root, info, external_reference=external_reference, id=id
         )
-        cls.mark_search_index_dirty(product_ids, page_ids)
+        mark_search_index_dirty(product_ids, page_ids)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_deleted, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)
         return response
-
-    @classmethod
-    def get_product_ids_to_search_index_update(
-        cls, instance: models.AttributeValue
-    ) -> list[int]:
-        variants = product_models.ProductVariant.objects.filter(
-            Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
-        )
-        product_ids = product_models.Product.objects.filter(
-            Q(Exists(instance.productvalueassignment.filter(product_id=OuterRef("id"))))
-            | Q(Exists(variants.filter(product_id=OuterRef("id"))))
-        ).values_list("id", flat=True)
-        return list(product_ids)
-
-    @classmethod
-    def get_page_ids_to_search_index_update(
-        cls, instance: models.AttributeValue
-    ) -> list[int]:
-        page_ids = page_models.Page.objects.filter(
-            Exists(instance.pagevalueassignment.filter(page_id=OuterRef("id")))
-        ).values_list("id", flat=True)
-        return list(page_ids)
-
-    @classmethod
-    def mark_search_index_dirty(cls, product_ids: list[int], page_ids: list[int]):
-        product_models.Product.objects.filter(id__in=product_ids).update(
-            search_index_dirty=True
-        )
-        page_models.Page.objects.filter(id__in=page_ids).update(search_index_dirty=True)
 
     @classmethod
     def success_response(cls, instance: models.AttributeValue):
