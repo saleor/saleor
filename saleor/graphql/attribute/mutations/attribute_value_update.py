@@ -5,6 +5,7 @@ from django.db.models import Exists, OuterRef, Q
 from ....attribute import models as models
 from ....core.utils.batches import queryset_in_batches
 from ....page import models as page_models
+from ....page.lock_objects import page_qs_select_for_update
 from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ....product.lock_objects import product_qs_select_for_update
@@ -124,11 +125,7 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         ).order_by("pk")
         for batch_pks in queryset_in_batches(pages, BATCH_SIZE):
             with transaction.atomic():
-                _pages = list(
-                    page_models.Page.objects.select_for_update().filter(
-                        pk__in=batch_pks
-                    )
-                )
+                _pages = list(page_qs_select_for_update().filter(pk__in=batch_pks))
                 page_models.Page.objects.filter(pk__in=batch_pks).update(
                     search_index_dirty=True
                 )
