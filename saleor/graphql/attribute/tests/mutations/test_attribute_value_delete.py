@@ -72,6 +72,28 @@ def test_delete_attribute_value_update_search_index_dirty_in_product(
     assert product.search_index_dirty is True
 
 
+def test_delete_attribute_value_update_search_index_dirty_in_page(
+    staff_api_client,
+    page,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    attribute_value = page.attributevalues.first()
+    query = ATTRIBUTE_VALUE_DELETE_MUTATION
+    node_id = graphene.Node.to_global_id("AttributeValue", attribute_value.value_id)
+    variables = {"id": node_id}
+    assert page.search_index_dirty is False
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    page.refresh_from_db(fields=["search_index_dirty"])
+    assert page.search_index_dirty is True
+
+
 @freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")

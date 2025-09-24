@@ -18,6 +18,11 @@ from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
 from .attribute_create import AttributeValueInput
 from .mixins import REFERENCE_TYPES_LIMIT, AttributeMixin
+from .utils import (
+    get_page_ids_to_search_index_update_for_attribute_values,
+    get_product_ids_to_search_index_update_for_attribute_values,
+    mark_search_index_dirty,
+)
 
 
 class AttributeValueUpdateInput(AttributeValueInput):
@@ -157,7 +162,13 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         cleaned_input = cls.clean_input(info, instance, input)
         cls.clean_attribute(instance, cleaned_input)
         cls.clean_values(cleaned_input, instance)
-        cls.clean_remove_values(cleaned_input, instance)
+        remove_values = cls.clean_remove_values(cleaned_input, instance)
+        product_ids = get_product_ids_to_search_index_update_for_attribute_values(
+            remove_values
+        )
+        page_ids = get_page_ids_to_search_index_update_for_attribute_values(
+            remove_values
+        )
 
         # Construct the attribute
         instance = cls.construct_instance(instance, cleaned_input)
@@ -167,6 +178,8 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         instance.save()
         cls._save_m2m(info, instance, cleaned_input)
         cls.post_save_action(info, instance, cleaned_input)
+        if remove_values:
+            mark_search_index_dirty(product_ids, page_ids)
 
         # Return the attribute that was created
         return AttributeUpdate(attribute=ChannelContext(instance, None))

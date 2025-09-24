@@ -103,4 +103,12 @@ class PageAttributeAssign(BaseMutation):
 
         page_type.page_attributes.add(*attr_pks)
 
+        # Mark related page search indexes as dirty. Currently, unassigning attributes
+        # from a page type does not remove their values from existing pages.
+        # As a result, if the attribute is reassigned, its value should be included
+        # in the page search vector.
+        page_models.Page.objects.filter(page_type_id=page_type.pk).update(
+            search_index_dirty=True
+        )
+
         return cls(page_type=page_type)

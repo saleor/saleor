@@ -9,6 +9,10 @@ from freezegun import freeze_time
 from .....attribute import AttributeEntityType, AttributeInputType
 from .....attribute.error_codes import AttributeErrorCode
 from .....attribute.models import Attribute, AttributeValue
+from .....attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
+)
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
@@ -1142,3 +1146,135 @@ def test_update_attribute_with_reference_types_product_types_provided_for_page_r
     assert len(errors) == 1
     assert errors[0]["field"] == "referenceTypes"
     assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+def test_update_attribute_remove_value_marks_product_search_index_dirty(
+    staff_api_client, product, permission_manage_product_types_and_attributes
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = get_product_attributes(product).first()
+    value = get_product_attribute_values(product, attribute).first()
+
+    assert product.search_index_dirty is False
+
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    value_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    variables = {
+        "id": node_id,
+        "input": {
+            "removeValues": [value_id],
+            "addValues": [],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeUpdate"]
+    assert not data["errors"]
+
+    product.refresh_from_db()
+    assert product.search_index_dirty is True
+
+
+def test_update_attribute_add_value_does_not_mark_product_search_index_dirty(
+    staff_api_client, product, permission_manage_product_types_and_attributes
+):
+    # given
+    attribute = get_product_attributes(product).first()
+    assert product.search_index_dirty is False
+
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {
+        "id": node_id,
+        "input": {
+            "addValues": [{"name": "New value"}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeUpdate"]
+    assert not data["errors"]
+
+    product.refresh_from_db()
+    assert product.search_index_dirty is False
+
+
+def test_update_attribute_remove_value_marks_page_search_index_dirty(
+    staff_api_client, page, permission_manage_product_types_and_attributes
+):
+    # given
+    value = page.attributevalues.first().value
+    attribute = value.attribute
+
+    assert page.search_index_dirty is False
+
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    value_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    variables = {
+        "id": node_id,
+        "input": {
+            "removeValues": [value_id],
+            "addValues": [],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeUpdate"]
+    assert not data["errors"]
+
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
+
+
+def test_update_attribute_add_value_does_not_mark_page_search_index_dirty(
+    staff_api_client, page, permission_manage_product_types_and_attributes
+):
+    # given
+    attribute = page.attributevalues.first().value.attribute
+
+    assert page.search_index_dirty is False
+
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {
+        "id": node_id,
+        "input": {
+            "addValues": [{"name": "New value"}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeUpdate"]
+    assert not data["errors"]
+
+    page.refresh_from_db()
+    assert page.search_index_dirty is False

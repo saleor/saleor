@@ -44,6 +44,11 @@ from ..types import Attribute
 from .attribute_bulk_create import DEPRECATED_ATTR_FIELDS, clean_values
 from .attribute_update import AttributeUpdateInput
 from .mixins import AttributeMixin
+from .utils import (
+    get_page_ids_to_search_index_update_for_attribute_values,
+    get_product_ids_to_search_index_update_for_attribute_values,
+    mark_search_index_dirty,
+)
 
 
 @dataclass
@@ -688,6 +693,15 @@ class AttributeBulkUpdate(BaseMutation):
             delete_product_reference_types_lookup |= delete_product_ref
             delete_page_reference_types_lookup |= delete_page_ref
 
+        product_ids_to_update = (
+            get_product_ids_to_search_index_update_for_attribute_values(
+                values_to_remove
+            )
+        )
+        page_ids_to_update = get_page_ids_to_search_index_update_for_attribute_values(
+            values_to_remove
+        )
+
         with transaction.atomic():
             models.Attribute.objects.bulk_update(
                 attributes_to_update,
@@ -719,7 +733,13 @@ class AttributeBulkUpdate(BaseMutation):
             )
 
         updated_attributes.extend(attributes_to_update)
-        return updated_attributes, values_to_remove, values_to_create
+        return (
+            updated_attributes,
+            values_to_remove,
+            values_to_create,
+            product_ids_to_update,
+            page_ids_to_update,
+        )
 
     @classmethod
     def _prepare_reference_types_for_saving(
@@ -852,12 +872,17 @@ class AttributeBulkUpdate(BaseMutation):
             return AttributeBulkUpdate(count=0, results=results)
 
         # save all objects
-        attributes, values_to_remove, values_to_create = cls.save(
-            instances_data_with_errors_list
-        )
+        (
+            attributes,
+            values_to_remove,
+            values_to_create,
+            product_ids_to_search_update,
+            page_ids_to_search_update,
+        ) = cls.save(instances_data_with_errors_list)
 
         # prepare and return data
         results = get_results(instances_data_with_errors_list)
         cls.post_save_actions(info, attributes, values_to_remove, values_to_create)
+        mark_search_index_dirty(product_ids_to_search_update, page_ids_to_search_update)
 
         return AttributeBulkUpdate(count=len(attributes), results=results)
