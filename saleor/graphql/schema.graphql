@@ -7187,6 +7187,11 @@ input AssignedAttributeReferenceInput {
   Returns objects with a reference pointing to a product variant identified by the given sku.
   """
   productVariantSkus: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a category identified by the given slug.
+  """
+  categorySlugs: ContainsFilterInput
 }
 
 """

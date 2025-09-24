@@ -44,6 +44,12 @@ class AssignedAttributeReferenceInput(BaseInputObjectType):
             "to a product variant identified by the given sku."
         )
     )
+    category_slugs = ContainsFilterInput(
+        description=(
+            "Returns objects with a reference pointing "
+            "to a category identified by the given slug."
+        )
+    )
 
 
 class AssignedAttributeValueInput(BaseInputObjectType):
@@ -221,6 +227,35 @@ def _get_attribute_values_by_referenced_product_identifiers(
     )
 
 
+def get_attribute_values_by_referenced_category_slugs(
+    slugs: list[str], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_category_identifiers(
+        "slug", slugs, db_connection_name
+    )
+
+
+def get_attribute_values_by_referenced_category_ids(
+    ids: list[int], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_category_identifiers(
+        "id", ids, db_connection_name
+    )
+
+
+def _get_attribute_values_by_referenced_category_identifiers(
+    field_name: str,
+    identifiers: list[str] | list[int],
+    db_connection_name: str,
+) -> QuerySet[AttributeValue]:
+    categories = product_models.Category.objects.using(db_connection_name).filter(
+        **{f"{field_name}__in": identifiers}
+    )
+    return AttributeValue.objects.using(db_connection_name).filter(
+        Exists(categories.filter(id=OuterRef("reference_category_id"))),
+    )
+
+
 def get_attribute_values_by_referenced_product_slugs(
     slugs: list[str], db_connection_name: str
 ) -> QuerySet[AttributeValue]:
@@ -276,6 +311,7 @@ def _has_valid_reference_global_id(global_id: "str") -> bool:
         "Page",
         "Product",
         "ProductVariant",
+        "Category",
     ):
         return False
     return True
@@ -303,6 +339,7 @@ def validate_attribute_value_reference_input(
                     "page_slugs",
                     "product_slugs",
                     "product_variant_skus",
+                    "category_slugs",
                 ],
                 CONTAINS_TYPING,
             ]
