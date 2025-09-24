@@ -8,7 +8,7 @@ from .search import update_pages_search_vector
 
 logger = logging.getLogger(__name__)
 
-
+# TODO: validate the batch size
 PAGE_BATCH_SIZE = 200
 
 
