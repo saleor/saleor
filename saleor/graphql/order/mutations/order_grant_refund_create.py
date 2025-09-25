@@ -19,6 +19,7 @@ from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
 from ...payment.mutations.transaction.utils import get_transaction_item
 from ...payment.utils import validate_and_resolve_refund_reason_context
+from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
@@ -289,11 +290,14 @@ class OrderGrantRefundCreate(BaseMutation):
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
+        site = get_site_promise(info.context).get()
+
         refund_reason_context = validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
             refund_reference_field_name="reason_reference",
             error_code_enum=OrderGrantRefundCreateErrorCode,
+            site_settings=site.settings,
         )
 
         should_apply = refund_reason_context["should_apply"]
