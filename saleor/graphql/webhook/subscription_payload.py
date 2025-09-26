@@ -1,8 +1,8 @@
 import datetime
+import logging
 from collections.abc import Iterable
 from typing import Any
 
-from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -20,7 +20,7 @@ from ..core import SaleorContext
 from ..core.dataloaders import DataLoader
 from ..utils import format_error
 
-logger = get_task_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def initialize_request(

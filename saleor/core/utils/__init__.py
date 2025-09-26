@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING
 from urllib.parse import urljoin, urlparse
 
-from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db.models import Model
@@ -13,8 +12,6 @@ from text_unidecode import unidecode
 
 if TYPE_CHECKING:
     from ...attribute.models import Attribute
-
-task_logger = get_task_logger(__name__)
 
 
 if TYPE_CHECKING:
