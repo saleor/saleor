@@ -186,6 +186,103 @@ def _trigger_order_sync_webhooks(
         )
 
 
+def _get_extra_for_order_logger(order: "Order") -> dict:
+    return {
+        "order_id": order.id,
+        "currency": order.currency,
+        "status": order.status,
+        "origin": order.origin,
+        "checkout_id": order.checkout_token,
+        "undiscounted_base_shipping_price_amount": order.undiscounted_base_shipping_price_amount,
+        "base_shipping_price_amount": order.base_shipping_price_amount,
+        "shipping_price_net_amount": order.shipping_price_net_amount,
+        "shipping_price_gross_amount": order.shipping_price_gross_amount,
+        "undiscounted_total_net_amount": order.undiscounted_total_net_amount,
+        "total_net_amount": order.total_net_amount,
+        "undiscounted_total_gross_amount": order.undiscounted_total_gross_amount,
+        "total_gross_amount": order.total_gross_amount,
+        "subtotal_net_amount": order.subtotal_net_amount,
+        "subtotal_gross_amount": order.subtotal_gross_amount,
+        "has_voucher_code": bool(order.voucher_code),
+        "tax_exemption": order.tax_exemption,
+        "tax_error": order.tax_error,
+    }
+
+
+def _get_extra_for_order_line_logger(line: "OrderLine") -> dict:
+    return {
+        "line_id": line.id,
+        "variant_id": line.variant_id,
+        "quantity": line.quantity,
+        "is_gift_card": line.is_gift_card,
+        "is_price_overridden": line.is_price_overridden,
+        "unit_price_net_amount": line.unit_price_net_amount,
+        "unit_price_gross_amount": line.unit_price_gross_amount,
+        "total_price_net_amount": line.total_price_net_amount,
+        "total_price_gross_amount": line.total_price_gross_amount,
+        "has_voucher_code": line.voucher_code,
+        "unit_discount_amount": line.unit_discount_amount,
+        "unit_discount_type": line.unit_discount_type,
+        "unit_discount_reason": line.unit_discount_reason,
+    }
+
+
+def _order_has_negative_prices(order: "Order", lines: list["OrderLineInfo"]) -> bool:
+    if not order:
+        logger.error("Received None as order to check for negative prices")
+        return False
+
+    if list(
+        filter(
+            lambda x: x < 0,
+            [
+                order.shipping_price_net_amount,
+                order.shipping_price_gross_amount,
+                order.total_net_amount,
+                order.total_gross_amount,
+                order.subtotal_net_amount,
+                order.subtotal_gross_amount,
+            ],
+        )
+    ):
+        return True
+    if lines is None:
+        logger.error(
+            "Received None as order lines to check for negative prices",
+            extra=_get_extra_for_order_logger(order),
+        )
+        return False
+    for line_info in lines:
+        line = line_info.line
+        if not line:
+            logger.error(
+                "Received None as order line to check for negative prices",
+                extra=_get_extra_for_order_logger(order),
+            )
+            continue
+        if list(
+            filter(
+                lambda x: x < 0,
+                [
+                    line.unit_price_net_amount,
+                    line.unit_price_gross_amount,
+                    line.total_price_net_amount,
+                    line.total_price_gross_amount,
+                ],
+            )
+        ):
+            return True
+    return False
+
+
+def _log_order_with_negative_price(order: "Order", lines: list["OrderLineInfo"]):
+    extra = _get_extra_for_order_logger(order)
+    extra["lines"] = [
+        _get_extra_for_order_line_logger(line_info.line) for line_info in lines
+    ]
+    logger.error("Order with negative prices detected", extra=extra)
+
+
 def call_order_events(
     manager: "PluginsManager",
     event_names: list[str],
@@ -341,6 +438,9 @@ def order_created(
     channel = order_info.channel
     if channel.automatically_confirm_all_new_orders:
         order_confirmed(order, user, app, manager, webhook_event_map=webhook_event_map)
+
+    if _order_has_negative_prices(order, order_info.lines_data):
+        _log_order_with_negative_price(order, order_info.lines_data)
 
 
 def order_confirmed(
