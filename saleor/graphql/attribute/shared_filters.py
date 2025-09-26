@@ -537,7 +537,10 @@ def validate_attribute_value_input(attributes: list[dict], db_connection_name: s
                 invalid_input_type_list.append(index_str)
             if "boolean" == value_key and input_type != AttributeInputType.BOOLEAN:
                 invalid_input_type_list.append(index_str)
-            if "reference" == value_key and input_type != AttributeInputType.REFERENCE:
+            if "reference" == value_key and input_type not in [
+                AttributeInputType.REFERENCE,
+                AttributeInputType.SINGLE_REFERENCE,
+            ]:
                 invalid_input_type_list.append(index_str)
 
     validate_attribute_value_reference_input(reference_value_list)

@@ -350,3 +350,62 @@ def test_products_query_with_attr_slug_and_attribute_value_referenced_page_ids(
     content = get_graphql_content(response)
     products_nodes = content["data"]["products"]["edges"]
     assert len(products_nodes) == expected_count
+
+
+@pytest.mark.parametrize("query", [PRODUCTS_WHERE_QUERY, PRODUCTS_FILTER_QUERY])
+def test_products_query_with_single_reference_page_attribute(
+    query,
+    staff_api_client,
+    product_list,
+    product_type,
+    page_type,
+    product_type_page_single_reference_attribute,
+    channel_USD,
+):
+    """Verify SINGLE_REFERENCE page attribute filtering works identically to REFERENCE."""
+
+    product_type.product_attributes.add(product_type_page_single_reference_attribute)
+
+    page = Page.objects.create(
+        title="Test Page",
+        slug="test-page",
+        page_type=page_type,
+        is_published=True,
+    )
+
+    attribute_value = AttributeValue.objects.create(
+        attribute=product_type_page_single_reference_attribute,
+        name="Page Reference",
+        slug="page-ref",
+        reference_page=page,
+    )
+
+    # Assign single reference to one product
+    product_with_ref = product_list[0]
+    associate_attribute_values_to_instance(
+        product_with_ref,
+        {product_type_page_single_reference_attribute.pk: [attribute_value]},
+    )
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": "single-page-reference",
+                    "value": {
+                        "reference": {"pageSlugs": {"containsAny": ["test-page"]}}
+                    },
+                }
+            ]
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == 1
+    assert products_nodes[0]["node"]["id"] == to_global_id_or_none(product_with_ref)
