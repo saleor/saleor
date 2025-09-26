@@ -351,3 +351,62 @@ def test_products_query_with_attr_slug_and_attribute_value_referenced_product_id
     content = get_graphql_content(response)
     products_nodes = content["data"]["products"]["edges"]
     assert len(products_nodes) == expected_count
+
+
+@pytest.mark.parametrize("query", [PRODUCTS_WHERE_QUERY, PRODUCTS_FILTER_QUERY])
+def test_products_query_with_single_reference_product_attribute(
+    query,
+    staff_api_client,
+    product_list,
+    product_type,
+    product_type_product_single_reference_attribute,
+    channel_USD,
+):
+    """Verify SINGLE_REFERENCE attribute filtering works identically to REFERENCE."""
+    # given
+    product_type.product_attributes.add(product_type_product_single_reference_attribute)
+
+    ref_product = Product.objects.create(
+        name="Reference Product",
+        slug="ref-product",
+        product_type=product_type,
+    )
+
+    attribute_value = AttributeValue.objects.create(
+        attribute=product_type_product_single_reference_attribute,
+        name="Product Reference",
+        slug="product-ref",
+        reference_product=ref_product,
+    )
+
+    # Assign single reference to one product
+    product_with_ref = product_list[0]
+    associate_attribute_values_to_instance(
+        product_with_ref,
+        {product_type_product_single_reference_attribute.pk: [attribute_value]},
+    )
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": "single-product-reference",
+                    "value": {
+                        "reference": {"productSlugs": {"containsAny": ["ref-product"]}}
+                    },
+                }
+            ]
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == 1
+    assert products_nodes[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_ref.pk
+    )

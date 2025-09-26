@@ -324,3 +324,63 @@ def test_products_query_with_attr_slug_attribute_value_referenced_variant_ids(
     content = get_graphql_content(response)
     products_nodes = content["data"]["products"]["edges"]
     assert len(products_nodes) == expected_count
+
+
+@pytest.mark.parametrize("query", [PRODUCTS_WHERE_QUERY, PRODUCTS_FILTER_QUERY])
+def test_products_query_with_single_reference_variant_attribute(
+    query,
+    staff_api_client,
+    product_list,
+    product_type,
+    product_type_variant_single_reference_attribute,
+    product_variant_list,
+    channel_USD,
+):
+    """Verify SINGLE_REFERENCE variant attribute filtering works identically to REFERENCE."""
+    # given
+    product_type.product_attributes.add(product_type_variant_single_reference_attribute)
+
+    variant = product_variant_list[0]
+    variant.sku = "TEST-SKU"
+    variant.save()
+
+    attribute_value = AttributeValue.objects.create(
+        attribute=product_type_variant_single_reference_attribute,
+        name="Variant Reference",
+        slug="variant-ref",
+        reference_variant=variant,
+    )
+
+    # Assign single reference to one product
+    product_with_ref = product_list[0]
+    associate_attribute_values_to_instance(
+        product_with_ref,
+        {product_type_variant_single_reference_attribute.pk: [attribute_value]},
+    )
+
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": "single-variant-reference",
+                    "value": {
+                        "reference": {
+                            "productVariantSkus": {"containsAny": ["TEST-SKU"]}
+                        }
+                    },
+                }
+            ]
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == 1
+    assert products_nodes[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_ref.pk
+    )
