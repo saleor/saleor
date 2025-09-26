@@ -80,7 +80,10 @@ from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoad
 from ..shipping.types import ShippingMethod
 from ..translations import types as translation_types
 from ..warehouse.dataloaders import WarehouseByIdLoader
-from .resolvers import resolve_shipping_methods_for_checkout
+from .resolvers import (
+    resolve_only_internal_shipping_methods_for_checkout,
+    resolve_shipping_methods_for_checkout,
+)
 
 TRANSLATIONS_TYPES_MAP = {
     ProductTranslation: translation_types.ProductTranslation,
@@ -2481,9 +2484,11 @@ class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
     @staticmethod
     @plugin_manager_promise_callback
     def resolve_shipping_methods(root, info: ResolveInfo, manager):
+        # We should only use internal shipping methods to prevent the generation of circular payloads.
+        # We aren't able to list shipping methods that are not internal for listing shipping methods webhook type.
         _, checkout = root
         database_connection_name = get_database_connection_name(info.context)
-        return resolve_shipping_methods_for_checkout(
+        return resolve_only_internal_shipping_methods_for_checkout(
             info, checkout, manager, database_connection_name
         )
 
