@@ -7192,6 +7192,11 @@ input AssignedAttributeReferenceInput {
   Returns objects with a reference pointing to a category identified by the given slug.
   """
   categorySlugs: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a collection identified by the given slug.
+  """
+  collectionSlugs: ContainsFilterInput
 }
 
 """
