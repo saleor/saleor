@@ -7,6 +7,7 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ...app.models import App, AppWebhookMutex
 from ...core.models import EventDelivery
 from ...core.utils.events import call_event_including_protected_events
 from ...plugins.manager import get_plugins_manager
@@ -1430,7 +1431,7 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1439,7 +1440,7 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_transaction_amounts_for_checkout_fully_authorized_triggers_sync_webhook(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
@@ -1487,16 +1488,20 @@ def test_transaction_amounts_for_checkout_fully_authorized_triggers_sync_webhook
     # then
 
     # confirm that event delivery was generated for each async webhook.
-    checkout_fully_authorized_delivery = EventDelivery.objects.get(
+    assert EventDelivery.objects.get(
         webhook_id=checkout_fully_authorized_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    app: App = checkout_fully_authorized_webhook.app
+    app_webhook_mutex = AppWebhookMutex.objects.get(app=app)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_fully_authorized_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery
