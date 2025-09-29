@@ -14,7 +14,7 @@ task_logger = get_task_logger(__name__)
 
 @app.task(
     autoretry_for=(TaxError,),
-    retry_backoff=60,
+    retry_backoff=30,
     retry_kwargs={"max_retries": 5},
 )
 @allow_writer()
