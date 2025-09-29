@@ -12,15 +12,50 @@ from .shared import PRODUCTS_FILTER_QUERY, PRODUCTS_WHERE_QUERY
 
 @pytest.mark.parametrize("query", [PRODUCTS_WHERE_QUERY, PRODUCTS_FILTER_QUERY])
 @pytest.mark.parametrize(
-    ("reference_attribute_fixture", "filter_type", "expected_count", "product1_values", "product2_values", "search_values"),
+    (
+        "reference_attribute_fixture",
+        "filter_type",
+        "expected_count",
+        "product1_values",
+        "product2_values",
+        "search_values",
+    ),
     [
         # REFERENCE type - can assign multiple values to one product
-        ("product_type_product_reference_attribute", "containsAny", 2, [0, 1], [1], [0, 1]),
-        ("product_type_product_reference_attribute", "containsAll", 1, [0, 1], [1], [0, 1]),
+        (
+            "product_type_product_reference_attribute",
+            "containsAny",
+            2,
+            [0, 1],
+            [1],
+            [0, 1],
+        ),
+        (
+            "product_type_product_reference_attribute",
+            "containsAll",
+            1,
+            [0, 1],
+            [1],
+            [0, 1],
+        ),
         # SINGLE_REFERENCE type - can only assign one value
-        ("product_type_product_single_reference_attribute", "containsAny", 2, [0], [1], [0, 1]),
+        (
+            "product_type_product_single_reference_attribute",
+            "containsAny",
+            2,
+            [0],
+            [1],
+            [0, 1],
+        ),
         # For SINGLE_REFERENCE containsAll, search for just one value that both products have
-        ("product_type_product_single_reference_attribute", "containsAll", 2, [0], [0], [0]),
+        (
+            "product_type_product_single_reference_attribute",
+            "containsAll",
+            2,
+            [0],
+            [0],
+            [0],
+        ),
     ],
 )
 def test_products_query_with_attr_slug_and_attribute_value_reference_to_products(
@@ -96,11 +131,7 @@ def test_products_query_with_attr_slug_and_attribute_value_reference_to_products
                 {
                     "slug": reference_attribute.slug,
                     "value": {
-                        "reference": {
-                            "productSlugs": {
-                                filter_type: search_slugs
-                            }
-                        }
+                        "reference": {"productSlugs": {filter_type: search_slugs}}
                     },
                 }
             ]
@@ -247,19 +278,45 @@ def test_products_query_with_attribute_value_reference_to_products(
 
 @pytest.mark.parametrize("query", [PRODUCTS_WHERE_QUERY, PRODUCTS_FILTER_QUERY])
 @pytest.mark.parametrize(
-    ("reference_attribute_fixture", "filter_type", "expected_count", "product_value_assignments", "search_indices"),
+    (
+        "reference_attribute_fixture",
+        "filter_type",
+        "expected_count",
+        "product_value_assignments",
+        "search_indices",
+    ),
     [
         # REFERENCE type - products can have multiple values
-        ("product_type_product_reference_attribute", "containsAny", 3,
-         [[0, 1, 2], [0, 1, 2], [0]], [0, 1, 2]),  # Search for all 3 refs
-        ("product_type_product_reference_attribute", "containsAll", 2,
-         [[0, 1, 2], [0, 1, 2], [0]], [0, 1, 2]),  # Search for all 3 refs
+        (
+            "product_type_product_reference_attribute",
+            "containsAny",
+            3,
+            [[0, 1, 2], [0, 1, 2], [0]],
+            [0, 1, 2],
+        ),  # Search for all 3 refs
+        (
+            "product_type_product_reference_attribute",
+            "containsAll",
+            2,
+            [[0, 1, 2], [0, 1, 2], [0]],
+            [0, 1, 2],
+        ),  # Search for all 3 refs
         # SINGLE_REFERENCE - each product has one value
-        ("product_type_product_single_reference_attribute", "containsAny", 3,
-         [[0], [1], [2]], [0, 1, 2]),  # Search for all 3 refs
+        (
+            "product_type_product_single_reference_attribute",
+            "containsAny",
+            3,
+            [[0], [1], [2]],
+            [0, 1, 2],
+        ),  # Search for all 3 refs
         # For containsAll with SINGLE_REFERENCE, search for single value
-        ("product_type_product_single_reference_attribute", "containsAll", 1,
-         [[0], [1], [2]], [0]),  # Search for just ref[0], only product1 has it
+        (
+            "product_type_product_single_reference_attribute",
+            "containsAll",
+            1,
+            [[0], [1], [2]],
+            [0],
+        ),  # Search for just ref[0], only product1 has it
     ],
 )
 def test_products_query_with_attr_slug_and_attribute_value_referenced_product_ids(
@@ -283,8 +340,8 @@ def test_products_query_with_attr_slug_and_attribute_value_referenced_product_id
     ref_products = Product.objects.bulk_create(
         [
             Product(
-                name=f"Reference Product {i+1}",
-                slug=f"ref-{i+1}",
+                name=f"Reference Product {i + 1}",
+                slug=f"ref-{i + 1}",
                 product_type=product_type,
             )
             for i in range(3)
@@ -304,7 +361,9 @@ def test_products_query_with_attr_slug_and_attribute_value_referenced_product_id
     )
 
     # Assign values based on product_value_assignments configuration
-    for product, value_indices in zip(product_list, product_value_assignments, strict=False):
+    for product, value_indices in zip(
+        product_list, product_value_assignments, strict=False
+    ):
         associate_attribute_values_to_instance(
             product,
             {reference_attribute.pk: [attr_values[i] for i in value_indices]},
@@ -320,11 +379,7 @@ def test_products_query_with_attr_slug_and_attribute_value_referenced_product_id
                 {
                     "slug": reference_attribute.slug,
                     "value": {
-                        "reference": {
-                            "referencedIds": {
-                                filter_type: search_ids
-                            }
-                        }
+                        "reference": {"referencedIds": {filter_type: search_ids}}
                     },
                 },
             ]

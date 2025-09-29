@@ -269,8 +269,16 @@ def test_products_query_with_attr_slug_and_attribute_value_reference_to_product_
             "filter": "containsAny",
             "expected": 3,
             "product_assignments": {
-                "product_with_all_variants": ["test-variant-1", "test-variant-2", "test-variant-3"],
-                "product_with_same_all_variants": ["test-variant-1", "test-variant-2", "test-variant-3"],
+                "product_with_all_variants": [
+                    "test-variant-1",
+                    "test-variant-2",
+                    "test-variant-3",
+                ],
+                "product_with_same_all_variants": [
+                    "test-variant-1",
+                    "test-variant-2",
+                    "test-variant-3",
+                ],
                 "product_with_first_variant_only": ["test-variant-1"],
             },
             "search": ["test-variant-1", "test-variant-2", "test-variant-3"],
@@ -280,8 +288,16 @@ def test_products_query_with_attr_slug_and_attribute_value_reference_to_product_
             "filter": "containsAll",
             "expected": 2,
             "product_assignments": {
-                "product_with_all_variants": ["test-variant-1", "test-variant-2", "test-variant-3"],
-                "product_with_same_all_variants": ["test-variant-1", "test-variant-2", "test-variant-3"],
+                "product_with_all_variants": [
+                    "test-variant-1",
+                    "test-variant-2",
+                    "test-variant-3",
+                ],
+                "product_with_same_all_variants": [
+                    "test-variant-1",
+                    "test-variant-2",
+                    "test-variant-3",
+                ],
                 "product_with_first_variant_only": ["test-variant-1"],
             },
             "search": ["test-variant-1", "test-variant-2", "test-variant-3"],
@@ -376,7 +392,8 @@ def test_products_query_with_attr_slug_attribute_value_referenced_variant_ids(
         )
 
     ref_lookup = {
-        variant.sku: variant for variant in [first_variant, second_variant, third_variant]
+        variant.sku: variant
+        for variant in [first_variant, second_variant, third_variant]
     }
     search_ids = [to_global_id_or_none(ref_lookup[sku]) for sku in scenario["search"]]
 
@@ -386,11 +403,7 @@ def test_products_query_with_attr_slug_attribute_value_referenced_variant_ids(
                 {
                     "slug": reference_attribute.slug,
                     "value": {
-                        "reference": {
-                            "referencedIds": {
-                                scenario["filter"]: search_ids
-                            }
-                        }
+                        "reference": {"referencedIds": {scenario["filter"]: search_ids}}
                     },
                 }
             ]
