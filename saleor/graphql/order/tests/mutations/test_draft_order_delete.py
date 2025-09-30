@@ -335,8 +335,7 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
     assert not content["data"]["draftOrderDelete"]["errors"]
 
     # confirm that event delivery was generated for each webhook.
-    EventDelivery.objects.get(webhook_id=draft_order_deleted_webhook.id)
-
+    assert EventDelivery.objects.get(webhook_id=draft_order_deleted_webhook.id)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,

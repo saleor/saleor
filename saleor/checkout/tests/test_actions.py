@@ -911,8 +911,7 @@ def test_call_checkout_event_only_async_when_sync_missing(
     # then
 
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(webhook_id=webhook.id)
-
+    assert EventDelivery.objects.get(webhook_id=webhook.id)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,
@@ -1240,8 +1239,7 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
     # then
 
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(webhook_id=webhook.id)
-
+    assert EventDelivery.objects.get(webhook_id=webhook.id)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,
@@ -1371,7 +1369,7 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
     # then
 
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(webhook_id=checkout_fully_paid_webhook.id)
+    assert EventDelivery.objects.get(webhook_id=checkout_fully_paid_webhook.id)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,
@@ -1867,8 +1865,7 @@ def test_call_checkout_events_only_async_when_sync_missing(
     # then
 
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(webhook_id=webhook.id)
-
+    assert EventDelivery.objects.get(webhook_id=webhook.id)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,

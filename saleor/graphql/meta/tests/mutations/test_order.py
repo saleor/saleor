@@ -655,11 +655,10 @@ def test_change_in_public_metadata_triggers_webhooks(
     )
 
     # then
-    EventDelivery.objects.get(
+    assert EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_METADATA_UPDATED,
     )
-
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,
@@ -736,7 +735,7 @@ def test_change_in_private_metadata_triggers_webhooks(
     )
 
     # then
-    EventDelivery.objects.get(
+    assert EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_METADATA_UPDATED,
     )

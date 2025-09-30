@@ -869,7 +869,7 @@ def test_send_order_updated(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(
+    assert EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )

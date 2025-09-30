@@ -1006,7 +1006,7 @@ def test_order_voided_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(
+    assert EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
@@ -1211,7 +1211,7 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(
+    assert EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
@@ -1311,7 +1311,7 @@ def test_order_authorized_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(
+    assert EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
@@ -1954,7 +1954,7 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(
+    assert EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
@@ -2982,7 +2982,7 @@ def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
         )
 
     # then
-    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    assert EventDelivery.objects.get(webhook_id=order_webhook.id)
     tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
     filter_shipping_delivery = EventDelivery.objects.filter(
         webhook_id=shipping_filter_webhook.id,
@@ -3542,7 +3542,7 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
         )
 
     # then
-    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    assert EventDelivery.objects.get(webhook_id=order_webhook.id)
     tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
     filter_shipping_delivery = EventDelivery.objects.filter(
         webhook_id=shipping_filter_webhook.id,
@@ -3621,7 +3621,7 @@ def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
         )
 
     # then
-    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    assert EventDelivery.objects.get(webhook_id=order_webhook.id)
     tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
     filter_shipping_delivery = EventDelivery.objects.filter(
         webhook_id=shipping_filter_webhook.id,
@@ -3987,7 +3987,7 @@ def test_order_confirmed_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(
+    assert EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_CONFIRMED,
     )
