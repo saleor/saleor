@@ -512,7 +512,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     assert response["data"]["updateMetadata"]["errors"] == []
 
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(webhook_id=checkout_metadata_updated_webhook.id)
+    assert EventDelivery.objects.get(webhook_id=checkout_metadata_updated_webhook.id)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,

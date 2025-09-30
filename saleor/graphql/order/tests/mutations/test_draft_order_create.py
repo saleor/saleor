@@ -3773,7 +3773,7 @@ def test_draft_order_create_triggers_webhooks(
     assert not content["data"]["draftOrderCreate"]["errors"]
 
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(webhook_id=draft_order_created_webhook.id)
+    assert EventDelivery.objects.get(webhook_id=draft_order_created_webhook.id)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,

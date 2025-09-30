@@ -2547,7 +2547,7 @@ def test_draft_order_update_triggers_webhooks(
     order.refresh_from_db()
 
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(webhook_id=draft_order_updated_webhook.id)
+    assert EventDelivery.objects.get(webhook_id=draft_order_updated_webhook.id)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,
@@ -2637,7 +2637,7 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     assert not order.should_refresh_prices
 
     # confirm that event delivery was generated for each async webhook.
-    EventDelivery.objects.get(webhook_id=draft_order_updated_webhook.id)
+    assert EventDelivery.objects.get(webhook_id=draft_order_updated_webhook.id)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,
