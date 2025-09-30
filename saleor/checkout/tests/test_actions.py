@@ -1488,9 +1488,7 @@ def test_transaction_amounts_for_checkout_fully_authorized_triggers_sync_webhook
     # then
 
     # confirm that event delivery was generated for each async webhook.
-    assert EventDelivery.objects.get(
-        webhook_id=checkout_fully_authorized_webhook.id
-    )
+    assert EventDelivery.objects.get(webhook_id=checkout_fully_authorized_webhook.id)
     app: App = checkout_fully_authorized_webhook.app
     app_webhook_mutex = AppWebhookMutex.objects.get(app=app)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
