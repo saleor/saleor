@@ -2,7 +2,7 @@
   "name": "saleor",
   "version": "3.22.0-a.0",
   "engines": {
-    "node": ">=16 <17",
+    "node": ">=20 <22",
     "npm": ">=7"
   },
   "repository": {

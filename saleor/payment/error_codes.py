@@ -43,6 +43,7 @@ class TransactionUpdateErrorCode(Enum):
 
 class TransactionRequestActionErrorCode(Enum):
     INVALID = "invalid"
+    REQUIRED = "required"
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (

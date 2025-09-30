@@ -5,13 +5,19 @@ from ...permission.enums import GiftcardPermissions, OrderPermissions
 from ..channel.types import OrderSettings
 from ..core.context import get_database_connection_name
 from ..core.descriptions import DEFAULT_DEPRECATION_REASON
-from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS, DOC_CATEGORY_ORDERS
+from ..core.doc_category import (
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_SHOP,
+)
 from ..core.fields import PermissionsField
 from ..site.dataloaders import load_site_callback
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     GiftCardSettingsUpdate,
     OrderSettingsUpdate,
+    RefundReasonReferenceTypeClear,
+    RefundSettingsUpdate,
     ShopAddressUpdate,
     ShopDomainUpdate,
     ShopFetchTaxRates,
@@ -20,7 +26,7 @@ from .mutations import (
     StaffNotificationRecipientDelete,
     StaffNotificationRecipientUpdate,
 )
-from .types import GiftCardSettings, Shop
+from .types import GiftCardSettings, RefundSettings, Shop
 
 
 class ShopQueries(graphene.ObjectType):
@@ -46,6 +52,13 @@ class ShopQueries(graphene.ObjectType):
         required=True,
         permissions=[GiftcardPermissions.MANAGE_GIFT_CARD],
         doc_category=DOC_CATEGORY_GIFT_CARDS,
+    )
+    refund_settings = PermissionsField(
+        RefundSettings,
+        description="Refunds related settings. Returns `RefundSettings` configuration, global for the entire shop.",
+        required=True,
+        permissions=[],
+        doc_category=DOC_CATEGORY_SHOP,
     )
 
     def resolve_shop(self, _info):
@@ -75,6 +88,10 @@ class ShopQueries(graphene.ObjectType):
     def resolve_gift_card_settings(self, _info, site):
         return site.settings
 
+    @load_site_callback
+    def resolve_refund_settings(self, _info, site):
+        return site.settings
+
 
 class ShopMutations(graphene.ObjectType):
     staff_notification_recipient_create = StaffNotificationRecipientCreate.Field()
@@ -95,3 +112,5 @@ class ShopMutations(graphene.ObjectType):
         deprecation_reason="Use `channelUpdate` mutation instead."
     )
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
+    refund_settings_update = RefundSettingsUpdate.Field()
+    refund_reason_reference_clear = RefundReasonReferenceTypeClear.Field()

@@ -45,6 +45,7 @@ from .doc_category import (
     DOC_CATEGORY_PAYMENTS,
     DOC_CATEGORY_PRODUCTS,
     DOC_CATEGORY_SHIPPING,
+    DOC_CATEGORY_SHOP,
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
 )
@@ -223,6 +224,11 @@ GiftCardSettingsErrorCode = graphene.Enum.from_enum(
     site_error_codes.GiftCardSettingsErrorCode
 )
 GiftCardSettingsErrorCode.doc_category = DOC_CATEGORY_GIFT_CARDS
+
+RefundSettingsErrorCode = graphene.Enum.from_enum(
+    site_error_codes.RefundSettingsErrorCode
+)
+RefundSettingsErrorCode.doc_category = DOC_CATEGORY_SHOP
 
 MetadataErrorCode = graphene.Enum.from_enum(core_error_codes.MetadataErrorCode)
 

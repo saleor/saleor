@@ -59,6 +59,8 @@ from .utils import (
 )
 from .utils.error_codes import get_error_code_from_error
 
+MISSING_NODE_ERROR_MESSAGE_PREFIX = "Couldn't resolve to a node:"
+
 
 def get_model_name(model):
     """Return name of the model with first letter lowercase."""
@@ -371,7 +373,7 @@ class BaseMutation(graphene.Mutation):
                 raise ValidationError(
                     {
                         field: ValidationError(
-                            f"Couldn't resolve to a node: {node_id}", code=code
+                            f"{MISSING_NODE_ERROR_MESSAGE_PREFIX} {node_id}", code=code
                         )
                     }
                 )

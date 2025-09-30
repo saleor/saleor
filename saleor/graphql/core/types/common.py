@@ -68,6 +68,7 @@ from ..enums import (
     ProductTranslateErrorCode,
     ProductVariantBulkErrorCode,
     ProductVariantTranslateErrorCode,
+    RefundSettingsErrorCode,
     SendConfirmationEmailErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
@@ -350,6 +351,24 @@ class GiftCardSettingsError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_GIFT_CARDS
+
+
+class RefundSettingsUpdateError(Error):
+    code = RefundSettingsErrorCode(
+        description="Failed to update Refund Settings", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
+
+
+class RefundReasonReferenceTypeClearError(Error):
+    code = RefundSettingsErrorCode(
+        description="Failed to clear refund reason reference type", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
 
 
 class MetadataError(Error):

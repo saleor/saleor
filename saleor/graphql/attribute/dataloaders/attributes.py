@@ -1,7 +1,7 @@
 from collections import defaultdict
 
-from ...attribute.models import Attribute, AttributeValue
-from ..core.dataloaders import DataLoader
+from ....attribute.models import Attribute, AttributeValue
+from ...core.dataloaders import DataLoader
 
 
 class AttributeValuesByAttributeIdLoader(DataLoader[int, list[AttributeValue]]):

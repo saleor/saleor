@@ -126,6 +126,22 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
     entity_type = models.CharField(
         max_length=50, choices=AttributeEntityType.CHOICES, blank=True, null=True
     )
+    # The product types that are used to narrow down the choices of products
+    # or variants for a reference attribute.
+    # Applicable only for attributes with the `PRODUCT` and `VARIANT` entity types.
+    reference_product_types = models.ManyToManyField(
+        ProductType,
+        blank=True,
+        related_name="+",
+    )
+    # The page types that are used to narrow down the choices of pages
+    # for a reference attribute.
+    # Applicable only for attributes with the `PAGE` entity type.
+    reference_page_types = models.ManyToManyField(
+        PageType,
+        blank=True,
+        related_name="+",
+    )
 
     product_types = models.ManyToManyField(
         ProductType,
