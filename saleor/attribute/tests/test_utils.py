@@ -258,7 +258,7 @@ def test_validate_attribute_owns_values():
 
 
 def test_associate_attribute_to_variant_copies_data_over_to_new_field(
-    variant, color_attribute
+    variant, attribute_value_generator
 ):
     """Ensure data is double writed.
 
@@ -266,12 +266,17 @@ def test_associate_attribute_to_variant_copies_data_over_to_new_field(
     value of AssignedVariantAttribute.variant is copied over to
     AssignedVariantAttributeValue.variant.
     """
-    values = color_attribute.values.all()
+    attribute = variant.product.product_type.variant_attributes.first()
+    attribute_value_generator(
+        attribute=attribute,
+        slug="attr-value2",
+    )
+    values = attribute.values.all()
 
     # Assign new values
     associate_attribute_values_to_instance(
         variant,
-        {color_attribute.id: values},
+        {attribute.id: values},
     )
 
     # Ensure the new assignment was created

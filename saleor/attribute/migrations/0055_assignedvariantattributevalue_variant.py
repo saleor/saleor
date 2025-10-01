@@ -19,7 +19,7 @@ def enqueue_data_migration(apps, _schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("product", "0197_productvariantchannellisting_prior_price_amount"),
-        ("attribute", "0046_auto_20240611_1143"),
+        ("attribute", "0054_attribute_reference_page_and_product_types"),
     ]
 
     operations = [

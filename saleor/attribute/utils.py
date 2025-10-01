@@ -189,6 +189,7 @@ def _overwrite_values(
     # unique_together is set for product + value on AssignedProductAttributeValue
     values_order_map = defaultdict(list)
     assigned_attr_values_instances = []
+
     for attr_id, values in attr_val_map.items():
         assignment = assignment_attr_map.get(attr_id)
 
