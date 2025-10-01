@@ -1,13 +1,12 @@
-from django.db import transaction
-from django.db import connection
+from django.conf import settings
+from django.db import connection, transaction
 from django.db.models import F, FloatField
 from django.db.models.functions import Cast
-from django.conf import settings
 
 from ....celeryconf import app
 from ....core.db.connection import allow_writer
-from ...models.base import AttributeValue
 from ...models import AssignedVariantAttributeValue
+from ...models.base import AttributeValue
 
 # Takes around 0.11 seconds to process the batch.
 # The memory usage is marginal (~1MB).
@@ -41,7 +40,6 @@ def fulfill_attribute_value_numeric_field(attribute_value_pk=0):
             numeric=Cast(F("name"), FloatField())
         )
     fulfill_attribute_value_numeric_field.delay(value_ids[-1])
-
 
 
 def update_product_variant_assignment():

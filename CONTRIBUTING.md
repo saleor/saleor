@@ -358,7 +358,7 @@ Use relative imports.
 ### Migrations
 
 Try to combine multiple migrations into one, but remember not to mix changes on the database with updating rows in migrations. In other words, operations that alter tables and use `RunPython` to run methods on existing data should be in separate files.
-Follow [zero-downtime policy](./developer/community/zero-downtime-migrations.mdx) when writing migrations.
+Follow [zero-downtime policy](https://docs.saleor.io/developer/community/zero-downtime-migrations) when writing migrations.
 
 ### Handling migrations between versions
 
