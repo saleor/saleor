@@ -5,7 +5,7 @@ from django.apps import apps as registry
 from django.db import migrations, models
 from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_21 import assign_product_variants_to_attribute_values_task
+from .tasks.saleor3_22 import assign_product_variants_to_attribute_values_task
 
 
 def enqueue_data_migration(apps, _schema_editor):
