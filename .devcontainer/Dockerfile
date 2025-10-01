@@ -16,10 +16,8 @@ RUN apt-get update \
   libxml2 \
   libpq5 \
   shared-mime-info \
-  mime-support
-
-RUN echo 'image/webp webp' >> /etc/mime.types
-RUN echo 'image/avif avif' >> /etc/mime.types
+  # Required to allows to identify file types when handling file uploads
+  media-types
 
 WORKDIR /app
 RUN pip install poetry==1.7.0
