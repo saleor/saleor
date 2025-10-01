@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "saleor"
-version = "3.22.0-a.0"
+version = "3.23.0-a.0"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [{ name = "Saleor Commerce", email = "hello@saleor.io" }]
 requires-python = ">=3.12,<3.13"
