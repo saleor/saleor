@@ -14,9 +14,10 @@ RUN apt-get update \
   libwebp7 \
   libpq5 \
   shared-mime-info \
-  libmagic1
+  libmagic1 \
+  # Required to allows to identify file types when handling file uploads
+  media-types
 
-WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /uvx /bin/
 ENV UV_COMPILE_BYTECODE=1 UV_SYSTEM_PYTHON=1 UV_PROJECT_ENVIRONMENT=/usr/local
 RUN --mount=type=cache,target=/root/.cache/uv \
