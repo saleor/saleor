@@ -15,7 +15,9 @@ RUN apt-get update \
   libpq5 \
   shared-mime-info \
   libmagic1 \
-  pipx
+  pipx \
+  # Required to allows to identify file types when handling file uploads
+  media-types
 
 RUN pipx ensurepath
 
