@@ -183,7 +183,7 @@ class BulkError(BaseObjectType):
 
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
-    address_type = AddressTypeEnum(
+    address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
 
@@ -268,7 +268,7 @@ class CheckoutError(Error):
         description="List of line Ids which cause the error.",
         required=False,
     )
-    address_type = AddressTypeEnum(
+    address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
 
@@ -391,7 +391,7 @@ class OrderError(Error):
         description="List of product variants that are associated with the error",
         required=False,
     )
-    address_type = AddressTypeEnum(
+    address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
 
