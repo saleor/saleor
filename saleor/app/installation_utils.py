@@ -84,35 +84,31 @@ def fetch_icon_image(
     size_error_msg = f"File too big. Maximal icon image file size is {max_file_size}."
     code = AppErrorCode.INVALID.value
     fetch_start = time.monotonic()
-    try:
-        with HTTPClient.send_request(
-            "GET", url, stream=True, timeout=timeout, allow_redirects=False
-        ) as res:
-            res.raise_for_status()
-            content_type = res.headers.get("content-type")
-            if content_type not in ICON_MIME_TYPES:
-                raise ValidationError("Invalid file type.", code=code)
-            try:
-                if int(res.headers.get("content-length", 0)) > max_file_size:
-                    raise ValidationError(size_error_msg, code=code)
-            except (ValueError, TypeError):
-                pass
-            content = BytesIO()
-            for chunk in res.iter_content(chunk_size=File.DEFAULT_CHUNK_SIZE):
-                content.write(chunk)
-                if content.tell() > max_file_size:
-                    raise ValidationError(size_error_msg, code=code)
-                timeout_in_secs = sum(timeout)
-                if (time.monotonic() - fetch_start) > timeout_in_secs:
-                    raise ValidationError(
-                        "Timeout occurred while reading image file.",
-                        code=AppErrorCode.MANIFEST_URL_CANT_CONNECT.value,
-                    )
-            content.seek(0)
-            image_file = File(content, filename)
-    except requests.RequestException as e:
-        code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
-        raise ValidationError("Unable to fetch image.", code=code) from e
+    with HTTPClient.send_request(
+        "GET", url, stream=True, timeout=timeout, allow_redirects=False
+    ) as res:
+        res.raise_for_status()
+        content_type = res.headers.get("content-type")
+        if content_type not in ICON_MIME_TYPES:
+            raise ValidationError("Invalid file type.", code=code)
+        try:
+            if int(res.headers.get("content-length", 0)) > max_file_size:
+                raise ValidationError(size_error_msg, code=code)
+        except (ValueError, TypeError):
+            pass
+        content = BytesIO()
+        for chunk in res.iter_content(chunk_size=File.DEFAULT_CHUNK_SIZE):
+            content.write(chunk)
+            if content.tell() > max_file_size:
+                raise ValidationError(size_error_msg, code=code)
+            timeout_in_secs = sum(timeout)
+            if (time.monotonic() - fetch_start) > timeout_in_secs:
+                raise ValidationError(
+                    "Timeout occurred while reading image file.",
+                    code=AppErrorCode.MANIFEST_URL_CANT_CONNECT.value,
+                )
+        content.seek(0)
+        image_file = File(content, filename)
 
     validate_icon_image(image_file, code)
     return image_file
@@ -126,9 +122,11 @@ def fetch_brand_data(manifest_data, timeout=settings.COMMON_REQUESTS_TIMEOUT):
         logo_url = brand_data["logo"]["default"]
         logo_file = fetch_icon_image(logo_url, timeout=timeout)
         brand_data["logo"]["default"] = logo_file
-    except ValidationError as error:
+    except (ValidationError, OSError) as error:
         msg = "Fetching brand data failed for app:%r error:%r"
-        logger.info(msg, manifest_data["id"], error, extra={"brand_data": brand_data})
+        logger.info(
+            msg, manifest_data["id"], str(error), extra={"brand_data": brand_data}
+        )
         brand_data = None
     return brand_data
 
@@ -149,7 +147,7 @@ def _set_brand_data(brand_obj: App | AppInstallation | None, logo: File):
         default_storage.delete(brand_obj.brand_logo_default.name)
 
 
-@app.task(bind=True, retry_backoff=2700, retry_kwargs={"max_retries": 5})
+@app.task(bind=True, retry_backoff=30, retry_kwargs={"max_retries": 5})
 @allow_writer()
 def fetch_brand_data_task(
     self, brand_data: dict, *, app_installation_id=None, app_id=None
@@ -171,7 +169,19 @@ def fetch_brand_data_task(
             "app_installation_id": app_installation_id,
             "brand_data": brand_data,
         }
-        task_logger.info("Fetching brand data failed. Error: %r", error, extra=extra)
+        task_logger.warning(
+            "Fetching brand data failed. Error: %r", str(error), extra=extra
+        )
+        # Don't retry on validation errors image didn't pass validation when we tries again.
+    except OSError as error:
+        extra = {
+            "app_id": app_id,
+            "app_installation_id": app_installation_id,
+            "brand_data": brand_data,
+        }
+        task_logger.info(
+            "Fetching brand data failed. Error: %r", str(error), extra=extra
+        )
         try:
             countdown = self.retry_backoff * (2**self.request.retries)
             raise self.retry(countdown=countdown, **self.retry_kwargs)
