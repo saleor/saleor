@@ -266,6 +266,7 @@ JWT_MANAGER_PATH = os.environ.get(
 )
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
@@ -281,6 +282,7 @@ if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
 CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.log_writer_usage"
 
 INSTALLED_APPS = [
+    "corsheaders",
     # External apps that need to go before django's
     "storages",
     # Django modules
@@ -331,6 +333,7 @@ if ENABLE_DJANGO_EXTENSIONS:
         "django_extensions",
     ]
 
+CORS_ALLOWED_ORIGINS = ["https://saleor-dashboard-h4q4.onrender.com"]
 # Make the `logging` Python module capture `warnings.warn()` calls
 # This is needed in order to log them as JSON when DEBUG=False
 logging.captureWarnings(True)
