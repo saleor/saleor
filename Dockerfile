@@ -32,13 +32,11 @@ RUN apt-get update \
   libwebp7 \
   libxml2 \
   libpq5 \
-  shared-mime-info \
   libmagic1 \
+  # Required to allows to identify file types when handling file uploads
+  media-types \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
-
-RUN echo 'image/webp webp' >> /etc/mime.types
-RUN echo 'image/avif avif' >> /etc/mime.types
 
 RUN mkdir -p /app/media /app/static \
   && chown -R saleor:saleor /app/
