@@ -32,6 +32,44 @@ def get_default_country():
     return settings.DEFAULT_COUNTRY
 
 
+class CheckoutShippingMethod(models.Model):
+    """Model to cache shipping methods for a checkout."""
+
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    checkout = models.ForeignKey(
+        "checkout.Checkout",
+        related_name="shipping_methods",
+        on_delete=models.CASCADE,
+    )
+
+    original_id = models.CharField(
+        max_length=512, blank=False, null=False, editable=False, db_index=True
+    )
+    name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+
+    price_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3)
+
+    maximum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
+    minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
+    metadata = models.JSONField(default=dict)
+    private_metadata = models.JSONField(default=dict)
+
+    active = models.BooleanField(default=True)
+    message = models.TextField(blank=True, null=True)
+
+    is_external = models.BooleanField(default=False)
+    is_valid = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("checkout", "original_id")
+        ordering = ("-created_at", "pk")
+
+
 class Checkout(models.Model):
     """A shopping checkout."""
 
@@ -193,7 +231,16 @@ class Checkout(models.Model):
         db_index=True,
     )
 
+    shipping_methods_stale_at = models.DateTimeField(null=True, blank=True)
     price_expiration = models.DateTimeField(default=timezone.now)
+
+    assigned_shipping_method = models.ForeignKey(
+        CheckoutShippingMethod,
+        blank=True,
+        null=True,
+        related_name="+",
+        on_delete=models.SET_NULL,
+    )
 
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
