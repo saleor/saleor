@@ -646,7 +646,7 @@ def test_call_checkout_event_incorrect_webhook_event(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -655,7 +655,7 @@ def test_call_checkout_event_incorrect_webhook_event(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_triggers_sync_webhook_when_needed(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
@@ -692,18 +692,21 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
                 checkout_with_items,
             )
 
+    app = checkout_created_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # then
     # confirm that event delivery was generated for each async webhook.
-    checkout_create_delivery = EventDelivery.objects.get(
-        webhook_id=checkout_created_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=checkout_created_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -742,7 +745,7 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -751,7 +754,7 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_skips_tax_webhook_when_not_expired(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
@@ -787,18 +790,21 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
             checkout_with_items,
         )
 
+    app = checkout_created_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # then
     # confirm that event delivery was generated for each async webhook.
-    checkout_create_delivery = EventDelivery.objects.get(
-        webhook_id=checkout_created_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=checkout_created_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -980,7 +986,7 @@ def test_call_checkout_info_event_incorrect_webhook_event(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -989,7 +995,7 @@ def test_call_checkout_info_event_incorrect_webhook_event(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
@@ -1036,19 +1042,21 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
                 lines_info,
             )
 
-    # then
+    app = checkout_created_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
+    # then
     # confirm that event delivery was generated for each async webhook.
-    checkout_create_delivery = EventDelivery.objects.get(
-        webhook_id=checkout_created_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=checkout_created_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1087,7 +1095,7 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1096,7 +1104,7 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
@@ -1142,19 +1150,21 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
             lines_info,
         )
 
-    # then
+    app = checkout_created_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
+    # then
     # confirm that event delivery was generated for each async webhook.
-    checkout_create_delivery = EventDelivery.objects.get(
-        webhook_id=checkout_created_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=checkout_created_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1578,7 +1588,7 @@ def test_call_checkout_events_incorrect_webhook_event(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1587,7 +1597,7 @@ def test_call_checkout_events_incorrect_webhook_event(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_events_triggers_sync_webhook_when_needed(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
@@ -1627,18 +1637,21 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
                 checkout_with_items,
             )
 
+    app = checkout_created_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # then
     # confirm that event delivery was generated for each async webhook.
-    checkout_create_delivery = EventDelivery.objects.get(
-        webhook_id=checkout_created_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=checkout_created_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1682,7 +1695,7 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1691,7 +1704,7 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_events_skips_tax_webhook_when_not_expired(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     checkout_with_items,
     setup_checkout_webhooks,
@@ -1730,18 +1743,21 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
             checkout_with_items,
         )
 
+    app = checkout_created_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # then
     # confirm that event delivery was generated for each async webhook.
-    checkout_create_delivery = EventDelivery.objects.get(
-        webhook_id=checkout_created_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=checkout_created_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery
