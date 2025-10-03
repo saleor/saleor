@@ -7,12 +7,15 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 from uuid import UUID
 
 from django.conf import settings
+from django.db.models import Q
+from django.utils import timezone
 from prices import Money
 
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.pricing.interface import LineInfo
 from ..core.taxes import zero_money
+from ..core.tracing import traced_atomic_transaction
 from ..discount import VoucherType
 from ..discount.interface import (
     VariantPromotionRuleInfo,
@@ -28,11 +31,12 @@ from ..shipping.utils import (
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
 from ..webhook.transport.shipping_helpers import convert_to_app_id_with_identifier
+from .lock_objects import checkout_qs_select_for_update
+from .models import Checkout, CheckoutLine, CheckoutShippingMethod
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..checkout.models import CheckoutLine
     from ..discount.models import (
         CheckoutDiscount,
         CheckoutLineDiscount,
@@ -48,7 +52,6 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
     )
     from ..tax.models import TaxClass, TaxConfiguration
-    from .models import Checkout
 
 
 @dataclass
@@ -738,3 +741,146 @@ def find_checkout_line_info(
     The return value represents the updated version of checkout_line_info parameter.
     """
     return next(line_info for line_info in lines if line_info.line.pk == line_id)
+
+
+def fetch_shipping_methods_for_checkout(
+    checkout_info: "CheckoutInfo",
+) -> list[CheckoutShippingMethod]:
+    """Fetch shipping methods for the checkout.
+
+    Fetches all available shipping methods, both built-in and external, for the given
+    checkout. Each method is returned as a CheckoutShippingMethod instance. Existing
+    shipping methods in the database are updated or removed as needed, while the
+    checkout's currently assigned shipping method (`assigned_shipping_method`) is
+    always preserved, even if it is no longer available.
+    """
+    checkout = checkout_info.checkout
+
+    built_in_shipping_methods_dict: dict[str, ShippingMethodData] = {
+        sipping_method.graphql_id: sipping_method
+        for sipping_method in get_available_built_in_shipping_methods_for_checkout_info(
+            checkout_info=checkout_info
+        )
+    }
+    external_shipping_methods_dict: dict[str, ShippingMethodData] = {
+        sipping_method.graphql_id: sipping_method
+        for sipping_method in get_external_shipping_methods_for_checkout_info(
+            checkout_info=checkout_info
+        )
+    }
+    all_methods = list(built_in_shipping_methods_dict.values()) + list(
+        external_shipping_methods_dict.values()
+    )
+    excluded_methods = checkout_info.manager.excluded_shipping_methods_for_checkout(
+        checkout,
+        checkout_info.channel,
+        all_methods,
+        checkout_info.pregenerated_payloads_for_excluded_shipping_method,
+    )
+    initialize_shipping_method_active_status(all_methods, excluded_methods)
+
+    available_shipping_method_original_ids = set(
+        list(built_in_shipping_methods_dict.keys())
+        + list(external_shipping_methods_dict.keys())
+    )
+
+    checkout_shipping_methods = []
+    assigned_shipping_method_original_id = None
+    if checkout.assigned_shipping_method:
+        assigned_shipping_method_original_id = (
+            checkout.assigned_shipping_method.original_id
+        )
+
+    for shipping_method_id in available_shipping_method_original_ids:
+        shipping_method_data = built_in_shipping_methods_dict.get(
+            shipping_method_id,
+        )
+        if not shipping_method_data:
+            shipping_method_data = external_shipping_methods_dict[shipping_method_id]
+        checkout_shipping_methods.append(
+            CheckoutShippingMethod(
+                checkout=checkout,
+                original_id=shipping_method_data.graphql_id,
+                name=shipping_method_data.name or "",
+                description=shipping_method_data.description,
+                price_amount=shipping_method_data.price.amount,
+                currency=shipping_method_data.price.currency,
+                maximum_delivery_days=shipping_method_data.maximum_delivery_days,
+                minimum_delivery_days=shipping_method_data.minimum_delivery_days,
+                metadata=shipping_method_data.metadata,
+                private_metadata=shipping_method_data.private_metadata,
+                active=shipping_method_data.active,
+                message=shipping_method_data.message,
+                is_valid=True,
+                is_external=shipping_method_data.is_external,
+            )
+        )
+    with traced_atomic_transaction():
+        locked_checkout = (
+            checkout_qs_select_for_update().filter(token=checkout.token).first()
+        )
+        if not locked_checkout:
+            return []
+        if (
+            locked_checkout.assigned_shipping_method_id
+            != checkout.assigned_shipping_method_id
+        ):
+            return []
+
+        checkout.shipping_methods_stale_at = (
+            timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        )
+        checkout.save(update_fields=["shipping_methods_stale_at"])
+
+        exclude_from_delete = Q(original_id__in=available_shipping_method_original_ids)
+        if (
+            assigned_shipping_method_original_id
+            and assigned_shipping_method_original_id
+            not in available_shipping_method_original_ids
+        ):
+            CheckoutShippingMethod.objects.filter(
+                checkout_id=checkout.pk,
+                original_id=assigned_shipping_method_original_id,
+            ).update(
+                is_valid=False,
+            )
+            # Never remove the currently assigned shipping method.
+            exclude_from_delete |= Q(original_id=assigned_shipping_method_original_id)
+
+        CheckoutShippingMethod.objects.filter(
+            checkout_id=checkout.pk,
+        ).exclude(exclude_from_delete).delete()
+
+        if checkout_shipping_methods:
+            CheckoutShippingMethod.objects.bulk_create(
+                checkout_shipping_methods,
+                update_conflicts=True,
+                unique_fields=[
+                    "checkout_id",
+                    "original_id",
+                ],
+                update_fields=[
+                    "name",
+                    "description",
+                    "price_amount",
+                    "currency",
+                    "maximum_delivery_days",
+                    "minimum_delivery_days",
+                    "metadata",
+                    "private_metadata",
+                    "active",
+                    "message",
+                    "updated_at",
+                    "is_valid",
+                    "is_external",
+                ],
+            )
+
+    if checkout_shipping_methods:
+        return list(
+            CheckoutShippingMethod.objects.filter(
+                checkout_id=checkout.pk,
+                is_valid=True,
+            )
+        )
+    return []
