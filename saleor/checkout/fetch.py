@@ -272,9 +272,6 @@ class CheckoutInfo:
         else:
             delivery_method = self.collection_point
 
-        if isinstance(delivery_method, ShippingMethodData):
-            self._update_denormalized_shipping_method_fields(delivery_method)
-
         return get_delivery_method_info(delivery_method, self.shipping_address)
 
     @property
@@ -743,6 +740,7 @@ def find_checkout_line_info(
     return next(line_info for line_info in lines if line_info.line.pk == line_id)
 
 
+@allow_writer()
 def fetch_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
 ) -> list[CheckoutShippingMethod]:
@@ -757,14 +755,14 @@ def fetch_shipping_methods_for_checkout(
     checkout = checkout_info.checkout
 
     built_in_shipping_methods_dict: dict[str, ShippingMethodData] = {
-        sipping_method.graphql_id: sipping_method
-        for sipping_method in get_available_built_in_shipping_methods_for_checkout_info(
+        shipping_method.id: shipping_method
+        for shipping_method in get_available_built_in_shipping_methods_for_checkout_info(
             checkout_info=checkout_info
         )
     }
     external_shipping_methods_dict: dict[str, ShippingMethodData] = {
-        sipping_method.graphql_id: sipping_method
-        for sipping_method in get_external_shipping_methods_for_checkout_info(
+        shipping_method.id: shipping_method
+        for shipping_method in get_external_shipping_methods_for_checkout_info(
             checkout_info=checkout_info
         )
     }
@@ -785,11 +783,6 @@ def fetch_shipping_methods_for_checkout(
     )
 
     checkout_shipping_methods = []
-    assigned_shipping_method_original_id = None
-    if checkout.assigned_shipping_method:
-        assigned_shipping_method_original_id = (
-            checkout.assigned_shipping_method.original_id
-        )
 
     for shipping_method_id in available_shipping_method_original_ids:
         shipping_method_data = built_in_shipping_methods_dict.get(
@@ -800,7 +793,7 @@ def fetch_shipping_methods_for_checkout(
         checkout_shipping_methods.append(
             CheckoutShippingMethod(
                 checkout=checkout,
-                original_id=shipping_method_data.graphql_id,
+                original_id=shipping_method_data.id,
                 name=shipping_method_data.name or "",
                 description=shipping_method_data.description,
                 price_amount=shipping_method_data.price.amount,
@@ -833,19 +826,17 @@ def fetch_shipping_methods_for_checkout(
         checkout.save(update_fields=["shipping_methods_stale_at"])
 
         exclude_from_delete = Q(original_id__in=available_shipping_method_original_ids)
+        assigned_shipping_method = checkout.assigned_shipping_method
         if (
-            assigned_shipping_method_original_id
-            and assigned_shipping_method_original_id
+            assigned_shipping_method
+            and assigned_shipping_method.original_id
             not in available_shipping_method_original_ids
         ):
-            CheckoutShippingMethod.objects.filter(
-                checkout_id=checkout.pk,
-                original_id=assigned_shipping_method_original_id,
-            ).update(
-                is_valid=False,
-            )
+            assigned_shipping_method.is_valid = False
+            assigned_shipping_method.save(update_fields=["is_valid"])
+
             # Never remove the currently assigned shipping method.
-            exclude_from_delete |= Q(original_id=assigned_shipping_method_original_id)
+            exclude_from_delete |= Q(original_id=assigned_shipping_method.original_id)
 
         CheckoutShippingMethod.objects.filter(
             checkout_id=checkout.pk,
