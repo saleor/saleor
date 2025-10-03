@@ -2,12 +2,14 @@ import logging
 from typing import TYPE_CHECKING, Optional
 
 from django_countries import countries
+from prices import Money
 
 from ..core.db.connection import allow_writer
 from ..plugins.base_plugin import ExcludedShippingMethod
 from .interface import ShippingMethodData
 
 if TYPE_CHECKING:
+    from ..checkout.models import CheckoutShippingMethod
     from ..tax.models import TaxClass
     from .models import ShippingMethod, ShippingMethodChannelListing
 
@@ -61,6 +63,25 @@ def convert_to_shipping_method_data(
         tax_class=tax_class,
         minimum_order_price=minimum_order_price,
         maximum_order_price=maximum_order_price,
+    )
+
+
+def convert_checkout_shipping_method_to_shipping_method_data(
+    checkout_shipping_method: "CheckoutShippingMethod",
+) -> "ShippingMethodData":
+    return ShippingMethodData(
+        id=str(checkout_shipping_method.original_id),
+        name=checkout_shipping_method.name,
+        description=checkout_shipping_method.description,
+        maximum_delivery_days=checkout_shipping_method.maximum_delivery_days,
+        minimum_delivery_days=checkout_shipping_method.minimum_delivery_days,
+        metadata=checkout_shipping_method.metadata,
+        private_metadata=checkout_shipping_method.private_metadata,
+        price=Money(
+            checkout_shipping_method.price_amount, checkout_shipping_method.currency
+        ),
+        active=checkout_shipping_method.active,
+        message=checkout_shipping_method.message or "",
     )
 
 
