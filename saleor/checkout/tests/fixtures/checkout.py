@@ -7,8 +7,24 @@ from django.utils import timezone
 from ....plugins.manager import get_plugins_manager
 from ....product.models import ProductVariantChannelListing
 from ...fetch import fetch_checkout_info, fetch_checkout_lines
-from ...models import Checkout, CheckoutLine, CheckoutMetadata
+from ...models import Checkout, CheckoutLine, CheckoutMetadata, CheckoutShippingMethod
 from ...utils import add_variant_to_checkout
+
+
+@pytest.fixture
+def checkout_shipping_method(shipping_zone):
+    def wrap(checkout):
+        shipping_method = shipping_zone.shipping_methods.first()
+        listing = shipping_method.channel_listings.get(channel_id=checkout.channel_id)
+        return CheckoutShippingMethod.objects.create(
+            checkout=checkout,
+            original_id=shipping_method.id,
+            name=shipping_method.name,
+            price_amount=listing.price_amount,
+            currency=listing.currency,
+        )
+
+    return wrap
 
 
 @pytest.fixture
@@ -123,10 +139,13 @@ def checkouts_assigned_to_customer(channel_USD, channel_PLN, customer_user):
 
 
 @pytest.fixture
-def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gift_card):
+def checkout_ready_to_complete(
+    checkout_with_item, address, checkout_shipping_method, gift_card, shipping_method
+):
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
+    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -166,19 +185,23 @@ def checkout_with_shipping_required(checkout_with_item, product):
 
 
 @pytest.fixture
-def checkout_with_item_and_shipping_method(checkout_with_item, shipping_method):
+def checkout_with_item_and_shipping_method(
+    checkout_with_item, checkout_shipping_method, shipping_method
+):
     checkout = checkout_with_item
     checkout.shipping_method = shipping_method
+    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
     checkout.save()
     return checkout
 
 
 @pytest.fixture
-def checkout_with_shipping_method(checkout_with_shipping_address, shipping_method):
+def checkout_with_shipping_method(
+    checkout_with_shipping_address, checkout_shipping_method, shipping_method
+):
     checkout = checkout_with_shipping_address
-
     checkout.shipping_method = shipping_method
-    checkout.shipping_method_name = shipping_method.name
+    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
     checkout.save()
 
     return checkout
@@ -208,7 +231,11 @@ def checkout_with_single_item(checkout, product):
 
 @pytest.fixture
 def checkout_with_variant_without_inventory_tracking(
-    checkout, variant_without_inventory_tracking, address, shipping_method
+    checkout,
+    variant_without_inventory_tracking,
+    address,
+    checkout_shipping_method,
+    shipping_method,
 ):
     variant = variant_without_inventory_tracking
     checkout_info = fetch_checkout_info(
@@ -217,6 +244,7 @@ def checkout_with_variant_without_inventory_tracking(
     add_variant_to_checkout(checkout_info, variant, 1)
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
+    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -355,9 +383,14 @@ def checkout_with_delivery_method_for_cc(
 
 @pytest.fixture
 def checkout_with_delivery_method_for_external_shipping(checkout_with_item, address):
+    sm = checkout_with_item.shipping_methods.create(
+        original_id="YXBwOlFYQndPakU9OmFiY2Q=",
+        name="Provider - Economy",
+        price_amount=Decimal(99),
+        currency=checkout_with_item.currency,
+    )
+    checkout_with_item.assigned_shipping_method = sm
     checkout_with_item.shipping_address = address.get_copy()
-    checkout_with_item.external_shipping_method_id = "YXBwOlFYQndPakU9OmFiY2Q="
-    checkout_with_item.shipping_method_name = "Provider - Economy"
     checkout_with_item.save()
     return checkout_with_item
 
@@ -378,18 +411,28 @@ def checkout_with_items(checkout, product_list, product):
 
 
 @pytest.fixture
-def checkout_with_items_and_shipping(checkout_with_items, address, shipping_method):
+def checkout_with_items_and_shipping(
+    checkout_with_items, address, checkout_shipping_method, shipping_method
+):
     checkout_with_items.shipping_address = address
     checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.assigned_shipping_method = checkout_shipping_method(
+        checkout_with_items
+    )
     checkout_with_items.billing_address = address
     checkout_with_items.save()
     return checkout_with_items
 
 
 @pytest.fixture
-def checkout_with_item_and_shipping(checkout_with_item, address, shipping_method):
+def checkout_with_item_and_shipping(
+    checkout_with_item, address, checkout_shipping_method, shipping_method
+):
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.assigned_shipping_method = checkout_shipping_method(
+        checkout_with_item
+    )
     checkout_with_item.billing_address = address
     checkout_with_item.save()
     return checkout_with_item
@@ -466,15 +509,19 @@ def checkout_with_problems(
     checkout_with_items,
     product_type,
     address,
-    shipping_method,
+    checkout_shipping_method,
     category,
     default_tax_class,
     channel_USD,
     warehouse,
+    shipping_method,
 ):
     checkout_with_items.shipping_address = address
     checkout_with_items.billing_address = address
     checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.assigned_shipping_method = checkout_shipping_method(
+        checkout_with_items
+    )
     checkout_with_items.save(
         update_fields=["shipping_address", "shipping_method", "billing_address"]
     )
