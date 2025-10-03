@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.indexes import BTreeIndex
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -67,7 +68,10 @@ class CheckoutShippingMethod(models.Model):
 
     class Meta:
         unique_together = ("checkout", "original_id")
-        ordering = ("-created_at", "pk")
+        ordering = ("-created_at", "id")
+        indexes = [
+            BTreeIndex(fields=["created_at", "id"]),
+        ]
 
 
 class Checkout(models.Model):
