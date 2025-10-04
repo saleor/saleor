@@ -946,6 +946,7 @@ def _handle_gift_reward(
             line_info for line_info in lines_info if line_info.line.pk == line.id
         )
         line_info.line = line
+        line_info.undiscounted_unit_price = line_discount.line.undiscounted_unit_price  # type:ignore[union-attr]
         line_info.discounts = [line_discount]
 
 
