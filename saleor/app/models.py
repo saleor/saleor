@@ -136,8 +136,6 @@ class AppWebhookMutex(models.Model):
         related_name="webhook_mutex",
         verbose_name="App",
     )
-    acquired_at = models.DateTimeField(null=True)
-    uuid = models.UUIDField(default=uuid4, unique=True)
 
 
 class AppTokenManager(models.Manager["AppToken"]):
