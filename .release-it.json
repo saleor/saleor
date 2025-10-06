@@ -29,6 +29,7 @@
       "git rev-parse --abbrev-ref HEAD > .base_ver_release.txt"
     ],
     "after:bump": [
+      "uv lock --refresh-package saleor",
       "git checkout -B release-${version} --track"
     ],
     "after:release": [
