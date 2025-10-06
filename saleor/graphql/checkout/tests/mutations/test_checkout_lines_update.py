@@ -29,7 +29,6 @@ from .....product.models import ProductChannelListing, ProductVariantChannelList
 from .....tests import race_condition
 from .....warehouse.models import Reservation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from .....webhook.transport.asynchronous.transport import send_webhook_request_async
 from .....webhook.transport.utils import WebhookResponse
 from ....core.mutations import MISSING_NODE_ERROR_MESSAGE_PREFIX
 from ....core.utils import to_global_id_or_none
@@ -1505,8 +1504,7 @@ def test_checkout_lines_update_quantity_gift(user_api_client, checkout_with_item
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
@@ -1514,7 +1512,7 @@ def test_checkout_lines_update_quantity_gift(user_api_client, checkout_with_item
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_lines_update_triggers_webhooks(
     mocked_send_webhook_using_scheme_method,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
@@ -1562,7 +1560,7 @@ def test_checkout_lines_update_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["checkoutLinesUpdate"]["errors"]
     assert wrapped_call_checkout_info_event.called
-    assert mocked_send_webhook_request_async.call_count == 1
+    assert mocked_send_webhooks_async_for_app.call_count == 1
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
