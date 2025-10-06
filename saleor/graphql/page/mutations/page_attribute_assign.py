@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from ....attribute import AttributeType, models
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
+from ....page.tasks import mark_pages_search_vector_as_dirty
 from ....permission.enums import PageTypePermissions
 from ...attribute.types import Attribute
 from ...core import ResolveInfo
@@ -107,8 +108,10 @@ class PageAttributeAssign(BaseMutation):
         # from a page type does not remove their values from existing pages.
         # As a result, if the attribute is reassigned, its value should be included
         # in the page search vector.
-        page_models.Page.objects.filter(page_type_id=page_type.pk).update(
-            search_index_dirty=True
+        page_ids = list(
+            page_models.Page.objects.filter(page_type=page_type).values_list(
+                "pk", flat=True
+            )
         )
-
+        mark_pages_search_vector_as_dirty.delay(page_ids)
         return cls(page_type=page_type)

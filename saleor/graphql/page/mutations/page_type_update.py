@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ....page import models
 from ....page.error_codes import PageErrorCode
+from ....page.tasks import mark_pages_search_vector_as_dirty
 from ....permission.enums import PageTypePermissions
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PAGES
@@ -94,6 +95,9 @@ class PageTypeUpdate(PageTypeMixin, DeprecatedModelMutation):
         )
 
         if should_update_search_index:
-            models.Page.objects.filter(page_type_id=instance.pk).update(
-                search_index_dirty=True
+            page_ids = list(
+                models.Page.objects.filter(page_type=instance).values_list(
+                    "pk", flat=True
+                )
             )
+            mark_pages_search_vector_as_dirty.delay(page_ids)

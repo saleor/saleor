@@ -1,6 +1,7 @@
 import graphene
 
 from ....page import models
+from ....page.tasks import mark_pages_search_vector_as_dirty
 from ....permission.enums import PageTypePermissions
 from ...attribute.types import Attribute
 from ...core import ResolveInfo
@@ -47,8 +48,9 @@ class PageAttributeUnassign(BaseMutation):
 
         page_type.page_attributes.remove(*attr_pks)
 
-        models.Page.objects.filter(page_type_id=page_type.pk).update(
-            search_index_dirty=True
+        page_ids = list(
+            models.Page.objects.filter(page_type=page_type).values_list("pk", flat=True)
         )
+        mark_pages_search_vector_as_dirty.delay(page_ids)
 
         return cls(page_type=page_type)

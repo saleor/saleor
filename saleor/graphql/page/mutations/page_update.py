@@ -1,13 +1,12 @@
 import graphene
-from django.db import transaction
 from django.db.models import Exists, OuterRef
 
 from ....attribute import models as attribute_models
 from ....core.utils.update_mutation_manager import InstanceTracker
 from ....page import models
 from ....permission.enums import PagePermissions
-from ....product.lock_objects import product_qs_select_for_update
 from ....product.models import Product
+from ....product.tasks import mark_products_search_vector_as_dirty
 from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -65,22 +64,19 @@ class PageUpdate(PageCreate):
     @classmethod
     def update_products_search_index(cls, instance):
         # Mark products that use this instance as reference as dirty
-        with transaction.atomic():
-            locked_ids = (
-                product_qs_select_for_update()
-                .filter(
-                    Exists(
-                        attribute_models.AssignedProductAttributeValue.objects.filter(
-                            value__in=attribute_models.AttributeValue.objects.filter(
-                                reference_page=instance
-                            ),
-                            product_id=OuterRef("id"),
-                        )
+        product_ids = list(
+            Product.objects.filter(
+                Exists(
+                    attribute_models.AssignedProductAttributeValue.objects.filter(
+                        value__in=attribute_models.AttributeValue.objects.filter(
+                            reference_page=instance
+                        ),
+                        product_id=OuterRef("id"),
                     )
                 )
-                .values_list("id", flat=True)
-            )
-            Product.objects.filter(id__in=locked_ids).update(search_index_dirty=True)
+            ).values_list("id", flat=True)
+        )
+        mark_products_search_vector_as_dirty.delay(product_ids)
 
     @classmethod
     def success_response(cls, instance):
