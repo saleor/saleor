@@ -54,6 +54,7 @@ def test_invoice_request(
     order,
 ):
     # given
+    assert not order.search_vector
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     dummy_invoice = Invoice.objects.create(order=order)
     plugin_mock.return_value = dummy_invoice
@@ -88,6 +89,9 @@ def test_invoice_request(
     assert invoice.order.events.filter(
         type=OrderEvents.INVOICE_REQUESTED, order=order, user=staff_api_client.user
     ).exists()
+
+    order.refresh_from_db()
+    assert order.search_vector
 
 
 def test_invoice_request_by_user_no_channel_access(
