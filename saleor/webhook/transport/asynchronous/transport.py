@@ -14,7 +14,6 @@ from django.conf import settings
 from django.db import transaction
 from opentelemetry.trace import StatusCode
 
-from ....app.models import AppWebhookMutex
 from ....app.utils import acquire_webhook_lock
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -434,18 +433,15 @@ def trigger_webhooks_async_for_multiple_objects(
         )
 
     apps_id = {delivery.webhook.app_id for delivery in deliveries}
-    app_locks = AppWebhookMutex.objects.filter(app_id__in=apps_id)
-    app_id_to_lock = {app_lock.app_id: app_lock for app_lock in app_locks}
     for app_id in apps_id:
-        lock_uuid = app_id_to_lock[app_id].uuid if app_id in app_id_to_lock else None
         send_webhooks_async_for_app.apply_async(
             kwargs={
                 "app_id": app_id,
                 "telemetry_context": get_task_context().to_dict(),
             },
             queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-            MessageGroupId="core",
-            MessageDeduplicationId=f"{app_id}-{lock_uuid}",
+            MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+            MessageDeduplicationId=get_app_deduplication_id(app_id),
             bind=True,
         )
 
@@ -571,22 +567,17 @@ def generate_deferred_payloads(
                 EventDelivery.objects.bulk_update(
                     event_deliveries_for_bulk_update, ["payload"]
                 )
-    # domain = get_domain()
     for delivery in event_deliveries_for_bulk_update:
         # Trigger webhook delivery task when the payload is ready.
         app = delivery.webhook.app
-        app_lock: AppWebhookMutex = AppWebhookMutex.objects.filter(
-            app_id=app.id
-        ).first()
-        lock_uuid = app_lock.uuid if app_lock else None
         send_webhooks_async_for_app.apply_async(
             kwargs={
                 "app_id": app.id,
                 "telemetry_context": telemetry_context.to_dict(),
             },
             queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-            MessageGroupId="core",
-            MessageDeduplicationId=f"{app.id}-{lock_uuid}",  # TODO: drop uuid, add domain
+            MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+            MessageDeduplicationId=get_app_deduplication_id(app.id),
             bind=True,
         )
 
@@ -670,7 +661,7 @@ def send_webhook_request_async(
 
 @app.task(
     queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-    MessageGroupId="core",
+    MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
     bind=True,
 )
 @allow_writer()
@@ -680,7 +671,7 @@ def send_webhooks_async_for_app(
     app_id,
     telemetry_context: TelemetryTaskContext,
 ) -> None:
-    with acquire_webhook_lock(app_id) as (lock_obj, acquired):
+    with acquire_webhook_lock(app_id) as acquired:
         if not acquired:
             return
 
@@ -689,7 +680,6 @@ def send_webhooks_async_for_app(
         )
 
         if processed:
-            lock_uuid = lock_obj.uuid
             send_webhooks_async_for_app.apply_async(
                 kwargs={
                     "app_id": app_id,
@@ -697,7 +687,7 @@ def send_webhooks_async_for_app(
                 },
                 queue=self.queue,
                 MessageGroupId=self.MessageGroupId,
-                MessageDeduplicationId=f"{app_id}-{lock_uuid}",  # TODO: drop uuid, add domain
+                MessageDeduplicationId=get_app_deduplication_id(app_id),
                 bind=True,
             )
 
@@ -784,6 +774,11 @@ def _process_send_webhooks_async_for_app(
     process_failed_deliveries(failed_deliveries_attempts, MAX_WEBHOOK_RETRIES)
     clear_successful_deliveries(successful_deliveries)
     return True
+
+
+def get_app_deduplication_id(app_id: int) -> str:
+    domain = get_domain()
+    return f"{domain}:{app_id}"
 
 
 def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
