@@ -20,6 +20,7 @@ def test_no_reference_type_configured_no_reference_id_provided(site_settings):
         requestor_is_user=True,
         refund_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
+        site_settings=site_settings,
     )
 
     # Then
@@ -44,6 +45,7 @@ def test_no_reference_type_configured_reference_id_provided_raises_invalid(
             requestor_is_user=True,
             refund_reference_field_name="refundReasonReference",
             error_code_enum=TransactionRequestActionErrorCode,
+            site_settings=site_settings,
         )
 
     error_dict = exc_info.value.error_dict
@@ -73,6 +75,7 @@ def test_reference_type_configured_no_reference_id_user_requestor_raises_require
             requestor_is_user=True,
             refund_reference_field_name="refundReasonReference",
             error_code_enum=TransactionRequestActionErrorCode,
+            site_settings=site_settings,
         )
 
     error_dict = exc_info.value.error_dict
@@ -100,6 +103,7 @@ def test_reference_type_configured_no_reference_id_app_requestor_success(
         requestor_is_user=False,  # App requestor
         refund_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
+        site_settings=site_settings,
     )
 
     # Then
@@ -124,6 +128,7 @@ def test_reference_type_configured_reference_id_provided_success(site_settings):
         requestor_is_user=True,
         refund_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
+        site_settings=site_settings,
     )
 
     # Then
@@ -150,6 +155,7 @@ def test_reference_type_configured_reference_id_provided_app_requestor_success(
         requestor_is_user=False,  # App requestor
         refund_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
+        site_settings=site_settings,
     )
 
     # Then
@@ -173,6 +179,7 @@ def test_custom_field_name_in_error_message(site_settings):
             requestor_is_user=True,
             refund_reference_field_name=custom_field_name,
             error_code_enum=TransactionRequestActionErrorCode,
+            site_settings=site_settings,
         )
 
     error_dict = exc_info.value.error_dict
@@ -198,6 +205,7 @@ def test_custom_field_name_in_required_error_message(site_settings):
             requestor_is_user=True,
             refund_reference_field_name=custom_field_name,
             error_code_enum=TransactionRequestActionErrorCode,
+            site_settings=site_settings,
         )
 
     error_dict = exc_info.value.error_dict
@@ -221,6 +229,7 @@ def test_different_error_code_enum(site_settings):
             requestor_is_user=True,
             refund_reference_field_name="refundReasonReference",
             error_code_enum=TransactionRequestRefundForGrantedRefundErrorCode,
+            site_settings=site_settings,
         )
 
     error_dict = exc_info.value.error_dict
@@ -242,6 +251,7 @@ def test_is_passing_reason_reference_required_when_no_reference_type(site_settin
         requestor_is_user=False,
         refund_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
+        site_settings=site_settings,
     )
 
     # Then
@@ -263,6 +273,7 @@ def test_is_passing_reason_reference_required_when_reference_type_configured(
         requestor_is_user=False,
         refund_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
+        site_settings=site_settings,
     )
 
     # Then

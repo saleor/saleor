@@ -20,7 +20,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres
+        image: library/postgres:15-alpine
         env:
           POSTGRES_PASSWORD: saleor
           POSTGRES_USER: saleor

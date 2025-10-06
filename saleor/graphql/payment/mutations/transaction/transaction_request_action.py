@@ -27,6 +27,7 @@ from ....core.scalars import UUID, PositiveDecimal
 from ....core.types import common as common_types
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....site.dataloaders import get_site_promise
 from ...enums import TransactionActionEnum
 from ...types import TransactionItem
 from ...utils import validate_and_resolve_refund_reason_context
@@ -207,11 +208,14 @@ class TransactionRequestAction(BaseMutation):
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
+        site = get_site_promise(info.context).get()
+
         refund_reason_context = validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
             refund_reference_field_name="refund_reason_reference",
             error_code_enum=TransactionRequestActionErrorCode,
+            site_settings=site.settings,
         )
 
         refund_reason_reference_type = refund_reason_context[
