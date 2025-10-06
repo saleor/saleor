@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from ..models import Page
-from ..tasks import update_pages_search_vector_task
+from ..tasks import mark_pages_search_vector_as_dirty, update_pages_search_vector_task
 
 
 @patch("saleor.page.tasks.update_pages_search_vector")
@@ -30,3 +30,36 @@ def test_update_pages_search_vector_nothing_to_update(
 
     # then
     assert not update_pages_search_vector_mock.called
+
+
+def test_mark_pages_search_vector_as_dirty(page_list):
+    # given
+    page_ids = [page.id for page in page_list]
+    Page.objects.all().update(search_index_dirty=False)
+
+    # when
+    mark_pages_search_vector_as_dirty(page_ids)
+
+    # then
+    assert all(
+        Page.objects.filter(id__in=page_ids).values_list(
+            "search_index_dirty", flat=True
+        )
+    )
+
+
+@patch("saleor.page.tasks.MARK_SEARCH_VECTOR_DIRTY_BATCH_SIZE", 1)
+def test_mark_pages_search_vector_as_dirty_batches(page_list):
+    # given
+    page_ids = [page.id for page in page_list]
+    Page.objects.all().update(search_index_dirty=False)
+
+    # when
+    mark_pages_search_vector_as_dirty(page_ids)
+
+    # then
+    assert all(
+        Page.objects.filter(id__in=page_ids).values_list(
+            "search_index_dirty", flat=True
+        )
+    )
