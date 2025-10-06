@@ -1,11 +1,8 @@
-from django.db import transaction
 from django.db.models import Exists, OuterRef
 
 from ....attribute import models
 from ....page import models as page_models
-from ....page.lock_objects import page_qs_select_for_update
 from ....product import models as product_models
-from ....product.lock_objects import product_qs_select_for_update
 
 
 def get_product_ids_to_search_index_update_for_attribute_values(
@@ -53,15 +50,3 @@ def get_page_ids_to_search_index_update_for_attribute_values(
         Exists(assigned_values.filter(page_id=OuterRef("id")))
     ).values_list("id", flat=True)
     return list(page_ids)
-
-
-def mark_search_index_dirty(product_ids: list[int], page_ids: list[int]):
-    """Mark products and pages as needing search index updates."""
-    with transaction.atomic():
-        _products = list(product_qs_select_for_update().filter(pk__in=product_ids))
-        product_models.Product.objects.filter(id__in=product_ids).update(
-            search_index_dirty=True
-        )
-    with transaction.atomic():
-        _pages = list(page_qs_select_for_update().filter(pk__in=page_ids))
-        page_models.Page.objects.filter(id__in=page_ids).update(search_index_dirty=True)

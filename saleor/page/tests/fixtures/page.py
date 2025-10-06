@@ -3,6 +3,7 @@ import pytest
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import dummy_editorjs
 from ...models import Page
+from ...search import update_pages_search_vector
 
 
 @pytest.fixture
@@ -22,6 +23,7 @@ def page(db, page_type, size_page_attribute):
     associate_attribute_values_to_instance(
         page, {size_page_attribute.pk: [page_attr_value]}
     )
+    update_pages_search_vector([page])
 
     return page
 

@@ -3,7 +3,9 @@ from django.core.exceptions import ValidationError
 
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
+from ....page.tasks import mark_pages_search_vector_as_dirty
 from ....permission.enums import ProductTypePermissions
+from ....product.tasks import mark_products_search_vector_as_dirty
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -21,7 +23,6 @@ from .mixins import REFERENCE_TYPES_LIMIT, AttributeMixin
 from .utils import (
     get_page_ids_to_search_index_update_for_attribute_values,
     get_product_ids_to_search_index_update_for_attribute_values,
-    mark_search_index_dirty,
 )
 
 
@@ -179,7 +180,8 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         cls._save_m2m(info, instance, cleaned_input)
         cls.post_save_action(info, instance, cleaned_input)
         if remove_values:
-            mark_search_index_dirty(product_ids, page_ids)
+            mark_products_search_vector_as_dirty.delay(product_ids)
+            mark_pages_search_vector_as_dirty.delay(page_ids)
 
         # Return the attribute that was created
         return AttributeUpdate(attribute=ChannelContext(instance, None))

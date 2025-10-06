@@ -1,14 +1,12 @@
 import graphene
-from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
-from ....core.utils.batches import queryset_in_batches
 from ....page import models as page_models
-from ....page.lock_objects import page_qs_select_for_update
+from ....page.tasks import mark_pages_search_vector_as_dirty
 from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
-from ....product.lock_objects import product_qs_select_for_update
+from ....product.tasks import mark_products_search_vector_as_dirty
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -19,8 +17,6 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_update import AttributeValueUpdateInput
 from .attribute_value_create import AttributeValueCreate
-
-BATCH_SIZE = 10000
 
 
 class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
@@ -107,25 +103,15 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
                 | Q(Exists(variants.filter(product_id=OuterRef("id"))))
             )
         ).order_by("pk")
-        for batch_pks in queryset_in_batches(products, BATCH_SIZE):
-            with transaction.atomic():
-                # SELECT … FOR UPDATE needs to lock rows in a consistent order
-                # to avoid deadlocks between updates touching the same rows.
-                _products = list(
-                    product_qs_select_for_update().filter(pk__in=batch_pks)
-                )
-                product_models.Product.objects.filter(pk__in=batch_pks).update(
-                    search_index_dirty=True
-                )
+        mark_products_search_vector_as_dirty.delay(
+            list(products.values_list("id", flat=True))
+        )
 
     @classmethod
     def _mark_pages_search_index_dirty(cls, instance):
         pages = page_models.Page.objects.filter(
             Exists(instance.pagevalueassignment.filter(page_id=OuterRef("id")))
         ).order_by("pk")
-        for batch_pks in queryset_in_batches(pages, BATCH_SIZE):
-            with transaction.atomic():
-                _pages = list(page_qs_select_for_update().filter(pk__in=batch_pks))
-                page_models.Page.objects.filter(pk__in=batch_pks).update(
-                    search_index_dirty=True
-                )
+        mark_pages_search_vector_as_dirty.delay(
+            list(pages.values_list("id", flat=True))
+        )
