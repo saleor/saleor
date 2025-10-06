@@ -18,7 +18,6 @@ from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from .....webhook.transport.asynchronous.transport import send_webhooks_async_for_app
 from .....webhook.transport.utils import WebhookResponse
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
