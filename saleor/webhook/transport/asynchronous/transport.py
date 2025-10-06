@@ -575,7 +575,9 @@ def generate_deferred_payloads(
     for delivery in event_deliveries_for_bulk_update:
         # Trigger webhook delivery task when the payload is ready.
         app = delivery.webhook.app
-        app_lock: AppWebhookMutex = AppWebhookMutex.objects.get(app_id=app.id)
+        app_lock: AppWebhookMutex = AppWebhookMutex.objects.filter(
+            app_id=app.id
+        ).first()
         lock_uuid = app_lock.uuid if app_lock else None
         send_webhooks_async_for_app.apply_async(
             kwargs={
