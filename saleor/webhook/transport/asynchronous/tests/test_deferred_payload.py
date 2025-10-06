@@ -74,10 +74,10 @@ def test_call_trigger_webhook_async_deferred_payload(
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_generate_deferred_payload(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     checkout_with_item,
     setup_checkout_webhooks,
     staff_user,
@@ -124,9 +124,9 @@ def test_generate_deferred_payload(
         data["checkout"]["totalPrice"]["gross"]["amount"] == checkout.total_gross_amount
     )
 
-    assert mocked_send_webhook_request_async.call_count == 1
-    call_kwargs = mocked_send_webhook_request_async.call_args.kwargs
-    assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
+    assert mocked_send_webhooks_async_for_app.call_count == 1
+    call_kwargs = mocked_send_webhooks_async_for_app.call_args.kwargs
+    assert call_kwargs["kwargs"]["app_id"] == checkout_updated_webhook.app.pk
 
 
 def test_generate_deferred_payload_model_pk_does_not_exist(
@@ -159,45 +159,3 @@ def test_generate_deferred_payload_model_pk_does_not_exist(
     delivery.refresh_from_db()
     assert delivery.status == EventDeliveryStatus.FAILED
     assert delivery.payload is None
-
-
-@mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
-)
-@mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
-    wraps=generate_deferred_payloads.apply_async,
-)
-def test_pass_queue_to_send_webhook_request_async(
-    mocked_generate_deferred_payloads,
-    mocked_send_webhook_request_async,
-    checkout_with_item,
-    setup_checkout_webhooks,
-    staff_user,
-):
-    # given
-    checkout = checkout_with_item
-    event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
-    _, _, _, checkout_updated_webhook = setup_checkout_webhooks(event_type)
-    webhooks = get_webhooks_for_event(event_type)
-    queue = "checkout_queue"
-
-    # when
-    trigger_webhooks_async(
-        data=None,
-        event_type=event_type,
-        webhooks=webhooks,
-        subscribable_object=checkout,
-        requestor=staff_user,
-        queue=queue,
-    )
-
-    # then
-    call_kwargs_generate_payloads = mocked_generate_deferred_payloads.call_args.kwargs
-    assert "queue" not in call_kwargs_generate_payloads
-    assert call_kwargs_generate_payloads["kwargs"]["send_webhook_queue"] == queue
-
-    call_kwargs_send_webhook_request = (
-        mocked_send_webhook_request_async.call_args.kwargs
-    )
-    assert call_kwargs_send_webhook_request["queue"] == queue
