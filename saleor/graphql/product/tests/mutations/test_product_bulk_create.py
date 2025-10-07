@@ -12,6 +12,7 @@ from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
     get_product_attributes,
 )
+from .....core.exceptions import UnsupportedMediaProviderException
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
@@ -1074,6 +1075,69 @@ def test_product_bulk_create_with_media_with_media_url(
     assert oembed_data["thumbnail_url"] == (
         "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
     )
+
+
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.is_image_url",
+    return_value=False,
+)
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.get_oembed_data",
+)
+def test_product_bulk_create_with_media_with_media_url_invalid_provider(
+    mocked_get_oembed_data,
+    _mocked_is_image_url,
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    mocked_get_oembed_data.side_effect = UnsupportedMediaProviderException()
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name_1 = "test name 1"
+    product_name_2 = "test name 2"
+
+    alt = "Invalid_image"
+    url = "https://www.example.com/image.webp"
+
+    media = {
+        "alt": alt,
+        "mediaUrl": url,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "name": product_name_1,
+        },
+        {
+            "productType": product_type_id,
+            "name": product_name_2,
+            "media": [media],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products, "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    # Only first product should be created to respect REJECT_FAILED_ROWS policy
+    assert data["count"] == 1
+    # Second product should have error related to unsupported media provider
+    errors = data["results"][1]["errors"]
+    assert (
+        errors[0]["code"] == ProductBulkCreateErrorCode.UNSUPPORTED_MEDIA_PROVIDER.name
+    )
+    assert errors[0]["path"] == "media.0.mediaUrl"
+    assert errors[0]["message"] == "Unsupported media provider or incorrect URL."
+    assert len(errors) == 1
 
 
 @patch(
