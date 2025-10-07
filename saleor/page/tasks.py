@@ -22,12 +22,8 @@ def mark_pages_search_vector_as_dirty(page_ids: list[int]):
     if not page_ids:
         return
     with transaction.atomic():
-        _pages = list(
-            page_qs_select_for_update()
-            .filter(pk__in=page_ids)
-            .values_list("id", flat=True)
-        )
-        Page.objects.filter(id__in=_pages).update(search_index_dirty=True)
+        ids = page_qs_select_for_update().filter(pk__in=page_ids).values("id")
+        Page.objects.filter(id__in=ids).update(search_index_dirty=True)
 
 
 @app.task(
