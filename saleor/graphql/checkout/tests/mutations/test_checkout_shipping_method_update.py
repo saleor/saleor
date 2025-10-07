@@ -897,7 +897,6 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
     assert wrapped_call_checkout_info_event.called
 
     app = checkout_updated_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     # confirm that event delivery was generated for each async webhook.
     assert EventDelivery.objects.get(webhook_id=checkout_updated_webhook.id)
@@ -907,8 +906,8 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 

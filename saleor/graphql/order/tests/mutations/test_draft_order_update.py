@@ -2512,7 +2512,6 @@ def test_draft_order_update_triggers_webhooks(
         draft_order_updated_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
     app = draft_order_updated_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     order = draft_order
     order.voucher = voucher
@@ -2554,8 +2553,8 @@ def test_draft_order_update_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -2610,7 +2609,6 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
         draft_order_updated_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
     app = draft_order_updated_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     order = draft_order
 
@@ -2644,8 +2642,8 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 

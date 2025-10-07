@@ -163,7 +163,6 @@ def test_order_cancel_skip_trigger_webhooks(
         [WebhookEventAsyncType.ORDER_UPDATED, WebhookEventAsyncType.ORDER_CANCELLED]
     )
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
@@ -212,8 +211,8 @@ def test_order_cancel_skip_trigger_webhooks(
                     "telemetry_context": ANY,
                 },
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries

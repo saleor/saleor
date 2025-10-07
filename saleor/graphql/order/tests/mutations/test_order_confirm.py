@@ -641,7 +641,6 @@ def test_order_confirm_triggers_webhooks(
         ]
     )
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     payment_txn_preauth.order = order_unconfirmed
     payment_txn_preauth.captured_amount = order_unconfirmed.total.gross.amount
@@ -696,8 +695,8 @@ def test_order_confirm_triggers_webhooks(
                     "telemetry_context": ANY,
                 },
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries

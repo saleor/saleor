@@ -319,7 +319,6 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
         draft_order_deleted_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_DELETED)
     app = draft_order_deleted_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
@@ -342,8 +341,8 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called

@@ -490,7 +490,6 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
         checkout_metadata_updated_webhook,
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED)
     app = checkout_metadata_updated_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
@@ -519,8 +518,8 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 

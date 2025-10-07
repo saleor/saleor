@@ -246,7 +246,6 @@ def test_order_note_update_user_triggers_webhooks(
         order_webhook,
     ) = setup_order_webhooks(webhook_event)
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     order = order_with_lines
     order.should_refresh_prices = True
@@ -284,8 +283,8 @@ def test_order_note_update_user_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 

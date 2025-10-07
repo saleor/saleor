@@ -385,7 +385,6 @@ def test_handle_fully_paid_order_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -428,8 +427,8 @@ def test_handle_fully_paid_order_triggers_webhooks(
             call(
                 kwargs={"app_id": app.id, "telemetry_context": ANY},
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries
@@ -689,7 +688,6 @@ def test_cancel_order_dont_trigger_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     webhook_event_map = get_webhooks_for_multiple_events(
         WEBHOOK_EVENTS_FOR_ORDER_CANCELED
@@ -733,8 +731,8 @@ def test_cancel_order_dont_trigger_webhooks(
             call(
                 kwargs={"app_id": app.id, "telemetry_context": ANY},
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries
@@ -856,8 +854,6 @@ def test_order_refunded_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -912,8 +908,8 @@ def test_order_refunded_triggers_webhooks(
             call(
                 kwargs={"app_id": app.id, "telemetry_context": ANY},
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries
@@ -984,8 +980,6 @@ def test_order_voided_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -1016,8 +1010,8 @@ def test_order_voided_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -1082,8 +1076,6 @@ def test_order_fulfilled_dont_trigger_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     plugins_manager = get_plugins_manager(allow_replica=False)
 
     webhook_event_map = get_webhooks_for_multiple_events(
@@ -1130,8 +1122,8 @@ def test_order_fulfilled_dont_trigger_webhooks(
             call(
                 kwargs={"app_id": app.id, "telemetry_context": ANY},
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries
@@ -1195,8 +1187,6 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     plugins_manager = get_plugins_manager(allow_replica=False)
 
     # when
@@ -1221,8 +1211,8 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -1292,8 +1282,6 @@ def test_order_authorized_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy",
         is_active=True,
@@ -1321,8 +1309,8 @@ def test_order_authorized_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -1401,8 +1389,6 @@ def test_order_charged_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     webhook_event_map = get_webhooks_for_multiple_events(
         WEBHOOK_EVENTS_FOR_ORDER_CHARGED
     )
@@ -1442,8 +1428,8 @@ def test_order_charged_triggers_webhooks(
             call(
                 kwargs={"app_id": app.id, "telemetry_context": ANY},
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries
@@ -1782,8 +1768,6 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -1842,8 +1826,8 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
             call(
                 kwargs={"app_id": app.id, "telemetry_context": ANY},
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries
@@ -1918,8 +1902,6 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -1964,8 +1946,8 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -2034,8 +2016,6 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -2094,8 +2074,8 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
             call(
                 kwargs={"app_id": app.id, "telemetry_context": ANY},
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries
@@ -2585,8 +2565,6 @@ def test_call_order_event_triggers_sync_webhook(
     ) = setup_order_webhooks(webhook_event)
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2603,8 +2581,8 @@ def test_call_order_event_triggers_sync_webhook(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -2725,8 +2703,6 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
     shipping_filter_webhook.save(update_fields=["is_active"])
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2743,8 +2719,8 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -2814,8 +2790,6 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
     ) = setup_order_webhooks(webhook_event)
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2832,8 +2806,8 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -2910,8 +2884,6 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
     ) = setup_order_webhooks(webhook_event)
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2928,8 +2900,8 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called
@@ -2971,8 +2943,6 @@ def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_DELETED)
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2996,8 +2966,8 @@ def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called
@@ -3072,7 +3042,6 @@ def test_call_order_event_skips_when_sync_webhooks_missing(
     permission_manage_orders,
     django_capture_on_commit_callbacks,
     app,
-    app_webhook_mutex,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3101,8 +3070,8 @@ def test_call_order_event_skips_when_sync_webhooks_missing(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called
@@ -3160,8 +3129,6 @@ def test_call_order_events_triggers_sync_webhook(
     ) = setup_order_webhooks(webhook_event)
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3181,8 +3148,8 @@ def test_call_order_events_triggers_sync_webhook(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     # confirm each sync webhook was called without saving event delivery
@@ -3320,8 +3287,6 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
     shipping_filter_webhook.save(update_fields=["is_active"])
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3341,8 +3306,8 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -3421,8 +3386,6 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
     ) = setup_order_webhooks(webhook_event)
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3442,8 +3405,8 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -3528,8 +3491,6 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
     ) = setup_order_webhooks(webhook_event)
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3556,8 +3517,8 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called
@@ -3607,8 +3568,6 @@ def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_DELETED)
 
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3635,8 +3594,8 @@ def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called
@@ -3723,7 +3682,6 @@ def test_call_order_events_skips_when_sync_webhooks_missing(
     permission_manage_orders,
     django_capture_on_commit_callbacks,
     app,
-    app_webhook_mutex,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3755,8 +3713,8 @@ def test_call_order_events_skips_when_sync_webhooks_missing(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called
@@ -3816,8 +3774,6 @@ def test_order_created_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -3878,8 +3834,8 @@ def test_order_created_triggers_webhooks(
             call(
                 kwargs={"app_id": app.id, "telemetry_context": ANY},
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries
@@ -3974,8 +3930,6 @@ def test_order_confirmed_triggers_webhooks(
     )
 
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -3997,8 +3951,8 @@ def test_order_confirmed_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 

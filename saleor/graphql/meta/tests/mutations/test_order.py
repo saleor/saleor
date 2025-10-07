@@ -640,7 +640,6 @@ def test_change_in_public_metadata_triggers_webhooks(
         additional_order_webhook,
     ) = setup_order_webhooks([WebhookEventAsyncType.ORDER_METADATA_UPDATED])
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -665,8 +664,8 @@ def test_change_in_public_metadata_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -720,7 +719,6 @@ def test_change_in_private_metadata_triggers_webhooks(
         additional_order_webhook,
     ) = setup_order_webhooks([WebhookEventAsyncType.ORDER_METADATA_UPDATED])
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -745,8 +743,8 @@ def test_change_in_private_metadata_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 

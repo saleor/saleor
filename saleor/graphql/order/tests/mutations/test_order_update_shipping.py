@@ -696,7 +696,6 @@ def test_order_update_shipping_triggers_webhooks(
         order_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_UPDATED)
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
@@ -724,8 +723,8 @@ def test_order_update_shipping_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     # confirm each sync webhook was called without saving event delivery
@@ -786,7 +785,6 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook(
         order_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
@@ -812,8 +810,8 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -847,7 +845,6 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_sh
         order_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
@@ -872,8 +869,8 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_sh
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -909,7 +906,6 @@ def test_editable_order_update_shipping_triggers_proper_updated_webhook_for_null
         order_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_UPDATED)
     app = order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_digital_line
@@ -934,8 +930,8 @@ def test_editable_order_update_shipping_triggers_proper_updated_webhook_for_null
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
