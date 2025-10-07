@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.core.files import File
 
+from .....core.exceptions import UnsupportedMediaProviderException
 from .....core.http_client import HTTPClient
 from .....core.utils.validators import get_oembed_data
 from .....permission.enums import ProductPermissions
@@ -132,7 +133,19 @@ class ProductMediaCreate(BaseMutation):
                     type=ProductMediaTypes.IMAGE,
                 )
             else:
-                oembed_data, media_type = get_oembed_data(media_url, "media_url")
+                try:
+                    oembed_data, media_type = get_oembed_data(
+                        media_url,
+                    )
+                except UnsupportedMediaProviderException as exc:
+                    raise ValidationError(
+                        {
+                            "media_url": ValidationError(
+                                exc.message,
+                                code=ProductErrorCode.UNSUPPORTED_MEDIA_PROVIDER.value,
+                            )
+                        }
+                    ) from exc
                 media = product.media.create(
                     external_url=oembed_data["url"],
                     alt=oembed_data.get("title", alt),

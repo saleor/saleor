@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 from text_unidecode import unidecode
 
+from ....core.exceptions import UnsupportedMediaProviderException
 from ....core.http_client import HTTPClient
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
@@ -478,22 +479,46 @@ class ProductBulkCreate(BaseMutation):
                         product_index, exc, index_error_map, f"media.{index}"
                     )
                     continue
-            elif media_url and is_image_url(media_url):
-                try:
-                    validate_image_url(
-                        media_url, "media_url", ProductBulkCreateErrorCode.INVALID.value
+            elif media_url:
+                if is_image_url(media_url):
+                    try:
+                        validate_image_url(
+                            media_url,
+                            "media_url",
+                            ProductBulkCreateErrorCode.INVALID.value,
+                        )
+                    except ValidationError as exc:
+                        cls.add_indexes_to_errors(
+                            product_index, exc, index_error_map, f"media.{index}"
+                        )
+                        continue
+                    filename = get_filename_from_url(media_url)
+                    image_data = HTTPClient.send_request(
+                        "GET", media_url, stream=True, timeout=30, allow_redirects=False
                     )
-                except ValidationError as exc:
-                    cls.add_indexes_to_errors(
-                        product_index, exc, index_error_map, f"media.{index}"
-                    )
-                    continue
-                filename = get_filename_from_url(media_url)
-                image_data = HTTPClient.send_request(
-                    "GET", media_url, stream=True, timeout=30, allow_redirects=False
-                )
-                image_data = File(image_data.raw, filename)
-                media_input["image"] = image_data
+                    image_data = File(image_data.raw, filename)
+                    media_input["image"] = image_data
+                else:
+                    try:
+                        oembed_data, supported_media_type = get_oembed_data(media_url)
+                        oembed_data["supported_media_type"] = supported_media_type
+                    except UnsupportedMediaProviderException as exc:
+                        validation_error = ValidationError(
+                            {
+                                "media_url": ValidationError(
+                                    exc.message,
+                                    code=ProductBulkCreateErrorCode.UNSUPPORTED_MEDIA_PROVIDER.value,
+                                )
+                            }
+                        )
+                        cls.add_indexes_to_errors(
+                            product_index,
+                            validation_error,
+                            index_error_map,
+                            f"media.{index}",
+                        )
+                        continue
+                    media_input["oembed_data"] = oembed_data
 
             media_to_create.append(media_input)
 
@@ -881,7 +906,7 @@ class ProductBulkCreate(BaseMutation):
     def prepare_media(cls, info, product, media_inputs, media_to_create):
         for media_input in media_inputs:
             alt = media_input.get("alt", "")
-            media_url = media_input.get("media_url")
+
             if img_data := media_input.get("image"):
                 media_to_create.append(
                     models.ProductMedia(
@@ -891,18 +916,16 @@ class ProductBulkCreate(BaseMutation):
                         type=ProductMediaTypes.IMAGE,
                     )
                 )
-            if media_url:
-                if not is_image_url(media_url):
-                    oembed_data, media_type = get_oembed_data(media_url, "media_url")
-                    media_to_create.append(
-                        models.ProductMedia(
-                            external_url=oembed_data["url"],
-                            alt=oembed_data.get("title", alt),
-                            product=product,
-                            type=media_type,
-                            oembed_data=oembed_data,
-                        )
+            if oembed_data := media_input.get("oembed_data"):
+                media_to_create.append(
+                    models.ProductMedia(
+                        external_url=oembed_data["url"],
+                        alt=oembed_data.get("title", alt),
+                        product=product,
+                        type=oembed_data["supported_media_type"],
+                        oembed_data=oembed_data,
                     )
+                )
 
     @classmethod
     def post_save_actions(cls, info, products, variants, channels):
