@@ -3,10 +3,12 @@ from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
 from ....page import models as page_models
-from ....page.tasks import mark_pages_search_vector_as_dirty
+from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
-from ....product.tasks import mark_products_search_vector_as_dirty
+from ....product.utils.search_helpers import (
+    mark_products_search_vector_as_dirty_in_batches,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -103,7 +105,7 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
                 | Q(Exists(variants.filter(product_id=OuterRef("id"))))
             )
         ).order_by("pk")
-        mark_products_search_vector_as_dirty.delay(
+        mark_products_search_vector_as_dirty_in_batches(
             list(products.values_list("id", flat=True))
         )
 
@@ -112,6 +114,6 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         pages = page_models.Page.objects.filter(
             Exists(instance.pagevalueassignment.filter(page_id=OuterRef("id")))
         ).order_by("pk")
-        mark_pages_search_vector_as_dirty.delay(
+        mark_pages_search_vector_as_dirty_in_batches(
             list(pages.values_list("id", flat=True))
         )

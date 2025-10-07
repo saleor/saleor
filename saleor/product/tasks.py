@@ -299,23 +299,15 @@ def _get_preorder_variants_to_clean():
 @allow_writer()
 def mark_products_search_vector_as_dirty(product_ids: list[int]):
     """Mark products as needing search index updates."""
-    product_ids_to_update = product_ids[:MARK_PRODUCTS_SEARCH_VECTOR_DIRTY_BATCH_SIZE]
-    if not product_ids_to_update:
+    if not product_ids:
         return
     with transaction.atomic():
         _products = list(
             Product.objects.select_for_update()
-            .filter(pk__in=product_ids_to_update)
+            .filter(pk__in=product_ids)
             .values_list("id", flat=True)
         )
-        Product.objects.filter(id__in=product_ids_to_update).update(
-            search_index_dirty=True
-        )
-
-    if len(product_ids) > MARK_PRODUCTS_SEARCH_VECTOR_DIRTY_BATCH_SIZE:
-        mark_products_search_vector_as_dirty.delay(
-            product_ids[MARK_PRODUCTS_SEARCH_VECTOR_DIRTY_BATCH_SIZE:]
-        )
+        Product.objects.filter(id__in=product_ids).update(search_index_dirty=True)
 
 
 @app.task(

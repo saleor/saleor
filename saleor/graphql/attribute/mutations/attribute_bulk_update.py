@@ -18,9 +18,11 @@ from ....attribute.lock_objects import (
     attribute_value_qs_select_for_update,
 )
 from ....core.tracing import traced_atomic_transaction
-from ....page.tasks import mark_pages_search_vector_as_dirty
+from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
-from ....product.tasks import mark_products_search_vector_as_dirty
+from ....product.utils.search_helpers import (
+    mark_products_search_vector_as_dirty_in_batches,
+)
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -884,7 +886,7 @@ class AttributeBulkUpdate(BaseMutation):
         # prepare and return data
         results = get_results(instances_data_with_errors_list)
         cls.post_save_actions(info, attributes, values_to_remove, values_to_create)
-        mark_products_search_vector_as_dirty.delay(product_ids_to_search_update)
-        mark_pages_search_vector_as_dirty.delay(page_ids_to_search_update)
+        mark_products_search_vector_as_dirty_in_batches(product_ids_to_search_update)
+        mark_pages_search_vector_as_dirty_in_batches(page_ids_to_search_update)
 
         return AttributeBulkUpdate(count=len(attributes), results=results)

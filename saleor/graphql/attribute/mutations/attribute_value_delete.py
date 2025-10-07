@@ -3,9 +3,11 @@ from typing import cast
 import graphene
 
 from ....attribute import models as models
-from ....page.tasks import mark_pages_search_vector_as_dirty
+from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....permission.enums import ProductTypePermissions
-from ....product.tasks import mark_products_search_vector_as_dirty
+from ....product.utils.search_helpers import (
+    mark_products_search_vector_as_dirty_in_batches,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -61,8 +63,8 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         response = super().perform_mutation(
             _root, info, external_reference=external_reference, id=id
         )
-        mark_products_search_vector_as_dirty.delay(product_ids)
-        mark_pages_search_vector_as_dirty.delay(page_ids)
+        mark_products_search_vector_as_dirty_in_batches(product_ids)
+        mark_pages_search_vector_as_dirty_in_batches(page_ids)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_deleted, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)

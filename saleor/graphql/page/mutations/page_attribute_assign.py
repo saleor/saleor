@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from ....attribute import AttributeType, models
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
-from ....page.tasks import mark_pages_search_vector_as_dirty
+from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....permission.enums import PageTypePermissions
 from ...attribute.types import Attribute
 from ...core import ResolveInfo
@@ -113,5 +113,5 @@ class PageAttributeAssign(BaseMutation):
                 "pk", flat=True
             )
         )
-        mark_pages_search_vector_as_dirty.delay(page_ids)
+        mark_pages_search_vector_as_dirty_in_batches(page_ids)
         return cls(page_type=page_type)

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ....page import models
 from ....page.error_codes import PageErrorCode
-from ....page.tasks import mark_pages_search_vector_as_dirty
+from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....permission.enums import PageTypePermissions
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PAGES
@@ -100,4 +100,4 @@ class PageTypeUpdate(PageTypeMixin, DeprecatedModelMutation):
                     "pk", flat=True
                 )
             )
-            mark_pages_search_vector_as_dirty.delay(page_ids)
+            mark_pages_search_vector_as_dirty_in_batches(page_ids)

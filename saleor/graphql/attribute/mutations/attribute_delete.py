@@ -5,10 +5,12 @@ from django.db.models import Exists, OuterRef
 from ....attribute import models as models
 from ....attribute.lock_objects import attribute_value_qs_select_for_update
 from ....page import models as page_models
-from ....page.tasks import mark_pages_search_vector_as_dirty
+from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
-from ....product.tasks import mark_products_search_vector_as_dirty
+from ....product.utils.search_helpers import (
+    mark_products_search_vector_as_dirty_in_batches,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -74,8 +76,8 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
         cls.post_save_action(info, instance, None)
-        mark_products_search_vector_as_dirty.delay(product_ids)
-        mark_pages_search_vector_as_dirty.delay(page_ids)
+        mark_products_search_vector_as_dirty_in_batches(product_ids)
+        mark_pages_search_vector_as_dirty_in_batches(page_ids)
         return cls.success_response(instance)
 
     @classmethod
