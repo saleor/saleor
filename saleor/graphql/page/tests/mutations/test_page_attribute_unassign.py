@@ -27,7 +27,7 @@ PAGE_UNASSIGN_ATTR_QUERY = """
 
 
 def test_unassign_attributes_from_page_type_by_staff(
-    staff_api_client, page_type, permission_manage_page_types_and_attributes
+    staff_api_client, page_type, page, permission_manage_page_types_and_attributes
 ):
     # given
     staff_user = staff_api_client.user
@@ -36,6 +36,7 @@ def test_unassign_attributes_from_page_type_by_staff(
     attr_count = page_type.page_attributes.count()
     attr_to_unassign = page_type.page_attributes.first()
     attr_to_unassign_id = graphene.Node.to_global_id("Attribute", attr_to_unassign.pk)
+    assert page.search_index_dirty is False
 
     variables = {
         "pageTypeId": graphene.Node.to_global_id("PageType", page_type.pk),
@@ -55,6 +56,8 @@ def test_unassign_attributes_from_page_type_by_staff(
     assert attr_to_unassign_id not in {
         attr["id"] for attr in data["pageType"]["attributes"]
     }
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
 
 
 def test_unassign_attributes_from_page_type_by_staff_no_perm(
@@ -77,11 +80,12 @@ def test_unassign_attributes_from_page_type_by_staff_no_perm(
 
 
 def test_unassign_attributes_from_page_type_by_app(
-    app_api_client, page_type, permission_manage_page_types_and_attributes
+    app_api_client, page_type, page, permission_manage_page_types_and_attributes
 ):
     # given
     app = app_api_client.app
     app.permissions.add(permission_manage_page_types_and_attributes)
+    assert page.search_index_dirty is False
 
     attr_count = page_type.page_attributes.count()
     attr_to_unassign = page_type.page_attributes.first()
@@ -105,6 +109,8 @@ def test_unassign_attributes_from_page_type_by_app(
     assert attr_to_unassign_id not in {
         attr["id"] for attr in data["pageType"]["attributes"]
     }
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
 
 
 def test_unassign_attributes_from_page_type_by_app_no_perm(app_api_client, page_type):
