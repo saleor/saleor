@@ -37,7 +37,7 @@ def page_type_list(db, tag_page_attribute):
         page_type.page_attributes.add(tag_page_attribute)
         Page.objects.create(
             title=f"Test page {i}",
-            slug=f"test-url-{i}",
+            slug=f"test-page-{i}",
             is_published=True,
             page_type=page_type,
         )

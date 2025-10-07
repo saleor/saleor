@@ -82,30 +82,44 @@ def _load_page_data(
 def _load_attribute_data(
     context: SaleorContext, page_ids: list[int]
 ) -> tuple[dict[int, list[AttributeValueData]], dict[int, str]]:
-    # Load attributes
-    attributes = (
-        AttributesByPageIdAndLimitLoader(context)
-        .load_many(
+    @with_promise_context
+    def load_all_data():
+        # Load attributes
+        attributes_promise = AttributesByPageIdAndLimitLoader(context).load_many(
             [(page_id, settings.PAGE_MAX_INDEXED_ATTRIBUTES) for page_id in page_ids]
         )
-        .get()
-    )
 
-    # Build attribute map and queries
-    attribute_map = {attr.id: attr for page_attrs in attributes for attr in page_attrs}
+        def with_attributes(attributes):
+            # Build attribute map and queries
+            attribute_map = {
+                attr.id: attr for page_attrs in attributes for attr in page_attrs
+            }
 
-    page_id_attribute_id_with_limit = [
-        (page_id, attribute.id, settings.PAGE_MAX_INDEXED_ATTRIBUTE_VALUES)
-        for page_id, attrs in zip(page_ids, attributes, strict=True)
-        for attribute in attrs[: settings.PAGE_MAX_INDEXED_ATTRIBUTES]
-    ]
+            page_id_attribute_id_with_limit = [
+                (page_id, attribute.id, settings.PAGE_MAX_INDEXED_ATTRIBUTE_VALUES)
+                for page_id, attrs in zip(page_ids, attributes, strict=True)
+                for attribute in attrs[: settings.PAGE_MAX_INDEXED_ATTRIBUTES]
+            ]
 
-    # Load attribute values
-    attribute_values = (
-        AttributeValuesByPageIdAndAttributeIdAndLimitLoader(context)
-        .load_many(page_id_attribute_id_with_limit)
-        .get()
-    )
+            # Load attribute values
+            attribute_values_promise = (
+                AttributeValuesByPageIdAndAttributeIdAndLimitLoader(context).load_many(
+                    page_id_attribute_id_with_limit
+                )
+            )
+
+            return attribute_values_promise.then(
+                lambda attribute_values: (
+                    attribute_map,
+                    page_id_attribute_id_with_limit,
+                    attribute_values,
+                )
+            )
+
+        return attributes_promise.then(with_attributes)
+
+    # Execute within Promise context
+    attribute_map, page_id_attribute_id_with_limit, attribute_values = load_all_data()
 
     # Build page to values mapping
     page_id_to_values_map = defaultdict(list)
