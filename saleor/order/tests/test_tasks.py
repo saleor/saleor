@@ -412,8 +412,6 @@ def test_expire_orders_task_do_not_call_sync_webhooks(
         ]
     )
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     channel_USD.expire_orders_after = 60
     channel_USD.save()
 
@@ -456,8 +454,8 @@ def test_expire_orders_task_do_not_call_sync_webhooks(
                     "telemetry_context": ANY,
                 },
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries
@@ -851,8 +849,6 @@ def test_send_order_updated(
         ]
     )
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -879,8 +875,8 @@ def test_send_order_updated(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 

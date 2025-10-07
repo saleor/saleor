@@ -1591,7 +1591,6 @@ def test_order_fulfill_triggers_webhooks(
         [WebhookEventAsyncType.ORDER_UPDATED, WebhookEventAsyncType.ORDER_FULFILLED]
     )
     app = additional_order_webhook.app
-    app_webhook_mutex = app.webhook_mutex
     order = order_with_lines
 
     query = ORDER_FULFILL_MUTATION
@@ -1657,8 +1656,8 @@ def test_order_fulfill_triggers_webhooks(
                     "telemetry_context": ANY,
                 },
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             for _ in order_deliveries

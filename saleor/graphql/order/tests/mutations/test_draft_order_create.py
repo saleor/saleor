@@ -3733,7 +3733,6 @@ def test_draft_order_create_triggers_webhooks(
         draft_order_created_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_CREATED)
     app = draft_order_created_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     variant = product_available_in_many_channels.variants.first()
     query = DRAFT_ORDER_CREATE_MUTATION
@@ -3780,8 +3779,8 @@ def test_draft_order_create_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 

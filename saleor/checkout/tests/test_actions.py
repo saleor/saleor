@@ -693,7 +693,6 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
             )
 
     app = checkout_created_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     # then
     # confirm that event delivery was generated for each async webhook.
@@ -704,8 +703,8 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -791,7 +790,6 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
         )
 
     app = checkout_created_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     # then
     # confirm that event delivery was generated for each async webhook.
@@ -802,8 +800,8 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -894,7 +892,6 @@ def test_call_checkout_event_only_async_when_sync_missing(
     settings,
     webhook,
     app,
-    app_webhook_mutex,
     django_capture_on_commit_callbacks,
 ):
     # given
@@ -924,8 +921,8 @@ def test_call_checkout_event_only_async_when_sync_missing(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called
@@ -1043,7 +1040,6 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
             )
 
     app = checkout_created_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     # then
     # confirm that event delivery was generated for each async webhook.
@@ -1054,8 +1050,8 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -1151,7 +1147,6 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
         )
 
     app = checkout_created_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     # then
     # confirm that event delivery was generated for each async webhook.
@@ -1162,8 +1157,8 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -1216,7 +1211,6 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
     settings,
     webhook,
     app,
-    app_webhook_mutex,
     django_capture_on_commit_callbacks,
 ):
     # given
@@ -1256,8 +1250,8 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called
@@ -1368,7 +1362,6 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
     )
 
     app = checkout_fully_paid_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
@@ -1386,8 +1379,8 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -1494,19 +1487,17 @@ def test_transaction_amounts_for_checkout_fully_authorized_triggers_sync_webhook
         )
 
     # then
-
     # confirm that event delivery was generated for each async webhook.
     assert EventDelivery.objects.get(webhook_id=checkout_fully_authorized_webhook.id)
     app: App = checkout_fully_authorized_webhook.app
-    app_webhook_mutex = AppWebhookMutex.objects.get(app=app)
     mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
             "app_id": app.id,
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -1638,8 +1629,6 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
             )
 
     app = checkout_created_webhook.app
-    app_webhook_mutex = app.webhook_mutex
-
     # then
     # confirm that event delivery was generated for each async webhook.
     assert EventDelivery.objects.get(webhook_id=checkout_created_webhook.id)
@@ -1649,8 +1638,8 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -1744,7 +1733,6 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
         )
 
     app = checkout_created_webhook.app
-    app_webhook_mutex = app.webhook_mutex
 
     # then
     # confirm that event delivery was generated for each async webhook.
@@ -1755,8 +1743,8 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
 
@@ -1855,7 +1843,6 @@ def test_call_checkout_events_only_async_when_sync_missing(
     settings,
     webhook,
     app,
-    app_webhook_mutex,
     django_capture_on_commit_callbacks,
 ):
     # given
@@ -1888,8 +1875,8 @@ def test_call_checkout_events_only_async_when_sync_missing(
             "telemetry_context": ANY,
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-        MessageGroupId="core",
-        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
         bind=True,
     )
     assert not mocked_send_webhook_request_sync.called

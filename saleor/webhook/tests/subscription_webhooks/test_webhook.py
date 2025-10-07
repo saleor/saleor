@@ -23,7 +23,6 @@ def test_trigger_webhooks_async(
     mocked_send_webhook_request,
     webhook,
     app,
-    app_webhook_mutex,
     subscription_order_created_webhook,
     order,
     settings,
@@ -45,8 +44,8 @@ def test_trigger_webhooks_async(
                     "telemetry_context": ANY,
                 },
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             in mocked_send_webhook_request.mock_calls
@@ -63,7 +62,6 @@ def test_trigger_webhooks_async_for_multiple_objects(
     mocked_send_webhook_request,
     webhook,
     app,
-    app_webhook_mutex,
     subscription_order_created_webhook,
     order_with_lines,
     order_unconfirmed,
@@ -113,8 +111,8 @@ def test_trigger_webhooks_async_for_multiple_objects(
                     "telemetry_context": ANY,
                 },
                 queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-                MessageGroupId="core",
-                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
                 bind=True,
             )
             in mocked_send_webhook_request.mock_calls
