@@ -357,7 +357,7 @@ class ProductAttributeUnassign(BaseMutation):
         cls.save_field_values(product_type, "variant_attributes", attribute_pks)
 
         product_ids = list(
-            Product.objects.filter(product_type=product_type).values_list(
+            models.Product.objects.filter(product_type=product_type).values_list(
                 "id", flat=True
             )
         )
