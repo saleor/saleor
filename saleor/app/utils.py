@@ -1,3 +1,5 @@
+import logging
+
 from contextlib import contextmanager
 
 from django.db import DatabaseError, transaction
@@ -5,6 +7,8 @@ from django.db import DatabaseError, transaction
 from ..webhook.event_types import WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_event
 from .models import AppWebhookMutex
+
+logger = logging.getLogger(__name__)
 
 
 def get_active_tax_apps(identifiers: list[str] | None = None):
@@ -32,10 +36,10 @@ def acquire_webhook_lock(app_id: int):
             )
             yield True
     except DatabaseError:
-        """Couldn't acquire the lock."""
+        logger.warning("Couldn't acquire the webhook lock. App ID: %s", app_id)
         yield False
     except AppWebhookMutex.DoesNotExist:
-        """Create mutex and reacquire the lock."""
+        logger.warning("AppWebhookMutex entry does not exist. App ID: %s", app_id)
         AppWebhookMutex.objects.get_or_create(app_id=app_id)
         with acquire_webhook_lock(app_id) as acquired:
             yield acquired
