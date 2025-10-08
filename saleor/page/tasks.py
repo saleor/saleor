@@ -1,5 +1,3 @@
-import logging
-
 from django.conf import settings
 from django.db import transaction
 
@@ -9,9 +7,7 @@ from .lock_objects import page_qs_select_for_update
 from .models import Page
 from .search import update_pages_search_vector
 
-logger = logging.getLogger(__name__)
-
-# TODO: validate the batch size
+# Results in update time ~1s, consumes ~25 MB
 UPDATE_SEARCH_BATCH_SIZE = 200
 
 
