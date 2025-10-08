@@ -14,7 +14,7 @@ class CheckoutShippingMethodByIdLoader(DataLoader[UUID, CheckoutShippingMethod])
         return [shipping_methods.get(key) for key in keys]
 
 
-class CheckoutShippingMethodsByCheckoutIdLoader(
+class CheckoutShippingMethodsOnlyValidByCheckoutIdLoader(
     DataLoader[UUID, list[CheckoutShippingMethod]]
 ):
     context_key = "checkout_shipping_methods_by_checkout_id"

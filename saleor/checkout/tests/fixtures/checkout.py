@@ -13,8 +13,9 @@ from ...utils import add_variant_to_checkout
 
 @pytest.fixture
 def checkout_shipping_method(shipping_zone):
-    def wrap(checkout):
-        shipping_method = shipping_zone.shipping_methods.first()
+    def wrap(checkout, shipping_method=None):
+        if shipping_method is None:
+            shipping_method = shipping_zone.shipping_methods.first()
         listing = shipping_method.channel_listings.get(channel_id=checkout.channel_id)
         return CheckoutShippingMethod.objects.create(
             checkout=checkout,

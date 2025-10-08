@@ -105,7 +105,7 @@ from .dataloaders import (
 )
 from .dataloaders.checkout_shipping_method import (
     CheckoutShippingMethodByIdLoader,
-    CheckoutShippingMethodsByCheckoutIdLoader,
+    CheckoutShippingMethodsOnlyValidByCheckoutIdLoader,
 )
 from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 from .utils import prevent_sync_event_circular_query
@@ -628,7 +628,7 @@ def _load_denormalized_checkout_shipping_methods(
     checkout_pk: uuid.UUID, info: ResolveInfo
 ):
     return (
-        CheckoutShippingMethodsByCheckoutIdLoader(info.context)
+        CheckoutShippingMethodsOnlyValidByCheckoutIdLoader(info.context)
         .load(checkout_pk)
         .then(
             lambda shipping_methods: [
@@ -657,7 +657,7 @@ def _resolve_checkout_shipping_methods(
         checkout.shipping_methods_stale_at = (
             checkout_info.checkout.shipping_methods_stale_at
         )
-        CheckoutShippingMethodsByCheckoutIdLoader(info.context).prime(
+        CheckoutShippingMethodsOnlyValidByCheckoutIdLoader(info.context).prime(
             checkout.pk, shipping_methods
         )
         return [
@@ -720,7 +720,7 @@ def _resolve_checkout_shipping_method(
         root.node.shipping_methods_stale_at = (
             checkout_info.checkout.shipping_methods_stale_at
         )
-        CheckoutShippingMethodsByCheckoutIdLoader(info.context).prime(
+        CheckoutShippingMethodsOnlyValidByCheckoutIdLoader(info.context).prime(
             checkout.pk, shipping_methods
         )
 
