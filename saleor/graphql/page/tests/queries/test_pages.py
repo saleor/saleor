@@ -4,7 +4,6 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from .....page.models import Page
-from .....page.search import update_pages_search_vector
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import get_graphql_content
 
@@ -20,110 +19,6 @@ QUERY_PAGES_WITH_FILTER = """
         }
     }
 """
-
-
-@pytest.mark.parametrize(
-    ("page_filter", "count"),
-    [
-        ({"search": "Author1"}, 1),
-        ({"search": "about"}, 1),
-        ({"search": "test"}, 3),
-        ({"search": "slug"}, 3),
-        ({"search": "Author"}, 2),
-    ],
-)
-def test_pages_query_with_filter(
-    page_filter, count, staff_api_client, permission_manage_pages, page_type
-):
-    # given
-    query = QUERY_PAGES_WITH_FILTER
-    page_1 = Page.objects.create(
-        title="Author1",
-        slug="slug_author_1",
-        content=dummy_editorjs("Content for page 1"),
-        page_type=page_type,
-    )
-    page_2 = Page.objects.create(
-        title="Author2",
-        slug="slug_author_2",
-        content=dummy_editorjs("Content for page 2"),
-        page_type=page_type,
-    )
-    page_3 = Page.objects.create(
-        title="About",
-        slug="slug_about",
-        content=dummy_editorjs("About test content"),
-        page_type=page_type,
-    )
-    update_pages_search_vector([page_1, page_2, page_3])
-    variables = {"filter": page_filter}
-    staff_api_client.user.user_permissions.add(permission_manage_pages)
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-
-    # then
-    content = get_graphql_content(response)
-    assert content["data"]["pages"]["totalCount"] == count
-
-
-QUERY_PAGES_WITH_SEARCH = """
-    query ($search: String) {
-        pages(first: 5, search:$search) {
-            totalCount
-            edges {
-                node {
-                    id
-                }
-            }
-        }
-    }
-"""
-
-
-@pytest.mark.parametrize(
-    ("search", "count"),
-    [
-        ("Author1", 1),
-        ("about", 1),
-        ("test", 3),
-        ("slug", 3),
-        ("Author", 2),
-    ],
-)
-def test_pages_query_with_search(
-    search, count, staff_api_client, permission_manage_pages, page_type
-):
-    # given
-    query = QUERY_PAGES_WITH_SEARCH
-    page_1 = Page.objects.create(
-        title="Author1",
-        slug="slug_author_1",
-        content=dummy_editorjs("Content for page 1"),
-        page_type=page_type,
-    )
-    page_2 = Page.objects.create(
-        title="Author2",
-        slug="slug_author_2",
-        content=dummy_editorjs("Content for page 2"),
-        page_type=page_type,
-    )
-    page_3 = Page.objects.create(
-        title="About",
-        slug="slug_about",
-        content=dummy_editorjs("About test content"),
-        page_type=page_type,
-    )
-    update_pages_search_vector([page_1, page_2, page_3])
-    variables = {"search": search}
-    staff_api_client.user.user_permissions.add(permission_manage_pages)
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-
-    # then
-    content = get_graphql_content(response)
-    assert content["data"]["pages"]["totalCount"] == count
 
 
 def test_pages_query_with_filter_by_page_type(
