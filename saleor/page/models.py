@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Union
 
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 
@@ -43,11 +43,11 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
         permissions = ((PagePermissions.MANAGE_PAGES.codename, "Manage pages."),)
         indexes = [
             *ModelWithMetadata.Meta.indexes,
-            GinIndex(fields=["title", "slug"]),
             GinIndex(
                 name="page_tsearch",
                 fields=["search_vector"],
             ),
+            BTreeIndex(fields=["slug"], name="page_slug_btree_idx"),
         ]
 
     def __str__(self):
