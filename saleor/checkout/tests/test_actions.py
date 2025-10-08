@@ -7,7 +7,7 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
-from ...app.models import App, AppWebhookMutex
+from ...app.models import App
 from ...core.models import EventDelivery
 from ...core.utils.events import call_event_including_protected_events
 from ...plugins.manager import get_plugins_manager
