@@ -399,6 +399,21 @@ def _assert_built_in_shipping_method(
     assert checkout_shipping_method.active is True
     assert checkout_shipping_method.is_valid is True
     assert checkout_shipping_method.is_external is False
+    assert (
+        checkout_shipping_method.tax_class_id == available_shipping_method.tax_class_id
+    )
+    assert (
+        checkout_shipping_method.tax_class_name
+        == available_shipping_method.tax_class.name
+    )
+    assert (
+        checkout_shipping_method.tax_class_metadata
+        == available_shipping_method.tax_class.metadata
+    )
+    assert (
+        checkout_shipping_method.tax_class_private_metadata
+        == available_shipping_method.tax_class.private_metadata
+    )
 
     checkout.refresh_from_db()
     assert (
@@ -419,6 +434,8 @@ def test_fetch_shipping_methods_for_checkout_with_built_in_shipping_method(
     CheckoutShippingMethod.objects.all().delete()
 
     available_shipping_method = ShippingMethod.objects.get()
+    assert available_shipping_method.tax_class
+
     available_shipping_method.description = {
         "time": 1759214012137,
         "blocks": [
@@ -462,7 +479,7 @@ def test_fetch_shipping_methods_for_checkout_with_built_in_shipping_method(
 
 @freeze_time("2024-05-31 12:00:01")
 def test_fetch_shipping_methods_for_checkout_updates_existing_built_in_shipping_method(
-    checkout_with_item, plugins_manager, address, settings
+    checkout_with_item, plugins_manager, address, settings, tax_class_zero_rates
 ):
     # given
     checkout = checkout_with_item
@@ -516,6 +533,7 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_built_in_shipping_
     available_shipping_method.private_metadata = {
         "private_key": "private_value",
     }
+    available_shipping_method.tax_class = tax_class_zero_rates
     available_shipping_method.save()
 
     lines_info, _ = fetch_checkout_lines(checkout)

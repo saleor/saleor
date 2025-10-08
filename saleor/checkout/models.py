@@ -18,6 +18,7 @@ from ..channel.models import Channel
 from ..core.db.fields import MoneyField, TaxedMoneyField
 from ..core.models import ModelWithMetadata
 from ..core.taxes import TAX_ERROR_FIELD_LENGTH, zero_money
+from ..core.utils.json_serializer import CustomJsonEncoder
 from ..giftcard.models import GiftCard
 from ..permission.enums import CheckoutPermissions
 from ..shipping.models import ShippingMethod
@@ -64,6 +65,16 @@ class CheckoutShippingMethod(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Denormalized tax class data
+    tax_class_id = models.IntegerField(null=True, blank=True)
+    tax_class_name = models.CharField(max_length=255, null=True, blank=True)
+    tax_class_private_metadata = models.JSONField(
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
+    )
+    tax_class_metadata = models.JSONField(
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
+    )
 
     class Meta:
         unique_together = ("checkout", "original_id")

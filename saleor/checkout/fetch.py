@@ -790,6 +790,14 @@ def fetch_shipping_methods_for_checkout(
         )
         if not shipping_method_data:
             shipping_method_data = external_shipping_methods_dict[shipping_method_id]
+        tax_class_details = {}
+        if shipping_method_data.tax_class:
+            tax_class_details = {
+                "tax_class_id": shipping_method_data.tax_class.id,
+                "tax_class_name": shipping_method_data.tax_class.name,
+                "tax_class_metadata": shipping_method_data.tax_class.metadata,
+                "tax_class_private_metadata": shipping_method_data.tax_class.private_metadata,
+            }
         checkout_shipping_methods.append(
             CheckoutShippingMethod(
                 checkout=checkout,
@@ -806,8 +814,10 @@ def fetch_shipping_methods_for_checkout(
                 message=shipping_method_data.message,
                 is_valid=True,
                 is_external=shipping_method_data.is_external,
+                **tax_class_details,
             )
         )
+
     with traced_atomic_transaction():
         locked_checkout = (
             checkout_qs_select_for_update().filter(token=checkout.token).first()
@@ -864,6 +874,10 @@ def fetch_shipping_methods_for_checkout(
                     "updated_at",
                     "is_valid",
                     "is_external",
+                    "tax_class_id",
+                    "tax_class_name",
+                    "tax_class_metadata",
+                    "tax_class_private_metadata",
                 ],
             )
 
