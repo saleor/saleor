@@ -20,6 +20,7 @@ from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
+from .lock_objects import product_qs_select_for_update
 from .models import Product, ProductChannelListing, ProductType, ProductVariant
 from .search import update_products_search_vector
 from .utils.product import mark_products_in_channels_as_dirty
@@ -290,6 +291,17 @@ def _get_preorder_variants_to_clean():
     return ProductVariant.objects.filter(
         is_preorder=True, preorder_end_date__lt=timezone.now()
     )
+
+
+@app.task
+@allow_writer()
+def mark_products_search_vector_as_dirty(product_ids: list[int]):
+    """Mark products as needing search index updates."""
+    if not product_ids:
+        return
+    with transaction.atomic():
+        ids = product_qs_select_for_update().filter(pk__in=product_ids).values("id")
+        Product.objects.filter(id__in=ids).update(search_index_dirty=True)
 
 
 @app.task(
