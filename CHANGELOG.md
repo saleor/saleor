@@ -26,7 +26,6 @@ All notable, unreleased changes to this project will be documented in this file.
       - Filter by reference attributes to pages, products, product variants, categories, and collections (by IDs or slugs)
       - Support for `contains_all` (page must reference ALL specified objects) and `contains_any` (page must reference at least ONE specified object)
   - The `search` parameter is now a standalone argument (previously `filter.search`). It works the same as before, searching across page title, slug, and content.
-- `Page` type was extended with an `attribute` field. It adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
   - The `where` argument supports `AND`/`OR` logic and explicit operators (`eq`, `oneOf`, `range`) for all fields.
   - Existing `filter` fields remain available in `where`: `ids`, `channels` (now `channel_id`), `customer`, `created` (now `created_at`), `updated_at`, `status`, `authorize_status`, `charge_status`, `payment_status`, `is_click_and_collect`, `is_preorder`, `checkout_tokens` (now `checkout_token`), `checkout_ids` (now `checkout_id`), `gift_card_used` (now `is_gift_card_used`), `gift_card_bought` (now `is_gift_card_bought`), `numbers` (now `number`), `metadata`.
