@@ -335,20 +335,3 @@ def test_mark_products_search_vector_as_dirty(product_list):
             "search_index_dirty", flat=True
         )
     )
-
-
-@patch("saleor.product.tasks.MARK_PRODUCTS_SEARCH_VECTOR_DIRTY_BATCH_SIZE", 1)
-def test_mark_products_search_vector_as_dirty_batches(product_list):
-    # given
-    product_ids = [product.id for product in product_list]
-    Product.objects.all().update(search_index_dirty=False)
-
-    # when
-    mark_products_search_vector_as_dirty(product_ids)
-
-    # then
-    assert all(
-        Product.objects.filter(id__in=product_ids).values_list(
-            "search_index_dirty", flat=True
-        )
-    )

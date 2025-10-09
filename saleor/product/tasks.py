@@ -35,9 +35,6 @@ task_logger = get_task_logger(f"{__name__}.celery")
 
 PRODUCTS_BATCH_SIZE = 300
 
-# Results in update time ~0.2s, consumes ~15 MB
-MARK_PRODUCTS_SEARCH_VECTOR_DIRTY_BATCH_SIZE = 1000
-
 VARIANTS_UPDATE_BATCH = 500
 # Results in update time ~0.2s
 DISCOUNTED_PRODUCT_BATCH = 2000
