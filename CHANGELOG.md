@@ -109,7 +109,14 @@ All notable, unreleased changes to this project will be documented in this file.
   - Use `search` to perform pattern-matching search across relevant fields:
     - Customer's email address, first name, last name
     - Addresses in customer address book: first name, last name, street, city, postal code, country (code and name), phone
-- Added support for payment method details in the Transaction API. The payment method details associated with a transaction can now be persisted on the Saleor side, instead of using metadata or external storage. See [docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations) to learn more.
+- Added support for payment method details in the Transaction API. Data about payment like card details, method name, and type can now be stored directly on `TransactionItem` and accessed via the `TransactionItem.paymentMethodDetails` field.
+  - Two payment method types are currently supported:
+    - `CARD` - For card payments, fields that can be stored: name, brand, first/last 4 digits, expiration month/year
+    - `OTHER` - For non-card payments, field that can be stored: payment method name (e.g., "Wire Transfer")
+  - Payment method details can be provided by apps in two ways:
+    - Via Transaction mutations: `transactionEventReport`, `transactionCreate`, `transactionUpdate` (see [Transaction Mutations docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations))
+    - Via Transaction webhooks: `TRANSACTION_INITIALIZE_SESSION`, `TRANSACTION_PROCESS_SESSION` (see [Transaction Webhooks docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4))
+  - Previously, payment apps often stored this information in transaction's `metadata` in an unstructured format defined by each app. This limited interoperability and search. Now with structured payment method details, this information is now standardized across all apps, which makes it type-safe and easily accessible for custom integrations and allows search on `orders` and `draftOrders` queries.
 - Deprecated the `filter` argument in favor of the new `where` and `search` arguments.
   The `where` argument introduces more flexible filtering, allowing complex conditions using `AND`/`OR` logic and operators such as `eq`, `oneOf`, and `range`.
   The `filter` argument has been deprecated in the following queries:
@@ -140,7 +147,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - You can now define `referenceTypes` on an `Attribute` to limit reference choices. Use `productType` for product and product variant references, and page types for page references.
 
 ### Webhooks
-- Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
+- Transaction webhooks (`TRANSACTION_INITIALIZE_SESSION`, `TRANSACTION_PROCESS_SESSION`) can now return `paymentMethodDetails` in their response, which will be stored on the corresponding `TransactionItem`. This allows payment apps to provide payment method information (card details, payment method name, etc.) during transaction processing. See the [Transaction API](#graphql-api) section above for more details about payment method details, and [webhook response format docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) for implementation details.
 
 ### Other changes
 - Add JSON schemas for synchronous webhooks, now available in `saleor/json_schemas.py`. These schemas define the expected structure of webhook responses sent back to Saleor, enabling improved validation and tooling support for integrations. This change helps ensure that responses from webhook consumers meet Saleor’s expectations and can be reliably processed.
