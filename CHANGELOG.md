@@ -162,7 +162,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `CARD` - For card payments, fields that can be stored: name, brand, first/last 4 digits, expiration month/year
     - `OTHER` - For non-card payments, field that can be stored: payment method name (e.g., "Wire Transfer")
   - Payment method details can be provided by apps in two ways:
-    - Via Transaction mutations: `transactionEventReport`, `transactionCreate`, `transactionUpdate` (see [Transaction mutations docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations))
+    - Via Transaction mutations: `transactionEventReport`, `transactionCreate`, `transactionUpdate`
     - Via Transaction webhooks: `TRANSACTION_INITIALIZE_SESSION`, `TRANSACTION_PROCESS_SESSION` (see [Transaction webhooks docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4))
   - Previously, payment apps often stored this information in transaction's `metadata` in an unstructured format defined by each app. This limited interoperability and search. Now with structured payment method details, this information is now standardized across all apps, which makes it type-safe and easily accessible for custom integrations and allows search on `orders` and `draftOrders` queries.
 - Added `fractionalAmount` and `fractionDigits` fields to the `Money` type:
@@ -176,9 +176,43 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### App Extensions
 
-- Added new allowed extension target: NEW_TAB. Once handled in the Dashboard, an extension will be able to open a link in new tab
-- New mount points for Dashboard categories, collections, gift cards, draft orders, discounts, vouchers, pages, pages types and menus
-- Now mount point types have been added, meant to be used as widgets. Additionally, a new target `WIDGET` has been added. For `NEW_TAB` and `WIDGET` targets, new field `options`. See [docs](https://docs.saleor.io/developer/extending/apps/extending-dashboard-with-apps) to learn more
+- Added new `AppExtensionTargetEnum.NEW_TAB` target. Extensions with this target open URLs in a new browser tab when triggered from Dashboard actions. Supports both GET and POST methods via `options.newTabTarget.method`. Use with `*_OVERVIEW_CREATE`, `*_OVERVIEW_MORE_ACTIONS`, and `*_DETAILS_MORE_ACTIONS` mount points.
+- Added new `AppExtensionTargetEnum.WIDGET` target. Extensions with this target render as embedded iframes on Dashboard pages, allowing apps to display custom UI and interactive content. Supports both GET and POST methods via `options.widgetTarget.method`. Use with `*_DETAILS_WIDGETS` mount points.
+- Added new `AppExtensionMountEnum` values for expanded mount points across Dashboard:
+  - **List pages** (action mount points for `NEW_TAB`, `APP_PAGE`, or `POPUP` target extensions):
+    - Categories: `CATEGORY_OVERVIEW_CREATE`, `CATEGORY_OVERVIEW_MORE_ACTIONS`
+    - Collections: `COLLECTION_OVERVIEW_CREATE`, `COLLECTION_OVERVIEW_MORE_ACTIONS`
+    - Gift Cards: `GIFT_CARD_OVERVIEW_CREATE`, `GIFT_CARD_OVERVIEW_MORE_ACTIONS`
+    - Draft Orders: `DRAFT_ORDER_OVERVIEW_CREATE`, `DRAFT_ORDER_OVERVIEW_MORE_ACTIONS`
+    - Discounts: `DISCOUNT_OVERVIEW_CREATE`, `DISCOUNT_OVERVIEW_MORE_ACTIONS`
+    - Vouchers: `VOUCHER_OVERVIEW_CREATE`, `VOUCHER_OVERVIEW_MORE_ACTIONS`
+    - Models (Pages): `PAGE_OVERVIEW_CREATE`, `PAGE_OVERVIEW_MORE_ACTIONS`
+    - Model Types (Page Types): `PAGE_TYPE_OVERVIEW_CREATE`, `PAGE_TYPE_OVERVIEW_MORE_ACTIONS`
+    - Menus: `MENU_OVERVIEW_CREATE`, `MENU_OVERVIEW_MORE_ACTIONS`
+  - **Detail pages**:
+    - Action mount points (for `NEW_TAB`, `APP_PAGE`, or `POPUP` target extensions):
+      - Categories: `CATEGORY_DETAILS_MORE_ACTIONS`
+      - Collections: `COLLECTION_DETAILS_MORE_ACTIONS`
+      - Gift Cards: `GIFT_CARD_DETAILS_MORE_ACTIONS`
+      - Draft Orders: `DRAFT_ORDER_DETAILS_MORE_ACTIONS`
+      - Discounts: `DISCOUNT_DETAILS_MORE_ACTIONS`
+      - Vouchers: `VOUCHER_DETAILS_MORE_ACTIONS`
+      - Models (Pages): `PAGE_DETAILS_MORE_ACTIONS`
+      - Model Types (Page Types): `PAGE_TYPE_DETAILS_MORE_ACTIONS`
+      - Menus: `MENU_DETAILS_MORE_ACTIONS`
+      - Products: `PRODUCT_DETAILS_MORE_ACTIONS`
+      - Customers: `CUSTOMER_DETAILS_MORE_ACTIONS`
+      - Orders: `ORDER_DETAILS_MORE_ACTIONS`
+    - Widget mount points (for `WIDGET` target extensions only):
+      - Collections: `COLLECTION_DETAILS_WIDGETS`
+      - Gift Cards: `GIFT_CARD_DETAILS_WIDGETS`
+      - Draft Orders: `DRAFT_ORDER_DETAILS_WIDGETS`
+      - Vouchers: `VOUCHER_DETAILS_WIDGETS`
+      - Products: `PRODUCT_DETAILS_WIDGETS`
+      - Customers: `CUSTOMER_DETAILS_WIDGETS`
+      - Orders: `ORDER_DETAILS_WIDGETS`
+- Added `options` field to `AppExtension` type. For `NEW_TAB` target, returns `AppExtensionOptionsNewTab` with `newTabTarget.method` field. For `WIDGET` target, returns `AppExtensionOptionsWidget` with `widgetTarget.method` field. Both support `HttpMethod.GET` and `HttpMethod.POST`.
+- See [App Extensions documentation](https://docs.saleor.io/developer/extending/apps/extending-dashboard-with-apps) for more details on how to implement these new features in apps
 
 ### JSON Schemas
 
