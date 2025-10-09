@@ -114,8 +114,8 @@ All notable, unreleased changes to this project will be documented in this file.
     - `CARD` - For card payments, fields that can be stored: name, brand, first/last 4 digits, expiration month/year
     - `OTHER` - For non-card payments, field that can be stored: payment method name (e.g., "Wire Transfer")
   - Payment method details can be provided by apps in two ways:
-    - Via Transaction mutations: `transactionEventReport`, `transactionCreate`, `transactionUpdate` (see [Transaction Mutations docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations))
-    - Via Transaction webhooks: `TRANSACTION_INITIALIZE_SESSION`, `TRANSACTION_PROCESS_SESSION` (see [Transaction Webhooks docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4))
+    - Via Transaction mutations: `transactionEventReport`, `transactionCreate`, `transactionUpdate` (see [Transaction mutations docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations))
+    - Via Transaction webhooks: `TRANSACTION_INITIALIZE_SESSION`, `TRANSACTION_PROCESS_SESSION` (see [Transaction webhooks docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4))
   - Previously, payment apps often stored this information in transaction's `metadata` in an unstructured format defined by each app. This limited interoperability and search. Now with structured payment method details, this information is now standardized across all apps, which makes it type-safe and easily accessible for custom integrations and allows search on `orders` and `draftOrders` queries.
 - Deprecated the `filter` argument in favor of the new `where` and `search` arguments.
   The `where` argument introduces more flexible filtering, allowing complex conditions using `AND`/`OR` logic and operators such as `eq`, `oneOf`, and `range`.
@@ -132,6 +132,11 @@ All notable, unreleased changes to this project will be documented in this file.
   - `pageType.availableAttributes`
 - Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign categories and collections as a attribute reference.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
+  - The `where` argument supports explicit operators (`eq`, `oneOf`) for all fields.
+  - Existing `filter` fields remain available in `where`: `ids`, `slugs` (now `slug`).
+  - New filtering options available only in `where`:
+    - `name` - Filter by attribute choice name.
+  - The `search` parameter is now a standalone argument (previously `filter.search`), searching across attribute choice name and slug.
 - Filtering products by `category` now also includes subcategories. The filter will return products that belong to the specified categories as well as their subcategories.
 - Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.
 - Added new `SINGLE_REFERENCE` attribute type. You can now create a reference attribute that points to only one object (unlike the existing `REFERENCE` type, which supports multiple references). They can target the same entities as `REFERENCE` attributes (defined in the `AttributeEntityTypeEnum`).
@@ -155,7 +160,12 @@ All notable, unreleased changes to this project will be documented in this file.
   - `fractionalAmount` - amount as an integer in the smallest currency unit (e.g., `1295` for $12.95 USD, `1234` for ¥1234 JPY)
   - `fractionDigits` - number of decimal places for the currency (e.g., `2` for USD, `0` for JPY)
   - Useful for payment integrations requiring integers and avoiding floating-point precision issues when doing arithmetic operations
-- Refunds are now more powerful. You can configure new `RefundSettings` globally (for all channels) to accept a `reasonReferenceType` using `refundSettingsUpdate` mutation. Once assigned, creating refunds (both manual and with grant refund) will require a reason type to be specified. `refundReasonReferenceTypeClear` mutation clears the settings.
+- Added `RefundSettings` for configuring required refund reasons globally. You can now require staff to provide structured refund reasons using any custom Model type (PageType in API):
+  - Use `refundSettingsUpdate` mutation to set a `PageType` as the reason reference type. Create Models of this type representing your refund reasons (e.g., "Defective Product", "Wrong Item Shipped")
+  - Once configured, staff users must provide a `reasonReference` (Page ID of that type) when creating refunds via `orderGrantRefundCreate`, `orderGrantRefundUpdate`, `orderRefund`, `fulfillmentRefundProducts`, and `transactionRequestAction` mutations
+  - Use `refundReasonReferenceTypeClear` mutation to disable the requirement
+  - Apps are not required to provide reasons, only staff users
+  - This allows you to standardize and track refund reasons across your organization
 - You can now use the `AssignedAttribute` interface and the `assignedAttribute`, `assignedAttributes` fields on `Page`, `Product`, and `ProductVariant` to fetch assigned attributes and their values in a cleaner, more focused shape.
   - `attribute` and `attributes` fields on Page, Product, and ProductVariant are deprecated.
 - Added `referenceTypes` field on `Attribute` to restrict available reference choices for `REFERENCE` and `SINGLE_REFERENCE` attributes:
