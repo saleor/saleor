@@ -508,17 +508,16 @@ def attempt_update(
     attempt.request_headers = json.dumps(webhook_response.request_headers)
     attempt.status = webhook_response.status
 
-    if attempt.id and with_save:
-        attempt.save(
-            update_fields=[
-                "duration",
-                "response",
-                "response_headers",
-                "response_status_code",
-                "request_headers",
-                "status",
-            ]
-        )
+    update_fields = [
+        "duration",
+        "response",
+        "response_headers",
+        "response_status_code",
+        "request_headers",
+        "status",
+    ]
+    if with_save:
+        attempt.save(update_fields=update_fields if attempt.id else None)
 
 
 @allow_writer()
@@ -569,12 +568,10 @@ def process_failed_deliveries(
     max_webhook_retries: int,
 ) -> None:
     deliveries_to_update = []
-    deliveries_attempts_to_update = []
     for delivery, attempt, attempt_count, response in failed_deliveries_attempts:
         if attempt_count >= max_webhook_retries:
             delivery.status = EventDeliveryStatus.FAILED
             deliveries_to_update.append(delivery)
-        deliveries_attempts_to_update.append(attempt)
 
         webhook = delivery.webhook
         log_extra_details = {
@@ -601,19 +598,6 @@ def process_failed_deliveries(
     if deliveries_to_update:
         EventDelivery.objects.bulk_update(deliveries_to_update, ["status"])
 
-    update_fields = [
-        "duration",
-        "response",
-        "response_headers",
-        "response_status_code",
-        "request_headers",
-        "status",
-    ]
-    if deliveries_attempts_to_update:
-        EventDeliveryAttempt.objects.bulk_update(
-            deliveries_attempts_to_update, update_fields
-        )
-
 
 @allow_writer()
 def create_attempts_for_deliveries(
@@ -626,13 +610,6 @@ def create_attempts_for_deliveries(
 
         attempt = create_attempt(delivery, task_id, with_save=False)
         attempt_for_deliveries[delivery_id] = attempt
-
-    if attempt_for_deliveries:
-        attempts_to_create = [
-            attempt_for_deliveries[delivery_id]
-            for delivery_id in attempt_for_deliveries
-        ]
-        EventDeliveryAttempt.objects.bulk_create(attempts_to_create)
 
     return attempt_for_deliveries
 
