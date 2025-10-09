@@ -13,14 +13,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Webhooks are no longer triggered for deactivated Apps.
 
 ### GraphQL API
-- You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
+- You can now filter and search pages using the new `where` and `search` fields on the `pages` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.
-- Add support for filtering `pages` by associated attributes
+  - Add support for filtering `pages` by associated attributes
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
-  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
-  - Use `search` to perform full-text search across relevant fields.
-  - Added filtering options for orders:
+  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`. It also adds new filtering options for orders:
     - Filter by voucher codes.
     - Filter by invoice existence.
     - Filter by associated invoice creation date.
@@ -36,7 +34,13 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by associated billing and shipping address phone number and country code.
     - Filter by associated transactionItems metadata.
     - Filter by warehouse used to fulfill the order.
-- You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
+  - Use `search` to perform full-text search across relevant fields. It will search based on following fields:
+    - The order's ID
+    - IDs of invoices linked to the order
+    - Messages from related order events
+    - The content of customer note
+    - The order external reference
+- You can now filter and search draft orders using the new `where` and `search` fields on the `draftOrders` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.
   - Added filtering options for draft orders:
@@ -52,13 +56,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by associated event type and date.
     - Filter by associated payment method name and type.
     - Filter by associated billing and shipping address phone number and country code.
-- Extend the `Page` type with an `attribute` field. Adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
-- Enhanced order search options. Orders can now be searched using:
-  - The order's ID
-  - IDs of invoices linked to the order
-  - Messages from related order events
-  - The content of customer note
-  - The order external reference
+- Extend the `Page` type with an `attribute` field. It adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 - Extend sorting options. You can now sort orders by their status.
 - Add support for payment method details in the Transaction API. The payment method details associated with a transaction can now be persisted on the Saleor side. See [docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations) to learn more.
 - You can now filter and search customers using the new `where` and `search` fields on the `customers` query.
@@ -88,7 +86,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
 - Filtering products by `category` now also includes subcategories. The filter will return products that belong to the specified categories as well as their subcategories.
 - Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.
-- Add new `single-reference` attribute. You can now create a reference attribute that points to only one object (unlike the existing `reference` type, which supports multiple references).
+- Add new `SINGLE_REFERENCE` attribute. You can now create a reference attribute that points to only one object (unlike the existing `reference` type, which supports multiple references).
 Like `reference`, the `single-reference` type can target entities defined in the `AttributeEntityTypeEnum`.
 - Extended support for filtering `products` by associated attributes
   - Attribute slug is now optional when filtering by attribute values
