@@ -27,7 +27,6 @@ from ..attribute.shared_filters import (
     get_attribute_values_by_slug_or_name_value,
     validate_attribute_value_input,
 )
-from ..core.context import ChannelQsContext
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.filters import (
     FilterInputObjectType,
@@ -56,17 +55,6 @@ from ..utils.filters import (
     filter_where_by_value_field,
 )
 from .types import Page, PageType
-
-
-def search_pages(channel_qs: ChannelQsContext, value):
-    if not value:
-        return channel_qs
-    channel_qs.qs = channel_qs.qs.filter(
-        Q(title__trigram_similar=value)
-        | Q(slug__trigram_similar=value)
-        | Q(content__icontains=value)
-    )
-    return channel_qs
 
 
 def filter_page_page_types(qs, _, value):

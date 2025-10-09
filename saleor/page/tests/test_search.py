@@ -108,7 +108,7 @@ def test_update_pages_search_vector_constant_queries(
 
     expected_queries = 10
     with django_assert_num_queries(expected_queries):  # Expected number of queries
-        update_pages_search_vector(page_list[:3])
+        update_pages_search_vector(page_list[: len(page_list) - 1])
     with django_assert_num_queries(
         expected_queries
     ):  # Same number of queries for more pages
