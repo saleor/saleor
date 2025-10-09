@@ -13,10 +13,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Webhooks are no longer triggered for deactivated Apps.
 
 ### GraphQL API
+
 - You can now filter and search pages using the new `where` and `search` fields on the `pages` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.
   - Add support for filtering `pages` by associated attributes
+- `Page` type was extended with an `attribute` field. It adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`. It also adds new filtering options for orders:
     - Filter by voucher codes.
@@ -30,9 +32,9 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by associated lines metadata.
     - Filter by the product type of related order lines.
     - Filter by associated event type and date.
-    - Filter by associated payment method name and type.
+    - Filter by associated payment method name and type on Transactions in order (for new Transactions that provide this information: [see docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations))
+    - Filter by associated Transaction metadata.
     - Filter by associated billing and shipping address phone number and country code.
-    - Filter by associated transactionItems metadata.
     - Filter by warehouse used to fulfill the order.
   - Use `search` to perform full-text search across relevant fields. It will search based on following fields:
     - The order's ID
@@ -40,10 +42,9 @@ All notable, unreleased changes to this project will be documented in this file.
     - Messages from related order events
     - The content of customer note
     - The order external reference
+- Order sorting options were extended. You can now sort orders by their status.
 - You can now filter and search draft orders using the new `where` and `search` fields on the `draftOrders` query.
-  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
-  - Use `search` to perform full-text search across relevant fields.
-  - Added filtering options for draft orders:
+  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`. It also adds new filtering options for draft orders:
     - Filter by number.
     - Filter by last update date.
     - Filter by voucher codes.
@@ -56,19 +57,19 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by associated event type and date.
     - Filter by associated payment method name and type.
     - Filter by associated billing and shipping address phone number and country code.
-- Extend the `Page` type with an `attribute` field. It adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
-- Extend sorting options. You can now sort orders by their status.
-- Add support for payment method details in the Transaction API. The payment method details associated with a transaction can now be persisted on the Saleor side. See [docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations) to learn more.
-- You can now filter and search customers using the new `where` and `search` fields on the `customers` query.
-  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.
-  - Introduced new filtering options for customers:
+    - TODO: Add fields used in index
+- You can now filter and search customers using the new `where` and `search` fields on the `customers` query.
+  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`. It also adds new filtering options for customers:
     - Filter by email address.
     - Filter by first and last name.
     - Filter by active status (`isActive`).
     - Filter by phone numbers and country of associated user addresses.
     - Filter by phone numbers associated with user addresses.
     - Filter by number of orders placed by the user.
+  - Use `search` to perform full-text search across relevant fields.
+    - TODO Add fields used in index
+- Added support for payment method details in the Transaction API. The payment method details associated with a transaction can now be persisted on the Saleor side, instead of using metadata or external storage. See [docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations) to learn more.
 - Deprecated the `filter` argument in favor of the new `where` and `search` arguments.
   The `where` argument introduces more flexible filtering, allowing complex conditions using `AND`/`OR` logic and operators such as `eq`, `oneOf`, and `range`.
   The `filter` argument has been deprecated in the following queries:
@@ -82,21 +83,20 @@ All notable, unreleased changes to this project will be documented in this file.
   - `category.products`
   - `collection.products`
   - `pageType.availableAttributes`
-- Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign category and collection as a attribute reference.
+- Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign categories and collections as a attribute reference.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
 - Filtering products by `category` now also includes subcategories. The filter will return products that belong to the specified categories as well as their subcategories.
 - Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.
-- Add new `SINGLE_REFERENCE` attribute. You can now create a reference attribute that points to only one object (unlike the existing `reference` type, which supports multiple references).
-Like `reference`, the `single-reference` type can target entities defined in the `AttributeEntityTypeEnum`.
+- Added new `SINGLE_REFERENCE` attribute type. You can now create a reference attribute that points to only one object (unlike the existing `REFERENCE` type, which supports multiple references). They can target the same entities as `REFERENCE` attributes (defined in the `AttributeEntityTypeEnum`).
 - Extended support for filtering `products` by associated attributes
   - Attribute slug is now optional when filtering by attribute values
   - Added support for filtering by associated reference objects (e.g., `products`, `pages`, `variants`)
-- Added `fractionalAmount` and `fractionDigits` fields to the `Money` type. These fields allow monetary values to be represented as a pair of integers, which is often required when integrating with payment service providers.
+- Added `fractionalAmount` and `fractionDigits` fields to the `Money` type. These fields allow monetary values to be represented as an integer (instead of a float) with an explicit precision provided in `fractionDigits`, which is often required when integrating with payment service providers and allows for safe calculations.
 - Add support for filtering `productVariants` by associated attributes
-- Refunds are now more powerful. You can configure new `RefundSettings` to accept a `reasonReferenceType`. Once assigned, creating refunds (both manual and with grant refunds) will require a reason type to be specified. `refundReasonReferenceTypeClear` clears the settings.
+- Refunds are now more powerful. You can configure new `RefundSettings` globally (for all channels) to accept a `reasonReferenceType` using `refundSettingsUpdate` mutation. Once assigned, creating refunds (both manual and with grant refund) will require a reason type to be specified. `refundReasonReferenceTypeClear` mutation clears the settings.
 - You can now use the `AssignedAttribute` interface and the `assignedAttribute`, `assignedAttributes` fields on `Page`, `Product`, and `ProductVariant` to fetch assigned attributes and their values in a cleaner, more focused shape.
   - `attribute` and `attributes` fields on Page, Product, and ProductVariant are deprecated.
-- Added support for restricting available references for `REFERENCE` and `SINGLE_REFERENCE` attributes by specifying reference product or page types.
+- Added support for restricting available reference to choose from for `REFERENCE` and `SINGLE_REFERENCE` attributes by specifying reference types (product, product variant, model, etc.).
   - You can now define `referenceTypes` on an `Attribute` to limit reference choices. Use `productType` for product and product variant references, and page types for page references.
 
 ### Webhooks
