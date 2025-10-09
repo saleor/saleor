@@ -328,11 +328,11 @@ def test_order_line_delete_non_removable_gift(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_line_delete_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -350,6 +350,7 @@ def test_order_line_delete_triggers_webhooks(
         shipping_filter_webhook,
         order_webhook,
     ) = setup_order_webhooks(webhook_event)
+    app = order_webhook.app
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
@@ -371,11 +372,16 @@ def test_order_line_delete_triggers_webhooks(
     assert not content["data"]["orderLineDelete"]["errors"]
 
     # confirm that event delivery was generated for each async webhook.
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+    assert EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery

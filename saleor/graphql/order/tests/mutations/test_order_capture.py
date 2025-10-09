@@ -177,7 +177,7 @@ def test_order_capture_by_app(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(
     PLUGINS=[
@@ -186,7 +186,7 @@ def test_order_capture_by_app(
     ]
 )
 def test_order_capture_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -209,6 +209,7 @@ def test_order_capture_triggers_webhooks(
             WebhookEventAsyncType.ORDER_FULLY_PAID,
         ]
     )
+    app = additional_order_webhook.app
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = payment_txn_preauth.order
@@ -246,14 +247,19 @@ def test_order_capture_triggers_webhooks(
         order_updated_delivery,
     ]
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-                MessageGroupId="example.com:saleor.app.additional",
+                kwargs={
+                    "app_id": app.id,
+                    "telemetry_context": ANY,
+                },
+                queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+                MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+                MessageDeduplicationId=f"example.com:{app.id}",
+                bind=True,
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )

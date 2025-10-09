@@ -298,11 +298,11 @@ def test_draft_order_delete_release_voucher_codes_single_use(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_draft_order_delete_do_not_trigger_sync_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -318,6 +318,7 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
         shipping_filter_webhook,
         draft_order_deleted_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_DELETED)
+    app = draft_order_deleted_webhook.app
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
@@ -333,17 +334,16 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
     assert not content["data"]["draftOrderDelete"]["errors"]
 
     # confirm that event delivery was generated for each webhook.
-    draft_order_deleted_delivery = EventDelivery.objects.get(
-        webhook_id=draft_order_deleted_webhook.id
-    )
-
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=draft_order_deleted_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": draft_order_deleted_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+        MessageDeduplicationId=f"example.com:{app.id}",
+        bind=True,
     )
     assert not mocked_send_webhook_request_sync.called
     assert wrapped_call_order_event.called
