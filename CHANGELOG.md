@@ -151,12 +151,18 @@ All notable, unreleased changes to this project will be documented in this file.
   - **Attribute slug is optional**: Filter variants without specifying which attribute to search
   - **Filter by reference attributes**: All reference filtering options are available (`referencedIds`, `productSlugs`, `productVariantSkus`, `pageSlugs`, `categorySlugs`, `collectionSlugs`)
   - **Two matching strategies**: Use `containsAny` or `containsAll` operators
-- Added `fractionalAmount` and `fractionDigits` fields to the `Money` type. These fields allow monetary values to be represented as an integer (instead of a float) with an explicit precision provided in `fractionDigits`, which is often required when integrating with payment service providers and allows for safe calculations.
+- Added `fractionalAmount` and `fractionDigits` fields to the `Money` type:
+  - `fractionalAmount` - amount as an integer in the smallest currency unit (e.g., `1295` for $12.95 USD, `1234` for ¥1234 JPY)
+  - `fractionDigits` - number of decimal places for the currency (e.g., `2` for USD, `0` for JPY)
+  - Useful for payment integrations requiring integers and avoiding floating-point precision issues when doing arithmetic operations
 - Refunds are now more powerful. You can configure new `RefundSettings` globally (for all channels) to accept a `reasonReferenceType` using `refundSettingsUpdate` mutation. Once assigned, creating refunds (both manual and with grant refund) will require a reason type to be specified. `refundReasonReferenceTypeClear` mutation clears the settings.
 - You can now use the `AssignedAttribute` interface and the `assignedAttribute`, `assignedAttributes` fields on `Page`, `Product`, and `ProductVariant` to fetch assigned attributes and their values in a cleaner, more focused shape.
   - `attribute` and `attributes` fields on Page, Product, and ProductVariant are deprecated.
-- Added support for restricting available reference to choose from for `REFERENCE` and `SINGLE_REFERENCE` attributes by specifying reference types (product, product variant, model, etc.).
-  - You can now define `referenceTypes` on an `Attribute` to limit reference choices. Use `productType` for product and product variant references, and page types for page references.
+- Added `referenceTypes` field on `Attribute` to restrict available reference choices for `REFERENCE` and `SINGLE_REFERENCE` attributes:
+  - For `PRODUCT`/`PRODUCT_VARIANT` entity types: Accepts list of `ProductType` IDs to limit selectable products/variants to those types.
+  - For `PAGE` entity type: Accepts list of `PageType` IDs (now shown as "Model types") to limit selectable models (previously pages) to those types.
+  - When not specified, all objects of the entity type are available.
+  - Can be set via `attributeCreate`, `attributeUpdate`, `attributeBulkCreate`, and `attributeBulkUpdate` mutations.
 
 ### Webhooks
 - Transaction webhooks (`TRANSACTION_INITIALIZE_SESSION`, `TRANSACTION_PROCESS_SESSION`) can now return `paymentMethodDetails` in their response, which will be stored on the corresponding `TransactionItem`. This allows payment apps to provide payment method information (card details, payment method name, etc.) during transaction processing. See the [Transaction API](#graphql-api) section above for more details about payment method details, and [webhook response format docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) for implementation details.
