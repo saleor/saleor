@@ -84,7 +84,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `fulfillments` - Filter by fulfillment data (status, metadata, warehouse).
     - `lines` - Filter by line item data (metadata, product details, quantities).
     - `lines_count` - Filter by number of lines in the order.
-    - `transactions` - Filter by transaction data (payment method name and type, metadata). Note: Payment method filtering only works for transactions created after upgrading to this release: [see docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations).
+    - `transactions` - Filter by transaction data (payment method name and type, metadata). Note: Payment method filtering only works for transactions created after upgrading to this release: [see docs](https://docs.saleor.io/developer/payments/transactions#storing-payment-method-details).
     - `total_gross` - Filter by total gross amount.
     - `total_net` - Filter by total net amount.
     - `product_type_id` - Filter by the product type of related order lines.
@@ -165,6 +165,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - Via Transaction mutations: `transactionEventReport`, `transactionCreate`, `transactionUpdate`
     - Via Transaction webhooks: `TRANSACTION_INITIALIZE_SESSION`, `TRANSACTION_PROCESS_SESSION` (see [Transaction webhooks docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4))
   - Previously, payment apps often stored this information in transaction's `metadata` in an unstructured format defined by each app. This limited interoperability and search. With structured payment method details, this information is now standardized across all apps, which makes it type-safe and easily accessible for custom integrations and allows search on `orders` and `draftOrders` queries.
+  - For more details for implementing this change in apps [see Storing payment method details docs](https://docs.saleor.io/developer/payments/transactions#storing-payment-method-details)
 - Added `fractionalAmount` and `fractionDigits` fields to the `Money` type:
   - `fractionalAmount` - amount as an integer in the smallest currency unit (e.g., `1295` for $12.95 USD, `1234` for ¥1234 JPY)
   - `fractionDigits` - number of decimal places for the currency (e.g., `2` for USD, `0` for JPY)
