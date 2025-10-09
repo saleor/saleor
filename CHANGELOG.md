@@ -135,9 +135,18 @@ All notable, unreleased changes to this project will be documented in this file.
 - Filtering products by `category` now also includes subcategories. The filter will return products that belong to the specified categories as well as their subcategories.
 - Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.
 - Added new `SINGLE_REFERENCE` attribute type. You can now create a reference attribute that points to only one object (unlike the existing `REFERENCE` type, which supports multiple references). They can target the same entities as `REFERENCE` attributes (defined in the `AttributeEntityTypeEnum`).
-- Extended support for filtering `products` by associated attributes
-  - Attribute slug is now optional when filtering by attribute values
-  - Added support for filtering by associated reference objects (e.g., `products`, `pages`, `variants`)
+- Extended support for filtering `products` by associated attributes:
+  - **Attribute slug is now optional**: When filtering by attribute values, you no longer need to specify which attribute to search. This allows you to search across all attributes of a given type. This is especially useful for reference attributes when you want to find any product that references a specific object, regardless of which attribute contains that reference.
+  - **Filter by reference attribute values**: Products can now be filtered by the objects they reference through `REFERENCE` and `SINGLE_REFERENCE` type attributes. You can filter by:
+    - `referencedIds` - Global IDs of any referenced entity (Product, ProductVariant, Page, Category, Collection). Use this to search across multiple entity types in a single filter.
+    - `productSlugs` - Slugs of referenced products
+    - `productVariantSkus` - SKUs of referenced product variants
+    - `pageSlugs` - Slugs of referenced pages
+    - `categorySlugs` - Slugs of referenced categories
+    - `collectionSlugs` - Slugs of referenced collections
+  - **Two matching strategies** are available for all reference filters:
+    - `containsAny` - Returns products that reference at least ONE of the specified objects (OR logic)
+    - `containsAll` - Returns products that reference ALL of the specified objects (AND logic)
 - Added `fractionalAmount` and `fractionDigits` fields to the `Money` type. These fields allow monetary values to be represented as an integer (instead of a float) with an explicit precision provided in `fractionDigits`, which is often required when integrating with payment service providers and allows for safe calculations.
 - Add support for filtering `productVariants` by associated attributes
 - Refunds are now more powerful. You can configure new `RefundSettings` globally (for all channels) to accept a `reasonReferenceType` using `refundSettingsUpdate` mutation. Once assigned, creating refunds (both manual and with grant refund) will require a reason type to be specified. `refundReasonReferenceTypeClear` mutation clears the settings.
