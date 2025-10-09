@@ -610,7 +610,7 @@ def send_webhook_request_async(
 
     webhook = delivery.webhook
     domain = get_domain()
-    attempt = create_attempt(delivery, self.request.id)
+    attempt = create_attempt(delivery, self.request.id, with_save=True)
     response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
     retry_on_failure = False
 
@@ -649,7 +649,7 @@ def send_webhook_request_async(
         record_async_webhooks_count(delivery, response.status)
 
     if response.status == EventDeliveryStatus.FAILED:
-        attempt_update(attempt, response)
+        attempt_update(attempt, response, with_save=True)
         if retry_on_failure:
             handle_webhook_retry(self, webhook, response, delivery, attempt)
         delivery_update(delivery, EventDeliveryStatus.FAILED)
@@ -750,7 +750,7 @@ def _process_send_webhooks_async_for_app(
 
             record_async_webhooks_count(delivery, response.status)
             if response.status == EventDeliveryStatus.FAILED:
-                attempt_update(attempt, response, with_save=False)
+                attempt_update(attempt, response, with_save=True)
                 failed_deliveries_attempts.append(
                     (delivery, attempt, attempt_count, response)
                 )
@@ -772,7 +772,7 @@ def _process_send_webhooks_async_for_app(
             response = WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED
             )
-            attempt_update(attempt, response, with_save=False)
+            attempt_update(attempt, response, with_save=True)
             failed_deliveries_attempts.append(
                 (delivery, attempt, attempt_count, response)
             )
