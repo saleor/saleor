@@ -14,10 +14,18 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
-- You can now filter and search pages using the new `where` and `search` fields on the `pages` query.
-  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
-  - Use `search` to perform full-text search across relevant fields.
-  - Add support for filtering `pages` by associated attributes
+- You can now filter and search Models (previously named "Pages") using the new `where` and `search` fields on the `pages` query.
+  - The `where` argument supports `AND`/`OR` logic and explicit operators (`eq`, `oneOf`, `range`) for all fields.
+  - Existing `filter` fields remain available in `where`: `ids`, `page_types` (now `page_type`), `slugs` (now `slug`), `metadata`.
+  - New filtering options available only in `where`:
+    - `attributes` - Filter by attributes associated with the page, including:
+      - Filter by attribute slug and name
+      - Filter by numeric attribute values (with `eq`, `oneOf`, `range` operators)
+      - Filter by boolean attribute values
+      - Filter by date and datetime attribute values
+      - Filter by reference attributes to pages, products, product variants, categories, and collections (by IDs or slugs)
+      - Support for `contains_all` (page must reference ALL specified objects) and `contains_any` (page must reference at least ONE specified object)
+  - The `search` parameter is now a standalone argument (previously `filter.search`). It works the same as before, searching across page title, slug, and content.
 - `Page` type was extended with an `attribute` field. It adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
   - The `where` argument supports `AND`/`OR` logic and explicit operators (`eq`, `oneOf`, `range`) for all fields.
