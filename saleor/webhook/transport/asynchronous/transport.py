@@ -14,7 +14,8 @@ from django.conf import settings
 from django.db import transaction
 from opentelemetry.trace import StatusCode
 
-from ....app.utils import acquire_webhook_lock
+from ....app.models import AppWebhookMutex
+from ....app.utils import acquire_webhook_lock, get_app_webhooks_lock_uuid
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
@@ -431,22 +432,24 @@ def trigger_webhooks_async_for_multiple_objects(
             },
             bind=True,
         )
+
     domain = get_domain()
-    for delivery in deliveries:
-        app = delivery.webhook.app
-        message_group_id = f"{domain}:{app.identifier or app.id}"
-        # TODO: switch to new `send_webhooks_async_for_app` task when we have
-        # deduplication mechanism in place.
-        send_webhook_request_async.apply_async(
+    apps_id = {delivery.webhook.app_id for delivery in deliveries}
+    app_lock_uuids = {
+        mutex.app_id: mutex.lock_uuid
+        for mutex in AppWebhookMutex.objects.filter(app_id__in=apps_id)
+    }
+    for app_id in apps_id:
+        lock_uuid = app_lock_uuids.get(app_id)
+        send_webhooks_async_for_app.apply_async(
             kwargs={
-                "event_delivery_id": delivery.pk,
+                "app_id": app_id,
                 "telemetry_context": get_task_context().to_dict(),
             },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            MessageGroupId=message_group_id,  # for AWS SQS fair queues
+            queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+            MessageGroupId=domain,
+            MessageDeduplicationId=f"{app_id}:{lock_uuid}",
+            bind=True,
         )
 
 
@@ -571,23 +574,20 @@ def generate_deferred_payloads(
                 EventDelivery.objects.bulk_update(
                     event_deliveries_for_bulk_update, ["payload"]
                 )
-    domain = get_domain()
     for delivery in event_deliveries_for_bulk_update:
         # Trigger webhook delivery task when the payload is ready.
         app = delivery.webhook.app
-        message_group_id = f"{domain}:{app.identifier or app.id}"
-        # TODO: switch to new `send_webhooks_async_for_app` task when we have
-        # deduplication mechanism in place.
-        send_webhook_request_async.apply_async(
+        lock_uuid = get_app_webhooks_lock_uuid(app.id)
+        domain = get_domain()
+        send_webhooks_async_for_app.apply_async(
             kwargs={
-                "event_delivery_id": delivery.pk,
+                "app_id": app.id,
                 "telemetry_context": telemetry_context.to_dict(),
             },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=send_webhook_queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            MessageGroupId=message_group_id,  # for AWS SQS fair queues
+            queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+            MessageGroupId=domain,
+            MessageDeduplicationId=f"{app.id}:{lock_uuid}",
+            bind=True,
         )
 
 
