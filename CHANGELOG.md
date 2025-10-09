@@ -31,7 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
       - Filter by reference attributes to pages, products, product variants, categories, and collections (by IDs or slugs)
       - Support for `contains_all` (page must reference ALL specified objects) and `contains_any` (page must reference at least ONE specified object)
   - The `search` parameter is now a standalone argument (previously `filter.search`). It works the same as before, searching across page title, slug, and content.
-- Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign categories and collections as a attribute reference.
+- Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign categories and collections as an attribute reference.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
   - The `where` argument supports explicit operators (`eq`, `oneOf`) for all fields.
   - Existing `filter` fields remain available in `where`: `ids`, `slugs` (now `slug`).
@@ -164,7 +164,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Payment method details can be provided by apps in two ways:
     - Via Transaction mutations: `transactionEventReport`, `transactionCreate`, `transactionUpdate`
     - Via Transaction webhooks: `TRANSACTION_INITIALIZE_SESSION`, `TRANSACTION_PROCESS_SESSION` (see [Transaction webhooks docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4))
-  - Previously, payment apps often stored this information in transaction's `metadata` in an unstructured format defined by each app. This limited interoperability and search. Now with structured payment method details, this information is now standardized across all apps, which makes it type-safe and easily accessible for custom integrations and allows search on `orders` and `draftOrders` queries.
+  - Previously, payment apps often stored this information in transaction's `metadata` in an unstructured format defined by each app. This limited interoperability and search. With structured payment method details, this information is now standardized across all apps, which makes it type-safe and easily accessible for custom integrations and allows search on `orders` and `draftOrders` queries.
 - Added `fractionalAmount` and `fractionDigits` fields to the `Money` type:
   - `fractionalAmount` - amount as an integer in the smallest currency unit (e.g., `1295` for $12.95 USD, `1234` for ¥1234 JPY)
   - `fractionDigits` - number of decimal places for the currency (e.g., `2` for USD, `0` for JPY)
@@ -247,7 +247,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed bug in user email filtering to make it case-insensitive.
 - Checkouts having total gross amount equal to 0 will get their authorization statuses updated to `CheckoutAuthorizeStatus.FULL` upon fetching checkout data.
 - Fixed a bug that could prevent rich text attributes written in scripts using combining diacritical marks (for example, Arabic) from being saved properly.
-- Fixed a bug where a Checkout partially paid by Transaction(s) and partially paid by Gift Card(s) could not be completed due to `CHECKOUT_NOT_FULLY_PAID` error. Checkout authorize and charge statuses are now recalculcated more reliably. Status calculcation is now taking into account available gift cards balance.
+- Fixed a bug where a Checkout partially paid by Transaction(s) and partially paid by Gift Card(s) could not be completed due to `CHECKOUT_NOT_FULLY_PAID` error. Checkout authorize and charge statuses are now recalculated more reliably. Status calculation is now taking into account available gift cards balance.
 
 ### Deprecations
 
