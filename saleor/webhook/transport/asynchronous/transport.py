@@ -431,22 +431,18 @@ def trigger_webhooks_async_for_multiple_objects(
             },
             bind=True,
         )
-    domain = get_domain()
-    for delivery in deliveries:
-        app = delivery.webhook.app
-        message_group_id = f"{domain}:{app.identifier or app.id}"
-        # TODO: switch to new `send_webhooks_async_for_app` task when we have
-        # deduplication mechanism in place.
-        send_webhook_request_async.apply_async(
+
+    apps_id = {delivery.webhook.app_id for delivery in deliveries}
+    for app_id in apps_id:
+        send_webhooks_async_for_app.apply_async(
             kwargs={
-                "event_delivery_id": delivery.pk,
+                "app_id": app_id,
                 "telemetry_context": get_task_context().to_dict(),
             },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            MessageGroupId=message_group_id,  # for AWS SQS fair queues
+            queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+            MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+            MessageDeduplicationId=get_app_deduplication_id(app_id),
+            bind=True,
         )
 
 
@@ -571,23 +567,18 @@ def generate_deferred_payloads(
                 EventDelivery.objects.bulk_update(
                     event_deliveries_for_bulk_update, ["payload"]
                 )
-    domain = get_domain()
     for delivery in event_deliveries_for_bulk_update:
         # Trigger webhook delivery task when the payload is ready.
         app = delivery.webhook.app
-        message_group_id = f"{domain}:{app.identifier or app.id}"
-        # TODO: switch to new `send_webhooks_async_for_app` task when we have
-        # deduplication mechanism in place.
-        send_webhook_request_async.apply_async(
+        send_webhooks_async_for_app.apply_async(
             kwargs={
-                "event_delivery_id": delivery.pk,
+                "app_id": app.id,
                 "telemetry_context": telemetry_context.to_dict(),
             },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=send_webhook_queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            MessageGroupId=message_group_id,  # for AWS SQS fair queues
+            queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+            MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
+            MessageDeduplicationId=get_app_deduplication_id(app.id),
+            bind=True,
         )
 
 
