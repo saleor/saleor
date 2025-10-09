@@ -39,27 +39,32 @@ All notable, unreleased changes to this project will be documented in this file.
     - `events` - Filter by order event type and date.
     - `billing_address` - Filter by billing address fields (phone number, country code, city, postal code, etc.).
     - `shipping_address` - Filter by shipping address fields (phone number, country code, city, postal code, etc.).
-  - Use `search` to perform full-text search across relevant fields, prioritized based on relevance:
-    1. Weight A - Highest priority
-      - Order number and ID
-      - Customer's email stored when order was created and current user's email on `User` object
-      - Customer's first and last name
-    2. Weight B
-      - Customer note on order
-      - Order's external reference
-      - Billing and shipping address: first name, last name, street, company name, city, city area, country (name and code), postal code, phone
-    3. Weight C
-      - Order lines:
+  - Use `search` to perform PostgreSQL full-text search (using websearch mode) across relevant fields. Results are ranked by relevance using the following weights:
+    1. Weight A (Highest priority):
+      - Order number
+      - Order ID
+      - User email stored on order (`user_email` field)
+      - Associated user's email (`user.email` field)
+      - Associated user's first name
+      - Associated user's last name
+    2. Weight B:
+      - Customer note
+      - Order external reference
+      - Billing address fields: first name, last name, street address (line 1 and 2), company name, city, city area, country name, country code, country area, postal code, phone number
+      - Shipping address fields: first name, last name, street address (line 1 and 2), company name, city, city area, country name, country code, country area, postal code, phone number
+    3. Weight C:
+      - Order line fields (up to configured `SEARCH_ORDERS_MAX_INDEXED_LINES` limit):
         - Product SKU
         - Product name
-        - Product variant name
-        - Translated variant names
-    4. Weight D - Lowest priority
-      - Discount's name
-      - Payment's (legacy API): ID, pspReference
-      - Transaction's: ID, pspReference, event pspReferences
-      - Invoice's ID
-      - Order event's message
+        - Variant name
+        - Translated product name
+        - Translated variant name
+    4. Weight D (Lowest priority):
+      - Discount name and translated name (up to configured `SEARCH_ORDERS_MAX_INDEXED_DISCOUNTS` limit)
+      - Payment global ID and PSP reference (legacy API, up to configured `SEARCH_ORDERS_MAX_INDEXED_PAYMENTS` limit)
+      - Transaction global ID, PSP reference, and transaction event PSP references (up to configured `SEARCH_ORDERS_MAX_INDEXED_TRANSACTIONS` limit)
+      - Invoice global ID (up to configured `SEARCH_ORDERS_MAX_INDEXED_INVOICES` limit)
+      - Order event messages from `NOTE_ADDED` and `NOTE_UPDATED` events (up to configured `SEARCH_ORDERS_MAX_INDEXED_EVENTS` limit)
 - Order sorting options were extended. You can now sort orders by their status.
 - You can now filter and search draft orders using the new `where` and `search` fields on the `draftOrders` query.
   - The `where` argument supports `AND`/`OR` logic and explicit operators (`eq`, `oneOf`, `range`) for all fields.
@@ -83,7 +88,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `events` - Filter by order event type and date.
     - `billing_address` - Filter by billing address fields (phone number, country code, city, postal code, etc.).
     - `shipping_address` - Filter by shipping address fields (phone number, country code, city, postal code, etc.).
-  - Compared to `orders`, draft orders do not support filtering by: `status`, `checkout_token`, `checkout_id`, `is_gift_card_used`, `is_gift_card_bought`, `has_invoices`, `invoices`, `has_fulfillments`, `fulfillments`.
+  - Note that compared to `orders`, draft orders do not support filtering by: `status`, `checkout_token`, `checkout_id`, `is_gift_card_used`, `is_gift_card_bought`, `has_invoices`, `invoices`, `has_fulfillments`, `fulfillments`.
   - Use `search` to perform full-text search across relevant fields, it works the same as `orders` search (see above).
 
 - You can now filter and search customers using the new `where` and `search` fields on the `customers` query.
