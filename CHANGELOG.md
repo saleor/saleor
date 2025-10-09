@@ -20,45 +20,72 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add support for filtering `pages` by associated attributes
 - `Page` type was extended with an `attribute` field. It adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
-  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`. It also adds new filtering options for orders:
-    - Filter by voucher codes.
-    - Filter by invoice existence.
-    - Filter by associated invoice creation date.
-    - Filter by fulfillment existence.
-    - Filter by associated fulfillment status and metadata.
-    - Filter by number of lines in the order.
-    - Filter by order total gross and net price amount.
-    - Filter by order metadata.
-    - Filter by associated lines metadata.
-    - Filter by the product type of related order lines.
-    - Filter by associated event type and date.
-    - Filter by associated payment method name and type on Transactions in order (for new Transactions that provide this information: [see docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations))
-    - Filter by associated Transaction metadata.
-    - Filter by associated billing and shipping address phone number and country code.
-    - Filter by warehouse used to fulfill the order.
-  - Use `search` to perform full-text search across relevant fields. It will search based on following fields:
-    - The order's ID
-    - IDs of invoices linked to the order
-    - Messages from related order events
-    - The content of customer note
-    - The order external reference
+  - The `where` argument supports `AND`/`OR` logic and explicit operators (`eq`, `oneOf`, `range`) for all fields.
+  - Existing `filter` fields remain available in `where`: `ids`, `channels` (now `channel_id`), `customer`, `created` (now `created_at`), `updated_at`, `status`, `authorize_status`, `charge_status`, `payment_status`, `is_click_and_collect`, `is_preorder`, `checkout_tokens` (now `checkout_token`), `checkout_ids` (now `checkout_id`), `gift_card_used` (now `is_gift_card_used`), `gift_card_bought` (now `is_gift_card_bought`), `numbers` (now `number`), `metadata`.
+  - New filtering options available only in `where`:
+    - `user` - Filter by user ID.
+    - `user_email` - Filter by user email.
+    - `voucher_code` - Filter by voucher code used in the order.
+    - `has_invoices` - Filter by whether the order has any invoices.
+    - `invoices` - Filter by invoice data (creation date, etc.).
+    - `has_fulfillments` - Filter by whether the order has any fulfillments.
+    - `fulfillments` - Filter by fulfillment data (status, metadata, warehouse).
+    - `lines` - Filter by line item data (metadata, product details, quantities).
+    - `lines_count` - Filter by number of lines in the order.
+    - `transactions` - Filter by transaction data (payment method name and type, metadata). Note: Payment method filtering only works for transactions created after upgrading to this release: [see docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations).
+    - `total_gross` - Filter by total gross amount.
+    - `total_net` - Filter by total net amount.
+    - `product_type_id` - Filter by the product type of related order lines.
+    - `events` - Filter by order event type and date.
+    - `billing_address` - Filter by billing address fields (phone number, country code, city, postal code, etc.).
+    - `shipping_address` - Filter by shipping address fields (phone number, country code, city, postal code, etc.).
+  - Use `search` to perform full-text search across relevant fields, prioritized based on relevance:
+    1. Weight A - Highest priority
+      - Order number and ID
+      - Customer's email stored when order was created and current user's email on `User` object
+      - Customer's first and last name
+    2. Weight B
+      - Customer note on order
+      - Order's external reference
+      - Billing and shipping address: first name, last name, street, company name, city, city area, country (name and code), postal code, phone
+    3. Weight C
+      - Order lines:
+        - Product SKU
+        - Product name
+        - Product variant name
+        - Translated variant names
+    4. Weight D - Lowest priority
+      - Discount's name
+      - Payment's (legacy API): ID, pspReference
+      - Transaction's: ID, pspReference, event pspReferences
+      - Invoice's ID
+      - Order event's message
 - Order sorting options were extended. You can now sort orders by their status.
 - You can now filter and search draft orders using the new `where` and `search` fields on the `draftOrders` query.
-  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`. It also adds new filtering options for draft orders:
-    - Filter by number.
-    - Filter by last update date.
-    - Filter by voucher codes.
-    - Filter by authorize and charge status.
-    - Filter by number of lines in the draft order.
-    - Filter by draft order total gross and net price amount.
-    - Filter by draft order metadata.
-    - Filter by draft order by associated lines metadata.
-    - Filter by the product type of related order lines.
-    - Filter by associated event type and date.
-    - Filter by associated payment method name and type.
-    - Filter by associated billing and shipping address phone number and country code.
-  - Use `search` to perform full-text search across relevant fields.
-    - TODO: Add fields used in index
+  - The `where` argument supports `AND`/`OR` logic and explicit operators (`eq`, `oneOf`, `range`) for all fields.
+  - Existing `filter` fields remain available in `where`: `channels` (now `channel_id`), `customer`, `created` (now `created_at`), `metadata`.
+  - New filtering options available only in `where`:
+    - `ids` - Filter by order IDs.
+    - `number` - Filter by order number.
+    - `updated_at` - Filter by last update date.
+    - `user` - Filter by user ID.
+    - `user_email` - Filter by user email.
+    - `authorize_status` - Filter by authorize status.
+    - `charge_status` - Filter by charge status.
+    - `is_click_and_collect` - Filter by whether the order uses click and collect delivery.
+    - `voucher_code` - Filter by voucher code used in the order.
+    - `lines` - Filter by line item data (metadata, product details, quantities).
+    - `lines_count` - Filter by number of lines in the draft order.
+    - `transactions` - Filter by transaction data (payment method name and type, metadata). Note: Payment method filtering only works for transactions created after upgrading to this release: [see docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations).
+    - `total_gross` - Filter by total gross amount.
+    - `total_net` - Filter by total net amount.
+    - `product_type_id` - Filter by the product type of related order lines.
+    - `events` - Filter by order event type and date.
+    - `billing_address` - Filter by billing address fields (phone number, country code, city, postal code, etc.).
+    - `shipping_address` - Filter by shipping address fields (phone number, country code, city, postal code, etc.).
+  - Compared to `orders`, draft orders do not support filtering by: `status`, `checkout_token`, `checkout_id`, `is_gift_card_used`, `is_gift_card_bought`, `has_invoices`, `invoices`, `has_fulfillments`, `fulfillments`.
+  - Use `search` to perform full-text search across relevant fields, it works the same as `orders` search (see above).
+
 - You can now filter and search customers using the new `where` and `search` fields on the `customers` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`. It also adds new filtering options for customers:
     - Filter by email address.
@@ -67,8 +94,9 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by phone numbers and country of associated user addresses.
     - Filter by phone numbers associated with user addresses.
     - Filter by number of orders placed by the user.
-  - Use `search` to perform full-text search across relevant fields.
-    - TODO Add fields used in index
+  - Use `search` to perform pattern-matching search across relevant fields:
+    - Customer's email address, first name, last name
+    - Addresses in customer address book: first name, last name, street, city, postal code, country (code and name), phone
 - Added support for payment method details in the Transaction API. The payment method details associated with a transaction can now be persisted on the Saleor side, instead of using metadata or external storage. See [docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations) to learn more.
 - Deprecated the `filter` argument in favor of the new `where` and `search` arguments.
   The `where` argument introduces more flexible filtering, allowing complex conditions using `AND`/`OR` logic and operators such as `eq`, `oneOf`, and `range`.
