@@ -670,7 +670,6 @@ def send_webhook_request_async(
 
 @app.task(
     queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-    MessageGroupId=settings.WEBHOOK_BATCH_MESSAGE_GROUP_ID,
     bind=True,
 )
 @allow_writer()
@@ -680,25 +679,24 @@ def send_webhooks_async_for_app(
     app_id,
     telemetry_context: TelemetryTaskContext,
 ) -> None:
-    with acquire_webhook_lock(app_id) as acquired:
+    with acquire_webhook_lock(app_id) as (acquired, lock_uuid):
         if not acquired:
             return
-
         processed = _process_send_webhooks_async_for_app(
             self.request.id, app_id, telemetry_context
         )
 
-        if processed:
-            send_webhooks_async_for_app.apply_async(
-                kwargs={
-                    "app_id": app_id,
-                    "telemetry_context": telemetry_context.to_dict(),
-                },
-                queue=self.queue,
-                MessageGroupId=self.MessageGroupId,
-                MessageDeduplicationId=get_app_deduplication_id(app_id),
-                bind=True,
-            )
+    if processed:
+        send_webhooks_async_for_app.apply_async(
+            kwargs={
+                "app_id": app_id,
+                "telemetry_context": telemetry_context.to_dict(),
+            },
+            queue=self.queue,
+            MessageGroupId=get_domain(),
+            MessageDeduplicationId=f"{app_id}:{lock_uuid}",
+            bind=True,
+        )
 
 
 @allow_writer()
