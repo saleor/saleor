@@ -1,7 +1,6 @@
 from decimal import Decimal
 from unittest import mock
 
-import graphene
 import pytest
 from django.utils import timezone
 from freezegun import freeze_time
@@ -382,9 +381,7 @@ def _assert_built_in_shipping_method(
 
     assert isinstance(checkout_shipping_method, CheckoutShippingMethod)
     assert checkout_shipping_method.checkout_id == checkout.pk
-    assert checkout_shipping_method.original_id == graphene.Node.to_global_id(
-        "ShippingMethod", available_shipping_method.id
-    )
+    assert checkout_shipping_method.original_id == str(available_shipping_method.id)
     assert checkout_shipping_method.name == available_shipping_method.name
     assert checkout_shipping_method.price_amount == shipping_listing.price_amount
     assert checkout_shipping_method.currency == shipping_listing.price.currency
@@ -418,6 +415,8 @@ def test_fetch_shipping_methods_for_checkout_with_built_in_shipping_method(
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
+
+    CheckoutShippingMethod.objects.all().delete()
 
     available_shipping_method = ShippingMethod.objects.get()
     available_shipping_method.description = {
@@ -468,15 +467,22 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_built_in_shipping_
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = timezone.now()
-    checkout.save(update_fields=["shipping_address", "shipping_methods_stale_at"])
+    checkout.shipping_methods_stale_at = (
+        timezone.now() - settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+    )
+    checkout.assigned_shipping_method_id = None
+    checkout.save(
+        update_fields=[
+            "shipping_address",
+            "shipping_methods_stale_at",
+            "assigned_shipping_method_id",
+        ]
+    )
 
     available_shipping_method = ShippingMethod.objects.get()
 
     existing_shipping_method = checkout.shipping_methods.create(
-        original_id=graphene.Node.to_global_id(
-            "ShippingMethod", available_shipping_method.id
-        ),
+        original_id=str(available_shipping_method.id),
         name=available_shipping_method.name,
         description=available_shipping_method.description,
         price_amount=Decimal(99),
@@ -522,8 +528,8 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_built_in_shipping_
 
     # then
     # Confirm that we updated the shipping method instead of creating a new one
-    assert CheckoutShippingMethod.objects.count() == 1
     assert len(shipping_methods) == 1
+    assert CheckoutShippingMethod.objects.count() == 1
     checkout_shipping_method = shipping_methods[0]
     assert isinstance(checkout_shipping_method, CheckoutShippingMethod)
     assert existing_shipping_method.id == checkout_shipping_method.id
@@ -550,9 +556,7 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_built_in_shi
 
     non_applicable_shipping_method_id = available_shipping_method.id + 1
     checkout.shipping_methods.create(
-        original_id=graphene.Node.to_global_id(
-            "ShippingMethod", non_applicable_shipping_method_id
-        ),
+        original_id=non_applicable_shipping_method_id,
         name="Nonexisting Shipping Method",
         price_amount=Decimal(99),
         currency="USD",
@@ -595,9 +599,7 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_built_in_sh
 
     non_applicable_shipping_method_id = available_shipping_method.id + 1
     assigned_shipping_method = checkout.shipping_methods.create(
-        original_id=graphene.Node.to_global_id(
-            "ShippingMethod", non_applicable_shipping_method_id
-        ),
+        original_id=non_applicable_shipping_method_id,
         name="Nonexisting Shipping Method",
         price_amount=Decimal(99),
         currency="USD",
