@@ -783,11 +783,6 @@ def _process_send_webhooks_async_for_app(
     return True
 
 
-def get_app_deduplication_id(app_id: int) -> str:
-    domain = get_domain()
-    return f"{domain}:{app_id}"
-
-
 def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
     event_type = WebhookEventAsyncType.OBSERVABILITY
     for webhook in webhooks:
