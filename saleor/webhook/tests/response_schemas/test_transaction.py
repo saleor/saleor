@@ -52,6 +52,25 @@ def test_transaction_schema_valid_full_data():
     assert transaction.result == data["result"].lower()
 
 
+def test_transaction_schema_accepts_root_relative_external_url():
+    # given
+    relative_external_url = (
+        "/dashboard/apps/QXBwOjY=/app/app/transactions/"
+        "VHJhbnNhY3Rpb25JdGVtOmIxOGE4NTdkLTM0OWEtNDFlYS04NDYyLTgzMzhhNzJlOTdiMQ=="
+    )
+    data = {
+        "amount": Decimal("10.00"),
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+        "externalUrl": relative_external_url,
+    }
+
+    # when
+    transaction = TransactionBaseSchema.model_validate(data)
+
+    # then
+    assert transaction.external_url == relative_external_url
+
+
 @pytest.mark.parametrize(
     "data",
     [
@@ -216,6 +235,14 @@ def test_transaction_schema_actions_validation(actions, expected_actions):
                 "amount": "100.50",
                 "result": TransactionEventType.CHARGE_SUCCESS.upper(),
                 "externalUrl": "invalid-url",
+            },
+            "externalUrl",
+        ),
+        (
+            {
+                "amount": "10.00",
+                "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+                "externalUrl": "dashboard/apps/not-rooted",
             },
             "externalUrl",
         ),
