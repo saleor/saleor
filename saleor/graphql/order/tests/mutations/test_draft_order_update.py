@@ -2490,11 +2490,11 @@ def test_draft_order_update_replace_entire_order_voucher_with_shipping_voucher(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_draft_order_update_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -2511,6 +2511,7 @@ def test_draft_order_update_triggers_webhooks(
         shipping_filter_webhook,
         draft_order_updated_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
+    app = draft_order_updated_webhook.app
 
     order = draft_order
     order.voucher = voucher
@@ -2545,16 +2546,16 @@ def test_draft_order_update_triggers_webhooks(
     order.refresh_from_db()
 
     # confirm that event delivery was generated for each async webhook.
-    draft_order_updated_delivery = EventDelivery.objects.get(
-        webhook_id=draft_order_updated_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=draft_order_updated_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": draft_order_updated_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="example.com",
+        MessageDeduplicationId=f"{app.id}:{app.webhook_mutex.lock_uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -2586,11 +2587,11 @@ def test_draft_order_update_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -2607,6 +2608,7 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
         shipping_filter_webhook,
         draft_order_updated_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
+    app = draft_order_updated_webhook.app
 
     order = draft_order
 
@@ -2633,16 +2635,16 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     assert not order.should_refresh_prices
 
     # confirm that event delivery was generated for each async webhook.
-    draft_order_updated_delivery = EventDelivery.objects.get(
-        webhook_id=draft_order_updated_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=draft_order_updated_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": draft_order_updated_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="example.com",
+        MessageDeduplicationId=f"{app.id}:{app.webhook_mutex.lock_uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery

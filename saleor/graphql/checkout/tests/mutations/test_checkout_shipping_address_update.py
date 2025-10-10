@@ -1133,11 +1133,11 @@ def test_checkout_shipping_address_skip_validation_by_app(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_shipping_address_update_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
@@ -1174,17 +1174,19 @@ def test_checkout_shipping_address_update_triggers_webhooks(
 
     assert wrapped_call_checkout_info_event.called
 
+    app = checkout_updated_webhook.app
+
     # confirm that event delivery was generated for each async webhook.
-    checkout_update_delivery = EventDelivery.objects.get(
-        webhook_id=checkout_updated_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    assert EventDelivery.objects.get(webhook_id=checkout_updated_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        MessageGroupId="example.com",
+        MessageDeduplicationId=f"{app.id}:{app.webhook_mutex.lock_uuid}",
+        bind=True,
     )
 
     # confirm each sync webhook was called without saving event delivery

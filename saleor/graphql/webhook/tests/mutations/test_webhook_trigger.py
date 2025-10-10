@@ -357,7 +357,7 @@ def test_webhook_trigger_for_removed_app(
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
@@ -365,10 +365,11 @@ def test_webhook_trigger_for_removed_app(
 )
 def test_webhook_trigger_for_deferred_payload(
     mocked_generate_deferred_payloads,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     staff_api_client,
     checkout,
     subscription_checkout_updated_webhook,
+    webhook_app,
     permission_manage_checkouts,
 ):
     # given
@@ -403,6 +404,6 @@ def test_webhook_trigger_for_deferred_payload(
         generate_payload_kwargs["deferred_payload_data"]["request_time"] == frozen_date
     )
 
-    assert mocked_send_webhook_request_async.called
-    send_webhook_kwargs = mocked_send_webhook_request_async.call_args.kwargs["kwargs"]
-    assert send_webhook_kwargs["event_delivery_id"] == delivery_pk
+    assert mocked_send_webhooks_async_for_app.called
+    send_webhook_kwargs = mocked_send_webhooks_async_for_app.call_args.kwargs["kwargs"]
+    assert send_webhook_kwargs["app_id"] == webhook_app.pk

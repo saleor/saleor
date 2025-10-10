@@ -47,3 +47,13 @@ def acquire_webhook_lock(app_id: int):
         AppWebhookMutex.objects.get_or_create(app_id=app_id)
         with acquire_webhook_lock(app_id) as (acquired, lock_uuid):
             yield acquired, lock_uuid
+
+
+def get_app_webhooks_lock_uuid(app_id: int) -> uuid.UUID | None:
+    try:
+        mutex = AppWebhookMutex.objects.get(app_id=app_id)
+        return mutex.lock_uuid
+    except AppWebhookMutex.DoesNotExist:
+        logger.warning("AppWebhookMutex entry does not exist. App ID: %s", app_id)
+
+    return None
