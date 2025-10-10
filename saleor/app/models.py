@@ -136,6 +136,10 @@ class AppWebhookMutex(models.Model):
         related_name="webhook_mutex",
         verbose_name="App",
     )
+    # Unique identifier for message deduplication in AWS SQS FIFO queues
+    # Must be updated after each successful acquisition to allow
+    # next iterations within 5-minute deduplication interval
+    lock_uuid = models.UUIDField(unique=True, default=uuid4)
 
 
 class AppTokenManager(models.Manager["AppToken"]):
