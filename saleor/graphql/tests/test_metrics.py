@@ -1,66 +1,73 @@
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
 from django.test import override_settings
+from opentelemetry.sdk.metrics.export import HistogramDataPoint, NumberDataPoint
 from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.semconv.attributes import error_attributes
 
-from ...core.telemetry import Unit, saleor_attributes
+from ...core.telemetry import DEFAULT_DURATION_BUCKETS, Unit, saleor_attributes
 from ...graphql.api import backend, schema
+from ...tests.utils import get_metric_data
 from ..metrics import (
     METRIC_GRAPHQL_QUERY_COST,
     METRIC_GRAPHQL_QUERY_COUNT,
     METRIC_GRAPHQL_QUERY_DURATION,
     METRIC_REQUEST_COUNT,
     METRIC_REQUEST_DURATION,
+    QUERY_COST_BUCKETS,
     record_graphql_query_count,
     record_graphql_query_duration,
 )
 from ..views import GraphQLView
 
 
-@patch("saleor.graphql.metrics.meter")
-def test_record_graphql_query_count(mock_meter):
+def test_record_graphql_query_count(get_test_metrics_data):
     # when
     record_graphql_query_count(
         operation_name="name", operation_type="query", operation_identifier="identifier"
     )
-
     # then
-    mock_meter.record.assert_any_call(
-        METRIC_GRAPHQL_QUERY_COUNT,
-        1,
-        Unit.REQUEST,
-        attributes={
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "identifier",
-        },
-    )
-
-
-@patch("saleor.graphql.metrics.meter")
-def test_record_graphql_query_duration(mock_meter):
-    # given
-    mock_context_manager = object()
-    mock_meter.record_duration.return_value = mock_context_manager
-
-    # when
-    result = record_graphql_query_duration()
-
-    # then
-    call_attributes = {
-        graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
-        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
+    metric_data = get_metric_data(get_test_metrics_data(), METRIC_GRAPHQL_QUERY_COUNT)
+    assert metric_data.unit == Unit.REQUEST.value
+    assert len(metric_data.data.data_points) == 1
+    data_point = metric_data.data.data_points[0]
+    assert isinstance(data_point, NumberDataPoint)
+    assert data_point.attributes == {
+        graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
+        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "identifier",
     }
-    mock_meter.record_duration.assert_any_call(
-        METRIC_GRAPHQL_QUERY_DURATION, attributes=call_attributes
+    assert data_point.value == 1
+
+
+def test_record_graphql_query_duration(get_test_metrics_data):
+    # when
+    with record_graphql_query_duration() as query_duration_attrs:
+        query_duration_attrs[graphql_attributes.GRAPHQL_OPERATION_TYPE] = "query"
+        query_duration_attrs[saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER] = (
+            "identifier"
+        )
+
+    # then
+    metric_data = get_metric_data(
+        get_test_metrics_data(), METRIC_GRAPHQL_QUERY_DURATION
     )
-    assert result == mock_context_manager
+    assert metric_data.unit == Unit.SECOND.value
+    assert len(metric_data.data.data_points) == 1
+    data_point = metric_data.data.data_points[0]
+    assert isinstance(data_point, HistogramDataPoint)
+    assert data_point.attributes == {
+        graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
+        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "identifier",
+    }
+    assert data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
+    assert data_point.count == 1
 
 
-@patch("saleor.graphql.metrics.meter")
-def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list):
+def test_graphql_query_record_metrics(
+    get_test_metrics_data, rf, channel_USD, product_list
+):
     # given
     request = rf.post(
         path="/graphql/",
@@ -71,6 +78,10 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
         },
         content_type="application/json",
     )
+    attributes = {
+        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "products",
+        graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
+    }
 
     # when
     view = GraphQLView.as_view(backend=backend, schema=schema)
@@ -78,38 +89,35 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
 
     # then
     # check that saleor.graphql.operation.count is recorded
-    mock_meter.record.assert_any_call(
-        METRIC_GRAPHQL_QUERY_COUNT,
-        1,
-        Unit.REQUEST,
-        attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "products",
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
-        },
-    )
+    metrics_data = get_test_metrics_data()
+    count_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COUNT)
+    assert count_metric.unit == Unit.REQUEST.value
+    assert len(count_metric.data.data_points) == 1
+    count_data_point = count_metric.data.data_points[0]
+    assert isinstance(count_data_point, NumberDataPoint)
+    assert count_data_point.attributes == attributes
+    assert count_data_point.value == 1
 
     # check that saleor.graphql.operation.cost is recorded
-    mock_meter.record.assert_any_call(
-        METRIC_GRAPHQL_QUERY_COST,
-        5,
-        Unit.COST,
-        attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "products",
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
-        },
-    )
+    cost_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COST)
+    assert cost_metric.unit == Unit.COST.value
+    assert len(cost_metric.data.data_points) == 1
+    cost_data_point = cost_metric.data.data_points[0]
+    assert isinstance(cost_data_point, HistogramDataPoint)
+    assert cost_data_point.attributes == attributes
+    assert cost_data_point.explicit_bounds == tuple(QUERY_COST_BUCKETS)
+    assert cost_data_point.count == 1
+    assert cost_data_point.sum == 5
 
     # check that saleor.graphql.operation.duration is recorded and has correct attributes
-    mock_meter.record_duration.assert_any_call(
-        METRIC_GRAPHQL_QUERY_DURATION,
-        attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
-        },
-    )
-    set_attr_calls = mock_meter.record_duration().__enter__().__setitem__.call_args_list
-    assert call("graphql.operation.identifier", "products") in set_attr_calls
-    assert call("graphql.operation.type", "query") in set_attr_calls
+    duration_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_DURATION)
+    assert duration_metric.unit == Unit.SECOND.value
+    assert len(duration_metric.data.data_points) == 1
+    duration_data_point = duration_metric.data.data_points[0]
+    assert isinstance(duration_data_point, HistogramDataPoint)
+    assert duration_data_point.attributes == attributes
+    assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
+    assert duration_data_point.count == 1
 
 
 @pytest.mark.parametrize(
@@ -141,9 +149,8 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
         ),
     ],
 )
-@patch("saleor.graphql.metrics.meter")
 def test_graphql_query_record_metrics_invalid_query(
-    mock_meter,
+    get_test_metrics_data,
     data,
     error_type,
     operation_name,
@@ -157,61 +164,49 @@ def test_graphql_query_record_metrics_invalid_query(
         data=data,
         content_type="application/json",
     )
+    attributes = {
+        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
+        graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type,
+        error_attributes.ERROR_TYPE: error_type,
+    }
 
     # when
     view = GraphQLView.as_view(backend=backend, schema=schema)
     view(request)
 
     # then
-    mock_meter.record.assert_any_call(
-        METRIC_GRAPHQL_QUERY_COUNT,
-        1,
-        Unit.REQUEST,
-        attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type,
-            error_attributes.ERROR_TYPE: error_type,
-        },
-    )
+    metrics_data = get_test_metrics_data()
+    count_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COUNT)
+    assert count_metric.unit == Unit.REQUEST.value
+    assert len(count_metric.data.data_points) == 1
+    count_data_point = count_metric.data.data_points[0]
+    assert isinstance(count_data_point, NumberDataPoint)
+    assert count_data_point.attributes == attributes
+    assert count_data_point.value == 1
 
-    mock_meter.record.assert_any_call(
-        METRIC_GRAPHQL_QUERY_COST,
-        1,
-        Unit.COST,
-        attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type,
-            error_attributes.ERROR_TYPE: error_type,
-        },
-    )
+    cost_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COST)
+    assert cost_metric.unit == Unit.COST.value
+    assert len(cost_metric.data.data_points) == 1
+    cost_data_point = cost_metric.data.data_points[0]
+    assert isinstance(cost_data_point, HistogramDataPoint)
+    assert cost_data_point.attributes == attributes
+    assert cost_data_point.explicit_bounds == tuple(QUERY_COST_BUCKETS)
+    assert cost_data_point.count == 1
+    assert cost_data_point.sum == 1
 
-    mock_meter.record_duration.assert_any_call(
-        METRIC_GRAPHQL_QUERY_DURATION,
-        attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
-        },
-    )
-    assert (
-        call(error_attributes.ERROR_TYPE, error_type)
-        in mock_meter.record_duration().__enter__().__setitem__.call_args_list
-    )
-    if operation_type:
-        assert (
-            call(graphql_attributes.GRAPHQL_OPERATION_TYPE, operation_type)
-            in mock_meter.record_duration().__enter__().__setitem__.call_args_list
-        )
-    if operation_identifier:
-        assert (
-            call(saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER, operation_identifier)
-            in mock_meter.record_duration().__enter__().__setitem__.call_args_list
-        )
+    duration_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_DURATION)
+    assert duration_metric.unit == Unit.SECOND.value
+    assert len(duration_metric.data.data_points) == 1
+    duration_data_point = duration_metric.data.data_points[0]
+    assert isinstance(duration_data_point, HistogramDataPoint)
+    assert duration_data_point.attributes == attributes
+    assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
+    assert duration_data_point.count == 1
 
 
 @override_settings(GRAPHQL_QUERY_MAX_COMPLEXITY=1)
-@patch("saleor.graphql.metrics.meter")
 def test_graphql_query_record_metrics_cost_exceeded(
-    mock_meter,
+    get_test_metrics_data,
     api_client,
     variant_with_many_stocks,
     channel_USD,
@@ -234,57 +229,50 @@ def test_graphql_query_record_metrics_cost_exceeded(
         "channel": channel_USD.slug,
     }
 
+    attributes = {
+        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "productVariant",
+        graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
+        error_attributes.ERROR_TYPE: "QueryCostError",
+    }
+
     # when
     api_client.post_graphql(query, variables)
 
     # then
+    metrics_data = get_test_metrics_data()
     # check that saleor.graphql.operation.count is recorded
-    mock_meter.record.assert_any_call(
-        METRIC_GRAPHQL_QUERY_COUNT,
-        1,
-        Unit.REQUEST,
-        attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "productVariant",
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
-            error_attributes.ERROR_TYPE: "QueryCostError",
-        },
-    )
+    count_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COUNT)
+    assert count_metric.unit == Unit.REQUEST.value
+    assert len(count_metric.data.data_points) == 1
+    count_data_point = count_metric.data.data_points[0]
+    assert isinstance(count_data_point, NumberDataPoint)
+    assert count_data_point.attributes == attributes
+    assert count_data_point.value == 1
 
-    mock_meter.record.assert_any_call(
-        METRIC_GRAPHQL_QUERY_COST,
-        20,
-        Unit.COST,
-        attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "productVariant",
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
-            error_attributes.ERROR_TYPE: "QueryCostError",
-        },
-    )
+    cost_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COST)
+    assert cost_metric.unit == Unit.COST.value
+    assert len(cost_metric.data.data_points) == 1
+    cost_data_point = cost_metric.data.data_points[0]
+    assert isinstance(cost_data_point, HistogramDataPoint)
+    assert cost_data_point.attributes == attributes
+    assert cost_data_point.explicit_bounds == tuple(QUERY_COST_BUCKETS)
+    assert cost_data_point.count == 1
+    assert cost_data_point.sum == 20
 
     # check that saleor.graphql.operation.duration is recorded and has correct attributes
-    mock_meter.record_duration.assert_any_call(
-        METRIC_GRAPHQL_QUERY_DURATION,
-        attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
-            graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
-        },
-    )
-    assert (
-        call(error_attributes.ERROR_TYPE, "QueryCostError")
-        in mock_meter.record_duration().__enter__().__setitem__.call_args_list
-    )
-    assert (
-        call(graphql_attributes.GRAPHQL_OPERATION_TYPE, "query")
-        in mock_meter.record_duration().__enter__().__setitem__.call_args_list
-    )
-    assert (
-        call(saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER, "productVariant")
-        in mock_meter.record_duration().__enter__().__setitem__.call_args_list
-    )
+    duration_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_DURATION)
+    assert duration_metric.unit == Unit.SECOND.value
+    assert len(duration_metric.data.data_points) == 1
+    duration_data_point = duration_metric.data.data_points[0]
+    assert isinstance(duration_data_point, HistogramDataPoint)
+    assert duration_data_point.attributes == attributes
+    assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
+    assert duration_data_point.count == 1
 
 
-@patch("saleor.graphql.metrics.meter")
-def test_graphql_view_record_http_metrics(mock_meter, rf, channel_USD, product_list):
+def test_graphql_view_record_http_metrics(
+    get_test_metrics_data, rf, channel_USD, product_list
+):
     # given
     request = rf.post(
         path="/graphql/",
@@ -301,24 +289,31 @@ def test_graphql_view_record_http_metrics(mock_meter, rf, channel_USD, product_l
     view(request)
 
     # then
+    metrics_data = get_test_metrics_data()
     # check that saleor.request.count is recorded
-    mock_meter.record.assert_any_call(
-        METRIC_REQUEST_COUNT,
-        1,
-        Unit.REQUEST,
-        attributes={},
-    )
+    count_metric = get_metric_data(metrics_data, METRIC_REQUEST_COUNT)
+    assert count_metric.unit == Unit.REQUEST.value
+    assert len(count_metric.data.data_points) == 1
+    count_data_point = count_metric.data.data_points[0]
+    assert isinstance(count_data_point, NumberDataPoint)
+    assert count_data_point.attributes == {}
+    assert count_data_point.value == 1
 
     # check that saleor.request.duration is recorded
-    mock_meter.record_duration.assert_any_call(
-        METRIC_REQUEST_DURATION,
-        attributes={},
-    )
+    duration_metric = get_metric_data(metrics_data, METRIC_REQUEST_DURATION)
+    assert duration_metric.unit == Unit.SECOND.value
+    assert len(duration_metric.data.data_points) == 1
+    duration_data_point = duration_metric.data.data_points[0]
+    assert isinstance(duration_data_point, HistogramDataPoint)
+    assert duration_data_point.attributes == {}
+    assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
+    assert duration_data_point.count == 1
 
 
-@patch("saleor.graphql.metrics.meter")
 @patch("saleor.graphql.views.GraphQLView._handle_query")
-def test_graphql_view_record_http_metrics_error_type(mock_handle_query, mock_meter, rf):
+def test_graphql_view_record_http_metrics_error_type(
+    mock_handle_query, get_test_metrics_data, rf
+):
     # given
     mock_handle_query.return_value = MagicMock(status_code=500)
     request = rf.post(
@@ -328,26 +323,29 @@ def test_graphql_view_record_http_metrics_error_type(mock_handle_query, mock_met
         },
         content_type="application/json",
     )
+    attributes = {error_attributes.ERROR_TYPE: "500"}
 
     # when
     view = GraphQLView.as_view(backend=backend, schema=schema)
     view(request)
 
     # then
+    metrics_data = get_test_metrics_data()
     # check that saleor.request.count is recorded
-    mock_meter.record.assert_any_call(
-        METRIC_REQUEST_COUNT,
-        1,
-        Unit.REQUEST,
-        attributes={error_attributes.ERROR_TYPE: "500"},
-    )
+    count_metric = get_metric_data(metrics_data, METRIC_REQUEST_COUNT)
+    assert count_metric.unit == Unit.REQUEST.value
+    assert len(count_metric.data.data_points) == 1
+    count_data_point = count_metric.data.data_points[0]
+    assert isinstance(count_data_point, NumberDataPoint)
+    assert count_data_point.attributes == attributes
+    assert count_data_point.value == 1
 
     # check that saleor.request.duration is recorded
-    mock_meter.record_duration.assert_any_call(
-        METRIC_REQUEST_DURATION,
-        attributes={},
-    )
-    assert (
-        call(error_attributes.ERROR_TYPE, "500")
-        in mock_meter.record_duration().__enter__().__setitem__.call_args_list
-    )
+    duration_metric = get_metric_data(metrics_data, METRIC_REQUEST_DURATION)
+    assert duration_metric.unit == Unit.SECOND.value
+    assert len(duration_metric.data.data_points) == 1
+    duration_data_point = duration_metric.data.data_points[0]
+    assert isinstance(duration_data_point, HistogramDataPoint)
+    assert duration_data_point.attributes == attributes
+    assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
+    assert duration_data_point.count == 1
