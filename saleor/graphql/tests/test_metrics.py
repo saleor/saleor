@@ -3,13 +3,12 @@ from unittest.mock import MagicMock, patch
 import graphene
 import pytest
 from django.test import override_settings
-from opentelemetry.sdk.metrics.export import HistogramDataPoint, NumberDataPoint
 from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.semconv.attributes import error_attributes
 
 from ...core.telemetry import DEFAULT_DURATION_BUCKETS, Unit, saleor_attributes
 from ...graphql.api import backend, schema
-from ...tests.utils import get_metric_data
+from ...tests.utils import get_metric_and_data_point
 from ..metrics import (
     METRIC_GRAPHQL_QUERY_COST,
     METRIC_GRAPHQL_QUERY_COUNT,
@@ -29,11 +28,10 @@ def test_record_graphql_query_count(get_test_metrics_data):
         operation_name="name", operation_type="query", operation_identifier="identifier"
     )
     # then
-    metric_data = get_metric_data(get_test_metrics_data(), METRIC_GRAPHQL_QUERY_COUNT)
+    metric_data, data_point = get_metric_and_data_point(
+        get_test_metrics_data(), METRIC_GRAPHQL_QUERY_COUNT
+    )
     assert metric_data.unit == Unit.REQUEST.value
-    assert len(metric_data.data.data_points) == 1
-    data_point = metric_data.data.data_points[0]
-    assert isinstance(data_point, NumberDataPoint)
     assert data_point.attributes == {
         graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
         saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "identifier",
@@ -50,13 +48,10 @@ def test_record_graphql_query_duration(get_test_metrics_data):
         )
 
     # then
-    metric_data = get_metric_data(
+    metric_data, data_point = get_metric_and_data_point(
         get_test_metrics_data(), METRIC_GRAPHQL_QUERY_DURATION
     )
     assert metric_data.unit == Unit.SECOND.value
-    assert len(metric_data.data.data_points) == 1
-    data_point = metric_data.data.data_points[0]
-    assert isinstance(data_point, HistogramDataPoint)
     assert data_point.attributes == {
         graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
         saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "identifier",
@@ -90,31 +85,28 @@ def test_graphql_query_record_metrics(
     # then
     # check that saleor.graphql.operation.count is recorded
     metrics_data = get_test_metrics_data()
-    count_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COUNT)
+    count_metric, count_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_GRAPHQL_QUERY_COUNT
+    )
     assert count_metric.unit == Unit.REQUEST.value
-    assert len(count_metric.data.data_points) == 1
-    count_data_point = count_metric.data.data_points[0]
-    assert isinstance(count_data_point, NumberDataPoint)
     assert count_data_point.attributes == attributes
     assert count_data_point.value == 1
 
     # check that saleor.graphql.operation.cost is recorded
-    cost_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COST)
+    cost_metric, cost_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_GRAPHQL_QUERY_COST
+    )
     assert cost_metric.unit == Unit.COST.value
-    assert len(cost_metric.data.data_points) == 1
-    cost_data_point = cost_metric.data.data_points[0]
-    assert isinstance(cost_data_point, HistogramDataPoint)
     assert cost_data_point.attributes == attributes
     assert cost_data_point.explicit_bounds == tuple(QUERY_COST_BUCKETS)
     assert cost_data_point.count == 1
     assert cost_data_point.sum == 5
 
     # check that saleor.graphql.operation.duration is recorded and has correct attributes
-    duration_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_DURATION)
+    duration_metric, duration_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_GRAPHQL_QUERY_DURATION
+    )
     assert duration_metric.unit == Unit.SECOND.value
-    assert len(duration_metric.data.data_points) == 1
-    duration_data_point = duration_metric.data.data_points[0]
-    assert isinstance(duration_data_point, HistogramDataPoint)
     assert duration_data_point.attributes == attributes
     assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
     assert duration_data_point.count == 1
@@ -176,29 +168,26 @@ def test_graphql_query_record_metrics_invalid_query(
 
     # then
     metrics_data = get_test_metrics_data()
-    count_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COUNT)
+    count_metric, count_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_GRAPHQL_QUERY_COUNT
+    )
     assert count_metric.unit == Unit.REQUEST.value
-    assert len(count_metric.data.data_points) == 1
-    count_data_point = count_metric.data.data_points[0]
-    assert isinstance(count_data_point, NumberDataPoint)
     assert count_data_point.attributes == attributes
     assert count_data_point.value == 1
 
-    cost_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COST)
+    cost_metric, cost_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_GRAPHQL_QUERY_COST
+    )
     assert cost_metric.unit == Unit.COST.value
-    assert len(cost_metric.data.data_points) == 1
-    cost_data_point = cost_metric.data.data_points[0]
-    assert isinstance(cost_data_point, HistogramDataPoint)
     assert cost_data_point.attributes == attributes
     assert cost_data_point.explicit_bounds == tuple(QUERY_COST_BUCKETS)
     assert cost_data_point.count == 1
     assert cost_data_point.sum == 1
 
-    duration_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_DURATION)
+    duration_metric, duration_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_GRAPHQL_QUERY_DURATION
+    )
     assert duration_metric.unit == Unit.SECOND.value
-    assert len(duration_metric.data.data_points) == 1
-    duration_data_point = duration_metric.data.data_points[0]
-    assert isinstance(duration_data_point, HistogramDataPoint)
     assert duration_data_point.attributes == attributes
     assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
     assert duration_data_point.count == 1
@@ -241,30 +230,27 @@ def test_graphql_query_record_metrics_cost_exceeded(
     # then
     metrics_data = get_test_metrics_data()
     # check that saleor.graphql.operation.count is recorded
-    count_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COUNT)
+    count_metric, count_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_GRAPHQL_QUERY_COUNT
+    )
     assert count_metric.unit == Unit.REQUEST.value
-    assert len(count_metric.data.data_points) == 1
-    count_data_point = count_metric.data.data_points[0]
-    assert isinstance(count_data_point, NumberDataPoint)
     assert count_data_point.attributes == attributes
     assert count_data_point.value == 1
 
-    cost_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_COST)
+    cost_metric, cost_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_GRAPHQL_QUERY_COST
+    )
     assert cost_metric.unit == Unit.COST.value
-    assert len(cost_metric.data.data_points) == 1
-    cost_data_point = cost_metric.data.data_points[0]
-    assert isinstance(cost_data_point, HistogramDataPoint)
     assert cost_data_point.attributes == attributes
     assert cost_data_point.explicit_bounds == tuple(QUERY_COST_BUCKETS)
     assert cost_data_point.count == 1
     assert cost_data_point.sum == 20
 
     # check that saleor.graphql.operation.duration is recorded and has correct attributes
-    duration_metric = get_metric_data(metrics_data, METRIC_GRAPHQL_QUERY_DURATION)
+    duration_metric, duration_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_GRAPHQL_QUERY_DURATION
+    )
     assert duration_metric.unit == Unit.SECOND.value
-    assert len(duration_metric.data.data_points) == 1
-    duration_data_point = duration_metric.data.data_points[0]
-    assert isinstance(duration_data_point, HistogramDataPoint)
     assert duration_data_point.attributes == attributes
     assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
     assert duration_data_point.count == 1
@@ -291,20 +277,18 @@ def test_graphql_view_record_http_metrics(
     # then
     metrics_data = get_test_metrics_data()
     # check that saleor.request.count is recorded
-    count_metric = get_metric_data(metrics_data, METRIC_REQUEST_COUNT)
+    count_metric, count_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_REQUEST_COUNT
+    )
     assert count_metric.unit == Unit.REQUEST.value
-    assert len(count_metric.data.data_points) == 1
-    count_data_point = count_metric.data.data_points[0]
-    assert isinstance(count_data_point, NumberDataPoint)
     assert count_data_point.attributes == {}
     assert count_data_point.value == 1
 
     # check that saleor.request.duration is recorded
-    duration_metric = get_metric_data(metrics_data, METRIC_REQUEST_DURATION)
+    duration_metric, duration_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_REQUEST_DURATION
+    )
     assert duration_metric.unit == Unit.SECOND.value
-    assert len(duration_metric.data.data_points) == 1
-    duration_data_point = duration_metric.data.data_points[0]
-    assert isinstance(duration_data_point, HistogramDataPoint)
     assert duration_data_point.attributes == {}
     assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
     assert duration_data_point.count == 1
@@ -332,20 +316,18 @@ def test_graphql_view_record_http_metrics_error_type(
     # then
     metrics_data = get_test_metrics_data()
     # check that saleor.request.count is recorded
-    count_metric = get_metric_data(metrics_data, METRIC_REQUEST_COUNT)
+    count_metric, count_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_REQUEST_COUNT
+    )
     assert count_metric.unit == Unit.REQUEST.value
-    assert len(count_metric.data.data_points) == 1
-    count_data_point = count_metric.data.data_points[0]
-    assert isinstance(count_data_point, NumberDataPoint)
     assert count_data_point.attributes == attributes
     assert count_data_point.value == 1
 
     # check that saleor.request.duration is recorded
-    duration_metric = get_metric_data(metrics_data, METRIC_REQUEST_DURATION)
+    duration_metric, duration_data_point = get_metric_and_data_point(
+        metrics_data, METRIC_REQUEST_DURATION
+    )
     assert duration_metric.unit == Unit.SECOND.value
-    assert len(duration_metric.data.data_points) == 1
-    duration_data_point = duration_metric.data.data_points[0]
-    assert isinstance(duration_data_point, HistogramDataPoint)
     assert duration_data_point.attributes == attributes
     assert duration_data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
     assert duration_data_point.count == 1

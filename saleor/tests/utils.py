@@ -72,21 +72,40 @@ def round_up(price: Decimal) -> Decimal:
 
 
 def get_metric_data(metrics_data: MetricsData, metric_name: str) -> Metric:
+    __tracebackhide__ = True  # make failures point to the test, not here
+    found: Metric | None = None
     for resource in metrics_data.resource_metrics:
         for scope_metrics in resource.scope_metrics:
             for metric in scope_metrics.metrics:
                 if metric.name == metric_name:
-                    return metric
-    raise KeyError(f"Metric {metric_name} not found in metrics data")
+                    if found is not None:
+                        pytest.fail(
+                            f"Same metric {metric_name} found in multiple scopes"
+                        )
+                    found = metric
+    if found is None:
+        pytest.fail(f"Metric {metric_name} not found in metrics data")
+    return found
+
+
+def get_metric_and_data_point(
+    metrics_data: MetricsData, metric_name: str
+) -> tuple[Metric, DataPointT]:
+    __tracebackhide__ = True  # make failures point to the test, not here
+    metric_data = get_metric_data(metrics_data, metric_name)
+    if len(metric_data.data.data_points) == 0:
+        pytest.fail(f"No data points found for metric: {metric_name}")
+    elif len(metric_data.data.data_points) > 1:
+        pytest.fail(
+            f"Multiple data points ({len(metric_data.data.data_points)}) found for metric: {metric_name}"
+        )
+    return metric_data, metric_data.data.data_points[0]
 
 
 def get_metric_data_point(metrics_data: MetricsData, metric_name: str) -> DataPointT:
-    metric_data = get_metric_data(metrics_data, metric_name)
-    datapoints_count = len(metric_data.data.data_points)
-    assert datapoints_count == 1, (
-        f"For metric {metric_name} found {datapoints_count} instead of 1"
-    )
-    return metric_data.data.data_points[0]
+    __tracebackhide__ = True  # make failures point to the test, not here
+    _, data_point = get_metric_and_data_point(metrics_data, metric_name)
+    return data_point
 
 
 def filter_spans_by_name(
