@@ -6853,10 +6853,10 @@
       "value_required": false,
       "is_variant_only": false,
       "visible_in_storefront": true,
-      "filterable_in_storefront": true,
-      "filterable_in_dashboard": true,
+      "filterable_in_storefront": false,
+      "filterable_in_dashboard": false,
       "storefront_search_position": 0,
-      "available_in_grid": true
+      "available_in_grid": false
     }
   },
   {
