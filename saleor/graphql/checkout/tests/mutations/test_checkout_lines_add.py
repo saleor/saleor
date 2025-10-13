@@ -37,6 +37,7 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
+    get_graphql_content_from_response,
 )
 from ...mutations.utils import update_checkout_shipping_method_if_invalid
 
@@ -1525,6 +1526,7 @@ def test_checkout_lines_add_custom_price_and_order_percentage_discount(
 
 
 def test_checkout_lines_add_custom_price_app_no_perm(app_api_client, checkout, stock):
+    # given
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     price = Decimal("13.11")
@@ -1534,13 +1536,23 @@ def test_checkout_lines_add_custom_price_app_no_perm(app_api_client, checkout, s
         "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
         "channelSlug": checkout.channel.slug,
     }
+
+    # when
     response = app_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
     assert_no_permission(response)
+    content = get_graphql_content_from_response(response)
+    assert (
+        "Setting the custom price is allowed only for apps with `MANAGE_CHECKOUTS` permission."
+        == content["errors"][0]["message"]
+    )
 
 
 def test_checkout_lines_add_custom_price_permission_denied_for_staff_user(
     staff_api_client, checkout, stock, permission_handle_checkouts
 ):
+    # given
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     price = Decimal("13.11")
@@ -1550,12 +1562,21 @@ def test_checkout_lines_add_custom_price_permission_denied_for_staff_user(
         "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
         "channelSlug": checkout.channel.slug,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CHECKOUT_LINES_ADD,
         variables,
         permissions=[permission_handle_checkouts],
     )
+
+    # then
     assert_no_permission(response)
+    content = get_graphql_content_from_response(response)
+    assert (
+        "Setting the custom price is allowed only for apps with `MANAGE_CHECKOUTS` permission."
+        == content["errors"][0]["message"]
+    )
 
 
 def test_checkout_lines_add_existing_variant_over_allowed_stock(
