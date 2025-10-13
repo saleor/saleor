@@ -1,4 +1,6 @@
-from contextlib import AbstractContextManager
+import time
+from collections.abc import Iterator
+from contextlib import AbstractContextManager, contextmanager
 
 from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.semconv.attributes import error_attributes
@@ -90,13 +92,22 @@ def record_graphql_query_count(
     )
 
 
-def record_graphql_query_duration() -> AbstractContextManager[
-    dict[str, AttributeValue]
-]:
+@contextmanager
+def record_graphql_query_duration() -> Iterator[dict[str, AttributeValue]]:
+    start = time.monotonic()
     attributes: dict[str, AttributeValue] = {
         graphql_attributes.GRAPHQL_OPERATION_TYPE: ""
     }
-    return meter.record_duration(METRIC_GRAPHQL_QUERY_DURATION, attributes=attributes)
+    try:
+        yield attributes
+    finally:
+        duration = time.monotonic() - start
+        meter.record(
+            METRIC_GRAPHQL_QUERY_DURATION,
+            duration,
+            unit=Unit.SECOND,
+            attributes=attributes,
+        )
 
 
 def record_graphql_query_cost(

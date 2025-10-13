@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import graphene
 import pytest
 from django.test import override_settings
+from freezegun import freeze_time
 from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.semconv.attributes import error_attributes
 
@@ -35,9 +36,13 @@ def test_record_graphql_query_count(get_test_metrics_data):
 
 
 def test_record_graphql_query_duration(get_test_metrics_data):
+    # given
+    operation_duration = 0.25
     # when
-    with record_graphql_query_duration() as query_duration_attrs:
-        query_duration_attrs[graphql_attributes.GRAPHQL_OPERATION_TYPE] = "query"
+    with freeze_time("2025-10-13 12:00:00") as frozen_datetime:
+        with record_graphql_query_duration() as query_duration_attrs:
+            query_duration_attrs[graphql_attributes.GRAPHQL_OPERATION_TYPE] = "query"
+            frozen_datetime.tick(delta=operation_duration)
 
     # then
     metric_data, data_point = get_metric_and_data_point(
@@ -47,6 +52,7 @@ def test_record_graphql_query_duration(get_test_metrics_data):
     assert data_point.attributes == {graphql_attributes.GRAPHQL_OPERATION_TYPE: "query"}
     assert data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
     assert data_point.count == 1
+    assert data_point.sum == operation_duration
 
 
 def test_graphql_query_record_metrics(
