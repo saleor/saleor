@@ -6,7 +6,7 @@ from django.test import override_settings
 from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.semconv.attributes import error_attributes
 
-from ...core.telemetry import DEFAULT_DURATION_BUCKETS, Unit, saleor_attributes
+from ...core.telemetry import DEFAULT_DURATION_BUCKETS, Unit
 from ...graphql.api import backend, schema
 from ...tests.utils import get_metric_and_data_point
 from ..metrics import (
@@ -24,18 +24,13 @@ from ..views import GraphQLView
 
 def test_record_graphql_query_count(get_test_metrics_data):
     # when
-    record_graphql_query_count(
-        operation_name="name", operation_type="query", operation_identifier="identifier"
-    )
+    record_graphql_query_count(operation_type="query")
     # then
     metric_data, data_point = get_metric_and_data_point(
         get_test_metrics_data(), METRIC_GRAPHQL_QUERY_COUNT
     )
     assert metric_data.unit == Unit.REQUEST.value
-    assert data_point.attributes == {
-        graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
-        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "identifier",
-    }
+    assert data_point.attributes == {graphql_attributes.GRAPHQL_OPERATION_TYPE: "query"}
     assert data_point.value == 1
 
 
@@ -43,19 +38,13 @@ def test_record_graphql_query_duration(get_test_metrics_data):
     # when
     with record_graphql_query_duration() as query_duration_attrs:
         query_duration_attrs[graphql_attributes.GRAPHQL_OPERATION_TYPE] = "query"
-        query_duration_attrs[saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER] = (
-            "identifier"
-        )
 
     # then
     metric_data, data_point = get_metric_and_data_point(
         get_test_metrics_data(), METRIC_GRAPHQL_QUERY_DURATION
     )
     assert metric_data.unit == Unit.SECOND.value
-    assert data_point.attributes == {
-        graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
-        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "identifier",
-    }
+    assert data_point.attributes == {graphql_attributes.GRAPHQL_OPERATION_TYPE: "query"}
     assert data_point.explicit_bounds == tuple(DEFAULT_DURATION_BUCKETS)
     assert data_point.count == 1
 
@@ -73,10 +62,7 @@ def test_graphql_query_record_metrics(
         },
         content_type="application/json",
     )
-    attributes = {
-        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "products",
-        graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
-    }
+    attributes = {graphql_attributes.GRAPHQL_OPERATION_TYPE: "query"}
 
     # when
     view = GraphQLView.as_view(backend=backend, schema=schema)
@@ -157,7 +143,6 @@ def test_graphql_query_record_metrics_invalid_query(
         content_type="application/json",
     )
     attributes = {
-        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
         graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type,
         error_attributes.ERROR_TYPE: error_type,
     }
@@ -219,7 +204,6 @@ def test_graphql_query_record_metrics_cost_exceeded(
     }
 
     attributes = {
-        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "productVariant",
         graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
         error_attributes.ERROR_TYPE: "QueryCostError",
     }
