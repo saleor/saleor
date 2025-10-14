@@ -1954,7 +1954,6 @@ def test_create_product_variant_with_attribute_by_external_reference_value_creat
     attribute.save(update_fields=["external_reference"])
 
     values_count = attribute.values.count()
-
     value_external_ref = "test-value-ext-ref"
     value = "test-value"
 
@@ -1994,3 +1993,117 @@ def test_create_product_variant_with_attribute_by_external_reference_value_creat
     assert data["attributes"][0]["values"][0]["slug"] == value
     attribute.refresh_from_db()
     assert attribute.values.count() == values_count + 1
+
+
+def test_create_product_variant_with_attributes_by_external_reference_existing_vale(
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute = product_type.variant_attributes.first()
+    attr_external_ref = "test-attribute-ext-ref"
+    attribute.external_reference = attr_external_ref
+    attribute.save(update_fields=["external_reference"])
+
+    value = attribute.values.first()
+    value_external_ref = "test-value-ext-ref"
+    value.external_reference = value_external_ref
+    value.save(update_fields=["external_reference"])
+    values_count = attribute.values.count()
+
+    name = "Test variant"
+    sku = "test-sku"
+
+    variables = {
+        "input": {
+            "product": product_id,
+            "name": name,
+            "sku": sku,
+            "attributes": [
+                {
+                    "externalReference": attr_external_ref,
+                    "dropdown": {
+                        "externalReference": value_external_ref,
+                        "value": value.name,
+                    },
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert not content["errors"]
+    data = content["productVariant"]
+    assert data["name"] == name
+    assert data["sku"] == sku
+    assert len(data["attributes"]) == 1
+    assert data["attributes"][0]["attribute"]["slug"] == attribute.slug
+    assert data["attributes"][0]["values"][0]["name"] == value.name
+
+    attribute.refresh_from_db()
+    assert attribute.values.count() == values_count
+
+
+def test_create_product_variant_with_attributes_by_external_reference_invalid_value(
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given attributes input with external ref but value that does not match
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute = product_type.variant_attributes.first()
+    attr_external_ref = "test-attribute-ext-ref"
+    attribute.external_reference = attr_external_ref
+    attribute.save(update_fields=["external_reference"])
+
+    value = attribute.values.first()
+    value_external_ref = "test-value-ext-ref"
+    value.external_reference = value_external_ref
+    value.save(update_fields=["external_reference"])
+    attr_value = "test-value"
+
+    name = "Test variant"
+    sku = "test-sku"
+
+    variables = {
+        "input": {
+            "product": product_id,
+            "name": name,
+            "sku": sku,
+            "attributes": [
+                {
+                    "externalReference": attr_external_ref,
+                    "dropdown": {
+                        "externalReference": value_external_ref,
+                        "value": attr_value,
+                    },
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert len(content["errors"]) == 1
+    assert not content["productVariant"]
+    assert content["errors"][0]["field"] == "attributes"
+    assert content["errors"][0]["code"] == "INVALID"

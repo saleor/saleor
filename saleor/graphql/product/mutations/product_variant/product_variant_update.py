@@ -156,7 +156,10 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             if stocks := cleaned_input.get("stocks"):
                 cls.create_variant_stocks(instance, stocks)
             if attributes := cleaned_input.get("attributes"):
-                AttributeAssignmentMixin.save(instance, attributes)
+                try:
+                    AttributeAssignmentMixin.save(instance, attributes)
+                except ValidationError as e:
+                    raise ValidationError({"attributes": e}) from e
                 refresh_product_search_index = True
 
             if refresh_product_search_index:

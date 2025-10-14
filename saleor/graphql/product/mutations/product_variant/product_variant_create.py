@@ -333,7 +333,10 @@ class ProductVariantCreate(DeprecatedModelMutation):
                 cls.create_variant_stocks(instance, stocks)
             attributes = cleaned_input.get("attributes")
             if attributes:
-                AttributeAssignmentMixin.save(instance, attributes)
+                try:
+                    AttributeAssignmentMixin.save(instance, attributes)
+                except ValidationError as e:
+                    raise ValidationError({"attributes": e}) from e
 
             if not instance.name:
                 generate_and_set_variant_name(instance, cleaned_input.get("sku"))
