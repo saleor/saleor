@@ -7526,6 +7526,42 @@
     }
   },
   {
+    "model": "attribute.attributevalue",
+    "pk": 143,
+    "fields": {
+      "sort_order": 2,
+      "name": "Saleor Loom",
+      "value": "",
+      "slug": "saleor-loom",
+      "file_url": null,
+      "content_type": null,
+      "attribute": 44,
+      "rich_text": null,
+      "boolean": null,
+      "date_time": null,
+      "reference_product": null,
+      "reference_page_id": 5
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 144,
+    "fields": {
+      "sort_order": 3,
+      "name": "CozyNest",
+      "value": "",
+      "slug": "cozzynest",
+      "file_url": null,
+      "content_type": null,
+      "attribute": 44,
+      "rich_text": null,
+      "boolean": null,
+      "date_time": null,
+      "reference_product": null,
+      "reference_page_id": 6
+    }
+  },
+  {
     "model": "attribute.assignedproductattributevalue",
     "pk": 193,
     "fields": {
@@ -7724,6 +7760,195 @@
     }
   },
   {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 219,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 127
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 220,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 128
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 221,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 129
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 222,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 130
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 223,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 131
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 224,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 132
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 225,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 133
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 226,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 134
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 227,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 135
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 228,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 136
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 229,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 137
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 230,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 138
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 231,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 157
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 232,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 161
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 233,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 141
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 234,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 143
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 235,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 144
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 236,
+    "fields": {
+      "sort_order": 0,
+      "value": 144,
+      "product": 150
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 237,
+    "fields": {
+      "sort_order": 0,
+      "value": 144,
+      "product": 151
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 238,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 156
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 239,
+    "fields": {
+      "sort_order": 0,
+      "value": 144,
+      "product": 162
+    }
+  },
+  {
     "model": "attribute.attributeproduct",
     "pk": 10,
     "fields": {
@@ -7775,6 +8000,51 @@
       "sort_order": 0,
       "attribute": 44,
       "product_type": 23
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 17,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 18
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 18,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 19
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 19,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 20
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 20,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 21
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 21,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 22
     }
   },
   {
@@ -9395,6 +9665,64 @@
         "version": "2.30.7"
       },
       "created_at": "2025-09-25T08:55:21Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 5,
+    "fields": {
+      "published_at": "2025-10-14T06:38:16Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "saleor-loom",
+      "title": "Saleor Loom",
+      "page_type": 5,
+      "content": {
+        "time": 1760423902356,
+        "blocks": [
+          {
+            "id": "-6od1Tl3ok",
+            "data": {
+              "text": "Saleor Loom is a creative studio redefining comfort wear. Every piece is designed with mindful craftsmanship - from breathable organic fabrics to urban-inspired silhouettes. Our mission? To make fashion that moves with you, not against you."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-10-14T06:38:16Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 6,
+    "fields": {
+      "published_at": "2025-10-14T06:38:16Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "cozynest",
+      "title": "CozyNest",
+      "page_type": 5,
+      "content": {
+        "time": 1760423902356,
+        "blocks": [
+          {
+            "id": "O6Yitsup5b",
+            "data": {
+              "text": "At CozyNest, we believe every home tells a story - one of warmth, comfort, and personality. Our textiles and decor are crafted to make your favorite spaces feel inviting, calm, and beautifully lived-in."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-10-14T06:38:16Z"
     }
   },
   {
