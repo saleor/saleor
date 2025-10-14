@@ -567,13 +567,17 @@ class AttributeAssignmentMixin:
             return ()
 
         attribute_values: list[attribute_models.AttributeValue] = []
+        external_values: list[tuple[AttributeValueBulkActionEnum, AttributeValue]] = []
         for attr_value in attr_values_input.multiselect:
             external_ref = attr_value.external_reference
 
             if external_ref and attr_value.value:
-                return cls._create_value_instance(
-                    attribute, attr_value.value, external_ref
+                external_values.append(
+                    cls._create_value_instance(
+                        attribute, attr_value.value, external_ref
+                    )[0]
                 )
+                continue
 
             if external_ref:
                 value = attribute_models.AttributeValue.objects.filter(
@@ -607,7 +611,7 @@ class AttributeAssignmentMixin:
 
         return [
             (AttributeValueBulkActionEnum.NONE, value) for value in attribute_values
-        ]
+        ] + external_values
 
     @classmethod
     def _pre_save_numeric_values(
