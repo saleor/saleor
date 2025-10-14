@@ -2168,6 +2168,37 @@ def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
     assert result[2].name == new_value_2
 
 
+def test_attribute_assignment_mixin_pre_save_multiselect_with_id(
+    color_attribute,
+):
+    # given
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["input_type"])
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        multiselect=[
+            AttrValuesForSelectableFieldInput(
+                id=graphene.Node.to_global_id("AttributeValue", value.pk)
+            )
+            for value in color_attribute.values.all()
+        ],
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_multiselect_values(
+        None, color_attribute, values
+    )
+
+    # then
+    assert result == [
+        (AttributeValueBulkActionEnum.NONE, value)
+        for value in color_attribute.values.all()
+    ]
+
+
 def test_attribute_assignment_mixin_pre_save_multiselect_external_reference_action(
     color_attribute,
 ):
@@ -2197,3 +2228,257 @@ def test_attribute_assignment_mixin_pre_save_multiselect_external_reference_acti
         (AttributeValueBulkActionEnum.NONE, value)
         for value in color_attribute.values.all()
     ]
+
+
+def test_attribute_assignment_mixin_pre_save_multiselect_external_reference_and_value(
+    color_attribute,
+):
+    # given
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["input_type"])
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        multiselect=[
+            AttrValuesForSelectableFieldInput(
+                external_reference=value.external_reference, value=value.name
+            )
+            for value in color_attribute.values.all()
+        ],
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_multiselect_values(
+        None, color_attribute, values
+    )
+
+    # then
+    assert result == [
+        (AttributeValueBulkActionEnum.NONE, value)
+        for value in color_attribute.values.all()
+    ]
+
+
+def test_attribute_assignment_mixin_pre_save_multiselect_external_reference_and_new_value(
+    color_attribute,
+):
+    # given
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["input_type"])
+    new_value = "New Color"
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        multiselect=[
+            AttrValuesForSelectableFieldInput(
+                external_reference="new-external-reference", value=new_value
+            )
+        ],
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_multiselect_values(
+        None, color_attribute, values
+    )
+
+    # then
+    assert len(result) == 1
+    action, value = result[0]
+    assert action == AttributeValueBulkActionEnum.CREATE
+    assert value.name == new_value
+
+
+def test_attribute_assignment_mixin_pre_save_dropdown_with_id(
+    color_attribute,
+):
+    # given
+    first_value = color_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        dropdown=AttrValuesForSelectableFieldInput(
+            id=graphene.Node.to_global_id("AttributeValue", first_value.pk)
+        ),
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_dropdown_value(
+        None, color_attribute, values
+    )
+
+    # then
+    assert result == ((AttributeValueBulkActionEnum.NONE, first_value),)
+
+
+def test_attribute_assignment_mixin_pre_save_dropdown_external_reference_action(
+    color_attribute,
+):
+    # given
+    first_value = color_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        dropdown=AttrValuesForSelectableFieldInput(
+            external_reference=first_value.external_reference
+        ),
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_dropdown_value(
+        None, color_attribute, values
+    )
+
+    # then
+    assert result == ((AttributeValueBulkActionEnum.NONE, first_value),)
+
+
+def test_attribute_assignment_mixin_pre_save_dropdown_external_reference_and_value(
+    color_attribute,
+):
+    # given
+    first_value = color_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        dropdown=AttrValuesForSelectableFieldInput(
+            external_reference=first_value.external_reference, value=first_value.name
+        ),
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_dropdown_value(
+        None, color_attribute, values
+    )
+
+    # then
+    assert result == ((AttributeValueBulkActionEnum.NONE, first_value),)
+
+
+def test_attribute_assignment_mixin_pre_save_dropdown_external_reference_and_new_value(
+    color_attribute,
+):
+    # given
+    new_value = "New Color"
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        dropdown=AttrValuesForSelectableFieldInput(
+            external_reference="new-external-reference", value=new_value
+        ),
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_dropdown_value(
+        None, color_attribute, values
+    )
+
+    # then
+    assert len(result) == 1
+    action, value = result[0]
+    assert action == AttributeValueBulkActionEnum.CREATE
+    assert value.name == new_value
+
+
+def test_attribute_assignment_mixin_pre_save_swatch_with_id(
+    color_attribute,
+):
+    # given
+    first_value = color_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        swatch=AttrValuesForSelectableFieldInput(
+            id=graphene.Node.to_global_id("AttributeValue", first_value.pk)
+        ),
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_swatch_value(
+        None, color_attribute, values
+    )
+
+    # then
+    assert result == ((AttributeValueBulkActionEnum.NONE, first_value),)
+
+
+def test_attribute_assignment_mixin_pre_save_swatch_external_reference_action(
+    color_attribute,
+):
+    # given
+    first_value = color_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        swatch=AttrValuesForSelectableFieldInput(
+            external_reference=first_value.external_reference
+        ),
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_swatch_value(
+        None, color_attribute, values
+    )
+
+    # then
+    assert result == ((AttributeValueBulkActionEnum.NONE, first_value),)
+
+
+def test_attribute_assignment_mixin_pre_save_swatch_external_reference_and_value(
+    color_attribute,
+):
+    # given
+    first_value = color_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        swatch=AttrValuesForSelectableFieldInput(
+            external_reference=first_value.external_reference, value=first_value.name
+        ),
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_swatch_value(
+        None, color_attribute, values
+    )
+
+    # then
+    assert result == ((AttributeValueBulkActionEnum.NONE, first_value),)
+
+
+def test_attribute_assignment_mixin_pre_save_swatch_external_reference_and_new_value(
+    color_attribute,
+):
+    # given
+    new_value = "New Color"
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        swatch=AttrValuesForSelectableFieldInput(
+            external_reference="new-external-reference", value=new_value
+        ),
+    )
+
+    # when
+    result = AttributeAssignmentMixin._pre_save_swatch_value(
+        None, color_attribute, values
+    )
+
+    # then
+    assert len(result) == 1
+    action, value = result[0]
+    assert action == AttributeValueBulkActionEnum.CREATE
+    assert value.name == new_value

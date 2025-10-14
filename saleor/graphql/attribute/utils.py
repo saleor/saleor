@@ -194,6 +194,21 @@ class AttributeAssignmentMixin:
 
     @classmethod
     def _create_value_instance(cls, attribute, attr_value, external_ref):
+        value_instance = attribute_models.AttributeValue.objects.filter(
+            external_reference=external_ref
+        ).first()
+        if value_instance:
+            if value_instance.name != attr_value:
+                raise ValidationError(
+                    f"Attribute value with external reference '{external_ref}' already exists "
+                    f"with different value '{value_instance.name}'."
+                )
+            return (
+                (
+                    AttributeValueBulkActionEnum.NONE,
+                    value_instance,
+                ),
+            )
         return (
             (
                 AttributeValueBulkActionEnum.CREATE,
@@ -211,7 +226,7 @@ class AttributeAssignmentMixin:
     @classmethod
     def clean_input(
         cls,
-        raw_input: dict,
+        raw_input: list[dict],
         attributes_qs: "QuerySet",
         creation: bool = True,
         is_page_attributes: bool = False,
@@ -467,9 +482,9 @@ class AttributeAssignmentMixin:
             return cls._create_value_instance(attribute, attr_value, external_ref)
 
         if external_ref:
-            value = attribute_models.AttributeValue.objects.get(
+            value = attribute_models.AttributeValue.objects.filter(
                 external_reference=external_ref
-            )
+            ).first()
             if not value:
                 raise ValidationError(
                     "Attribute value with given externalReference can't be found"
@@ -478,7 +493,9 @@ class AttributeAssignmentMixin:
 
         if id := attr_values.dropdown.id:
             _, attr_value_id = from_global_id_or_error(id)
-            value = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
+            value = attribute_models.AttributeValue.objects.filter(
+                pk=attr_value_id
+            ).first()
             if not value:
                 raise ValidationError("Attribute value with given ID can't be found")
             return ((AttributeValueBulkActionEnum.NONE, value),)
@@ -550,18 +567,22 @@ class AttributeAssignmentMixin:
             return ()
 
         attribute_values: list[attribute_models.AttributeValue] = []
+        external_values: list[tuple[AttributeValueBulkActionEnum, AttributeValue]] = []
         for attr_value in attr_values_input.multiselect:
             external_ref = attr_value.external_reference
 
             if external_ref and attr_value.value:
-                return cls._create_value_instance(
-                    attribute, attr_value.value, external_ref
+                external_values.append(
+                    cls._create_value_instance(
+                        attribute, attr_value.value, external_ref
+                    )[0]
                 )
+                continue
 
             if external_ref:
-                value = attribute_models.AttributeValue.objects.get(
+                value = attribute_models.AttributeValue.objects.filter(
                     external_reference=external_ref
-                )
+                ).first()
                 if not value:
                     raise ValidationError(
                         "Attribute value with given externalReference can't be found"
@@ -570,9 +591,9 @@ class AttributeAssignmentMixin:
 
             if attr_value.id:
                 _, attr_value_id = from_global_id_or_error(attr_value.id)
-                attr_value_model = attribute_models.AttributeValue.objects.get(
+                attr_value_model = attribute_models.AttributeValue.objects.filter(
                     pk=attr_value_id
-                )
+                ).first()
                 if not attr_value_model:
                     raise ValidationError(
                         "Attribute value with given ID can't be found"
@@ -584,13 +605,14 @@ class AttributeAssignmentMixin:
                 attr_value_model = prepare_attribute_values(
                     attribute, [attr_value.value]
                 )[0][0]
-                attr_value_model.save()
-                if attr_value_model.id not in [a.id for a in attribute_values]:
-                    attribute_values.append(attr_value_model)
+                if attr_value_model:
+                    attr_value_model.save()
+                    if attr_value_model.id not in [a.id for a in attribute_values]:
+                        attribute_values.append(attr_value_model)
 
         return [
             (AttributeValueBulkActionEnum.NONE, value) for value in attribute_values
-        ]
+        ] + external_values
 
     @classmethod
     def _pre_save_numeric_values(

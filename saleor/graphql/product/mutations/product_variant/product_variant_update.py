@@ -53,7 +53,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
 
     @classmethod
     def clean_attributes(
-        cls, attributes: dict, product_type: models.ProductType
+        cls, attributes: list[dict], product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.variant_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
@@ -156,7 +156,10 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             if stocks := cleaned_input.get("stocks"):
                 cls.create_variant_stocks(instance, stocks)
             if attributes := cleaned_input.get("attributes"):
-                AttributeAssignmentMixin.save(instance, attributes)
+                try:
+                    AttributeAssignmentMixin.save(instance, attributes)
+                except ValidationError as e:
+                    raise ValidationError({"attributes": e}) from e
                 refresh_product_search_index = True
 
             if refresh_product_search_index:
