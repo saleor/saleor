@@ -6,7 +6,7 @@ from django.test import override_settings
 from freezegun import freeze_time
 from opentelemetry.semconv._incubating.attributes import graphql_attributes
 
-from ...core.telemetry import DEFAULT_DURATION_BUCKETS, Unit, saleor_attributes
+from ...core.telemetry import DEFAULT_DURATION_BUCKETS, Scope, Unit, saleor_attributes
 from ...graphql.api import backend, schema
 from ...tests.utils import get_metric_and_data_point, get_metric_data
 from ..metrics import (
@@ -88,7 +88,7 @@ def test_record_graphql_query_duration_with_slow_query(get_test_metrics_data, se
     assert duration_data_point.sum == operation_duration
 
     slow_operation_metric, slow_operation_data_point = get_metric_and_data_point(
-        metrics_data, METRIC_GRAPHQL_SLOW_OPERATION_DURATION
+        metrics_data, METRIC_GRAPHQL_SLOW_OPERATION_DURATION, scope=Scope.CORE
     )
     assert slow_operation_metric.unit == Unit.SECOND.value
     assert slow_operation_data_point.attributes == {
@@ -149,7 +149,7 @@ def test_graphql_query_record_metrics(
 
     # check that saleor.graphql.slow_operation.duration is recorded and has correct attributes
     slow_operation_metric, slow_operation_data_point = get_metric_and_data_point(
-        metrics_data, METRIC_GRAPHQL_SLOW_OPERATION_DURATION
+        metrics_data, METRIC_GRAPHQL_SLOW_OPERATION_DURATION, scope=Scope.CORE
     )
     assert slow_operation_metric.unit == Unit.SECOND.value
     assert slow_operation_data_point.attributes == {
@@ -231,7 +231,7 @@ def test_graphql_query_record_metrics_invalid_query(
     assert duration_data_point.count == 1
 
     slow_operation_metric, slow_operation_data_point = get_metric_and_data_point(
-        metrics_data, METRIC_GRAPHQL_SLOW_OPERATION_DURATION
+        metrics_data, METRIC_GRAPHQL_SLOW_OPERATION_DURATION, scope=Scope.CORE
     )
     assert slow_operation_metric.unit == Unit.SECOND.value
     assert slow_operation_data_point.attributes == {
@@ -304,7 +304,7 @@ def test_graphql_query_record_metrics_cost_exceeded(
     assert duration_data_point.count == 1
 
     slow_operation_metric, slow_operation_data_point = get_metric_and_data_point(
-        metrics_data, METRIC_GRAPHQL_SLOW_OPERATION_DURATION
+        metrics_data, METRIC_GRAPHQL_SLOW_OPERATION_DURATION, scope=Scope.CORE
     )
     assert slow_operation_metric.unit == Unit.SECOND.value
     assert slow_operation_data_point.attributes == {
