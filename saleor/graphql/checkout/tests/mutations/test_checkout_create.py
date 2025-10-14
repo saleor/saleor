@@ -19,7 +19,11 @@ from .....core.models import EventDelivery
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....warehouse.models import Reservation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
@@ -888,6 +892,7 @@ def test_checkout_create_with_custom_price_by_app_no_perm(
     app_api_client, stock, graphql_address_data, channel_USD
 ):
     """Ensure that app without handle checkouts permission cannot set custom price."""
+    # given
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
@@ -902,8 +907,17 @@ def test_checkout_create_with_custom_price_by_app_no_perm(
         }
     }
     assert not Checkout.objects.exists()
+
+    # when
     response = app_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
     assert_no_permission(response)
+    content = get_graphql_content_from_response(response)
+    assert (
+        "Setting the custom price is allowed only for apps with `MANAGE_CHECKOUTS` permission."
+        == content["errors"][0]["message"]
+    )
 
 
 def test_checkout_create_with_custom_price_by_staff_with_handle_checkouts(
@@ -914,6 +928,7 @@ def test_checkout_create_with_custom_price_by_staff_with_handle_checkouts(
     permission_handle_checkouts,
 ):
     """Ensure that staff with handle checkouts permission cannot set custom price."""
+    # given
     staff_api_client.user.user_permissions.add(permission_handle_checkouts)
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -929,8 +944,17 @@ def test_checkout_create_with_custom_price_by_staff_with_handle_checkouts(
         }
     }
     assert not Checkout.objects.exists()
+
+    # when
     response = staff_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
     assert_no_permission(response)
+    content = get_graphql_content_from_response(response)
+    assert (
+        "Setting the custom price is allowed only for apps with `MANAGE_CHECKOUTS` permission."
+        == content["errors"][0]["message"]
+    )
 
 
 def test_checkout_create_no_email(api_client, stock, graphql_address_data, channel_USD):
