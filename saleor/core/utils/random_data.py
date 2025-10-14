@@ -62,8 +62,13 @@ from ...order.models import Fulfillment, Order, OrderLine
 from ...order.search import prepare_order_search_vector_value
 from ...order.utils import update_order_status
 from ...page.models import Page, PageType
-from ...payment import gateway
-from ...payment.utils import create_payment
+from ...payment import TransactionAction
+from ...payment.utils import (
+    create_manual_adjustment_events,
+    create_transaction_for_order,
+    recalculate_transaction_amounts,
+    update_order_with_transaction_details,
+)
 from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
@@ -552,32 +557,32 @@ def create_fake_user(user_password, save=True, generate_id=False):
 # fake customers.
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def create_fake_payment(mock_notify, order):
-    payment = create_payment(
-        gateway="mirumee.payments.dummy",
-        customer_ip_address=fake.ipv4(),
-        email=order.user_email,
+    charged_value = order.total.gross.amount
+    # Create a simple TransactionItem directly on the order using the transactions API
+    transaction_item = create_transaction_for_order(
         order=order,
-        payment_token=str(uuid.uuid4()),
-        total=order.total.gross.amount,
-        currency=order.total.gross.currency,
+        user=None,
+        app=None,
+        psp_reference=str(uuid.uuid4()),
+        charged_value=charged_value,
+        available_actions=[TransactionAction.REFUND],
+        name="Dummy capture",
     )
-    manager = get_plugins_manager(allow_replica=False)
-
-    # Create authorization transaction
-    gateway.authorize(payment, payment.token, manager, order.channel.slug)
-    # 20% chance to void the transaction at this stage
-    if random.choice([0, 0, 0, 0, 1]):
-        gateway.void(payment, manager, order.channel.slug)
-        return payment
-    # 25% to end the payment at the authorization stage
-    if not random.choice([1, 1, 1, 0]):
-        return payment
-    # Create capture transaction
-    gateway.capture(payment, manager, order.channel.slug)
-    # 25% to refund the payment
+    # Sync order totals
+    update_order_with_transaction_details(transaction_item)
+    # Optionally simulate partial refunds randomly
     if random.choice([0, 0, 0, 1]):
-        gateway.refund(payment, manager, order.channel.slug)
-    return payment
+        # Create a negative manual adjustment to simulate a refund
+        refund_amount = Decimal(charged_value) * Decimal("0.25")
+        create_manual_adjustment_events(
+            transaction=transaction_item,
+            money_data={"refunded_value": refund_amount},
+            user=None,
+            app=None,
+        )
+        recalculate_transaction_amounts(transaction=transaction_item)
+        update_order_with_transaction_details(transaction_item)
+    return transaction_item
 
 
 def create_order_lines(order, how_many=10):
@@ -1048,6 +1053,7 @@ def create_channel(channel_name, currency_code, slug=None, country=None):
             "currency_code": currency_code,
             "is_active": True,
             "default_country": country,
+            "order_mark_as_paid_strategy": "transaction_flow",
         },
     )
     TaxConfiguration.objects.get_or_create(channel=channel)
