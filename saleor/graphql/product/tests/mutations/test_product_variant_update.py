@@ -2364,6 +2364,52 @@ def test_update_product_variant_requires_attr_value_when_is_required(
     assert not variant.product.variants.filter(sku=sku).exists()
 
 
+def test_update_product_variant_attribute_by_external_reference_value_created(
+    staff_api_client,
+    variant,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    attribute = product_type.variant_attributes.first()
+    attr_external_ref = "test-attribute-ext-ref"
+    attribute.external_reference = attr_external_ref
+    attribute.save(update_fields=["external_reference"])
+
+    values_count = attribute.values.count()
+
+    value_external_ref = "test-value-ext-ref"
+    value = "test-value"
+
+    variables = {
+        "id": variant_id,
+        "attributes": [
+            {
+                "externalReference": attr_external_ref,
+                "dropdown": {"externalReference": value_external_ref, "value": value},
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    assert not content["errors"]
+    data = content["productVariant"]
+    assert len(data["attributes"]) == 1
+    assert data["attributes"][0]["attribute"]["slug"] == attribute.slug
+    assert data["attributes"][0]["values"][0]["slug"] == value
+    attribute.refresh_from_db()
+    assert attribute.values.count() == values_count + 1
+
+
 def test_update_product_variant_with_price_does_not_raise_price_validation_error(
     staff_api_client, variant, size_attribute, permission_manage_products
 ):

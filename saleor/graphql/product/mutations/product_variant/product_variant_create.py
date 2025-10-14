@@ -224,15 +224,24 @@ class ProductVariantCreate(DeprecatedModelMutation):
                 cleaned_input["product"]
             )
 
-        variant_attributes_ids = {
-            graphene.Node.to_global_id("Attribute", attr_id)
-            for attr_id in list(
-                product_type.variant_attributes.all().values_list("pk", flat=True)
-            )
+        variant_attributes_ids = set()
+        variant_attributes_external_refs = set()
+        for attr_id, external_ref in product_type.variant_attributes.values_list(
+            "id", "external_reference"
+        ):
+            if external_ref:
+                variant_attributes_external_refs.add(external_ref)
+            variant_attributes_ids.add(graphene.Node.to_global_id("Attribute", attr_id))
+
+        attributes = cleaned_input.get("attributes") or []
+        attributes_ids = {attr["id"] for attr in attributes if attr.get("id") or []}
+        attrs_external_refs = {
+            attr["external_reference"]
+            for attr in attributes
+            if attr.get("external_reference") or []
         }
-        attributes = cleaned_input.get("attributes")
-        attributes_ids = {attr["id"] for attr in attributes or []}
         invalid_attributes = attributes_ids - variant_attributes_ids
+        invalid_attributes |= attrs_external_refs - variant_attributes_external_refs
         if len(invalid_attributes) > 0:
             raise ValidationError(
                 "Given attributes are not a variant attributes.",

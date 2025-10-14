@@ -1936,3 +1936,61 @@ def test_variant_create_product_with_default_track_inventory(
         data["productVariant"]["trackInventory"]
         == site_settings.track_inventory_by_default
     )
+
+
+def test_create_product_variant_with_attribute_by_external_reference_value_created(
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute = product_type.variant_attributes.first()
+    attr_external_ref = "test-attribute-ext-ref"
+    attribute.external_reference = attr_external_ref
+    attribute.save(update_fields=["external_reference"])
+
+    values_count = attribute.values.count()
+
+    value_external_ref = "test-value-ext-ref"
+    value = "test-value"
+
+    name = "Test variant"
+    sku = "test-sku"
+
+    variables = {
+        "input": {
+            "product": product_id,
+            "name": name,
+            "sku": sku,
+            "attributes": [
+                {
+                    "externalReference": attr_external_ref,
+                    "dropdown": {
+                        "externalReference": value_external_ref,
+                        "value": value,
+                    },
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert not content["errors"]
+    data = content["productVariant"]
+    assert data["name"] == name
+    assert data["sku"] == sku
+    assert len(data["attributes"]) == 1
+    assert data["attributes"][0]["attribute"]["slug"] == attribute.slug
+    assert data["attributes"][0]["values"][0]["slug"] == value
+    attribute.refresh_from_db()
+    assert attribute.values.count() == values_count + 1
