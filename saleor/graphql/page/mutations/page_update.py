@@ -35,7 +35,7 @@ class PageUpdate(PageCreate):
         ]
 
     @classmethod
-    def clean_attributes(cls, attributes: dict, page_type: models.PageType):
+    def clean_attributes(cls, attributes: list[dict], page_type: models.PageType):
         attributes_qs = page_type.page_attributes.prefetch_related("values")
         cleaned_attributes = PageAttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False, is_page_attributes=True

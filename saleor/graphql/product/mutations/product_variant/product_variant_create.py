@@ -133,11 +133,13 @@ class ProductVariantCreate(DeprecatedModelMutation):
 
     @classmethod
     def clean_attributes(
-        cls, attributes: dict, product_type: models.ProductType
+        cls, attributes: list[dict], product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.variant_attributes.all()
-        attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
-        return attributes
+        cleaned_attributes = AttributeAssignmentMixin.clean_input(
+            attributes, attributes_qs
+        )
+        return cleaned_attributes
 
     @classmethod
     def validate_duplicated_attribute_values(

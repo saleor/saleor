@@ -66,7 +66,7 @@ class PageCreate(DeprecatedModelMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    def clean_attributes(cls, attributes: dict, page_type: models.PageType):
+    def clean_attributes(cls, attributes: list[dict], page_type: models.PageType):
         attributes_qs = page_type.page_attributes.prefetch_related("values")
         cleaned_attributes = PageAttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_page_attributes=True

@@ -53,7 +53,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
 
     @classmethod
     def clean_attributes(
-        cls, attributes: dict, product_type: models.ProductType
+        cls, attributes: list[dict], product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.variant_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(

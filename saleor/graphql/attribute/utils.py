@@ -226,7 +226,7 @@ class AttributeAssignmentMixin:
     @classmethod
     def clean_input(
         cls,
-        raw_input: dict,
+        raw_input: list[dict],
         attributes_qs: "QuerySet",
         creation: bool = True,
         is_page_attributes: bool = False,
@@ -605,9 +605,10 @@ class AttributeAssignmentMixin:
                 attr_value_model = prepare_attribute_values(
                     attribute, [attr_value.value]
                 )[0][0]
-                attr_value_model.save()
-                if attr_value_model.id not in [a.id for a in attribute_values]:
-                    attribute_values.append(attr_value_model)
+                if attr_value_model:
+                    attr_value_model.save()
+                    if attr_value_model.id not in [a.id for a in attribute_values]:
+                        attribute_values.append(attr_value_model)
 
         return [
             (AttributeValueBulkActionEnum.NONE, value) for value in attribute_values
