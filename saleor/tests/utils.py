@@ -71,7 +71,7 @@ def round_up(price: Decimal) -> Decimal:
     return Decimal(math.ceil(price * 100)) / 100
 
 
-def get_metric_data(metrics_data: MetricsData, metric_name: str) -> Metric:
+def get_metric_data(metrics_data: MetricsData, metric_name: str) -> Metric | None:
     __tracebackhide__ = True  # make failures point to the test, not here
     found: Metric | None = None
     for resource in metrics_data.resource_metrics:
@@ -83,8 +83,6 @@ def get_metric_data(metrics_data: MetricsData, metric_name: str) -> Metric:
                             f"Same metric {metric_name} found in multiple scopes"
                         )
                     found = metric
-    if found is None:
-        pytest.fail(f"Metric {metric_name} not found in metrics data")
     return found
 
 
@@ -93,6 +91,8 @@ def get_metric_and_data_point(
 ) -> tuple[Metric, DataPointT]:
     __tracebackhide__ = True  # make failures point to the test, not here
     metric_data = get_metric_data(metrics_data, metric_name)
+    if metric_data is None:
+        pytest.fail(f"Metric {metric_name} not found in metrics data")
     if len(metric_data.data.data_points) == 0:
         pytest.fail(f"No data points found for metric: {metric_name}")
     elif len(metric_data.data.data_points) > 1:

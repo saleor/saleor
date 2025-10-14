@@ -338,6 +338,9 @@ class GraphQLView(View):
                 saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT,
                 operation_fingerprint,
             )
+            query_duration_attrs[saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT] = (
+                operation_fingerprint
+            )
 
             source_service_name = get_source_service_name_value(
                 request.headers.get("source-service-name")

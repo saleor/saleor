@@ -2,6 +2,7 @@ import time
 from collections.abc import Iterator
 from contextlib import AbstractContextManager, contextmanager
 
+from django.conf import settings
 from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.semconv.attributes import error_attributes
 from opentelemetry.util.types import AttributeValue
@@ -12,6 +13,7 @@ from ..core.telemetry import (
     Scope,
     Unit,
     meter,
+    saleor_attributes,
 )
 
 # Initialize metrics
@@ -29,6 +31,15 @@ METRIC_GRAPHQL_QUERY_DURATION = meter.create_metric(
     type=MetricType.HISTOGRAM,
     unit=Unit.SECOND,
     description="Duration of GraphQL queries.",
+    bucket_boundaries=DEFAULT_DURATION_BUCKETS,
+)
+
+METRIC_GRAPHQL_SLOW_OPERATION_DURATION = meter.create_metric(
+    "saleor.graphql.slow_operation.duration",
+    scope=Scope.CORE,
+    type=MetricType.HISTOGRAM,
+    unit=Unit.SECOND,
+    description="Duration of slow GraphQL operations.",
     bucket_boundaries=DEFAULT_DURATION_BUCKETS,
 )
 
@@ -102,6 +113,15 @@ def record_graphql_query_duration() -> Iterator[dict[str, AttributeValue]]:
         yield attributes
     finally:
         duration = time.monotonic() - start
+        if duration >= settings.TELEMETRY_SLOW_GRAPHQL_OPERATION_THRESHOLD:
+            meter.record(
+                METRIC_GRAPHQL_SLOW_OPERATION_DURATION,
+                duration,
+                unit=Unit.SECOND,
+                attributes=attributes,
+            )
+        # Set graphql.document_fingerprint attribute only for slow operations metric
+        attributes.pop(saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT, None)
         meter.record(
             METRIC_GRAPHQL_QUERY_DURATION,
             duration,
