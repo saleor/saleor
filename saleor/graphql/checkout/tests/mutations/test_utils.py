@@ -1,9 +1,8 @@
 import graphene
-from prices import Money
 
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import CheckoutShippingMethod
 from .....plugins.manager import get_plugins_manager
-from .....shipping.interface import ShippingMethodData
 from ...mutations.utils import (
     CheckoutLineData,
     assign_delivery_method_to_checkout,
@@ -224,28 +223,36 @@ def test_assign_delivery_method_to_checkout_delivery_method_to_external(
     method_id = graphene.Node.to_global_id(
         "app", f"{shipping_app.id}:{app_shipping_id}"
     )
-    external_shipping_data = ShippingMethodData(
-        name=app_shipping_name, id=method_id, price=Money(0, checkout.currency)
+
+    shipping_method = CheckoutShippingMethod.objects.create(
+        checkout=checkout,
+        original_id=method_id,
+        name=app_shipping_name,
+        price_amount="10.00",
+        currency="USD",
+        maximum_delivery_days=7,
     )
 
     # when
     assign_delivery_method_to_checkout(
-        checkout_info, lines_info, manager, external_shipping_data
+        checkout_info, lines_info, manager, shipping_method
     )
 
     # then
-    assert checkout.external_shipping_method_id == method_id
     assert checkout.shipping_method_name == app_shipping_name
-    assert checkout.shipping_method_id is None
+    assert checkout.assigned_shipping_method.original_id == method_id
+    assert checkout.assigned_shipping_method.name == app_shipping_name
     assert checkout_info.shipping_method is None
     assert checkout_info.collection_point is None
 
 
 def test_assign_delivery_method_to_checkout_delivery_method_to_cc(
-    checkout, shipping_method_weight_based, warehouses_for_cc
+    checkout, shipping_method_weight_based, warehouses_for_cc, checkout_shipping_method
 ):
     # given
-    checkout.shipping_method = shipping_method_weight_based
+    checkout.assigned_shipping_method = checkout_shipping_method(
+        checkout, shipping_method_weight_based
+    )
     checkout.shipping_method_name = shipping_method_weight_based.name
 
     lines_info, _ = fetch_checkout_lines(checkout)
@@ -265,6 +272,6 @@ def test_assign_delivery_method_to_checkout_delivery_method_to_cc(
     assert checkout.collection_point == collection_point
     assert checkout.shipping_address == collection_point.address
     assert int(checkout.shipping_address_id) != int(collection_point.address.id)
-    assert checkout.shipping_method_id is None
+    assert checkout.assigned_shipping_method is None
     assert checkout.shipping_method_name is None
     assert checkout_info.shipping_method is None

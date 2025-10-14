@@ -60,7 +60,6 @@ from ...tests.utils import assert_no_permission, get_graphql_content
 from ..enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 from ..mutations.utils import (
     clean_delivery_method,
-    update_checkout_shipping_method_if_invalid,
 )
 
 
@@ -111,69 +110,6 @@ def test_clean_delivery_method_does_nothing_if_no_shipping_method(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     is_valid_method = clean_delivery_method(checkout_info, None)
     assert is_valid_method is True
-
-
-def test_update_checkout_shipping_method_if_invalid(
-    checkout_with_single_item,
-    address,
-    shipping_method,
-    other_shipping_method,
-    shipping_zone_without_countries,
-):
-    # If the shipping method is invalid, it should be removed.
-
-    checkout = checkout_with_single_item
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-
-    shipping_method.shipping_zone = shipping_zone_without_countries
-    shipping_method.save(update_fields=["shipping_zone"])
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    update_checkout_shipping_method_if_invalid(checkout_info, lines)
-
-    assert checkout.shipping_method is None
-    assert checkout_info.get_delivery_method_info().delivery_method is None
-
-    # Ensure the checkout's shipping method was saved
-    checkout.refresh_from_db(fields=["shipping_method"])
-    assert checkout.shipping_method is None
-
-
-def test_update_checkout_shipping_method_if_invalid_no_checkout_metadata(
-    checkout_with_single_item,
-    address,
-    shipping_method,
-    other_shipping_method,
-    shipping_zone_without_countries,
-):
-    # If the shipping method is invalid, it should be removed.
-
-    # given
-    checkout = checkout_with_single_item
-    checkout.metadata_storage.delete()
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-
-    shipping_method.shipping_zone = shipping_zone_without_countries
-    shipping_method.save(update_fields=["shipping_zone"])
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-
-    # when
-    update_checkout_shipping_method_if_invalid(checkout_info, lines)
-
-    # then
-    assert checkout.shipping_method is None
-    assert checkout_info.get_delivery_method_info().delivery_method is None
-
-    # Ensure the checkout's shipping method was saved
-    checkout.refresh_from_db(fields=["shipping_method"])
-    assert checkout.shipping_method is None
 
 
 @pytest.fixture
@@ -4202,10 +4138,18 @@ def test_query_checkout_lines_with_meta(
     assert lines == expected_lines
 
 
-def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_method):
+def test_clean_checkout(
+    checkout_with_item,
+    payment_dummy,
+    address,
+    shipping_method,
+    checkout_shipping_method,
+):
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_shipping_method = checkout_shipping_method(
+        checkout, shipping_method
+    )
     checkout.billing_address = address
     checkout.save()
 
@@ -4247,9 +4191,13 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
     assert e.value.error_dict["shipping_method"][0].message == msg
 
 
-def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method):
+def test_clean_checkout_no_shipping_address(
+    checkout_with_item, shipping_method, checkout_shipping_method
+):
     checkout = checkout_with_item
-    checkout.shipping_method = shipping_method
+    checkout.assigned_shipping_method = checkout_shipping_method(
+        checkout, shipping_method
+    )
     checkout.save()
 
     manager = get_plugins_manager(allow_replica=False)
@@ -4262,13 +4210,20 @@ def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method)
 
 
 def test_clean_checkout_invalid_shipping_method(
-    checkout_with_item, address, shipping_zone_without_countries
+    checkout_with_item,
+    address,
+    shipping_zone_without_countries,
+    checkout_shipping_method,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
     shipping_method = shipping_zone_without_countries.shipping_methods.first()
-    checkout.shipping_method = shipping_method
+    checkout.assigned_shipping_method = checkout_shipping_method(
+        checkout, shipping_method
+    )
     checkout.save()
+    checkout.assigned_shipping_method.is_valid = False
+    checkout.assigned_shipping_method.save(update_fields=["is_valid"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
