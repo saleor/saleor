@@ -6847,7 +6847,7 @@
       "slug": "brand",
       "name": "Brand",
       "type": "product-type",
-      "input_type": "reference",
+      "input_type": "single-reference",
       "entity_type": "Page",
       "unit": null,
       "value_required": false,
@@ -9027,6 +9027,14 @@
       "attribute": 38,
       "product_type": 20,
       "variant_selection": true
+    }
+  },
+  {
+    "model": "attribute.attribute_reference_page_types",
+    "pk": 1,
+    "fields": {
+      "attribute": 44,
+      "page_type": 5
     }
   },
   {
