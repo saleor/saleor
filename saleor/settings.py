@@ -1060,6 +1060,11 @@ TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
 # Whether to raise or log exceptions for telemetry unit conversion errors
 # Disabled by default to prevent disruptions caused by unexpected unit conversion issues
 TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
+# The default threshold for slow operations is set to 1 second, based on production monitoring data.
+# Only a small percentage of queries are expected to exceed this threshold.
+TELEMETRY_SLOW_GRAPHQL_OPERATION_THRESHOLD = float(
+    os.environ.get("TELEMETRY_SLOW_GRAPHQL_OPERATION_THRESHOLD", 1.0)
+)
 
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
