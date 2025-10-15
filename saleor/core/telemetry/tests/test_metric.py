@@ -431,7 +431,7 @@ def test_meter_create_histogram_with_explicit_bucket_boundaries(get_test_metrics
     meter.record(name, 20, unit=Unit.SECOND, attributes=attributes)
 
     # then
-    metric_data = get_metric_data(get_test_metrics_data(), name)
+    metric_data = get_metric_data(get_test_metrics_data(), name, scope=Scope.CORE)
     assert metric_data.name == name
     assert metric_data.unit == unit.value
     assert metric_data.description == description
