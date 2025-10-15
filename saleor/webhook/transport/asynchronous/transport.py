@@ -433,14 +433,17 @@ def trigger_webhooks_async_for_multiple_objects(
             bind=True,
         )
 
-    send_webhooks_async(deliveries, queue)
+    handle_async_webhooks(deliveries, queue)
+
+
+def handle_async_webhooks(deliveries: list[EventDelivery], queue=None):
+    if settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME:
+        send_webhooks_async_in_batches(deliveries)
+    else:
+        send_webhooks_async(deliveries, queue)
 
 
 def send_webhooks_async(deliveries: list[EventDelivery], queue=None):
-    if settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME:
-        send_webhooks_async_in_batches(deliveries)
-        return
-
     domain = get_domain()
     telemetry_context = get_task_context().to_dict()
 
@@ -605,7 +608,7 @@ def generate_deferred_payloads(
                     event_deliveries_for_bulk_update, ["payload"]
                 )
 
-    send_webhooks_async(event_deliveries_for_bulk_update, send_webhook_queue)
+    handle_async_webhooks(event_deliveries_for_bulk_update, send_webhook_queue)
 
 
 @app.task(
