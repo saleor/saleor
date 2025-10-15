@@ -2,7 +2,7 @@ import datetime
 import json
 import logging
 from collections import defaultdict
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -12,6 +12,7 @@ from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Count
 from opentelemetry.trace import StatusCode
 
 from ....app.models import AppWebhookMutex
@@ -171,7 +172,7 @@ def create_deliveries_for_multiple_subscription_objects(
             event_payload = EventPayload()
             event_payloads.append(event_payload)
             event_delivery = EventDelivery(
-                status=EventDeliveryStatus.PENDING,
+                status=get_initial_delivery_status(),
                 event_type=event_type,
                 payload=event_payload,
                 webhook=webhook,
@@ -260,7 +261,7 @@ def create_deliveries_for_deferred_payload_subscriptions(
 
         for webhook in webhooks:
             delivery = EventDelivery(
-                status=EventDeliveryStatus.PENDING,
+                status=get_initial_delivery_status(),
                 event_type=event_type,
                 webhook=webhook,
             )
@@ -294,7 +295,7 @@ def create_event_delivery_list_for_webhooks(
     event_deliveries = EventDelivery.objects.bulk_create(
         [
             EventDelivery(
-                status=EventDeliveryStatus.PENDING,
+                status=get_initial_delivery_status(),
                 event_type=event_type,
                 payload=event_payload,
                 webhook=webhook,
@@ -443,7 +444,13 @@ def handle_async_webhooks(deliveries: list[EventDelivery], queue=None):
         send_webhooks_async(deliveries, queue)
 
 
-def send_webhooks_async(deliveries: list[EventDelivery], queue=None):
+def get_initial_delivery_status():
+    if settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME:
+        return EventDeliveryStatus.SCHEDULED
+    return EventDeliveryStatus.PENDING
+
+
+def send_webhooks_async(deliveries: Iterable[EventDelivery], queue=None):
     domain = get_domain()
     telemetry_context = get_task_context().to_dict()
 
@@ -699,9 +706,13 @@ def send_webhooks_async_for_app(
     app_id,
     telemetry_context: TelemetryTaskContext,
 ) -> None:
-    processed = _process_send_webhooks_async_for_app(
-        self.request.id, app_id, telemetry_context
-    )
+    # TODO: customize max concurrency per app
+    if settings.WEBHOOK_BATCH_MAX_CONCURRENCY > 1:
+        processed = send_scheduled_async_webhooks_concurrently(app_id)
+    else:
+        processed = send_scheduled_async_webhooks_sequentially(
+            self.request.id, app_id, telemetry_context
+        )
 
     with refresh_webhook_lock(app_id) as new_lock_uuid:
         if new_lock_uuid and processed:
@@ -718,7 +729,60 @@ def send_webhooks_async_for_app(
 
 
 @allow_writer()
-def _process_send_webhooks_async_for_app(
+def send_scheduled_async_webhooks_concurrently(app_id) -> bool:
+    deliveries_count_by_status_qs = (
+        EventDelivery.objects.select_related("webhook__app")
+        .filter(
+            webhook__app_id=app_id,
+            status__in=(EventDeliveryStatus.SCHEDULED, EventDeliveryStatus.PENDING),
+        )
+        .values("status")
+        .annotate(count=Count("status"))
+    )
+    deliveries_count = {d["status"]: d["count"] for d in deliveries_count_by_status_qs}
+
+    scheduled_deliveries_count = deliveries_count.get(EventDeliveryStatus.SCHEDULED, 0)
+    pending_deliveries_count = deliveries_count.get(EventDeliveryStatus.PENDING, 0)
+
+    logger.info(
+        "[App ID:%r] deliveries scheduled: %d, pending: %d, max concurrency: %d",
+        app_id,
+        scheduled_deliveries_count,
+        pending_deliveries_count,
+        settings.WEBHOOK_BATCH_MAX_CONCURRENCY,
+    )
+
+    available_concurrency = (
+        settings.WEBHOOK_BATCH_MAX_CONCURRENCY - pending_deliveries_count
+    )
+    if available_concurrency < 1:
+        # No available concurrency slots.
+        # Schedule next iteration if there are scheduled deliveries.
+        return scheduled_deliveries_count > 0
+
+    with transaction.atomic():
+        deliveries_to_send = (
+            EventDelivery.objects.select_related("webhook__app")
+            .filter(webhook__app_id=app_id, status=EventDeliveryStatus.SCHEDULED)
+            .order_by("created_at")[:available_concurrency]
+            .select_for_update(of=["self"])
+            .all()
+        )
+        logger.info(
+            "[App ID:%r] deliveries to send: %d", app_id, len(deliveries_to_send)
+        )
+        if not deliveries_to_send:
+            return False
+
+        EventDelivery.objects.filter(pk__in=deliveries_to_send).update(
+            status=EventDeliveryStatus.PENDING
+        )
+        send_webhooks_async(deliveries_to_send)
+        return True
+
+
+@allow_writer()
+def send_scheduled_async_webhooks_sequentially(
     task_id: str, app_id: int, telemetry_context: TelemetryTaskContext
 ):
     domain = get_domain()

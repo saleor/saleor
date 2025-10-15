@@ -28,11 +28,13 @@ class TimePeriodType:
 
 
 class EventDeliveryStatus:
+    SCHEDULED = "scheduled"
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
 
     CHOICES = [
+        (SCHEDULED, "Scheduled"),
         (PENDING, "Pending"),
         (SUCCESS, "Success"),
         (FAILED, "Failed"),
