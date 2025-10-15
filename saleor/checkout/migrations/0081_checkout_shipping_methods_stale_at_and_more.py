@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "ordering": ("-created_at", "pk"),
+                "ordering": ("created_at", "pk"),
                 "unique_together": {("checkout", "original_id")},
             },
         ),

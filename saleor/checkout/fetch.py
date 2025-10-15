@@ -25,12 +25,11 @@ from ..discount.interface import (
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
-    convert_to_shipping_method_data,
+    convert_checkout_shipping_method_to_shipping_method_data,
     initialize_shipping_method_active_status,
 )
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
-from ..webhook.transport.shipping_helpers import convert_to_app_id_with_identifier
 from .lock_objects import checkout_qs_select_for_update
 from .models import Checkout, CheckoutLine, CheckoutShippingMethod
 
@@ -230,45 +229,12 @@ class CheckoutInfo:
                 checkout.save(update_fields=fields_to_update)
 
     def get_delivery_method_info(self) -> "DeliveryMethodBase":
-        from .utils import get_external_shipping_id
-
         delivery_method: ShippingMethodData | Warehouse | None = None
 
-        if self.shipping_method:
-            # Find listing for the currently selected shipping method
-            shipping_channel_listing = None
-            for listing in self.shipping_channel_listings:
-                if listing.shipping_method_id == self.shipping_method.id:
-                    shipping_channel_listing = listing
-                    break
-
-            if shipping_channel_listing:
-                delivery_method = convert_to_shipping_method_data(
-                    self.shipping_method, shipping_channel_listing
-                )
-
-        elif external_shipping_method_id := get_external_shipping_id(self.checkout):
-            if self.allow_sync_webhooks:
-                methods = {
-                    method.id: method for method in self.get_all_shipping_methods()
-                }
-                if method := methods.get(external_shipping_method_id):
-                    delivery_method = method
-                else:
-                    new_shipping_method_id = convert_to_app_id_with_identifier(
-                        external_shipping_method_id
-                    )
-                    if new_shipping_method_id is None:
-                        delivery_method = None
-                    else:
-                        delivery_method = methods.get(new_shipping_method_id)
-            else:
-                delivery_method = ShippingMethodData(
-                    id=get_external_shipping_id(self.checkout),
-                    name=self.checkout.shipping_method_name or "",
-                    price=self.checkout.undiscounted_base_shipping_price,
-                )
-
+        if assigned_sm := self.checkout.assigned_shipping_method:
+            delivery_method = convert_checkout_shipping_method_to_shipping_method_data(
+                assigned_sm
+            )
         else:
             delivery_method = self.collection_point
 
@@ -337,6 +303,9 @@ class DeliveryMethodBase:
     def is_delivery_method_set(self) -> bool:
         return bool(self.delivery_method)
 
+    def get_details_for_conversion_to_order(self) -> dict[str, Any]:
+        return {"shipping_method_name": None}
+
 
 @dataclass(frozen=True)
 class ShippingMethodInfo(DeliveryMethodBase):
@@ -358,10 +327,27 @@ class ShippingMethodInfo(DeliveryMethodBase):
         return bool(self.shipping_address)
 
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
-        valid_delivery_methods = checkout_info.valid_delivery_methods
-        return bool(
-            valid_delivery_methods and self.delivery_method in valid_delivery_methods
-        )
+        return self.delivery_method.active
+
+    def get_details_for_conversion_to_order(self) -> dict[str, str | int | None]:
+        details: dict[str, str | int | None] = {
+            "shipping_method_name": str(self.delivery_method.name)
+        }
+        if not self.delivery_method.is_external:
+            details["shipping_method_id"] = int(self.delivery_method.id)
+
+        if self.delivery_method.tax_class:
+            details["shipping_tax_class_id"] = self.delivery_method.tax_class.id
+            details["shipping_tax_class_name"] = str(
+                self.delivery_method.tax_class.name
+            )
+            details["shipping_tax_class_private_metadata"] = (
+                self.delivery_method.tax_class.private_metadata
+            )
+            details["shipping_tax_class_metadata"] = (
+                self.delivery_method.tax_class.metadata
+            )
+        return details
 
 
 @dataclass(frozen=True)
@@ -407,7 +393,14 @@ class CollectionPointInfo(DeliveryMethodBase):
             valid_delivery_methods and self.delivery_method in valid_delivery_methods
         )
 
+    def get_details_for_conversion_to_order(self) -> dict[str, Any]:
+        return {
+            "collection_point_name": str(self.delivery_method),
+            "collection_point": self.delivery_method,
+        }
 
+
+# FIXME: Maciek: can we remove this?
 @singledispatch
 def get_delivery_method_info(
     delivery_method: Union["ShippingMethodData", "Warehouse"] | None,
@@ -595,6 +588,7 @@ def _get_product_channel_listing(
     return product_channel_listing
 
 
+# FIXME: Maciek: Drop shipping_channel_listings?
 def fetch_checkout_info(
     checkout: "Checkout",
     lines: list[CheckoutLineInfo],
@@ -777,12 +771,11 @@ def fetch_shipping_methods_for_checkout(
     )
     initialize_shipping_method_active_status(all_methods, excluded_methods)
 
-    available_shipping_method_original_ids = set(
-        list(built_in_shipping_methods_dict.keys())
-        + list(external_shipping_methods_dict.keys())
-    )
+    available_shipping_method_original_ids = list(
+        built_in_shipping_methods_dict.keys()
+    ) + list(external_shipping_methods_dict.keys())
 
-    checkout_shipping_methods = []
+    checkout_shipping_methods = {}
 
     for shipping_method_id in available_shipping_method_original_ids:
         shipping_method_data = built_in_shipping_methods_dict.get(
@@ -798,24 +791,23 @@ def fetch_shipping_methods_for_checkout(
                 "tax_class_metadata": shipping_method_data.tax_class.metadata,
                 "tax_class_private_metadata": shipping_method_data.tax_class.private_metadata,
             }
-        checkout_shipping_methods.append(
-            CheckoutShippingMethod(
-                checkout=checkout,
-                original_id=shipping_method_data.id,
-                name=shipping_method_data.name or "",
-                description=shipping_method_data.description,
-                price_amount=shipping_method_data.price.amount,
-                currency=shipping_method_data.price.currency,
-                maximum_delivery_days=shipping_method_data.maximum_delivery_days,
-                minimum_delivery_days=shipping_method_data.minimum_delivery_days,
-                metadata=shipping_method_data.metadata,
-                private_metadata=shipping_method_data.private_metadata,
-                active=shipping_method_data.active,
-                message=shipping_method_data.message,
-                is_valid=True,
-                is_external=shipping_method_data.is_external,
-                **tax_class_details,
-            )
+
+        checkout_shipping_methods[shipping_method_data.id] = CheckoutShippingMethod(
+            checkout=checkout,
+            original_id=shipping_method_data.id,
+            name=shipping_method_data.name or "",
+            description=shipping_method_data.description,
+            price_amount=shipping_method_data.price.amount,
+            currency=shipping_method_data.price.currency,
+            maximum_delivery_days=shipping_method_data.maximum_delivery_days,
+            minimum_delivery_days=shipping_method_data.minimum_delivery_days,
+            metadata=shipping_method_data.metadata,
+            private_metadata=shipping_method_data.private_metadata,
+            active=shipping_method_data.active,
+            message=shipping_method_data.message,
+            is_valid=True,
+            is_external=shipping_method_data.is_external,
+            **tax_class_details,
         )
 
     with traced_atomic_transaction():
@@ -854,7 +846,7 @@ def fetch_shipping_methods_for_checkout(
 
         if checkout_shipping_methods:
             CheckoutShippingMethod.objects.bulk_create(
-                checkout_shipping_methods,
+                checkout_shipping_methods.values(),
                 update_conflicts=True,
                 unique_fields=[
                     "checkout_id",
@@ -889,3 +881,25 @@ def fetch_shipping_methods_for_checkout(
             )
         )
     return []
+
+
+def get_or_fetch_checkout_shipping_methods(
+    checkout_info: "CheckoutInfo",
+) -> list[CheckoutShippingMethod]:
+    """Get or fetch shipping methods for the checkout.
+
+    If the checkout's shipping methods are stale or missing, fetch and update them.
+    Otherwise, return the existing valid shipping methods.
+    """
+    checkout = checkout_info.checkout
+    if (
+        checkout.shipping_methods_stale_at is None
+        or checkout.shipping_methods_stale_at <= timezone.now()
+    ):
+        return fetch_shipping_methods_for_checkout(checkout_info)
+    return list(
+        CheckoutShippingMethod.objects.filter(
+            checkout_id=checkout.pk,
+            is_valid=True,
+        )
+    )

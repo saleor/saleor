@@ -36,7 +36,7 @@ from .utils import (
     ERROR_CC_ADDRESS_CHANGE_FORBIDDEN,
     check_lines_quantity,
     get_checkout,
-    update_checkout_shipping_method_if_invalid,
+    mark_checkout_shipping_methods_as_stale_if_needed,
 )
 
 if TYPE_CHECKING:
@@ -206,8 +206,8 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 shipping_channel_listings,
             )
 
-        shipping_update_fields = update_checkout_shipping_method_if_invalid(
-            checkout_info, lines
+        shipping_update_fields = mark_checkout_shipping_methods_as_stale_if_needed(
+            checkout_info.checkout, lines
         )
 
         invalidate_prices_updated_fields = invalidate_checkout(
