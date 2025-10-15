@@ -20,6 +20,7 @@ from ..core.taxes import (
 from ..discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
+from ..graphql.checkout.utils import use_gift_card_transactions_flow
 from ..payment.models import TransactionItem
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..tax import TaxCalculationStrategy
@@ -825,15 +826,20 @@ def fetch_checkout_data(
             and bool(lines)
         )
     ):
-        current_total_gross = (
-            checkout_info.checkout.total.gross
-            - checkout_info.checkout.get_total_gift_cards_balance(
-                database_connection_name
+        # Gift card transactions flow creates authorize transactions for gift cards.
+        # Therefore do not account price reduction twice (gift card balance and authorization transactions).
+        if not use_gift_card_transactions_flow(
+            checkout_info.channel, checkout_info.checkout, database_connection_name
+        ):
+            current_total_gross = (
+                checkout_info.checkout.total.gross
+                - checkout_info.checkout.get_total_gift_cards_balance(
+                    database_connection_name
+                )
             )
-        )
-        current_total_gross = max(
-            current_total_gross, zero_money(current_total_gross.currency)
-        )
+            current_total_gross = max(
+                current_total_gross, zero_money(current_total_gross.currency)
+            )
         update_checkout_payment_statuses(
             checkout=checkout_info.checkout,
             checkout_total_gross=current_total_gross,
