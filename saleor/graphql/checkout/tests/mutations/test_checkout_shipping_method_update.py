@@ -877,6 +877,7 @@ def test_checkout_shipping_method_update_from_external_shipping_to_the_same_exte
         price_amount=response_shipping_price,
         currency="USD",
         maximum_delivery_days=7,
+        is_external=True,
     )
     checkout.shipping_method_name = response_shipping_name
     checkout.undiscounted_base_shipping_price_amount = Decimal(response_shipping_price)

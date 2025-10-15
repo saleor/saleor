@@ -183,6 +183,7 @@ def test_user_checkout_details_with_external_shipping_method(
         price_amount=shipping_price,
         currency="USD",
         maximum_delivery_days=7,
+        is_external=True,
     )
 
     checkout.shipping_address = address

@@ -79,15 +79,10 @@ def test_checkout_shipping_method_update_by_token(
     assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
 
 
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
-    "clean_delivery_method"
-)
 def test_checkout_shipping_method_update_neither_token_and_id_given(
-    mock_clean_shipping, staff_api_client, checkout_with_item, shipping_method
+    staff_api_client, checkout_with_item, shipping_method
 ):
     query = MUTATION_UPDATE_SHIPPING_METHOD
-    mock_clean_shipping.return_value = True
 
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
@@ -98,16 +93,11 @@ def test_checkout_shipping_method_update_neither_token_and_id_given(
     assert data["errors"][0]["code"] == CheckoutErrorCode.GRAPHQL_ERROR.name
 
 
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
-    "clean_delivery_method"
-)
 def test_checkout_shipping_method_update_both_token_and_id_given(
-    mock_clean_shipping, staff_api_client, checkout_with_item, shipping_method
+    staff_api_client, checkout_with_item, shipping_method
 ):
     checkout = checkout_with_item
     query = MUTATION_UPDATE_SHIPPING_METHOD
-    mock_clean_shipping.return_value = True
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)

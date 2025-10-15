@@ -5358,6 +5358,7 @@ def test_checkout_complete_with_external_shipping_method(
         price_amount="10.00",
         currency="USD",
         maximum_delivery_days=7,
+        is_external=True,
     )
     checkout.shipping_address = address
     checkout.billing_address = address

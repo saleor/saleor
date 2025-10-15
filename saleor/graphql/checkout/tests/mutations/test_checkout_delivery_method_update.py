@@ -417,6 +417,7 @@ def test_checkout_delivery_method_update_keeps_shipping_when_invalid(
         price_amount="10.00",
         currency="USD",
         maximum_delivery_days=7,
+        is_external=True,
     )
     checkout.save()
 
@@ -443,12 +444,7 @@ def test_checkout_delivery_method_update_keeps_shipping_when_invalid(
     assert checkout.assigned_shipping_method
 
 
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
-    "clean_delivery_method"
-)
 def test_checkout_delivery_method_update_with_id_of_different_type_causes_and_error(
-    mock_clean_delivery,
     api_client,
     checkout_with_item,
     address,
@@ -457,7 +453,7 @@ def test_checkout_delivery_method_update_with_id_of_different_type_causes_and_er
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_DELIVERY_METHOD
-    mock_clean_delivery.return_value = True
+
     invalid_method_id = graphene.Node.to_global_id("Address", address.id)
 
     response = api_client.post_graphql(
@@ -478,12 +474,7 @@ def test_checkout_delivery_method_update_with_id_of_different_type_causes_and_er
     assert checkout.collection_point is None
 
 
-@patch(
-    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
-    "clean_delivery_method"
-)
 def test_checkout_delivery_method_with_nonexistant_id_results_not_applicable(
-    mock_clean_delivery,
     api_client,
     warehouse_for_cc,
     checkout_with_item,
@@ -494,7 +485,6 @@ def test_checkout_delivery_method_with_nonexistant_id_results_not_applicable(
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_DELIVERY_METHOD
-    mock_clean_delivery.return_value = True
 
     nonexistant_id = "YXBwOjEyMzQ6c29tZS1pZA=="
 
@@ -1710,6 +1700,7 @@ def test_checkout_delivery_method_update_from_external_shipping_to_the_same_exte
         price_amount=response_shipping_price,
         currency="USD",
         maximum_delivery_days=7,
+        is_external=True,
     )
     checkout.shipping_method_name = response_shipping_name
     checkout.undiscounted_base_shipping_price_amount = Decimal(response_shipping_price)
