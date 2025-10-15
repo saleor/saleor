@@ -32,6 +32,11 @@ def is_image_url(url: str) -> bool:
     return filetype is not None and is_image_mimetype(filetype)
 
 
+def is_valid_image_content_type(content_type: str | None) -> bool:
+    """Check if content type is a valid image content type."""
+    return content_type is not None and is_image_mimetype(content_type)
+
+
 def validate_image_url(url: str, field_name: str, error_code: str) -> None:
     """Check if remote file has content type of image.
 

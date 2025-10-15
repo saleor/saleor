@@ -14,7 +14,11 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
-from ....core.validators.file import clean_image_file, is_image_url, validate_image_url
+from ....core.validators.file import (
+    clean_image_file,
+    is_image_url,
+    is_valid_image_content_type,
+)
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 from ...utils import ALT_CHAR_LIMIT
@@ -119,19 +123,27 @@ class ProductMediaCreate(BaseMutation):
             # In case of images, file is downloaded. Otherwise we keep only
             # URL to remote media.
             if is_image_url(media_url):
-                validate_image_url(
-                    media_url, "media_url", ProductErrorCode.INVALID.value
-                )
-                filename = get_filename_from_url(media_url)
-                image_data = HTTPClient.send_request(
+                with HTTPClient.send_request(
                     "GET", media_url, stream=True, allow_redirects=False
-                )
-                image_file = File(image_data.raw, filename)
-                media = product.media.create(
-                    image=image_file,
-                    alt=alt,
-                    type=ProductMediaTypes.IMAGE,
-                )
+                ) as image_data:
+                    content_type = image_data.headers.get("content-type")
+                    if is_valid_image_content_type(content_type):
+                        filename = get_filename_from_url(media_url)
+                        image_file = File(image_data.raw, filename)
+                        media = product.media.create(
+                            image=image_file,
+                            alt=alt,
+                            type=ProductMediaTypes.IMAGE,
+                        )
+                    else:
+                        raise ValidationError(
+                            {
+                                "media_url": ValidationError(
+                                    "Invalid file type.",
+                                    code=ProductErrorCode.INVALID.value,
+                                )
+                            }
+                        )
             else:
                 try:
                     oembed_data, media_type = get_oembed_data(
