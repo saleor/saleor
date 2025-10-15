@@ -28,22 +28,19 @@ def get_active_tax_apps(identifiers: list[str] | None = None):
 
 
 @contextmanager
-def acquire_webhook_lock(app_id: int):
+def refresh_webhook_lock(app_id: int):
+    """Generate a new lock UUID next batch of app webhooks."""
     try:
         with transaction.atomic():
-            mutex = AppWebhookMutex.objects.select_for_update(
+            mutex, _created = AppWebhookMutex.objects.select_for_update(
                 nowait=True, of=(["self"])
-            ).get(app_id=app_id)
-            new_lock_uuid = uuid.uuid4()  # Generate a new lock UUID for next iteration
-            yield True, new_lock_uuid
-            mutex.lock_uuid = new_lock_uuid
-            mutex.save()
+            ).get_or_create(app_id=app_id)
 
+            if not _created:
+                mutex.lock_uuid = uuid.uuid4()
+                mutex.save(update_fields=["lock_uuid"])
+
+            yield mutex.lock_uuid
     except DatabaseError:
         logger.warning("Couldn't acquire the webhook lock. App ID: %s", app_id)
-        yield False, None
-    except AppWebhookMutex.DoesNotExist:
-        logger.warning("AppWebhookMutex entry does not exist. App ID: %s", app_id)
-        AppWebhookMutex.objects.get_or_create(app_id=app_id)
-        with acquire_webhook_lock(app_id) as (acquired, lock_uuid):
-            yield acquired, lock_uuid
+        yield None
