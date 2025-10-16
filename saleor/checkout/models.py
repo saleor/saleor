@@ -50,7 +50,10 @@ class CheckoutShippingMethod(models.Model):
     description = models.TextField(null=True, blank=True)
 
     price = MoneyField(amount_field="price_amount", currency_field="currency")
-    price_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
     currency = models.CharField(max_length=3)
 
     maximum_delivery_days = models.PositiveIntegerField(null=True, blank=True)

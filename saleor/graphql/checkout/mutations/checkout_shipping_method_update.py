@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -31,9 +29,6 @@ from .utils import (
     assign_delivery_method_to_checkout,
     get_checkout,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 class CheckoutShippingMethodUpdate(BaseMutation):

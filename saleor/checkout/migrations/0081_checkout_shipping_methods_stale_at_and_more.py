@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 ),
                 ("name", models.CharField(max_length=255)),
                 ("description", models.TextField(blank=True, null=True)),
-                ("price_amount", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("price_amount", models.DecimalField(decimal_places=3, max_digits=20)),
                 ("currency", models.CharField(max_length=3)),
                 (
                     "maximum_delivery_days",
