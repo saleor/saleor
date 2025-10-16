@@ -1,5 +1,6 @@
 import json
 import os
+from PIL import Image
 from unittest.mock import Mock, patch
 
 import graphene
@@ -336,6 +337,7 @@ def test_product_media_create_mutation_valid_image_file_is_fetched_once(
     assert data["product"]["media"][0]["type"] == ProductMediaTypes.IMAGE
     assert data["product"]["media"][0]["alt"] == expected_alt
 
+    # Validate the image file
     product.refresh_from_db()
     product_image = product.media.last()
     assert product_image.image.file
@@ -344,6 +346,13 @@ def test_product_media_create_mutation_valid_image_file_is_fetched_once(
     assert file_name != expected_file_name
     assert file_name.startswith(f"products/{img_name}")
     assert file_name.endswith(format)
+
+    # Open the image and validate its content
+    image_path = product_image.image.path
+    with Image.open(image_path) as img:
+        assert img.format == "PNG"  # Ensure the image format is PNG
+        assert img.size[0] > 0  # Ensure the image has dimensions
+        assert img.size[1] > 0  # Ensure the image has dimensions
 
 
 def test_product_media_create_mutation_alt_character_limit(

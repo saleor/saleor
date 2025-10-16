@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.core.files import File
 
 from .....core.exceptions import UnsupportedMediaProviderException
 from .....core.http_client import HTTPClient
@@ -14,6 +13,7 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
+from ....core.utils import create_file_from_response
 from ....core.validators.file import (
     clean_image_file,
     is_image_url,
@@ -129,12 +129,7 @@ class ProductMediaCreate(BaseMutation):
                     content_type = image_data.headers.get("content-type")
                     if is_valid_image_content_type(content_type):
                         filename = get_filename_from_url(media_url)
-                        image_file = File(image_data.raw, filename)
-                        media = product.media.create(
-                            image=image_file,
-                            alt=alt,
-                            type=ProductMediaTypes.IMAGE,
-                        )
+                        image_file = create_file_from_response(image_data, filename)
                     else:
                         raise ValidationError(
                             {
@@ -144,6 +139,11 @@ class ProductMediaCreate(BaseMutation):
                                 )
                             }
                         )
+                media = product.media.create(
+                    image=image_file,
+                    alt=alt,
+                    type=ProductMediaTypes.IMAGE,
+                )
             else:
                 try:
                     oembed_data, media_type = get_oembed_data(
