@@ -27,7 +27,7 @@ from ....core.validators import validate_one_of_args_is_in_mutation
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
-from ...utils import clean_variant_sku, get_used_variants_attribute_values
+from ...utils import clean_variant_sku
 from ..utils import PRODUCT_VARIANT_UPDATE_FIELDS
 from . import product_variant_cleaner as cleaner
 from .product_variant_create import ProductVariantInput
@@ -130,7 +130,6 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         attribute_modified = False
         product = instance.product
         product_type = product.product_type
-        used_attribute_values = get_used_variants_attribute_values(product)
 
         variant_attributes_ids = set()
         variant_attributes_external_refs = set()
@@ -175,10 +174,10 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                     attribute_modified = has_input_modified_attribute_values(
                         instance, cleaned_attributes
                     )
-                    if attribute_modified:
-                        cleaner.validate_duplicated_attribute_values(
-                            cleaned_attributes, used_attribute_values
-                        )
+                    # FIXME: override the attribute_modified value to True as
+                    # has_input_modified_attribute_values is working wrong and
+                    # attributes are not set in case the variant has no values assigned
+                    attribute_modified = True
                     cleaned_input["attributes"] = cleaned_attributes
 
             except ValidationError as e:
