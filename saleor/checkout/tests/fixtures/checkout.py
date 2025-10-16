@@ -400,6 +400,7 @@ def checkout_with_delivery_method_for_external_shipping(checkout_with_item, addr
         name="Provider - Economy",
         price_amount=Decimal(99),
         currency=checkout_with_item.currency,
+        is_external=True,
     )
     checkout_with_item.assigned_shipping_method = sm
     checkout_with_item.shipping_address = address.get_copy()

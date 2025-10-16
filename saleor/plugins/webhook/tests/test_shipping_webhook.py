@@ -10,6 +10,7 @@ from ....graphql.core.utils import to_global_id_or_none
 from ....graphql.tests.utils import get_graphql_content
 from ....graphql.webhook.utils import get_subscription_query_hash
 from ....order import OrderStatus
+from ....shipping.models import ShippingMethod
 from ....webhook.const import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
@@ -641,11 +642,14 @@ def test_checkout_shipping_methods(
     checkout_ready_to_complete,
     permission_manage_checkouts,
     settings,
+    shipping_method_weight_based,
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "spanish-inquisition"
-    excluded_shipping_method_id = checkout_ready_to_complete.shipping_method.id
+    excluded_shipping_method_id = (
+        checkout_ready_to_complete.assigned_shipping_method.original_id
+    )
     mocked_webhook.return_value = [
         ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
     ]
@@ -682,12 +686,15 @@ def test_checkout_available_shipping_methods(
     checkout_ready_to_complete,
     permission_manage_checkouts,
     settings,
+    shipping_method_weight_based,
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "spanish-inquisition"
 
-    excluded_shipping_method_id = checkout_ready_to_complete.shipping_method.id
+    excluded_shipping_method_id = (
+        checkout_ready_to_complete.assigned_shipping_method.original_id
+    )
     mocked_webhook.return_value = [
         ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
     ]
@@ -725,8 +732,10 @@ def test_checkout_shipping_methods_webhook_called_once(
     content = get_graphql_content(response)
     checkout_data = content["data"]["checkout"]
     # then
-    assert len(checkout_data["availableShippingMethods"]) == 2
-    assert len(checkout_data["shippingMethods"]) == 2
+    expected_count = ShippingMethod.objects.count()
+    assert len(checkout_data["availableShippingMethods"]) == expected_count
+    assert len(checkout_data["shippingMethods"]) == expected_count
+    assert mocked_webhook.called
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")

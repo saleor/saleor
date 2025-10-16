@@ -231,6 +231,7 @@ def test_assign_delivery_method_to_checkout_delivery_method_to_external(
         price_amount="10.00",
         currency="USD",
         maximum_delivery_days=7,
+        is_external=True,
     )
 
     # when

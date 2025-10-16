@@ -6,11 +6,11 @@ from prices import Money
 
 from ..core.db.connection import allow_writer
 from ..plugins.base_plugin import ExcludedShippingMethod
+from ..tax.models import TaxClass
 from .interface import ShippingMethodData
 
 if TYPE_CHECKING:
     from ..checkout.models import CheckoutShippingMethod
-    from ..tax.models import TaxClass
     from .models import ShippingMethod, ShippingMethodChannelListing
 
 
@@ -80,8 +80,16 @@ def convert_checkout_shipping_method_to_shipping_method_data(
         price=Money(
             checkout_shipping_method.price_amount, checkout_shipping_method.currency
         ),
-        active=checkout_shipping_method.active,
+        active=all(
+            [checkout_shipping_method.active, checkout_shipping_method.is_valid]
+        ),
         message=checkout_shipping_method.message or "",
+        tax_class=TaxClass(
+            id=checkout_shipping_method.tax_class_id,
+            name=checkout_shipping_method.tax_class_name or "",
+            metadata=checkout_shipping_method.tax_class_metadata,
+            private_metadata=checkout_shipping_method.tax_class_private_metadata,
+        ),
     )
 
 

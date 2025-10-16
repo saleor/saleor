@@ -35,8 +35,7 @@ from .utils import (
     get_checkout,
     get_variants_and_total_quantities,
     group_lines_input_on_add,
-    update_checkout_external_shipping_method_if_invalid,
-    update_checkout_shipping_method_if_invalid,
+    mark_checkout_shipping_methods_as_stale_if_needed,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
@@ -262,9 +261,8 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_info,
         )
 
-        update_checkout_external_shipping_method_if_invalid(checkout_info, lines)
-        shipping_update_fields = update_checkout_shipping_method_if_invalid(
-            checkout_info, lines
+        shipping_update_fields = mark_checkout_shipping_methods_as_stale_if_needed(
+            checkout_info.checkout, lines
         )
         invalidate_update_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False

@@ -2202,7 +2202,8 @@ def test_complete_checkout_invalid_shipping_method(
     checkout.save()
 
     # make the current shipping method invalid
-    checkout.shipping_method.channel_listings.filter(channel=checkout.channel).delete()
+    checkout.assigned_shipping_method.is_valid = False
+    checkout.assigned_shipping_method.save()
 
     voucher.apply_once_per_customer = True
     voucher.save()
@@ -2516,7 +2517,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
     mocked_get_tax_calculation_strategy_for_checkout,
     customer_user,
     checkout_with_item,
-    shipping_method,
+    checkout_shipping_method,
     app,
     address,
     payment_dummy,
@@ -2552,7 +2553,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
     checkout.user = customer_user
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
     checkout.price_expiration = timezone.now() + datetime.timedelta(hours=2)
@@ -2787,7 +2788,7 @@ def test_complete_checkout_fail_handler_with_voucher_and_payment(
 
 
 def test_checkout_complete_with_voucher_0_total(
-    shipping_method,
+    checkout_shipping_method,
     checkout_with_item,
     customer_user,
     voucher_percentage,
@@ -2798,7 +2799,7 @@ def test_checkout_complete_with_voucher_0_total(
     checkout.user = customer_user
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
@@ -2809,9 +2810,9 @@ def test_checkout_complete_with_voucher_0_total(
     voucher_listing.discount_value = 100
     voucher_listing.save(update_fields=["discount_value"])
 
-    shipping_listing = shipping_method.channel_listings.get(channel=channel)
-    shipping_listing.price_amount = 0
-    shipping_listing.save(update_fields=["price_amount"])
+    checkout.assigned_shipping_method.price_amount = Decimal("0.0")
+    checkout.assigned_shipping_method.save(update_fields=["price_amount"])
+
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)

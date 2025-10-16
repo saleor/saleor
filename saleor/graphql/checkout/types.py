@@ -704,7 +704,7 @@ def _resolve_checkout_shipping_method(
             .then(
                 lambda sm: (
                     convert_checkout_shipping_method_to_shipping_method_data(sm)
-                    if sm.is_valid
+                    if sm.is_valid and sm.active
                     else None
                 )
             )
