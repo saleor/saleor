@@ -39,6 +39,7 @@ from ..discount.utils.voucher import (
 )
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
+    use_gift_card_transactions_flow,
 )
 from ..order import OrderOrigin, OrderStatus
 from ..order.actions import order_created
@@ -1386,13 +1387,22 @@ def _create_order_from_checkout(
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
     # total
-    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=checkout_lines_info,
-        address=address,
-        force_update=force_update,
-    )
+    if use_gift_card_transactions_flow(checkout_info.channel, checkout_info.checkout):
+        taxed_total = calculations.calculate_checkout_total(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=checkout_lines_info,
+            address=address,
+            force_update=force_update,
+        )
+    else:
+        taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=checkout_lines_info,
+            address=address,
+            force_update=force_update,
+        )
 
     # voucher
     voucher = checkout_info.voucher

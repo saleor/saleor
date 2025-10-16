@@ -1,10 +1,11 @@
 import pytest
 
-from ..gift_cards.utils import create_gift_card
-from ..product.utils.preparing_product import prepare_product
-from ..shop.utils.preparing_shop import prepare_default_shop
-from ..utils import assign_permissions
-from .utils import (
+from ...gift_cards.utils import create_gift_card
+from ...orders.utils import order_query
+from ...product.utils.preparing_product import prepare_product
+from ...shop.utils.preparing_shop import prepare_default_shop
+from ...utils import assign_permissions
+from ..utils import (
     checkout_add_promo_code,
     checkout_complete,
     checkout_create,
@@ -13,18 +14,20 @@ from .utils import (
 
 
 @pytest.mark.e2e
-def test_checkout_completes_after_assigning_gift_card_code_covering_entire_total_price(
+def test_gift_card_total_payment_for_create_transactions_for_gift_cards_flow(
     e2e_logged_api_client,
     e2e_staff_api_client,
     shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_gift_card,
+    permission_manage_orders,
 ):
     # Before
     permissions = [
         *shop_permissions,
         permission_manage_product_types_and_attributes,
         permission_manage_gift_card,
+        permission_manage_orders,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -85,9 +88,20 @@ def test_checkout_completes_after_assigning_gift_card_code_covering_entire_total
     )
     assert checkout_data["giftCards"][0]["last4CodeChars"] == gift_card_code[-4:]
 
-    # Step 5 - Complete checkout
+    # Step 5 - Complete checkout, order total price is not reduced
     order_data = checkout_complete(
         e2e_logged_api_client,
         checkout_id,
     )
     assert order_data["id"] is not None
+    assert (
+        order_data["total"]["gross"]["amount"]
+        == checkout_data["totalPrice"]["gross"]["amount"]
+    )
+
+    # Step 6 - Check gift card transaction and events
+    order_data = order_query(e2e_staff_api_client, order_data["id"])
+    assert len(order_data["transactions"]) == 1
+
+    transaction = order_data["transactions"][0]
+    assert len(transaction["events"]) == 2

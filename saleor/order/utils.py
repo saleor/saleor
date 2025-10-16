@@ -43,8 +43,11 @@ from ..discount.utils.voucher import (
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
 from ..giftcard.search import mark_gift_cards_search_index_as_dirty
+from ..graphql.checkout.utils import use_gift_card_transactions_flow
 from ..payment import TransactionEventType
 from ..payment.model_helpers import get_total_authorized
+from ..payment.models import TransactionEvent
+from ..payment.transaction_item_calculations import recalculate_transaction_amounts
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -503,6 +506,31 @@ def add_gift_cards_to_order(
     Checkout.objects.filter(gift_cards__in=gift_cards_to_update).exclude(
         token=checkout_info.checkout.token
     ).update(price_expiration=timezone.now())
+
+    if use_gift_card_transactions_flow(checkout_info.channel, checkout_info.checkout):
+        # For each used gift card create charge transaction event.
+        for used_gift_card, previous_balance_amount in balance_data:
+            # Fallback if transaction is not there (gift card could have been added before the upgrade).
+            if not checkout_info.checkout.payment_transactions.filter(
+                gift_card=used_gift_card
+            ).exists():
+                continue
+
+            transaction_item = checkout_info.checkout.payment_transactions.get(
+                gift_card=used_gift_card
+            )
+            TransactionEvent.objects.create(
+                type=TransactionEventType.CHARGE_SUCCESS,
+                amount_value=Decimal(previous_balance_amount)
+                - used_gift_card.current_balance_amount,
+                currency=total_price_left.currency,
+                transaction_id=transaction_item.pk,
+                psp_reference=transaction_item.psp_reference,
+                include_in_calculations=True,
+                created_at=timezone.now(),
+                message=f"Gift Card charge ({gift_card.display_code})",
+            )
+            recalculate_transaction_amounts(transaction=transaction_item)
 
     gift_card_compensation = total_before_gift_card_compensation - total_price_left
     if gift_card_compensation.amount > 0:

@@ -51,6 +51,20 @@ query OrderDetails($id: ID!) {
     status
     transactions {
       id
+      name
+      message
+      createdAt
+      pspReference
+      events {
+        id
+        type
+        createdAt
+        amount {
+          amount
+          currency
+        }
+        pspReference
+        }
     }
     metadata {
       key

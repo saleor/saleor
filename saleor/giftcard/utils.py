@@ -28,7 +28,7 @@ from ..graphql.checkout.utils import use_gift_card_transactions_flow
 from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ..order.models import OrderLine
 from ..payment import PaymentMethodType, TransactionAction, TransactionEventType
-from ..payment.models import TransactionItem
+from ..payment.models import TransactionEvent, TransactionItem
 from ..payment.transaction_item_calculations import recalculate_transaction_amounts
 from ..payment.utils import (
     _prepare_manual_event,
@@ -129,14 +129,18 @@ def create_gift_card_transaction(
         gift_card=gift_card,
         payment_method_type=PaymentMethodType.OTHER,
     )
-    _prepare_manual_event(
-        transaction_item,
-        transaction_item.authorized_value,
-        min(checkout.total_gross_amount, gift_card.current_balance_amount),
-        TransactionEventType.AUTHORIZATION_SUCCESS,
-        None,
-        None,
-    ).save()
+
+    TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        amount_value=min(checkout.total_gross_amount, gift_card.current_balance_amount),
+        currency=transaction_item.currency,
+        transaction_id=transaction_item.pk,
+        psp_reference=transaction_item.psp_reference,
+        include_in_calculations=True,
+        created_at=timezone.now(),
+        message=f"Gift Card authorization ({gift_card.display_code})",
+    )
+
     recalculate_transaction_amounts(transaction=transaction_item)
     transaction_amounts_for_checkout_updated_without_price_recalculation(
         transaction_item, checkout, manager, None, None
