@@ -15,6 +15,7 @@ task_logger: logging.Logger = get_task_logger(__name__)
 
 
 @app.task
+@allow_writer()
 def delete_expired_checkouts(
     batch_size: int = 2000,
     batch_count: int = 5,
