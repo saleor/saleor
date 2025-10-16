@@ -199,7 +199,7 @@ def multiselect_attribute(db, attribute_generator, attribute_values_generator):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    slugs = ["choice-1", "choice-1"]
+    slugs = ["choice-1", "choice-2"]
     names = ["Choice 1", "Choice 2"]
     attribute_values_generator(
         attribute=attribute,

@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
 from ....attribute import AttributeInputType
+from ....attribute.models import AttributeValue
 from ....product.error_codes import ProductErrorCode
 from ..enums import AttributeValueBulkActionEnum
 from ..shared_filters import validate_attribute_value_input
@@ -1982,6 +1983,37 @@ def test_prepare_attribute_values_that_gives_the_same_slug(color_attribute):
     assert results[2][1].name == new_value_2
 
 
+def test_pre_save_multiselect_with_id(
+    color_attribute,
+    product,
+):
+    # given
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["input_type"])
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        multiselect=[
+            AttrValuesForSelectableFieldInput(
+                id=graphene.Node.to_global_id("AttributeValue", value.pk)
+            )
+            for value in color_attribute.values.all()
+        ],
+    )
+    handler = MultiSelectableAttributeHandler(color_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert result == [
+        (AttributeValueBulkActionEnum.NONE, value)
+        for value in color_attribute.values.all()
+    ]
+
+
 def test_pre_save_multiselect_external_reference_action(color_attribute, product):
     # given
     color_attribute.input_type = AttributeInputType.MULTISELECT
@@ -2008,6 +2040,102 @@ def test_pre_save_multiselect_external_reference_action(color_attribute, product
         (AttributeValueBulkActionEnum.NONE, value)
         for value in color_attribute.values.all()
     ]
+
+
+def test_pre_save_multiselect_external_reference_and_value(
+    color_attribute,
+    product,
+):
+    # given
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["input_type"])
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        multiselect=[
+            AttrValuesForSelectableFieldInput(
+                external_reference=value.external_reference, value=value.name
+            )
+            for value in color_attribute.values.all()
+        ],
+    )
+    handler = MultiSelectableAttributeHandler(color_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert result == [
+        (AttributeValueBulkActionEnum.NONE, value)
+        for value in color_attribute.values.all()
+    ]
+
+
+def test_pre_save_multiselect_external_reference_and_invalid_value(
+    multiselect_attribute,
+    product,
+):
+    # given
+    values = list(multiselect_attribute.values.all())
+    external_refs = []
+    for value in values:
+        value.external_reference = f"ext-ref-{value.pk}"
+        external_refs.append(value.external_reference)
+
+    AttributeValue.objects.bulk_update(values, ["external_reference"])
+
+    values_input = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", multiselect_attribute.pk),
+        content_type=None,
+        references=[],
+        multiselect=[
+            AttrValuesForSelectableFieldInput(
+                external_reference=external_ref, value="not-matching-value"
+            )
+            for external_ref in external_refs
+        ],
+    )
+    handler = MultiSelectableAttributeHandler(multiselect_attribute, values_input)
+
+    # when & then
+    with pytest.raises(ValidationError) as exc_info:
+        handler.pre_save_value(product)
+
+    message = str(exc_info.value)
+    assert "Attribute value with external reference" in message
+
+
+def test_pre_save_multiselect_external_reference_and_new_value(
+    color_attribute,
+    product,
+):
+    # given
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["input_type"])
+    new_value = "New Color"
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        multiselect=[
+            AttrValuesForSelectableFieldInput(
+                external_reference="new-external-reference", value=new_value
+            )
+        ],
+    )
+    handler = MultiSelectableAttributeHandler(color_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert len(result) == 1
+    action, value = result[0]
+    assert action == AttributeValueBulkActionEnum.CREATE
+    assert value.name == new_value
 
 
 @pytest.mark.parametrize(
@@ -2136,3 +2264,200 @@ def test_validate_attribute_value_input_combines_invalid_entries(
     message = str(exc_info.value)
     assert "Incorrect input for attributes on position: 0,1,2" in message
     assert "do not match the attribute input type" in message
+
+
+def test_pre_save_dropdown_with_id(
+    color_attribute,
+    product,
+):
+    # given
+    first_value = color_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        dropdown=AttrValuesForSelectableFieldInput(
+            id=graphene.Node.to_global_id("AttributeValue", first_value.pk)
+        ),
+    )
+    handler = SelectableAttributeHandler(color_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert result == [(AttributeValueBulkActionEnum.NONE, first_value)]
+
+
+def test_pre_save_dropdown_external_reference_action(
+    color_attribute,
+    product,
+):
+    # given
+    first_value = color_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        dropdown=AttrValuesForSelectableFieldInput(
+            external_reference=first_value.external_reference
+        ),
+    )
+    handler = SelectableAttributeHandler(color_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert result == [(AttributeValueBulkActionEnum.NONE, first_value)]
+
+
+def test_pre_save_dropdown_external_reference_and_value(
+    color_attribute,
+    product,
+):
+    # given
+    first_value = color_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        dropdown=AttrValuesForSelectableFieldInput(
+            external_reference=first_value.external_reference, value=first_value.name
+        ),
+    )
+    handler = SelectableAttributeHandler(color_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert result == [(AttributeValueBulkActionEnum.NONE, first_value)]
+
+
+def test_pre_save_dropdown_external_reference_and_new_value(
+    color_attribute,
+    product,
+):
+    # given
+    new_value = "New Color"
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        content_type=None,
+        references=[],
+        dropdown=AttrValuesForSelectableFieldInput(
+            external_reference="new-external-reference", value=new_value
+        ),
+    )
+    handler = SelectableAttributeHandler(color_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert len(result) == 1
+    action, value = result[0]
+    assert action == AttributeValueBulkActionEnum.CREATE
+    assert value.name == new_value
+
+
+def test_pre_save_swatch_with_id(
+    swatch_attribute,
+    product,
+):
+    # given
+    first_value = swatch_attribute.values.first()
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", swatch_attribute.pk),
+        content_type=None,
+        references=[],
+        swatch=AttrValuesForSelectableFieldInput(
+            id=graphene.Node.to_global_id("AttributeValue", first_value.pk)
+        ),
+    )
+    handler = SelectableAttributeHandler(swatch_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert result == [(AttributeValueBulkActionEnum.NONE, first_value)]
+
+
+def test_pre_save_swatch_external_reference(
+    swatch_attribute,
+    product,
+):
+    # given
+    first_value = swatch_attribute.values.first()
+    external_reference = "swatch-external-reference"
+    first_value.external_reference = external_reference
+    first_value.save(update_fields=["external_reference"])
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", swatch_attribute.pk),
+        content_type=None,
+        references=[],
+        swatch=AttrValuesForSelectableFieldInput(external_reference=external_reference),
+    )
+    handler = SelectableAttributeHandler(swatch_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert result == [(AttributeValueBulkActionEnum.NONE, first_value)]
+
+
+def test_pre_save_swatch_external_reference_and_value(
+    swatch_attribute,
+    product,
+):
+    # given
+    first_value = swatch_attribute.values.first()
+    external_reference = "swatch-external-reference"
+    first_value.external_reference = external_reference
+    first_value.save(update_fields=["external_reference"])
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", swatch_attribute.pk),
+        content_type=None,
+        references=[],
+        swatch=AttrValuesForSelectableFieldInput(
+            external_reference=external_reference, value=first_value.name
+        ),
+    )
+    handler = SelectableAttributeHandler(swatch_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert result == [(AttributeValueBulkActionEnum.NONE, first_value)]
+
+
+def test_pre_save_swatch_external_reference_and_new_value(
+    swatch_attribute,
+    product,
+):
+    # given
+    new_value = "New Color"
+
+    values = AttrValuesInput(
+        global_id=graphene.Node.to_global_id("Attribute", swatch_attribute.pk),
+        content_type=None,
+        references=[],
+        swatch=AttrValuesForSelectableFieldInput(
+            external_reference="new-external-reference", value=new_value
+        ),
+    )
+    handler = SelectableAttributeHandler(swatch_attribute, values)
+
+    # when
+    result = handler.pre_save_value(product)
+
+    # then
+    assert len(result) == 1
+    action, value = result[0]
+    assert action == AttributeValueBulkActionEnum.CREATE
+    assert value.name == new_value

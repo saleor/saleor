@@ -15,7 +15,6 @@ from ....attribute import models as attribute_models
 from ....attribute.models import AttributeValue
 from ....core.utils import (
     generate_unique_slug,
-    prepare_unique_attribute_value_slug,
     prepare_unique_slug,
 )
 from ....core.utils.editorjs import clean_editor_js
@@ -166,6 +165,27 @@ class AttributeTypeHandler(abc.ABC):
 
         return results
 
+    def prepare_attribute_values_with_external_reference(
+        self, values: list[tuple[str, str]]
+    ) -> list[tuple]:
+        existing_slugs = self.get_existing_slugs(self.attribute, [v[1] for v in values])
+
+        results = []
+        for ext_ref, value_str in values:
+            unique_slug = prepare_unique_slug(
+                slugify(unidecode(value_str)), existing_slugs
+            )
+            new_value = AttributeValue(
+                attribute=self.attribute,
+                name=value_str,
+                slug=unique_slug,
+                external_reference=ext_ref,
+            )
+            results.append((AttributeValueBulkActionEnum.CREATE, new_value))
+            existing_slugs.add(unique_slug)
+
+        return results
+
     @staticmethod
     def get_existing_slugs(attribute: attribute_models.Attribute, values: list[str]):
         lookup = Q()
@@ -265,38 +285,58 @@ class SelectableAttributeHandler(AttributeTypeHandler):
         )
 
         if ext_ref and value:
-            slug = prepare_unique_attribute_value_slug(
-                self.attribute, slugify(unidecode(value))
-            )
-            value_obj = AttributeValue(
-                attribute=self.attribute,
-                name=value,
-                slug=slug,
-                external_reference=ext_ref,
-            )
-            return [(AttributeValueBulkActionEnum.CREATE, value_obj)]
+            return self._parse_external_reference_and_value(ext_ref, value)
 
         if ext_ref:
-            value = attribute_models.AttributeValue.objects.get(  # type: ignore[assignment]
+            value_instance = attribute_models.AttributeValue.objects.filter(
                 external_reference=ext_ref
-            )
-            if not value:
+            ).first()
+            if not value_instance:
                 raise ValidationError(
                     "Attribute value with given externalReference can't be found"
                 )
-            return [(AttributeValueBulkActionEnum.NONE, value)]
+            return [(AttributeValueBulkActionEnum.NONE, value_instance)]
 
         if id:
             _, attr_value_id = from_global_id_or_error(id)
-            value = attribute_models.AttributeValue.objects.get(pk=attr_value_id)  # type: ignore[assignment]
-            if not value:
+            value_instance = attribute_models.AttributeValue.objects.filter(
+                pk=attr_value_id
+            ).first()
+            if not value_instance:
                 raise ValidationError("Attribute value with given ID can't be found")
-            return [(AttributeValueBulkActionEnum.NONE, value)]
+            return [(AttributeValueBulkActionEnum.NONE, value_instance)]
 
         if value:
             return self.prepare_attribute_values(self.attribute, [value])
 
         return []
+
+    def _parse_external_reference_and_value(
+        self, external_reference: str, attr_value: str | None
+    ) -> list[tuple[AttributeValueBulkActionEnum, AttributeValue]]:
+        """Get or create an AttributeValue by external reference."""
+        value_instance = attribute_models.AttributeValue.objects.filter(
+            external_reference=external_reference
+        ).first()
+        if value_instance:
+            if value_instance.name != attr_value:
+                raise ValidationError(
+                    f"Attribute value with external reference '{external_reference}' already exists "
+                    f"with different value '{value_instance.name}'."
+                )
+            return [
+                (
+                    AttributeValueBulkActionEnum.NONE,
+                    value_instance,
+                )
+            ]
+        if not attr_value:
+            raise ValidationError(
+                f"Attribute value with given external reference can't be found: {external_reference}"
+            )
+        return self.prepare_attribute_values_with_external_reference(
+            [(external_reference, attr_value or external_reference)]
+        )
 
 
 class MultiSelectableAttributeHandler(SelectableAttributeHandler):
@@ -353,32 +393,86 @@ class MultiSelectableAttributeHandler(SelectableAttributeHandler):
         if not multi_values:
             return []
 
+        ext_refs = [
+            value.external_reference
+            for value in multi_values
+            if value.external_reference
+        ]
+        ids = [
+            from_global_id_or_error(v_input.id, "AttributeValue")[1]
+            for v_input in multi_values
+            if v_input.id
+        ]
+        ext_ref_to_value_map = self.attribute.values.filter(
+            external_reference__in=ext_refs
+        ).in_bulk(field_name="external_reference")
+        id_to_value_map = self.attribute.values.filter(id__in=ids).in_bulk()
+
         results = []
         values_to_create = []
-        pks_to_fetch = []
-        ext_refs_to_fetch = []
+        external_refs_with_value_to_create = []
+        invalid_ids = []
+        invalid_ext_refs = []
+        invalid_ext_refs_with_current_value = []
 
         for v_input in multi_values:
             if v_input.id:
                 _, pk = from_global_id_or_error(v_input.id, "AttributeValue")
-                pks_to_fetch.append(pk)
+                if value_instance := id_to_value_map.get(int(pk)):
+                    results.append((AttributeValueBulkActionEnum.NONE, value_instance))
+                else:
+                    invalid_ids.append(v_input.id)
             elif v_input.external_reference and not v_input.value:
-                ext_refs_to_fetch.append(v_input.external_reference)
+                if value_instance := ext_ref_to_value_map.get(
+                    v_input.external_reference
+                ):
+                    results.append((AttributeValueBulkActionEnum.NONE, value_instance))
+                else:
+                    invalid_ext_refs.append(v_input.external_reference)
+            elif v_input.external_reference and v_input.value:
+                if value_instance := ext_ref_to_value_map.get(
+                    v_input.external_reference
+                ):
+                    if value_instance.name != v_input.value:
+                        invalid_ext_refs_with_current_value.append(
+                            (v_input.external_reference, value_instance.name)
+                        )
+                        continue
+                    results.append((AttributeValueBulkActionEnum.NONE, value_instance))
+                    continue
+                external_refs_with_value_to_create.append(
+                    (v_input.external_reference, v_input.value)
+                )
             elif v_input.value:
                 values_to_create.append(v_input.value)
 
-        # Fetch existing values by PK and external reference
-        existing_values = self.attribute.values.filter(
-            Q(pk__in=pks_to_fetch) | Q(external_reference__in=ext_refs_to_fetch)
-        )
-        results.extend(
-            [(AttributeValueBulkActionEnum.NONE, val) for val in existing_values]
-        )
+        if invalid_ids:
+            raise ValidationError(
+                f"Attribute value(s) with given ID(s) can't be found: {', '.join(invalid_ids)}"
+            )
+        if invalid_ext_refs:
+            raise ValidationError(
+                f"Attribute value(s) with given external reference(s) can't be found: {', '.join(invalid_ext_refs)}"
+            )
+        if invalid_ext_refs_with_current_value:
+            error_messages = [
+                f"Attribute value with external reference '{ext_ref}' already exists with different value '{existing_value}'."
+                for ext_ref, existing_value in invalid_ext_refs_with_current_value
+            ]
+            raise ValidationError("/n".join(error_messages))
 
         # Prepare new values
         if values_to_create:
             results.extend(
                 self.prepare_attribute_values(self.attribute, values_to_create)
+            )
+
+        # Prepare new values with external references
+        if external_refs_with_value_to_create:
+            results.extend(
+                self.prepare_attribute_values_with_external_reference(
+                    external_refs_with_value_to_create
+                )
             )
 
         return results

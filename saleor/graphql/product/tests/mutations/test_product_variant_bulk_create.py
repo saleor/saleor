@@ -395,6 +395,66 @@ def test_product_variant_bulk_create_by_attribute_external_ref(
     assert expected_assigned_choice_attribute in assigned_attributes
 
 
+def test_product_variant_bulk_create_by_attribute_external_ref_and_value(
+    staff_api_client,
+    product,
+    color_attribute,
+    permission_manage_products,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(color_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_external_ref = color_attribute.external_reference
+
+    value_external_ref = "value-external-ref"
+    attribute_value = color_attribute.values.last()
+    attribute_value.external_reference = value_external_ref
+    attribute_value.save(update_fields=["external_reference"])
+
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [
+                {
+                    "externalReference": attribute_external_ref,
+                    "dropdown": {
+                        "externalReference": value_external_ref,
+                        "value": attribute_value.name,
+                    },
+                }
+            ],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+    assert (
+        data["results"][0]["productVariant"]["attributes"][1]["attribute"]["slug"]
+        == color_attribute.slug
+    )
+    assert (
+        data["results"][0]["productVariant"]["attributes"][1]["values"][0]["slug"]
+        == attribute_value.slug
+    )
+
+
 def test_product_variant_bulk_create_return_error_when_attribute_external_ref_and_id(
     staff_api_client,
     product,

@@ -153,6 +153,10 @@ def has_input_modified_attribute_values(
         `False` if the attribute values are equal, otherwise `True`.
 
     """
+    # FIXME: the input can contains external references, values can be provided
+    # in dropdown, multiselect, swatch, and other fields.
+    # The comparison is not complete and returns almost always False in case
+    # the variant has not values assigned.
     if variant.product_id is not None:
         assigned_attributes = get_used_attribute_values_for_variant(variant)
         input_attribute_values: defaultdict[str, list[str]] = defaultdict(list)
