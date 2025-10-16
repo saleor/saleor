@@ -155,7 +155,6 @@ def test_handle_authorization_sets_psp_reference(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     # given
     checkout = payment_adyen_for_checkout.checkout
@@ -201,7 +200,6 @@ def test_handle_authorization_for_checkout(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     checkout = payment_adyen_for_checkout.checkout
     checkout.shipping_address = address
@@ -253,7 +251,6 @@ def test_handle_authorization_for_checkout_partial_payment(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     checkout = payment_adyen_for_checkout.checkout
     checkout.shipping_address = address
@@ -296,7 +293,6 @@ def test_handle_authorization_for_checkout_out_of_stock_after_payment(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     refund_response = {"pspReference": "refund-psp"}
     mock_refund_response = MagicMock()
@@ -362,7 +358,6 @@ def test_handle_authorization_for_checkout_that_cannot_be_finalized(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     # given
     checkout = payment_adyen_for_checkout.checkout
@@ -431,7 +426,6 @@ def test_handle_authorization_calls_refund_for_inactive_payment(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     # given
     checkout = payment_adyen_for_checkout.checkout
@@ -518,7 +512,6 @@ def test_handle_authorization_for_checkout_one_of_variants_deleted(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     checkout = payment_adyen_for_checkout.checkout
     checkout.shipping_address = address
@@ -846,7 +839,6 @@ def test_handle_capture_for_checkout(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     checkout = payment_adyen_for_checkout.checkout
     checkout.shipping_address = address
@@ -900,7 +892,6 @@ def test_handle_capture_inactive_payment(
     adyen_plugin,
     inactive_payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     """Test that refund is called on inactive payments without an existing capture transaction."""
     # given
@@ -933,7 +924,6 @@ def test_handle_capture_inactive_payment_capture_txn_exists(
     adyen_plugin,
     inactive_payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     """Test that refund is called on inactive payments with existing capture transactions."""
     # given
@@ -976,7 +966,6 @@ def test_handle_capture_for_checkout_order_not_created_checkout_line_variant_del
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     """Ensure that payment is not captured when a checkout line variant is deleted."""
 
@@ -2118,7 +2107,6 @@ def test_order_closed_with_adyen_partial_payments_unable_to_create_order(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     # given
     mock_order_data.side_effect = ValidationError("Test error")
@@ -2193,7 +2181,6 @@ def test_order_closed_with_not_active_payment(
     adyen_plugin,
     payment_adyen_for_checkout,
     address,
-    checkout_shipping_method,
 ):
     # given
 
