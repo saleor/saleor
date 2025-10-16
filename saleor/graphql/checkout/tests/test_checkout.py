@@ -49,7 +49,6 @@ from ....product.models import (
     ProductVariantChannelListing,
 )
 from ....shipping.models import ShippingMethodTranslation
-from ....shipping.utils import convert_to_shipping_method_data
 from ....tests import race_condition
 from ....tests.utils import dummy_editorjs
 from ....warehouse import WarehouseClickAndCollectOption
@@ -58,58 +57,6 @@ from ...core.utils import to_global_id_or_none
 from ...payment.enums import TokenizedPaymentFlowEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
-from ..mutations.utils import (
-    clean_delivery_method,
-)
-
-
-def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
-    checkout_with_single_item, address, shipping_method, other_shipping_method
-):
-    """Ensure the current shipping method applies to new address.
-
-    If it does, then it doesn't need to be changed.
-    """
-
-    checkout = checkout_with_single_item
-    checkout.shipping_address = address
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method = convert_to_shipping_method_data(
-        shipping_method, shipping_method.channel_listings.first()
-    )
-    is_valid_method = clean_delivery_method(checkout_info, delivery_method)
-    assert is_valid_method is True
-
-
-def test_clean_delivery_method_with_preorder_is_valid_for_enabled_warehouse(
-    checkout_with_preorders_only, address, warehouses_for_cc
-):
-    checkout = checkout_with_preorders_only
-    checkout.shipping_address = address
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    is_valid_method = clean_delivery_method(checkout_info, warehouses_for_cc[1])
-
-    assert is_valid_method is True
-
-
-def test_clean_delivery_method_does_nothing_if_no_shipping_method(
-    checkout_with_single_item, address, other_shipping_method
-):
-    """If no shipping method was selected, it shouldn't return an error."""
-
-    checkout = checkout_with_single_item
-    checkout.shipping_address = address
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    is_valid_method = clean_delivery_method(checkout_info, None)
-    assert is_valid_method is True
 
 
 @pytest.fixture

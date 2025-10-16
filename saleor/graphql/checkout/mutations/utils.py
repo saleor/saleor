@@ -37,7 +37,6 @@ from ....discount.utils.promotion import (
 from ....permission.enums import CheckoutPermissions
 from ....product import models as product_models
 from ....product.models import ProductChannelListing, ProductVariant
-from ....shipping import interface as shipping_interface
 from ....warehouse import models as warehouse_models
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ....webhook.event_types import WebhookEventAsyncType
@@ -66,30 +65,6 @@ class CheckoutLineData:
     custom_price: Decimal | None = None
     custom_price_to_update: bool = False
     metadata_list: list = field(default_factory=list)
-
-
-def clean_delivery_method(
-    checkout_info: "CheckoutInfo",
-    method: shipping_interface.ShippingMethodData | warehouse_models.Warehouse | None,
-) -> bool:
-    """Check if current shipping method is valid."""
-    if not method:
-        # no shipping method was provided, it is valid
-        return True
-
-    if not checkout_info.shipping_address and isinstance(
-        method, shipping_interface.ShippingMethodData
-    ):
-        raise ValidationError(
-            "Cannot choose a shipping method for a checkout without the "
-            "shipping address.",
-            code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
-        )
-
-    if isinstance(method, shipping_interface.ShippingMethodData):
-        return method in checkout_info.valid_shipping_methods
-
-    return method in checkout_info.valid_pick_up_points
 
 
 def mark_checkout_shipping_methods_as_stale_if_needed(
@@ -591,22 +566,18 @@ def assign_delivery_method_to_checkout(
             fields_to_update = remove_delivery_method_from_checkout(
                 checkout=checkout_info.checkout
             )
-            checkout_info.shipping_method = None
             checkout_info.collection_point = None
 
         elif isinstance(delivery_method, models.CheckoutShippingMethod):
             fields_to_update = assign_shipping_method_to_checkout(
                 checkout, delivery_method
             )
-            # FIXME: Maciek: Drop shipping_method from CheckoutInfo
-            checkout_info.shipping_method = None
             checkout_info.collection_point = None
         elif isinstance(delivery_method, warehouse_models.Warehouse):
             fields_to_update = assign_collection_point_to_checkout(
                 checkout, delivery_method
             )
             checkout_info.shipping_address = checkout.shipping_address
-            checkout_info.shipping_method = None
 
         if not fields_to_update:
             return

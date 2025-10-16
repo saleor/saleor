@@ -177,10 +177,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             ),
         )
         manager = get_plugin_manager_promise(info.context).get()
-        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
-        checkout_info = fetch_checkout_info(
-            checkout, lines, manager, shipping_channel_listings
-        )
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         country = shipping_address_instance.country.code
         checkout.set_country(country, commit=True)
@@ -203,7 +200,6 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 shipping_address_instance,
                 save_address,
                 lines,
-                shipping_channel_listings,
             )
 
         shipping_update_fields = mark_checkout_shipping_methods_as_stale_if_needed(
