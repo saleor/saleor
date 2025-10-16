@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import graphene
 
 from .....checkout.error_codes import CheckoutErrorCode

@@ -10,7 +10,6 @@ from promise import Promise
 
 from ...account.models import Address
 from ...account.models import User as UserModel
-from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.db.connection import allow_writer_in_context
 from ...core.prices import quantize_price
@@ -31,6 +30,7 @@ from ...order import OrderOrigin, OrderStatus, calculations, models
 from ...order.calculations import fetch_order_prices_if_expired
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
+    get_external_shipping_id,
     get_order_country,
     get_valid_collection_points_for_order,
     get_valid_shipping_methods_for_order,
