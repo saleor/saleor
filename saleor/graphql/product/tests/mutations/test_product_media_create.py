@@ -1,10 +1,10 @@
 import json
 import os
-from PIL import Image
 from unittest.mock import Mock, patch
 
 import graphene
 import pytest
+from PIL import Image
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
 from .....product import ProductMediaTypes
