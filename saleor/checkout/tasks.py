@@ -24,6 +24,7 @@ task_logger: logging.Logger = get_task_logger(__name__)
 
 
 @app.task
+@allow_writer()
 def delete_expired_checkouts(
     batch_size: int = 2000,
     batch_count: int = 5,
@@ -87,9 +88,7 @@ def delete_expired_checkouts(
         )
     )
 
-    qs: QuerySet[Checkout] = Checkout.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(
+    qs: QuerySet[Checkout] = Checkout.objects.filter(
         (empty_checkouts | expired_anonymous_checkouts | expired_user_checkout)
         & ~Q(Exists(with_transactions))
     )
@@ -99,8 +98,7 @@ def delete_expired_checkouts(
     has_more: bool = True
     for _batch_number in range(batch_count):
         checkout_ids = list(qs.values_list("pk", flat=True))
-        with allow_writer():
-            deleted_count = delete_checkouts(checkout_ids)
+        deleted_count = delete_checkouts(checkout_ids)
         total_deleted += deleted_count
 
         # Stop deleting inactive checkouts if there was no match.
