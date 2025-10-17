@@ -192,7 +192,8 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     ):
         errors["identifier"].append(
             ValidationError(
-                f"App with the same identifier is already installed: {app.name}"
+                f"App with the same identifier is already installed: {app.name}",
+                code=AppErrorCode.UNIQUE.value,
             )
         )
     if not errors:
