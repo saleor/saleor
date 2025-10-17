@@ -4,7 +4,6 @@ import os
 from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
 
-from ....core.http_client import HTTPClient
 from ....thumbnail import MIME_TYPE_TO_PIL_IDENTIFIER
 from ....thumbnail.utils import ProcessedImage
 from ..utils import add_hash_to_file_name
@@ -32,18 +31,9 @@ def is_image_url(url: str) -> bool:
     return filetype is not None and is_image_mimetype(filetype)
 
 
-def validate_image_url(url: str, field_name: str, error_code: str) -> None:
-    """Check if remote file has content type of image.
-
-    Instead of the whole file, only the headers are fetched.
-    """
-    head = HTTPClient.send_request("HEAD", url, allow_redirects=False)
-    header = head.headers
-    content_type = header.get("content-type")
-    if content_type is None or not is_supported_image_mimetype(content_type):
-        raise ValidationError(
-            {field_name: ValidationError("Invalid file type.", code=error_code)}
-        )
+def is_valid_image_content_type(content_type: str | None) -> bool:
+    """Check if content type is a valid image content type."""
+    return content_type is not None and is_supported_image_mimetype(content_type)
 
 
 def clean_image_file(cleaned_input, img_field_name, error_class):
