@@ -2,6 +2,10 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
+# 3.22.1
+
+- When installing apps that have the same identifier in manifest as an app that is already installed in Saleor, `AppErrorCode.UNIQUE` error code will be now returned instead of `AppErrorCode.INVALID`
+
 # 3.22.0
 
 ### Breaking changes
