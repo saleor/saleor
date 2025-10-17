@@ -2392,14 +2392,14 @@ wheels = [
 
 [[package]]
 name = "razorpay"
-version = "1.4.2"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/97/fb/14d5baeffc5b812775bc34cb7d416aa090be6f5779c04aaf45d2ba17458b/razorpay-1.4.2.tar.gz", hash = "sha256:0d812030ba29e776e66d1ceaacc31635810fde18b66ff2591e582eb651bb5131", size = 194335, upload-time = "2024-03-19T12:12:08.904Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/65/d6/2b8d750c4c7c1b9fdcc997ac5b0b5c4a165948931f82b3ce3fcab049f775/razorpay-2.0.0.tar.gz", hash = "sha256:929aef2f4aec8190dfe12b79ba09e83c39086f6ea0bffa0586b719c5b9054450", size = 197062, upload-time = "2025-09-22T08:23:22.07Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e9/3d/07a25e3c6f3d65a319da30300f055d946860e90f705c05bb39524dc46f30/razorpay-1.4.2-py3-none-any.whl", hash = "sha256:aaf525baebc5001e5c54ae317a372c3c17c81314cedcbbf71aa0a2d3419a9757", size = 174302, upload-time = "2024-03-19T12:12:06.883Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/f6/d16cd89374c16cfdce2e30b80e98afd095713ae5fe33fd813b0a89ee1e67/razorpay-2.0.0-py3-none-any.whl", hash = "sha256:524cf1726f673fc72d448f83fd2ea479526d2dd48641ca75ee9a58e25300784a", size = 176858, upload-time = "2025-09-22T08:23:20.689Z" },
 ]
 
 [[package]]
@@ -2698,7 +2698,7 @@ requires-dist = [
     { name = "python-magic", marker = "sys_platform != 'win32'", specifier = ">=0.4.27,<0.5" },
     { name = "python-magic-bin", marker = "sys_platform == 'win32'", specifier = ">=0.4.14,<0.5" },
     { name = "pytimeparse", specifier = ">=1.1.8,<2" },
-    { name = "razorpay", specifier = "~=1.2" },
+    { name = "razorpay", specifier = "~=2.0" },
     { name = "redis", specifier = ">=5.0.1,<6" },
     { name = "requests", specifier = "~=2.32" },
     { name = "requests-hardened", specifier = ">=1.0.0,<2.0.0" },
