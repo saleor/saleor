@@ -155,7 +155,6 @@ def checkout_ready_to_complete(
     checkout_with_item,
     address,
     checkout_shipping_method,
-    gift_card,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -165,7 +164,6 @@ def checkout_ready_to_complete(
     checkout.metadata_storage.store_value_in_private_metadata(
         items={"accepted": "false"}
     )
-    checkout_with_item.gift_cards.add(gift_card)
     checkout.save()
     checkout.metadata_storage.save()
     return checkout
