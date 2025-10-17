@@ -1,9 +1,10 @@
 import json
 import os
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import graphene
 import pytest
+from PIL import Image
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
 from .....product import ProductMediaTypes
@@ -260,6 +261,98 @@ def test_invalid_product_media_create_mutation(
     ]
     product.refresh_from_db()
     assert product.media.count() == 0
+
+
+@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
+def test_product_media_create_mutation_invalid_image_file_fetch_only_header(
+    mock_HTTPClient, staff_api_client, product, permission_manage_products
+):
+    # given
+    mock_response = Mock()
+    mock_response.headers = Mock()
+    mock_response.headers.get = Mock(return_value="text/plain")
+    mock_response.raw = Mock()
+    mock_response.raw.read = Mock(return_value=b"fake_image_data")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
+
+    url = "https://saleor.io/invalid.png"
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": url,
+        "alt": "",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_CREATE_QUERY,
+        variables=variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert errors[0]["field"] == "mediaUrl"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+
+    # Ensure that the file content was not fetched
+    mock_response.raw.read.assert_not_called()
+    mock_response.raw.assert_not_called()
+
+    # Ensure that only headers were fetched
+    mock_HTTPClient.send_request.assert_called_once_with(
+        "GET", url, stream=True, allow_redirects=False
+    )
+    mock_response.headers.get.assert_called_once_with("content-type")
+
+
+@pytest.mark.vcr
+def test_product_media_create_mutation_valid_image_file_is_fetched_once(
+    staff_api_client, product, permission_manage_products, media_root
+):
+    # given
+    expected_file_name = "icon-dark.png"
+    url = f"https://saleor.io/{expected_file_name}"
+    expected_alt = "Icon Dark"
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": url,
+        "alt": expected_alt,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_CREATE_QUERY,
+        variables=variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productMediaCreate"]
+    assert data["errors"] == []
+    assert data["product"]["media"][0]["url"] is not None
+    assert data["product"]["media"][0]["type"] == ProductMediaTypes.IMAGE
+    assert data["product"]["media"][0]["alt"] == expected_alt
+
+    # Validate the image file
+    product.refresh_from_db()
+    product_image = product.media.last()
+    assert product_image.image.file
+    img_name, format = os.path.splitext(expected_file_name)
+    file_name = product_image.image.name
+    assert file_name != expected_file_name
+    assert file_name.startswith(f"products/{img_name}")
+    assert file_name.endswith(format)
+
+    # Open the image and validate its content
+    image_path = product_image.image.path
+    with Image.open(image_path) as img:
+        assert img.format == "PNG"  # Ensure the image format is PNG
+        assert img.size[0] > 0  # Ensure the image has dimensions
+        assert img.size[1] > 0  # Ensure the image has dimensions
 
 
 def test_product_media_create_mutation_alt_character_limit(
