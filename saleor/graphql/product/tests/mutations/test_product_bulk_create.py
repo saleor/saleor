@@ -1145,7 +1145,7 @@ def test_product_bulk_create_with_media_with_media_url_invalid_provider(
     return_value=False,
 )
 @patch(
-    "saleor.graphql.core.validators.file.HTTPClient",
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
 )
 def test_product_bulk_create_with_media_with_media_url_invalid_image_type(
     mocked_http_client,
@@ -1207,6 +1207,128 @@ def test_product_bulk_create_with_media_with_media_url_invalid_image_type(
     assert error_1[0]["path"] == "media.0.mediaUrl"
     assert error_1[0]["message"] == "Invalid file type."
     assert len(error_1) == 1
+
+
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
+)
+def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
+    mock_HTTPClient,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+):
+    # given
+    mock_response = Mock()
+    mock_response.headers = Mock()
+    mock_response.headers.get = Mock(return_value="text/plain")
+    mock_response.raw = Mock()
+    mock_response.raw.read = Mock(return_value=b"fake_image_data")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+
+    alt = "Invalid_image"
+    url = "https://saleor.io/invalid.png"
+
+    media_1 = {
+        "alt": alt,
+        "mediaUrl": url,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "media": [media_1],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productBulkCreate"]
+    assert data["count"] == 0
+    error_1 = data["results"][0]["errors"]
+    assert error_1[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error_1[0]["path"] == "media.0.mediaUrl"
+    assert error_1[0]["message"] == "Invalid file type."
+    assert len(error_1) == 1
+
+
+@pytest.mark.vcr
+def test_product_bulk_create_with_media_image_file_is_fetched_only_once(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+
+    alt = "Invalid_image"
+    expected_file_name = "icon-dark.png"
+    url = f"https://saleor.io/{expected_file_name}"
+
+    media_1 = {
+        "alt": alt,
+        "mediaUrl": url,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "media": [media_1],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productBulkCreate"]
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    assert data["results"][0]["product"]["media"][0]["type"] == "IMAGE"
+    assert data["results"][0]["product"]["media"][0]["alt"] == alt
+    assert data["results"][0]["product"]["media"][0]["url"] != url
+
+    # Validate the image file
+    product = Product.objects.first()
+    product_image = product.media.last()
+    assert product_image.image.file
+    img_name, format = os.path.splitext(expected_file_name)
+    file_name = product_image.image.name
+    assert file_name != expected_file_name
+    assert file_name.startswith(f"products/{img_name}")
+    assert file_name.endswith(format)
+
+    # Open the image and validate its content
+    image_path = product_image.image.path
+    with PIL.Image.open(image_path) as img:
+        assert img.format == "PNG"  # Ensure the image format is PNG
+        assert img.size[0] > 0  # Ensure the image has dimensions
+        assert img.size[1] > 0  # Ensure the image has dimensions
 
 
 def test_product_bulk_create_with_attributes(
