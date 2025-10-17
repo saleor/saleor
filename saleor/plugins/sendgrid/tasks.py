@@ -15,7 +15,7 @@ from . import SendgridConfiguration
 
 logger = logging.getLogger(__name__)
 
-CELERY_RETRY_BACKOFF = 60
+CELERY_RETRY_BACKOFF = 30
 CELERY_RETRY_MAX = 5
 
 

@@ -9,6 +9,7 @@ from opentelemetry.sdk.metrics.export import DataPointT, Metric, MetricsData
 from opentelemetry.sdk.trace import ReadableSpan
 
 from ..core.db.connection import allow_writer
+from ..core.telemetry import Scope
 
 
 class FakeDbReplicaConnection:
@@ -71,22 +72,42 @@ def round_up(price: Decimal) -> Decimal:
     return Decimal(math.ceil(price * 100)) / 100
 
 
-def get_metric_data(metrics_data: MetricsData, metric_name: str) -> Metric:
-    for resource in metrics_data.resource_metrics:
-        for scope_metrics in resource.scope_metrics:
+def get_metric_data(
+    metrics_data: MetricsData, metric_name: str, *, scope=Scope.SERVICE
+) -> Metric | None:
+    __tracebackhide__ = True  # make failures point to the test, not here
+    if len(metrics_data.resource_metrics) != 1:
+        pytest.fail("Metrics recorded as multiple resources")
+    for scope_metrics in metrics_data.resource_metrics[0].scope_metrics:
+        if scope_metrics.scope.name == scope.value:
             for metric in scope_metrics.metrics:
                 if metric.name == metric_name:
                     return metric
-    raise KeyError(f"Metric {metric_name} not found in metrics data")
+    return None
 
 
-def get_metric_data_point(metrics_data: MetricsData, metric_name: str) -> DataPointT:
-    metric_data = get_metric_data(metrics_data, metric_name)
-    datapoints_count = len(metric_data.data.data_points)
-    assert datapoints_count == 1, (
-        f"For metric {metric_name} found {datapoints_count} instead of 1"
-    )
-    return metric_data.data.data_points[0]
+def get_metric_and_data_point(
+    metrics_data: MetricsData, metric_name: str, *, scope=Scope.SERVICE
+) -> tuple[Metric, DataPointT]:
+    __tracebackhide__ = True  # make failures point to the test, not here
+    metric_data = get_metric_data(metrics_data, metric_name, scope=scope)
+    if metric_data is None:
+        pytest.fail(f"Metric {metric_name} not found in metrics data")
+    if len(metric_data.data.data_points) == 0:
+        pytest.fail(f"No data points found for metric: {metric_name}")
+    elif len(metric_data.data.data_points) > 1:
+        pytest.fail(
+            f"Multiple data points ({len(metric_data.data.data_points)}) found for metric: {metric_name}"
+        )
+    return metric_data, metric_data.data.data_points[0]
+
+
+def get_metric_data_point(
+    metrics_data: MetricsData, metric_name: str, *, scope=Scope.SERVICE
+) -> DataPointT:
+    __tracebackhide__ = True  # make failures point to the test, not here
+    _, data_point = get_metric_and_data_point(metrics_data, metric_name, scope=scope)
+    return data_point
 
 
 def filter_spans_by_name(

@@ -4,6 +4,10 @@ import graphene
 
 from .....attribute.error_codes import AttributeBulkUpdateErrorCode
 from .....attribute.models import Attribute
+from .....attribute.tests.model_helpers import (
+    get_product_attribute_values,
+    get_product_attributes,
+)
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 
@@ -501,6 +505,74 @@ def test_attribute_bulk_update_removes_invalid_value(
         errors[0]["message"]
         == f"Value {invalid_value_global_id} does not belong to this attribute."
     )
+
+
+def test_attribute_bulk_update_removes_value_mark_product_search_index_dirty(
+    staff_api_client, product, permission_manage_product_types_and_attributes
+):
+    # given
+    attribute = get_product_attributes(product).first()
+    value = get_product_attribute_values(product, attribute).first()
+    assert product.search_index_dirty is False
+
+    value_global_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute.id),
+            "fields": {"removeValues": [value_global_id]},
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    product.refresh_from_db()
+    assert product.search_index_dirty is True
+
+
+def test_attribute_bulk_update_removes_value_mark_page_search_index_dirty(
+    staff_api_client, page, permission_manage_page_types_and_attributes
+):
+    # given
+    value = page.attributevalues.first().value
+    attribute = value.attribute
+    assert page.search_index_dirty is False
+
+    value_global_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute.id),
+            "fields": {"removeValues": [value_global_id]},
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(
+        permission_manage_page_types_and_attributes
+    )
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+
+    # then
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
 
 
 def test_attribute_bulk_update_add_new_value(

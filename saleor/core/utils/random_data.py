@@ -263,6 +263,13 @@ def create_attributes_values(values_data):
         AttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
+def assign_reference_page_types_to_attributes(relations: list):
+    for relation in relations:
+        fields = relation["fields"]
+        attribute = Attribute.objects.get(pk=fields["attribute"])
+        attribute.reference_page_types.add(fields["page_type"])
+
+
 def create_products(products_data, placeholder_dir, create_images):
     for product in products_data:
         pk = product["pk"]
@@ -445,6 +452,9 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     assign_attribute_values_to_variants(
         types["attribute.assignedvariantattributevalue"]
+    )
+    assign_reference_page_types_to_attributes(
+        types["attribute.attribute_reference_page_types"]
     )
     create_collections(
         data=types["product.collection"], placeholder_dir=placeholder_dir

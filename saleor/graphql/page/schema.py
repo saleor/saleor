@@ -1,9 +1,10 @@
 import graphene
 
+from ...page.search import search_pages
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.context import ChannelContext
+from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import ADDED_IN_321, ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.enums import LanguageCodeEnum
@@ -11,7 +12,7 @@ from ..core.fields import BaseField, FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish, PageTypeBulkDelete
-from .filters import PageFilterInput, PageTypeFilterInput, PageWhereInput, search_pages
+from .filters import PageFilterInput, PageTypeFilterInput, PageWhereInput
 from .mutations import (
     PageAttributeAssign,
     PageAttributeUnassign,
@@ -118,7 +119,9 @@ class PageQueries(graphene.ObjectType):
             qs = resolve_pages(info, channel_slug=channel, channel=channel_instance)
             search = kwargs.get("search") or kwargs.get("filter", {}).get("search")
             if search:
-                qs = search_pages(qs, search)
+                qs = ChannelQsContext(
+                    qs=search_pages(qs.qs, search), channel_slug=qs.channel_slug
+                )
 
             qs = filter_connection_queryset(
                 qs, kwargs, allow_replica=info.context.allow_replica

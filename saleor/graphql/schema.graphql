@@ -24400,7 +24400,7 @@ input PageTypeUpdateInput @doc(category: "Pages") {
   """List of attribute IDs to be assigned to the page type."""
   addAttributes: [ID!]
 
-  """List of attribute IDs to be assigned to the page type."""
+  """List of attribute IDs to be unassigned from the page type."""
   removeAttributes: [ID!]
 }
 
