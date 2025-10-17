@@ -2,7 +2,7 @@ import itertools
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from decimal import Decimal
-from functools import cached_property, singledispatch
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, Optional, Union
 from uuid import UUID
 
@@ -23,7 +23,6 @@ from ..discount.interface import (
     fetch_voucher_info,
 )
 from ..shipping.interface import ShippingMethodData
-from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
     convert_checkout_shipping_method_to_shipping_method_data,
     initialize_shipping_method_active_status,
@@ -126,8 +125,6 @@ class CheckoutInfo:
     tax_configuration: "TaxConfiguration"
     discounts: list["CheckoutDiscount"]
     lines: list[CheckoutLineInfo]
-    shipping_channel_listings: list["ShippingMethodChannelListing"]
-    shipping_method: Optional["ShippingMethod"] = None
     collection_point: Optional["Warehouse"] = None
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
@@ -135,61 +132,6 @@ class CheckoutInfo:
     pregenerated_payloads_for_excluded_shipping_method: dict | None = None
 
     allow_sync_webhooks: bool = True
-    _cached_built_in_shipping_methods: list[ShippingMethodData] | None = None
-    _cached_external_shipping_methods: list[ShippingMethodData] | None = None
-
-    def get_all_shipping_methods(
-        self,
-    ) -> list["ShippingMethodData"]:
-        """Return list of all available shipping methods.
-
-        If self.allow_sync_webhooks is set to False, any external calls will be skipped.
-        If self.allow_sync_webhooks is set to True, the external calls like: external
-        shipping methods or exclude shipping methods will be called.
-
-        The fetched values are stored in self object to remove any additional
-        external/DB calls.
-        """
-        if (
-            self._cached_external_shipping_methods is not None
-            and self._cached_built_in_shipping_methods is not None
-        ):
-            return (
-                self._cached_built_in_shipping_methods
-                + self._cached_external_shipping_methods
-            )
-
-        if (
-            not self.allow_sync_webhooks
-            and self._cached_built_in_shipping_methods is not None
-        ):
-            return self._cached_built_in_shipping_methods
-
-        if self._cached_built_in_shipping_methods is None:
-            self._cached_built_in_shipping_methods = (
-                get_available_built_in_shipping_methods_for_checkout_info(self)
-            )
-
-        if not self.allow_sync_webhooks:
-            excluded_methods = []
-            all_methods = self._cached_built_in_shipping_methods
-        else:
-            self._cached_external_shipping_methods = (
-                get_external_shipping_methods_for_checkout_info(self)
-            )
-            all_methods = (
-                self._cached_built_in_shipping_methods
-                + self._cached_external_shipping_methods
-            )
-            # Filter shipping methods using sync webhooks
-            excluded_methods = self.manager.excluded_shipping_methods_for_checkout(
-                self.checkout,
-                self.channel,
-                all_methods,
-                self.pregenerated_payloads_for_excluded_shipping_method,
-            )
-        initialize_shipping_method_active_status(all_methods, excluded_methods)
-        return all_methods
 
     @cached_property
     def valid_pick_up_points(self) -> Iterable["Warehouse"]:
@@ -201,33 +143,6 @@ class CheckoutInfo:
             )
         )
 
-    def _update_denormalized_shipping_method_fields(
-        self, delivery_method: ShippingMethodData | Warehouse
-    ):
-        checkout = self.checkout
-        fields_to_update = []
-        if isinstance(delivery_method, ShippingMethodData):
-            new_shipping_method_name = delivery_method.name
-            new_shipping_price = delivery_method.price
-        else:
-            new_shipping_method_name = None
-            new_shipping_price = zero_money(checkout.currency)
-
-        if checkout.shipping_method_name != new_shipping_method_name:
-            checkout.shipping_method_name = new_shipping_method_name
-            fields_to_update.append("shipping_method_name")
-        current_shipping_price = quantize_price(
-            checkout.undiscounted_base_shipping_price, checkout.currency
-        )
-        new_shipping_price = quantize_price(new_shipping_price, checkout.currency)
-        if current_shipping_price != new_shipping_price:
-            checkout.undiscounted_base_shipping_price_amount = new_shipping_price.amount
-            fields_to_update.append("undiscounted_base_shipping_price_amount")
-
-        if fields_to_update:
-            with allow_writer():
-                checkout.save(update_fields=fields_to_update)
-
     def get_delivery_method_info(self) -> "DeliveryMethodBase":
         delivery_method: ShippingMethodData | Warehouse | None = None
 
@@ -235,25 +150,13 @@ class CheckoutInfo:
             delivery_method = convert_checkout_shipping_method_to_shipping_method_data(
                 assigned_sm
             )
-        else:
-            delivery_method = self.collection_point
+            return ShippingMethodInfo(delivery_method, self.shipping_address)
 
-        return get_delivery_method_info(delivery_method, self.shipping_address)
+        delivery_method = self.collection_point
+        if delivery_method is not None:
+            return CollectionPointInfo(delivery_method, delivery_method.address)
 
-    @property
-    def valid_shipping_methods(self) -> list["ShippingMethodData"]:
-        return [method for method in self.get_all_shipping_methods() if method.active]
-
-    @property
-    def valid_delivery_methods(
-        self,
-    ) -> list[Union["ShippingMethodData", "Warehouse"]]:
-        return list(
-            itertools.chain(
-                self.valid_shipping_methods,
-                self.valid_pick_up_points,
-            )
-        )
+        return DeliveryMethodBase()
 
     def get_country(self) -> str:
         address = self.shipping_address or self.billing_address
@@ -388,7 +291,7 @@ class CollectionPointInfo(DeliveryMethodBase):
         )
 
     def is_method_in_valid_methods(self, checkout_info) -> bool:
-        valid_delivery_methods = checkout_info.valid_delivery_methods
+        valid_delivery_methods = checkout_info.valid_pick_up_points
         return bool(
             valid_delivery_methods and self.delivery_method in valid_delivery_methods
         )
@@ -398,25 +301,6 @@ class CollectionPointInfo(DeliveryMethodBase):
             "collection_point_name": str(self.delivery_method),
             "collection_point": self.delivery_method,
         }
-
-
-# FIXME: Maciek: can we remove this?
-@singledispatch
-def get_delivery_method_info(
-    delivery_method: Union["ShippingMethodData", "Warehouse"] | None,
-    address: Optional["Address"] = None,
-) -> DeliveryMethodBase:
-    if delivery_method is None:
-        return DeliveryMethodBase()
-    if isinstance(delivery_method, ShippingMethodData):
-        return ShippingMethodInfo(delivery_method, address)
-    if isinstance(delivery_method, Warehouse):
-        # TODO: Workaround for lack of using in tests.
-        # The warehouse address should be loaded when CheckoutInfo is created.
-        with allow_writer():
-            return CollectionPointInfo(delivery_method, delivery_method.address)
-
-    raise NotImplementedError()
 
 
 def fetch_checkout_lines(
@@ -588,12 +472,10 @@ def _get_product_channel_listing(
     return product_channel_listing
 
 
-# FIXME: Maciek: Drop shipping_channel_listings?
 def fetch_checkout_info(
     checkout: "Checkout",
     lines: list[CheckoutLineInfo],
     manager: "PluginsManager",
-    shipping_channel_listings: Iterable["ShippingMethodChannelListing"] | None = None,
     voucher: Optional["Voucher"] = None,
     voucher_code: Optional["VoucherCode"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -604,8 +486,6 @@ def fetch_checkout_info(
     channel = checkout.channel
     tax_configuration = channel.tax_configuration
     shipping_address = checkout.shipping_address
-    if shipping_channel_listings is None:
-        shipping_channel_listings = channel.shipping_method_listings.all()
 
     if not voucher or not voucher_code:
         voucher, voucher_code = get_voucher_for_checkout(
@@ -624,8 +504,6 @@ def fetch_checkout_info(
         discounts=list(checkout.discounts.all()),
         lines=lines,
         manager=manager,
-        shipping_channel_listings=list(shipping_channel_listings),
-        shipping_method=checkout.shipping_method,
         collection_point=checkout.collection_point,
         voucher=voucher,
         voucher_code=voucher_code,
@@ -680,6 +558,8 @@ def get_external_shipping_methods_for_checkout_info(
     )
 
 
+# FIXME: Maciek: On main, we have different implementation. Needs to rebase first,
+# Then replace with the new objects
 def get_all_shipping_methods_list(
     checkout_info,
 ):
@@ -693,29 +573,18 @@ def get_all_shipping_methods_list(
     )
 
 
+# FIXME: Maciek: Rename to cc realted or extend with new model
 def update_delivery_method_lists_for_checkout_info(
     checkout_info: "CheckoutInfo",
-    shipping_method: Optional["ShippingMethod"],
     collection_point: Optional["Warehouse"],
     shipping_address: Optional["Address"],
     lines: list[CheckoutLineInfo],
-    shipping_channel_listings: Iterable[ShippingMethodChannelListing],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     # Update checkout info fields with new data
-    checkout_info.shipping_method = shipping_method
     checkout_info.collection_point = collection_point
     checkout_info.shipping_address = shipping_address
     checkout_info.lines = lines
-    checkout_info.shipping_channel_listings = list(shipping_channel_listings)
-
-    # Clear cached properties if they were already calculated, so they can be
-    # recalculated.
-    try:
-        del checkout_info._cached_built_in_shipping_methods
-        del checkout_info._cached_external_shipping_methods
-    except AttributeError:
-        pass
 
     try:
         del checkout_info.valid_pick_up_points

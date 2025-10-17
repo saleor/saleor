@@ -516,7 +516,6 @@ def change_shipping_address_in_checkout(
     address: "Address",
     store_in_user_addresses: bool,
     lines: list["CheckoutLineInfo"],
-    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
 ):
     """Save shipping address in checkout if changed.
 
@@ -535,11 +534,9 @@ def change_shipping_address_in_checkout(
         checkout.shipping_address = address
         update_delivery_method_lists_for_checkout_info(
             checkout_info=checkout_info,
-            shipping_method=checkout_info.checkout.shipping_method,
             collection_point=checkout_info.checkout.collection_point,
             shipping_address=address,
             lines=lines,
-            shipping_channel_listings=shipping_channel_listings,
         )
         updated_fields = ["shipping_address", "last_change"]
     if checkout.save_shipping_address != store_in_user_addresses:
@@ -991,9 +988,15 @@ def get_valid_internal_shipping_methods_for_checkout_info(
         lines=checkout_info.lines,
     )
 
+    shipping_channel_listings = ShippingMethodChannelListing.objects.using(
+        checkout_info.database_connection_name
+    ).filter(
+        channel_id=checkout_info.channel.id,
+        shipping_method_id__in=[method.pk for method in shipping_methods],
+    )
+
     channel_listings_map = {
-        listing.shipping_method_id: listing
-        for listing in checkout_info.shipping_channel_listings
+        listing.shipping_method_id: listing for listing in shipping_channel_listings
     }
 
     internal_methods: list[ShippingMethodData] = []
@@ -1095,31 +1098,6 @@ def activate_payments(payment_ids: list[int]) -> None:
 def is_shipping_required(lines: list["CheckoutLineInfo"]):
     """Check if shipping is required for given checkout lines."""
     return any(line_info.product_type.is_shipping_required for line_info in lines)
-
-
-def validate_variants_in_checkout_lines(lines: list["CheckoutLineInfo"]):
-    variants_listings_map = {line.variant.id: line.channel_listing for line in lines}
-
-    not_available_variants = [
-        variant_id
-        for variant_id, channel_listing in variants_listings_map.items()
-        if channel_listing is None or channel_listing.price is None
-    ]
-    if not_available_variants:
-        not_available_variants_ids = {
-            graphene.Node.to_global_id("ProductVariant", pk)
-            for pk in not_available_variants
-        }
-        error_code = CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
-        raise ValidationError(
-            {
-                "lines": ValidationError(
-                    "Cannot add lines with unavailable variants.",
-                    code=error_code,
-                    params={"variants": not_available_variants_ids},
-                )
-            }
-        )
 
 
 def _remove_external_shipping_from_metadata(checkout: Checkout):

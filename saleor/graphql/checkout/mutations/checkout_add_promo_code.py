@@ -98,10 +98,7 @@ class CheckoutAddPromoCode(BaseMutation):
                 }
             )
 
-        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
-        checkout_info = fetch_checkout_info(
-            checkout, lines, manager, shipping_channel_listings
-        )
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         add_promo_code_to_checkout(
             manager,

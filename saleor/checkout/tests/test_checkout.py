@@ -202,7 +202,6 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
         tax_configuration=channel_USD.tax_configuration,
         manager=manager,
         lines=lines,
-        shipping_channel_listings=[],
         discounts=[],
     )
 
@@ -369,7 +368,6 @@ def test_get_discount_for_checkout_value_specific_product_voucher(
         tax_configuration=channel_USD.tax_configuration,
         manager=manager,
         lines=lines,
-        shipping_channel_listings=[],
         discounts=[],
     )
 
@@ -471,7 +469,6 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         tax_configuration=channel_USD.tax_configuration,
         manager=manager,
         lines=[],
-        shipping_channel_listings=[],
         discounts=[],
     )
     with pytest.raises(NotApplicable):
@@ -650,7 +647,6 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         tax_configuration=channel_USD.tax_configuration,
         manager=manager,
         lines=[],
-        shipping_channel_listings=[],
         discounts=[],
     )
     with pytest.raises(NotApplicable):
@@ -824,7 +820,6 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         tax_configuration=channel_USD.tax_configuration,
         manager=manager,
         lines=[],
-        shipping_channel_listings=[],
         discounts=[],
     )
     with pytest.raises(NotApplicable):
@@ -1530,7 +1525,6 @@ def test_change_address_in_checkout(checkout, address):
         address,
         store_shipping_address_in_user_addresses,
         lines,
-        checkout.channel.shipping_method_listings.all(),
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, address, store_billing_address_in_user_addresses
@@ -1560,7 +1554,6 @@ def test_change_address_in_checkout_to_none(checkout, address):
         None,
         store_shipping_address_in_user_addresses,
         lines,
-        checkout.channel.shipping_method_listings.all(),
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, None, store_billing_address_in_user_addresses
@@ -1592,7 +1585,6 @@ def test_change_address_in_checkout_to_same(checkout, address):
         address,
         store_shipping_address_in_user_addresses,
         lines,
-        checkout.channel.shipping_method_listings.all(),
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, address, store_billing_address_in_user_addresses
@@ -1624,7 +1616,6 @@ def test_change_address_in_checkout_to_other(checkout, address):
         other_address,
         store_shipping_address_in_user_addresses,
         lines,
-        checkout.channel.shipping_method_listings.all(),
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, other_address, store_billing_address_in_user_addresses
@@ -1660,7 +1651,6 @@ def test_change_address_in_checkout_from_user_address_to_other(
         other_address,
         store_shipping_address_in_user_addresses,
         lines,
-        checkout.channel.shipping_method_listings.all(),
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, other_address, store_billing_address_in_user_addresses
@@ -1674,46 +1664,6 @@ def test_change_address_in_checkout_from_user_address_to_other(
     assert checkout_info.shipping_address == other_address
     assert checkout.save_shipping_address == store_shipping_address_in_user_addresses
     assert checkout.save_billing_address == store_billing_address_in_user_addresses
-
-
-def test_change_address_in_checkout_invalidates_shipping_methods(
-    checkout_with_items, address, shipping_method, shipping_zone
-):
-    # given
-    checkout = checkout_with_items
-    store_address_in_user_addresses = True
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(
-        checkout=checkout,
-        lines=lines,
-        manager=manager,
-        shipping_channel_listings=shipping_method.channel_listings.all(),
-    )
-
-    all_shipping_methods = checkout_info.get_all_shipping_methods()
-    assert all_shipping_methods == []
-
-    # when
-    shipping_updated_fields = change_shipping_address_in_checkout(
-        checkout_info,
-        address,
-        store_address_in_user_addresses,
-        lines,
-        checkout.channel.shipping_method_listings.all(),
-    )
-    billing_updated_fields = change_billing_address_in_checkout(
-        checkout, address, store_address_in_user_addresses
-    )
-    checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
-    checkout.refresh_from_db()
-
-    # then
-    assert checkout.shipping_address == address
-    assert checkout.billing_address == address
-    assert checkout_info.shipping_address == address
-    assert checkout_info.get_all_shipping_methods()
 
 
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
