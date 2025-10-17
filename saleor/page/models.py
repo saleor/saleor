@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Union
 
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 
 from ..core.db.fields import SanitizedJSONField
@@ -32,13 +33,22 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
     )
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    search_vector = SearchVectorField(blank=True, null=True)
+    search_index_dirty = models.BooleanField(default=True, db_default=True)
 
     objects = PageManager()  # type: ignore[misc]
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         permissions = ((PagePermissions.MANAGE_PAGES.codename, "Manage pages."),)
-        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["title", "slug"])]
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                name="page_tsearch",
+                fields=["search_vector"],
+            ),
+            BTreeIndex(fields=["slug"], name="page_slug_btree_idx"),
+        ]
 
     def __str__(self):
         return self.title

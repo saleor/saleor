@@ -35,7 +35,8 @@ RUN apt-get update \
   libmagic1 \
   # Required by celery[sqs] which uses pycurl for AWS SQS support
   libcurl4 \
-  shared-mime-info \
+  # Required to allows to identify file types when handling file uploads
+  media-types \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 

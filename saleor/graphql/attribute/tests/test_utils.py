@@ -4,10 +4,12 @@ import graphene
 import pytest
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from graphql import GraphQLError
 
 from ....attribute import AttributeInputType
 from ....product.error_codes import ProductErrorCode
 from ..enums import AttributeValueBulkActionEnum
+from ..shared_filters import validate_attribute_value_input
 from ..utils.attribute_assignment import AttributeAssignmentMixin
 from ..utils.shared import AttrValuesForSelectableFieldInput, AttrValuesInput
 from ..utils.type_handlers import (
@@ -2006,3 +2008,131 @@ def test_pre_save_multiselect_external_reference_action(color_attribute, product
         (AttributeValueBulkActionEnum.NONE, value)
         for value in color_attribute.values.all()
     ]
+
+
+@pytest.mark.parametrize(
+    ("attribute_fixture", "value_payload"),
+    [
+        (
+            "product_type_product_reference_attribute",
+            {"reference": {"productIds": {"containsAny": ["ref-id"]}}},
+        ),
+        (
+            "product_type_product_single_reference_attribute",
+            {"reference": {"productVariantSkus": {"containsAny": ["SKU123"]}}},
+        ),
+    ],
+)
+def test_validate_attribute_value_input_accepts_reference_payloads(
+    request, attribute_fixture, value_payload
+):
+    attribute = request.getfixturevalue(attribute_fixture)
+    attributes = [{"slug": attribute.slug, "value": value_payload}]
+
+    # when & then
+    validate_attribute_value_input(attributes, "default")
+
+
+@pytest.mark.parametrize(
+    ("attribute_fixture", "value_payload"),
+    [
+        (
+            "product_type_product_reference_attribute",
+            {"numeric": {"gte": 10}},
+        ),
+        (
+            "product_type_product_single_reference_attribute",
+            {"numeric": {"gte": 10}},
+        ),
+    ],
+)
+def test_validate_attribute_value_input_rejects_invalid_reference_payloads(
+    request, attribute_fixture, value_payload
+):
+    attribute = request.getfixturevalue(attribute_fixture)
+    attributes = [{"slug": attribute.slug, "value": value_payload}]
+
+    with pytest.raises(GraphQLError) as exc_info:
+        validate_attribute_value_input(attributes, "default")
+
+    message = str(exc_info.value)
+    assert "Incorrect input for attributes on position: 0" in message
+    assert "do not match the attribute input type" in message
+
+
+def test_validate_attribute_value_input_rejects_numeric_reference(numeric_attribute):
+    attributes = [
+        {
+            "slug": numeric_attribute.slug,
+            "value": {
+                "reference": {"productIds": {"containsAny": ["ref"]}},
+            },
+        }
+    ]
+
+    with pytest.raises(GraphQLError) as exc_info:
+        validate_attribute_value_input(attributes, "default")
+
+    message = str(exc_info.value)
+    assert "Incorrect input for attributes on position: 0" in message
+    assert "do not match the attribute input type" in message
+
+
+@pytest.mark.parametrize(
+    "attributes",
+    [
+        [{"slug": "attr", "value": {}}],
+        [{"slug": "attr", "value": None}],
+    ],
+)
+def test_validate_attribute_value_input_rejects_empty_values(attributes):
+    with pytest.raises(GraphQLError) as exc_info:
+        validate_attribute_value_input(attributes, "default")
+
+    message = str(exc_info.value)
+    assert "Incorrect input for attributes on position: 0" in message
+    assert "cannot be empty or null" in message
+
+
+def test_validate_attribute_value_input_rejects_multiple_value_keys():
+    attributes = [
+        {
+            "slug": "attr",
+            "value": {"slug": "value1", "name": "value2"},
+        }
+    ]
+
+    with pytest.raises(GraphQLError) as exc_info:
+        validate_attribute_value_input(attributes, "default")
+
+    message = str(exc_info.value)
+    assert "Incorrect input for attributes on position: 0" in message
+    assert "must have only one input key" in message
+
+
+def test_validate_attribute_value_input_combines_invalid_entries(
+    product_type_product_reference_attribute,
+    numeric_attribute,
+    boolean_attribute,
+):
+    attributes = [
+        {
+            "slug": product_type_product_reference_attribute.slug,
+            "value": {"numeric": {"gte": 1}},
+        },
+        {
+            "slug": numeric_attribute.slug,
+            "value": {"boolean": True},
+        },
+        {
+            "slug": boolean_attribute.slug,
+            "value": {"reference": {"productIds": {"containsAny": ["ref"]}}},
+        },
+    ]
+
+    with pytest.raises(GraphQLError) as exc_info:
+        validate_attribute_value_input(attributes, "default")
+
+    message = str(exc_info.value)
+    assert "Incorrect input for attributes on position: 0,1,2" in message
+    assert "do not match the attribute input type" in message

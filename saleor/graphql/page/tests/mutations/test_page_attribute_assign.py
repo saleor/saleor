@@ -35,6 +35,7 @@ def test_assign_attributes_to_page_type_by_staff(
     staff_api_client,
     permission_manage_page_types_and_attributes,
     page_type,
+    page,
     author_page_attribute,
 ):
     # given
@@ -42,6 +43,7 @@ def test_assign_attributes_to_page_type_by_staff(
     staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
 
     page_type_attr_count = page_type.page_attributes.count()
+    assert page.search_index_dirty is False
 
     author_page_attr_id = graphene.Node.to_global_id(
         "Attribute", author_page_attribute.pk
@@ -65,12 +67,15 @@ def test_assign_attributes_to_page_type_by_staff(
     assert author_page_attr_id in {
         attr["id"] for attr in data["pageType"]["attributes"]
     }
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
 
 
 def test_assign_attributes_to_page_type_by_app(
     app_api_client,
     permission_manage_page_types_and_attributes,
     page_type,
+    page,
     author_page_attribute,
 ):
     # given
@@ -78,6 +83,7 @@ def test_assign_attributes_to_page_type_by_app(
     app.permissions.add(permission_manage_page_types_and_attributes)
 
     page_type_attr_count = page_type.page_attributes.count()
+    assert page.search_index_dirty is False
 
     author_page_attr_id = graphene.Node.to_global_id(
         "Attribute", author_page_attribute.pk
@@ -101,6 +107,8 @@ def test_assign_attributes_to_page_type_by_app(
     assert author_page_attr_id in {
         attr["id"] for attr in data["pageType"]["attributes"]
     }
+    page.refresh_from_db()
+    assert page.search_index_dirty is True
 
 
 def test_assign_attributes_to_page_type_by_staff_no_perm(
