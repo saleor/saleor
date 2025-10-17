@@ -956,14 +956,6 @@ def test_fetch_icon_image_file_too_big(mock_get_request, image_response_mock):
     assert "File too big. Maximal icon image file size is" in error.value.message
 
 
-@patch.object(HTTPSession, "request")
-def test_fetch_icon_image_network_error(mock_get_request):
-    mock_get_request.side_effect = requests.RequestException
-    with pytest.raises(ValidationError) as error:
-        fetch_icon_image("https://example.com/logo.png")
-    assert error.value.code == AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
-
-
 @pytest.mark.parametrize("app_object", ["app", "app_installation"])
 @patch("saleor.app.installation_utils.fetch_icon_image")
 def test_fetch_brand_data_task(
@@ -1027,7 +1019,9 @@ def test_fetch_brand_data_task_retry(
 ):
     # given
     brand_data = {"logo": {"default": "https://example.com/logo.png"}}
-    mock_fetch_icon_image.side_effect = ValidationError("Fetch image error")
+    mock_fetch_icon_image.side_effect = requests.exceptions.RequestException(
+        "Fetch image network error"
+    )
 
     # when
     with pytest.raises(Retry):

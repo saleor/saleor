@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict
+from typing import Literal, TypedDict, cast
 
 import graphene
 from django.db.models import Exists, OuterRef, QuerySet
@@ -42,6 +42,18 @@ class AssignedAttributeReferenceInput(BaseInputObjectType):
         description=(
             "Returns objects with a reference pointing "
             "to a product variant identified by the given sku."
+        )
+    )
+    category_slugs = ContainsFilterInput(
+        description=(
+            "Returns objects with a reference pointing "
+            "to a category identified by the given slug."
+        )
+    )
+    collection_slugs = ContainsFilterInput(
+        description=(
+            "Returns objects with a reference pointing "
+            "to a collection identified by the given slug."
         )
     )
 
@@ -221,6 +233,64 @@ def _get_attribute_values_by_referenced_product_identifiers(
     )
 
 
+def get_attribute_values_by_referenced_category_slugs(
+    slugs: list[str], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_category_identifiers(
+        "slug", slugs, db_connection_name
+    )
+
+
+def get_attribute_values_by_referenced_category_ids(
+    ids: list[int], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_category_identifiers(
+        "id", ids, db_connection_name
+    )
+
+
+def _get_attribute_values_by_referenced_category_identifiers(
+    field_name: str,
+    identifiers: list[str] | list[int],
+    db_connection_name: str,
+) -> QuerySet[AttributeValue]:
+    categories = product_models.Category.objects.using(db_connection_name).filter(
+        **{f"{field_name}__in": identifiers}
+    )
+    return AttributeValue.objects.using(db_connection_name).filter(
+        Exists(categories.filter(id=OuterRef("reference_category_id"))),
+    )
+
+
+def get_attribute_values_by_referenced_collection_slugs(
+    slugs: list[str], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_collection_identifiers(
+        "slug", slugs, db_connection_name
+    )
+
+
+def get_attribute_values_by_referenced_collection_ids(
+    ids: list[int], db_connection_name: str
+) -> QuerySet[AttributeValue]:
+    return _get_attribute_values_by_referenced_collection_identifiers(
+        "id", ids, db_connection_name
+    )
+
+
+def _get_attribute_values_by_referenced_collection_identifiers(
+    field_name: str,
+    identifiers: list[str] | list[int],
+    db_connection_name: str,
+) -> QuerySet[AttributeValue]:
+    collections = product_models.Collection.objects.using(db_connection_name).filter(
+        **{f"{field_name}__in": identifiers}
+    )
+    return AttributeValue.objects.using(db_connection_name).filter(
+        Exists(collections.filter(id=OuterRef("reference_collection_id"))),
+    )
+
+
 def get_attribute_values_by_referenced_product_slugs(
     slugs: list[str], db_connection_name: str
 ) -> QuerySet[AttributeValue]:
@@ -266,6 +336,22 @@ def get_attribute_values_by_referenced_variant_ids(
     )
 
 
+def clean_up_referenced_global_ids(global_ids: list[str]) -> dict[str, set[int]]:
+    grouped_ids: dict[str, set[int]] = {
+        "Product": set(),
+        "ProductVariant": set(),
+        "Page": set(),
+        "Category": set(),
+        "Collection": set(),
+    }
+    for global_id in global_ids:
+        type_, id_ = graphene.Node.from_global_id(global_id)
+        if type_ in grouped_ids:
+            id_ = cast(int, id_)
+            grouped_ids[type_].add(id_)
+    return grouped_ids
+
+
 def _has_valid_reference_global_id(global_id: "str") -> bool:
     try:
         obj_type, _ = from_global_id_or_error(global_id)
@@ -276,6 +362,8 @@ def _has_valid_reference_global_id(global_id: "str") -> bool:
         "Page",
         "Product",
         "ProductVariant",
+        "Category",
+        "Collection",
     ):
         return False
     return True
@@ -303,6 +391,8 @@ def validate_attribute_value_reference_input(
                     "page_slugs",
                     "product_slugs",
                     "product_variant_skus",
+                    "category_slugs",
+                    "collection_slugs",
                 ],
                 CONTAINS_TYPING,
             ]
@@ -447,7 +537,10 @@ def validate_attribute_value_input(attributes: list[dict], db_connection_name: s
                 invalid_input_type_list.append(index_str)
             if "boolean" == value_key and input_type != AttributeInputType.BOOLEAN:
                 invalid_input_type_list.append(index_str)
-            if "reference" == value_key and input_type != AttributeInputType.REFERENCE:
+            if "reference" == value_key and input_type not in [
+                AttributeInputType.REFERENCE,
+                AttributeInputType.SINGLE_REFERENCE,
+            ]:
                 invalid_input_type_list.append(index_str)
 
     validate_attribute_value_reference_input(reference_value_list)

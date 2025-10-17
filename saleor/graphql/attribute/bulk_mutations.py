@@ -6,6 +6,9 @@ from ...attribute import models
 from ...attribute.lock_objects import attribute_value_qs_select_for_update
 from ...permission.enums import PageTypePermissions
 from ...product import models as product_models
+from ...product.utils.search_helpers import (
+    mark_products_search_vector_as_dirty_in_batches,
+)
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..core import ResolveInfo
@@ -46,9 +49,7 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "Attribute")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)
-        product_models.Product.objects.filter(id__in=product_ids).update(
-            search_index_dirty=True
-        )
+        mark_products_search_vector_as_dirty_in_batches(product_ids)
         return response
 
     @classmethod
@@ -120,9 +121,7 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)
-        product_models.Product.objects.filter(id__in=product_ids).update(
-            search_index_dirty=True
-        )
+        mark_products_search_vector_as_dirty_in_batches(product_ids)
         return response
 
     @classmethod

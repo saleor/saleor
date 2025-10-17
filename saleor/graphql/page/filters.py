@@ -9,10 +9,15 @@ from ...page import models
 from ..attribute.shared_filters import (
     CONTAINS_TYPING,
     AssignedAttributeWhereInput,
+    clean_up_referenced_global_ids,
     get_attribute_values_by_boolean_value,
     get_attribute_values_by_date_time_value,
     get_attribute_values_by_date_value,
     get_attribute_values_by_numeric_value,
+    get_attribute_values_by_referenced_category_ids,
+    get_attribute_values_by_referenced_category_slugs,
+    get_attribute_values_by_referenced_collection_ids,
+    get_attribute_values_by_referenced_collection_slugs,
     get_attribute_values_by_referenced_page_ids,
     get_attribute_values_by_referenced_page_slugs,
     get_attribute_values_by_referenced_product_ids,
@@ -22,7 +27,6 @@ from ..attribute.shared_filters import (
     get_attribute_values_by_slug_or_name_value,
     validate_attribute_value_input,
 )
-from ..core.context import ChannelQsContext
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.filters import (
     FilterInputObjectType,
@@ -51,17 +55,6 @@ from ..utils.filters import (
     filter_where_by_value_field,
 )
 from .types import Page, PageType
-
-
-def search_pages(channel_qs: ChannelQsContext, value):
-    if not value:
-        return channel_qs
-    channel_qs.qs = channel_qs.qs.filter(
-        Q(title__trigram_similar=value)
-        | Q(slug__trigram_similar=value)
-        | Q(content__icontains=value)
-    )
-    return channel_qs
 
 
 def filter_page_page_types(qs, _, value):
@@ -266,6 +259,88 @@ def filter_by_contains_referenced_product_slugs(
     return Q()
 
 
+def filter_by_contains_referenced_category_slugs(
+    attr_id: int | None,
+    attr_value: CONTAINS_TYPING,
+    db_connection_name: str,
+):
+    """Build an expression to filter pages based on their references to categories.
+
+    - If `contains_all` is provided, only pages that reference all of the
+    specified categories will match.
+    - If `contains_any` is provided, pages that reference at least one of
+    the specified categories will match.
+    """
+    contains_all = attr_value.get("contains_all")
+    contains_any = attr_value.get("contains_any")
+
+    if contains_all:
+        expression = Q()
+        for category_slug in contains_all:
+            referenced_attr_values = get_attribute_values_by_referenced_category_slugs(
+                slugs=[category_slug], db_connection_name=db_connection_name
+            )
+            expression &= _filter_contains_single_expression(
+                attr_id=attr_id,
+                db_connection_name=db_connection_name,
+                referenced_attr_values=referenced_attr_values,
+            )
+        return expression
+
+    if contains_any:
+        referenced_attr_values = get_attribute_values_by_referenced_category_slugs(
+            slugs=contains_any, db_connection_name=db_connection_name
+        )
+        return _filter_contains_single_expression(
+            attr_id=attr_id,
+            db_connection_name=db_connection_name,
+            referenced_attr_values=referenced_attr_values,
+        )
+    return Q()
+
+
+def filter_by_contains_referenced_collection_slugs(
+    attr_id: int | None,
+    attr_value: CONTAINS_TYPING,
+    db_connection_name: str,
+):
+    """Build an expression to filter pages based on their references to collections.
+
+    - If `contains_all` is provided, only pages that reference all of the
+    specified collections will match.
+    - If `contains_any` is provided, pages that reference at least one of
+    the specified collections will match.
+    """
+    contains_all = attr_value.get("contains_all")
+    contains_any = attr_value.get("contains_any")
+
+    if contains_all:
+        expression = Q()
+        for collection_slug in contains_all:
+            referenced_attr_values = (
+                get_attribute_values_by_referenced_collection_slugs(
+                    slugs=[collection_slug], db_connection_name=db_connection_name
+                )
+            )
+            expression &= _filter_contains_single_expression(
+                attr_id=attr_id,
+                db_connection_name=db_connection_name,
+                referenced_attr_values=referenced_attr_values,
+            )
+        return expression
+
+    if contains_any:
+        referenced_attr_values = get_attribute_values_by_referenced_collection_slugs(
+            slugs=contains_any, db_connection_name=db_connection_name
+        )
+        return _filter_contains_single_expression(
+            attr_id=attr_id,
+            db_connection_name=db_connection_name,
+            referenced_attr_values=referenced_attr_values,
+        )
+    return Q()
+
+
 def filter_by_contains_referenced_variant_skus(
     attr_id: int | None,
     attr_value: CONTAINS_TYPING,
@@ -310,6 +385,8 @@ def _filter_by_contains_all_referenced_object_ids(
     variant_ids: set[int],
     product_ids: set[int],
     page_ids: set[int],
+    category_ids: set[int],
+    collection_ids: set[int],
     attr_id: int | None,
     db_connection_name: str,
 ) -> Q:
@@ -344,6 +421,26 @@ def _filter_by_contains_all_referenced_object_ids(
                 db_connection_name=db_connection_name,
                 referenced_attr_values=referenced_attr_values,
             )
+    if category_ids:
+        for category_id in category_ids:
+            referenced_attr_values = get_attribute_values_by_referenced_category_ids(
+                ids=[category_id], db_connection_name=db_connection_name
+            )
+            expression &= _filter_contains_single_expression(
+                attr_id=attr_id,
+                db_connection_name=db_connection_name,
+                referenced_attr_values=referenced_attr_values,
+            )
+    if collection_ids:
+        for collection_id in collection_ids:
+            referenced_attr_values = get_attribute_values_by_referenced_collection_ids(
+                ids=[collection_id], db_connection_name=db_connection_name
+            )
+            expression &= _filter_contains_single_expression(
+                attr_id=attr_id,
+                db_connection_name=db_connection_name,
+                referenced_attr_values=referenced_attr_values,
+            )
     return expression
 
 
@@ -351,6 +448,8 @@ def _filter_by_contains_any_referenced_object_ids(
     variant_ids: set[int],
     product_ids: set[int],
     page_ids: set[int],
+    category_ids: set[int],
+    collection_ids: set[int],
     attr_id: int | None,
     db_connection_name: str,
 ) -> Q:
@@ -382,6 +481,24 @@ def _filter_by_contains_any_referenced_object_ids(
             db_connection_name=db_connection_name,
             referenced_attr_values=referenced_attr_values,
         )
+    if category_ids:
+        referenced_attr_values = get_attribute_values_by_referenced_category_ids(
+            ids=list(category_ids), db_connection_name=db_connection_name
+        )
+        expression |= _filter_contains_single_expression(
+            attr_id=attr_id,
+            db_connection_name=db_connection_name,
+            referenced_attr_values=referenced_attr_values,
+        )
+    if collection_ids:
+        referenced_attr_values = get_attribute_values_by_referenced_collection_ids(
+            ids=list(collection_ids), db_connection_name=db_connection_name
+        )
+        expression |= _filter_contains_single_expression(
+            attr_id=attr_id,
+            db_connection_name=db_connection_name,
+            referenced_attr_values=referenced_attr_values,
+        )
     return expression
 
 
@@ -393,24 +510,20 @@ def filter_by_contains_referenced_object_ids(
     contains_all = attr_value.get("contains_all")
     contains_any = attr_value.get("contains_any")
 
-    variant_ids = set()
-    product_ids = set()
-    page_ids = set()
-
-    for obj_id in contains_any or contains_all or []:
-        type_, id_ = graphene.Node.from_global_id(obj_id)
-        if type_ == "Page":
-            page_ids.add(id_)
-        elif type_ == "Product":
-            product_ids.add(id_)
-        elif type_ == "ProductVariant":
-            variant_ids.add(id_)
+    grouped_ids = clean_up_referenced_global_ids(contains_any or contains_all or [])
+    variant_ids = grouped_ids["ProductVariant"]
+    product_ids = grouped_ids["Product"]
+    page_ids = grouped_ids["Page"]
+    category_ids = grouped_ids["Category"]
+    collection_ids = grouped_ids["Collection"]
 
     if contains_all:
         return _filter_by_contains_all_referenced_object_ids(
             variant_ids=variant_ids,
             product_ids=product_ids,
             page_ids=page_ids,
+            category_ids=category_ids,
+            collection_ids=collection_ids,
             attr_id=attr_id,
             db_connection_name=db_connection_name,
         )
@@ -419,6 +532,8 @@ def filter_by_contains_referenced_object_ids(
             variant_ids=variant_ids,
             product_ids=product_ids,
             page_ids=page_ids,
+            category_ids=category_ids,
+            collection_ids=collection_ids,
             attr_id=attr_id,
             db_connection_name=db_connection_name,
         )
@@ -429,7 +544,12 @@ def filter_objects_by_reference_attributes(
     attr_id: int | None,
     attr_value: dict[
         Literal[
-            "referenced_ids", "page_slugs", "product_slugs", "product_variant_skus"
+            "referenced_ids",
+            "page_slugs",
+            "product_slugs",
+            "product_variant_skus",
+            "category_slugs",
+            "collection_slugs",
         ],
         CONTAINS_TYPING,
     ],
@@ -459,6 +579,18 @@ def filter_objects_by_reference_attributes(
         filter_expression &= filter_by_contains_referenced_variant_skus(
             attr_id,
             attr_value["product_variant_skus"],
+            db_connection_name,
+        )
+    if "category_slugs" in attr_value:
+        filter_expression &= filter_by_contains_referenced_category_slugs(
+            attr_id,
+            attr_value["category_slugs"],
+            db_connection_name,
+        )
+    if "collection_slugs" in attr_value:
+        filter_expression &= filter_by_contains_referenced_collection_slugs(
+            attr_id,
+            attr_value["collection_slugs"],
             db_connection_name,
         )
     return filter_expression

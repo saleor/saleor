@@ -18,7 +18,11 @@ from ....attribute.lock_objects import (
     attribute_value_qs_select_for_update,
 )
 from ....core.tracing import traced_atomic_transaction
+from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
+from ....product.utils.search_helpers import (
+    mark_products_search_vector_as_dirty_in_batches,
+)
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -44,6 +48,10 @@ from ..types import Attribute
 from .attribute_bulk_create import DEPRECATED_ATTR_FIELDS, clean_values
 from .attribute_update import AttributeUpdateInput
 from .mixins import AttributeMixin
+from .utils import (
+    get_page_ids_to_search_index_update_for_attribute_values,
+    get_product_ids_to_search_index_update_for_attribute_values,
+)
 
 
 @dataclass
@@ -688,6 +696,15 @@ class AttributeBulkUpdate(BaseMutation):
             delete_product_reference_types_lookup |= delete_product_ref
             delete_page_reference_types_lookup |= delete_page_ref
 
+        product_ids_to_update = (
+            get_product_ids_to_search_index_update_for_attribute_values(
+                values_to_remove
+            )
+        )
+        page_ids_to_update = get_page_ids_to_search_index_update_for_attribute_values(
+            values_to_remove
+        )
+
         with transaction.atomic():
             models.Attribute.objects.bulk_update(
                 attributes_to_update,
@@ -719,7 +736,13 @@ class AttributeBulkUpdate(BaseMutation):
             )
 
         updated_attributes.extend(attributes_to_update)
-        return updated_attributes, values_to_remove, values_to_create
+        return (
+            updated_attributes,
+            values_to_remove,
+            values_to_create,
+            product_ids_to_update,
+            page_ids_to_update,
+        )
 
     @classmethod
     def _prepare_reference_types_for_saving(
@@ -852,12 +875,18 @@ class AttributeBulkUpdate(BaseMutation):
             return AttributeBulkUpdate(count=0, results=results)
 
         # save all objects
-        attributes, values_to_remove, values_to_create = cls.save(
-            instances_data_with_errors_list
-        )
+        (
+            attributes,
+            values_to_remove,
+            values_to_create,
+            product_ids_to_search_update,
+            page_ids_to_search_update,
+        ) = cls.save(instances_data_with_errors_list)
 
         # prepare and return data
         results = get_results(instances_data_with_errors_list)
         cls.post_save_actions(info, attributes, values_to_remove, values_to_create)
+        mark_products_search_vector_as_dirty_in_batches(product_ids_to_search_update)
+        mark_pages_search_vector_as_dirty_in_batches(page_ids_to_search_update)
 
         return AttributeBulkUpdate(count=len(attributes), results=results)

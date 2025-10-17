@@ -1,5 +1,4 @@
 import graphene
-from django.db import transaction
 from django.db.models.expressions import Exists, OuterRef
 
 from ....attribute import AttributeInputType
@@ -7,8 +6,10 @@ from ....attribute import models as attribute_models
 from ....core.tracing import traced_atomic_transaction
 from ....page import models
 from ....permission.enums import PagePermissions
-from ....product.lock_objects import product_qs_select_for_update
 from ....product.models import Product
+from ....product.utils.search_helpers import (
+    mark_products_search_vector_as_dirty_in_batches,
+)
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
 from ...core.mutations import ModelDeleteMutation
@@ -46,22 +47,19 @@ class PageDelete(ModelDeleteMutation):
     @classmethod
     def update_products_search_index(cls, instance):
         # Mark products that use this instance as reference as dirty
-        with transaction.atomic():
-            locked_ids = (
-                product_qs_select_for_update()
-                .filter(
-                    Exists(
-                        attribute_models.AssignedProductAttributeValue.objects.filter(
-                            value__in=attribute_models.AttributeValue.objects.filter(
-                                reference_page=instance
-                            ),
-                            product_id=OuterRef("id"),
-                        )
+        product_ids = list(
+            Product.objects.filter(
+                Exists(
+                    attribute_models.AssignedProductAttributeValue.objects.filter(
+                        value__in=attribute_models.AttributeValue.objects.filter(
+                            reference_page=instance
+                        ),
+                        product_id=OuterRef("id"),
                     )
                 )
-                .values_list("id", flat=True)
-            )
-            Product.objects.filter(id__in=locked_ids).update(search_index_dirty=True)
+            ).values_list("id", flat=True)
+        )
+        mark_products_search_vector_as_dirty_in_batches(product_ids)
 
     @staticmethod
     def delete_assigned_attribute_values(instance):

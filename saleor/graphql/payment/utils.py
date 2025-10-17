@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING, Optional
 
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 
 from ...payment import models as payment_models
+from ...site.models import SiteSettings
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -52,9 +52,9 @@ def validate_and_resolve_refund_reason_context(
     requestor_is_user: bool,
     refund_reference_field_name: str,
     error_code_enum,
+    site_settings: SiteSettings,
 ):
-    settings = Site.objects.get_current().settings
-    refund_reason_reference_type = settings.refund_reason_reference_type
+    refund_reason_reference_type = site_settings.refund_reason_reference_type
 
     is_passing_reason_reference_required: bool = (
         refund_reason_reference_type is not None

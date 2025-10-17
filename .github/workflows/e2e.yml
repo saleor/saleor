@@ -21,13 +21,14 @@ env:
 
 jobs:
   e2e-tests:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'saleor/saleor' }}
     runs-on: ubuntu-22.04
     container: python:3.12
     name: Run E2E tests
 
     services:
       postgres:
-        image: postgres
+        image: library/postgres:15-alpine
         env:
           POSTGRES_PASSWORD: saleor
           POSTGRES_USER: saleor

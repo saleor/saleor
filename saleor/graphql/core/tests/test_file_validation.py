@@ -11,6 +11,7 @@ from ....product.error_codes import ProductErrorCode
 from ..validators.file import (
     clean_image_file,
     is_image_mimetype,
+    is_image_url,
     is_supported_image_mimetype,
     validate_image_url,
 )
@@ -314,3 +315,29 @@ def test_clean_image_file_in_avif_format():
 
     # when & then
     clean_image_file({field: img}, field, ProductErrorCode)
+
+
+@pytest.mark.parametrize(
+    ("url", "is_valid"),
+    [
+        ("http://example.com/valid_image.jpg", True),
+        ("https://example.com/valid_image.png", True),
+        ("http://example.com/valid_image.jpeg", True),
+        ("http://example.com/valid_image.gif", True),
+        ("http://example.com/valid_image.bmp", True),
+        ("http://example.com/valid_image.tiff", True),
+        ("http://example.com/valid_image.webp", True),
+        ("https://example.com/valid_image.webp", True),
+        ("http://example.com/valid_image.avif", True),
+        ("http://example.com/invalid_image.pdf", False),
+        ("http://example.com/invalid_image.docx", False),
+        ("http://example.com/invalid_image.exe", False),
+        ("http://example.com/invalid_image.txt", False),
+    ],
+)
+def test_is_image_url(url, is_valid):
+    # when
+    result = is_image_url(url)
+
+    # then
+    assert result is is_valid

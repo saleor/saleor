@@ -8,6 +8,7 @@ on:
 
 jobs:
   cleanup:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'saleor/saleor' }}
     name: Remove stale test env deployments
     runs-on: ubuntu-latest
     permissions:
