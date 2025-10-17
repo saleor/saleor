@@ -13,6 +13,7 @@ from ....checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_or_fetch_checkout_shipping_methods,
 )
 from ....checkout.utils import is_shipping_required
 from ....order import models as order_models
@@ -185,6 +186,8 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         billing_address = checkout_info.billing_address
 
         if is_shipping_required(lines):
+            # Refresh stale shipping if needed
+            get_or_fetch_checkout_shipping_methods(checkout_info)
             clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
             if shipping_address:
                 shipping_address_data = shipping_address.as_data()
