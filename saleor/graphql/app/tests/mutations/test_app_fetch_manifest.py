@@ -887,7 +887,7 @@ def test_fetch_manifest_fail_when_app_with_same_identifier_already_installed(
     # then
     assert len(errors) == 1
     assert errors[0]["field"] == "identifier"
-    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["code"] == AppErrorCode.UNIQUE.name
     assert errors[0]["message"] == (
         f"App with the same identifier is already installed: {app.name}"
     )
