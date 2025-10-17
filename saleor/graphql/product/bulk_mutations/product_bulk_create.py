@@ -3,7 +3,6 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.core.files import File
 from django.db.models import F
 from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
@@ -41,9 +40,13 @@ from ...core.types import (
     ProductBulkCreateError,
     SeoInput,
 )
-from ...core.utils import get_duplicated_values
+from ...core.utils import create_file_from_response, get_duplicated_values
 from ...core.validators import clean_seo_fields
-from ...core.validators.file import clean_image_file, is_image_url, validate_image_url
+from ...core.validators.file import (
+    clean_image_file,
+    is_image_url,
+    is_valid_image_content_type,
+)
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
@@ -481,23 +484,29 @@ class ProductBulkCreate(BaseMutation):
                     continue
             elif media_url:
                 if is_image_url(media_url):
-                    try:
-                        validate_image_url(
-                            media_url,
-                            "media_url",
-                            ProductBulkCreateErrorCode.INVALID.value,
-                        )
-                    except ValidationError as exc:
-                        cls.add_indexes_to_errors(
-                            product_index, exc, index_error_map, f"media.{index}"
-                        )
-                        continue
-                    filename = get_filename_from_url(media_url)
-                    image_data = HTTPClient.send_request(
+                    with HTTPClient.send_request(
                         "GET", media_url, stream=True, timeout=30, allow_redirects=False
-                    )
-                    image_data = File(image_data.raw, filename)
-                    media_input["image"] = image_data
+                    ) as image_data:
+                        content_type = image_data.headers.get("content-type")
+                        if is_valid_image_content_type(content_type):
+                            filename = get_filename_from_url(media_url)
+                            image_file = create_file_from_response(image_data, filename)
+                            media_input["image"] = image_file
+                        else:
+                            validation_error = ValidationError(
+                                {
+                                    "media_url": ValidationError(
+                                        "Invalid file type.",
+                                        code=ProductBulkCreateErrorCode.INVALID.value,
+                                    )
+                                }
+                            )
+                            cls.add_indexes_to_errors(
+                                product_index,
+                                validation_error,
+                                index_error_map,
+                                f"media.{index}",
+                            )
                 else:
                     try:
                         oembed_data, supported_media_type = get_oembed_data(media_url)
