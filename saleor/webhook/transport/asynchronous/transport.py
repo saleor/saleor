@@ -56,7 +56,7 @@ from ..utils import (
     create_attempt,
     create_attempts_for_deliveries,
     delivery_update,
-    get_deliveries_for_app,
+    get_deliveries_scheduled_for_app,
     get_delivery_for_webhook,
     get_multiple_deliveries_for_webhooks,
     handle_webhook_retry,
@@ -786,7 +786,7 @@ def send_scheduled_async_webhooks_sequentially(
     task_id: str, app_id: int, telemetry_context: TelemetryTaskContext
 ):
     domain = get_domain()
-    deliveries = get_deliveries_for_app(app_id, WEBHOOK_ASYNC_BATCH_SIZE)
+    deliveries = get_deliveries_scheduled_for_app(app_id, WEBHOOK_ASYNC_BATCH_SIZE)
 
     if not deliveries:
         return False

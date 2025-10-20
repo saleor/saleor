@@ -406,12 +406,12 @@ def get_delivery_for_webhook(
     return delivery, not_found
 
 
-def get_deliveries_for_app(
+def get_deliveries_scheduled_for_app(
     app_id, batch_size
 ) -> dict[int, "EventDeliveryWithAttemptCount"]:
     deliveries = (
         EventDelivery.objects.select_related("payload", "webhook__app")
-        .filter(webhook__app_id=app_id, status=EventDeliveryStatus.PENDING)
+        .filter(webhook__app_id=app_id, status=EventDeliveryStatus.SCHEDULED)
         .order_by("created_at")
         .annotate(
             attempts_count=Count("attempts", distinct=True),
