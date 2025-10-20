@@ -28,6 +28,7 @@ from ...product.models import ProductVariantChannelListing
 from ...shipping.interface import ShippingMethodData
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.checkout import update_checkout_prices_with_flat_rates
+from ...tax.models import TaxClass, TaxClassCountryRate
 from ...tests import race_condition
 from ..base_calculations import (
     base_checkout_delivery_price,
@@ -151,8 +152,6 @@ def fetch_kwargs(checkout_with_items, plugins_manager):
         ),
         "manager": plugins_manager,
         "lines": lines,
-        "address": checkout_with_items.shipping_address
-        or checkout_with_items.billing_address,
     }
 
 
@@ -404,7 +403,6 @@ def test_fetch_checkout_data_flat_rates_with_weighted_shipping_tax(
         plugins_manager,
         lines,
         allow_sync_webhooks=allow_sync_webhooks,
-        address=checkout.shipping_address,
     )
 
     # then
@@ -632,7 +630,6 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
     }
 
     # when
@@ -690,7 +687,6 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
         "checkout_info": checkout_info,
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
     }
 
     # when
@@ -746,7 +742,6 @@ def test_fetch_checkout_data_calls_plugin(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
     }
 
     # when
@@ -787,7 +782,6 @@ def test_fetch_checkout_data_calls_tax_app(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
         "allow_sync_webhooks": True,
     }
 
@@ -833,7 +827,6 @@ def test_fetch_checkout_data_calls_tax_app_when_allow_sync_webhooks_set_to_false
         "checkout_info": checkout_info,
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
         "allow_sync_webhooks": False,
     }
     assert (
@@ -875,7 +868,6 @@ def test_fetch_checkout_data_calls_inactive_plugin(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
     }
 
     # when
@@ -884,6 +876,61 @@ def test_fetch_checkout_data_calls_inactive_plugin(
     # then
     assert checkout.total.gross.amount > 0
     assert checkout_with_items.tax_error == "Empty tax data."
+
+
+def test_fetch_checkout_data_flat_rates_shipping_tax_differs_from_default(
+    checkout_with_items,
+    address,
+    plugins_manager,
+):
+    # given the checkout with the shipping country and tax different than the channel
+    # default country
+    checkout = checkout_with_items
+    tc = checkout.channel.tax_configuration
+    tc.prices_entered_with_tax = True
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.country_exceptions.all().delete()
+    tc.save()
+
+    default_country = checkout.channel.default_country
+    default_country_rate = 21
+    shipping_address_country = "PL"
+    shipping_address_rate = 23
+    tax_class = TaxClass.objects.create(name="Product")
+    tax_class.country_rates.bulk_create(
+        [
+            TaxClassCountryRate(country=default_country, rate=default_country_rate),
+            TaxClassCountryRate(
+                country=shipping_address_country, rate=shipping_address_rate
+            ),
+        ]
+    )
+    for line in checkout.lines.all():
+        product = line.variant.product
+        product.tax_class = tax_class
+        product.save(update_fields=["tax_class"])
+
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.save(update_fields=["shipping_address", "billing_address"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(
+            checkout_with_items, lines, plugins_manager
+        ),
+        "manager": plugins_manager,
+        "lines": lines,
+    }
+
+    # when
+    fetch_checkout_data(**fetch_kwargs, allow_sync_webhooks=False)
+
+    # then
+    checkout.refresh_from_db()
+    assert round(checkout.total.tax / checkout.total.net * 100) == shipping_address_rate
+    for line in checkout.lines.all():
+        assert line.tax_rate * 100 == shipping_address_rate
 
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -1223,8 +1270,6 @@ def test_fetch_checkout_with_prior_price_change(
         "checkout_info": fetch_checkout_info(checkout_with_items, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout_with_items.shipping_address
-        or checkout_with_items.billing_address,
     }
 
     # when
@@ -1257,8 +1302,6 @@ def test_fetch_checkout_with_prior_price_none(
         "checkout_info": fetch_checkout_info(checkout_with_items, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout_with_items.shipping_address
-        or checkout_with_items.billing_address,
     }
 
     # when
@@ -1287,7 +1330,6 @@ def test_fetch_checkout_data_checkout_removed_before_save(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address,
     }
 
     # when
@@ -1336,7 +1378,6 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address,
     }
     expected_email = "new_email@example.com"
 
