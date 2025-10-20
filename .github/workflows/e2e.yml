@@ -45,7 +45,7 @@ jobs:
         run: |
           apt-get install -y libpq-dev
 
-      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.0.0
+      - uses: astral-sh/setup-uv@2ddd2b9cb38ad8efd50337e8ab201519a34c9f24 # v6.0.0
         with:
           enable-cache: true
 
