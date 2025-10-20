@@ -14,7 +14,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v5
-      - uses: rlespinasse/github-slug-action@c33ff65466c58d57e4d796f88bb1ae0ff26ee453 # v5.2.0
+      - uses: rlespinasse/github-slug-action@ac4a3a266833ca6b6086466a921fae9f3c671596 # v5.3.0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
@@ -63,7 +63,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v5
-      - uses: rlespinasse/github-slug-action@c33ff65466c58d57e4d796f88bb1ae0ff26ee453 # v5.2.0
+      - uses: rlespinasse/github-slug-action@ac4a3a266833ca6b6086466a921fae9f3c671596 # v5.3.0
 
       - name: Get pull number
         run: |
