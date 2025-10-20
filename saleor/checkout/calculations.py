@@ -65,7 +65,6 @@ def checkout_shipping_price(
         checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         allow_sync_webhooks=allow_sync_webhooks,
@@ -90,7 +89,6 @@ def checkout_shipping_tax_rate(
         checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
         database_connection_name=database_connection_name,
         allow_sync_webhooks=allow_sync_webhooks,
     )
@@ -118,7 +116,6 @@ def checkout_subtotal(
         checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         allow_sync_webhooks=allow_sync_webhooks,
@@ -199,7 +196,6 @@ def calculate_checkout_total(
         checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         force_update=force_update,
@@ -225,12 +221,10 @@ def checkout_line_total(
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
     currency = checkout_info.checkout.currency
-    address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_data(
         checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         allow_sync_webhooks=allow_sync_webhooks,
@@ -256,12 +250,10 @@ def checkout_line_unit_price(
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
     currency = checkout_info.checkout.currency
-    address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_data(
         checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         allow_sync_webhooks=allow_sync_webhooks,
@@ -284,12 +276,10 @@ def checkout_line_tax_rate(
 
     It takes in account all plugins.
     """
-    address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_data(
         checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
         database_connection_name=database_connection_name,
         allow_sync_webhooks=allow_sync_webhooks,
     )
@@ -358,7 +348,6 @@ def _fetch_checkout_prices_if_expired(
     manager: "PluginsManager",
     lines: list["CheckoutLineInfo"],
     allow_sync_webhooks: bool,
-    address: Optional["Address"] = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
@@ -425,7 +414,6 @@ def _fetch_checkout_prices_if_expired(
                 checkout_info,
                 lines,
                 prices_entered_with_tax,
-                address,
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
@@ -508,7 +496,6 @@ def _calculate_and_add_tax(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
-    address: Optional["Address"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
 ):
@@ -522,7 +509,6 @@ def _calculate_and_add_tax(
             checkout_info,
             lines,
             prices_entered_with_tax,
-            address,
             database_connection_name=database_connection_name,
         )
         return
@@ -532,7 +518,7 @@ def _calculate_and_add_tax(
     # configured with Avatax plugin identifier.
     if not tax_app_identifier:
         # Call the tax plugins.
-        _apply_tax_data_from_plugins(checkout, manager, checkout_info, lines, address)
+        _apply_tax_data_from_plugins(checkout, manager, checkout_info, lines)
         # Get the taxes calculated with apps and apply to checkout.
         # We should allow empty tax_data in case any tax webhook has not been
         # configured - handled by `allowed_empty_tax_data`
@@ -552,7 +538,6 @@ def _calculate_and_add_tax(
             manager,
             checkout_info,
             lines,
-            address,
             pregenerated_subscription_payloads,
         )
 
@@ -563,7 +548,6 @@ def _call_plugin_or_tax_app(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
-    address: Optional["Address"] = None,
     pregenerated_subscription_payloads: dict | None = None,
 ):
     if pregenerated_subscription_payloads is None:
@@ -583,7 +567,6 @@ def _call_plugin_or_tax_app(
             manager,
             checkout_info,
             lines,
-            address,
             plugin_ids=plugin_ids,
         )
         if checkout.tax_error:
@@ -702,9 +685,9 @@ def _apply_tax_data_from_plugins(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
-    address: Optional["Address"],
     plugin_ids: list[str] | None = None,
 ) -> None:
+    address = checkout_info.shipping_address or checkout_info.billing_address
     for line_info in lines:
         line = line_info.line
 
@@ -787,7 +770,6 @@ def fetch_checkout_data(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",
     lines: list["CheckoutLineInfo"],
-    address: Optional["Address"] = None,
     force_update: bool = False,
     checkout_transactions: Iterable["TransactionItem"] | None = None,
     force_status_update: bool = False,
@@ -807,7 +789,6 @@ def fetch_checkout_data(
         checkout_info=checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
         force_update=force_update,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
