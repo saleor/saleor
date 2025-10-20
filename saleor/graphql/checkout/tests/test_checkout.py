@@ -3689,7 +3689,6 @@ def test_checkout_prices_variant_listing_price_changed(
         checkout_info,
         manager,
         lines,
-        checkout_with_item.shipping_address,
         force_update=True,
     )
 
@@ -3768,7 +3767,6 @@ def test_checkout_prices_expired_variant_listing_price_changed(
         checkout_info,
         manager,
         lines,
-        checkout_with_item.shipping_address,
         force_update=True,
     )
     checkout_with_item.price_expiration = timezone.now() - datetime.timedelta(days=1)
@@ -3974,7 +3972,6 @@ def test_query_checkouts_do_not_trigger_sync_tax_webhooks(
     mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
         checkout_info=mock.ANY,
         allow_sync_webhooks=False,
-        address=None,
         database_connection_name=mock.ANY,
         force_update=False,
         lines=lines,
@@ -4021,13 +4018,11 @@ def test_query_checkouts_calculate_flat_taxes(
         mock.ANY,
         lines,
         tax_configuration_flat_rates.prices_entered_with_tax,
-        None,
         database_connection_name=mock.ANY,
     )
     mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
         checkout_info=mock.ANY,
         allow_sync_webhooks=False,
-        address=None,
         database_connection_name=mock.ANY,
         force_update=False,
         lines=lines,
@@ -4123,7 +4118,6 @@ def test_query_checkout_lines_do_not_trigger_sync_tax_webhooks(
     mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
         checkout_info=mock.ANY,
         allow_sync_webhooks=False,
-        address=None,
         database_connection_name=mock.ANY,
         force_update=False,
         lines=lines,
@@ -4166,13 +4160,11 @@ def test_query_checkout_lines_calculate_flat_taxes(
         mock.ANY,
         lines,
         tax_configuration_flat_rates.prices_entered_with_tax,
-        None,
         database_connection_name=mock.ANY,
     )
     mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
         checkout_info=mock.ANY,
         allow_sync_webhooks=False,
-        address=None,
         database_connection_name=mock.ANY,
         force_update=False,
         lines=lines,
