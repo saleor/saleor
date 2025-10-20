@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from prices import TaxedMoney
@@ -17,7 +17,6 @@ from ..utils import (
 from . import calculate_flat_rate_tax
 
 if TYPE_CHECKING:
-    from ...account.models import Address
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
 
@@ -27,7 +26,6 @@ def update_checkout_prices_with_flat_rates(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
-    address: Optional["Address"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     country_code = get_checkout_active_country(checkout_info)

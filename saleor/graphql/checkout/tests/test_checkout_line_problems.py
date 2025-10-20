@@ -604,7 +604,6 @@ def test_query_checkouts_do_not_trigger_sync_tax_webhooks_when_variant_not_avail
     mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
         checkout_info=mock.ANY,
         allow_sync_webhooks=False,
-        address=None,
         database_connection_name=mock.ANY,
         force_update=False,
         lines=lines,
@@ -657,7 +656,6 @@ def test_query_checkouts_calculate_flat_taxes_when_variant_not_available(
         mock.ANY,
         lines,
         tax_configuration_flat_rates.prices_entered_with_tax,
-        None,
         database_connection_name=mock.ANY,
     )
     mocked_fetch_checkout_prices_if_expired.assert_called_once()
@@ -713,7 +711,6 @@ def test_query_checkouts_do_not_trigger_sync_tax_webhooks_when_out_of_stock(
     mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
         checkout_info=mock.ANY,
         allow_sync_webhooks=False,
-        address=None,
         database_connection_name=mock.ANY,
         force_update=False,
         lines=lines,
@@ -772,7 +769,6 @@ def test_query_checkouts_calculate_flat_taxes_when_variant_out_of_stock(
         mock.ANY,
         lines,
         tax_configuration_flat_rates.prices_entered_with_tax,
-        None,
         database_connection_name=mock.ANY,
     )
     mocked_fetch_checkout_prices_if_expired.assert_called_once()

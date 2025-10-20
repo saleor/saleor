@@ -152,8 +152,6 @@ def fetch_kwargs(checkout_with_items, plugins_manager):
         ),
         "manager": plugins_manager,
         "lines": lines,
-        "address": checkout_with_items.shipping_address
-        or checkout_with_items.billing_address,
     }
 
 
@@ -405,7 +403,6 @@ def test_fetch_checkout_data_flat_rates_with_weighted_shipping_tax(
         plugins_manager,
         lines,
         allow_sync_webhooks=allow_sync_webhooks,
-        address=checkout.shipping_address,
     )
 
     # then
@@ -633,7 +630,6 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
     }
 
     # when
@@ -691,7 +687,6 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
         "checkout_info": checkout_info,
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
     }
 
     # when
@@ -747,7 +742,6 @@ def test_fetch_checkout_data_calls_plugin(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
     }
 
     # when
@@ -788,7 +782,6 @@ def test_fetch_checkout_data_calls_tax_app(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
         "allow_sync_webhooks": True,
     }
 
@@ -834,7 +827,6 @@ def test_fetch_checkout_data_calls_tax_app_when_allow_sync_webhooks_set_to_false
         "checkout_info": checkout_info,
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
         "allow_sync_webhooks": False,
     }
     assert (
@@ -876,7 +868,6 @@ def test_fetch_checkout_data_calls_inactive_plugin(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address or checkout.billing_address,
     }
 
     # when
@@ -1279,8 +1270,6 @@ def test_fetch_checkout_with_prior_price_change(
         "checkout_info": fetch_checkout_info(checkout_with_items, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout_with_items.shipping_address
-        or checkout_with_items.billing_address,
     }
 
     # when
@@ -1313,8 +1302,6 @@ def test_fetch_checkout_with_prior_price_none(
         "checkout_info": fetch_checkout_info(checkout_with_items, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout_with_items.shipping_address
-        or checkout_with_items.billing_address,
     }
 
     # when
@@ -1343,7 +1330,6 @@ def test_fetch_checkout_data_checkout_removed_before_save(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address,
     }
 
     # when
@@ -1392,7 +1378,6 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
         "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
-        "address": checkout.shipping_address,
     }
     expected_email = "new_email@example.com"
 

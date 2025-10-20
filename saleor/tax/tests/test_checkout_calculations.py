@@ -141,7 +141,7 @@ def test_calculate_checkout_total(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address
+        checkout, checkout_info, lines, prices_entered_with_tax
     )
 
     # then
@@ -203,7 +203,7 @@ def test_calculate_checkout_total_with_multiple_tax_rates(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address
+        checkout, checkout_info, lines, prices_entered_with_tax
     )
 
     # then
@@ -260,7 +260,7 @@ def test_calculate_checkout_shipping_with_not_weighted_taxes(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address
+        checkout, checkout_info, lines, prices_entered_with_tax
     )
 
     # then
@@ -318,7 +318,7 @@ def test_calculate_checkout_shipping_with_weighted_taxes(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address
+        checkout, checkout_info, lines, prices_entered_with_tax
     )
 
     # then
@@ -380,7 +380,6 @@ def test_calculate_checkout_total_with_sale(
         checkout_info,
         lines,
         prices_entered_with_tax,
-        address,
     )
 
     # then
@@ -412,7 +411,7 @@ def test_calculate_checkout_total_no_tax_rates(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address
+        checkout, checkout_info, lines, prices_entered_with_tax
     )
 
     # then
@@ -445,7 +444,7 @@ def test_calculate_checkout_total_default_tax_rate_for_country(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address
+        checkout, checkout_info, lines, prices_entered_with_tax
     )
 
     # then
@@ -494,7 +493,7 @@ def test_calculate_checkout_total_with_shipping_voucher(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address
+        checkout, checkout_info, lines, prices_entered_with_tax
     )
 
     # then
@@ -547,7 +546,6 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
         checkout_info,
         lines,
         prices_entered_with_tax,
-        address,
     )
 
     # then
@@ -595,7 +593,6 @@ def test_calculate_checkout_subtotal(
         checkout_info,
         lines,
         prices_entered_with_tax,
-        address,
     )
 
     # then
@@ -634,7 +631,6 @@ def test_calculate_checkout_subtotal_with_promotion_prices_entered_with_tax(
         checkout_info,
         lines,
         prices_entered_with_tax,
-        address,
     )
 
     # then
@@ -679,7 +675,6 @@ def test_calculate_checkout_subtotal_with_promotion_prices_not_entered_with_tax(
         checkout_info,
         lines,
         prices_entered_with_tax,
-        address,
     )
 
     # then
@@ -720,7 +715,6 @@ def test_calculate_checkout_subtotal_with_order_promotion(
         checkout_info,
         lines,
         prices_entered_with_tax,
-        address,
     )
 
     # then
@@ -761,7 +755,6 @@ def test_calculate_checkout_subtotal_with_gift_promotion(
         checkout_info,
         lines,
         prices_entered_with_tax,
-        address,
     )
 
     # then
