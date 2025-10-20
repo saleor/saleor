@@ -28,7 +28,6 @@ from ...types import ProductVariant
 from ...utils import (
     clean_variant_sku,
     create_stocks,
-    get_used_variants_attribute_values,
 )
 from ..product.product_create import StockInput
 from . import product_variant_cleaner as cleaner
@@ -156,33 +155,12 @@ class ProductVariantCreate(DeprecatedModelMutation):
     def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
         product = cls.get_product(cleaned_input)
         product_type = product.product_type
-        used_attribute_values = get_used_variants_attribute_values(product)
-
-        # TODO: extract to method
-        variant_attributes_ids = set()
-        variant_attributes_external_refs = set()
-        for attr_id, external_ref in product_type.variant_attributes.values_list(
-            "id", "external_reference"
-        ):
-            if external_ref:
-                variant_attributes_external_refs.add(external_ref)
-            variant_attributes_ids.add(graphene.Node.to_global_id("Attribute", attr_id))
 
         attributes = cleaned_input.get("attributes") or []
-        attributes_ids = {attr["id"] for attr in attributes if attr.get("id") or []}
-        attrs_external_refs = {
-            attr["external_reference"]
-            for attr in attributes
-            if attr.get("external_reference") or []
-        }
-        invalid_attributes = attributes_ids - variant_attributes_ids
-        invalid_attributes |= attrs_external_refs - variant_attributes_external_refs
-        if len(invalid_attributes) > 0:
-            raise ValidationError(
-                "Given attributes are not a variant attributes.",
-                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
-                params={"attributes": invalid_attributes},
-            )
+        try:
+            cleaner.clean_variant_attributes(product_type, attributes)
+        except ValidationError as e:
+            raise ValidationError({"attributes": e}) from e
 
         # Run the validation only if product type is configurable
         if product_type.has_variants:
@@ -195,9 +173,6 @@ class ProductVariantCreate(DeprecatedModelMutation):
                     attributes_qs = product_type.variant_attributes.all()
                     cleaned_attributes: T_INPUT_MAP = (
                         AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
-                    )
-                    cleaner.validate_duplicated_attribute_values(
-                        cleaned_attributes, used_attribute_values
                     )
                     cleaned_input["attributes"] = cleaned_attributes
                 elif product_type.variant_attributes.filter(value_required=True):
