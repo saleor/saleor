@@ -1323,10 +1323,6 @@ def test_fetch_checkout_data_updates_status_for_zero_amount_checkout_with_lines(
     lines, _ = fetch_checkout_lines(checkout_with_item_total_0)
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout_with_item_total_0, lines, manager)
-    address = (
-        checkout_with_item_total_0.shipping_address
-        or checkout_with_item_total_0.billing_address,
-    )
 
     assert checkout_with_item_total_0.total.gross == zero_money(
         checkout_with_item_total_0.total.currency
@@ -1340,7 +1336,6 @@ def test_fetch_checkout_data_updates_status_for_zero_amount_checkout_with_lines(
         checkout_info=checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
     )
 
     # then
@@ -1395,7 +1390,6 @@ def test_fetch_checkout_data_considers_gift_cards_balance_when_updating_checkout
         checkout_info=checkout_info,
         manager=manager,
         lines=lines,
-        address=address,
     )
 
     # then
