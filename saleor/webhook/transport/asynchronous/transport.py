@@ -743,15 +743,6 @@ def send_scheduled_async_webhooks_concurrently(app_id) -> bool:
 
     scheduled_deliveries_count = deliveries_count.get(EventDeliveryStatus.SCHEDULED, 0)
     pending_deliveries_count = deliveries_count.get(EventDeliveryStatus.PENDING, 0)
-
-    logger.info(
-        "[App ID:%r] deliveries scheduled: %d, pending: %d, max concurrency: %d",
-        app_id,
-        scheduled_deliveries_count,
-        pending_deliveries_count,
-        settings.WEBHOOK_BATCH_MAX_CONCURRENCY,
-    )
-
     available_concurrency = (
         settings.WEBHOOK_BATCH_MAX_CONCURRENCY - pending_deliveries_count
     )
@@ -769,7 +760,12 @@ def send_scheduled_async_webhooks_concurrently(app_id) -> bool:
             .all()
         )
         logger.info(
-            "[App ID:%r] deliveries to send: %d", app_id, len(deliveries_to_send)
+            "[App ID:%r] sending %d of %d, scheduled deliveries, pending: %d, max concurrency: %d",
+            app_id,
+            len(deliveries_to_send),
+            scheduled_deliveries_count,
+            pending_deliveries_count,
+            settings.WEBHOOK_BATCH_MAX_CONCURRENCY,
         )
         if not deliveries_to_send:
             return False
