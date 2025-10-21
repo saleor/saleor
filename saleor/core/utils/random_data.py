@@ -29,6 +29,7 @@ from ...account.search import (
     generate_user_fields_search_document_value,
 )
 from ...account.utils import store_user_address
+from ...app.models import App
 from ...attribute.models import (
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
@@ -49,21 +50,26 @@ from ...discount import DiscountValueType, RewardValueType, VoucherType
 from ...discount.models import (
     Promotion,
     PromotionRule,
+    PromotionType,
+    RewardType,
     Voucher,
     VoucherChannelListing,
     VoucherCode,
 )
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
-from ...graphql.discount.enums import RewardTypeEnum
 from ...menu.models import Menu, MenuItem
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
 from ...order.search import prepare_order_search_vector_value
 from ...order.utils import update_order_status
 from ...page.models import Page, PageType
-from ...payment import gateway
-from ...payment.utils import create_payment
+from ...payment import TransactionAction, TransactionEventType
+from ...payment.models import TransactionEvent, TransactionItem
+from ...payment.utils import (
+    recalculate_transaction_amounts,
+    update_order_with_transaction_details,
+)
 from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
@@ -562,32 +568,256 @@ def create_fake_user(user_password, save=True, generate_id=False):
 # fake customers.
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def create_fake_payment(mock_notify, order):
-    payment = create_payment(
-        gateway="mirumee.payments.dummy",
-        customer_ip_address=fake.ipv4(),
-        email=order.user_email,
-        order=order,
-        payment_token=str(uuid.uuid4()),
-        total=order.total.gross.amount,
-        currency=order.total.gross.currency,
+    amount = order.total.gross.amount
+    dummy_app = App.objects.filter(identifier="saleor.io.dummy-payment-app").first()
+    dummy_app_identifier = (
+        dummy_app.identifier if dummy_app else "saleor.io.dummy-payment-app"
     )
-    manager = get_plugins_manager(allow_replica=False)
+    flow = order.channel.default_transaction_flow_strategy.lower()
 
-    # Create authorization transaction
-    gateway.authorize(payment, payment.token, manager, order.channel.slug)
-    # 20% chance to void the transaction at this stage
-    if random.choice([0, 0, 0, 0, 1]):
-        gateway.void(payment, manager, order.channel.slug)
-        return payment
-    # 25% to end the payment at the authorization stage
-    if not random.choice([1, 1, 1, 0]):
-        return payment
-    # Create capture transaction
-    gateway.capture(payment, manager, order.channel.slug)
-    # 25% to refund the payment
-    if random.choice([0, 0, 0, 1]):
-        gateway.refund(payment, manager, order.channel.slug)
-    return payment
+    auth_psp = str(uuid.uuid4())
+    charge_psp = str(uuid.uuid4())
+    refund_psp = str(uuid.uuid4())
+
+    if flow == "authorization":
+        pick = random.random()
+        if pick < 0.15:
+            # Authorized only: actions -> CHARGE, CANCEL
+            return create_transaction_with_events(
+                order=order,
+                name="",
+                app=dummy_app,
+                app_identifier=dummy_app_identifier,
+                user=None,
+                available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
+                authorized_amount=amount,
+                charge_amount=None,
+                refund_amount=None,
+                authorization_psp=auth_psp,
+                charge_psp=None,
+                refund_psp=None,
+            )
+        if pick < 0.75:
+            # Authorized + Charged: actions -> REFUND
+            return create_transaction_with_events(
+                order=order,
+                name="",
+                app=dummy_app,
+                app_identifier=dummy_app_identifier,
+                user=None,
+                available_actions=[TransactionAction.REFUND],
+                authorized_amount=amount,
+                charge_amount=amount,
+                refund_amount=None,
+                authorization_psp=auth_psp,
+                charge_psp=charge_psp,
+                refund_psp=None,
+            )
+        # Authorized + Charged + Refunded
+        return create_transaction_with_events(
+            order=order,
+            name="",
+            app=dummy_app,
+            app_identifier=dummy_app_identifier,
+            user=None,
+            available_actions=[],
+            authorized_amount=amount,
+            charge_amount=amount,
+            refund_amount=amount,
+            authorization_psp=auth_psp,
+            charge_psp=charge_psp,
+            refund_psp=refund_psp,
+        )
+    # Charge strategy:
+    if random.random() < 0.8:
+        # Charged only
+        return create_transaction_with_events(
+            order=order,
+            name="",
+            app=dummy_app,
+            app_identifier=dummy_app_identifier,
+            user=None,
+            available_actions=[TransactionAction.REFUND],
+            authorized_amount=None,
+            charge_amount=amount,
+            refund_amount=None,
+            authorization_psp=None,
+            charge_psp=charge_psp,
+            refund_psp=None,
+        )
+    # Charged + Refunded
+    return create_transaction_with_events(
+        order=order,
+        name="",
+        app=dummy_app,
+        app_identifier=dummy_app_identifier,
+        user=None,
+        available_actions=[],
+        authorized_amount=None,
+        charge_amount=amount,
+        refund_amount=amount,
+        authorization_psp=None,
+        charge_psp=charge_psp,
+        refund_psp=refund_psp,
+    )
+
+
+def create_transaction_with_events(
+    *,
+    order: Order,
+    name: str,
+    app: App | None,
+    app_identifier: str | None = None,
+    user: User | None,
+    available_actions: list[str] | None,
+    authorized_amount: Decimal | None,
+    charge_amount: Decimal | None,
+    refund_amount: Decimal | None,
+    authorization_psp: str | None,
+    charge_psp: str | None,
+    refund_psp: str | None,
+) -> TransactionItem:
+    item_psp = authorization_psp or charge_psp or str(uuid.uuid4())
+    transaction_item = TransactionItem.objects.create(
+        name=name,
+        order_id=order.pk,
+        currency=order.currency,
+        app=app,
+        app_identifier=(app.identifier if app else app_identifier),
+        user=user,
+        psp_reference=item_psp,
+        available_actions=available_actions or [],
+    )
+
+    events_to_create: list[TransactionEvent] = []
+    base_now = timezone.now()
+    step_us = 0
+
+    def next_time():
+        nonlocal step_us
+        t = base_now + datetime.timedelta(microseconds=step_us)
+        step_us += 1
+        return t
+
+    def make_event(
+        event_type: str,
+        amount: Decimal,
+        *,
+        psp: str | None,
+        include: bool,
+        app_for_event: App | None,
+        user_for_event: User | None,
+        message: str = "",
+    ) -> TransactionEvent:
+        return TransactionEvent(
+            type=event_type,
+            amount_value=amount,
+            currency=order.currency,
+            transaction_id=transaction_item.pk,
+            include_in_calculations=include,
+            app=app_for_event,
+            app_identifier=(
+                app_for_event.identifier if app_for_event else app_identifier
+            ),
+            user=user_for_event,
+            created_at=next_time(),
+            message=message,
+            psp_reference=psp or item_psp,
+        )
+
+    if authorized_amount is not None:
+        events_to_create.append(
+            make_event(
+                TransactionEventType.AUTHORIZATION_REQUEST,
+                authorized_amount,
+                psp=authorization_psp,
+                include=False,
+                app_for_event=app,
+                user_for_event=None,
+            )
+        )
+        events_to_create.append(
+            make_event(
+                TransactionEventType.AUTHORIZATION_SUCCESS,
+                authorized_amount,
+                psp=authorization_psp,
+                include=True,
+                app_for_event=app,
+                user_for_event=user,
+                message="Authorization success",
+            )
+        )
+
+    if charge_amount is not None:
+        events_to_create.append(
+            make_event(
+                TransactionEventType.CHARGE_REQUEST,
+                charge_amount,
+                psp=charge_psp,
+                include=False,
+                app_for_event=None,
+                user_for_event=user,
+            )
+        )
+        events_to_create.append(
+            make_event(
+                TransactionEventType.CHARGE_SUCCESS,
+                charge_amount,
+                psp=charge_psp,
+                include=True,
+                app_for_event=app,
+                user_for_event=user,
+                message="Charge success",
+            )
+        )
+
+    if refund_amount is not None and refund_amount > 0:
+        events_to_create.append(
+            make_event(
+                TransactionEventType.REFUND_REQUEST,
+                refund_amount,
+                psp=refund_psp,
+                include=False,
+                app_for_event=None,
+                user_for_event=user,
+            )
+        )
+        events_to_create.append(
+            make_event(
+                TransactionEventType.REFUND_SUCCESS,
+                refund_amount,
+                psp=refund_psp,
+                include=True,
+                app_for_event=app,
+                user_for_event=user,
+                message="Refund success",
+            )
+        )
+
+    if events_to_create:
+        TransactionEvent.objects.bulk_create(events_to_create)
+        recalculate_transaction_amounts(transaction=transaction_item)
+        update_order_with_transaction_details(transaction_item)
+
+    return transaction_item
+
+
+def link_transactions_to_app_by_identifier(
+    identifier: str = "saleor.io.dummy-payment-app",
+):
+    app = App.objects.filter(identifier=identifier).first()
+    if not app:
+        return
+    items = TransactionItem.objects.filter(app__isnull=True, app_identifier=identifier)
+    for ti in items:
+        ti.app = app
+        ti.save(update_fields=["app"])
+    events = TransactionEvent.objects.filter(
+        app__isnull=True, app_identifier=identifier
+    )
+    for ev in events:
+        ev.app = app
+        ev.save(update_fields=["app"])
 
 
 def create_order_lines(order, how_many=10):
@@ -780,10 +1010,8 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     )
     customer = random.choice([None, customers.first()])
 
-    # 20% chance to be unconfirmed order.
-    will_be_unconfirmed = (
-        random.choice([0, 0, 0, 0, 1]) if not create_preorder_lines else True
-    )
+    # # 10% chance to be unconfirmed order.
+    will_be_unconfirmed = (random.random() < 0.1) if not create_preorder_lines else True
 
     if customer and customer.default_shipping_address:
         address = customer.default_shipping_address
@@ -829,6 +1057,10 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     else:
         lines = create_order_lines(order, random.randrange(1, max_order_lines))
     order.total = sum([line.total_price for line in lines], shipping_price)
+    order.subtotal = sum(
+        [line.total_price for line in lines],
+        TaxedMoney(net=Money(0, order.currency), gross=Money(0, order.currency)),
+    )
     weight = Weight(kg=0)
     for line in order.lines.all():
         if line.variant:
@@ -842,7 +1074,11 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
 
     create_fake_payment(order=order)
 
-    if not will_be_unconfirmed:
+    # Ensure totals (including total_balance) reflect the latest transactions
+    order.refresh_from_db()
+
+    # Fulfill only when order is confirmed and fully balanced (total_balance == 0)
+    if not will_be_unconfirmed and order.total_balance == Money(0, order.currency):
         create_fulfillments(order)
 
     return order
@@ -896,6 +1132,8 @@ def create_fake_catalogue_promotion():
 def create_fake_order_promotion():
     promotion = Promotion.objects.create(
         name=f"Happy {fake.word()} day!",
+        type=PromotionType.ORDER,
+        start_date=timezone.now() + datetime.timedelta(days=1),
     )
     rules = PromotionRule.objects.bulk_create(
         [
@@ -903,7 +1141,7 @@ def create_fake_order_promotion():
                 promotion=promotion,
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=random.choice([10, 20, 30, 40, 50]),
-                reward_type=RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
+                reward_type=RewardType.SUBTOTAL_DISCOUNT,
                 order_predicate={
                     "discountedObjectPredicate": {
                         "baseSubtotalPrice": {"range": {"gte": "200"}}
@@ -914,7 +1152,7 @@ def create_fake_order_promotion():
                 promotion=promotion,
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=random.choice([10, 20, 30, 40, 50]),
-                reward_type=RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
+                reward_type=RewardType.SUBTOTAL_DISCOUNT,
                 order_predicate={
                     "discountedObjectPredicate": {
                         "baseSubtotalPrice": {"range": {"gte": "100"}}
@@ -1048,18 +1286,33 @@ def create_order_promotions(how_many=5):
         yield f"Promotion: {promotion}"
 
 
-def create_channel(channel_name, currency_code, slug=None, country=None):
+def create_channel(
+    channel_name,
+    currency_code,
+    slug=None,
+    country=None,
+    mark_as_paid_strategy="transaction_flow",
+    default_transaction_flow_strategy="charge",
+):
     if not slug:
         slug = slugify(channel_name)
-    channel, _ = Channel.objects.get_or_create(
+    defaults = {
+        "name": channel_name,
+        "currency_code": currency_code,
+        "is_active": True,
+        "default_country": country,
+        "order_mark_as_paid_strategy": mark_as_paid_strategy,
+        "default_transaction_flow_strategy": default_transaction_flow_strategy,
+    }
+    channel, created = Channel.objects.get_or_create(
         slug=slug,
-        defaults={
-            "name": channel_name,
-            "currency_code": currency_code,
-            "is_active": True,
-            "default_country": country,
-        },
+        defaults=defaults,
     )
+    if not created:
+        # Update the channel with the latest settings
+        for key, value in defaults.items():
+            setattr(channel, key, value)
+        channel.save(update_fields=list(defaults.keys()))
     TaxConfiguration.objects.get_or_create(channel=channel)
     return f"Channel: {channel}"
 
@@ -1070,6 +1323,7 @@ def create_channels():
         currency_code="USD",
         slug=settings.DEFAULT_CHANNEL_SLUG,
         country=settings.DEFAULT_COUNTRY,
+        default_transaction_flow_strategy="authorization",
     )
     yield create_channel(
         channel_name="Channel-PLN",
