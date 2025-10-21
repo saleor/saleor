@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, NamedTuple, cast
 
 from django.db.models import Model
 from django.db.models.expressions import Exists, OuterRef
-from django.utils.text import slugify
 
 from ....attribute import AttributeEntityType, AttributeInputType
 from ....attribute import models as attribute_models
@@ -158,35 +157,9 @@ def has_input_modified_attribute_values(
         `False` if the attribute values are equal, otherwise `True`.
 
     """
-    input_type_to_field_and_action = {
-        AttributeInputType.PLAIN_TEXT: ("plain_text", None),
-        AttributeInputType.RICH_TEXT: ("rich_text", json.dumps),
-        AttributeInputType.NUMERIC: ("numeric", str),
-        AttributeInputType.DATE: ("date_time", None),
-        AttributeInputType.DATE_TIME: ("date_time", None),
-    }
     if variant.product_id is not None:
         assigned_attributes = get_attribute_to_values_map_for_variant(variant)
-        input_attribute_values: defaultdict[int, list] = defaultdict(list)
-        for action, attributes in pre_save_bulk_data.items():
-            for attr, values_data in attributes.items():
-                values = []
-                if action == AttributeValueBulkActionEnum.GET_OR_CREATE:
-                    values = [value["slug"] for value in values_data]
-                elif action == AttributeValueBulkActionEnum.UPDATE_OR_CREATE:
-                    field_name, transform = input_type_to_field_and_action.get(
-                        attr.input_type, (None, None)
-                    )
-                    if field_name:
-                        values = [
-                            transform(value["defaults"][field_name])
-                            if transform
-                            else value["defaults"][field_name]
-                            for value in values_data
-                        ]
-                else:
-                    values = [value.slug for value in values_data]
-                input_attribute_values[attr.pk].extend(values)
+        input_attribute_values = get_values_from_pre_save_bulk_data(pre_save_bulk_data)
         if input_attribute_values != assigned_attributes:
             return True
     return False
@@ -226,15 +199,38 @@ def get_attribute_to_values_map_for_variant(
     return attribute_values
 
 
-# TODO: remove or refactor and use above
-def get_values_from_attribute_values_input(
-    attribute: attribute_models.Attribute, attribute_data: AttrValuesInput
-) -> list[str]:
-    """Format attribute values of type FILE."""
-    if attribute.input_type == AttributeInputType.FILE:
-        return (
-            [slugify(attribute_data.file_url.split("/")[-1])]
-            if attribute_data.file_url
-            else []
-        )
-    return attribute_data.values or []
+def get_values_from_pre_save_bulk_data(
+    pre_save_bulk_data: dict[
+        AttributeValueBulkActionEnum, dict[attribute_models.Attribute, list]
+    ],
+) -> dict[int, list[str | None | datetime.datetime]]:
+    input_type_to_field_and_action = {
+        AttributeInputType.PLAIN_TEXT: ("plain_text", None),
+        AttributeInputType.RICH_TEXT: ("rich_text", json.dumps),
+        AttributeInputType.NUMERIC: ("numeric", str),
+        AttributeInputType.DATE: ("date_time", None),
+        AttributeInputType.DATE_TIME: ("date_time", None),
+    }
+    input_attribute_values: defaultdict[int, list[str | None | datetime.datetime]] = (
+        defaultdict(list)
+    )
+    for action, attributes in pre_save_bulk_data.items():
+        for attr, values_data in attributes.items():
+            values = []
+            if action == AttributeValueBulkActionEnum.GET_OR_CREATE:
+                values = [value["slug"] for value in values_data]
+            elif action == AttributeValueBulkActionEnum.UPDATE_OR_CREATE:
+                field_name, transform = input_type_to_field_and_action.get(
+                    attr.input_type, (None, None)
+                )
+                if field_name:
+                    values = [
+                        transform(value["defaults"][field_name])
+                        if transform
+                        else value["defaults"][field_name]
+                        for value in values_data
+                    ]
+            else:
+                values = [value.slug for value in values_data]
+            input_attribute_values[attr.pk].extend(values)
+    return input_attribute_values
