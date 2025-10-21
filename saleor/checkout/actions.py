@@ -102,9 +102,6 @@ def _trigger_checkout_sync_webhooks(
             checkout_info=checkout_info,
             manager=manager,
             lines=lines,
-            address=address
-            or checkout_info.shipping_address
-            or checkout_info.billing_address,
             force_update=True,
         )
 
