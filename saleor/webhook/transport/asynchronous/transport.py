@@ -715,7 +715,7 @@ def send_webhooks_async_for_app(
         )
 
     with refresh_webhook_lock(app_id) as new_lock_uuid:
-        if new_lock_uuid and processed:
+        if processed:
             send_webhooks_async_for_app.apply_async(
                 kwargs={
                     "app_id": app_id,
