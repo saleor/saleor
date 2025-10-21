@@ -285,15 +285,27 @@ class AttributeAssignmentMixin:
                 ...
             },
             AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
-                <Attribute>: [<AttributeValue>],
+                <Attribute>: [
+                    {
+                        "attribute": <Attribute>,
+                        "slug": "instance_id_attribute_id",
+                        "defaults": {"name": "...", "plain_text": "..."}
+                    }
+                ],
                 ...
             },
             AttributeValueBulkActionEnum.GET_OR_CREATE: {
-                <Attribute>: [<AttributeValue>],
+                <Attribute>: [
+                    {
+                        "attribute": <Attribute>,
+                        "slug": "attribute_id_True",
+                        "defaults": {"name": "Attribute: Yes", "boolean": True}
+                    }
+                ],
                 ...
             },
             AttributeValueBulkActionEnum.NONE: {
-                <Attribute>: [],
+                <Attribute>: [<AttributeValue>, <AttributeValue>],
                 ...
             },
         }
