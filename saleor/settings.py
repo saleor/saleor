@@ -986,6 +986,8 @@ WEBHOOK_BATCH_CELERY_QUEUE_NAME = os.environ.get(
     "WEBHOOK_BATCH_CELERY_QUEUE_NAME", None
 )
 
+WEBHOOK_BATCH_MAX_CONCURRENCY = int(os.environ.get("WEBHOOK_BATCH_MAX_CONCURRENCY", 10))
+
 # Queue name for execution of collection product_updated events
 COLLECTION_PRODUCT_UPDATED_QUEUE_NAME = os.environ.get(
     "COLLECTION_PRODUCT_UPDATED_QUEUE_NAME", None

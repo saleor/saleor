@@ -1,10 +1,18 @@
 from unittest.mock import ANY, MagicMock, patch
 
+import pytest
+
 from saleor.core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
 from saleor.webhook.transport.asynchronous.transport import (
     WebhookResponse,
     send_webhooks_async_for_app,
 )
+
+
+@pytest.fixture
+def webhook_settings(settings):
+    settings.WEBHOOK_BATCH_MAX_CONCURRENCY = 1
+    return settings
 
 
 @patch(
@@ -24,7 +32,7 @@ def test_send_webhooks_async_for_app(
     mock_record_first_delivery_attempt_delay,
     mock_record_async_webhooks_count,
     mock_send_webhook_using_scheme_method,
-    settings,
+    webhook_settings,
     app,
     app_webhook_mutex,
     event_delivery,
@@ -51,7 +59,7 @@ def test_send_webhooks_async_for_app(
             "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        queue=webhook_settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
         MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
         bind=True,
@@ -65,7 +73,7 @@ def test_send_webhooks_async_for_app(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
 def test_send_webhooks_async_for_app_no_deliveries(
-    mock_send_webhook_using_scheme_method, settings, app
+    mock_send_webhook_using_scheme_method, webhook_settings, app
 ):
     # given
     assert not EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
@@ -82,7 +90,7 @@ def test_send_webhooks_async_for_app_no_deliveries(
 )
 def test_send_webhooks_async_for_app_doesnt_pick_failed(
     mock_send_webhook_using_scheme_method,
-    settings,
+    webhook_settings,
     app,
     app_webhook_mutex,
     event_delivery,
@@ -108,7 +116,7 @@ def test_send_webhooks_async_for_app_doesnt_pick_failed(
 def test_send_webhooks_async_for_app_no_payload(
     mock_send_webhooks_async_for_app_apply_async,
     mock_send_webhook_using_scheme_method,
-    settings,
+    webhook_settings,
     app,
     app_webhook_mutex,
     event_delivery,
@@ -137,7 +145,7 @@ def test_send_webhooks_async_for_app_no_payload(
             "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        queue=webhook_settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
         MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
         bind=True,
@@ -153,7 +161,7 @@ def test_send_webhooks_async_for_app_no_payload(
 def test_send_webhooks_async_for_app_failed_status(
     mock_send_webhooks_async_for_app_apply_async,
     mock_send_webhook_using_scheme_method,
-    settings,
+    webhook_settings,
     app,
     app_webhook_mutex,
     event_delivery,
@@ -182,7 +190,7 @@ def test_send_webhooks_async_for_app_failed_status(
             "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        queue=webhook_settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
         MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
         bind=True,
@@ -206,7 +214,7 @@ def test_send_multiple_webhooks_async_for_app(
     mock_record_first_delivery_attempt_delay,
     mock_record_async_webhooks_count,
     mock_send_webhook_using_scheme_method,
-    settings,
+    webhook_settings,
     app,
     app_webhook_mutex,
     event_deliveries,
@@ -231,7 +239,7 @@ def test_send_multiple_webhooks_async_for_app(
             "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        queue=webhook_settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
         MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
         bind=True,
@@ -258,7 +266,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
     mock_record_first_delivery_attempt_delay,
     mock_record_async_webhooks_count,
     mock_send_webhook_using_scheme_method,
-    settings,
+    webhook_settings,
     app,
     app_webhook_mutex,
     event_deliveries,
@@ -292,7 +300,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
             "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        queue=webhook_settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
         MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
         bind=True,
@@ -338,7 +346,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
 def test_send_webhooks_async_for_app_last_retry_failed(
     mock_send_webhooks_async_for_app_apply_async,
     mock_send_webhook_using_scheme_method,
-    settings,
+    webhook_settings,
     app,
     app_webhook_mutex,
     event_delivery,
@@ -372,7 +380,7 @@ def test_send_webhooks_async_for_app_last_retry_failed(
 
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={"app_id": app.id, "telemetry_context": ANY},
-        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+        queue=webhook_settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
         MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
         bind=True,
