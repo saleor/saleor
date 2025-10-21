@@ -28,8 +28,6 @@ def fetch_kwargs(checkout_with_items, plugins_manager):
         ),
         "manager": plugins_manager,
         "lines": lines,
-        "address": checkout_with_items.shipping_address
-        or checkout_with_items.billing_address,
     }
 
 
