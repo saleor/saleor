@@ -7,12 +7,18 @@ import pytest
 from django.db import transaction
 from django.db.models.aggregates import Sum
 from django.utils import timezone
+from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
 from .....checkout.error_codes import OrderCreateFromCheckoutErrorCode
-from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.fetch import (
+    fetch_checkout_info,
+    fetch_checkout_lines,
+    fetch_shipping_methods_for_checkout,
+    get_or_fetch_checkout_shipping_methods,
+)
 from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
 from .....core.taxes import TaxDataError, TaxError, zero_money, zero_taxed_money
@@ -25,6 +31,7 @@ from .....order.models import Fulfillment, Order
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
+from .....shipping.models import ShippingMethod
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -2844,3 +2851,128 @@ def test_order_from_checkout_order_status_changed_after_creation(
     order = data["order"]
     assert order
     assert order["status"] == OrderStatus.UNFULFILLED.upper()
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.order_create_from_checkout."
+    "get_or_fetch_checkout_shipping_methods",
+    wraps=get_or_fetch_checkout_shipping_methods,
+)
+def test_order_from_checkout_refreshes_shipping_methods_when_stale(
+    mocked_get_or_fetch_checkout_shipping_methods,
+    app_api_client,
+    permission_handle_checkouts,
+    site_settings,
+    checkout_ready_to_complete,
+    gift_card,
+    address,
+    address_usa,
+    customer_user,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.shipping_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["shipping_methods_stale_at"])
+
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+
+    assert not data["errors"]
+    assert mocked_get_or_fetch_checkout_shipping_methods.called
+
+
+@freeze_time("2023-01-01 12:00:00")
+@patch(
+    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    wraps=fetch_shipping_methods_for_checkout,
+)
+def test_order_from_checkout_do_not_refresh_shipping_methods_when_not_stale(
+    mocked_fetch_checkout_shipping_methods,
+    app_api_client,
+    permission_handle_checkouts,
+    site_settings,
+    checkout_ready_to_complete,
+    gift_card,
+    address,
+    address_usa,
+    customer_user,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.shipping_methods_stale_at = timezone.now() + datetime.timedelta(hours=1)
+    checkout.save(update_fields=["shipping_methods_stale_at"])
+
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+
+    assert not data["errors"]
+    assert not mocked_fetch_checkout_shipping_methods.called
+
+
+@freeze_time("2023-01-01 12:00:00")
+@patch(
+    "saleor.graphql.checkout.mutations.order_create_from_checkout."
+    "get_or_fetch_checkout_shipping_methods",
+    wraps=get_or_fetch_checkout_shipping_methods,
+)
+def test_order_from_checkout_refreshes_shipping_methods_when_stale_and_invalid(
+    mocked_get_or_fetch_checkout_shipping_methods,
+    app_api_client,
+    permission_handle_checkouts,
+    site_settings,
+    checkout_ready_to_complete,
+    gift_card,
+    address,
+    address_usa,
+    customer_user,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.shipping_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["shipping_methods_stale_at"])
+
+    # Shipping is not available anymore
+    ShippingMethod.objects.all().delete()
+
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+    new_now_time = timezone.now() + datetime.timedelta(hours=16)
+
+    # when
+    with freeze_time(new_now_time):
+        response = app_api_client.post_graphql(
+            MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+            variables,
+            permissions=[permission_handle_checkouts],
+        )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert data["errors"]
+    assert (
+        data["errors"][0]["code"]
+        == OrderCreateFromCheckoutErrorCode.INVALID_SHIPPING_METHOD.name
+    )
+
+    assert Order.objects.count() == 0
+    assert mocked_get_or_fetch_checkout_shipping_methods.called

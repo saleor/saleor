@@ -14,7 +14,12 @@ from .....account.models import Address
 from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
-from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.fetch import (
+    fetch_checkout_info,
+    fetch_checkout_lines,
+    fetch_shipping_methods_for_checkout,
+    get_or_fetch_checkout_shipping_methods,
+)
 from .....checkout.models import Checkout, CheckoutLine, CheckoutShippingMethod
 from .....checkout.payment_utils import update_checkout_payment_statuses
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, add_voucher_to_checkout
@@ -39,6 +44,7 @@ from .....product.models import (
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
 )
+from .....shipping.models import ShippingMethod
 from .....tests import race_condition
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
@@ -5594,3 +5600,155 @@ def test_checkout_complete_sets_product_type_id_for_all_order_lines(
         assert (
             line.product_type_id == variant_id_to_product_type_id_map[line.variant_id]
         )
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_complete."
+    "get_or_fetch_checkout_shipping_methods",
+    wraps=get_or_fetch_checkout_shipping_methods,
+)
+def test_complete_refreshes_shipping_methods_when_stale(
+    mocked_get_or_fetch_checkout_shipping_methods,
+    user_api_client,
+    checkout_ready_to_complete,
+    transaction_item_generator,
+    checkout_shipping_method,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.shipping_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.gift_cards.all().delete()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, None
+    )
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, authorized_value=total.gross.amount
+    )
+
+    update_checkout_payment_statuses(
+        checkout=checkout_info.checkout,
+        checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
+    )
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+    assert mocked_get_or_fetch_checkout_shipping_methods.called
+
+
+@patch(
+    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    wraps=fetch_shipping_methods_for_checkout,
+)
+def test_complete_do_not_refresh_shipping_methods_when_not_stale(
+    mocked_fetch_checkout_shipping_methods,
+    user_api_client,
+    checkout_ready_to_complete,
+    transaction_item_generator,
+    checkout_shipping_method,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.shipping_methods_stale_at = timezone.now() + datetime.timedelta(hours=1)
+    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.gift_cards.all().delete()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, None
+    )
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, authorized_value=total.gross.amount
+    )
+
+    update_checkout_payment_statuses(
+        checkout=checkout_info.checkout,
+        checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
+    )
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+    assert not mocked_fetch_checkout_shipping_methods.called
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_complete."
+    "get_or_fetch_checkout_shipping_methods",
+    wraps=get_or_fetch_checkout_shipping_methods,
+)
+def test_complete_refreshes_shipping_methods_when_stale_and_invalid(
+    mocked_get_or_fetch_checkout_shipping_methods,
+    user_api_client,
+    checkout_ready_to_complete,
+    transaction_item_generator,
+    checkout_shipping_method,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.shipping_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.gift_cards.all().delete()
+
+    # Shipping is not available anymore
+    ShippingMethod.objects.all().delete()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, None
+    )
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, authorized_value=total.gross.amount
+    )
+
+    update_checkout_payment_statuses(
+        checkout=checkout_info.checkout,
+        checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
+    )
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert data["errors"]
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID_SHIPPING_METHOD.name
+
+    assert Order.objects.count() == 0
+    assert mocked_get_or_fetch_checkout_shipping_methods.called
