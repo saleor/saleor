@@ -1029,7 +1029,7 @@ def test_product_variant_bulk_update_with_ref_attributes_and_reference_types_def
         )
 
 
-def test_product_variant_bulk_update_with_ref_attributes__refs_not_in_available_choices(
+def test_product_variant_bulk_update_with_ref_attributes_refs_not_in_available_choices(
     staff_api_client,
     product,
     product_type,
@@ -1110,6 +1110,69 @@ def test_product_variant_bulk_update_with_ref_attributes__refs_not_in_available_
         assert len(result["errors"]) == 1
         assert result["errors"][0]["code"] == ProductVariantBulkErrorCode.INVALID.name
         assert result["errors"][0]["path"] == "attributes"
+
+
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_bulk_update.get_webhooks_for_event"
+)
+def test_product_variant_bulk_update_attributes_by_external_reference(
+    mocked_get_webhooks_for_event,
+    staff_api_client,
+    variant_with_many_stocks,
+    permission_manage_products,
+    any_webhook,
+    settings,
+    multiselect_attribute,
+    color_attribute,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variant = variant_with_many_stocks
+    product_id = graphene.Node.to_global_id("Product", variant.product_id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    product = variant.product
+    product.product_type.variant_attributes.add(color_attribute)
+    attribute_external_ref = color_attribute.external_reference
+
+    value_external_ref = "value-external-ref"
+    attribute_value = color_attribute.values.last()
+    attribute_value.external_reference = value_external_ref
+    attribute_value.save(update_fields=["external_reference"])
+
+    variants = [
+        {
+            "id": variant_id,
+            "attributes": [
+                {
+                    "externalReference": attribute_external_ref,
+                    "dropdown": {
+                        "externalReference": value_external_ref,
+                        "value": attribute_value.name,
+                    },
+                }
+            ],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    for rule in get_active_catalogue_promotion_rules():
+        assert rule.variants_dirty
 
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)

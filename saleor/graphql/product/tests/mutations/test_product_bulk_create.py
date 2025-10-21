@@ -2232,6 +2232,159 @@ def test_product_bulk_create_with_variants(
         assert attribute_assignment.values.count() == 1
 
 
+def test_product_bulk_create_with_variants_and_attributes_by_external_reference(
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    description_json = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+    product_name_2 = "test name 2"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    product_type.product_attributes.add(size_attribute)
+    size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
+    attribute_external_ref = "size"
+    size_attribute.external_reference = attribute_external_ref
+    size_attribute.save(update_fields=["external_reference"])
+
+    attribute_value = size_attribute.values.first()
+    value_external_ref = "size-value-external-ref"
+    attribute_value.external_reference = value_external_ref
+    attribute_value.save(update_fields=["external_reference"])
+
+    sku_1 = str(uuid4())[:12]
+    variant_1_name = "new-variant-1-name"
+
+    sku_2 = str(uuid4())[:12]
+    variant_2_name = "new-variant-2-name"
+
+    sku_3 = str(uuid4())[:12]
+    variant_3_name = "new-variant-3-name"
+
+    variants_prod_1 = [
+        {
+            "sku": sku_1,
+            "weight": 2.5,
+            "trackInventory": True,
+            "name": variant_1_name,
+            "attributes": [
+                {
+                    "id": size_attr_id,
+                    "dropdown": {
+                        "externalReference": value_external_ref,
+                        "value": attribute_value.name,
+                    },
+                }
+            ],
+        },
+        {
+            "sku": sku_2,
+            "weight": 2.5,
+            "trackInventory": True,
+            "name": variant_2_name,
+            "attributes": [
+                {
+                    "externalReference": attribute_external_ref,
+                    "dropdown": {
+                        "externalReference": value_external_ref,
+                        "value": attribute_value.name,
+                    },
+                }
+            ],
+        },
+    ]
+
+    variants_prod_2 = [
+        {
+            "sku": sku_3,
+            "weight": 2.5,
+            "trackInventory": True,
+            "name": variant_3_name,
+            "attributes": [
+                {
+                    "id": size_attr_id,
+                    "dropdown": {
+                        "externalReference": value_external_ref,
+                        "value": attribute_value.name,
+                    },
+                }
+            ],
+        }
+    ]
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "variants": variants_prod_1,
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_2,
+            "slug": f"{base_product_slug}-2",
+            "description": description_json,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "variants": variants_prod_2,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    products = Product.objects.all()
+    product_1_variants = products[0].variants.all()
+    product_2_variants = products[1].variants.all()
+
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
+    assert data["results"][0]["product"]["variants"]
+    assert data["results"][1]["product"]["variants"]
+    assert len(products) == 2
+    assert len(product_1_variants) == 2
+    assert len(product_2_variants) == 1
+
+    for variant in product_1_variants:
+        assert variant.name in [variant_1_name, variant_2_name]
+        assert variant.sku in [sku_1, sku_2]
+        attribute_assignment = variant.attributes.first()
+        assert variant.attributes.count() == 1
+        assert attribute_assignment.attribute == size_attribute
+        assert attribute_assignment.values.count() == 1
+
+    for variant in product_2_variants:
+        assert variant.name == variant_3_name
+        assert variant.sku == sku_3
+        attribute_assignment = variant.attributes.first()
+        assert variant.attributes.count() == 1
+        assert attribute_assignment.attribute == size_attribute
+        assert attribute_assignment.values.count() == 1
+
+
 def test_product_bulk_create_with_variants_with_duplicated_sku(
     staff_api_client,
     product_type,
