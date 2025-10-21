@@ -1,4 +1,5 @@
 import datetime
+import json
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, NamedTuple, cast
@@ -11,7 +12,7 @@ from ....attribute import AttributeEntityType, AttributeInputType
 from ....attribute import models as attribute_models
 from ....page import models as page_models
 from ....product import models as product_models
-from ...product.utils import get_used_attribute_values_for_variant
+from ..enums import AttributeValueBulkActionEnum
 
 if TYPE_CHECKING:
     from ....attribute.models import Attribute
@@ -145,30 +146,87 @@ def get_variant_assigned_attribute_value_if_exists(
 
 def has_input_modified_attribute_values(
     variant: product_models.ProductVariant,
-    attributes_data: list[tuple["Attribute", AttrValuesInput]],
+    pre_save_bulk_data: dict[
+        AttributeValueBulkActionEnum, dict[attribute_models.Attribute, list]
+    ],
 ) -> bool:
-    """Compare already assigned attribute values with values from AttrValuesInput.
+    """Compare already assigned attribute values with the input values.
+
+    The change in the attribute values order is also considered a modification.
 
     Return:
         `False` if the attribute values are equal, otherwise `True`.
 
     """
-    # FIXME (eng-920): the input can contains external references, values can be provided
-    # in dropdown, multiselect, swatch, and other fields.
-    # The comparison is not complete and returns almost always False in case
-    # the variant has not values assigned.
+    input_type_to_field_and_action = {
+        AttributeInputType.PLAIN_TEXT: ("plain_text", None),
+        AttributeInputType.RICH_TEXT: ("rich_text", json.dumps),
+        AttributeInputType.NUMERIC: ("numeric", str),
+        AttributeInputType.DATE: ("date_time", None),
+        AttributeInputType.DATE_TIME: ("date_time", None),
+    }
     if variant.product_id is not None:
-        assigned_attributes = get_used_attribute_values_for_variant(variant)
-        input_attribute_values: defaultdict[str, list[str]] = defaultdict(list)
-        for attr, attr_data in attributes_data:
-            values = get_values_from_attribute_values_input(attr, attr_data)
-            if attr_data.global_id is not None:
-                input_attribute_values[attr_data.global_id].extend(values)
+        assigned_attributes = get_attribute_to_values_map_for_variant(variant)
+        input_attribute_values: defaultdict[int, list] = defaultdict(list)
+        for action, attributes in pre_save_bulk_data.items():
+            for attr, values_data in attributes.items():
+                values = []
+                if action == AttributeValueBulkActionEnum.GET_OR_CREATE:
+                    values = [value["slug"] for value in values_data]
+                elif action == AttributeValueBulkActionEnum.UPDATE_OR_CREATE:
+                    field_name, transform = input_type_to_field_and_action.get(
+                        attr.input_type, (None, None)
+                    )
+                    if field_name:
+                        values = [
+                            transform(value["defaults"][field_name])
+                            if transform
+                            else value["defaults"][field_name]
+                            for value in values_data
+                        ]
+                else:
+                    values = [value.slug for value in values_data]
+                input_attribute_values[attr.pk].extend(values)
         if input_attribute_values != assigned_attributes:
             return True
     return False
 
 
+def get_attribute_to_values_map_for_variant(
+    variant: product_models.ProductVariant,
+) -> dict[int, list]:
+    """Create a dict of attributes values for variant.
+
+    Sample result is:
+    {
+        "attribute_pk": [AttributeValue1, AttributeValue2],
+        "attribute_pk": [AttributeValue3]
+    }
+    """
+    attribute_values: defaultdict[int, list[str | None | datetime.datetime]] = (
+        defaultdict(list)
+    )
+    for assigned_variant_attribute in variant.attributes.all():
+        attribute = assigned_variant_attribute.attribute
+        attribute_id = attribute.pk
+        for attr_value in assigned_variant_attribute.values.all():
+            if attribute.input_type == AttributeInputType.PLAIN_TEXT:
+                attribute_values[attribute_id].append(attr_value.plain_text)
+            elif attribute.input_type == AttributeInputType.RICH_TEXT:
+                attribute_values[attribute_id].append(json.dumps(attr_value.rich_text))
+            elif attribute.input_type == AttributeInputType.NUMERIC:
+                attribute_values[attribute_id].append(str(attr_value.numeric))
+            elif attribute.input_type in [
+                AttributeInputType.DATE,
+                AttributeInputType.DATE_TIME,
+            ]:
+                attribute_values[attribute_id].append(attr_value.date_time)
+            else:
+                attribute_values[attribute_id].append(attr_value.slug)
+    return attribute_values
+
+
+# TODO: remove or refactor and use above
 def get_values_from_attribute_values_input(
     attribute: attribute_models.Attribute, attribute_data: AttrValuesInput
 ) -> list[str]:
