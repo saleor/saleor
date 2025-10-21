@@ -178,10 +178,10 @@ def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
 
 @pytest.fixture
 def checkout_with_item_and_voucher_and_shipping_method(
-    checkout_with_item_and_voucher, checkout_shipping_method, address
+    checkout_with_item_and_voucher, checkout_delivery, address
 ):
     checkout = checkout_with_item_and_voucher
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
     checkout.save()
     return checkout

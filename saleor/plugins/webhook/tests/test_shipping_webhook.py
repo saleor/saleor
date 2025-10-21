@@ -636,7 +636,7 @@ def test_order_available_shipping_methods(
 @mock.patch(
     "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
 )
-def test_checkout_shipping_methods(
+def test_checkout_deliveries(
     mocked_webhook,
     staff_api_client,
     checkout_ready_to_complete,
@@ -648,7 +648,7 @@ def test_checkout_shipping_methods(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "spanish-inquisition"
     excluded_shipping_method_id = (
-        checkout_ready_to_complete.assigned_shipping_method.original_id
+        checkout_ready_to_complete.assigned_delivery.shipping_method_id
     )
     mocked_webhook.return_value = [
         ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
@@ -693,7 +693,7 @@ def test_checkout_available_shipping_methods(
     webhook_reason = "spanish-inquisition"
 
     excluded_shipping_method_id = (
-        checkout_ready_to_complete.assigned_shipping_method.original_id
+        checkout_ready_to_complete.assigned_delivery.shipping_method_id
     )
     mocked_webhook.return_value = [
         ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
@@ -715,7 +715,7 @@ def test_checkout_available_shipping_methods(
 @mock.patch(
     "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
 )
-def test_checkout_shipping_methods_webhook_called_once(
+def test_checkout_deliveries_webhook_called_once(
     mocked_webhook,
     staff_api_client,
     checkout_ready_to_complete,

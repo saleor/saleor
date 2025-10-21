@@ -1027,7 +1027,7 @@ def test_checkout_add_promo_code_marks_shipping_methods_as_stale(
     variant_with_many_stocks_different_shipping_zones,
     gift_card_created_by_staff,
     address_usa,
-    checkout_shipping_method,
+    checkout_delivery,
     shipping_zone,
     channel_USD,
     voucher,
@@ -1049,7 +1049,7 @@ def test_checkout_add_promo_code_marks_shipping_methods_as_stale(
 
     # Setup checkout with items worth $50
     checkout.shipping_address = address_usa
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address_usa
     checkout.save()
 
@@ -1061,7 +1061,6 @@ def test_checkout_add_promo_code_marks_shipping_methods_as_stale(
     checkout.save()
 
     variables = {"id": to_global_id_or_none(checkout), "promoCode": voucher.code}
-
     # when
     new_time = timezone.now() + datetime.timedelta(hours=1)
     with freeze_time(new_time):
@@ -1074,7 +1073,7 @@ def test_checkout_add_promo_code_marks_shipping_methods_as_stale(
     )
     assert data["checkout"]["shippingMethod"] is None
     assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
-    assert checkout.assigned_shipping_method
+    assert checkout.assigned_delivery
     assert (
         checkout.shipping_methods_stale_at
         == new_time + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
@@ -1177,18 +1176,14 @@ def test_checkout_add_free_shipping_voucher_do_not_invalidate_shipping_method(
     api_client,
     checkout_with_item,
     voucher_free_shipping,
-    checkout_shipping_method,
+    checkout_delivery,
     shipping_zone,
     address_usa,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
-    checkout_with_item.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_item
-    )
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
     checkout_with_item.shipping_address = address_usa
-    checkout_with_item.save(
-        update_fields=["assigned_shipping_method", "shipping_address"]
-    )
+    checkout_with_item.save(update_fields=["assigned_delivery", "shipping_address"])
 
     channel = checkout_with_item.channel
 
@@ -1226,7 +1221,7 @@ def test_checkout_add_shipping_voucher_do_not_invalidate_shipping_method(
     api_client,
     checkout_with_item,
     voucher_shipping_type,
-    checkout_shipping_method,
+    checkout_delivery,
     shipping_zone,
     address_usa,
 ):
@@ -1240,13 +1235,9 @@ def test_checkout_add_shipping_voucher_do_not_invalidate_shipping_method(
     shipping_listing.minimum_order_price = Money(8, "USD")
     shipping_listing.save(update_fields=["price_amount", "minimum_order_price_amount"])
 
-    checkout_with_item.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_item
-    )
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
     checkout_with_item.shipping_address = address_usa
-    checkout_with_item.save(
-        update_fields=["assigned_shipping_method", "shipping_address"]
-    )
+    checkout_with_item.save(update_fields=["assigned_delivery", "shipping_address"])
 
     line = checkout_with_item.lines.first()
     line.quantity = 1

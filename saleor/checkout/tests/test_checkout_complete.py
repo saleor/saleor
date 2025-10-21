@@ -2032,7 +2032,7 @@ def test_create_order_store_shipping_prices(
     # given
     checkout = checkout_with_items_and_shipping
 
-    expected_base_shipping_price = checkout.assigned_shipping_method.price
+    expected_base_shipping_price = checkout.assigned_delivery.price
     expected_shipping_price = TaxedMoney(
         net=expected_base_shipping_price * Decimal("0.9"),
         gross=expected_base_shipping_price,
@@ -2090,7 +2090,7 @@ def test_create_order_store_shipping_prices_with_free_shipping_voucher(
     checkout = checkout_with_voucher_free_shipping
     manager = get_plugins_manager(allow_replica=False)
 
-    expected_undiscounted_shipping_price = checkout.assigned_shipping_method.price
+    expected_undiscounted_shipping_price = checkout.assigned_delivery.price
     expected_base_shipping_price = zero_money(checkout.currency)
     expected_shipping_price = zero_taxed_money(checkout.currency)
     expected_shipping_tax_rate = Decimal("0.0")
@@ -2181,8 +2181,8 @@ def test_complete_checkout_invalid_shipping_method(
     checkout.save()
 
     # make the current shipping method invalid
-    checkout.assigned_shipping_method.is_valid = False
-    checkout.assigned_shipping_method.save()
+    checkout.assigned_delivery.is_valid = False
+    checkout.assigned_delivery.save()
 
     voucher.apply_once_per_customer = True
     voucher.save()
@@ -2496,7 +2496,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
     mocked_get_tax_calculation_strategy_for_checkout,
     customer_user,
     checkout_with_item,
-    checkout_shipping_method,
+    checkout_delivery,
     app,
     address,
     payment_dummy,
@@ -2532,7 +2532,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
     checkout.user = customer_user
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
     checkout.price_expiration = timezone.now() + datetime.timedelta(hours=2)
@@ -2767,7 +2767,7 @@ def test_complete_checkout_fail_handler_with_voucher_and_payment(
 
 
 def test_checkout_complete_with_voucher_0_total(
-    checkout_shipping_method,
+    checkout_delivery,
     checkout_with_item,
     customer_user,
     voucher_percentage,
@@ -2778,7 +2778,7 @@ def test_checkout_complete_with_voucher_0_total(
     checkout.user = customer_user
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
@@ -2789,8 +2789,8 @@ def test_checkout_complete_with_voucher_0_total(
     voucher_listing.discount_value = 100
     voucher_listing.save(update_fields=["discount_value"])
 
-    checkout.assigned_shipping_method.price_amount = Decimal("0.0")
-    checkout.assigned_shipping_method.save(update_fields=["price_amount"])
+    checkout.assigned_delivery.price_amount = Decimal("0.0")
+    checkout.assigned_delivery.save(update_fields=["price_amount"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)

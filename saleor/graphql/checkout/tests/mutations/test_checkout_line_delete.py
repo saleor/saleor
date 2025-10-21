@@ -24,7 +24,7 @@ from .....warehouse.models import Reservation
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import mark_checkout_shipping_methods_as_stale_if_needed
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_LINE_DELETE = """
     mutation checkoutLineDelete($id: ID, $lineId: ID!) {
@@ -50,8 +50,8 @@ MUTATION_CHECKOUT_LINE_DELETE = """
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout",
@@ -107,8 +107,8 @@ def test_checkout_line_delete(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout",
@@ -171,8 +171,8 @@ def test_checkout_line_delete_when_variant_without_channel_listing(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout",
@@ -266,12 +266,12 @@ def test_checkout_line_marks_shipping_as_stale_if_removed_product_with_shipping(
     checkout_with_item,
     digital_content,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     checkout = checkout_with_item
     digital_variant = digital_content.product_variant
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save()
 
     checkout_info = fetch_checkout_info(
@@ -290,7 +290,7 @@ def test_checkout_line_marks_shipping_as_stale_if_removed_product_with_shipping(
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 1
-    assert checkout.assigned_shipping_method
+    assert checkout.assigned_delivery
     assert checkout.shipping_methods_stale_at == timezone.now()
 
 

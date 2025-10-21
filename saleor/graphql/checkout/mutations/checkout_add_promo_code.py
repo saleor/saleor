@@ -24,7 +24,7 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .utils import (
     get_checkout,
-    mark_checkout_shipping_methods_as_stale_if_needed,
+    mark_checkout_deliveries_as_stale_if_needed,
 )
 
 
@@ -107,7 +107,7 @@ class CheckoutAddPromoCode(BaseMutation):
             promo_code,
         )
 
-        shipping_update_fields = mark_checkout_shipping_methods_as_stale_if_needed(
+        shipping_update_fields = mark_checkout_deliveries_as_stale_if_needed(
             checkout_info.checkout, lines
         )
 

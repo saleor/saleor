@@ -69,7 +69,7 @@ from .lock_objects import (
     checkout_lines_qs_select_for_update,
     checkout_qs_select_for_update,
 )
-from .models import Checkout, CheckoutLine, CheckoutMetadata, CheckoutShippingMethod
+from .models import Checkout, CheckoutDelivery, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
     from measurement.measures import Weight
@@ -1121,9 +1121,9 @@ def _remove_undiscounted_base_shipping_price(checkout: Checkout):
 
 def remove_shipping_method_from_checkout(checkout: Checkout) -> list[str]:
     fields_to_update = []
-    if checkout.assigned_shipping_method_id:
-        checkout.assigned_shipping_method_id = None
-        fields_to_update.append("assigned_shipping_method_id")
+    if checkout.assigned_delivery_id:
+        checkout.assigned_delivery_id = None
+        fields_to_update.append("assigned_delivery_id")
         if checkout.shipping_method_name is not None:
             checkout.shipping_method_name = None
             fields_to_update.append("shipping_method_name")
@@ -1152,14 +1152,12 @@ def remove_delivery_method_from_checkout(checkout: Checkout) -> list[str]:
 
 
 def _assign_undiscounted_base_shipping_price_to_checkout(
-    checkout, checkout_shipping_method: CheckoutShippingMethod
+    checkout, checkout_delivery: CheckoutDelivery
 ):
     current_shipping_price = quantize_price(
         checkout.undiscounted_base_shipping_price, checkout.currency
     )
-    new_shipping_price = quantize_price(
-        checkout_shipping_method.price, checkout.currency
-    )
+    new_shipping_price = quantize_price(checkout_delivery.price, checkout.currency)
     if current_shipping_price != new_shipping_price:
         checkout.undiscounted_base_shipping_price_amount = new_shipping_price.amount
         return ["undiscounted_base_shipping_price_amount"]
@@ -1167,23 +1165,23 @@ def _assign_undiscounted_base_shipping_price_to_checkout(
 
 
 def assign_shipping_method_to_checkout(
-    checkout: Checkout, checkout_shipping_method: CheckoutShippingMethod
+    checkout: Checkout, checkout_delivery: CheckoutDelivery
 ) -> list[str]:
     fields_to_update = []
     fields_to_update += remove_click_and_collect_from_checkout(checkout)
     fields_to_update += _assign_undiscounted_base_shipping_price_to_checkout(
-        checkout, checkout_shipping_method
+        checkout, checkout_delivery
     )
-    if checkout.assigned_shipping_method_id != checkout_shipping_method.id:
-        checkout.assigned_shipping_method = checkout_shipping_method
-        fields_to_update.append("assigned_shipping_method_id")
+    if checkout.assigned_delivery_id != checkout_delivery.id:
+        checkout.assigned_delivery = checkout_delivery
+        fields_to_update.append("assigned_delivery_id")
 
     # make sure that we don't have obsolete data for shipping methods stored in
     # private metadata
     _remove_external_shipping_from_metadata(checkout=checkout)
 
-    if checkout.shipping_method_name != checkout_shipping_method.name:
-        checkout.shipping_method_name = checkout_shipping_method.name
+    if checkout.shipping_method_name != checkout_delivery.name:
+        checkout.shipping_method_name = checkout_delivery.name
         fields_to_update.append("shipping_method_name")
 
     return fields_to_update

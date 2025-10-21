@@ -250,12 +250,12 @@ def test_checkout_calculate_taxes_with_entire_order_voucher(
     webhook_app,
     permission_handle_taxes,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_voucher
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 

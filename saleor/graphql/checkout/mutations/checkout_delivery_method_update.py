@@ -9,9 +9,9 @@ from ....checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_or_fetch_checkout_shipping_methods,
+    get_or_fetch_checkout_deliveries,
 )
-from ....checkout.models import CheckoutShippingMethod
+from ....checkout.models import CheckoutDelivery
 from ....checkout.utils import is_shipping_required
 from ....warehouse import models as warehouse_models
 from ....webhook.const import APP_ID_PREFIX
@@ -125,23 +125,19 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         return str_type, id_
 
     @classmethod
-    def get_checkout_shipping_method(
+    def get_checkout_delivery(
         cls, checkout_info: CheckoutInfo, internal_shipping_method_id: str | None
-    ) -> CheckoutShippingMethod | None:
+    ) -> CheckoutDelivery | None:
         if internal_shipping_method_id is None:
             return None
 
-        checkout_shipping_methods = get_or_fetch_checkout_shipping_methods(
-            checkout_info
-        )
-        if internal_shipping_method_id in (
-            method.original_id for method in checkout_shipping_methods if method.active
-        ):
-            return next(
-                method
-                for method in checkout_shipping_methods
-                if method.original_id == internal_shipping_method_id
-            )
+        checkout_deliveries = get_or_fetch_checkout_deliveries(checkout_info)
+        for method in checkout_deliveries:
+            if not method.active:
+                continue
+            if method.shipping_method_id == internal_shipping_method_id:
+                return method
+
         raise ValidationError(
             {
                 "delivery_method_id": ValidationError(
@@ -159,22 +155,20 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         delivery_method_id: str,
         manager: "PluginsManager",
         info: ResolveInfo,
-    ) -> CheckoutShippingMethod | warehouse_models.Warehouse | None:
+    ) -> CheckoutDelivery | warehouse_models.Warehouse | None:
         if delivery_method_id is None:
             return None
 
-        delivery_method_data: (
-            CheckoutShippingMethod | warehouse_models.Warehouse | None
-        ) = None
+        delivery_method_data: CheckoutDelivery | warehouse_models.Warehouse | None = (
+            None
+        )
         type_name, internal_id = cls._resolve_delivery_method_type(delivery_method_id)
         if internal_id is None:
             return None
         if type_name == "Warehouse":
             delivery_method_data = cls.get_collection_point(checkout_info, internal_id)
         else:
-            delivery_method_data = cls.get_checkout_shipping_method(
-                checkout_info, internal_id
-            )
+            delivery_method_data = cls.get_checkout_delivery(checkout_info, internal_id)
         return delivery_method_data
 
     @classmethod

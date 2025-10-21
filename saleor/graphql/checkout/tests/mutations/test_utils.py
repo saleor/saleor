@@ -1,7 +1,7 @@
 import graphene
 
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.models import CheckoutShippingMethod
+from .....checkout.models import CheckoutDelivery
 from .....plugins.manager import get_plugins_manager
 from ...mutations.utils import (
     CheckoutLineData,
@@ -223,9 +223,9 @@ def test_assign_delivery_method_to_checkout_delivery_method_to_external(
         "app", f"{shipping_app.id}:{app_shipping_id}"
     )
 
-    shipping_method = CheckoutShippingMethod.objects.create(
+    shipping_method = CheckoutDelivery.objects.create(
         checkout=checkout,
-        original_id=method_id,
+        external_shipping_method_id=method_id,
         name=app_shipping_name,
         price_amount="10.00",
         currency="USD",
@@ -240,16 +240,16 @@ def test_assign_delivery_method_to_checkout_delivery_method_to_external(
 
     # then
     assert checkout.shipping_method_name == app_shipping_name
-    assert checkout.assigned_shipping_method.original_id == method_id
-    assert checkout.assigned_shipping_method.name == app_shipping_name
+    assert checkout.assigned_delivery.shipping_method_id == method_id
+    assert checkout.assigned_delivery.name == app_shipping_name
     assert checkout_info.collection_point is None
 
 
 def test_assign_delivery_method_to_checkout_delivery_method_to_cc(
-    checkout, shipping_method_weight_based, warehouses_for_cc, checkout_shipping_method
+    checkout, shipping_method_weight_based, warehouses_for_cc, checkout_delivery
 ):
     # given
-    checkout.assigned_shipping_method = checkout_shipping_method(
+    checkout.assigned_delivery = checkout_delivery(
         checkout, shipping_method_weight_based
     )
     checkout.shipping_method_name = shipping_method_weight_based.name
@@ -271,5 +271,5 @@ def test_assign_delivery_method_to_checkout_delivery_method_to_cc(
     assert checkout.collection_point == collection_point
     assert checkout.shipping_address == collection_point.address
     assert int(checkout.shipping_address_id) != int(collection_point.address.id)
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert checkout.shipping_method_name is None

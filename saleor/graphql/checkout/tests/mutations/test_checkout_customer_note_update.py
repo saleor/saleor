@@ -205,18 +205,18 @@ def test_checkout_customer_note_update_triggers_webhooks(
 
 @freeze_time("2024-05-31 12:00:01")
 def test_checkout_customer_note_update_do_not_mark_shipping_as_stale(
-    user_api_client, checkout_with_item, checkout_shipping_method, address
+    user_api_client, checkout_with_item, checkout_delivery, address
 ):
     # given
     expected_stale_time = timezone.now() + timezone.timedelta(minutes=10)
 
     checkout = checkout_with_item
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
     checkout.shipping_methods_stale_at = expected_stale_time
     checkout.save(
         update_fields=[
-            "assigned_shipping_method",
+            "assigned_delivery",
             "shipping_address",
             "shipping_methods_stale_at",
         ]

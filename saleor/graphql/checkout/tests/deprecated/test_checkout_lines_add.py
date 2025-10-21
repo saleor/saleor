@@ -7,7 +7,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import calculate_checkout_quantity
 from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import mark_checkout_shipping_methods_as_stale_if_needed
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_LINES_ADD = """
     mutation checkoutLinesAdd(
@@ -35,8 +35,8 @@ MUTATION_CHECKOUT_LINES_ADD = """
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_lines_add_by_checkout_id(
     mocked_update_shipping_method, user_api_client, checkout_with_item, stock
@@ -73,8 +73,8 @@ def test_checkout_lines_add_by_checkout_id(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_lines_add_by_checkout_token(
     mocked_update_shipping_method, user_api_client, checkout_with_item, stock

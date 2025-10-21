@@ -56,7 +56,7 @@ from ..utils import (
 
 
 def test_is_valid_delivery_method(
-    checkout_with_item, address, shipping_zone, checkout_shipping_method
+    checkout_with_item, address, shipping_zone, checkout_delivery
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -68,15 +68,15 @@ def test_is_valid_delivery_method(
     # no shipping method assigned
     assert not delivery_method_info.is_valid_delivery_method()
 
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_valid_delivery_method()
 
-    checkout.assigned_shipping_method.active = False
-    checkout.assigned_shipping_method.save()
+    checkout.assigned_delivery.active = False
+    checkout.assigned_delivery.save()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     delivery_method_info = checkout_info.get_delivery_method_info()
 
@@ -113,12 +113,12 @@ def test_last_change_update(checkout):
         assert checkout.last_change == datetime.datetime.now(tz=datetime.UTC)
 
 
-def test_last_change_update_foreign_key(checkout, checkout_shipping_method):
+def test_last_change_update_foreign_key(checkout, checkout_delivery):
     with freeze_time(datetime.datetime.now(tz=datetime.UTC)):
         assert checkout.last_change != datetime.datetime.now(tz=datetime.UTC)
 
-        checkout.assigned_shipping_method = checkout_shipping_method(checkout)
-        checkout.save(update_fields=["assigned_shipping_method", "last_change"])
+        checkout.assigned_delivery = checkout_delivery(checkout)
+        checkout.save(update_fields=["assigned_delivery", "last_change"])
 
         assert checkout.last_change == datetime.datetime.now(tz=datetime.UTC)
 
@@ -706,7 +706,7 @@ def test_get_discount_for_checkout_shipping_voucher(
     expected_value,
     channel_USD,
     checkout_with_items,
-    checkout_shipping_method,
+    checkout_delivery,
     address,
 ):
     # given
@@ -722,15 +722,15 @@ def test_get_discount_for_checkout_shipping_voucher(
         discount=Money(discount_value, channel_USD.currency_code),
     )
 
-    assigned_shipping_method = checkout_shipping_method(checkout_with_items)
-    assigned_shipping_method.price_amount = shipping_cost
-    assigned_shipping_method.save()
+    assigned_delivery = checkout_delivery(checkout_with_items)
+    assigned_delivery.price_amount = shipping_cost
+    assigned_delivery.save()
 
     address.country = Country(shipping_country_code)
     address.save()
 
     checkout_with_items.shipping_address = address
-    checkout_with_items.assigned_shipping_method = assigned_shipping_method
+    checkout_with_items.assigned_delivery = assigned_delivery
     checkout_with_items.save()
 
     manager = get_plugins_manager(allow_replica=False)
@@ -747,7 +747,7 @@ def test_get_discount_for_checkout_shipping_voucher(
 
 
 def test_get_discount_for_checkout_shipping_voucher_all_countries(
-    monkeypatch, channel_USD, checkout_shipping_method, checkout_with_items
+    monkeypatch, channel_USD, checkout_delivery, checkout_with_items
 ):
     # given
 
@@ -763,9 +763,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         discount=Money(50, channel_USD.currency_code),
     )
 
-    checkout_with_items.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_items
-    )
+    checkout_with_items.assigned_delivery = checkout_delivery(checkout_with_items)
     checkout_with_items.save()
 
     manager = get_plugins_manager(allow_replica=False)
@@ -847,7 +845,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable_missing_deliv
         channel=checkout_with_items.channel,
         discount=Money(10, checkout_with_items.currency),
     )
-    assert checkout_with_items.assigned_shipping_method is None
+    assert checkout_with_items.assigned_delivery is None
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout_with_items)
@@ -882,7 +880,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable_delivery_not_
         channel=checkout.channel,
         discount=Money(10, checkout.currency),
     )
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -902,14 +900,12 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable_delivery_not_
 
 
 def test_get_discount_for_checkout_shipping_voucher_not_applicable_in_country(
-    checkout_with_items, checkout_shipping_method, address
+    checkout_with_items, checkout_delivery, address
 ):
     # given
     assert address.country.code != "US"
     checkout_with_items.shipping_address = address
-    checkout_with_items.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_items
-    )
+    checkout_with_items.assigned_delivery = checkout_delivery(checkout_with_items)
     checkout_with_items.save()
 
     voucher = Voucher.objects.create(
@@ -943,12 +939,10 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable_in_country(
 
 
 def test_get_discount_for_checkout_shipping_voucher_not_applicable_spent_not_enough(
-    checkout_with_items, checkout_shipping_method, address
+    checkout_with_items, checkout_delivery, address
 ):
     # given
-    checkout_with_items.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_items
-    )
+    checkout_with_items.assigned_delivery = checkout_delivery(checkout_with_items)
     checkout_with_items.save()
 
     voucher = Voucher.objects.create(
@@ -986,13 +980,11 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable_spent_not_eno
 
 
 def test_get_discount_for_checkout_shipping_voucher_not_applicable_minimum_quantity_not_reached(
-    checkout_with_items, checkout_shipping_method, address
+    checkout_with_items, checkout_delivery, address
 ):
     # given
     checkout_with_items.shipping_address = address
-    checkout_with_items.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_items
-    )
+    checkout_with_items.assigned_delivery = checkout_delivery(checkout_with_items)
     checkout_with_items.save()
 
     voucher = Voucher.objects.create(
@@ -1399,13 +1391,13 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    checkout.assigned_shipping_method.price = calculations.checkout_subtotal(
+    checkout.assigned_delivery.price = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     ).gross + Money("10.00", "USD")
-    checkout.assigned_shipping_method.save()
+    checkout.assigned_delivery.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1413,7 +1405,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     recalculate_checkout_discount(manager, checkout_info, lines)
 
     # then
-    assert checkout.discount == checkout.assigned_shipping_method.price
+    assert checkout.discount == checkout.assigned_delivery.price
     assert checkout.discount_name == "Free shipping"
     checkout_total = calculations.calculate_checkout_total(
         manager=manager,
@@ -1441,13 +1433,13 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    checkout.assigned_shipping_method.price = calculations.checkout_subtotal(
+    checkout.assigned_delivery.price = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     ).gross - Money("10.00", "USD")
-    checkout.assigned_shipping_method.save()
+    checkout.assigned_delivery.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
@@ -1455,7 +1447,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     recalculate_checkout_discount(manager, checkout_info, lines)
 
     # then
-    assert checkout.discount == checkout.assigned_shipping_method.price
+    assert checkout.discount == checkout.assigned_delivery.price
     assert checkout.discount_name == "Free shipping"
     checkout_total = calculations.calculate_checkout_total(
         manager=manager,

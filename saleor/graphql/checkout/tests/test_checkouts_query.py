@@ -89,7 +89,7 @@ def test_query_checkouts_do_not_trigger_external_shipping_webhook_with_flat_rate
     checkout.undiscounted_base_shipping_price_amount = Decimal(100)
     checkout.save()
 
-    checkout_shipping_method = checkout.shipping_methods.get()
+    checkout_delivery = checkout.shipping_methods.get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -105,23 +105,20 @@ def test_query_checkouts_do_not_trigger_external_shipping_webhook_with_flat_rate
     assert len(checkout_data["shippingMethods"]) == 1
     assert (
         checkout_data["shippingMethods"][0]["id"]
-        == checkout_shipping_method.original_id
+        == checkout_delivery.shipping_method_id
     )
 
     assert len(checkout_data["availableShippingMethods"]) == 1
     assert (
         checkout_data["availableShippingMethods"][0]["id"]
-        == checkout_shipping_method.original_id
+        == checkout_delivery.shipping_method_id
     )
 
     delivery_method = checkout_data["deliveryMethod"]
     assert delivery_method
-    assert delivery_method["id"] == checkout.assigned_shipping_method.original_id
-    assert delivery_method["name"] == checkout.assigned_shipping_method.name
-    assert (
-        delivery_method["price"]["amount"]
-        == checkout.assigned_shipping_method.price_amount
-    )
+    assert delivery_method["id"] == checkout.assigned_delivery.shipping_method_id
+    assert delivery_method["name"] == checkout.assigned_delivery.name
+    assert delivery_method["price"]["amount"] == checkout.assigned_delivery.price_amount
     mocked_request.assert_not_called()
 
 
@@ -150,7 +147,7 @@ def test_query_checkouts_do_not_trigger_external_shipping_webhook_with_tax_app(
     checkout.shipping_methods_stale_at = timezone.now()
     checkout.save()
 
-    checkout_shipping_method = checkout.shipping_methods.get()
+    checkout_delivery = checkout.shipping_methods.get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -166,23 +163,20 @@ def test_query_checkouts_do_not_trigger_external_shipping_webhook_with_tax_app(
     assert len(checkout_data["shippingMethods"]) == 1
     assert (
         checkout_data["shippingMethods"][0]["id"]
-        == checkout_shipping_method.original_id
+        == checkout_delivery.shipping_method_id
     )
 
     assert len(checkout_data["availableShippingMethods"]) == 1
     assert (
         checkout_data["availableShippingMethods"][0]["id"]
-        == checkout_shipping_method.original_id
+        == checkout_delivery.shipping_method_id
     )
 
     delivery_method = checkout_data["deliveryMethod"]
     assert delivery_method
-    assert delivery_method["id"] == checkout.assigned_shipping_method.original_id
-    assert delivery_method["name"] == checkout.assigned_shipping_method.name
-    assert (
-        delivery_method["price"]["amount"]
-        == checkout.assigned_shipping_method.price_amount
-    )
+    assert delivery_method["id"] == checkout.assigned_delivery.shipping_method_id
+    assert delivery_method["name"] == checkout.assigned_delivery.name
+    assert delivery_method["price"]["amount"] == checkout.assigned_delivery.price_amount
     mocked_request.assert_not_called()
 
 
@@ -209,7 +203,7 @@ def test_query_checkouts_do_not_trigger_exclude_shipping_webhooks_with_flat_rate
     checkout.shipping_methods_stale_at = timezone.now()
     checkout.save()
 
-    checkout_shipping_method = checkout.shipping_methods.get()
+    checkout_delivery = checkout.shipping_methods.get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -225,23 +219,20 @@ def test_query_checkouts_do_not_trigger_exclude_shipping_webhooks_with_flat_rate
     assert len(checkout_data["shippingMethods"]) == 1
     assert (
         checkout_data["shippingMethods"][0]["id"]
-        == checkout_shipping_method.original_id
+        == checkout_delivery.shipping_method_id
     )
 
     assert len(checkout_data["availableShippingMethods"]) == 1
     assert (
         checkout_data["availableShippingMethods"][0]["id"]
-        == checkout_shipping_method.original_id
+        == checkout_delivery.shipping_method_id
     )
 
     delivery_method = checkout_data["deliveryMethod"]
     assert delivery_method
-    assert delivery_method["id"] == checkout.assigned_shipping_method.original_id
-    assert delivery_method["name"] == checkout.assigned_shipping_method.name
-    assert (
-        delivery_method["price"]["amount"]
-        == checkout.assigned_shipping_method.price_amount
-    )
+    assert delivery_method["id"] == checkout.assigned_delivery.shipping_method_id
+    assert delivery_method["name"] == checkout.assigned_delivery.name
+    assert delivery_method["price"]["amount"] == checkout.assigned_delivery.price_amount
     mocked_request.assert_not_called()
 
 
@@ -268,7 +259,7 @@ def test_query_checkouts_do_not_trigger_exclude_shipping_webhooks_with_tax_app(
     checkout.shipping_methods_stale_at = timezone.now()
     checkout.save()
 
-    checkout_shipping_method = checkout.shipping_methods.get()
+    checkout_delivery = checkout.shipping_methods.get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -284,21 +275,18 @@ def test_query_checkouts_do_not_trigger_exclude_shipping_webhooks_with_tax_app(
     assert len(checkout_data["shippingMethods"]) == 1
     assert (
         checkout_data["shippingMethods"][0]["id"]
-        == checkout_shipping_method.original_id
+        == checkout_delivery.shipping_method_id
     )
 
     assert len(checkout_data["availableShippingMethods"]) == 1
     assert (
         checkout_data["availableShippingMethods"][0]["id"]
-        == checkout_shipping_method.original_id
+        == checkout_delivery.shipping_method_id
     )
 
     delivery_method = checkout_data["deliveryMethod"]
     assert delivery_method
-    assert delivery_method["id"] == checkout.assigned_shipping_method.original_id
-    assert delivery_method["name"] == checkout.assigned_shipping_method.name
-    assert (
-        delivery_method["price"]["amount"]
-        == checkout.assigned_shipping_method.price_amount
-    )
+    assert delivery_method["id"] == checkout.assigned_delivery.shipping_method_id
+    assert delivery_method["name"] == checkout.assigned_delivery.name
+    assert delivery_method["price"]["amount"] == checkout.assigned_delivery.price_amount
     mocked_request.assert_not_called()

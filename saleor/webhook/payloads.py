@@ -330,7 +330,7 @@ def generate_order_payload(
         "number": order.number,
         "user_email": order.get_customer_email(),
         "created": order.created_at,
-        "original": graphene.Node.to_global_id("Order", order.original_id),
+        "original": graphene.Node.to_global_id("Order", order.shipping_method_id),
         "lines": json.loads(generate_order_lines_payload(lines)),
         "fulfillments": json.loads(fulfillments_data),
         "collection_point": (
@@ -557,12 +557,9 @@ def generate_checkout_payload(
         ).first()
 
     shipping_method = None
-    if (
-        checkout.assigned_shipping_method
-        and not checkout.assigned_shipping_method.is_external
-    ):
+    if checkout.assigned_delivery and not checkout.assigned_delivery.is_external:
         shipping_method = ShippingMethod.objects.filter(
-            id=checkout.assigned_shipping_method.original_id
+            id=checkout.assigned_delivery.shipping_method_id
         ).first()
     checkout_data = serializer.serialize(
         [checkout],
@@ -1341,10 +1338,10 @@ def generate_checkout_payload_for_tax_calculation(
         )
 
     # Prepare shipping data
-    assigned_shipping_method = checkout.assigned_shipping_method
+    assigned_delivery = checkout.assigned_delivery
     shipping_method_name = None
-    if assigned_shipping_method:
-        shipping_method_name = assigned_shipping_method.name
+    if assigned_delivery:
+        shipping_method_name = assigned_delivery.name
     shipping_method_amount = quantize_price(
         base_calculations.base_checkout_delivery_price(checkout_info, lines).amount,
         checkout.currency,

@@ -36,7 +36,7 @@ from ....tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
-from ...mutations.utils import mark_checkout_shipping_methods_as_stale_if_needed
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_LINES_ADD = """
 mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
@@ -90,8 +90,8 @@ mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
@@ -154,8 +154,8 @@ def test_checkout_lines_add(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
@@ -218,8 +218,8 @@ def test_checkout_lines_add_when_checkout_has_line_without_listing(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
@@ -914,8 +914,8 @@ def test_checkout_lines_add_with_empty_metadata_and_old_exist(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_lines_add_only_stock_in_cc_warehouse(
     mocked_mark_shipping_methods_as_stale,
@@ -971,7 +971,7 @@ def test_checkout_lines_add_only_stock_in_cc_warehouse(
 
 
 def test_checkout_lines_add_only_stock_in_cc_warehouse_delivery_method_set(
-    user_api_client, checkout_with_item, warehouse_for_cc, checkout_shipping_method
+    user_api_client, checkout_with_item, warehouse_for_cc, checkout_delivery
 ):
     """Test that click-and-collect quantities are unavailable if a non-C&C shipping method is set."""
 
@@ -987,8 +987,8 @@ def test_checkout_lines_add_only_stock_in_cc_warehouse_delivery_method_set(
         warehouse=warehouse_for_cc, product_variant=variant, quantity=10
     )
 
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
-    checkout.save(update_fields=["assigned_shipping_method"])
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.save(update_fields=["assigned_delivery"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -1370,13 +1370,13 @@ def test_checkout_lines_marks_shipping_methods_as_stale(
     app_api_client,
     checkout_with_item,
     permission_handle_checkouts,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     mocked_webhook.return_value = []
     checkout = checkout_with_item
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
-    checkout.save(update_fields=["assigned_shipping_method"])
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.save(update_fields=["assigned_delivery"])
 
     line = checkout.lines.first()
 
@@ -1398,7 +1398,7 @@ def test_checkout_lines_marks_shipping_methods_as_stale(
 
     # then
     checkout.refresh_from_db()
-    assert checkout.assigned_shipping_method
+    assert checkout.assigned_delivery
     assert checkout.shipping_methods_stale_at == timezone.now()
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]

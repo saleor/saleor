@@ -15,9 +15,9 @@ from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_or_fetch_checkout_shipping_methods,
+    get_or_fetch_checkout_deliveries,
 )
-from .....checkout.models import CheckoutShippingMethod
+from .....checkout.models import CheckoutDelivery
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout
 from .....core.models import EventDelivery
 from .....plugins.base_plugin import ExcludedShippingMethod
@@ -59,8 +59,8 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
 
 @patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
-    "get_or_fetch_checkout_shipping_methods",
-    wraps=get_or_fetch_checkout_shipping_methods,
+    "get_or_fetch_checkout_deliveries",
+    wraps=get_or_fetch_checkout_deliveries,
 )
 @patch(
     "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
@@ -68,7 +68,7 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
 )
 def test_checkout_shipping_method_update(
     mocked_invalidate_checkout,
-    mock_get_or_fetch_checkout_shipping_methods,
+    mock_get_or_fetch_checkout_deliveries,
     staff_api_client,
     shipping_method,
     checkout_with_item_and_shipping_method,
@@ -92,13 +92,13 @@ def test_checkout_shipping_method_update(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mock_get_or_fetch_checkout_shipping_methods.assert_called_once_with(
+    mock_get_or_fetch_checkout_deliveries.assert_called_once_with(
         checkout_info,
     )
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["token"] == str(checkout.token)
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
 
@@ -106,8 +106,8 @@ def test_checkout_shipping_method_update(
 @freeze_time("2023-01-01 12:00:00")
 @patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
-    "get_or_fetch_checkout_shipping_methods",
-    wraps=get_or_fetch_checkout_shipping_methods,
+    "get_or_fetch_checkout_deliveries",
+    wraps=get_or_fetch_checkout_deliveries,
 )
 @patch(
     "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
@@ -115,7 +115,7 @@ def test_checkout_shipping_method_update(
 )
 def test_checkout_shipping_method_update_not_valid_shipping_method(
     mocked_invalidate_checkout,
-    mock_get_or_fetch_checkout_shipping_methods,
+    mock_get_or_fetch_checkout_deliveries,
     staff_api_client,
     other_shipping_method,
     checkout_with_item_and_shipping_method,
@@ -125,7 +125,7 @@ def test_checkout_shipping_method_update_not_valid_shipping_method(
     checkout.shipping_methods_stale_at = timezone.now() + timedelta(minutes=10)
     checkout.save(update_fields=["shipping_methods_stale_at"])
 
-    old_shipping_method = checkout.assigned_shipping_method
+    old_shipping_method = checkout.assigned_delivery
     previous_last_change = checkout.last_change
 
     query = MUTATION_UPDATE_SHIPPING_METHOD
@@ -145,14 +145,14 @@ def test_checkout_shipping_method_update_not_valid_shipping_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mock_get_or_fetch_checkout_shipping_methods.assert_called_once_with(
+    mock_get_or_fetch_checkout_deliveries.assert_called_once_with(
         checkout_info,
     )
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "shippingMethod"
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
-    assert checkout.assigned_shipping_method == old_shipping_method
+    assert checkout.assigned_delivery == old_shipping_method
     assert checkout.last_change == previous_last_change
 
 
@@ -208,7 +208,7 @@ def test_checkout_shipping_method_update_external_shipping_method(
     assert not errors
     assert data["checkout"]["token"] == str(checkout_with_item.token)
 
-    assert checkout.assigned_shipping_method.original_id == method_id
+    assert checkout.assigned_delivery.shipping_method_id == method_id
     assert checkout.undiscounted_base_shipping_price_amount == method_price
     assert checkout.shipping_method_name == method_name
     assert (
@@ -307,7 +307,7 @@ def test_checkout_shipping_method_update_excluded_webhook(
     assert len(errors) == 1
     assert errors[0]["field"] == "shippingMethod"
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
     assert checkout.shipping_method_name is None
 
@@ -341,7 +341,7 @@ def test_checkout_shipping_method_update_excluded_postal_code(
     assert len(errors) == 1
     assert errors[0]["field"] == "shippingMethod"
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
     assert checkout.shipping_method_name is None
     assert (
@@ -385,7 +385,7 @@ def test_checkout_shipping_method_update_with_not_all_required_shipping_address_
     )
 
     assert not data["errors"]
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
     assert (
         checkout.undiscounted_base_shipping_price_amount
         == shipping_method.channel_listings.get().price_amount
@@ -434,7 +434,7 @@ def test_checkout_shipping_method_update_with_not_valid_shipping_address_data(
     )
 
     assert not data["errors"]
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
     assert (
         checkout.undiscounted_base_shipping_price_amount
         == shipping_method.channel_listings.get().price_amount
@@ -508,7 +508,7 @@ def test_checkout_shipping_method_update_shipping_zone_without_channel(
     assert len(errors) == 1
     assert errors[0]["field"] == "shippingMethod"
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
     assert checkout.shipping_method_name is None
 
@@ -540,7 +540,7 @@ def test_checkout_update_shipping_method_with_digital(
 
     # Ensure the shipping method was unchanged
     checkout.refresh_from_db()
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
     assert checkout.shipping_method_name is None
 
@@ -705,7 +705,7 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
     address,
     api_client,
     checkout_with_items,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -717,12 +717,8 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
 
     checkout_with_items.shipping_address = address
-    checkout_with_items.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_items
-    )
-    checkout_with_items.save(
-        update_fields=["shipping_address", "assigned_shipping_method"]
-    )
+    checkout_with_items.assigned_delivery = checkout_delivery(checkout_with_items)
+    checkout_with_items.save(update_fields=["shipping_address", "assigned_delivery"])
 
     # when
     response = api_client.post_graphql(
@@ -821,7 +817,7 @@ def test_checkout_shipping_method_update_from_external_shipping_to_different_ext
     checkout.refresh_from_db()
 
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method.original_id == method_id
+    assert checkout.assigned_delivery.shipping_method_id == method_id
     assert checkout.shipping_method_name == response_shipping_name
 
     mocked_invalidate_checkout.assert_called_once()
@@ -870,9 +866,9 @@ def test_checkout_shipping_method_update_from_external_shipping_to_the_same_exte
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = CheckoutShippingMethod.objects.create(
+    checkout.assigned_delivery = CheckoutDelivery.objects.create(
         checkout=checkout,
-        original_id=method_id,
+        external_shipping_method_id=method_id,
         name=response_shipping_name,
         price_amount=response_shipping_price,
         currency="USD",
@@ -899,7 +895,7 @@ def test_checkout_shipping_method_update_from_external_shipping_to_the_same_exte
     checkout.refresh_from_db()
 
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method.original_id == method_id
+    assert checkout.assigned_delivery.shipping_method_id == method_id
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(
         response_shipping_price
     )
@@ -946,7 +942,7 @@ def test_checkout_shipping_method_update_from_external_shipping_to_built_in_meth
 
     checkout.refresh_from_db()
 
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
     assert checkout.collection_point_id is None
     assert checkout.shipping_method_name == shipping_method.name
 
@@ -986,7 +982,7 @@ def test_checkout_shipping_method_update_from_external_shipping_to_none(
     checkout.refresh_from_db()
 
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert checkout.shipping_method_name is None
 
     mocked_invalidate_checkout.assert_called_once()
@@ -1031,7 +1027,7 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_different_bui
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method.original_id == str(
+    assert checkout.assigned_delivery.shipping_method_id == str(
         other_shipping_method.id
     )
     assert checkout.shipping_method_name == other_shipping_method.name
@@ -1096,7 +1092,7 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_external(
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method.original_id == method_id
+    assert checkout.assigned_delivery.shipping_method_id == method_id
     assert checkout.shipping_method_name == response_shipping_name
 
     mocked_invalidate_checkout.assert_called_once()
@@ -1120,14 +1116,14 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_the_same_buil
     # given
     checkout = checkout_with_shipping_method
 
-    assigned_shipping_method = checkout.assigned_shipping_method
-    price = assigned_shipping_method.price
-    checkout.shipping_method_name = assigned_shipping_method.name
+    assigned_delivery = checkout.assigned_delivery
+    price = assigned_delivery.price
+    checkout.shipping_method_name = assigned_delivery.name
     checkout.undiscounted_base_shipping_price_amount = price.amount
     checkout.save()
 
     method_id = graphene.Node.to_global_id(
-        "ShippingMethod", assigned_shipping_method.original_id
+        "ShippingMethod", assigned_delivery.shipping_method_id
     )
     # when
     response = api_client.post_graphql(
@@ -1143,12 +1139,12 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_the_same_buil
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["deliveryMethod"]["id"] == method_id
-    assert data["checkout"]["deliveryMethod"]["name"] == assigned_shipping_method.name
+    assert data["checkout"]["deliveryMethod"]["name"] == assigned_delivery.name
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method_id == assigned_shipping_method.id
-    assert checkout.shipping_method_name == assigned_shipping_method.name
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+    assert checkout.shipping_method_name == assigned_delivery.name
 
     mocked_invalidate_checkout.assert_not_called()
     mocked_call_checkout_info_event.assert_not_called()
@@ -1185,7 +1181,7 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_none(
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method_id is None
+    assert checkout.assigned_delivery_id is None
     assert checkout.shipping_method_name is None
 
     mocked_invalidate_checkout.assert_called_once()

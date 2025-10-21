@@ -10,7 +10,7 @@ from .....account.models import Address
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.models import CheckoutShippingMethod
+from .....checkout.models import CheckoutDelivery
 from .....checkout.utils import invalidate_checkout
 from .....core.models import EventDelivery
 from .....plugins.manager import get_plugins_manager
@@ -120,7 +120,7 @@ def test_checkout_delivery_method_update_not_applicable_delivery_method(
     ("delivery_method", "node_name", "attribute_name"),
     [
         ("warehouse", "Warehouse", "collection_point"),
-        ("shipping_method", "ShippingMethod", "assigned_shipping_method"),
+        ("shipping_method", "ShippingMethod", "assigned_delivery"),
     ],
     indirect=("delivery_method",),
 )
@@ -265,7 +265,7 @@ def test_checkout_delivery_method_update_missing_checkout_metadata_when_not_appl
     ("delivery_method", "node_name", "attribute_name"),
     [
         ("warehouse", "Warehouse", "collection_point"),
-        ("shipping_method", "ShippingMethod", "assigned_shipping_method"),
+        ("shipping_method", "ShippingMethod", "assigned_delivery"),
     ],
     indirect=("delivery_method",),
 )
@@ -342,7 +342,7 @@ def test_checkout_delivery_method_update_external_shipping(
     errors = data["errors"]
 
     assert not errors
-    assert checkout.assigned_shipping_method
+    assert checkout.assigned_delivery
     assert checkout.shipping_method_name == response_shipping_name
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(
         response_shipping_price
@@ -384,7 +384,7 @@ def test_checkout_delivery_method_update_external_shipping_when_invalid(
     assert len(errors) == 1
     assert errors[0]["field"] == "deliveryMethodId"
     assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert checkout.shipping_method_name is None
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
 
@@ -410,9 +410,9 @@ def test_checkout_delivery_method_update_keeps_shipping_when_invalid(
         "app", f"{shipping_app.id}:{response_method_id}"
     )
 
-    checkout.assigned_shipping_method = CheckoutShippingMethod.objects.create(
+    checkout.assigned_delivery = CheckoutDelivery.objects.create(
         checkout_id=checkout.pk,
-        original_id=external_shipping_method_id,
+        external_shipping_method_id=external_shipping_method_id,
         name="External",
         price_amount="10.00",
         currency="USD",
@@ -441,7 +441,7 @@ def test_checkout_delivery_method_update_keeps_shipping_when_invalid(
     assert errors[0]["field"] == "deliveryMethodId"
     assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
 
-    assert checkout.assigned_shipping_method
+    assert checkout.assigned_delivery
 
 
 def test_checkout_delivery_method_update_with_id_of_different_type_causes_and_error(
@@ -507,17 +507,17 @@ def test_checkout_delivery_method_with_nonexistant_id_results_not_applicable(
         data["errors"][0]["code"]
         == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
     )
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert checkout.collection_point is None
 
 
 def test_checkout_delivery_method_with_empty_fields_results_None(
-    api_client, checkout_with_item, address, checkout_shipping_method
+    api_client, checkout_with_item, address, checkout_delivery
 ):
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_DELIVERY_METHOD
 
@@ -535,7 +535,7 @@ def test_checkout_delivery_method_with_empty_fields_results_None(
 
     assert not data["errors"]
     assert data["checkout"]["deliveryMethod"] is None
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert checkout.collection_point is None
 
 
@@ -570,7 +570,7 @@ def test_checkout_delivery_method_update_excluded_postal_code(
     assert len(errors) == 1
     assert errors[0]["field"] == "deliveryMethodId"
     assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
     assert (
         mock_is_shipping_method_available.call_count
         == shipping_models.ShippingMethod.objects.count()
@@ -607,7 +607,7 @@ def test_checkout_delivery_method_update_shipping_zone_without_channel(
     assert len(errors) == 1
     assert errors[0]["field"] == "deliveryMethodId"
     assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
-    assert checkout.assigned_shipping_method is None
+    assert checkout.assigned_delivery is None
 
 
 def test_checkout_delivery_method_update_shipping_zone_with_channel(
@@ -634,7 +634,7 @@ def test_checkout_delivery_method_update_shipping_zone_with_channel(
     errors = data["errors"]
     assert not errors
 
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
 
 
 def test_checkout_delivery_method_update_valid_method_not_all_shipping_data(
@@ -664,7 +664,7 @@ def test_checkout_delivery_method_update_valid_method_not_all_shipping_data(
 
     errors = data["errors"]
     assert not errors
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
 
 
 def test_checkout_delivery_method_update_valid_method_not_all_shipping_data_for_cc(
@@ -1200,7 +1200,7 @@ def test_checkout_delivery_method_update_from_cc_to_external_shipping(
     assert checkout.collection_point_id is None
     assert checkout.shipping_address_id is None
     assert checkout.shipping_method_id is None
-    assert checkout.assigned_shipping_method.original_id == method_id
+    assert checkout.assigned_delivery.shipping_method_id == method_id
     assert checkout.shipping_method_name == response_shipping_name
     assert checkout.save_billing_address is True
     # should be reset to the default value as the shipping address is cleared
@@ -1245,7 +1245,7 @@ def test_checkout_delivery_method_update_from_cc_to_none(
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
     assert checkout.shipping_address_id is None
-    assert checkout.assigned_shipping_method_id is None
+    assert checkout.assigned_delivery_id is None
     assert checkout.shipping_method_name is None
     assert checkout.save_billing_address is True
     # should be reset to the default value as the shipping address is cleared
@@ -1297,7 +1297,7 @@ def test_checkout_delivery_method_update_from_cc_to_built_in_shipping(
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
     assert checkout.shipping_address_id is None
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
     assert checkout.shipping_method_name == shipping_method.name
     assert checkout.save_billing_address is True
     # should be reset to the default value as the shipping address is cleared
@@ -1351,7 +1351,7 @@ def test_checkout_delivery_method_update_from_cc_to_the_same_cc(
     assert checkout.collection_point_id == collection_point.id
     assert checkout.shipping_address_id != collection_point.address.id
     assert checkout.shipping_address == collection_point.address
-    assert checkout.assigned_shipping_method_id is None
+    assert checkout.assigned_delivery_id is None
     assert checkout.shipping_method_name is None
     assert checkout.save_billing_address is True
     # the flag remain unchanged as the address stay the same
@@ -1413,7 +1413,7 @@ def test_checkout_delivery_method_update_from_cc_to_different_cc(
     assert checkout.collection_point_id == collection_point.id
     assert checkout.shipping_address_id != collection_point.address.id
     assert checkout.shipping_address == collection_point.address
-    assert checkout.assigned_shipping_method_id is None
+    assert checkout.assigned_delivery_id is None
     assert checkout.shipping_method_name is None
     assert checkout.save_billing_address is True
     # set the save_shipping_address setting to False for CC
@@ -1477,7 +1477,7 @@ def test_checkout_delivery_method_update_from_external_shipping_to_cc(
     assert checkout.collection_point_id == collection_point.id
     assert checkout.shipping_address_id != collection_point.address.id
     assert checkout.shipping_address == collection_point.address
-    assert checkout.assigned_shipping_method_id is None
+    assert checkout.assigned_delivery_id is None
     assert checkout.shipping_method_name is None
     assert checkout.save_billing_address is True
     # set the save_shipping_address setting to False for CC
@@ -1529,7 +1529,7 @@ def test_checkout_delivery_method_update_from_external_shipping_to_built_in_ship
     checkout.refresh_from_db()
 
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
     assert checkout.shipping_method_name == shipping_method.name
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is True
@@ -1597,7 +1597,7 @@ def test_checkout_delivery_method_update_from_external_shipping_to_different_ext
     checkout.refresh_from_db()
 
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method.original_id == str(method_id)
+    assert checkout.assigned_delivery.shipping_method_id == str(method_id)
     assert checkout.shipping_method_name == response_shipping_name
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is True
@@ -1641,7 +1641,7 @@ def test_checkout_delivery_method_update_from_external_shipping_to_none(
     checkout.refresh_from_db()
 
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method_id is None
+    assert checkout.assigned_delivery_id is None
     assert checkout.shipping_method_name is None
     # the flags should not be changed as shipping address is not reset
     assert checkout.save_billing_address is True
@@ -1693,9 +1693,9 @@ def test_checkout_delivery_method_update_from_external_shipping_to_the_same_exte
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = CheckoutShippingMethod.objects.create(
+    checkout.assigned_delivery = CheckoutDelivery.objects.create(
         checkout=checkout,
-        original_id=method_id,
+        external_shipping_method_id=method_id,
         name=response_shipping_name,
         price_amount=response_shipping_price,
         currency="USD",
@@ -1724,7 +1724,7 @@ def test_checkout_delivery_method_update_from_external_shipping_to_the_same_exte
     checkout.refresh_from_db()
 
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method.original_id == str(method_id)
+    assert checkout.assigned_delivery.shipping_method_id == str(method_id)
     assert checkout.shipping_method_name == response_shipping_name
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is True
@@ -1786,7 +1786,7 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_cc(
     assert checkout.collection_point_id == collection_point.id
     assert checkout.shipping_address_id != collection_point.address.id
     assert checkout.shipping_address == collection_point.address
-    assert checkout.assigned_shipping_method_id is None
+    assert checkout.assigned_delivery_id is None
     assert checkout.shipping_method_name is None
     assert checkout.save_billing_address is True
     # set the save_shipping_address setting to False for CC
@@ -1856,7 +1856,7 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_external_ship
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
     assert checkout.shipping_method_id is None
-    assert checkout.assigned_shipping_method.original_id == str(method_id)
+    assert checkout.assigned_delivery.shipping_method_id == str(method_id)
     assert checkout.shipping_method_name == response_shipping_name
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is True
@@ -1906,7 +1906,7 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_differnt_buil
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method.original_id == str(
+    assert checkout.assigned_delivery.shipping_method_id == str(
         other_shipping_method.id
     )
     assert checkout.shipping_method_name == other_shipping_method.name
@@ -1929,15 +1929,13 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_the_same_ship
     mocked_invalidate_checkout,
     mocked_call_checkout_info_event,
     checkout_with_shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     shipping_method,
     api_client,
 ):
     # given
     checkout = checkout_with_shipping_method
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.shipping_method_name = shipping_method.name
     checkout.save_billing_address = True
     checkout.save_shipping_address = True
@@ -1966,7 +1964,7 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_the_same_ship
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
     assert checkout.shipping_method_name == shipping_method.name
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is True
@@ -2009,7 +2007,7 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_none(
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
-    assert checkout.assigned_shipping_method_id is None
+    assert checkout.assigned_delivery_id is None
     assert checkout.shipping_method_name is None
     # the flags should not be changed as shipping address is not reset
     assert checkout.save_billing_address is True

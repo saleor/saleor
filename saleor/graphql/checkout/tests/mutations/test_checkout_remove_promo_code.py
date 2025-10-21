@@ -947,19 +947,19 @@ def test_checkout_remove_voucher_code_voucher_code_deleted(
 def test_checkout_remove_voucher_code_marks_shipping_as_stale(
     api_client,
     checkout_with_voucher,
-    checkout_shipping_method,
+    checkout_delivery,
     address,
 ):
     # given
     previous_stale_time = timezone.now() + timezone.timedelta(minutes=10)
 
     checkout = checkout_with_voucher
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
     checkout.shipping_methods_stale_at = previous_stale_time
     checkout.save(
         update_fields=[
-            "assigned_shipping_method",
+            "assigned_delivery",
             "shipping_address",
             "shipping_methods_stale_at",
         ]

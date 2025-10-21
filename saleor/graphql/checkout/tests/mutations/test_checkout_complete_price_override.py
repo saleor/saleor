@@ -39,15 +39,13 @@ def test_checkout_complete_price_override(
     user_api_client,
     checkout_with_item,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     shipping_method,
 ):
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -101,14 +99,12 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_fixed(
     checkout_with_item_on_promotion,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item_on_promotion
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -183,14 +179,12 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_percentag
     checkout_with_item_on_promotion,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item_on_promotion
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -266,7 +260,7 @@ def test_checkout_complete_with_price_override_and_voucher_entire_order(
     checkout_with_item,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     voucher,
 ):
     # given
@@ -277,9 +271,7 @@ def test_checkout_complete_with_price_override_and_voucher_entire_order(
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.voucher_code = voucher_code
@@ -345,7 +337,7 @@ def test_checkout_complete_with_price_override_and_voucher_free_shipping(
     checkout_with_item,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     voucher_free_shipping,
 ):
     # given
@@ -353,9 +345,7 @@ def test_checkout_complete_with_price_override_and_voucher_free_shipping(
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.voucher_code = voucher_code
@@ -425,7 +415,7 @@ def test_checkout_complete_with_price_override_and_voucher_specific_product(
     checkout_with_item,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     voucher_specific_product_type,
 ):
     # given
@@ -437,9 +427,7 @@ def test_checkout_complete_with_price_override_and_voucher_specific_product(
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.voucher_code = voucher_code
@@ -513,7 +501,7 @@ def test_checkout_complete_with_price_override_and_order_promotion(
     order_promotion_with_rule,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     promotion = order_promotion_with_rule
@@ -528,9 +516,7 @@ def test_checkout_complete_with_price_override_and_order_promotion(
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -595,7 +581,7 @@ def test_checkout_complete_with_price_override_and_gift_promotion(
     gift_promotion_rule,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     digital_content,
 ):
     # given
@@ -611,9 +597,7 @@ def test_checkout_complete_with_price_override_and_gift_promotion(
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -679,7 +663,7 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_and_entir
     checkout_with_item_on_promotion,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     voucher,
 ):
     # given
@@ -694,9 +678,7 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_and_entir
 
     checkout = checkout_with_item_on_promotion
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()

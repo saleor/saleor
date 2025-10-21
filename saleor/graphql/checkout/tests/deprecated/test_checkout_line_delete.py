@@ -7,7 +7,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import calculate_checkout_quantity
 from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import mark_checkout_shipping_methods_as_stale_if_needed
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_LINES_DELETE = """
     mutation checkoutLineDelete($checkoutId: ID, $token: UUID, $lineId: ID!) {
@@ -33,8 +33,8 @@ MUTATION_CHECKOUT_LINES_DELETE = """
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_line_delete_by_id(
     mocked_update_shipping_method, user_api_client, checkout_with_item
@@ -66,8 +66,8 @@ def test_checkout_line_delete_by_id(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_line_delete_by_token(
     mocked_update_shipping_method, user_api_client, checkout_with_item
@@ -135,8 +135,8 @@ def test_checkout_line_delete_both_token_and_id_given(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_line_delete_by_old_line_id(
     mocked_update_shipping_method, user_api_client, checkout_with_item

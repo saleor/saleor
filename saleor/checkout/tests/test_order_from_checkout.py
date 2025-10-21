@@ -738,7 +738,7 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     # given
     checkout = checkout_with_voucher_free_shipping
 
-    expected_undiscounted_shipping_price = checkout.assigned_shipping_method.price
+    expected_undiscounted_shipping_price = checkout.assigned_delivery.price
     expected_base_shipping_price = zero_money(checkout.currency)
     expected_shipping_price = zero_taxed_money(checkout.currency)
     expected_shipping_tax_rate = Decimal("0.0")

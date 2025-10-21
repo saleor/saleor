@@ -219,13 +219,11 @@ query getCheckout($id: ID) {
 
 
 def test_checkout_selected_shipping_method(
-    api_client, checkout_with_item, address, shipping_zone, checkout_shipping_method
+    api_client, checkout_with_item, address, shipping_zone, checkout_delivery
 ):
     # given
     checkout_with_item.shipping_address = address
-    checkout_with_item.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_item
-    )
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
     checkout_with_item.save()
 
     shipping_method = shipping_zone.shipping_methods.first()
@@ -294,7 +292,7 @@ def test_checkout_selected_shipping_method_as_staff(
     staff_api_client,
     checkout_with_item,
     shipping_zone,
-    checkout_shipping_method,
+    checkout_delivery,
     permission_manage_shipping,
     address,
 ):
@@ -307,9 +305,7 @@ def test_checkout_selected_shipping_method_as_staff(
     shipping_method.store_value_in_private_metadata({metadata_key: metadata_value})
     shipping_method.save()
 
-    checkout_with_item.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_item
-    )
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
@@ -380,7 +376,7 @@ def test_checkout_available_shipping_methods(
     checkout_with_item,
     address,
     shipping_zone,
-    checkout_shipping_method,
+    checkout_delivery,
     field,
 ):
     # given
@@ -398,9 +394,7 @@ def test_checkout_available_shipping_methods(
     )
 
     checkout_with_item.shipping_address = address
-    checkout_with_item.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_item
-    )
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
     checkout_with_item.shipping_methods_stale_at = timezone.now()
     checkout_with_item.save()
 
@@ -625,7 +619,7 @@ def test_checkout_available_shipping_methods_weight_method_with_higher_minimal_w
     assert shipping_method.name not in shipping_methods
 
 
-def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount(
+def test_checkout_deliveries_with_price_based_shipping_method_and_discount(
     api_client,
     checkout_with_item,
     address,
@@ -665,7 +659,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount
     assert shipping_method.name not in shipping_methods
 
 
-def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discount(
+def test_checkout_deliveries_with_price_based_shipping_and_shipping_discount(
     api_client,
     checkout_with_item,
     address,
@@ -710,7 +704,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
     assert shipping_method.name in shipping_methods
 
 
-def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
+def test_checkout_deliveries_with_price_based_method_and_product_voucher(
     api_client, checkout_with_item, address, shipping_method, voucher, channel_USD
 ):
     """Test that product discounts properly qualify checkout for price-based shipping."""
@@ -4154,13 +4148,11 @@ def test_clean_checkout(
     payment_dummy,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.save()
 
@@ -4203,12 +4195,10 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
 
 
 def test_clean_checkout_no_shipping_address(
-    checkout_with_item, shipping_method, checkout_shipping_method
+    checkout_with_item, shipping_method, checkout_delivery
 ):
     checkout = checkout_with_item
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.save()
 
     manager = get_plugins_manager(allow_replica=False)
@@ -4224,17 +4214,15 @@ def test_clean_checkout_invalid_shipping_method(
     checkout_with_item,
     address,
     shipping_zone_without_countries,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
     shipping_method = shipping_zone_without_countries.shipping_methods.first()
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.save()
-    checkout.assigned_shipping_method.is_valid = False
-    checkout.assigned_shipping_method.save(update_fields=["is_valid"])
+    checkout.assigned_delivery.is_valid = False
+    checkout.assigned_delivery.save(update_fields=["is_valid"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
