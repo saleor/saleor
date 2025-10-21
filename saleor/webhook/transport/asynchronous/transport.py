@@ -481,13 +481,9 @@ def send_webhooks_async_in_batches(deliveries: list[EventDelivery]):
     }
     for app_id in apps_id:
         lock_uuid = app_lock_uuids.get(app_id)
-        logger.info(
-            "[App ID:%d] send_webhooks_async_for_app trigger: %s", app_id, lock_uuid
-        )
         send_webhooks_async_for_app.apply_async(
             kwargs={
                 "app_id": app_id,
-                "lock_uuid": lock_uuid,
                 "telemetry_context": telemetry_context,
             },
             queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
@@ -708,11 +704,8 @@ def send_webhook_request_async(
 def send_webhooks_async_for_app(
     self,
     app_id,
-    lock_uuid,
     telemetry_context: TelemetryTaskContext,
 ) -> None:
-    logger.info("[App ID:%r] send_webhooks_async_for_app init: %s", app_id, lock_uuid)
-
     # TODO: customize max concurrency per app
     if settings.WEBHOOK_BATCH_MAX_CONCURRENCY > 1:
         processed = send_scheduled_async_webhooks_concurrently(app_id)
@@ -723,15 +716,9 @@ def send_webhooks_async_for_app(
 
     with refresh_webhook_lock(app_id) as new_lock_uuid:
         if new_lock_uuid and processed:
-            logger.info(
-                "[App ID:%d] send_webhooks_async_for_app recursive trigger: %s",
-                app_id,
-                new_lock_uuid,
-            )
             send_webhooks_async_for_app.apply_async(
                 kwargs={
                     "app_id": app_id,
-                    "lock_uuid": new_lock_uuid,
                     "telemetry_context": telemetry_context.to_dict(),
                 },
                 queue=self.queue,
