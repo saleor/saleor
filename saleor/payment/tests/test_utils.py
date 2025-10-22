@@ -3,13 +3,18 @@ import logging
 from decimal import Decimal
 from unittest.mock import patch
 
+import graphene
 import pytest
+from django.core.cache import cache
 from freezegun import freeze_time
 
 from ...checkout import CheckoutAuthorizeStatus, calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderGrantedRefundStatus
 from ...plugins.manager import get_plugins_manager
+from ...webhook.event_types import WebhookEventSyncType
+from ...webhook.models import Webhook
+from ...webhook.transport.utils import generate_cache_key_for_webhook
 from .. import TransactionEventType
 from ..interface import (
     PaymentLineData,
@@ -3122,6 +3127,272 @@ def test_create_transaction_event_with_invalid_message(
     assert (
         "Incorrect value for field: message in response of transaction action webhook."
     ) in (record.message for record in caplog.records)
+
+
+def test_create_transaction_event_invalidate_stored_payment_methods_for_order(
+    customer_user,
+    app,
+    order_with_lines,
+    transaction_item_generator,
+    permission_manage_payments,
+):
+    # given
+    order = order_with_lines
+    order.user = customer_user
+    order.save(update_fields=["user_id"])
+
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.save()
+
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="list_stored_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+    )
+
+    transaction = transaction_item_generator(app=app, order_id=order.pk)
+    expected_amount = Decimal("11.00")
+    expected_psp_reference = "111-abc"
+
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=expected_amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    channel = order.channel
+    expected_payload = {
+        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+        "channel_slug": channel.slug,
+    }
+    cache_key = generate_cache_key_for_webhook(
+        expected_payload,
+        webhook.target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        app.id,
+    )
+    cache.set(cache_key, {"response": "Example response"})
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": expected_amount,
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+        "actions": ["CHARGE", "REFUND"],
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    assert cache.get(cache_key) is None
+
+
+def test_create_transaction_event_invalidate_stored_payment_methods_for_checkout(
+    customer_user,
+    app,
+    checkout_with_items,
+    transaction_item_generator,
+    permission_manage_payments,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.user = customer_user
+    checkout.save(update_fields=["user_id"])
+
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.save()
+
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="list_stored_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+    )
+
+    transaction = transaction_item_generator(app=app, checkout_id=checkout.pk)
+    expected_amount = Decimal("11.00")
+    expected_psp_reference = "111-abc"
+
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=expected_amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    channel = checkout.channel
+    expected_payload = {
+        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+        "channel_slug": channel.slug,
+    }
+    cache_key = generate_cache_key_for_webhook(
+        expected_payload,
+        webhook.target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        app.id,
+    )
+    cache.set(cache_key, {"response": "Example response"})
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": expected_amount,
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+        "actions": ["CHARGE", "REFUND"],
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    assert cache.get(cache_key) is None
+
+
+def test_create_transaction_event_stored_payment_methods_not_invalidated_for_order(
+    customer_user,
+    app,
+    order_with_lines,
+    transaction_item_generator,
+    permission_manage_payments,
+):
+    # given
+    order = order_with_lines
+    order.user = customer_user
+    order.save(update_fields=["user_id"])
+
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.save()
+
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="list_stored_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+    )
+
+    transaction = transaction_item_generator(app=app, order_id=order.pk)
+    expected_amount = Decimal("11.00")
+    expected_psp_reference = "111-abc"
+
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=expected_amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    channel = order.channel
+    expected_payload = {
+        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+        "channel_slug": channel.slug,
+    }
+    cache_key = generate_cache_key_for_webhook(
+        expected_payload,
+        webhook.target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        app.id,
+    )
+    cache_data = {"response": "Example response"}
+    cache.set(cache_key, cache_data)
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": expected_amount,
+        "result": TransactionEventType.CHARGE_FAILURE.upper(),
+        "actions": ["CHARGE", "REFUND"],
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    assert cache.get(cache_key) == cache_data
+
+
+def test_create_transaction_event_stored_payment_methods_not_invalidated_for_checkout(
+    customer_user,
+    app,
+    checkout_with_items,
+    transaction_item_generator,
+    permission_manage_payments,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.user = customer_user
+    checkout.save(update_fields=["user_id"])
+
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.save()
+
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="list_stored_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+    )
+
+    transaction = transaction_item_generator(app=app, checkout_id=checkout.pk)
+    expected_amount = Decimal("11.00")
+    expected_psp_reference = "111-abc"
+
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=expected_amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    channel = checkout.channel
+    expected_payload = {
+        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+        "channel_slug": channel.slug,
+    }
+    cache_key = generate_cache_key_for_webhook(
+        expected_payload,
+        webhook.target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        app.id,
+    )
+    cache_data = {"response": "Example response"}
+    cache.set(cache_key, cache_data)
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": expected_amount,
+        "result": TransactionEventType.CHARGE_FAILURE.upper(),
+        "actions": ["CHARGE", "REFUND"],
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    assert cache.get(cache_key) == cache_data
 
 
 def test_recalculate_refundable_for_checkout_with_request_refund(
