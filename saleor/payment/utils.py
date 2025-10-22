@@ -1644,6 +1644,11 @@ def create_transaction_event_from_request_and_webhook_response(
         transaction_amounts_for_checkout_updated(
             transaction_item, manager, app=app, user=None
         )
+    source_object = transaction_item.checkout or transaction_item.order
+    if event and source_object:
+        invalidate_cache_for_stored_payment_methods_if_needed(
+            event, source_object, app.identifier
+        )
     return event
 
 
