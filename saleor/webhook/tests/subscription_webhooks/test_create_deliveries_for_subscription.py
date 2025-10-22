@@ -11,8 +11,15 @@ from ....channel.models import Channel
 from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
+from ....order.utils import get_all_shipping_methods_for_order
 from ....product.models import Category
-from ....shipping.models import ShippingMethod, ShippingZone
+from ....shipping.interface import ShippingMethodData
+from ....shipping.models import (
+    ShippingMethod,
+    ShippingMethodChannelListing,
+    ShippingZone,
+)
+from ....shipping.utils import convert_to_shipping_method_data
 from ....site.models import SiteSettings
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...transport.asynchronous.transport import (
@@ -2648,16 +2655,25 @@ def test_shipping_list_methods_for_checkout(
     webhooks = [subscription_shipping_list_methods_for_checkout_webhook]
     event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    all_shipping_methods = ShippingMethod.objects.all()
+
+    internal_methods: list[ShippingMethodData] = []
+    for method in ShippingMethod.objects.all():
+        shipping_method_data = convert_to_shipping_method_data(
+            method, method.channel_listings.get(channel=checkout.channel)
+        )
+        internal_methods.append(shipping_method_data)
+
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, (checkout, internal_methods), webhooks
+    )
     # then
     shipping_methods = [
         {
-            "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
+            "id": graphene.Node.to_global_id("ShippingMethod", sm.id),
             "name": sm.name,
         }
-        for sm in all_shipping_methods
+        for sm in internal_methods
     ]
     payload = json.loads(deliveries[0].payload.get_payload())
 
@@ -2681,16 +2697,26 @@ def test_checkout_filter_shipping_methods(
     webhooks = [subscription_checkout_filter_shipping_methods_webhook]
     event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    all_shipping_methods = ShippingMethod.objects.all()
+
+    internal_methods: list[ShippingMethodData] = []
+    for method in ShippingMethod.objects.all():
+        shipping_method_data = convert_to_shipping_method_data(
+            method, method.channel_listings.get(channel=checkout.channel)
+        )
+        internal_methods.append(shipping_method_data)
+
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, (checkout, internal_methods), webhooks
+    )
+
     # then
     shipping_methods = [
         {
-            "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
+            "id": graphene.Node.to_global_id("ShippingMethod", sm.id),
             "name": sm.name,
         }
-        for sm in all_shipping_methods
+        for sm in internal_methods
     ]
     payload = json.loads(deliveries[0].payload.get_payload())
 
@@ -2714,7 +2740,9 @@ def test_checkout_filter_shipping_methods_no_methods_in_channel(
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, (checkout, []), webhooks
+    )
 
     # then
     expected_payload = {"checkout": {"id": checkout_id}, "shippingMethods": []}
@@ -2735,7 +2763,7 @@ def test_checkout_filter_shipping_methods_with_circular_call_for_shipping_method
 
     # when
     deliveries = create_deliveries_for_subscriptions(
-        event_type, checkout_ready_to_complete, webhooks
+        event_type, (checkout_ready_to_complete, []), webhooks
     )
 
     # then
@@ -2761,7 +2789,7 @@ def test_checkout_filter_shipping_methods_with_available_shipping_methods_field(
 
     # when
     deliveries = create_deliveries_for_subscriptions(
-        event_type, checkout_ready_to_complete, webhooks
+        event_type, (checkout_ready_to_complete, []), webhooks
     )
 
     # then
@@ -2787,7 +2815,7 @@ def test_checkout_filter_shipping_methods_with_circular_call_for_available_gatew
 
     # when
     deliveries = create_deliveries_for_subscriptions(
-        event_type, checkout_ready_to_complete, webhooks
+        event_type, (checkout_ready_to_complete, []), webhooks
     )
 
     # then
@@ -2835,14 +2863,19 @@ def test_order_filter_shipping_methods(
     webhooks = [subscription_order_filter_shipping_methods_webhook]
     event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     order_id = graphene.Node.to_global_id("Order", order.pk)
-    all_shipping_methods = ShippingMethod.objects.all()
+    all_shipping_methods = get_all_shipping_methods_for_order(
+        order, ShippingMethodChannelListing.objects.all()
+    )
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, (order, all_shipping_methods), webhooks
+    )
+
     # then
     shipping_methods = [
         {
-            "id": graphene.Node.to_global_id("ShippingMethod", sm.pk),
+            "id": graphene.Node.to_global_id("ShippingMethod", sm.id),
             "name": sm.name,
         }
         for sm in all_shipping_methods
@@ -2869,7 +2902,7 @@ def test_order_filter_shipping_methods_no_methods_in_channel(
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+    deliveries = create_deliveries_for_subscriptions(event_type, (order, []), webhooks)
 
     # then
     expected_payload = {"order": {"id": order_id}, "shippingMethods": []}
@@ -2891,7 +2924,7 @@ def test_order_filter_shipping_methods_with_circular_call_for_available_methods(
     order = order_line_with_one_allocation.order
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+    deliveries = create_deliveries_for_subscriptions(event_type, (order, []), webhooks)
 
     # then
     payload = json.loads(deliveries[0].payload.get_payload())
@@ -2915,7 +2948,7 @@ def test_order_filter_shipping_methods_with_circular_call_for_shipping_methods(
     order = order_line_with_one_allocation.order
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+    deliveries = create_deliveries_for_subscriptions(event_type, (order, []), webhooks)
 
     # then
     payload = json.loads(deliveries[0].payload.get_payload())
