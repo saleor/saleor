@@ -84,19 +84,19 @@ You are ready to go 🎉.
 To start server:
 
 ```shell
-uv run poe start
+poe start
 ```
 
 to start Celery worker:
 
 ```
-uv run poe worker
+poe worker
 ```
 
 to start Celery Beat scheduler:
 
 ```shell
-uv run poe scheduler
+poe scheduler
 ```
 
 > [!NOTE]
@@ -105,13 +105,13 @@ uv run poe scheduler
 To run database migrations:
 
 ```shell
-uv run poe migrate
+poe migrate
 ```
 
 To populate database with example data and create the admin user:
 
 ```shell
-uv run poe populatedb
+poe populatedb
 ```
 
 > [!NOTE]
@@ -120,13 +120,13 @@ uv run poe populatedb
 To build `schema.graphql` file:
 
 ```shell
-uv run poe build-schema
+poe build-schema
 ```
 
 To run Django shell:
 
 ```
-uv run poe shell
+poe shell
 ```
 
 ## Managing dependencies
@@ -222,7 +222,7 @@ In the case of testing the `API`, we would like to split all tests into `mutatio
 To run tests, enter `poe test` in your terminal.
 
 ```bash
-uv run poe test
+poe test
 ```
 
 By default `poe test` is using the `--reuse-db` flag to speed up testing time.
@@ -239,14 +239,14 @@ As running all tests is quite time-consuming, sometimes you want to run only tes
 You can use the following command for that. In the case of a particular directory or file, provide the path after the `pytest` command, like:
 
 ```bash
-uv run poe test saleor/graphql/app/tests
+poe test saleor/graphql/app/tests
 ```
 
 If you want to run a particular test, you need to provide the path to the file where the test is and the file name after the `::` sign. In the case of running a single test, it's also worth using the `-n0` flag to run the test only in one thread. It will significantly decrease time.
 See an example below:
 
 ```bash
-uv run poe test saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0
+poe test saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0
 ```
 
 ### Using pdb when testing
@@ -255,7 +255,7 @@ If you would like to use `pdb` in code when running a test, you need to use a fe
 So the previous example will look like this:
 
 ```bash
-uv run poe test saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0 -s --allow-hosts=127.0.0.1
+poe test saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0 -s --allow-hosts=127.0.0.1
 ```
 
 ### Recording cassettes
@@ -263,7 +263,7 @@ uv run poe test saleor/graphql/app/tests/mutations/test_app_create.py::test_app_
 Some of our tests use `VCR.py` cassettes to record requests and responses from external APIs. To record one, you need to use the `vcr-record` flag and specify `allow-hosts`:
 
 ```bash
-uv run poe test --vcr-record=once saleor/app/tests/test_app_commands.py --allow-hosts=127.0.0.1
+poe test --vcr-record=once saleor/app/tests/test_app_commands.py --allow-hosts=127.0.0.1
 ```
 
 ### Writing benchmark tests
@@ -288,7 +288,7 @@ def test_apps_for_federation_query_count(
 To check the number of queries, run the benchmark test, and after that, call the following command in your terminal:
 
 ```bash
-uv run django-queries show
+django-queries show
 ```
 
 You will see the number of queries that were performed for each test
@@ -358,7 +358,7 @@ Use relative imports.
 ### Migrations
 
 Try to combine multiple migrations into one, but remember not to mix changes on the database with updating rows in migrations. In other words, operations that alter tables and use `RunPython` to run methods on existing data should be in separate files.
-Follow [zero-downtime policy](https://docs.saleor.io/developer/community/zero-downtime-migrations) when writing migrations.
+Follow [zero-downtime policy](./developer/community/zero-downtime-migrations.mdx) when writing migrations.
 
 ### Handling migrations between versions
 
