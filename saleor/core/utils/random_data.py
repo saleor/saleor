@@ -575,91 +575,65 @@ def create_fake_payment(mock_notify, order):
     )
     flow = order.channel.default_transaction_flow_strategy.lower()
 
-    auth_psp = str(uuid.uuid4())
-    charge_psp = str(uuid.uuid4())
-    refund_psp = str(uuid.uuid4())
+    auth_psp = uuid.uuid4()
+    charge_psp = uuid.uuid4()
+    refund_psp = uuid.uuid4()
+    pick = random.random()
 
+    kwargs = {
+        "order": order,
+        "name": "",
+        "app": dummy_app,
+        "app_identifier": dummy_app_identifier,
+        "user": None,
+        "available_actions": [],
+        "authorized_amount": None,
+        "charge_amount": None,
+        "refund_amount": None,
+        "authorization_psp": None,
+        "charge_psp": None,
+        "refund_psp": None,
+    }
     if flow == "authorization":
-        pick = random.random()
         if pick < 0.15:
             # Authorized only: actions -> CHARGE, CANCEL
-            return create_transaction_with_events(
-                order=order,
-                name="",
-                app=dummy_app,
-                app_identifier=dummy_app_identifier,
-                user=None,
-                available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
-                authorized_amount=amount,
-                charge_amount=None,
-                refund_amount=None,
-                authorization_psp=auth_psp,
-                charge_psp=None,
-                refund_psp=None,
-            )
+            kwargs["available_actions"] = [
+                TransactionAction.CHARGE,
+                TransactionAction.CANCEL,
+            ]
+            kwargs["authorized_amount"] = amount
+            kwargs["authorization_psp"] = auth_psp
+            return create_transaction_with_events(**kwargs)
         if pick < 0.75:
             # Authorized + Charged: actions -> REFUND
-            return create_transaction_with_events(
-                order=order,
-                name="",
-                app=dummy_app,
-                app_identifier=dummy_app_identifier,
-                user=None,
-                available_actions=[TransactionAction.REFUND],
-                authorized_amount=amount,
-                charge_amount=amount,
-                refund_amount=None,
-                authorization_psp=auth_psp,
-                charge_psp=charge_psp,
-                refund_psp=None,
-            )
+            kwargs["available_actions"] = [TransactionAction.REFUND]
+            kwargs["authorized_amount"] = amount
+            kwargs["authorization_psp"] = auth_psp
+            kwargs["charge_amount"] = amount
+            kwargs["charge_psp"] = charge_psp
+            return create_transaction_with_events(**kwargs)
         # Authorized + Charged + Refunded
-        return create_transaction_with_events(
-            order=order,
-            name="",
-            app=dummy_app,
-            app_identifier=dummy_app_identifier,
-            user=None,
-            available_actions=[],
-            authorized_amount=amount,
-            charge_amount=amount,
-            refund_amount=amount,
-            authorization_psp=auth_psp,
-            charge_psp=charge_psp,
-            refund_psp=refund_psp,
-        )
+        kwargs["authorized_amount"] = amount
+        kwargs["authorization_psp"] = auth_psp
+        kwargs["charge_amount"] = amount
+        kwargs["charge_psp"] = charge_psp
+        kwargs["refund_amount"] = amount
+        kwargs["refund_psp"] = refund_psp
+        return create_transaction_with_events(**kwargs)
+
     # Charge strategy:
-    if random.random() < 0.8:
+    if pick < 0.8:
         # Charged only
-        return create_transaction_with_events(
-            order=order,
-            name="",
-            app=dummy_app,
-            app_identifier=dummy_app_identifier,
-            user=None,
-            available_actions=[TransactionAction.REFUND],
-            authorized_amount=None,
-            charge_amount=amount,
-            refund_amount=None,
-            authorization_psp=None,
-            charge_psp=charge_psp,
-            refund_psp=None,
-        )
+        kwargs["available_actions"] = [TransactionAction.REFUND]
+        kwargs["charge_amount"] = amount
+        kwargs["charge_psp"] = charge_psp
+        return create_transaction_with_events(**kwargs)
     # Charged + Refunded
-    return create_transaction_with_events(
-        order=order,
-        name="",
-        app=dummy_app,
-        app_identifier=dummy_app_identifier,
-        user=None,
-        available_actions=[],
-        authorized_amount=None,
-        charge_amount=amount,
-        refund_amount=amount,
-        authorization_psp=None,
-        charge_psp=charge_psp,
-        refund_psp=refund_psp,
-    )
+    kwargs["charge_amount"] = amount
+    kwargs["charge_psp"] = charge_psp
+    kwargs["refund_amount"] = amount
+    kwargs["refund_psp"] = refund_psp
+    return create_transaction_with_events(**kwargs)
 
 
 def create_transaction_with_events(
@@ -690,14 +664,6 @@ def create_transaction_with_events(
     )
 
     events_to_create: list[TransactionEvent] = []
-    base_now = timezone.now()
-    step_us = 0
-
-    def next_time():
-        nonlocal step_us
-        t = base_now + datetime.timedelta(microseconds=step_us)
-        step_us += 1
-        return t
 
     def make_event(
         event_type: str,
@@ -720,7 +686,7 @@ def create_transaction_with_events(
                 app_for_event.identifier if app_for_event else app_identifier
             ),
             user=user_for_event,
-            created_at=next_time(),
+            created_at=timezone.now() + datetime.timedelta(microseconds=1),
             message=message,
             psp_reference=psp or item_psp,
         )
@@ -800,24 +766,6 @@ def create_transaction_with_events(
         update_order_with_transaction_details(transaction_item)
 
     return transaction_item
-
-
-def link_transactions_to_app_by_identifier(
-    identifier: str = "saleor.io.dummy-payment-app",
-):
-    app = App.objects.filter(identifier=identifier).first()
-    if not app:
-        return
-    items = TransactionItem.objects.filter(app__isnull=True, app_identifier=identifier)
-    for ti in items:
-        ti.app = app
-        ti.save(update_fields=["app"])
-    events = TransactionEvent.objects.filter(
-        app__isnull=True, app_identifier=identifier
-    )
-    for ev in events:
-        ev.app = app
-        ev.save(update_fields=["app"])
 
 
 def create_order_lines(order, how_many=10):
@@ -1304,16 +1252,11 @@ def create_channel(
         "order_mark_as_paid_strategy": mark_as_paid_strategy,
         "default_transaction_flow_strategy": default_transaction_flow_strategy,
     }
-    channel, created = Channel.objects.get_or_create(
+    channel, _ = Channel.objects.update_or_create(
         slug=slug,
         defaults=defaults,
     )
-    if not created:
-        # Update the channel with the latest settings
-        for key, value in defaults.items():
-            setattr(channel, key, value)
-        channel.save(update_fields=list(defaults.keys()))
-    TaxConfiguration.objects.get_or_create(channel=channel)
+    TaxConfiguration.objects.update_or_create(channel=channel)
     return f"Channel: {channel}"
 
 
