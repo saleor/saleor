@@ -87,9 +87,7 @@ class CheckoutDelivery(models.Model):
 
     @property
     def shipping_method_id(self) -> str:
-        if self.external_shipping_method_id:
-            return self.external_shipping_method_id
-        return str(self.built_in_shipping_method_id)
+        return self.external_shipping_method_id or str(self.built_in_shipping_method_id)
 
     class Meta:
         constraints = [

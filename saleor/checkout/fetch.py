@@ -651,12 +651,12 @@ def fetch_shipping_methods_for_checkout(
                 "tax_class_metadata": shipping_method_data.tax_class.metadata,
                 "tax_class_private_metadata": shipping_method_data.tax_class.private_metadata,
             }
-        sm_is_external = shipping_method_data.is_external
+        shipping_method_is_external = shipping_method_data.is_external
         built_in_shipping_method_id = (
-            int(shipping_method_data.id) if not sm_is_external else None
+            int(shipping_method_data.id) if not shipping_method_is_external else None
         )
         external_shipping_method_id = (
-            shipping_method_data.id if sm_is_external else None
+            shipping_method_data.id if shipping_method_is_external else None
         )
         checkout_deliveries[shipping_method_data.id] = CheckoutDelivery(
             checkout=checkout,
@@ -673,7 +673,7 @@ def fetch_shipping_methods_for_checkout(
             active=shipping_method_data.active,
             message=shipping_method_data.message,
             is_valid=True,
-            is_external=sm_is_external,
+            is_external=shipping_method_is_external,
             **tax_class_details,
         )
 
