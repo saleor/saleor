@@ -3268,8 +3268,9 @@ def test_invalidate_stored_payment_methods_for_order(
     response_data = content["data"]["transactionInitialize"]
     assert response_data["transaction"]
 
-    # ensure that cache has been cleared
+    # ensure that only cache for result app identifier has been cleared
     assert cache.get(cache_key) is None
+    assert cache.get(cache_key_not_invalidated)
 
 
 @pytest.mark.parametrize(
