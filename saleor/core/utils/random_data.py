@@ -665,98 +665,84 @@ def create_transaction_with_events(
 
     events_to_create: list[TransactionEvent] = []
 
-    def make_event(
-        event_type: str,
-        amount: Decimal,
-        *,
-        psp: str | None,
-        include: bool,
-        app_for_event: App | None,
-        user_for_event: User | None,
-        message: str = "",
-    ) -> TransactionEvent:
-        return TransactionEvent(
-            type=event_type,
-            amount_value=amount,
-            currency=order.currency,
-            transaction_id=transaction_item.pk,
-            include_in_calculations=include,
-            app=app_for_event,
-            app_identifier=(
-                app_for_event.identifier if app_for_event else app_identifier
-            ),
-            user=user_for_event,
-            created_at=timezone.now() + datetime.timedelta(microseconds=1),
-            message=message,
-            psp_reference=psp or item_psp,
-        )
-
+    event_defaults = {
+        "currency": order.currency,
+        "transaction_id": transaction_item.pk,
+        "app": app,
+        "app_identifier": (app.identifier if app else app_identifier),
+    }
     if authorized_amount is not None:
         events_to_create.append(
-            make_event(
-                TransactionEventType.AUTHORIZATION_REQUEST,
-                authorized_amount,
-                psp=authorization_psp,
-                include=False,
-                app_for_event=app,
-                user_for_event=None,
+            TransactionEvent(
+                type=TransactionEventType.AUTHORIZATION_REQUEST,
+                amount_value=authorized_amount,
+                psp_reference=authorization_psp or item_psp,
+                include_in_calculations=False,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=None,
+                **event_defaults,
             )
         )
         events_to_create.append(
-            make_event(
-                TransactionEventType.AUTHORIZATION_SUCCESS,
-                authorized_amount,
-                psp=authorization_psp,
-                include=True,
-                app_for_event=app,
-                user_for_event=user,
+            TransactionEvent(
+                type=TransactionEventType.AUTHORIZATION_SUCCESS,
+                amount_value=authorized_amount,
+                psp_reference=authorization_psp or item_psp,
+                include_in_calculations=True,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
                 message="Authorization success",
+                **event_defaults,
             )
         )
 
     if charge_amount is not None:
         events_to_create.append(
-            make_event(
-                TransactionEventType.CHARGE_REQUEST,
-                charge_amount,
-                psp=charge_psp,
-                include=False,
-                app_for_event=None,
-                user_for_event=user,
+            TransactionEvent(
+                type=TransactionEventType.CHARGE_REQUEST,
+                amount_value=charge_amount,
+                psp_reference=charge_psp or item_psp,
+                include_in_calculations=False,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
+                **event_defaults,
             )
         )
         events_to_create.append(
-            make_event(
-                TransactionEventType.CHARGE_SUCCESS,
-                charge_amount,
-                psp=charge_psp,
-                include=True,
-                app_for_event=app,
-                user_for_event=user,
+            TransactionEvent(
+                type=TransactionEventType.CHARGE_SUCCESS,
+                amount_value=charge_amount,
+                psp_reference=charge_psp or item_psp,
+                include_in_calculations=True,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
                 message="Charge success",
+                **event_defaults,
             )
         )
 
     if refund_amount is not None and refund_amount > 0:
         events_to_create.append(
-            make_event(
-                TransactionEventType.REFUND_REQUEST,
-                refund_amount,
-                psp=refund_psp,
-                include=False,
-                app_for_event=None,
-                user_for_event=user,
+            TransactionEvent(
+                type=TransactionEventType.REFUND_REQUEST,
+                amount_value=refund_amount,
+                psp_reference=refund_psp or item_psp,
+                include_in_calculations=False,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
+                **event_defaults,
             )
         )
         events_to_create.append(
-            make_event(
-                TransactionEventType.REFUND_SUCCESS,
-                refund_amount,
-                psp=refund_psp,
-                include=True,
-                app_for_event=app,
-                user_for_event=user,
+            TransactionEvent(
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=refund_amount,
+                psp_reference=refund_psp or item_psp,
+                include_in_calculations=True,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
                 message="Refund success",
+                **event_defaults,
             )
         )
 
