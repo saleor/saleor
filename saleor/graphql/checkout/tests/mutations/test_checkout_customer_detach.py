@@ -243,7 +243,7 @@ def test_checkout_customer_detach_do_not_mark_shipping_as_stale(
     user_api_client,
     checkout_with_item,
     customer_user,
-    checkout_shipping_method,
+    checkout_delivery,
     address,
 ):
     # given
@@ -251,12 +251,12 @@ def test_checkout_customer_detach_do_not_mark_shipping_as_stale(
 
     checkout = checkout_with_item
     checkout.user = customer_user
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
     checkout.shipping_methods_stale_at = expected_stale_time
     checkout.save(
         update_fields=[
-            "assigned_shipping_method",
+            "assigned_delivery",
             "shipping_address",
             "shipping_methods_stale_at",
         ]

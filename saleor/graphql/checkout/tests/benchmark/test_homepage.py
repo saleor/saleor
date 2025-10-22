@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from .....checkout.models import CheckoutShippingMethod
+from .....checkout.models import CheckoutDelivery
 from .....checkout.utils import assign_shipping_method_to_checkout
 from .....webhook.transport.shipping_helpers import to_shipping_app_id
 from ....tests.utils import get_graphql_content
@@ -176,9 +176,9 @@ def test_user_checkout_details_with_external_shipping_method(
 
     checkout = customer_checkout
 
-    assigned_shipping_method = CheckoutShippingMethod.objects.create(
+    assigned_delivery = CheckoutDelivery.objects.create(
         checkout=checkout,
-        original_id=external_id,
+        external_shipping_method_id=external_id,
         name=shipping_name,
         price_amount=shipping_price,
         currency="USD",
@@ -187,7 +187,7 @@ def test_user_checkout_details_with_external_shipping_method(
     )
 
     checkout.shipping_address = address
-    assign_shipping_method_to_checkout(checkout, assigned_shipping_method)
+    assign_shipping_method_to_checkout(checkout, assigned_delivery)
     checkout.save()
     mock_send_request.return_value = mock_json_response
     query = """

@@ -8,7 +8,7 @@ from ....checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_or_fetch_checkout_shipping_methods,
+    get_or_fetch_checkout_deliveries,
 )
 from ....checkout.utils import is_shipping_required
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
@@ -163,7 +163,7 @@ class OrderCreateFromCheckout(BaseMutation):
     ):
         if is_shipping_required(checkout_lines):
             # Refresh stale shipping if needed
-            get_or_fetch_checkout_shipping_methods(checkout_info)
+            get_or_fetch_checkout_deliveries(checkout_info)
         validate_checkout(
             checkout_info=checkout_info,
             lines=checkout_lines,

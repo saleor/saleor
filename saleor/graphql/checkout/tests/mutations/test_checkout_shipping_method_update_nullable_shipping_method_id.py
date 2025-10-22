@@ -59,8 +59,8 @@ def test_checkout_shipping_method_update_nullable_shipping_method_id(
     assert data["checkout"]["shippingMethod"] is None
 
     # Ensure the shipping method was removed from the checkout
-    checkout.refresh_from_db(fields=["assigned_shipping_method"])
-    assert checkout.assigned_shipping_method is None
+    checkout.refresh_from_db(fields=["assigned_delivery"])
+    assert checkout.assigned_delivery is None
 
     # Assert that the shipping price is cleared
     assert checkout.shipping_price.net.amount == 0
@@ -86,5 +86,5 @@ def test_checkout_shipping_method_update_nullable_shipping_method_id(
     assert not errors
 
     # Ensure the shipping method was added back to the checkout
-    checkout.refresh_from_db(fields=["assigned_shipping_method"])
-    assert checkout.assigned_shipping_method is not None
+    checkout.refresh_from_db(fields=["assigned_delivery"])
+    assert checkout.assigned_delivery is not None

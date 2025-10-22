@@ -10,7 +10,7 @@ from ..tax.models import TaxClass
 from .interface import ShippingMethodData
 
 if TYPE_CHECKING:
-    from ..checkout.models import CheckoutShippingMethod
+    from ..checkout.models import CheckoutDelivery
     from .models import ShippingMethod, ShippingMethodChannelListing
 
 
@@ -47,7 +47,6 @@ def convert_to_shipping_method_data(
         # TODO: load tax_class with data loader and pass as an argument
         with allow_writer():
             tax_class = shipping_method.tax_class
-
     return ShippingMethodData(
         id=str(shipping_method.id),
         name=shipping_method.name,
@@ -66,29 +65,25 @@ def convert_to_shipping_method_data(
     )
 
 
-def convert_checkout_shipping_method_to_shipping_method_data(
-    checkout_shipping_method: "CheckoutShippingMethod",
+def convert_checkout_delivery_to_shipping_method_data(
+    checkout_delivery: "CheckoutDelivery",
 ) -> "ShippingMethodData":
     return ShippingMethodData(
-        id=str(checkout_shipping_method.original_id),
-        name=checkout_shipping_method.name,
-        description=checkout_shipping_method.description,
-        maximum_delivery_days=checkout_shipping_method.maximum_delivery_days,
-        minimum_delivery_days=checkout_shipping_method.minimum_delivery_days,
-        metadata=checkout_shipping_method.metadata,
-        private_metadata=checkout_shipping_method.private_metadata,
-        price=Money(
-            checkout_shipping_method.price_amount, checkout_shipping_method.currency
-        ),
-        active=all(
-            [checkout_shipping_method.active, checkout_shipping_method.is_valid]
-        ),
-        message=checkout_shipping_method.message or "",
+        id=checkout_delivery.shipping_method_id,
+        name=checkout_delivery.name,
+        description=checkout_delivery.description,
+        maximum_delivery_days=checkout_delivery.maximum_delivery_days,
+        minimum_delivery_days=checkout_delivery.minimum_delivery_days,
+        metadata=checkout_delivery.metadata,
+        private_metadata=checkout_delivery.private_metadata,
+        price=Money(checkout_delivery.price_amount, checkout_delivery.currency),
+        active=all([checkout_delivery.active, checkout_delivery.is_valid]),
+        message=checkout_delivery.message or "",
         tax_class=TaxClass(
-            id=checkout_shipping_method.tax_class_id,
-            name=checkout_shipping_method.tax_class_name or "",
-            metadata=checkout_shipping_method.tax_class_metadata,
-            private_metadata=checkout_shipping_method.tax_class_private_metadata,
+            id=checkout_delivery.tax_class_id,
+            name=checkout_delivery.tax_class_name or "",
+            metadata=checkout_delivery.tax_class_metadata,
+            private_metadata=checkout_delivery.tax_class_private_metadata,
         ),
     )
 

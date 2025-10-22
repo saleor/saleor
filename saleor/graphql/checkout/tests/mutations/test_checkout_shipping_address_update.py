@@ -23,7 +23,7 @@ from .....warehouse.models import Reservation, Stock
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...mutations.utils import mark_checkout_shipping_methods_as_stale_if_needed
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 from ..utils import assert_address_data
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
@@ -97,8 +97,8 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_WITH_METADATA_UPDATE = """
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
@@ -150,8 +150,8 @@ def test_checkout_shipping_address_with_metadata_update(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
@@ -208,8 +208,8 @@ def test_checkout_shipping_address_when_variant_without_listing(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_shipping_address_update_changes_checkout_country(
@@ -259,8 +259,8 @@ def test_checkout_shipping_address_update_changes_checkout_country(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_shipping_address_update_insufficient_stocks(
@@ -306,8 +306,8 @@ def test_checkout_shipping_address_update_insufficient_stocks(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_shipping_address_update_doesnt_raise_error(
@@ -349,8 +349,8 @@ def test_checkout_shipping_address_update_doesnt_raise_error(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_shipping_address_update_with_reserved_stocks(
@@ -405,8 +405,8 @@ def test_checkout_shipping_address_update_with_reserved_stocks(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_shipping_address_update_against_reserved_stocks(
@@ -957,15 +957,13 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     voucher_shipping_type,
     graphql_address_data,
     address_other_country,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     assert checkout_with_item.shipping_address is None
     assert checkout_with_item.voucher_code is None
 
     checkout_with_item.shipping_address = address_other_country
-    checkout_with_item.assigned_shipping_method = checkout_shipping_method(
-        checkout_with_item
-    )
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
     assert checkout_with_item.shipping_address.country == address_other_country.country
 
@@ -1364,7 +1362,7 @@ def test_checkout_shipping_address_marks_shipping_as_stale(
     user_api_client,
     checkout_with_item,
     graphql_address_data,
-    checkout_shipping_method,
+    checkout_delivery,
     address,
 ):
     # given
@@ -1373,12 +1371,12 @@ def test_checkout_shipping_address_marks_shipping_as_stale(
 
     expected_stale_time = timezone.now() + timezone.timedelta(minutes=10)
     checkout = checkout_with_item
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
     checkout.shipping_methods_stale_at = expected_stale_time
     checkout.save(
         update_fields=[
-            "assigned_shipping_method",
+            "assigned_delivery",
             "shipping_address",
             "shipping_methods_stale_at",
         ]

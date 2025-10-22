@@ -35,7 +35,7 @@ from .utils import (
     get_checkout,
     get_variants_and_total_quantities,
     group_lines_input_on_add,
-    mark_checkout_shipping_methods_as_stale_if_needed,
+    mark_checkout_deliveries_as_stale_if_needed,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
@@ -256,7 +256,7 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_info,
         )
 
-        shipping_update_fields = mark_checkout_shipping_methods_as_stale_if_needed(
+        shipping_update_fields = mark_checkout_deliveries_as_stale_if_needed(
             checkout_info.checkout, lines
         )
         invalidate_update_fields = invalidate_checkout(

@@ -34,7 +34,7 @@ from .....webhook.transport.asynchronous.transport import send_webhook_request_a
 from ....core.mutations import MISSING_NODE_ERROR_MESSAGE_PREFIX
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...mutations.utils import mark_checkout_shipping_methods_as_stale_if_needed
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_LINES_UPDATE = """
     mutation checkoutLinesUpdate(
@@ -84,8 +84,8 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
@@ -144,8 +144,8 @@ def test_checkout_lines_update(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
@@ -213,8 +213,8 @@ def test_checkout_lines_update_when_checkout_has_line_without_listing(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_lines_update_using_line_id(
     mocked_mark_shipping_methods_as_stale, user_api_client, checkout_with_item
@@ -258,8 +258,8 @@ def test_checkout_lines_update_using_line_id(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_lines_update_using_line_id_and_variant_id(
     mocked_mark_shipping_methods_as_stale, user_api_client, checkout_with_item
@@ -366,8 +366,8 @@ def test_checkout_lines_update_block_when_variant_id_and_line_id_provided(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_lines_update_only_stock_in_cc_warehouse(
     mocked_mark_shipping_methods_as_stale,
@@ -425,7 +425,7 @@ def test_checkout_lines_update_only_stock_in_cc_warehouse(
 
 
 def test_checkout_lines_update_only_stock_in_cc_warehouse_delivery_method_set(
-    user_api_client, checkout_with_item, warehouse_for_cc, checkout_shipping_method
+    user_api_client, checkout_with_item, warehouse_for_cc, checkout_delivery
 ):  # given
     """Test that click-and-collect quantities are unavailable if a non-C&C shipping method is set."""
     checkout = checkout_with_item
@@ -439,8 +439,8 @@ def test_checkout_lines_update_only_stock_in_cc_warehouse_delivery_method_set(
         warehouse=warehouse_for_cc, product_variant=variant, quantity=10
     )
 
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
-    checkout.save(update_fields=["assigned_shipping_method"])
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.save(update_fields=["assigned_delivery"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -1241,8 +1241,8 @@ def test_checkout_lines_delete_with_by_zero_quantity_when_variant_out_of_stock(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_line_delete_by_zero_quantity(
     mocked_mark_shipping_methods_as_stale, user_api_client, checkout_with_item
@@ -1278,8 +1278,8 @@ def test_checkout_line_delete_by_zero_quantity(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_line_delete_by_zero_quantity_when_variant_unavailable_for_purchase(
     mocked_mark_shipping_methods_as_stale, user_api_client, checkout_with_item
@@ -1315,8 +1315,8 @@ def test_checkout_line_delete_by_zero_quantity_when_variant_unavailable_for_purc
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_line_update_by_zero_quantity_dont_create_new_lines(
     mocked_mark_shipping_methods_as_stale,
@@ -1409,11 +1409,11 @@ def test_checkout_lines_update_check_lines_quantity(
 
 @freeze_time("2022-04-12 12:00:00")
 def test_checkout_lines_update_marks_shipping_as_stale(
-    user_api_client, checkout, stock, address, checkout_shipping_method
+    user_api_client, checkout, stock, address, checkout_delivery
 ):
     # given
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save()
 
     variant = stock.product_variant
@@ -1433,7 +1433,7 @@ def test_checkout_lines_update_marks_shipping_as_stale(
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 1
-    assert checkout.assigned_shipping_method
+    assert checkout.assigned_delivery
     assert checkout.shipping_methods_stale_at == timezone.now()
 
 
@@ -1443,13 +1443,13 @@ def test_checkout_lines_update_do_not_remove_shipping_if_removed_product_with_sh
     checkout_with_item,
     digital_content,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item
     digital_variant = digital_content.product_variant
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save()
 
     checkout_info = fetch_checkout_info(
@@ -1476,7 +1476,7 @@ def test_checkout_lines_update_do_not_remove_shipping_if_removed_product_with_sh
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 1
-    assert checkout.assigned_shipping_method
+    assert checkout.assigned_delivery
     assert checkout.shipping_methods_stale_at == timezone.now()
 
 

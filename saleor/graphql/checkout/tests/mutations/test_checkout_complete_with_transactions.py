@@ -18,9 +18,9 @@ from .....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
     fetch_shipping_methods_for_checkout,
-    get_or_fetch_checkout_shipping_methods,
+    get_or_fetch_checkout_deliveries,
 )
-from .....checkout.models import Checkout, CheckoutLine, CheckoutShippingMethod
+from .....checkout.models import Checkout, CheckoutDelivery, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, add_voucher_to_checkout
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
@@ -114,7 +114,7 @@ def prepare_checkout_for_test(
     checkout,
     shipping_address,
     billing_address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_item_generator,
     transaction_events_generator,
     voucher=None,
@@ -123,7 +123,7 @@ def prepare_checkout_for_test(
     save_billing_address=None,
 ):
     checkout.shipping_address = shipping_address
-    checkout.assigned_shipping_method = checkout_shipping_method
+    checkout.assigned_delivery = checkout_delivery
     checkout.billing_address = billing_address
     if save_shipping_address is not None:
         checkout.save_shipping_address = save_shipping_address
@@ -177,12 +177,12 @@ def test_checkout_without_any_transaction(
     gift_card,
     transaction_item_generator,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -225,12 +225,12 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     transaction_item_generator,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -285,14 +285,14 @@ def test_checkout_with_total_0(
     address,
     shipping_method,
     channel_USD,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     shipping_method.channel_listings.update(price_amount=Decimal(0))
 
     checkout = checkout_with_item_total_0
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -346,15 +346,13 @@ def test_checkout_with_authorized(
     transaction_item_generator,
     address,
     customer_user,
-    checkout_shipping_method,
+    checkout_delivery,
     shipping_method,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -436,7 +434,9 @@ def test_checkout_with_authorized(
     assert order_line.tax_class_private_metadata == line_tax_class.private_metadata
 
     assert order.shipping_address == address
-    assert order.shipping_method.id == checkout.assigned_shipping_method.original_id
+    assert order.shipping_method.id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.shipping_tax_rate is not None
     assert order.shipping_tax_class_name == shipping_tax_class.name
     assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
@@ -463,12 +463,12 @@ def test_checkout_with_charged(
     transaction_item_generator,
     address,
     customer_user,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(checkout)
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -536,7 +536,7 @@ def test_checkout_with_charged(
     order_line = order.lines.first()
     line_tax_class = order_line.tax_class
 
-    assigned_checkout_shipping = checkout.assigned_shipping_method
+    assigned_checkout_shipping = checkout.assigned_delivery
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
 
@@ -547,7 +547,9 @@ def test_checkout_with_charged(
     assert order_line.is_price_overridden is False
 
     assert order.shipping_address == address
-    assert order.shipping_method.id == assigned_checkout_shipping.original_id
+    assert order.shipping_method_id == int(
+        assigned_checkout_shipping.shipping_method_id
+    )
     assert order.shipping_tax_rate is not None
     assert order.shipping_tax_class_name == assigned_checkout_shipping.tax_class_name
     assert (
@@ -574,14 +576,12 @@ def test_checkout_price_override(
     transaction_item_generator,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -648,7 +648,7 @@ def test_checkout_price_override(
     order_line = order.lines.first()
     line_tax_class = order_line.tax_class
 
-    assigned_shipping_method = checkout.assigned_shipping_method
+    assigned_delivery = checkout.assigned_delivery
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
@@ -663,16 +663,14 @@ def test_checkout_price_override(
     )
 
     assert order.shipping_address == address
-    assert order.shipping_method.id == checkout.assigned_shipping_method.original_id
+    assert order.shipping_method.id == int(assigned_delivery.shipping_method_id)
     assert order.shipping_tax_rate is not None
-    assert order.shipping_tax_class.id == assigned_shipping_method.tax_class_id
-    assert order.shipping_tax_class_name == assigned_shipping_method.tax_class_name
-    assert (
-        order.shipping_tax_class_metadata == assigned_shipping_method.tax_class_metadata
-    )
+    assert order.shipping_tax_class.id == assigned_delivery.tax_class_id
+    assert order.shipping_tax_class_name == assigned_delivery.tax_class_name
+    assert order.shipping_tax_class_metadata == assigned_delivery.tax_class_metadata
     assert (
         order.shipping_tax_class_private_metadata
-        == assigned_shipping_method.tax_class_private_metadata
+        == assigned_delivery.tax_class_private_metadata
     )
 
     assert order.lines_count == len(lines)
@@ -687,14 +685,12 @@ def test_checkout_paid_with_multiple_transactions(
     transaction_item_generator,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.save()
 
@@ -752,14 +748,12 @@ def test_checkout_partially_paid(
     transaction_item_generator,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -807,14 +801,12 @@ def test_checkout_partially_paid_allow_unpaid_order(
     transaction_item_generator,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -868,14 +860,12 @@ def test_checkout_with_pending_charged(
     address,
     shipping_method,
     transaction_events_generator,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.save()
 
@@ -939,14 +929,12 @@ def test_checkout_with_pending_authorized(
     address,
     shipping_method,
     transaction_events_generator,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -1032,7 +1020,9 @@ def test_checkout_with_pending_authorized(
     assert order_line.tax_class_private_metadata == line_tax_class.private_metadata
 
     assert order.shipping_address == address
-    assert order.shipping_method.id == checkout.assigned_shipping_method.original_id
+    assert order.shipping_method.id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.shipping_tax_rate is not None
     assert order.shipping_tax_class_name == shipping_tax_class.name
     assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
@@ -1051,14 +1041,14 @@ def test_checkout_with_voucher_not_applicable(
     address,
     transaction_item_generator,
     transaction_events_generator,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = prepare_checkout_for_test(
         checkout_with_item_and_voucher,
         address,
         address,
-        checkout_shipping_method(checkout_with_item_and_voucher),
+        checkout_delivery(checkout_with_item_and_voucher),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1095,7 +1085,7 @@ def test_checkout_with_voucher_inactive_code(
     address,
     transaction_item_generator,
     transaction_events_generator,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     code = voucher.codes.first()
@@ -1103,7 +1093,7 @@ def test_checkout_with_voucher_inactive_code(
         checkout_with_item_and_voucher,
         address,
         address,
-        checkout_shipping_method(checkout_with_item_and_voucher),
+        checkout_delivery(checkout_with_item_and_voucher),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1138,7 +1128,7 @@ def test_checkout_with_insufficient_stock(
     user_api_client,
     checkout_with_item,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_item_generator,
     transaction_events_generator,
 ):
@@ -1147,7 +1137,7 @@ def test_checkout_with_insufficient_stock(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1175,7 +1165,7 @@ def test_checkout_with_gift_card_not_applicable(
     checkout_with_gift_card,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_item_generator,
     transaction_events_generator,
 ):
@@ -1189,7 +1179,7 @@ def test_checkout_with_gift_card_not_applicable(
         checkout_with_gift_card,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1213,7 +1203,7 @@ def test_checkout_with_variant_without_price(
     checkout_with_item,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1222,7 +1212,7 @@ def test_checkout_with_variant_without_price(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1263,7 +1253,7 @@ def test_checkout_with_line_without_channel_listing(
     checkout_with_item,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1272,7 +1262,7 @@ def test_checkout_with_line_without_channel_listing(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1305,7 +1295,7 @@ def test_checkout_complete_with_inactive_channel(
     checkout_with_gift_card,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1314,7 +1304,7 @@ def test_checkout_complete_with_inactive_channel(
         checkout_with_gift_card,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1354,7 +1344,7 @@ def test_checkout_complete(
     gift_card,
     address,
     address_usa,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
     caplog,
@@ -1365,7 +1355,7 @@ def test_checkout_complete(
         checkout_with_gift_card,
         address,
         address_usa,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
         user=customer_user,
@@ -1430,7 +1420,7 @@ def test_checkout_complete(
 
     order_line = order.lines.first()
     line_tax_class = order_line.tax_class
-    assigned_shipping_method = checkout.assigned_shipping_method
+    assigned_delivery = checkout.assigned_delivery
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
@@ -1444,16 +1434,14 @@ def test_checkout_complete(
     assert order.shipping_address == address
     assert order.draft_save_billing_address is None
     assert order.draft_save_shipping_address is None
-    assert order.shipping_method.id == checkout.assigned_shipping_method.original_id
+    assert order.shipping_method.id == int(assigned_delivery.shipping_method_id)
     assert order.shipping_tax_rate is not None
-    assert order.shipping_tax_class.id == assigned_shipping_method.tax_class_id
-    assert order.shipping_tax_class_name == assigned_shipping_method.tax_class_name
-    assert (
-        order.shipping_tax_class_metadata == assigned_shipping_method.tax_class_metadata
-    )
+    assert order.shipping_tax_class.id == assigned_delivery.tax_class_id
+    assert order.shipping_tax_class_name == assigned_delivery.tax_class_name
+    assert order.shipping_tax_class_metadata == assigned_delivery.tax_class_metadata
     assert (
         order.shipping_tax_class_private_metadata
-        == assigned_shipping_method.tax_class_private_metadata
+        == assigned_delivery.tax_class_private_metadata
     )
     assert order.search_vector
 
@@ -1501,7 +1489,7 @@ def test_checkout_complete_with_metadata(
     checkout_with_gift_card,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1510,7 +1498,7 @@ def test_checkout_complete_with_metadata(
         checkout_with_gift_card,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1567,7 +1555,7 @@ def test_checkout_complete_with_metadata_updates_existing_keys(
     checkout_with_item,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1576,7 +1564,7 @@ def test_checkout_complete_with_metadata_updates_existing_keys(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1621,7 +1609,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     checkout_with_gift_card,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1630,7 +1618,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
         checkout_with_gift_card,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1684,7 +1672,7 @@ def test_checkout_complete_by_app(
     customer_user,
     permission_impersonate_user,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1693,7 +1681,7 @@ def test_checkout_complete_by_app(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1741,7 +1729,7 @@ def test_checkout_complete_by_app_with_missing_permission(
     customer_user,
     permission_manage_users,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1750,7 +1738,7 @@ def test_checkout_complete_by_app_with_missing_permission(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1797,7 +1785,7 @@ def test_checkout_complete_gift_card_bought(
     user_api_client,
     checkout_with_gift_card_items,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -1806,7 +1794,7 @@ def test_checkout_complete_gift_card_bought(
         checkout_with_gift_card_items,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card_items),
+        checkout_delivery(checkout_with_gift_card_items),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -1863,7 +1851,7 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     gift_card,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     voucher_free_shipping,
     transaction_events_generator,
     transaction_item_generator,
@@ -1879,7 +1867,7 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
         checkout_with_gift_card,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card, shipping_method),
+        checkout_delivery(checkout_with_gift_card, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
         voucher=voucher_free_shipping,
@@ -1947,7 +1935,7 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
 
     order_line = order.lines.first()
     line_tax_class = order_line.tax_class
-    assigned_shipping_method = checkout.assigned_shipping_method
+    assigned_delivery = checkout.assigned_delivery
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
@@ -1958,16 +1946,14 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     assert order_line.tax_class_private_metadata == line_tax_class.private_metadata
 
     assert order.shipping_address == address
-    assert order.shipping_method.id == checkout.assigned_shipping_method.original_id
+    assert order.shipping_method.id == int(assigned_delivery.shipping_method_id)
     assert order.shipping_tax_rate is not None
-    assert order.shipping_tax_class.id == assigned_shipping_method.tax_class_id
-    assert order.shipping_tax_class_name == assigned_shipping_method.tax_class_name
-    assert (
-        order.shipping_tax_class_metadata == assigned_shipping_method.tax_class_metadata
-    )
+    assert order.shipping_tax_class.id == assigned_delivery.tax_class_id
+    assert order.shipping_tax_class_name == assigned_delivery.tax_class_name
+    assert order.shipping_tax_class_metadata == assigned_delivery.tax_class_metadata
     assert (
         order.shipping_tax_class_private_metadata
-        == assigned_shipping_method.tax_class_private_metadata
+        == assigned_delivery.tax_class_private_metadata
     )
     assert order.search_vector
 
@@ -1991,7 +1977,7 @@ def test_checkout_complete_with_variant_without_sku(
     checkout_with_item,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -2000,7 +1986,7 @@ def test_checkout_complete_with_variant_without_sku(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -2057,7 +2043,7 @@ def test_checkout_with_voucher_complete(
     voucher_percentage,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -2071,7 +2057,7 @@ def test_checkout_with_voucher_complete(
         checkout_with_voucher_percentage,
         address,
         address,
-        checkout_shipping_method(checkout_with_voucher_percentage, shipping_method),
+        checkout_delivery(checkout_with_voucher_percentage, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -2162,7 +2148,7 @@ def test_checkout_with_order_promotion_complete(
     checkout_with_item_and_order_discount,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -2177,7 +2163,7 @@ def test_checkout_with_order_promotion_complete(
         checkout,
         address,
         address,
-        checkout_shipping_method(checkout, shipping_method),
+        checkout_delivery(checkout, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -2242,7 +2228,7 @@ def test_checkout_complete_with_entire_order_voucher_paid_with_gift_card_and_tra
     gift_card,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -2260,7 +2246,7 @@ def test_checkout_complete_with_entire_order_voucher_paid_with_gift_card_and_tra
         checkout_with_voucher_percentage,
         address,
         address,
-        checkout_shipping_method(checkout_with_voucher_percentage, shipping_method),
+        checkout_delivery(checkout_with_voucher_percentage, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -2354,7 +2340,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
     gift_card,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -2363,7 +2349,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
         checkout_with_voucher_percentage,
         address,
         address,
-        checkout_shipping_method(checkout_with_voucher_percentage, shipping_method),
+        checkout_delivery(checkout_with_voucher_percentage, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -2470,7 +2456,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     voucher_percentage,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
     channel_USD,
@@ -2503,7 +2489,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
         checkout,
         address,
         address,
-        checkout_shipping_method(checkout, shipping_method),
+        checkout_delivery(checkout, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -2572,7 +2558,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order_and_gift_card(
     gift_card,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -2607,7 +2593,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order_and_gift_card(
         checkout,
         address,
         address,
-        checkout_shipping_method(checkout, shipping_method),
+        checkout_delivery(checkout, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -2685,7 +2671,7 @@ def test_checkout_complete_with_voucher_single_use(
     voucher_percentage,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -2695,7 +2681,7 @@ def test_checkout_complete_with_voucher_single_use(
         checkout_with_voucher_percentage,
         address,
         address,
-        checkout_shipping_method(checkout_with_voucher_percentage, shipping_method),
+        checkout_delivery(checkout_with_voucher_percentage, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -2768,7 +2754,7 @@ def test_checkout_complete_with_shipping_voucher(
     checkout_with_voucher_free_shipping,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     voucher_free_shipping,
     transaction_events_generator,
     transaction_item_generator,
@@ -2787,7 +2773,7 @@ def test_checkout_complete_with_shipping_voucher(
         checkout,
         address,
         address,
-        checkout_shipping_method(checkout, shipping_method),
+        checkout_delivery(checkout, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -2861,7 +2847,9 @@ def test_checkout_complete_with_shipping_voucher(
     assert not order_line.unit_discount_amount
 
     assert order.shipping_address == address
-    assert order.shipping_method.id == checkout.assigned_shipping_method.original_id
+    assert order.shipping_method.id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.shipping_tax_rate is not None
     assert order.shipping_tax_class_name == shipping_tax_class.name
     assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
@@ -2885,7 +2873,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
     catalogue_promotion_without_rules,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -2894,7 +2882,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
         checkout_with_voucher_percentage,
         address,
         address,
-        checkout_shipping_method(checkout_with_voucher_percentage, shipping_method),
+        checkout_delivery(checkout_with_voucher_percentage, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -3028,7 +3016,7 @@ def test_checkout_with_voucher_on_specific_product_complete(
     voucher_specific_product_type,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
     channel_USD,
@@ -3043,7 +3031,7 @@ def test_checkout_with_voucher_on_specific_product_complete(
         checkout_with_item_and_voucher_specific_products,
         address,
         address,
-        checkout_shipping_method(
+        checkout_delivery(
             checkout_with_item_and_voucher_specific_products, shipping_method
         ),
         transaction_item_generator,
@@ -3122,7 +3110,7 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     gift_card,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
     django_capture_on_commit_callbacks,
@@ -3140,7 +3128,7 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
         checkout_with_item_and_voucher_specific_products,
         address,
         address,
-        checkout_shipping_method(
+        checkout_delivery(
             checkout_with_item_and_voucher_specific_products, shipping_method
         ),
         transaction_item_generator,
@@ -3232,7 +3220,7 @@ def test_checkout_complete_product_on_promotion(
     catalogue_promotion_without_rules,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -3241,7 +3229,7 @@ def test_checkout_complete_product_on_promotion(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item, shipping_method),
+        checkout_delivery(checkout_with_item, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -3340,7 +3328,7 @@ def test_checkout_complete_multiple_rules_applied(
     checkout_with_item,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     catalogue_promotion_without_rules,
     transaction_events_generator,
     transaction_item_generator,
@@ -3350,7 +3338,7 @@ def test_checkout_complete_multiple_rules_applied(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item, shipping_method),
+        checkout_delivery(checkout_with_item, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -3515,7 +3503,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     catalogue_promotion_with_single_rule,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
     channel_USD,
@@ -3530,7 +3518,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
         checkout_with_item_and_voucher_specific_products,
         address,
         address,
-        checkout_shipping_method(
+        checkout_delivery(
             checkout_with_item_and_voucher_specific_products, shipping_method
         ),
         transaction_item_generator,
@@ -3622,7 +3610,7 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
     voucher_percentage,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -3631,7 +3619,7 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
         checkout_with_voucher_percentage,
         address,
         address,
-        checkout_shipping_method(checkout_with_voucher_percentage, shipping_method),
+        checkout_delivery(checkout_with_voucher_percentage, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -3670,7 +3658,7 @@ def test_checkout_complete_without_inventory_tracking(
     checkout_with_variant_without_inventory_tracking,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -3679,7 +3667,7 @@ def test_checkout_complete_without_inventory_tracking(
         checkout_with_variant_without_inventory_tracking,
         address,
         address,
-        checkout_shipping_method(
+        checkout_delivery(
             checkout_with_variant_without_inventory_tracking, shipping_method
         ),
         transaction_item_generator,
@@ -3722,7 +3710,7 @@ def test_checkout_complete_checkout_without_lines(
     checkout,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -3731,7 +3719,7 @@ def test_checkout_complete_checkout_without_lines(
         checkout,
         address,
         address,
-        checkout_shipping_method(checkout, shipping_method),
+        checkout_delivery(checkout, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -3768,7 +3756,7 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
     checkout_with_item,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     channel_USD,
     transaction_events_generator,
     transaction_item_generator,
@@ -3778,7 +3766,7 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item, shipping_method),
+        checkout_delivery(checkout_with_item, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -3823,7 +3811,7 @@ def test_checkout_complete_own_reservation(
     checkout_with_item,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     channel_USD,
     transaction_events_generator,
     transaction_item_generator,
@@ -3841,7 +3829,7 @@ def test_checkout_complete_own_reservation(
         checkout_with_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item, shipping_method),
+        checkout_delivery(checkout_with_item, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -3892,7 +3880,7 @@ def test_checkout_complete_without_redirect_url(
     gift_card,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -3901,7 +3889,7 @@ def test_checkout_complete_without_redirect_url(
         checkout_with_gift_card,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card, shipping_method),
+        checkout_delivery(checkout_with_gift_card, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4384,7 +4372,7 @@ def test_checkout_complete_with_preorder_variant(
     checkout_with_item_and_preorder_item,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4393,7 +4381,7 @@ def test_checkout_complete_with_preorder_variant(
         checkout_with_item_and_preorder_item,
         address,
         address,
-        checkout_shipping_method(checkout_with_item_and_preorder_item, shipping_method),
+        checkout_delivery(checkout_with_item_and_preorder_item, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4522,7 +4510,7 @@ def test_checkout_complete_variant_channel_listing_does_not_exist(
     checkout_with_items,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4531,7 +4519,7 @@ def test_checkout_complete_variant_channel_listing_does_not_exist(
         checkout_with_items,
         address,
         address,
-        checkout_shipping_method(checkout_with_items, shipping_method),
+        checkout_delivery(checkout_with_items, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4566,7 +4554,7 @@ def test_checkout_complete_variant_channel_listing_no_price(
     checkout_with_items,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4575,7 +4563,7 @@ def test_checkout_complete_variant_channel_listing_no_price(
         checkout_with_items,
         address,
         address,
-        checkout_shipping_method(checkout_with_items, shipping_method),
+        checkout_delivery(checkout_with_items, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4616,7 +4604,7 @@ def test_checkout_complete_product_channel_listing_does_not_exist(
     checkout_with_items,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4625,7 +4613,7 @@ def test_checkout_complete_product_channel_listing_does_not_exist(
         checkout_with_items,
         address,
         address,
-        checkout_shipping_method(checkout_with_items, shipping_method),
+        checkout_delivery(checkout_with_items, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4666,7 +4654,7 @@ def test_checkout_complete_product_channel_listing_not_available_for_purchase(
     checkout_with_items,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     available_for_purchase,
     transaction_events_generator,
     transaction_item_generator,
@@ -4676,7 +4664,7 @@ def test_checkout_complete_product_channel_listing_not_available_for_purchase(
         checkout_with_items,
         address,
         address,
-        checkout_shipping_method(checkout_with_items, shipping_method),
+        checkout_delivery(checkout_with_items, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4716,7 +4704,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
     gift_card,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4735,7 +4723,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
         checkout_with_item,
         shipping_address,
         address,
-        checkout_shipping_method(checkout_with_item, shipping_method),
+        checkout_delivery(checkout_with_item, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4763,7 +4751,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
     checkout_with_item,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4783,7 +4771,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
         checkout_with_item,
         shipping_address,
         address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4811,7 +4799,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_f
     checkout_with_item,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4830,7 +4818,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_f
         checkout_with_item,
         address,
         billing_address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4857,7 +4845,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fiel
     checkout_with_item,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4877,7 +4865,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fiel
         checkout_with_item,
         address,
         billing_address,
-        checkout_shipping_method(checkout_with_item),
+        checkout_delivery(checkout_with_item),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4906,7 +4894,7 @@ def test_checkout_complete_with_not_normalized_shipping_address(
     checkout_with_gift_card,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4923,7 +4911,7 @@ def test_checkout_complete_with_not_normalized_shipping_address(
         checkout_with_gift_card,
         shipping_address,
         address,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4952,7 +4940,7 @@ def test_checkout_complete_with_not_normalized_billing_address(
     checkout_with_gift_card,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -4968,7 +4956,7 @@ def test_checkout_complete_with_not_normalized_billing_address(
         checkout_with_gift_card,
         address,
         billing_address,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -4997,7 +4985,7 @@ def test_checkout_complete_reservations_drop(
     checkout_with_gift_card,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -5006,7 +4994,7 @@ def test_checkout_complete_reservations_drop(
         checkout_with_gift_card,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -5030,7 +5018,7 @@ def test_checkout_complete_line_deleted_in_the_meantime(
     checkout_with_gift_card,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
 ):
@@ -5039,7 +5027,7 @@ def test_checkout_complete_line_deleted_in_the_meantime(
         checkout_with_gift_card,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -5071,7 +5059,7 @@ def test_checkout_complete_with_invalid_address(
     checkout_with_item,
     address,
     shipping_method,
-    checkout_shipping_method,
+    checkout_delivery,
     customer_user,
 ):
     """Check if checkout can be completed with invalid address.
@@ -5088,9 +5076,7 @@ def test_checkout_complete_with_invalid_address(
     address.save(update_fields=["validation_skipped", "postal_code"])
 
     checkout.shipping_address = address
-    checkout.assigned_shipping_method = checkout_shipping_method(
-        checkout, shipping_method
-    )
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.user = customer_user
@@ -5146,7 +5132,7 @@ def test_checkout_complete_log_unknown_discount_reason(
     checkout_with_item_and_voucher_specific_products,
     voucher_specific_product_type,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
     caplog,
@@ -5158,7 +5144,7 @@ def test_checkout_complete_log_unknown_discount_reason(
         checkout_with_item_and_voucher_specific_products,
         address,
         address,
-        checkout_shipping_method(checkout_with_item_and_voucher_specific_products),
+        checkout_delivery(checkout_with_item_and_voucher_specific_products),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -5192,7 +5178,7 @@ def test_checkout_complete_empty_product_translation(
     checkout_with_gift_card,
     gift_card,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
     caplog,
@@ -5202,7 +5188,7 @@ def test_checkout_complete_empty_product_translation(
         checkout_with_gift_card,
         address,
         address,
-        checkout_shipping_method(checkout_with_gift_card),
+        checkout_delivery(checkout_with_gift_card),
         transaction_item_generator,
         transaction_events_generator,
     )
@@ -5265,7 +5251,9 @@ def test_checkout_complete_empty_product_translation(
     assert order_line.translated_variant_name == ""
 
     assert order.shipping_address == address
-    assert order.shipping_method.id == checkout.assigned_shipping_method.original_id
+    assert order.shipping_method.id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.search_vector
 
     gift_card.refresh_from_db()
@@ -5357,9 +5345,9 @@ def test_checkout_complete_with_external_shipping_method(
     mocked_sync_webhook.return_value = mock_json_response
 
     checkout = checkout_with_item
-    checkout.assigned_shipping_method = CheckoutShippingMethod.objects.create(
+    checkout.assigned_delivery = CheckoutDelivery.objects.create(
         checkout=checkout,
-        original_id=graphql_externa_method_id,
+        external_shipping_method_id=graphql_externa_method_id,
         name=external_shipping_name,
         price_amount="10.00",
         currency="USD",
@@ -5414,7 +5402,7 @@ def test_checkout_complete_saving_addresses_off(
     user_api_client,
     checkout_with_item_and_voucher_specific_products,
     address,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
     customer_user,
@@ -5424,7 +5412,7 @@ def test_checkout_complete_saving_addresses_off(
         checkout_with_item_and_voucher_specific_products,
         address,
         address,
-        checkout_shipping_method(checkout_with_item_and_voucher_specific_products),
+        checkout_delivery(checkout_with_item_and_voucher_specific_products),
         transaction_item_generator,
         transaction_events_generator,
         user=customer_user,
@@ -5459,7 +5447,7 @@ def test_checkout_complete_saving_addresses_on(
     checkout_with_item_and_voucher_specific_products,
     address,
     address_usa,
-    checkout_shipping_method,
+    checkout_delivery,
     transaction_events_generator,
     transaction_item_generator,
     customer_user,
@@ -5469,7 +5457,7 @@ def test_checkout_complete_saving_addresses_on(
         checkout_with_item_and_voucher_specific_products,
         address,
         address_usa,
-        checkout_shipping_method(checkout_with_item_and_voucher_specific_products),
+        checkout_delivery(checkout_with_item_and_voucher_specific_products),
         transaction_item_generator,
         transaction_events_generator,
         user=customer_user,
@@ -5522,7 +5510,7 @@ def test_checkout_complete_with_different_email_than_user_email(
         checkout_ready_to_complete,
         address,
         address_usa,
-        checkout_ready_to_complete.assigned_shipping_method,
+        checkout_ready_to_complete.assigned_delivery,
         transaction_item_generator,
         transaction_events_generator,
         user=customer_user,
@@ -5568,7 +5556,7 @@ def test_checkout_complete_sets_product_type_id_for_all_order_lines(
         checkout_ready_to_complete,
         address,
         address_usa,
-        checkout_ready_to_complete.assigned_shipping_method,
+        checkout_ready_to_complete.assigned_delivery,
         transaction_item_generator,
         transaction_events_generator,
         user=customer_user,
@@ -5604,15 +5592,15 @@ def test_checkout_complete_sets_product_type_id_for_all_order_lines(
 
 @patch(
     "saleor.graphql.checkout.mutations.checkout_complete."
-    "get_or_fetch_checkout_shipping_methods",
-    wraps=get_or_fetch_checkout_shipping_methods,
+    "get_or_fetch_checkout_deliveries",
+    wraps=get_or_fetch_checkout_deliveries,
 )
 def test_complete_refreshes_shipping_methods_when_stale(
-    mocked_get_or_fetch_checkout_shipping_methods,
+    mocked_get_or_fetch_checkout_deliveries,
     user_api_client,
     checkout_ready_to_complete,
     transaction_item_generator,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_ready_to_complete
@@ -5648,7 +5636,7 @@ def test_complete_refreshes_shipping_methods_when_stale(
     data = content["data"]["checkoutComplete"]
 
     assert not data["errors"]
-    assert mocked_get_or_fetch_checkout_shipping_methods.called
+    assert mocked_get_or_fetch_checkout_deliveries.called
 
 
 @patch(
@@ -5656,11 +5644,11 @@ def test_complete_refreshes_shipping_methods_when_stale(
     wraps=fetch_shipping_methods_for_checkout,
 )
 def test_complete_do_not_refresh_shipping_methods_when_not_stale(
-    mocked_fetch_checkout_shipping_methods,
+    mocked_fetch_checkout_deliveries,
     user_api_client,
     checkout_ready_to_complete,
     transaction_item_generator,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_ready_to_complete
@@ -5696,20 +5684,20 @@ def test_complete_do_not_refresh_shipping_methods_when_not_stale(
     data = content["data"]["checkoutComplete"]
 
     assert not data["errors"]
-    assert not mocked_fetch_checkout_shipping_methods.called
+    assert not mocked_fetch_checkout_deliveries.called
 
 
 @patch(
     "saleor.graphql.checkout.mutations.checkout_complete."
-    "get_or_fetch_checkout_shipping_methods",
-    wraps=get_or_fetch_checkout_shipping_methods,
+    "get_or_fetch_checkout_deliveries",
+    wraps=get_or_fetch_checkout_deliveries,
 )
 def test_complete_refreshes_shipping_methods_when_stale_and_invalid(
-    mocked_get_or_fetch_checkout_shipping_methods,
+    mocked_get_or_fetch_checkout_deliveries,
     user_api_client,
     checkout_ready_to_complete,
     transaction_item_generator,
-    checkout_shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_ready_to_complete
@@ -5751,4 +5739,4 @@ def test_complete_refreshes_shipping_methods_when_stale_and_invalid(
     assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID_SHIPPING_METHOD.name
 
     assert Order.objects.count() == 0
-    assert mocked_get_or_fetch_checkout_shipping_methods.called
+    assert mocked_get_or_fetch_checkout_deliveries.called

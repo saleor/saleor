@@ -33,7 +33,7 @@ def get_default_country():
     return settings.DEFAULT_COUNTRY
 
 
-class CheckoutShippingMethod(models.Model):
+class CheckoutDelivery(models.Model):
     """Model to cache shipping methods for a checkout."""
 
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
@@ -42,10 +42,13 @@ class CheckoutShippingMethod(models.Model):
         related_name="shipping_methods",
         on_delete=models.CASCADE,
     )
-
-    original_id = models.CharField(
-        max_length=512, blank=False, null=False, editable=False, db_index=True
+    external_shipping_method_id = models.CharField(
+        max_length=512, blank=True, null=True, editable=False, db_index=True
     )
+    built_in_shipping_method_id = models.IntegerField(
+        blank=True, null=True, editable=False, db_index=True
+    )
+
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
 
@@ -82,8 +85,22 @@ class CheckoutShippingMethod(models.Model):
         blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
 
+    @property
+    def shipping_method_id(self) -> str:
+        return self.external_shipping_method_id or str(self.built_in_shipping_method_id)
+
     class Meta:
-        unique_together = ("checkout", "original_id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "checkout",
+                    "external_shipping_method_id",
+                    "built_in_shipping_method_id",
+                ],
+                name="unique_contraint",
+                nulls_distinct=False,
+            ),
+        ]
         ordering = ("created_at", "pk")
 
 
@@ -250,9 +267,8 @@ class Checkout(models.Model):
 
     shipping_methods_stale_at = models.DateTimeField(null=True, blank=True)
     price_expiration = models.DateTimeField(default=timezone.now)
-
-    assigned_shipping_method = models.ForeignKey(
-        CheckoutShippingMethod,
+    assigned_delivery = models.ForeignKey(
+        CheckoutDelivery,
         blank=True,
         null=True,
         related_name="+",

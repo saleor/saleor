@@ -6,7 +6,7 @@ from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import mark_checkout_shipping_methods_as_stale_if_needed
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     mutation checkoutShippingAddressUpdate(
@@ -31,8 +31,8 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_shipping_address_update_by_id(
     mocked_update_shipping_method,
@@ -74,8 +74,8 @@ def test_checkout_shipping_address_update_by_id(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_shipping_address_update_by_token(
     mocked_update_shipping_method,

@@ -50,7 +50,7 @@ def test_checkout_shipping_method_update_by_id(
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["id"] == checkout_id
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
 
 
 def test_checkout_shipping_method_update_by_token(
@@ -74,7 +74,7 @@ def test_checkout_shipping_method_update_by_token(
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["id"] == checkout_id
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
 
 
 def test_checkout_shipping_method_update_neither_token_and_id_given(
@@ -142,4 +142,4 @@ def test_checkout_shipping_method_update_by_id_no_checkout_metadata(
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["id"] == checkout_id
-    assert checkout.assigned_shipping_method.original_id == str(shipping_method.id)
+    assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)

@@ -6,9 +6,9 @@ from ....checkout.fetch import (
     CheckoutInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_or_fetch_checkout_shipping_methods,
+    get_or_fetch_checkout_deliveries,
 )
-from ....checkout.models import CheckoutShippingMethod
+from ....checkout.models import CheckoutDelivery
 from ....checkout.utils import (
     is_shipping_required,
 )
@@ -94,28 +94,24 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         return id_
 
     @classmethod
-    def get_checkout_shipping_method(
+    def get_checkout_delivery(
         cls, checkout_info: CheckoutInfo, shipping_method_id: str | None
-    ) -> CheckoutShippingMethod | None:
+    ) -> CheckoutDelivery | None:
         if shipping_method_id is None:
             return None
-        checkout_shipping_methods = get_or_fetch_checkout_shipping_methods(
-            checkout_info
-        )
+        checkout_deliveries = get_or_fetch_checkout_deliveries(checkout_info)
         internal_shipping_method_id = cls._resolve_delivery_method_id(
             shipping_method_id
         )
         if internal_shipping_method_id is None:
             return None
 
-        if internal_shipping_method_id in (
-            method.original_id for method in checkout_shipping_methods if method.active
-        ):
-            return next(
-                method
-                for method in checkout_shipping_methods
-                if method.original_id == internal_shipping_method_id
-            )
+        for method in checkout_deliveries:
+            if not method.active:
+                continue
+            if method.shipping_method_id == internal_shipping_method_id:
+                return method
+
         raise ValidationError(
             {
                 "shipping_method": ValidationError(
@@ -171,14 +167,12 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 }
             )
 
-        checkout_shipping_method = cls.get_checkout_shipping_method(
-            checkout_info, shipping_method_id
-        )
+        checkout_delivery = cls.get_checkout_delivery(checkout_info, shipping_method_id)
         assign_delivery_method_to_checkout(
             checkout_info,
             lines,
             manager,
-            checkout_shipping_method,
+            checkout_delivery,
         )
         return CheckoutShippingMethodUpdate(
             checkout=SyncWebhookControlContext(checkout_info.checkout)

@@ -267,7 +267,7 @@ def test_generate_order_payload(
                 "reason": discount_2.reason,
             },
         ],
-        "original": graphene.Node.to_global_id("Order", order.original_id),
+        "original": graphene.Node.to_global_id("Order", order.shipping_method_id),
         "lines": json.loads(order_lines),
         "fulfillments": [
             {
@@ -1836,7 +1836,7 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
     # then
     shipping_price = str(
         quantize_price(
-            checkout.assigned_shipping_method.price.amount,
+            checkout.assigned_delivery.price.amount,
             currency,
         )
     )
@@ -1869,7 +1869,7 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
         "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {"meta_key": "meta_value"},
-        "shipping_name": checkout.assigned_shipping_method.name,
+        "shipping_name": checkout.assigned_delivery.name,
         "user_id": graphene.Node.to_global_id("User", checkout.user.pk),
         "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
         "total_amount": str(
@@ -1931,7 +1931,7 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
     # then
     shipping_price = str(
         quantize_price(
-            checkout.assigned_shipping_method.price.amount,
+            checkout.assigned_delivery.price.amount,
             currency,
         )
     )
@@ -1964,7 +1964,7 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
         "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {"meta_key": "meta_value"},
-        "shipping_name": checkout.assigned_shipping_method.name,
+        "shipping_name": checkout.assigned_delivery.name,
         "user_id": graphene.Node.to_global_id("User", checkout.user.pk),
         "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
         "total_amount": str(
@@ -1999,7 +1999,7 @@ def test_generate_checkout_payload_for_tax_calculation_shipping_voucher(
     voucher.countries = []
     voucher.save(update_fields=["countries"])
 
-    shipping_price = checkout.assigned_shipping_method.price.amount
+    shipping_price = checkout.assigned_delivery.price.amount
     assert shipping_price == Decimal(10)
 
     voucher_discount_amount = Decimal(3)
@@ -2062,7 +2062,7 @@ def test_generate_checkout_payload_for_tax_calculation_shipping_voucher(
         "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {},
-        "shipping_name": checkout.assigned_shipping_method.name,
+        "shipping_name": checkout.assigned_delivery.name,
         "user_id": graphene.Node.to_global_id("User", checkout.user.pk),
         "user_public_metadata": {"key": "value"},
         "total_amount": str(
@@ -2135,7 +2135,7 @@ def test_generate_checkout_payload_for_tax_calculation_order_discount(
         unit_price = variant.get_price(variant_listing)
         subtotal_price += unit_price * line_info.line.quantity
     shipping_price = quantize_price(
-        checkout.assigned_shipping_method.price.amount,
+        checkout.assigned_delivery.price.amount,
         currency,
     )
     total_price_amount = subtotal_price.amount + shipping_price
@@ -2168,7 +2168,7 @@ def test_generate_checkout_payload_for_tax_calculation_order_discount(
         "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {"meta_key": "meta_value"},
-        "shipping_name": checkout.assigned_shipping_method.name,
+        "shipping_name": checkout.assigned_delivery.name,
         "user_id": graphene.Node.to_global_id("User", checkout.user.pk),
         "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
         "total_amount": str(
@@ -2254,7 +2254,7 @@ def test_generate_checkout_payload_for_tax_calculation_gift_promotion(
         unit_price = variant.get_price(variant_listing)
         subtotal_price += unit_price * line_info.line.quantity
     shipping_price = quantize_price(
-        checkout.assigned_shipping_method.price.amount,
+        checkout.assigned_delivery.price.amount,
         currency,
     )
     total_price_amount = subtotal_price.amount + shipping_price
@@ -2395,7 +2395,7 @@ def test_generate_checkout_payload_for_tax_calculation_no_discount(
         unit_price = variant.get_price(variant_listing)
         subtotal_price += unit_price * line_info.line.quantity
     shipping_price = quantize_price(
-        checkout.assigned_shipping_method.price.amount,
+        checkout.assigned_delivery.price.amount,
         currency,
     )
     total_price_amount = subtotal_price.amount + shipping_price
@@ -2428,7 +2428,7 @@ def test_generate_checkout_payload_for_tax_calculation_no_discount(
         "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {"meta_key": "meta_value"},
-        "shipping_name": checkout.assigned_shipping_method.name,
+        "shipping_name": checkout.assigned_delivery.name,
         "user_id": graphene.Node.to_global_id("User", checkout.user.pk),
         "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
         "total_amount": str(
@@ -2524,14 +2524,14 @@ def test_generate_checkout_payload(
         },
         "shipping_method": {
             "id": graphene.Node.to_global_id(
-                "ShippingMethod", checkout.assigned_shipping_method.original_id
+                "ShippingMethod", checkout.assigned_delivery.shipping_method_id
             ),
-            "name": checkout.assigned_shipping_method.name,
+            "name": checkout.assigned_delivery.name,
             "type": "price",
             "currency": checkout.currency,
             "price_amount": str(
                 quantize_price(
-                    checkout.assigned_shipping_method.price_amount,
+                    checkout.assigned_delivery.price_amount,
                     checkout.currency,
                 )
             ),

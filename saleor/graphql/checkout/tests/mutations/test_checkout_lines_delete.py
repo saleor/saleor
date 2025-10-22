@@ -16,7 +16,7 @@ from .....product.models import ProductChannelListing, ProductVariantChannelList
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import mark_checkout_shipping_methods_as_stale_if_needed
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_LINES_DELETE = """
     mutation checkoutLinesDelete($id: ID, $linesIds: [ID!]!) {
@@ -44,8 +44,8 @@ MUTATION_CHECKOUT_LINES_DELETE = """
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout",
@@ -97,8 +97,8 @@ def test_checkout_lines_delete(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout",
@@ -162,8 +162,8 @@ def test_checkout_lines_delete_when_line_without_channel_listing(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete."
-    "mark_checkout_shipping_methods_as_stale_if_needed",
-    wraps=mark_checkout_shipping_methods_as_stale_if_needed,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout",

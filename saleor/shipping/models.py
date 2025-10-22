@@ -159,7 +159,6 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
         # instances.
         if product_ids:
             qs = self.exclude_shipping_methods_for_excluded_products(qs, product_ids)
-
         price_based_methods = _applicable_price_based_methods(
             price, qs, channel_id, database_connection_name=self.db
         )
@@ -211,7 +210,6 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
             country_code=country_code,
             product_ids=instance_product_ids,
         ).prefetch_related("postal_code_rules")
-
         return filter_shipping_methods_by_postal_code_rules(
             applicable_methods, shipping_address
         )

@@ -10,7 +10,7 @@ from freezegun import freeze_time
 from graphene import Node
 from prices import Money, TaxedMoney
 
-from ...checkout.models import CheckoutShippingMethod
+from ...checkout.models import CheckoutDelivery
 from ...core.prices import quantize_price
 from ...core.taxes import (
     TaxData,
@@ -341,7 +341,7 @@ def test_fetch_checkout_data_flat_rates(
     TaxClassCountryRate.objects.update_or_create(
         country=country_code,
         rate=23,
-        tax_class_id=checkout.assigned_shipping_method.tax_class_id,
+        tax_class_id=checkout.assigned_delivery.tax_class_id,
     )
 
     # when
@@ -395,8 +395,8 @@ def test_fetch_checkout_data_flat_rates_with_weighted_shipping_tax(
 
     third_tax_class = tax_classes[1]
     third_tax_class.country_rates.filter(country=country_code).update(rate=223)
-    checkout.assigned_shipping_method.tax_class_id = third_tax_class.id
-    checkout.assigned_shipping_method.save()
+    checkout.assigned_delivery.tax_class_id = third_tax_class.id
+    checkout.assigned_delivery.save()
 
     lines, _ = fetch_checkout_lines(checkout_with_items_and_shipping)
     checkout_info = fetch_checkout_info(
@@ -449,7 +449,7 @@ def test_fetch_checkout_data_flat_rates_and_no_tax_calc_strategy(
     TaxClassCountryRate.objects.update_or_create(
         country=country_code,
         rate=23,
-        tax_class_id=checkout.assigned_shipping_method.tax_class_id,
+        tax_class_id=checkout.assigned_delivery.tax_class_id,
     )
 
     # when
@@ -921,15 +921,13 @@ def test_external_shipping_webhook_it_not_called_during_tax_calculations(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager(allow_replica=False)
 
-    checkout_with_single_item.assigned_shipping_method = (
-        CheckoutShippingMethod.objects.create(
-            checkout=checkout_with_single_item,
-            original_id=external_shipping_method_id,
-            name=shipping_name,
-            price_amount=shipping_price,
-            currency="USD",
-            maximum_delivery_days=7,
-        )
+    checkout_with_single_item.assigned_delivery = CheckoutDelivery.objects.create(
+        checkout=checkout_with_single_item,
+        external_shipping_method_id=external_shipping_method_id,
+        name=shipping_name,
+        price_amount=shipping_price,
+        currency="USD",
+        maximum_delivery_days=7,
     )
 
     checkout_with_single_item.shipping_address = address

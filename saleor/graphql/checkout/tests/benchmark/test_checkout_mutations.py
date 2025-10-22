@@ -7,7 +7,7 @@ from graphene import Node
 
 from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.models import Checkout, CheckoutShippingMethod
+from .....checkout.models import Checkout, CheckoutDelivery
 from .....checkout.utils import (
     add_variants_to_checkout,
 )
@@ -989,15 +989,13 @@ def test_add_checkout_lines_with_external_shipping(
     )
     checkout_with_single_item.shipping_address = address
 
-    checkout_with_single_item.assigned_shipping_method = (
-        CheckoutShippingMethod.objects.create(
-            checkout=checkout_with_single_item,
-            original_id=external_shipping_method_id,
-            name=shipping_name,
-            price_amount=shipping_price,
-            currency="USD",
-            maximum_delivery_days=7,
-        )
+    checkout_with_single_item.assigned_delivery = CheckoutDelivery.objects.create(
+        checkout=checkout_with_single_item,
+        external_shipping_method_id=external_shipping_method_id,
+        name=shipping_name,
+        price_amount=shipping_price,
+        currency="USD",
+        maximum_delivery_days=7,
     )
 
     checkout_with_single_item.shipping_address = address

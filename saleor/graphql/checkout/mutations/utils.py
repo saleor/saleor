@@ -67,7 +67,7 @@ class CheckoutLineData:
     metadata_list: list = field(default_factory=list)
 
 
-def mark_checkout_shipping_methods_as_stale_if_needed(
+def mark_checkout_deliveries_as_stale_if_needed(
     checkout: models.Checkout, lines: list[CheckoutLineInfo]
 ) -> list[str]:
     if not is_shipping_required(lines):
@@ -560,7 +560,7 @@ def assign_delivery_method_to_checkout(
     checkout_info: CheckoutInfo,
     lines_info: list[CheckoutLineInfo],
     manager: "PluginsManager",
-    delivery_method: models.CheckoutShippingMethod | warehouse_models.Warehouse | None,
+    delivery_method: models.CheckoutDelivery | warehouse_models.Warehouse | None,
 ):
     fields_to_update = []
     checkout = checkout_info.checkout
@@ -571,7 +571,7 @@ def assign_delivery_method_to_checkout(
             )
             checkout_info.collection_point = None
 
-        elif isinstance(delivery_method, models.CheckoutShippingMethod):
+        elif isinstance(delivery_method, models.CheckoutDelivery):
             fields_to_update = assign_shipping_method_to_checkout(
                 checkout, delivery_method
             )

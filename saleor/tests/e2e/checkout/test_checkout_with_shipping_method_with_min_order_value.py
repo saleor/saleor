@@ -96,16 +96,16 @@ def test_checkout_with_shipping_method_with_min_order_value_CORE_0501(
     checkout_id = checkout_data["id"]
 
     assert checkout_data["isShippingRequired"] is True
-    checkout_shipping_method = checkout_data["shippingMethods"][0]["id"]
-    assert checkout_shipping_method == shipping_method_id
+    checkout_delivery = checkout_data["shippingMethods"][0]["id"]
+    assert checkout_delivery == shipping_method_id
 
     # Step 2 - Set DeliveryMethod for the checkout with the first product variant
     checkout_data = checkout_delivery_method_update(
         e2e_not_logged_api_client,
         checkout_id,
-        checkout_shipping_method,
+        checkout_delivery,
     )
-    assert checkout_data["deliveryMethod"]["id"] == checkout_shipping_method
+    assert checkout_data["deliveryMethod"]["id"] == checkout_delivery
 
     # Step 3 - Create checkout with the second product variant
     lines = [
