@@ -8,10 +8,8 @@ from ..product.models import Product, ProductVariant
 from .models import (
     AssignedPageAttributeValue,
     AssignedProductAttributeValue,
-    AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     AttributeValue,
-    AttributeVariant,
 )
 
 T_INSTANCE = Product | ProductVariant | Page
@@ -86,41 +84,15 @@ def _associate_attribute_to_instance(
 
     if not variables:
         raise AssertionError(f"{instance_type} is unsupported")
-    (
-        value_model,
-        instance_field_name,
-    ) = variables
 
-    assignments = []
-    if isinstance(instance, ProductVariant):
-        prod_type_id = instance.product.product_type_id
-        attribute_filter: dict[str, int | list[int]] = {
-            "attribute_id__in": list(attr_val_map.keys()),
-            "product_type_id": prod_type_id,
-        }
-
-        instance_attrs_ids = AttributeVariant.objects.filter(
-            **attribute_filter
-        ).values_list("pk", flat=True)
-
-        assignments = _get_or_create_assignments(
-            instance, instance_attrs_ids, AssignedVariantAttribute, instance_field_name
-        )
-
+    value_model, instance_field_name = variables
     values_order_map = _overwrite_values(
-        instance,
-        assignments,
-        attr_val_map,
-        value_model,
-        None if instance_field_name == "variant" else instance_field_name,
+        instance, attr_val_map, value_model, instance_field_name
     )
 
-    if isinstance(instance, ProductVariant):
-        _order_variant_assigned_attr_values(values_order_map, assignments, attr_val_map)
-    else:
-        _order_assigned_attr_values(
-            values_order_map, attr_val_map, value_model, instance_field_name, instance
-        )
+    _order_assigned_attr_values(
+        values_order_map, attr_val_map, value_model, instance_field_name, instance
+    )
 
 
 def _get_or_create_assignments(
@@ -153,7 +125,7 @@ def _get_or_create_assignments(
 
 
 def _overwrite_values(
-    instance, assignments, attr_val_map, value_assignment_model, instance_field_name
+    instance, attr_val_map, value_assignment_model, instance_field_name
 ) -> dict[int, list]:
     instance_field_kwarg = (
         {instance_field_name: instance} if instance_field_name else {}
@@ -161,26 +133,21 @@ def _overwrite_values(
 
     value_ids = [v.id for values in attr_val_map.values() for v in values]
     new_value_ids = value_ids
-    assignment_attr_map = {a.assignment.attribute_id: a for a in assignments}
-    if isinstance(instance, ProductVariant):
-        value_assignment_model.objects.filter(
-            assignment_id__in=[a.pk for a in assignments],
-        ).exclude(value_id__in=value_ids).delete()
-    else:
-        values_qs = AttributeValue.objects.filter(
-            attribute_id__in=list(attr_val_map.keys())
-        )
-        value_ids = [v.pk for values in attr_val_map.values() for v in values]
-        assigned_values = value_assignment_model.objects.filter(
-            Exists(values_qs.filter(id=OuterRef("value_id"))), **instance_field_kwarg
-        )
 
-        # Clear all assignments that don't match the values we'd like to assign
-        assigned_values.exclude(value_id__in=value_ids).delete()
+    values_qs = AttributeValue.objects.filter(
+        attribute_id__in=list(attr_val_map.keys())
+    )
+    value_ids = [v.pk for values in attr_val_map.values() for v in values]
+    assigned_values = value_assignment_model.objects.filter(
+        Exists(values_qs.filter(id=OuterRef("value_id"))), **instance_field_kwarg
+    )
 
-        new_value_ids = list(
-            set(value_ids) - set(assigned_values.values_list("value_id", flat=True))
-        )
+    # Clear all assignments that don't match the values we'd like to assign
+    assigned_values.exclude(value_id__in=value_ids).delete()
+
+    new_value_ids = list(
+        set(value_ids) - set(assigned_values.values_list("value_id", flat=True))
+    )
 
     # Create new assignments
     # Spend on db query to check values that are in the db so that we can use bulk_create
@@ -191,21 +158,14 @@ def _overwrite_values(
     assigned_attr_values_instances = []
 
     for attr_id, values in attr_val_map.items():
-        assignment = assignment_attr_map.get(attr_id)
-
         for value in values:
             if value.id not in new_value_ids:
                 values_order_map[attr_id].append(value.id)
                 continue
 
             params = {"value": value, **instance_field_kwarg}
-            if assignment:
-                params["assignment_id"] = assignment.id
             assigned_attr_values_instances.append(value_assignment_model(**params))
-            if assignment:
-                values_order_map[assignment.id].append(value.id)
-            else:
-                values_order_map[attr_id].append(value.id)
+            values_order_map[attr_id].append(value.id)
 
     value_assignment_model.objects.bulk_create(
         assigned_attr_values_instances, ignore_conflicts=True
@@ -239,26 +199,3 @@ def _order_assigned_attr_values(
     assignment_model.objects.bulk_update(assigned_values, ["sort_order"])
 
     return
-
-
-def _order_variant_assigned_attr_values(
-    values_order_map,
-    assignments,
-    attr_val_map,
-) -> None:
-    assigned_attrs_values = AssignedVariantAttributeValue.objects.filter(
-        assignment_id__in=(a.pk for a in assignments),
-        value_id__in=(v.pk for values in attr_val_map.values() for v in values),
-    )
-    for value in assigned_attrs_values:
-        value.sort_order = values_order_map[value.assignment_id].index(value.value_id)
-
-        # While migrating to a new structure we need to make sure we also
-        # copy the assigned product to AssignedVariantAttributeValue
-        # where it will live after issue #12881 will be implemented
-        value.variant_id = value.assignment.variant_id
-
-    # Remove "variant" once the above double save is removed
-    AssignedVariantAttributeValue.objects.bulk_update(
-        assigned_attrs_values, ["sort_order", "variant"]
-    )

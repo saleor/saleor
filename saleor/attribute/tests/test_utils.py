@@ -255,33 +255,3 @@ def test_validate_attribute_owns_values():
         attribute_1.id: [value_1],
         attribute_2.id: [value_2],
     }
-
-
-def test_associate_attribute_to_variant_copies_data_over_to_new_field(
-    variant, attribute_value_generator
-):
-    """Ensure data is double writed.
-
-    Part of implementation of the #12881 issue. We need to check that the
-    value of AssignedVariantAttribute.variant is copied over to
-    AssignedVariantAttributeValue.variant.
-    """
-    attribute = variant.product.product_type.variant_attributes.first()
-    attribute_value_generator(
-        attribute=attribute,
-        slug="attr-value2",
-    )
-    values = attribute.values.all()
-
-    # Assign new values
-    associate_attribute_values_to_instance(
-        variant,
-        {attribute.id: values},
-    )
-
-    # Ensure the new assignment was created
-    assert variant.attributevalues.count() == 2
-    assert list(variant.attributevalues.values_list("value_id", "variant_id")) == [
-        (values[0].pk, variant.id),
-        (values[1].pk, variant.id),
-    ]

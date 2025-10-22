@@ -160,9 +160,16 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):
+        assigned_values = attribute_models.AssignedVariantAttributeValue.objects.filter(
+            variant_id__in=instance_pks
+        )
+        attributes = attribute_models.Attribute.objects.filter(
+            input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES
+        )
+
         attribute_models.AttributeValue.objects.filter(
-            variantassignments__variant_id__in=instance_pks,
-            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+            Exists(assigned_values.filter(value_id=OuterRef("id"))),
+            Exists(attributes.filter(id=OuterRef("attribute_id"))),
         ).delete()
 
     @staticmethod

@@ -31,7 +31,6 @@ from ...account.search import (
 from ...account.utils import store_user_address
 from ...attribute.models import (
     AssignedProductAttributeValue,
-    AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     Attribute,
     AttributePage,
@@ -385,21 +384,12 @@ def assign_attribute_values_to_products(values):
         AssignedProductAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def assign_attributes_to_variants(variant_attributes):
-    for value in variant_attributes:
-        pk = value["pk"]
-        defaults = dict(value["fields"])
-        defaults["variant_id"] = defaults.pop("variant")
-        defaults["assignment_id"] = defaults.pop("assignment")
-        AssignedVariantAttribute.objects.update_or_create(pk=pk, defaults=defaults)
-
-
 def assign_attribute_values_to_variants(variant_attribute_values):
     for value in variant_attribute_values:
         pk = value["pk"]
         defaults = dict(value["fields"])
         defaults["value_id"] = defaults.pop("value")
-        defaults["assignment_id"] = defaults.pop("assignment")
+        defaults["variant_id"] = defaults.pop("variant")
         AssignedVariantAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
@@ -446,9 +436,6 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     assign_attribute_values_to_products(
         types["attribute.assignedproductattributevalue"]
-    )
-    assign_attributes_to_variants(
-        variant_attributes=types["attribute.assignedvariantattribute"]
     )
     assign_attribute_values_to_variants(
         types["attribute.assignedvariantattributevalue"]

@@ -1,6 +1,6 @@
 import graphene
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef
 
 from ...attribute import models
 from ...attribute.lock_objects import attribute_value_qs_select_for_update
@@ -57,12 +57,6 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         attribute_variant = models.AttributeVariant.objects.filter(
             attribute_id__in=attribute_pks
         )
-        assigned_variant_attrs = models.AssignedVariantAttribute.objects.filter(
-            Exists(attribute_variant.filter(id=OuterRef("assignment_id")))
-        )
-        variants = product_models.ProductVariant.objects.filter(
-            Exists(assigned_variant_attrs.filter(variant_id=OuterRef("id")))
-        )
 
         attribute_product = models.AttributeProduct.objects.filter(
             attribute_id__in=attribute_pks
@@ -72,7 +66,9 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
             Exists(
                 attribute_product.filter(product_type_id=OuterRef("product_type_id"))
             )
-            | Exists(variants.filter(product_id=OuterRef("id")))
+            | Exists(
+                attribute_variant.filter(product_type_id=OuterRef("product_type_id"))
+            )
         ).values_list("id", flat=True)
         return list(product_ids)
 
@@ -150,15 +146,9 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         assigned_variant_values = models.AssignedVariantAttributeValue.objects.filter(
             value_id__in=value_pks
         )
-        assigned_variant_attrs = models.AssignedVariantAttribute.objects.filter(
-            Exists(assigned_variant_values.filter(assignment_id=OuterRef("id")))
-        )
-        variants = product_models.ProductVariant.objects.filter(
-            Exists(assigned_variant_attrs.filter(variant_id=OuterRef("id")))
-        )
 
         product_ids = product_models.Product.objects.filter(
             Exists(assigned_product_values.filter(product_id=OuterRef("id")))
-            | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+            | Exists(assigned_variant_values.filter(product_id=OuterRef("id")))
         ).values_list("id", flat=True)
         return list(product_ids)

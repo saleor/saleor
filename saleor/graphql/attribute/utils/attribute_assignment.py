@@ -12,7 +12,6 @@ from ....attribute import models as attribute_models
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....page.error_codes import PageErrorCode
-from ....product import models as product_models
 from ....product.error_codes import ProductErrorCode
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
@@ -324,28 +323,10 @@ class AttributeAssignmentMixin:
         values_to_unassign = attribute_models.AttributeValue.objects.filter(
             attribute_id__in=clean_assignment_pks
         )
-        # variant has old attribute structure so need to handle it differently
-        if isinstance(instance, product_models.ProductVariant):
-            cls._clean_variants_assignment(instance, clean_assignment_pks)
-            return
         assignment_model, instance_fk = get_assignment_model_and_fk(instance)
         assignment_model.objects.filter(
             Exists(values_to_unassign.filter(id=OuterRef("value_id"))),
             **{instance_fk: instance.pk},
-        ).delete()
-
-    @classmethod
-    def _clean_variants_assignment(cls, instance: T_INSTANCE, attribute_ids: list[int]):
-        attribute_variant = Exists(
-            attribute_models.AttributeVariant.objects.filter(
-                pk=OuterRef("assignment_id"),
-                attribute_id__in=attribute_ids,
-            )
-        )
-        attribute_models.AssignedVariantAttribute.objects.filter(
-            attribute_variant
-        ).filter(
-            variant_id=instance.id,
         ).delete()
 
     @classmethod

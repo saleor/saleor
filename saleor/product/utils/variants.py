@@ -10,7 +10,7 @@ from ...discount.utils.promotion import update_rule_variant_relation
 from ..models import ProductVariant
 
 if TYPE_CHECKING:
-    from ...attribute.models import AssignedVariantAttribute, Attribute
+    from ...attribute.models import Attribute
 
 
 def generate_and_set_variant_name(
@@ -19,14 +19,8 @@ def generate_and_set_variant_name(
     """Generate ProductVariant's name based on its attributes."""
     attributes_display = []
 
-    variant_selection_attributes = variant.attributes.filter(
-        assignment__variant_selection=True,
-        assignment__attribute__type=AttributeType.PRODUCT_TYPE,
-    )
-    attribute_rel: AssignedVariantAttribute
-    for attribute_rel in variant_selection_attributes.iterator(chunk_size=1000):
-        values_qs = attribute_rel.values.all()
-        attributes_display.append(", ".join([str(value) for value in values_qs]))
+    values_qs = variant.attributevalues.all()
+    attributes_display.append(", ".join([str(value) for value in values_qs]))
 
     name = " / ".join(sorted(attributes_display))
     if not name:

@@ -9,7 +9,6 @@ from graphql import GraphQLError
 from ....attribute import AttributeInputType
 from ....attribute.models import (
     AssignedProductAttributeValue,
-    AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     Attribute,
     AttributeValue,
@@ -210,15 +209,9 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
         assigned_variant_attribute_values = AssignedVariantAttributeValue.objects.using(
             qs.db
         ).filter(value_id__in=values)
-        assigned_variant_attributes = AssignedVariantAttribute.objects.using(
-            qs.db
-        ).filter(
-            Exists(
-                assigned_variant_attribute_values.filter(assignment_id=OuterRef("pk"))
-            )
-        )
+
         product_variants = ProductVariant.objects.using(qs.db).filter(
-            Exists(assigned_variant_attributes.filter(variant_id=OuterRef("pk")))
+            Exists(assigned_variant_attribute_values.filter(variant_id=OuterRef("pk")))
         )
         variant_attribute_filter = Q(
             Exists(product_variants.filter(product_id=OuterRef("pk")))
@@ -240,11 +233,8 @@ def filter_products_by_attributes_values_qs(qs, values_qs):
     assigned_variant_attribute_values = AssignedVariantAttributeValue.objects.using(
         qs.db
     ).filter(value__in=values_qs)
-    assigned_variant_attributes = AssignedVariantAttribute.objects.using(qs.db).filter(
-        Exists(assigned_variant_attribute_values.filter(assignment_id=OuterRef("pk")))
-    )
     product_variants = ProductVariant.objects.using(qs.db).filter(
-        Exists(assigned_variant_attributes.filter(variant_id=OuterRef("pk")))
+        Exists(assigned_variant_attribute_values.filter(variant_id=OuterRef("pk")))
     )
     variant_attribute_filter = Q(
         Exists(product_variants.filter(product_id=OuterRef("pk")))

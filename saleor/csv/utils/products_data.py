@@ -10,7 +10,7 @@ from django.db.models import Value as V
 from django.db.models.functions import Cast, Concat
 
 from ...attribute import AttributeInputType
-from ...attribute.models import AssignedVariantAttribute, Attribute, AttributeValue
+from ...attribute.models import Attribute, AttributeValue
 from ...core.utils import build_absolute_uri
 from ...core.utils.editorjs import clean_editor_js
 from ...product.models import (
@@ -173,8 +173,9 @@ def prepare_products_relations_data(
 
     if attribute_ids:
         attribute_fields = ProductExportFields.PRODUCT_ATTRIBUTE_FIELDS
-
         fields_for_attrs = {"pk"}
+        fields_for_attrs.update(attribute_fields.values())
+
         attributes = Attribute.objects.filter(id__in=attribute_ids)
         attr_values = AttributeValue.objects.filter(
             Exists(attributes.filter(id=OuterRef("attribute_id"))),
@@ -182,8 +183,8 @@ def prepare_products_relations_data(
         relations_data = queryset.filter(
             Exists(attr_values.filter(id=OuterRef("attributevalues__value_id")))
         )
-        fields_for_attrs.update(attribute_fields.values())
         relations_data = relations_data.values(*fields_for_attrs)
+
         for data in relations_data.iterator(chunk_size=1000):
             pk = data.get("pk")
             result_data, data = handle_attribute_data(
@@ -284,18 +285,30 @@ def prepare_variants_relations_data(
             )
 
     if attribute_ids:
-        fields_for_variant_attributes = {"variant_id"}
-        fields_for_variant_attributes.update(
-            ProductExportFields.VARIANT_ATTRIBUTE_FIELDS.values()
-        )
+        variant_fields = ProductExportFields.VARIANT_ATTRIBUTE_FIELDS
+        fields_for_attrs = {"variant_id"}
+        fields_for_attrs.update(variant_fields.values())
+
+        # Get all variants that belong to the product
         variants = ProductVariant.objects.filter(
             Exists(queryset.filter(id=OuterRef("product_id")))
         )
-        assigned_variant_attrs = AssignedVariantAttribute.objects.filter(
-            Exists(variants.filter(id=OuterRef("variant_id"))),
-        ).values(*fields_for_variant_attributes)
-        for assigned_variant_attr in assigned_variant_attrs:
-            pk = assigned_variant_attr.get("variant_id")
+
+        # Get all attributes and their values for the provided attribute_ids
+        attributes = Attribute.objects.filter(id__in=attribute_ids)
+        attr_values = AttributeValue.objects.filter(
+            Exists(attributes.filter(id=OuterRef("attribute_id"))),
+        )
+
+        # Finally filter out the assigned attribute values for the variants
+        # attributevalues is a reverse foreign relation to AssignedVariantAttributeValue
+        relations_data = variants.filter(
+            Exists(attr_values.filter(id=OuterRef("attributevalues__value_id")))
+        )
+        relations_data = relations_data.values(*fields_for_attrs)
+
+        for assigned_variant_attr in relations_data:
+            pk = data.get("pk")
             result_data, data = handle_attribute_data(
                 pk,
                 assigned_variant_attr,

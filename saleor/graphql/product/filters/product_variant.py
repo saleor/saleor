@@ -7,7 +7,6 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 
 from ....attribute.models import (
-    AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     Attribute,
     AttributeValue,
@@ -156,16 +155,11 @@ def _get_assigned_variant_attribute_for_attribute_value_qs(
     attribute_values: QuerySet[AttributeValue],
     db_connection_name: str,
 ):
-    assigned_attr_value = AssignedVariantAttributeValue.objects.using(
-        db_connection_name
-    ).filter(
-        value__in=attribute_values,
-        assignment_id=OuterRef("id"),
-    )
     return Q(
         Exists(
-            AssignedVariantAttribute.objects.using(db_connection_name).filter(
-                Exists(assigned_attr_value), variant_id=OuterRef("pk")
+            AssignedVariantAttributeValue.objects.using(db_connection_name).filter(
+                Exists(attribute_values.filter(id=OuterRef("value_id"))),
+                variant_id=OuterRef("id"),
             )
         )
     )
@@ -180,18 +174,9 @@ def _filter_contains_single_expression(
         referenced_attr_values = referenced_attr_values.filter(
             attribute_id=attr_id,
         )
-    assigned_attr_value = AssignedVariantAttributeValue.objects.using(
-        db_connection_name
-    ).filter(
-        value__in=referenced_attr_values,
-        assignment_id=OuterRef("id"),
-    )
-    return Q(
-        Exists(
-            AssignedVariantAttribute.objects.using(db_connection_name).filter(
-                Exists(assigned_attr_value), variant_id=OuterRef("pk")
-            )
-        )
+    return _get_assigned_variant_attribute_for_attribute_value_qs(
+        referenced_attr_values,
+        db_connection_name,
     )
 
 

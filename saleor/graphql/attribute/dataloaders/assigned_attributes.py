@@ -10,7 +10,6 @@ from ....attribute.models import Attribute, AttributeValue
 from ....attribute.models.page import AssignedPageAttributeValue, AttributePage
 from ....attribute.models.product import AssignedProductAttributeValue, AttributeProduct
 from ....attribute.models.product_variant import (
-    AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     AttributeVariant,
 )
@@ -673,41 +672,24 @@ class AttributeValuesByVariantIdAndAttributeIdAndLimitLoader(
             variant_ids = [val[0] for val in values]
             attribute_ids = [val[1] for val in values]
 
-            assigned_variant_attributes = (
-                AssignedVariantAttribute.objects.using(self.database_connection_name)
-                .annotate(attribute_id=F("assignment__attribute_id"))
-                .filter(
-                    variant_id__in=variant_ids,
-                    attribute_id__in=attribute_ids,
-                )
-                .values_list("variant_id", "id", "attribute_id")
-            )
-            assigned_variant_attributes_map = {
-                id_: (variant_id, attribute_id)
-                for variant_id, id_, attribute_id in assigned_variant_attributes
-            }
-
-            assigned_variant_values = AssignedVariantAttributeValue.objects.using(
+            assigned_attribute_values = AssignedVariantAttributeValue.objects.using(
                 self.database_connection_name
-            ).filter(assignment_id__in=assigned_variant_attributes_map.keys())
+            ).annotate(attribute_id=F("value__attribute_id"))
             if limit is not None:
-                assigned_variant_values = assigned_variant_values.annotate(
+                assigned_attribute_values = assigned_attribute_values.annotate(
                     row_num=Window(
                         expression=RowNumber(),
-                        partition_by=F("assignment_id"),
+                        partition_by=[F("attribute_id"), F("variant_id")],
                         order_by=["sort_order", "pk"],
                     )
                 ).filter(row_num__lte=limit)
-            assigned_variant_values = assigned_variant_values.values_list(
-                "value_id", "assignment_id"
-            )
 
-            for value_id, assignment_id in assigned_variant_values:
-                if assignment_id not in assigned_variant_attributes_map:
-                    continue
-                variant_id, attribute_id = assigned_variant_attributes_map[
-                    assignment_id
-                ]
+            assigned_attribute_values = assigned_attribute_values.filter(
+                attribute_id__in=attribute_ids,
+                variant_id__in=variant_ids,
+            ).values_list("variant_id", "value_id", "attribute_id")
+
+            for variant_id, value_id, attribute_id in assigned_attribute_values:
                 attribute_value_id_to_fetch_map[
                     (variant_id, attribute_id, limit)
                 ].append(value_id)

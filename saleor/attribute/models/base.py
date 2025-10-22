@@ -20,17 +20,6 @@ if TYPE_CHECKING:
     from ...app.models import App
 
 
-class BaseAssignedAttribute(models.Model):
-    # TODO: stop using this class in new code
-    # See: https://github.com/saleor/saleor/issues/12881
-    class Meta:
-        abstract = True
-
-    @property
-    def attribute(self):
-        return self.assignment.attribute  # type: ignore[attr-defined] # mixin
-
-
 T = TypeVar("T", bound=models.Model)
 
 

@@ -8053,7 +8053,7 @@
     "fields": {
       "sort_order": 0,
       "value": 137,
-      "assignment": 136
+      "variant": 324
     }
   },
   {
@@ -8062,7 +8062,7 @@
     "fields": {
       "sort_order": 0,
       "value": 108,
-      "assignment": 137
+      "variant": 325
     }
   },
   {
@@ -8071,7 +8071,7 @@
     "fields": {
       "sort_order": 0,
       "value": 109,
-      "assignment": 138
+      "variant": 326
     }
   },
   {
@@ -8080,7 +8080,7 @@
     "fields": {
       "sort_order": 0,
       "value": 110,
-      "assignment": 139
+      "variant": 327
     }
   },
   {
@@ -8089,7 +8089,7 @@
     "fields": {
       "sort_order": 0,
       "value": 111,
-      "assignment": 140
+      "variant": 328
     }
   },
   {
@@ -8098,7 +8098,7 @@
     "fields": {
       "sort_order": 0,
       "value": 112,
-      "assignment": 141
+      "variant": 329
     }
   },
   {
@@ -8107,7 +8107,7 @@
     "fields": {
       "sort_order": 0,
       "value": 113,
-      "assignment": 142
+      "variant": 330
     }
   },
   {
@@ -8116,7 +8116,7 @@
     "fields": {
       "sort_order": 0,
       "value": 114,
-      "assignment": 143
+      "variant": 331
     }
   },
   {
@@ -8125,7 +8125,7 @@
     "fields": {
       "sort_order": 0,
       "value": 110,
-      "assignment": 144
+      "variant": 332
     }
   },
   {
@@ -8134,7 +8134,7 @@
     "fields": {
       "sort_order": 0,
       "value": 109,
-      "assignment": 145
+      "variant": 333
     }
   },
   {
@@ -8143,7 +8143,7 @@
     "fields": {
       "sort_order": 0,
       "value": 111,
-      "assignment": 146
+      "variant": 334,
     }
   },
   {
@@ -8152,7 +8152,7 @@
     "fields": {
       "sort_order": 0,
       "value": 108,
-      "assignment": 147
+      "variant": 335
     }
   },
   {
@@ -8161,7 +8161,7 @@
     "fields": {
       "sort_order": 0,
       "value": 109,
-      "assignment": 148
+      "variant": 336
     }
   },
   {
@@ -8170,7 +8170,7 @@
     "fields": {
       "sort_order": 0,
       "value": 110,
-      "assignment": 149
+      "variant": 337
     }
   },
   {
@@ -8179,7 +8179,7 @@
     "fields": {
       "sort_order": 0,
       "value": 111,
-      "assignment": 150
+      "variant": 338
     }
   },
   {
@@ -8188,7 +8188,7 @@
     "fields": {
       "sort_order": 0,
       "value": 112,
-      "assignment": 151
+      "variant": 339
     }
   },
   {
@@ -8197,7 +8197,7 @@
     "fields": {
       "sort_order": 0,
       "value": 108,
-      "assignment": 152
+       "variant": 340
     }
   },
   {
@@ -8206,7 +8206,7 @@
     "fields": {
       "sort_order": 0,
       "value": 109,
-      "assignment": 153
+      "variant": 341
     }
   },
   {
@@ -8215,7 +8215,7 @@
     "fields": {
       "sort_order": 0,
       "value": 110,
-      "assignment": 154
+      "variant": 342
     }
   },
   {
@@ -8224,7 +8224,7 @@
     "fields": {
       "sort_order": 0,
       "value": 111,
-      "assignment": 155
+      "variant": 343
     }
   },
   {
@@ -8233,7 +8233,7 @@
     "fields": {
       "sort_order": 0,
       "value": 114,
-      "assignment": 156
+      "variant": 344
     }
   },
   {
@@ -8242,7 +8242,7 @@
     "fields": {
       "sort_order": 0,
       "value": 115,
-      "assignment": 157
+      "variant": 348
     }
   },
   {
@@ -8251,7 +8251,7 @@
     "fields": {
       "sort_order": 0,
       "value": 116,
-      "assignment": 158
+      "variant": 349
     }
   },
   {
@@ -8260,7 +8260,7 @@
     "fields": {
       "sort_order": 0,
       "value": 117,
-      "assignment": 159
+      "variant": 350
     }
   },
   {
@@ -8269,7 +8269,7 @@
     "fields": {
       "sort_order": 0,
       "value": 118,
-      "assignment": 160
+      "variant": 351
     }
   },
   {
@@ -8278,7 +8278,7 @@
     "fields": {
       "sort_order": 0,
       "value": 119,
-      "assignment": 161
+      "variant": 352
     }
   },
   {
@@ -8287,7 +8287,7 @@
     "fields": {
       "sort_order": 0,
       "value": 115,
-      "assignment": 162
+      "variant": 353
     }
   },
   {
@@ -8296,7 +8296,7 @@
     "fields": {
       "sort_order": 0,
       "value": 116,
-      "assignment": 163
+      "variant": 354
     }
   },
   {
@@ -8305,7 +8305,7 @@
     "fields": {
       "sort_order": 0,
       "value": 117,
-      "assignment": 164
+      "variant": 355
     }
   },
   {
@@ -8314,7 +8314,7 @@
     "fields": {
       "sort_order": 0,
       "value": 118,
-      "assignment": 165
+      "variant": 356
     }
   },
   {
@@ -8323,7 +8323,7 @@
     "fields": {
       "sort_order": 0,
       "value": 119,
-      "assignment": 166
+      "variant": 357
     }
   },
   {
@@ -8332,7 +8332,7 @@
     "fields": {
       "sort_order": 0,
       "value": 115,
-      "assignment": 167
+      "variant": 358
     }
   },
   {
@@ -8341,7 +8341,7 @@
     "fields": {
       "sort_order": 0,
       "value": 116,
-      "assignment": 168
+      "variant": 359
     }
   },
   {
@@ -8350,7 +8350,7 @@
     "fields": {
       "sort_order": 0,
       "value": 119,
-      "assignment": 169
+      "variant": 360
     }
   },
   {
@@ -8359,7 +8359,7 @@
     "fields": {
       "sort_order": 0,
       "value": 116,
-      "assignment": 170
+      "variant": 361
     }
   },
   {
@@ -8368,7 +8368,7 @@
     "fields": {
       "sort_order": 0,
       "value": 117,
-      "assignment": 171
+      "variant": 362
     }
   },
   {
@@ -8377,7 +8377,7 @@
     "fields": {
       "sort_order": 0,
       "value": 118,
-      "assignment": 172
+      "variant": 363
     }
   },
   {
@@ -8386,7 +8386,7 @@
     "fields": {
       "sort_order": 0,
       "value": 115,
-      "assignment": 173
+      "variant": 364
     }
   },
   {
@@ -8395,7 +8395,7 @@
     "fields": {
       "sort_order": 0,
       "value": 116,
-      "assignment": 174
+      "variant": 365
     }
   },
   {
@@ -8404,7 +8404,7 @@
     "fields": {
       "sort_order": 0,
       "value": 117,
-      "assignment": 175
+      "variant": 366
     }
   },
   {
@@ -8413,7 +8413,7 @@
     "fields": {
       "sort_order": 0,
       "value": 133,
-      "assignment": 176
+      "variant": 372
     }
   },
   {
@@ -8422,7 +8422,7 @@
     "fields": {
       "sort_order": 0,
       "value": 135,
-      "assignment": 177
+      "variant": 373
     }
   },
   {
@@ -8431,7 +8431,7 @@
     "fields": {
       "sort_order": 0,
       "value": 137,
-      "assignment": 178
+      "variant": 374
     }
   },
   {
@@ -8440,7 +8440,7 @@
     "fields": {
       "sort_order": 0,
       "value": 132,
-      "assignment": 179
+      "variant": 375
     }
   },
   {
@@ -8449,7 +8449,7 @@
     "fields": {
       "sort_order": 0,
       "value": 133,
-      "assignment": 180
+      "variant": 376
     }
   },
   {
@@ -8458,7 +8458,7 @@
     "fields": {
       "sort_order": 0,
       "value": 135,
-      "assignment": 181
+      "variant": 377
     }
   },
   {
@@ -8467,7 +8467,7 @@
     "fields": {
       "sort_order": 0,
       "value": 136,
-      "assignment": 182
+      "variant": 378
     }
   },
   {
@@ -8476,7 +8476,7 @@
     "fields": {
       "sort_order": 0,
       "value": 135,
-      "assignment": 183
+      "variant": 379
     }
   },
   {
@@ -8485,7 +8485,7 @@
     "fields": {
       "sort_order": 0,
       "value": 137,
-      "assignment": 184
+      "variant": 380
     }
   },
   {
@@ -8494,7 +8494,7 @@
     "fields": {
       "sort_order": 0,
       "value": 118,
-      "assignment": 185
+      "variant": 389
     }
   },
   {
@@ -8503,7 +8503,7 @@
     "fields": {
       "sort_order": 0,
       "value": 119,
-      "assignment": 186
+      "variant": 390
     }
   },
   {
@@ -8512,7 +8512,7 @@
     "fields": {
       "sort_order": 0,
       "value": 115,
-      "assignment": 187
+      "variant": 394
     }
   },
   {
@@ -8521,7 +8521,7 @@
     "fields": {
       "sort_order": 0,
       "value": 116,
-      "assignment": 188
+      "variant": 395
     }
   },
   {
@@ -8530,7 +8530,7 @@
     "fields": {
       "sort_order": 0,
       "value": 117,
-      "assignment": 189
+      "variant": 396
     }
   },
   {
@@ -8539,7 +8539,7 @@
     "fields": {
       "sort_order": 0,
       "value": 118,
-      "assignment": 190
+      "variant": 397
     }
   },
   {
@@ -8548,455 +8548,7 @@
     "fields": {
       "sort_order": 0,
       "value": 119,
-      "assignment": 191
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 136,
-    "fields": {
-      "variant": 324,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 137,
-    "fields": {
-      "variant": 325,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 138,
-    "fields": {
-      "variant": 326,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 139,
-    "fields": {
-      "variant": 327,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 140,
-    "fields": {
-      "variant": 328,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 141,
-    "fields": {
-      "variant": 329,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 142,
-    "fields": {
-      "variant": 330,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 143,
-    "fields": {
-      "variant": 331,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 144,
-    "fields": {
-      "variant": 332,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 145,
-    "fields": {
-      "variant": 333,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 146,
-    "fields": {
-      "variant": 334,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 147,
-    "fields": {
-      "variant": 335,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 148,
-    "fields": {
-      "variant": 336,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 149,
-    "fields": {
-      "variant": 337,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 150,
-    "fields": {
-      "variant": 338,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 151,
-    "fields": {
-      "variant": 339,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 152,
-    "fields": {
-      "variant": 340,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 153,
-    "fields": {
-      "variant": 341,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 154,
-    "fields": {
-      "variant": 342,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 155,
-    "fields": {
-      "variant": 343,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 156,
-    "fields": {
-      "variant": 344,
-      "assignment": 14
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 157,
-    "fields": {
-      "variant": 348,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 158,
-    "fields": {
-      "variant": 349,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 159,
-    "fields": {
-      "variant": 350,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 160,
-    "fields": {
-      "variant": 351,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 161,
-    "fields": {
-      "variant": 352,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 162,
-    "fields": {
-      "variant": 353,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 163,
-    "fields": {
-      "variant": 354,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 164,
-    "fields": {
-      "variant": 355,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 165,
-    "fields": {
-      "variant": 356,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 166,
-    "fields": {
-      "variant": 357,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 167,
-    "fields": {
-      "variant": 358,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 168,
-    "fields": {
-      "variant": 359,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 169,
-    "fields": {
-      "variant": 360,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 170,
-    "fields": {
-      "variant": 361,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 171,
-    "fields": {
-      "variant": 362,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 172,
-    "fields": {
-      "variant": 363,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 173,
-    "fields": {
-      "variant": 364,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 174,
-    "fields": {
-      "variant": 365,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 175,
-    "fields": {
-      "variant": 366,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 176,
-    "fields": {
-      "variant": 372,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 177,
-    "fields": {
-      "variant": 373,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 178,
-    "fields": {
-      "variant": 374,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 179,
-    "fields": {
-      "variant": 375,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 180,
-    "fields": {
-      "variant": 376,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 181,
-    "fields": {
-      "variant": 377,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 182,
-    "fields": {
-      "variant": 378,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 183,
-    "fields": {
-      "variant": 379,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 184,
-    "fields": {
-      "variant": 380,
-      "assignment": 13
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 185,
-    "fields": {
-      "variant": 389,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 186,
-    "fields": {
-      "variant": 390,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 187,
-    "fields": {
-      "variant": 394,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 188,
-    "fields": {
-      "variant": 395,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 189,
-    "fields": {
-      "variant": 396,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 190,
-    "fields": {
-      "variant": 397,
-      "assignment": 15
-    }
-  },
-  {
-    "model": "attribute.assignedvariantattribute",
-    "pk": 191,
-    "fields": {
-      "variant": 398,
-      "assignment": 15
+      "variant": 398
     }
   },
   {

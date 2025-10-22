@@ -18,18 +18,13 @@ def get_product_ids_to_search_index_update_for_attribute_values(
     assigned_variant_values = models.AssignedVariantAttributeValue.objects.filter(
         value_id__in=[v.id for v in values]
     )
-    assigned_attributes = models.AssignedVariantAttribute.objects.filter(
-        Exists(assigned_variant_values.filter(assignment_id=OuterRef("id")))
-    )
-    variants = product_models.ProductVariant.objects.filter(
-        Exists(assigned_attributes.filter(variant_id=OuterRef("id")))
-    )
+
     assigned_product_values = models.AssignedProductAttributeValue.objects.filter(
         value_id__in=[v.id for v in values]
     )
     product_ids = product_models.Product.objects.filter(
         Exists(assigned_product_values.filter(product_id=OuterRef("id")))
-        | Exists(variants.filter(product_id=OuterRef("id")))
+        | Exists(assigned_variant_values.filter(product_id=OuterRef("id")))
     ).values_list("id", flat=True)
     return list(product_ids)
 
