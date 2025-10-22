@@ -24,6 +24,7 @@ from .....payment.utils import (
     create_failed_transaction_event,
     get_already_existing_event,
     get_transaction_event_amount,
+    invalidate_cache_for_stored_payment_methods_if_needed,
     process_order_or_checkout_with_transaction,
     truncate_transaction_event_message,
 )
@@ -342,6 +343,7 @@ class TransactionEventReport(DeprecatedModelMutation):
         transaction_event = cls.construct_instance(
             transaction_event, transaction_event_data
         )
+        source_object = transaction.order or transaction.checkout
 
         metadata_collection = cls.create_metadata_from_graphql_input(
             transaction_metadata, error_field_name="metadata"
@@ -432,6 +434,12 @@ class TransactionEventReport(DeprecatedModelMutation):
         ) != set(available_actions):
             transaction.available_actions = available_actions
             transaction.save(update_fields=["available_actions"])
+
+        app_identifier = app_identifier or transaction.app_identifier
+        if app_identifier and source_object:
+            invalidate_cache_for_stored_payment_methods_if_needed(
+                transaction_event, source_object, app_identifier
+            )
 
         return cls(
             already_processed=already_processed,

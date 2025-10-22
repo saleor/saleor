@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import graphene
 import pytest
+from django.core.cache import cache
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -29,6 +30,9 @@ from .....payment.lock_objects import (
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....tests import race_condition
+from .....webhook.event_types import WebhookEventSyncType
+from .....webhook.models import Webhook
+from .....webhook.transport.utils import generate_cache_key_for_webhook
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -3544,3 +3548,427 @@ def test_transaction_event_report_checkout_completed_race_condition(
     assert order.status == OrderStatus.UNFULFILLED
     assert order.charge_status == OrderChargeStatus.FULL
     assert order.total_charged.amount == checkout.total.gross.amount
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.CHARGE_SUCCESS,
+    ],
+)
+def test_invalidate_stored_payment_methods_for_order(
+    result,
+    customer_user,
+    app_api_client,
+    order_with_lines,
+    permission_manage_payments,
+    list_stored_payment_methods_app,
+    transaction_item_generator,
+):
+    # given
+    order = order_with_lines
+    order.user = customer_user
+    order.save(update_fields=["user_id"])
+
+    app = app_api_client.app
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.save()
+
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="list_stored_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+    )
+
+    transaction = transaction_item_generator(app=app, order_id=order.pk)
+    expected_amount = Decimal("11.00")
+    expected_psp_reference = "111-abc"
+
+    channel = order.channel
+    expected_payload = {
+        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+        "channel_slug": channel.slug,
+    }
+    # set cache for transaction webhook
+    cache_key = generate_cache_key_for_webhook(
+        expected_payload,
+        webhook.target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        app.id,
+    )
+    cache.set(cache_key, {"response": "Example response"})
+
+    # set cache for another app to ensure it is not invalidated
+    cache_key_not_invalidated = generate_cache_key_for_webhook(
+        expected_payload,
+        list_stored_payment_methods_app.webhooks.first().target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        list_stored_payment_methods_app.id,
+    )
+    cache.set(cache_key_not_invalidated, {"response": "Example response"})
+
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": result.upper(),
+        "amount": expected_amount,
+        "pspReference": expected_psp_reference,
+        "availableActions": [TransactionActionEnum.REFUND.name],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+
+    # when
+    response = app_api_client.post_graphql(query, variables)
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["transaction"]
+
+    # ensure that only cache for result app identifier has been cleared
+    assert cache.get(cache_key) is None
+    assert cache.get(cache_key_not_invalidated)
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.CHARGE_SUCCESS,
+    ],
+)
+def test_invalidate_stored_payment_methods_for_checkout(
+    result,
+    customer_user,
+    app_api_client,
+    checkout_with_items,
+    permission_manage_payments,
+    list_stored_payment_methods_app,
+    transaction_item_generator,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.user = customer_user
+    checkout.save(update_fields=["user_id"])
+
+    # Fetch checkout lines and info to recalculate checkout total prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    app = app_api_client.app
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.save()
+
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="list_stored_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+    )
+
+    transaction = transaction_item_generator(app=app, checkout_id=checkout.pk)
+    expected_amount = Decimal("11.00")
+    expected_psp_reference = "111-abc"
+
+    channel = checkout.channel
+    expected_payload = {
+        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+        "channel_slug": channel.slug,
+    }
+    # set cache for transaction webhook
+    cache_key = generate_cache_key_for_webhook(
+        expected_payload,
+        webhook.target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        app.id,
+    )
+    cache.set(cache_key, {"response": "Example response"})
+
+    # set cache for another app to ensure it is not invalidated
+    cache_key_not_invalidated = generate_cache_key_for_webhook(
+        expected_payload,
+        list_stored_payment_methods_app.webhooks.first().target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        list_stored_payment_methods_app.id,
+    )
+    cache.set(cache_key_not_invalidated, {"response": "Example response"})
+
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": result.upper(),
+        "amount": expected_amount,
+        "pspReference": expected_psp_reference,
+        "availableActions": [TransactionActionEnum.REFUND.name],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+
+    # when
+    response = app_api_client.post_graphql(query, variables)
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["transaction"]
+
+    # ensure that only cache for result app identifier has been cleared
+    assert cache.get(cache_key) is None
+    assert cache.get(cache_key_not_invalidated)
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        TransactionEventType.AUTHORIZATION_FAILURE,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_FAILURE,
+    ],
+)
+def test_stored_payment_methods_not_invalidated_for_order(
+    result,
+    customer_user,
+    app_api_client,
+    order_with_lines,
+    permission_manage_payments,
+    transaction_item_generator,
+):
+    # given
+    order = order_with_lines
+    order.user = customer_user
+    order.save(update_fields=["user_id"])
+
+    app = app_api_client.app
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.save()
+
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="list_stored_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+    )
+
+    transaction = transaction_item_generator(app=app, order_id=order.pk)
+    expected_amount = Decimal("11.00")
+    expected_psp_reference = "111-abc"
+
+    channel = order.channel
+    expected_payload = {
+        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+        "channel_slug": channel.slug,
+    }
+    cache_key = generate_cache_key_for_webhook(
+        expected_payload,
+        webhook.target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        app.id,
+    )
+    cache_data = {"response": "Example response"}
+    cache.set(cache_key, cache_data)
+
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": result.upper(),
+        "amount": expected_amount,
+        "pspReference": expected_psp_reference,
+        "availableActions": [TransactionActionEnum.REFUND.name],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+
+    # when
+    response = app_api_client.post_graphql(query, variables)
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["transaction"]
+
+    # ensure that cache has not been cleared
+    assert cache.get(cache_key) == cache_data
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        TransactionEventType.AUTHORIZATION_FAILURE,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_FAILURE,
+    ],
+)
+def test_stored_payment_methods_not_invalidated_for_checkout(
+    result,
+    customer_user,
+    app_api_client,
+    checkout_with_items,
+    permission_manage_payments,
+    transaction_item_generator,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.user = customer_user
+    checkout.save(update_fields=["user_id"])
+
+    # Fetch checkout lines and info to recalculate checkout total prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    app = app_api_client.app
+    expected_app_identifier = "webhook.app.identifier"
+    app.identifier = expected_app_identifier
+    app.save()
+
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="list_stored_payment_methods",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+    )
+
+    transaction = transaction_item_generator(app=app, checkout_id=checkout.pk)
+    expected_amount = Decimal("11.00")
+    expected_psp_reference = "111-abc"
+
+    channel = checkout.channel
+    expected_payload = {
+        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
+        "channel_slug": channel.slug,
+    }
+    cache_key = generate_cache_key_for_webhook(
+        expected_payload,
+        webhook.target_url,
+        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
+        app.id,
+    )
+    cache_data = {"response": "Example response"}
+    cache.set(cache_key, cache_data)
+
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": result.upper(),
+        "amount": expected_amount,
+        "pspReference": expected_psp_reference,
+        "availableActions": [TransactionActionEnum.REFUND.name],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+
+    # when
+    response = app_api_client.post_graphql(query, variables)
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["transaction"]
+
+    # ensure that cache has not been cleared
+    assert cache.get(cache_key) == cache_data
