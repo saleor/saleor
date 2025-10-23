@@ -1,3 +1,4 @@
+import datetime
 from collections import defaultdict
 
 import graphene
@@ -8,11 +9,16 @@ from graphql import GraphQLError
 
 from ....attribute import AttributeInputType
 from ....attribute.models import AttributeValue
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....product.error_codes import ProductErrorCode
 from ..enums import AttributeValueBulkActionEnum
 from ..shared_filters import validate_attribute_value_input
 from ..utils.attribute_assignment import AttributeAssignmentMixin
-from ..utils.shared import AttrValuesForSelectableFieldInput, AttrValuesInput
+from ..utils.shared import (
+    AttrValuesForSelectableFieldInput,
+    AttrValuesInput,
+    has_input_modified_attribute_values,
+)
 from ..utils.type_handlers import (
     FileAttributeHandler,
     MultiSelectableAttributeHandler,
@@ -2461,3 +2467,548 @@ def test_pre_save_swatch_external_reference_and_new_value(
     action, value = result[0]
     assert action == AttributeValueBulkActionEnum.CREATE
     assert value.name == new_value
+
+
+def test_has_input_modified_attribute_values_no_changes_boolean(
+    variant, boolean_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(boolean_attribute)
+    value = boolean_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {boolean_attribute.id: [boolean_attribute.values.first()]},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.GET_OR_CREATE: {
+            boolean_attribute: [
+                {
+                    "attribute": boolean_attribute,
+                    "slug": value.slug,
+                    "defaults": {
+                        "name": f"{boolean_attribute.name}: Yes",
+                        "boolean": True,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is False
+
+
+def test_has_input_modified_attribute_values_with_changes_boolean(
+    variant, boolean_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(boolean_attribute)
+    associate_attribute_values_to_instance(
+        variant,
+        {boolean_attribute.id: [boolean_attribute.values.first()]},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.GET_OR_CREATE: {
+            boolean_attribute: [
+                {
+                    "attribute": boolean_attribute,
+                    "slug": f"{boolean_attribute.id}_False",
+                    "defaults": {
+                        "name": f"{boolean_attribute.name}: No",
+                        "boolean": False,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is True
+
+
+def test_has_input_modified_attribute_values_no_changes_dropdown(
+    variant, color_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(color_attribute)
+    first_value = color_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {color_attribute.id: [first_value]},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.NONE: {color_attribute: [first_value]}
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is False
+
+
+def test_has_input_modified_attribute_values_with_changes_dropdown(
+    variant, color_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(color_attribute)
+    first_value = color_attribute.values.first()
+    last_value = color_attribute.values.last()
+    associate_attribute_values_to_instance(
+        variant,
+        {color_attribute.id: [first_value]},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.NONE: {color_attribute: [last_value]}
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is True
+
+
+def test_has_input_modified_attribute_values_no_changes_multiselect(
+    variant, multiselect_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(multiselect_attribute)
+    all_values = list(multiselect_attribute.values.all())
+    associate_attribute_values_to_instance(
+        variant,
+        {multiselect_attribute.id: all_values},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.NONE: {multiselect_attribute: all_values}
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is False
+
+
+def test_has_input_modified_attribute_values_with_changes_multiselect_order(
+    variant, multiselect_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(multiselect_attribute)
+    all_values = list(multiselect_attribute.values.all())
+    associate_attribute_values_to_instance(
+        variant,
+        {multiselect_attribute.id: all_values},
+    )
+    # Change order of values
+    reversed_values = list(reversed(all_values))
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.NONE: {multiselect_attribute: reversed_values}
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is True
+
+
+def test_has_input_modified_attribute_values_no_changes_plain_text(
+    variant, plain_text_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(plain_text_attribute)
+    text_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {plain_text_attribute.id: [text_value]},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            plain_text_attribute: [
+                {
+                    "attribute": plain_text_attribute,
+                    "slug": f"{variant.id}_{plain_text_attribute.id}",
+                    "defaults": {
+                        "plain_text": text_value.plain_text,
+                        "name": text_value.name,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is False
+
+
+def test_has_input_modified_attribute_values_with_changes_plain_text(
+    variant, plain_text_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(plain_text_attribute)
+    text_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {plain_text_attribute.id: [text_value]},
+    )
+    different_text = "Different text"
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            plain_text_attribute: [
+                {
+                    "attribute": plain_text_attribute,
+                    "slug": f"{variant.id}_{plain_text_attribute.id}",
+                    "defaults": {
+                        "plain_text": different_text,
+                        "name": different_text[:200],
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is True
+
+
+def test_has_input_modified_attribute_values_no_changes_rich_text(
+    variant, rich_text_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(rich_text_attribute)
+    rich_text_value = rich_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {rich_text_attribute.id: [rich_text_value]},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            rich_text_attribute: [
+                {
+                    "attribute": rich_text_attribute,
+                    "slug": f"{variant.id}_{rich_text_attribute.id}",
+                    "defaults": {
+                        "rich_text": rich_text_value.rich_text,
+                        "name": rich_text_value.name,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is False
+
+
+def test_has_input_modified_attribute_values_with_changes_rich_text(
+    variant, rich_text_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(rich_text_attribute)
+    rich_text_value = rich_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {rich_text_attribute.id: [rich_text_value]},
+    )
+    different_rich_text = {
+        "blocks": [{"type": "paragraph", "data": {"text": "New content"}}]
+    }
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            rich_text_attribute: [
+                {
+                    "attribute": rich_text_attribute,
+                    "slug": f"{variant.id}_{rich_text_attribute.id}",
+                    "defaults": {
+                        "rich_text": different_rich_text,
+                        "name": "New content"[:200],
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is True
+
+
+def test_has_input_modified_attribute_values_no_changes_numeric(
+    variant, numeric_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(numeric_attribute)
+    numeric_value = numeric_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {numeric_attribute.id: [numeric_value]},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            numeric_attribute: [
+                {
+                    "attribute": numeric_attribute,
+                    "slug": f"{variant.id}_{numeric_attribute.id}",
+                    "defaults": {
+                        "name": str(numeric_value.numeric),
+                        "numeric": numeric_value.numeric,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is False
+
+
+def test_has_input_modified_attribute_values_with_changes_numeric(
+    variant, numeric_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(numeric_attribute)
+    numeric_value = numeric_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {numeric_attribute.id: [numeric_value]},
+    )
+    different_numeric = 100.5
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            numeric_attribute: [
+                {
+                    "attribute": numeric_attribute,
+                    "slug": f"{variant.id}_{numeric_attribute.id}",
+                    "defaults": {
+                        "name": str(different_numeric),
+                        "numeric": different_numeric,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is True
+
+
+def test_has_input_modified_attribute_values_no_changes_date(variant, date_attribute):
+    # given
+    variant.product.product_type.variant_attributes.add(date_attribute)
+    date_value = date_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {date_attribute.id: [date_value]},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            date_attribute: [
+                {
+                    "attribute": date_attribute,
+                    "slug": f"{variant.id}_{date_attribute.id}",
+                    "defaults": {
+                        "name": str(date_value.date_time.date()),
+                        "date_time": date_value.date_time,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is False
+
+
+def test_has_input_modified_attribute_values_with_changes_date(variant, date_attribute):
+    # given
+    variant.product.product_type.variant_attributes.add(date_attribute)
+    date_value = date_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {date_attribute.id: [date_value]},
+    )
+    different_date = datetime.date(2021, 1, 1)
+    different_date_time = datetime.datetime.combine(
+        different_date, datetime.time.min, tzinfo=datetime.UTC
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            date_attribute: [
+                {
+                    "attribute": date_attribute,
+                    "slug": f"{variant.id}_{date_attribute.id}",
+                    "defaults": {
+                        "name": str(different_date),
+                        "date_time": different_date_time,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is True
+
+
+def test_has_input_modified_attribute_values_no_changes_date_time(
+    variant, date_time_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(date_time_attribute)
+    date_time_value = date_time_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {date_time_attribute.id: [date_time_value]},
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            date_time_attribute: [
+                {
+                    "attribute": date_time_attribute,
+                    "slug": f"{variant.id}_{date_time_attribute.id}",
+                    "defaults": {
+                        "name": str(date_time_value.date_time),
+                        "date_time": date_time_value.date_time,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is False
+
+
+def test_has_input_modified_attribute_values_with_changes_date_time(
+    variant, date_time_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(date_time_attribute)
+    date_time_value = date_time_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {date_time_attribute.id: [date_time_value]},
+    )
+    different_date_time = datetime.datetime(2021, 5, 10, 14, 30, tzinfo=datetime.UTC)
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            date_time_attribute: [
+                {
+                    "attribute": date_time_attribute,
+                    "slug": f"{variant.id}_{date_time_attribute.id}",
+                    "defaults": {
+                        "name": str(different_date_time),
+                        "date_time": different_date_time,
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is True
+
+
+def test_has_input_modified_attribute_values_multiple_attributes(
+    variant, color_attribute, size_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(color_attribute, size_attribute)
+    color_first = color_attribute.values.first()
+    size_first = size_attribute.values.first()
+    size_last = size_attribute.values.last()
+    associate_attribute_values_to_instance(
+        variant,
+        {
+            color_attribute.id: [color_first],
+            size_attribute.id: [size_first],
+        },
+    )
+    # Change only one attribute
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.NONE: {
+            color_attribute: [color_first],
+            size_attribute: [size_last],
+        }
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is True
+
+
+def test_has_input_modified_attribute_values_mixed_bulk_actions(
+    variant, color_attribute, plain_text_attribute
+):
+    # given
+    variant.product.product_type.variant_attributes.add(
+        color_attribute, plain_text_attribute
+    )
+    color_first = color_attribute.values.first()
+    text_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant,
+        {
+            color_attribute.id: [color_first],
+            plain_text_attribute.id: [text_value],
+        },
+    )
+    pre_save_bulk_data = {
+        AttributeValueBulkActionEnum.NONE: {color_attribute: [color_first]},
+        AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+            plain_text_attribute: [
+                {
+                    "attribute": plain_text_attribute,
+                    "slug": f"{variant.id}_{plain_text_attribute.id}",
+                    "defaults": {
+                        "plain_text": text_value.plain_text,
+                        "name": text_value.name,
+                    },
+                }
+            ]
+        },
+    }
+
+    # when
+    result = has_input_modified_attribute_values(variant, pre_save_bulk_data)
+
+    # then
+    assert result is False

@@ -3610,23 +3610,21 @@ def test_update_product_variant_nothing_changed(
     variant.save()
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    # color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
-    # size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
 
-    # attribute_slug_1 = variant.attributes.first().values.first().slug
-    # attribute_slug_2 = variant.attributes.last().values.first().slug
+    attribute_slug_1 = variant.attributes.first().values.first().slug
+    attribute_slug_2 = variant.attributes.last().values.first().slug
 
     input_fields = [
         snake_to_camel_case(key) for key in ProductVariantInput._meta.fields.keys()
     ]
-    input_fields.remove("attributes")
 
     input = {
-        # FIXME: turned off for attributes temporary as not working properly
-        # "attributes": [
-        #     {"id": color_attribute_id, "values": [attribute_slug_1]},
-        #     {"id": size_attribute_id, "values": [attribute_slug_2]},
-        # ],
+        "attributes": [
+            {"id": color_attribute_id, "values": [attribute_slug_1]},
+            {"id": size_attribute_id, "values": [attribute_slug_2]},
+        ],
         "sku": variant.sku,
         "name": variant.name,
         "trackInventory": variant.track_inventory,

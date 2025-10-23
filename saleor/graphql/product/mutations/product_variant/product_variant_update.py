@@ -118,16 +118,15 @@ class ProductVariantUpdate(DeprecatedModelMutation):
 
         cleaner.clean_weight(cleaned_input)
         cleaner.clean_quantity_limit(cleaned_input)
-        attribute_modified = cls.clean_attributes(cleaned_input, instance)
+        cls.clean_attributes(cleaned_input, instance)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
         cleaner.clean_preorder_settings(cleaned_input)
 
-        return cleaned_input, attribute_modified
+        return cleaned_input
 
     @classmethod
     def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
-        attribute_modified = False
         product = instance.product
         product_type = product.product_type
 
@@ -170,14 +169,6 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                             attributes, attributes_qs, creation=False
                         )
                     )
-                    # if assigned attributes is getting updated run duplicated attribute validation
-                    attribute_modified = has_input_modified_attribute_values(
-                        instance, cleaned_attributes
-                    )
-                    # FIXME: override the attribute_modified value to True as
-                    # has_input_modified_attribute_values is working wrong and
-                    # attributes are not set in case the variant has no values assigned
-                    attribute_modified = True
                     cleaned_input["attributes"] = cleaned_attributes
 
             except ValidationError as e:
@@ -188,8 +179,6 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                     "Cannot assign attributes for product type without variants",
                     ProductErrorCode.INVALID.value,
                 )
-
-        return attribute_modified
 
     @classmethod
     def set_track_inventory(cls, _info, instance, cleaned_input):
@@ -207,8 +196,7 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         cls,
         instance_tracker: InstanceTracker,
         cleaned_input,
-        attribute_modified: bool,
-    ) -> tuple[bool, bool]:
+    ) -> tuple[bool, bool, bool]:
         instance = cast(models.ProductVariant, instance_tracker.instance)
         modified_instance_fields = instance_tracker.get_modified_fields()
         metadata_modified = (
@@ -228,12 +216,8 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                     refresh_product_search_index = True
 
             # handle attributes
+            attribute_modified = cls._save_attributes(instance, cleaned_input)
             if attribute_modified:
-                attributes_data = cleaned_input.get("attributes")
-                try:
-                    AttributeAssignmentMixin.save(instance, attributes_data)
-                except ValidationError as e:
-                    raise ValidationError({"attributes": e}) from e
                 refresh_product_search_index = True
 
             # handle product
@@ -248,7 +232,28 @@ class ProductVariantUpdate(DeprecatedModelMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            return bool(modified_instance_fields), metadata_modified
+            return bool(modified_instance_fields), metadata_modified, attribute_modified
+
+    @classmethod
+    def _save_attributes(cls, instance, cleaned_input) -> bool:
+        attribute_modified = False
+        if attributes_data := cleaned_input.get("attributes"):
+            try:
+                pre_save_bulk = AttributeAssignmentMixin.pre_save_values(
+                    instance, attributes_data
+                )
+                if attribute_modified := has_input_modified_attribute_values(
+                    instance,
+                    pre_save_bulk,
+                ):
+                    AttributeAssignmentMixin.save(
+                        instance,
+                        attributes_data,
+                        pre_save_bulk,
+                    )
+            except ValidationError as e:
+                raise ValidationError({"attributes": e}) from e
+        return attribute_modified
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input) -> models.ProductVariant:
@@ -327,15 +332,15 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         instance = cast(models.ProductVariant, instance)
         instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
 
-        cleaned_input, attribute_modified = cls.clean_input(info, instance, input)
+        cleaned_input = cls.clean_input(info, instance, input)
 
         cls.handle_metadata(instance, cleaned_input)
 
         cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
 
-        variant_modified, metadata_modified = cls._save(
-            instance_tracker, cleaned_input, attribute_modified
+        variant_modified, metadata_modified, attribute_modified = cls._save(
+            instance_tracker, cleaned_input
         )
         cls._save_m2m(info, instance, cleaned_input)
         cls._post_save_action(
