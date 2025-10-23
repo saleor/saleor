@@ -1516,7 +1516,6 @@ def test_change_address_in_checkout(checkout, address):
         checkout_info,
         address,
         store_shipping_address_in_user_addresses,
-        lines,
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, address, store_billing_address_in_user_addresses
@@ -1545,7 +1544,6 @@ def test_change_address_in_checkout_to_none(checkout, address):
         checkout_info,
         None,
         store_shipping_address_in_user_addresses,
-        lines,
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, None, store_billing_address_in_user_addresses
@@ -1576,7 +1574,6 @@ def test_change_address_in_checkout_to_same(checkout, address):
         checkout_info,
         address,
         store_shipping_address_in_user_addresses,
-        lines,
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, address, store_billing_address_in_user_addresses
@@ -1607,7 +1604,6 @@ def test_change_address_in_checkout_to_other(checkout, address):
         checkout_info,
         other_address,
         store_shipping_address_in_user_addresses,
-        lines,
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, other_address, store_billing_address_in_user_addresses
@@ -1642,7 +1638,6 @@ def test_change_address_in_checkout_from_user_address_to_other(
         checkout_info,
         other_address,
         store_shipping_address_in_user_addresses,
-        lines,
     )
     billing_updated_fields = change_billing_address_in_checkout(
         checkout, other_address, store_billing_address_in_user_addresses

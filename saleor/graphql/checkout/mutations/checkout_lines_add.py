@@ -6,7 +6,6 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
-    update_delivery_method_lists_for_checkout_info,
 )
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout
 from ....core.exceptions import NonExistingCheckout
@@ -147,13 +146,7 @@ class CheckoutLinesAdd(BaseMutation):
                 ) from e
 
         lines, _ = fetch_checkout_lines(checkout)
-
-        update_delivery_method_lists_for_checkout_info(
-            checkout_info=checkout_info,
-            collection_point=checkout_info.checkout.collection_point,
-            shipping_address=checkout_info.shipping_address,
-            lines=lines,
-        )
+        checkout_info.lines = lines
         return lines
 
     @classmethod

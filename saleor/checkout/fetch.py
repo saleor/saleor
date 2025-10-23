@@ -560,25 +560,6 @@ def fetch_external_shipping_methods_for_checkout_info(
     )
 
 
-# FIXME: Maciek: Rename to cc realted or extend with new model
-def update_delivery_method_lists_for_checkout_info(
-    checkout_info: "CheckoutInfo",
-    collection_point: Optional["Warehouse"],
-    shipping_address: Optional["Address"],
-    lines: list[CheckoutLineInfo],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    # Update checkout info fields with new data
-    checkout_info.collection_point = collection_point
-    checkout_info.shipping_address = shipping_address
-    checkout_info.lines = lines
-
-    try:
-        del checkout_info.valid_pick_up_points
-    except AttributeError:
-        pass
-
-
 def find_checkout_line_info(
     lines: list["CheckoutLineInfo"],
     line_id: "UUID",
