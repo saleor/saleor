@@ -430,6 +430,33 @@ def test_send_email_order_confirmation_for_cc(
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_email_order_confirmation_with_staff_recipients(
+    mocked_notify, order, site_settings, staff_notification_recipient
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+    redirect_url = "https://www.example.com"
+    order_info = fetch_order_info(order)
+
+    # when
+    notifications.send_order_confirmation(order_info, redirect_url, manager)
+
+    # then
+    expected_payload = {
+        "order": get_default_order_payload(order, redirect_url),
+        "recipient_list": [staff_notification_recipient.get_email()],
+        **get_site_context_payload(site_settings.site),
+    }
+    assert mocked_notify.call_count == 2
+    call_args = mocked_notify.call_args_list[1]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.STAFF_ORDER_CONFIRMATION
+    assert len(called_kwargs) == 1
+    assert called_kwargs["payload_func"]() == expected_payload
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_confirmation_emails_without_addresses_for_payment(
     mocked_notify,
     site_settings,
