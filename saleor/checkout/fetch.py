@@ -1,4 +1,3 @@
-import itertools
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -549,27 +548,15 @@ def get_available_built_in_shipping_methods_for_checkout_info(
     return valid_shipping_methods
 
 
-def get_external_shipping_methods_for_checkout_info(
+def fetch_external_shipping_methods_for_checkout_info(
     checkout_info,
+    available_built_in_methods: list[ShippingMethodData],
 ) -> list[ShippingMethodData]:
     manager = checkout_info.manager
     return manager.list_shipping_methods_for_checkout(
-        checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
-    )
-
-
-# FIXME: Maciek: On main, we have different implementation. Needs to rebase first,
-# Then replace with the new objects
-def get_all_shipping_methods_list(
-    checkout_info,
-):
-    return list(
-        itertools.chain(
-            get_available_built_in_shipping_methods_for_checkout_info(
-                checkout_info,
-            ),
-            get_external_shipping_methods_for_checkout_info(checkout_info),
-        )
+        checkout=checkout_info.checkout,
+        channel_slug=checkout_info.channel.slug,
+        built_in_shipping_methods=available_built_in_methods,
     )
 
 
@@ -625,8 +612,9 @@ def fetch_shipping_methods_for_checkout(
     }
     external_shipping_methods_dict: dict[str, ShippingMethodData] = {
         shipping_method.id: shipping_method
-        for shipping_method in get_external_shipping_methods_for_checkout_info(
-            checkout_info=checkout_info
+        for shipping_method in fetch_external_shipping_methods_for_checkout_info(
+            checkout_info=checkout_info,
+            available_built_in_methods=list(built_in_shipping_methods_dict.values()),
         )
     }
     all_methods = list(built_in_shipping_methods_dict.values()) + list(
