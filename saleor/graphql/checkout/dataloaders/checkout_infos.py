@@ -26,6 +26,7 @@ from ...product.dataloaders import (
 )
 from ...tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChannelId
 from ...warehouse.dataloaders import WarehouseByIdLoader
+from .checkout_delivery import CheckoutDeliveryByIdLoader
 from .models import CheckoutByTokenLoader, CheckoutLinesByCheckoutTokenLoader
 from .promotion_rule_infos import VariantPromotionRuleInfoByCheckoutLineIdLoader
 
@@ -84,6 +85,15 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     self.context
                 ).load_many(channel_ids)
 
+                assigned_deliveries_ids = [
+                    checkout.assigned_delivery_id
+                    for checkout in checkouts
+                    if checkout.assigned_delivery_id
+                ]
+                assigned_deliveries_loader = CheckoutDeliveryByIdLoader(
+                    self.context
+                ).load_many(assigned_deliveries_ids)
+
                 def with_checkout_info(results):
                     (
                         addresses,
@@ -91,6 +101,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         collection_points,
                         voucher_codes,
                         tax_configurations,
+                        assigned_deliveries,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
@@ -109,6 +120,11 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         tax_configuration.channel_id: tax_configuration
                         for tax_configuration in tax_configurations
                     }
+                    assigned_deliveries_map = {
+                        delivery.id: delivery
+                        for delivery in assigned_deliveries
+                        if delivery
+                    }
 
                     checkout_info_map = {}
                     for (
@@ -125,6 +141,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         checkout_discounts,
                         strict=False,
                     ):
+                        assigned_delivery = assigned_deliveries_map.get(
+                            checkout.assigned_delivery_id
+                        )
                         collection_point = collection_points_map.get(
                             checkout.collection_point_id
                         )
@@ -147,6 +166,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             lines=checkout_lines,
                             manager=manager,
                             collection_point=collection_point,
+                            assigned_delivery=assigned_delivery,
                             voucher=voucher_code.voucher if voucher_code else None,
                             voucher_code=voucher_code,
                             database_connection_name=self.database_connection_name,
@@ -162,6 +182,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         collection_points,
                         voucher_codes,
                         tax_configurations,
+                        assigned_deliveries_loader,
                     ]
                 ).then(with_checkout_info)
 
