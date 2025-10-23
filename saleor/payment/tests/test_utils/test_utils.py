@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from django.core.cache import cache
 from freezegun import freeze_time
 
 from ....checkout import CheckoutAuthorizeStatus, calculations
@@ -1822,7 +1821,9 @@ def test_create_transaction_event_from_request_and_webhook_updates_modified_at(
     assert checkout.last_transaction_modified_at == calculation_time
 
 
+@patch("saleor.webhook.transport.list_stored_payment_methods.cache.delete")
 def test_create_transaction_event_invalidate_stored_payment_methods_for_order(
+    cache_delete_mock,
     customer_user,
     app,
     order_with_lines,
@@ -1858,7 +1859,6 @@ def test_create_transaction_event_invalidate_stored_payment_methods_for_order(
         currency="USD",
         transaction_id=transaction.id,
     )
-
     channel = order.channel
     expected_payload = {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
@@ -1870,7 +1870,6 @@ def test_create_transaction_event_invalidate_stored_payment_methods_for_order(
         WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
         app.id,
     )
-    cache.set(cache_key, {"response": "Example response"})
 
     response_data = {
         "pspReference": expected_psp_reference,
@@ -1885,10 +1884,12 @@ def test_create_transaction_event_invalidate_stored_payment_methods_for_order(
     )
 
     # then
-    assert cache.get(cache_key) is None
+    cache_delete_mock.assert_called_once_with(cache_key)
 
 
+@patch("saleor.webhook.transport.list_stored_payment_methods.cache.delete")
 def test_create_transaction_event_invalidate_stored_payment_methods_for_checkout(
+    cache_delete_mock,
     customer_user,
     app,
     checkout_with_items,
@@ -1936,7 +1937,6 @@ def test_create_transaction_event_invalidate_stored_payment_methods_for_checkout
         WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
         app.id,
     )
-    cache.set(cache_key, {"response": "Example response"})
 
     response_data = {
         "pspReference": expected_psp_reference,
@@ -1951,10 +1951,12 @@ def test_create_transaction_event_invalidate_stored_payment_methods_for_checkout
     )
 
     # then
-    assert cache.get(cache_key) is None
+    cache_delete_mock.assert_called_once_with(cache_key)
 
 
+@patch("saleor.webhook.transport.list_stored_payment_methods.cache.delete")
 def test_create_transaction_event_stored_payment_methods_not_invalidated_for_order(
+    cache_delete_mock,
     customer_user,
     app,
     order_with_lines,
@@ -1991,20 +1993,6 @@ def test_create_transaction_event_stored_payment_methods_not_invalidated_for_ord
         transaction_id=transaction.id,
     )
 
-    channel = order.channel
-    expected_payload = {
-        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
-        "channel_slug": channel.slug,
-    }
-    cache_key = generate_cache_key_for_webhook(
-        expected_payload,
-        webhook.target_url,
-        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
-        app.id,
-    )
-    cache_data = {"response": "Example response"}
-    cache.set(cache_key, cache_data)
-
     response_data = {
         "pspReference": expected_psp_reference,
         "amount": expected_amount,
@@ -2018,10 +2006,12 @@ def test_create_transaction_event_stored_payment_methods_not_invalidated_for_ord
     )
 
     # then
-    assert cache.get(cache_key) == cache_data
+    cache_delete_mock.assert_not_called()
 
 
+@patch("saleor.webhook.transport.list_stored_payment_methods.cache.delete")
 def test_create_transaction_event_stored_payment_methods_not_invalidated_for_checkout(
+    cache_delete_mock,
     customer_user,
     app,
     checkout_with_items,
@@ -2058,20 +2048,6 @@ def test_create_transaction_event_stored_payment_methods_not_invalidated_for_che
         transaction_id=transaction.id,
     )
 
-    channel = checkout.channel
-    expected_payload = {
-        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
-        "channel_slug": channel.slug,
-    }
-    cache_key = generate_cache_key_for_webhook(
-        expected_payload,
-        webhook.target_url,
-        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
-        app.id,
-    )
-    cache_data = {"response": "Example response"}
-    cache.set(cache_key, cache_data)
-
     response_data = {
         "pspReference": expected_psp_reference,
         "amount": expected_amount,
@@ -2085,7 +2061,7 @@ def test_create_transaction_event_stored_payment_methods_not_invalidated_for_che
     )
 
     # then
-    assert cache.get(cache_key) == cache_data
+    cache_delete_mock.assert_not_called()
 
 
 def test_recalculate_refundable_for_checkout_with_request_refund(

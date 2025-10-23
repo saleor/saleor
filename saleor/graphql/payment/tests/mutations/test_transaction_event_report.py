@@ -5,7 +5,6 @@ from uuid import uuid4
 
 import graphene
 import pytest
-from django.core.cache import cache
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -4036,7 +4035,9 @@ def test_transaction_event_report_event_already_exists_updates_other_payment_met
         TransactionEventType.CHARGE_SUCCESS,
     ],
 )
+@patch("saleor.webhook.transport.list_stored_payment_methods.cache.delete")
 def test_invalidate_stored_payment_methods_for_order(
+    cache_delete_mock,
     result,
     customer_user,
     app_api_client,
@@ -4074,23 +4075,13 @@ def test_invalidate_stored_payment_methods_for_order(
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel.slug,
     }
-    # set cache for transaction webhook
+    # cache key for transaction webhook
     cache_key = generate_cache_key_for_webhook(
         expected_payload,
         webhook.target_url,
         WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
         app.id,
     )
-    cache.set(cache_key, {"response": "Example response"})
-
-    # set cache for another app to ensure it is not invalidated
-    cache_key_not_invalidated = generate_cache_key_for_webhook(
-        expected_payload,
-        list_stored_payment_methods_app.webhooks.first().target_url,
-        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
-        list_stored_payment_methods_app.id,
-    )
-    cache.set(cache_key_not_invalidated, {"response": "Example response"})
 
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
     variables = {
@@ -4132,8 +4123,7 @@ def test_invalidate_stored_payment_methods_for_order(
     assert transaction_report_data["transaction"]
 
     # ensure that only cache for result app identifier has been cleared
-    assert cache.get(cache_key) is None
-    assert cache.get(cache_key_not_invalidated)
+    cache_delete_mock.assert_called_once_with(cache_key)
 
 
 @pytest.mark.parametrize(
@@ -4145,7 +4135,9 @@ def test_invalidate_stored_payment_methods_for_order(
         TransactionEventType.CHARGE_SUCCESS,
     ],
 )
+@patch("saleor.webhook.transport.list_stored_payment_methods.cache.delete")
 def test_invalidate_stored_payment_methods_for_checkout(
+    cache_delete_mock,
     result,
     customer_user,
     app_api_client,
@@ -4189,23 +4181,13 @@ def test_invalidate_stored_payment_methods_for_checkout(
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel.slug,
     }
-    # set cache for transaction webhook
+    # cache key for transaction webhook
     cache_key = generate_cache_key_for_webhook(
         expected_payload,
         webhook.target_url,
         WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
         app.id,
     )
-    cache.set(cache_key, {"response": "Example response"})
-
-    # set cache for another app to ensure it is not invalidated
-    cache_key_not_invalidated = generate_cache_key_for_webhook(
-        expected_payload,
-        list_stored_payment_methods_app.webhooks.first().target_url,
-        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
-        list_stored_payment_methods_app.id,
-    )
-    cache.set(cache_key_not_invalidated, {"response": "Example response"})
 
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
     variables = {
@@ -4247,8 +4229,7 @@ def test_invalidate_stored_payment_methods_for_checkout(
     assert transaction_report_data["transaction"]
 
     # ensure that only cache for result app identifier has been cleared
-    assert cache.get(cache_key) is None
-    assert cache.get(cache_key_not_invalidated)
+    cache_delete_mock.assert_called_once_with(cache_key)
 
 
 @pytest.mark.parametrize(
@@ -4259,7 +4240,9 @@ def test_invalidate_stored_payment_methods_for_checkout(
         TransactionEventType.CHARGE_FAILURE,
     ],
 )
+@patch("saleor.webhook.transport.list_stored_payment_methods.cache.delete")
 def test_stored_payment_methods_not_invalidated_for_order(
+    cache_delete_mock,
     result,
     customer_user,
     app_api_client,
@@ -4290,20 +4273,6 @@ def test_stored_payment_methods_not_invalidated_for_order(
     transaction = transaction_item_generator(app=app, order_id=order.pk)
     expected_amount = Decimal("11.00")
     expected_psp_reference = "111-abc"
-
-    channel = order.channel
-    expected_payload = {
-        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
-        "channel_slug": channel.slug,
-    }
-    cache_key = generate_cache_key_for_webhook(
-        expected_payload,
-        webhook.target_url,
-        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
-        app.id,
-    )
-    cache_data = {"response": "Example response"}
-    cache.set(cache_key, cache_data)
 
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
     variables = {
@@ -4345,7 +4314,7 @@ def test_stored_payment_methods_not_invalidated_for_order(
     assert transaction_report_data["transaction"]
 
     # ensure that cache has not been cleared
-    assert cache.get(cache_key) == cache_data
+    cache_delete_mock.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -4356,7 +4325,9 @@ def test_stored_payment_methods_not_invalidated_for_order(
         TransactionEventType.CHARGE_FAILURE,
     ],
 )
+@patch("saleor.webhook.transport.list_stored_payment_methods.cache.delete")
 def test_stored_payment_methods_not_invalidated_for_checkout(
+    cache_delete_mock,
     result,
     customer_user,
     app_api_client,
@@ -4394,20 +4365,6 @@ def test_stored_payment_methods_not_invalidated_for_checkout(
     expected_amount = Decimal("11.00")
     expected_psp_reference = "111-abc"
 
-    channel = checkout.channel
-    expected_payload = {
-        "user_id": graphene.Node.to_global_id("User", customer_user.pk),
-        "channel_slug": channel.slug,
-    }
-    cache_key = generate_cache_key_for_webhook(
-        expected_payload,
-        webhook.target_url,
-        WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS,
-        app.id,
-    )
-    cache_data = {"response": "Example response"}
-    cache.set(cache_key, cache_data)
-
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
     variables = {
         "id": transaction_id,
@@ -4448,4 +4405,4 @@ def test_stored_payment_methods_not_invalidated_for_checkout(
     assert transaction_report_data["transaction"]
 
     # ensure that cache has not been cleared
-    assert cache.get(cache_key) == cache_data
+    cache_delete_mock.assert_not_called()
