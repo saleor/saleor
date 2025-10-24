@@ -83,9 +83,25 @@ subscription {
           __typename
           ... on Checkout {
             id
-          }
+            metadata {
+              key
+              value
+            }
+            privateMetadata {
+              key
+              value
+            }
+        }
           ... on Order {
             id
+            metadata {
+              key
+              value
+            }
+            privateMetadata {
+              key
+              value
+            }
           }
         }
       }
@@ -134,6 +150,8 @@ def test_checkout_calculate_taxes(
     )
 
     # then
+    metadata = checkout_ready_to_complete.metadata_storage.metadata
+    private_metadata = checkout_ready_to_complete.metadata_storage.private_metadata
     assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
@@ -165,6 +183,13 @@ def test_checkout_calculate_taxes(
             "sourceObject": {
                 "id": to_global_id_or_none(checkout_ready_to_complete),
                 "__typename": "Checkout",
+                "metadata": [
+                    {"key": key, "value": value} for key, value in metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in private_metadata.items()
+                ],
             },
         },
     }
@@ -195,6 +220,8 @@ def test_checkout_calculate_taxes_with_free_shipping_voucher(
     )
 
     # then
+    metadata = checkout.metadata_storage.metadata
+    private_metadata = checkout.metadata_storage.private_metadata
     assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
@@ -208,6 +235,13 @@ def test_checkout_calculate_taxes_with_free_shipping_voucher(
             "sourceObject": {
                 "id": to_global_id_or_none(checkout),
                 "__typename": "Checkout",
+                "metadata": [
+                    {"key": key, "value": value} for key, value in metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in private_metadata.items()
+                ],
             },
         },
     }
@@ -275,6 +309,8 @@ def test_checkout_calculate_taxes_with_entire_order_voucher(
     )
 
     # then
+    metadata = checkout.metadata_storage.metadata
+    private_metadata = checkout.metadata_storage.private_metadata
     assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
@@ -304,6 +340,13 @@ def test_checkout_calculate_taxes_with_entire_order_voucher(
             "sourceObject": {
                 "id": to_global_id_or_none(checkout),
                 "__typename": "Checkout",
+                "metadata": [
+                    {"key": key, "value": value} for key, value in metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in private_metadata.items()
+                ],
             },
         },
     }
@@ -335,6 +378,8 @@ def test_checkout_calculate_taxes_with_entire_order_voucher_once_per_order(
     )
 
     # then
+    metadata = checkout_with_voucher.metadata_storage.metadata
+    private_metadata = checkout_with_voucher.metadata_storage.private_metadata
     assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
@@ -362,6 +407,13 @@ def test_checkout_calculate_taxes_with_entire_order_voucher_once_per_order(
             "sourceObject": {
                 "id": to_global_id_or_none(checkout_with_voucher),
                 "__typename": "Checkout",
+                "metadata": [
+                    {"key": key, "value": value} for key, value in metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in private_metadata.items()
+                ],
             },
         },
     }
@@ -399,6 +451,8 @@ def test_checkout_calculate_taxes_with_shipping_voucher(
     )
 
     # then
+    metadata = checkout.metadata_storage.metadata
+    private_metadata = checkout.metadata_storage.private_metadata
     assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
@@ -426,6 +480,13 @@ def test_checkout_calculate_taxes_with_shipping_voucher(
             "sourceObject": {
                 "id": to_global_id_or_none(checkout),
                 "__typename": "Checkout",
+                "metadata": [
+                    {"key": key, "value": value} for key, value in metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in private_metadata.items()
+                ],
             },
         },
     }
@@ -461,6 +522,8 @@ def test_checkout_calculate_taxes_with_order_promotion(
     )
 
     # then
+    metadata = checkout.metadata_storage.metadata
+    private_metadata = checkout.metadata_storage.private_metadata
     assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
@@ -493,6 +556,13 @@ def test_checkout_calculate_taxes_with_order_promotion(
             "sourceObject": {
                 "id": to_global_id_or_none(checkout),
                 "__typename": "Checkout",
+                "metadata": [
+                    {"key": key, "value": value} for key, value in metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in private_metadata.items()
+                ],
             },
         },
     }
@@ -521,6 +591,8 @@ def test_checkout_calculate_taxes_empty_checkout(
     )
 
     # then
+    metadata = checkout.metadata_storage.metadata
+    private_metadata = checkout.metadata_storage.private_metadata
     assert json.loads(deliveries.payload.get_payload()) == {
         "__typename": "CalculateTaxes",
         "taxBase": {
@@ -534,6 +606,13 @@ def test_checkout_calculate_taxes_empty_checkout(
             "sourceObject": {
                 "id": to_global_id_or_none(checkout),
                 "__typename": "Checkout",
+                "metadata": [
+                    {"key": key, "value": value} for key, value in metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in private_metadata.items()
+                ],
             },
         },
     }
@@ -611,6 +690,14 @@ def test_order_calculate_taxes(
             "sourceObject": {
                 "__typename": "Order",
                 "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
             },
         },
     }
@@ -700,6 +787,14 @@ def test_draft_order_calculate_taxes_line_discount(
             "sourceObject": {
                 "__typename": "Order",
                 "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
             },
         },
     }
@@ -791,6 +886,14 @@ def test_draft_order_calculate_taxes_entire_order_voucher(
             "sourceObject": {
                 "__typename": "Order",
                 "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
             },
         },
     }
@@ -878,6 +981,14 @@ def test_draft_order_calculate_taxes_apply_once_per_order_voucher(
             "sourceObject": {
                 "__typename": "Order",
                 "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
             },
         },
     }
@@ -975,6 +1086,14 @@ def test_order_calculate_taxes_specific_product_voucher(
             "sourceObject": {
                 "__typename": "Order",
                 "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
             },
         },
     }
@@ -1016,6 +1135,14 @@ def test_draft_order_calculate_taxes_free_shipping_voucher(
             "sourceObject": {
                 "__typename": "Order",
                 "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
             },
         },
     }
@@ -1114,7 +1241,18 @@ def test_order_calculate_taxes_with_manual_discount(
             ],
             "pricesEnteredWithTax": False,
             "shippingPrice": {"amount": float(shipping_price_amount)},
-            "sourceObject": {"__typename": "Order", "id": to_global_id_or_none(order)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
+            },
         },
     }
 
@@ -1152,6 +1290,14 @@ def test_order_calculate_taxes_empty_order(
             "sourceObject": {
                 "__typename": "Order",
                 "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
             },
         },
     }
@@ -1236,7 +1382,18 @@ def test_order_calculate_taxes_order_promotion(
             ],
             "pricesEnteredWithTax": False,
             "shippingPrice": {"amount": shipping_price_amount},
-            "sourceObject": {"__typename": "Order", "id": to_global_id_or_none(order)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
+            },
         },
     }
 
@@ -1336,7 +1493,18 @@ def test_order_calculate_taxes_order_voucher_and_manual_discount(
             ],
             "pricesEnteredWithTax": False,
             "shippingPrice": {"amount": shipping_price_amount},
-            "sourceObject": {"__typename": "Order", "id": to_global_id_or_none(order)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
+            },
         },
     }
 
@@ -1440,7 +1608,18 @@ def test_order_calculate_taxes_order_promotion_and_manual_discount(
             ],
             "pricesEnteredWithTax": False,
             "shippingPrice": {"amount": shipping_price_amount},
-            "sourceObject": {"__typename": "Order", "id": to_global_id_or_none(order)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
+            },
         },
     }
 
@@ -1535,7 +1714,18 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_fixed(
             ],
             "pricesEnteredWithTax": False,
             "shippingPrice": {"amount": 0},
-            "sourceObject": {"__typename": "Order", "id": to_global_id_or_none(order)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
+            },
         },
     }
 
@@ -1636,6 +1826,17 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_percent
             ],
             "pricesEnteredWithTax": False,
             "shippingPrice": {"amount": 0},
-            "sourceObject": {"__typename": "Order", "id": to_global_id_or_none(order)},
+            "sourceObject": {
+                "__typename": "Order",
+                "id": to_global_id_or_none(order),
+                "metadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.metadata.items()
+                ],
+                "privateMetadata": [
+                    {"key": key, "value": value}
+                    for key, value in order.private_metadata.items()
+                ],
+            },
         },
     }

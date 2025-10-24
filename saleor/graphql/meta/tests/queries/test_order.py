@@ -99,6 +99,30 @@ def test_query_public_meta_for_order_by_token_as_app(
     assert metadata["value"] == PUBLIC_VALUE
 
 
+def test_query_public_meta_for_order_by_token_as_app_with_handle_taxes(
+    app_api_client, order, customer_user, permission_handle_taxes
+):
+    # given
+    order.user = customer_user
+    order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    order.save(update_fields=["user", "metadata"])
+    variables = {"token": order.id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_ORDER_BY_TOKEN_PUBLIC_META,
+        variables,
+        [permission_handle_taxes],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["orderByToken"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
+
+
 QUERY_ORDER_PUBLIC_META = """
     query orderMeta($id: ID!){
         order(id: $id){
@@ -551,6 +575,30 @@ def test_query_private_meta_for_order_as_app(
         QUERY_ORDER_PRIVATE_META,
         variables,
         [permission_manage_orders],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["order"]["privateMetadata"][0]
+    assert metadata["key"] == PRIVATE_KEY
+    assert metadata["value"] == PRIVATE_VALUE
+
+
+def test_query_private_meta_for_order_as_app_with_handle_taxes(
+    app_api_client, order, customer_user, permission_handle_taxes
+):
+    # given
+    order.user = customer_user
+    order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    order.save(update_fields=["user", "private_metadata"])
+    variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_ORDER_PRIVATE_META,
+        variables,
+        [permission_handle_taxes],
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
