@@ -374,11 +374,10 @@ def _fetch_checkout_prices_if_expired(
         checkout_info, lines, database_connection_name
     )
 
-    lines = cast(list, lines)
-    update_undiscounted_prices(checkout_info, lines)
-
-    create_or_update_discount_objects_from_promotion_for_checkout(
-        checkout_info, lines, database_connection_name
+    recalculate_discounts(
+        checkout_info,
+        lines,
+        database_connection_name=database_connection_name,
     )
 
     checkout.tax_error = None
@@ -441,6 +440,7 @@ def _fetch_checkout_prices_if_expired(
             _set_checkout_base_prices(checkout, checkout_info, lines)
 
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+    checkout.discount_price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
     with allow_writer():
         with transaction.atomic():
@@ -475,6 +475,7 @@ def _fetch_checkout_prices_if_expired(
                     "currency",
                     "last_change",
                     "price_expiration",
+                    "discount_price_expiration",
                     "tax_error",
                 ]
 
@@ -493,6 +494,38 @@ def _fetch_checkout_prices_if_expired(
                         "undiscounted_unit_price_amount",
                     ],
                 )
+    return checkout_info, lines
+
+
+def recalculate_discounts(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
+    """Recalculate checkout discounts.
+
+    Discounts can be updated only if if time discount prices expired.
+    """
+    checkout = checkout_info.checkout
+
+    if checkout.discount_price_expiration > timezone.now():
+        return checkout_info, lines
+
+    lines = cast(list, lines)
+    update_undiscounted_prices(checkout_info, lines)
+
+    # TODO: return from promotion the one that ends sooner, or now plus checkout ttl
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, lines, database_connection_name
+    )
+
+    checkout.discount_price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+
+    checkout.save(
+        update_fields=["discount_price_expiration"],
+        using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    )
+
     return checkout_info, lines
 
 

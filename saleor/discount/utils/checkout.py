@@ -31,6 +31,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     lines_info: Iterable["CheckoutLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
+    # TODO: try to return here the end date of the promotion that end the soonest
     create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
     create_checkout_discount_objects_for_order_promotions(
         checkout_info, lines_info, database_connection_name=database_connection_name
