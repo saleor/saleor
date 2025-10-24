@@ -44,6 +44,9 @@ from ..order.utils import (
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..webhook.response_schemas import transaction as transaction_schemas
 from ..webhook.response_schemas.utils.helpers import parse_validation_error
+from ..webhook.transport.list_stored_payment_methods import (
+    invalidate_cache_for_stored_payment_methods,
+)
 from . import (
     ChargeStatus,
     GatewayError,
@@ -1641,6 +1644,11 @@ def create_transaction_event_from_request_and_webhook_response(
         transaction_amounts_for_checkout_updated(
             transaction_item, manager, app=app, user=None
         )
+    source_object = transaction_item.checkout or transaction_item.order
+    if event and source_object:
+        invalidate_cache_for_stored_payment_methods_if_needed(
+            event, source_object, app.identifier
+        )
     return event
 
 
@@ -1882,6 +1890,9 @@ def handle_transaction_initialize_session(
         transaction_webhook_response=response_data,
         manager=manager,
     )
+    invalidate_cache_for_stored_payment_methods_if_needed(
+        created_event, source_object, app.identifier
+    )
     data_to_return = response_data.get("data") if response_data else None
     return created_event.transaction, created_event, data_to_return
 
@@ -1918,8 +1929,36 @@ def handle_transaction_process_session(
         transaction_webhook_response=response_data,
         manager=manager,
     )
+    invalidate_cache_for_stored_payment_methods_if_needed(
+        created_event, source_object, app.identifier
+    )
     data_to_return = response_data.get("data") if response_data else None
     return created_event, data_to_return
+
+
+def invalidate_cache_for_stored_payment_methods_if_needed(
+    event: TransactionEvent, source_object: Checkout | Order, app_identifier: str
+):
+    """Invalidate the cache for stored payment methods if needed.
+
+    Invalidate LIST_STORED_PAYMENT_METHODS webhook cache in case
+    a new payment method is stored during authorization/charge.
+    """
+    if (
+        event.type
+        in [
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.CHARGE_SUCCESS,
+        ]
+        and source_object.user_id
+    ):
+        invalidate_cache_for_stored_payment_methods(
+            user_id=source_object.user_id,
+            channel_slug=source_object.channel.slug,
+            app_identifier=app_identifier,
+        )
 
 
 def get_transaction_event_amount(event_type: str, psp_reference: str):
