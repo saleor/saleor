@@ -74,6 +74,9 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
     assert app_extension.label == extension_data["label"]
     assert app_extension.url == extension_data["url"]
     assert app_extension.mount == extension_data["mount"].lower()
+    assert app_extension.mount == extension_data["mountName"].lower()
+    assert app_extension.target == extension_data["target"].lower()
+    assert app_extension.target == extension_data["targetName"].lower()
 
     assert app_extension.permissions.count() == 1
     assert len(extension_data["permissions"]) == 1

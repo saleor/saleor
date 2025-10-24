@@ -204,8 +204,28 @@ def _clean_extension_permissions(extension, app_permissions, errors):
     extension["permissions"] = extension_permissions
 
 
-def _clean_extension_enum_field(enum, field_name, extension):
-    extension[field_name] = getattr(enum, extension[field_name])
+def _clean_extension_enum_field(enum, field_name, extension, errors):
+    """Accept string values for enum fields without strict validation.
+
+    Tries to convert the value to enum, but keeps string values if conversion fails.
+    """
+    field_value = extension.get(field_name)
+    if field_value is None:
+        return
+
+    try:
+        # Try to convert to enum member
+        extension[field_name] = getattr(enum, field_value)
+    except AttributeError:
+        # If conversion fails, keep the string value and record an error
+        errors["extensions"].append(
+            ValidationError(
+                f"Incorrect value for field: {field_name}",
+                code=AppErrorCode.INVALID.value,
+            )
+        )
+        # Keep the string value in the extension dict
+        extension[field_name] = field_value
 
 
 def _clean_extensions(manifest_data, app_permissions, errors):
@@ -215,9 +235,9 @@ def _clean_extensions(manifest_data, app_permissions, errors):
         if "target" not in extension:
             extension["target"] = AppExtensionTarget.POPUP
         else:
-            _clean_extension_enum_field(AppExtensionTarget, "target", extension)
+            _clean_extension_enum_field(AppExtensionTarget, "target", extension, errors)
 
-        _clean_extension_enum_field(AppExtensionMount, "mount", extension)
+        _clean_extension_enum_field(AppExtensionMount, "mount", extension, errors)
 
         try:
             _clean_extension_url(extension, manifest_data)
@@ -314,12 +334,25 @@ def _clean_webhooks(manifest_data, errors):
 
 def _validate_required_fields(manifest_data, errors):
     manifest_required_fields = {"id", "version", "name", "tokenTargetUrl"}
+    extension_required_fields = {"label", "url", "mount"}
     webhook_required_fields = {"name", "targetUrl", "query"}
 
     if manifest_missing_fields := manifest_required_fields.difference(manifest_data):
         for missing_field in manifest_missing_fields:
             errors[missing_field].append(
                 ValidationError("Field required.", code=AppErrorCode.REQUIRED.value)
+            )
+
+    app_extensions_data = manifest_data.get("extensions", [])
+    for extension in app_extensions_data:
+        extension_fields = set(extension.keys())
+        if missing_fields := extension_required_fields.difference(extension_fields):
+            errors["extensions"].append(
+                ValidationError(
+                    "Missing required fields for app extension: "
+                    f"{', '.join(missing_fields)}.",
+                    code=AppErrorCode.REQUIRED.value,
+                )
             )
 
     webhooks = manifest_data.get("webhooks", [])
