@@ -3026,10 +3026,10 @@ type AppExtension implements Node @doc(category: "Apps") {
   url: String!
 
   """Place where given extension will be mounted."""
-  mount: AppExtensionMountEnum!
+  mount: AppExtensionMountEnum! @deprecated(reason: "Use `mountName` instead.")
 
   """Type of way how app extension will be opened."""
-  target: AppExtensionTargetEnum!
+  target: AppExtensionTargetEnum! @deprecated(reason: "Use `targetName` instead.")
 
   """Name of the extension mount point in the dashboard. Replaces `mount`"""
   mountName: String!
@@ -29856,10 +29856,10 @@ type AppManifestExtension @doc(category: "Apps") {
   url: String!
 
   """Place where given extension will be mounted."""
-  mount: AppExtensionMountEnum!
+  mount: AppExtensionMountEnum! @deprecated(reason: "Use `mountName` instead.")
 
   """Type of way how app extension will be opened."""
-  target: AppExtensionTargetEnum!
+  target: AppExtensionTargetEnum! @deprecated(reason: "Use `targetName` instead.")
 
   """Name of the extension mount point in the dashboard. Replaces `mount`"""
   mountName: String!

@@ -166,11 +166,15 @@ class AppExtension(models.Model):
         blank=True,
         help_text="Specific permissions for this app extension.",
     )
+    # Deprecated - store entire options object in "options" field.
     http_target_method = models.CharField(
         blank=False,
         null=True,
         choices=AppExtensionHttpMethod.CHOICES,
     )
+    # max_length is arbitrary limit. We want it to be plain json, but also don't want someone to abuse it by putting there 50MB.
+    # Once API grows, we can extend it without a breaking change
+    settings = models.JSONField(blank=True, default=dict, max_length=4086)
 
 
 class AppInstallation(Job):

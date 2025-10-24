@@ -118,13 +118,18 @@ class AppManifestExtension(BaseObjectType):
         description="URL of a view where extension's iframe is placed.", required=True
     )
     # Deprecated
-    mount = AppExtensionMountEnum(
+    mount = graphene.Field(
+        AppExtensionMountEnum,
         description="Place where given extension will be mounted.",
         required=True,
+        deprecation_reason="Use `mountName` instead.",
     )
     # Deprecated
-    target = AppExtensionTargetEnum(
-        description="Type of way how app extension will be opened.", required=True
+    target = graphene.Field(
+        AppExtensionTargetEnum,
+        description="Type of way how app extension will be opened.",
+        required=True,
+        deprecation_reason="Use `targetName` instead.",
     )
 
     mount_name = graphene.String(
@@ -236,6 +241,8 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     access_token = graphene.String(
         description="JWT token used to authenticate by third-party app extension."
     )
+
+    # Deprecated
     options = graphene.Field(
         AppExtensionPossibleOptions,
         description="App extension options." + ADDED_IN_322,
