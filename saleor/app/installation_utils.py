@@ -243,8 +243,9 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     for extension_data in manifest_data.get("extensions", []):
         # Manifest is already "clean" so values are snake case
         options = extension_data.get("options", {})
-        new_tab_target = options.get("new_tab_target")
-        widget_target = options.get("widget_target")
+        # Handle both camelCase (from manifest) and snake_case (from validated data)
+        new_tab_target = options.get("new_tab_target") or options.get("newTabTarget")
+        widget_target = options.get("widget_target") or options.get("widgetTarget")
 
         # Ensure proper extraction of the method values from the options
         http_target_method = None
@@ -270,6 +271,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             mount=extension_data.get("mount"),
             target=extension_data.get("target", AppExtensionTarget.POPUP),
             http_target_method=http_target_method,
+            settings=extension_data.get("options"),
         )
         extension.permissions.set(extension_data.get("permissions", []))
 

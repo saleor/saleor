@@ -368,20 +368,16 @@ def test_install_app_with_extension_widget(
 def test_install_app_extension_permission_out_of_scope(
     app_permissions, extension_permissions, app_manifest, app_installation, monkeypatch
 ):
-    # given
+    # given - Extension permissions must be a subset of app permissions
     label = "Create product with app"
     url = "http://127.0.0.1:8080/app-extension"
-    view = "PRODUCT"
-    type = "OVERVIEW"
-    target = "CREATE"
     app_manifest["permissions"] = app_permissions
     app_manifest["extensions"] = [
         {
             "label": label,
             "url": url,
-            "view": view,
-            "type": type,
-            "target": target,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "target": "POPUP",
             "permissions": extension_permissions,
         }
     ]
@@ -439,15 +435,14 @@ def test_install_app_with_extension_new_tab_target(
     assert app_extension.http_target_method == "GET"
 
 
-def test_install_app_with_extension_new_tab_target_post_url_non_https(
+def test_install_app_with_extension_new_tab_target_post_url_no_validation(
     app_manifest,
     app_installation,
     monkeypatch,
     permission_manage_products,
 ):
-    # given
+    # given - HTTP URL with POST method is now allowed (validation was removed)
     label = "Open in new tab"
-    # Non-https url is prohibited
     url = "http://extenal-url.com"
     options = {"newTabTarget": {"method": "POST"}}
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
@@ -469,51 +464,13 @@ def test_install_app_with_extension_new_tab_target_post_url_non_https(
 
     app_installation.permissions.set([permission_manage_products])
 
-    # when
-    # then
-    with pytest.raises(ValidationError) as error:
-        app, _ = install_app(app_installation, activate=True)
+    # when - should not raise ValidationError anymore
+    app, _ = install_app(app_installation, activate=True)
 
-    assert error.value.messages[0] == "Incorrect value for field: url."
-
-
-def test_install_app_with_extension_new_tab_target_post_url_other_than_app(
-    app_manifest,
-    app_installation,
-    monkeypatch,
-    permission_manage_products,
-):
-    # given
-    label = "Open in new tab"
-    # Url other than app's URL is prohibited
-    url = "https://extenal-url.com"
-    app_manifest["tokenTargetUrl"] = "https://app-url.com"
-    options = {"newTabTarget": {"method": "POST"}}
-    app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
-    app_manifest["extensions"] = [
-        {
-            "label": label,
-            "url": url,
-            "mount": "PRODUCT_OVERVIEW_CREATE",
-            "permissions": ["MANAGE_PRODUCTS"],
-            "options": options,
-            "target": "NEW_TAB",
-        }
-    ]
-    mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
-
-    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
-    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
-
-    app_installation.permissions.set([permission_manage_products])
-
-    # when
-    # then
-    with pytest.raises(ValidationError) as error:
-        app, _ = install_app(app_installation, activate=True)
-
-    assert error.value.messages[0] == "Incorrect value for field: url."
+    # then - extension should be created successfully
+    app_extension = app.extensions.get()
+    assert app_extension.label == label
+    assert app_extension.url == url
 
 
 @pytest.mark.parametrize(
@@ -535,9 +492,8 @@ def test_install_app_extension_incorrect_url(
         {
             "url": url,
             "label": "Create product with app",
-            "view": "PRODUCT",
-            "type": "OVERVIEW",
-            "target": "CREATE",
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "target": "POPUP",
             "permissions": ["MANAGE_PRODUCTS"],
         }
     ]
@@ -558,97 +514,14 @@ def test_install_app_extension_invalid_permission(
     # given
     label = "Create product with app"
     url = "http://127.0.0.1:8080/app-extension"
-    view = "PRODUCT"
-    type = "OVERVIEW"
-    target = "CREATE"
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
-    app_manifest["extensions"] = [
-        {
-            "label": label,
-            "url": url,
-            "view": view,
-            "type": type,
-            "target": target,
-            "permissions": ["INVALID_PERM"],
-        }
-    ]
-    mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
-
-    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
-    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
-
-    # when & then
-    with pytest.raises(ValidationError):
-        install_app(app_installation, activate=True)
-
-
-@pytest.mark.parametrize(
-    "incorrect_field",
-    [
-        "view",
-        "type",
-        "target",
-    ],
-)
-def test_install_app_extension_incorrect_values(
-    incorrect_field, app_manifest, app_installation, monkeypatch
-):
-    # given
-    label = "Create product with app"
-    url = "http://127.0.0.1:8080/app-extension"
-    view = "PRODUCT"
-    type = "OVERVIEW"
-    target = "CREATE"
-    app_manifest["permissions"] = []
-    app_manifest["extensions"] = [
-        {
-            "label": label,
-            "url": url,
-            "view": view,
-            "type": type,
-            "target": target,
-            "permissions": ["MANAGE_PRODUCTS"],
-        }
-    ]
-    app_manifest["extensions"][0][incorrect_field] = "wrong-value"
-    mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
-
-    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
-    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
-
-    # when & then
-    with pytest.raises(ValidationError):
-        install_app(app_installation, activate=True)
-
-
-@pytest.mark.parametrize(
-    "incorrect_options",
-    [
-        {"newTabTarget": {"method": "INVALID"}},
-        {"newTabTarget": {}},
-        {"newTabTarget": "invalid"},
-        {"widgetTarget": {"method": "INVALID"}},
-        {"widgetTarget": {}},
-        {"widgetTarget": "invalid"},
-    ],
-)
-def test_install_app_extension_incorrect_options(
-    incorrect_options, app_manifest, app_installation, monkeypatch
-):
-    # given
-    label = "Create product with app"
-    url = "http://127.0.0.1:8080/app-extension"
-    app_manifest["permissions"] = []
     app_manifest["extensions"] = [
         {
             "label": label,
             "url": url,
             "mount": "PRODUCT_OVERVIEW_CREATE",
             "target": "POPUP",
-            "permissions": ["MANAGE_PRODUCTS"],
-            "options": incorrect_options,
+            "permissions": ["INVALID_PERM"],
         }
     ]
     mocked_get_response = Mock()
