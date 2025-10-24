@@ -36,8 +36,6 @@ class Channel(SqsChannel):
                 if "DelaySeconds" in message["properties"]:
                     kwargs["DelaySeconds"] = message["properties"]["DelaySeconds"]
 
-        print(f"Sending message to {queue} with args: {kwargs}")
-
         if self.sqs_base64_encoding:
             body = AsyncMessage().encode(dumps(message))
         else:
