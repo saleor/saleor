@@ -840,6 +840,7 @@ class Checkout(ModelObjectType[models.Checkout]):
             root.user,
             AccountPermissions.MANAGE_USERS,
             PaymentPermissions.HANDLE_PAYMENTS,
+            CheckoutPermissions.HANDLE_TAXES,
         )
         return root.user
 

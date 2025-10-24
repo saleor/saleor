@@ -37,6 +37,7 @@ from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
     AccountPermissions,
     AppPermission,
+    CheckoutPermissions,
     OrderPermissions,
     PaymentPermissions,
     ProductPermissions,
@@ -2001,6 +2002,7 @@ class Order(ModelObjectType[models.Order]):
                 AccountPermissions.MANAGE_USERS,
                 OrderPermissions.MANAGE_ORDERS,
                 PaymentPermissions.HANDLE_PAYMENTS,
+                CheckoutPermissions.HANDLE_TAXES,
             )
             return user
 
