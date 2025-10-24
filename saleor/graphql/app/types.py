@@ -277,6 +277,14 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         return root.target
 
     @staticmethod
+    def resolve_mount_name(root, _info: ResolveInfo):
+        return root.mount
+
+    @staticmethod
+    def resolve_target_name(root, _info: ResolveInfo):
+        return root.target
+
+    @staticmethod
     @app_promise_callback
     def resolve_app(root, info: ResolveInfo, app_requestor):
         # Resolve if app from context is the same as requested app
