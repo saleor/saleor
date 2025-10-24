@@ -17,6 +17,9 @@ query ($filter: AppExtensionFilterInput){
         target
         id
         accessToken
+        mountName
+        targetName
+        settings
         options {
           ... on AppExtensionOptionsWidget{
             widgetTarget {
