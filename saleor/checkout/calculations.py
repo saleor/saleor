@@ -41,6 +41,7 @@ if TYPE_CHECKING:
     from ..account.models import Address
     from ..plugins.manager import PluginsManager
     from .fetch import CheckoutInfo, CheckoutLineInfo
+    from .models import CheckoutLine
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +308,16 @@ def checkout_line_undiscounted_total_price(
     return quantize_price(total_price, total_price.currency)
 
 
+def checkout_lines(
+    *,
+    lines_info: Iterable["CheckoutLineInfo"],
+    checkout_info: "CheckoutInfo",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Iterable["CheckoutLine"]:
+    recalculate_discounts(checkout_info, lines_info, database_connection_name)
+    return (line_info.line for line_info in lines_info)
+
+
 def update_undiscounted_prices(
     checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
 ):
@@ -499,19 +510,20 @@ def _fetch_checkout_prices_if_expired(
 
 def recalculate_discounts(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines_info: Iterable["CheckoutLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Recalculate checkout discounts.
 
     Discounts can be updated only if if time discount prices expired.
+    Update the catalogue promotion, voucher and order promotion discounts.
     """
     checkout = checkout_info.checkout
 
     if checkout.discount_price_expiration > timezone.now():
-        return checkout_info, lines
+        return checkout_info, lines_info
 
-    lines = cast(list, lines)
+    lines = cast(list, lines_info)
     update_undiscounted_prices(checkout_info, lines)
 
     # TODO: return from promotion the one that ends sooner, or now plus checkout ttl
