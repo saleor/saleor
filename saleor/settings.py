@@ -1092,6 +1092,11 @@ TELEMETRY_SLOW_GRAPHQL_OPERATION_THRESHOLD = float(
 # For development envs, where schema may change often, it may be convenient to set it to e.g. commit hash value.
 GRAPHQL_CACHE_SUFFIX = os.environ.get("GRAPHQL_CACHE_SUFFIX", "")
 
+# Control length of JSON available to be set by the App with Extension manifest.
+APP_EXTENSION_MAX_SETTINGS_JSON_SIZE = os.environ.get(
+    "APP_EXTENSION_MAX_SETTINGS_JSON_SIZE", 4096
+)
+
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
 i18n_rules_override()

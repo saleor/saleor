@@ -3048,7 +3048,7 @@ type AppExtension implements Node @doc(category: "Apps") {
   
   Added in Saleor 3.22.
   """
-  options: AppExtensionPossibleOptions @deprecated(reason: "Options will be changed to JSON object and contract will be held by Dashboard.")
+  options: AppExtensionPossibleOptions @deprecated(reason: "Use `settings` field instead.")
 
   """
   App extension settings. Replaces `options` field.
@@ -3129,13 +3129,13 @@ union AppExtensionPossibleOptions = AppExtensionOptionsWidget | AppExtensionOpti
 """Represents the options for an app extension."""
 type AppExtensionOptionsWidget @doc(category: "Apps") {
   """Options for displaying a Widget"""
-  widgetTarget: WidgetTargetOptions @deprecated(reason: "Options will be changed to JSON object and contract will be held by Dashboard.")
+  widgetTarget: WidgetTargetOptions @deprecated(reason: "Use `settings` field directly.")
 }
 
 """Represents the WIDGET target options for an app extension."""
 type WidgetTargetOptions @doc(category: "Apps") {
   """HTTP method for Widget target (GET or POST)"""
-  method: HttpMethod! @deprecated(reason: "Options will be changed to JSON object and contract will be held by Dashboard.")
+  method: HttpMethod! @deprecated(reason: "Use `settings` field directly.")
 }
 
 enum HttpMethod {
@@ -3146,13 +3146,13 @@ enum HttpMethod {
 """Represents the options for an app extension."""
 type AppExtensionOptionsNewTab @doc(category: "Apps") {
   """Options controlling behavior of the NEW_TAB extension target"""
-  newTabTarget: NewTabTargetOptions @deprecated(reason: "Options will be changed to JSON object and contract will be held by Dashboard.")
+  newTabTarget: NewTabTargetOptions @deprecated(reason: "Use `settings` field directly.")
 }
 
 """Represents the NEW_TAB target options for an app extension."""
 type NewTabTargetOptions @doc(category: "Apps") {
   """HTTP method for New Tab target (GET or POST)"""
-  method: HttpMethod! @deprecated(reason: "Options will be changed to JSON object and contract will be held by Dashboard.")
+  method: HttpMethod! @deprecated(reason: "Use `settings` field directly.")
 }
 
 scalar JSON
