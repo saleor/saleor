@@ -49,9 +49,9 @@ class Command(BaseCommand):
         self.delete_payments()
         self.delete_allocations()
         self.delete_reservations()
+        self.delete_gift_cards()
         self.delete_checkouts()
         self.delete_invoices()
-        self.delete_gift_cards()
         self.delete_orders()
         self.delete_unassigned_addresses()
 
@@ -128,6 +128,9 @@ class Command(BaseCommand):
 
         gift_card_tags = GiftCardTag.objects.all()
         gift_card_tags.delete()
+
+        checkout_gift_cards = Checkout.gift_cards.through.objects.all()
+        checkout_gift_cards.delete()
 
         order_gift_cards = Order.gift_cards.through.objects.all()
         order_gift_cards.delete()
