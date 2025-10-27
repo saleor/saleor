@@ -217,17 +217,8 @@ def _clean_extension_enum_field(enum, field_name, extension, errors):
         return
 
     try:
-        # Try to convert to enum member
         extension[field_name] = getattr(enum, field_value)
     except AttributeError:
-        # If conversion fails, keep the string value and record an error
-        errors["extensions"].append(
-            ValidationError(
-                f"Incorrect value for field: {field_name}",
-                code=AppErrorCode.INVALID.value,
-            )
-        )
-        # Keep the string value in the extension dict
         extension[field_name] = field_value
 
 
