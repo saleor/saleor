@@ -183,43 +183,6 @@ def test_new_tab_relative_url_without_app_url(app_manifest):
         _clean_extension_url(extension, manifest_data=app_manifest)
 
 
-def test_clean_extension_url_https_validation_removed(settings):
-    # given - HTTPS-only validation for POST method was removed
-    settings.ENABLE_SSL = True
-
-    # when - should not raise ValidationError anymore
-    _clean_extension_url(
-        {
-            "url": "http://app.example.com/page",
-            "target": AppExtensionTarget.NEW_TAB,
-            "options": {"newTabTarget": {"method": "POST"}},
-        },
-        {
-            "tokenTargetUrl": "https://app.example.com",
-            "appUrl": "https://app.example.com",
-        },
-    )
-
-    # then - no error is expected since validation was removed
-
-
-def test_clean_extension_url_http_allowed_when_validation_removed(settings):
-    # given - HTTP is now allowed since POST method validation was removed
-    settings.ENABLE_SSL = False
-
-    # when
-    result = _clean_extension_url(
-        {"url": "http://app.example.com/page", "target": AppExtensionTarget.NEW_TAB},
-        {
-            "tokenTargetUrl": "https://app.example.com",
-            "appUrl": "https://app.example.com",
-        },
-    )
-
-    # then
-    assert result is None
-
-
 @pytest.mark.parametrize(
     ("app_url", "extension_url", "should_raise"),
     [

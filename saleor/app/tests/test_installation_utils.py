@@ -441,7 +441,6 @@ def test_install_app_with_extension_new_tab_target_post_url_no_validation(
     monkeypatch,
     permission_manage_products,
 ):
-    # given - HTTP URL with POST method is now allowed (validation was removed)
     label = "Open in new tab"
     url = "http://extenal-url.com"
     options = {"newTabTarget": {"method": "POST"}}
@@ -464,10 +463,8 @@ def test_install_app_with_extension_new_tab_target_post_url_no_validation(
 
     app_installation.permissions.set([permission_manage_products])
 
-    # when - should not raise ValidationError anymore
     app, _ = install_app(app_installation, activate=True)
 
-    # then - extension should be created successfully
     app_extension = app.extensions.get()
     assert app_extension.label == label
     assert app_extension.url == url
@@ -543,7 +540,7 @@ def test_install_app_with_extension_post_method(
 ):
     # given
     label = "Create product with app"
-    url = "https://example.com/extension"  # extension url must be under the same origin as app
+    url = "https://example.com/extension"
     options = {"newTabTarget": {"method": "POST"}}
     app_manifest["tokenTargetUrl"] = "https://example.com/install"
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
