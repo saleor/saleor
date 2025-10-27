@@ -1,3 +1,4 @@
+import json
 import logging
 from collections import defaultdict
 from collections.abc import Iterable
@@ -252,15 +253,24 @@ def _clean_extensions(manifest_data, app_permissions, errors):
             )
         extension_options = extension.get("options")
 
-        # TODO Add test
-        if len(extension_options) > settings.APP_EXTENSION_MAX_SETTINGS_JSON_SIZE:
-            errors["extensions"].append(
-                ValidationError(
-                    "Options field must be maximum length: "
-                    + settings.APP_EXTENSION_MAX_SETTINGS_JSON_SIZE,
-                    code=AppErrorCode.INVALID.value,
+        if extension_options:
+            try:
+                options_json = json.dumps(extension_options)
+                max_size = int(settings.APP_EXTENSION_MAX_SETTINGS_JSON_SIZE)
+                if len(options_json) > max_size:
+                    errors["extensions"].append(
+                        ValidationError(
+                            f"Options field must be maximum length: {max_size}",
+                            code=AppErrorCode.INVALID.value,
+                        )
+                    )
+            except (TypeError, ValueError):
+                errors["extensions"].append(
+                    ValidationError(
+                        "Options field contains invalid JSON data.",
+                        code=AppErrorCode.INVALID.value,
+                    )
                 )
-            )
 
         _clean_extension_permissions(extension, app_permissions, errors)
 

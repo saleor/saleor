@@ -1451,3 +1451,118 @@ def test_app_fetch_manifest_extension_with_default_target(
 
     assert len(errors) == 0
     assert manifest["extensions"][0]["target"] == AppExtensionTargetEnum.POPUP.name
+
+
+def test_app_fetch_manifest_extension_options_exceeding_max_size(
+    app_manifest, monkeypatch, staff_api_client, permission_manage_apps
+):
+    # given
+    large_options = {"data": "x" * 4097}  # Exceeds 4096 character limit
+    app_manifest["extensions"] = [
+        {
+            "permissions": ["MANAGE_PRODUCTS"],
+            "label": "Extension with large options",
+            "url": "https://example.com/app",
+            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "options": large_options,
+        }
+    ]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    query = APP_FETCH_MANIFEST_MUTATION
+    manifest_url = "http://localhost:3000/configuration/manifest"
+    variables = {
+        "manifest_url": manifest_url,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "extensions"
+    assert "Options field must be maximum length" in errors[0]["message"]
+    assert errors[0]["code"] == AppErrorCode.INVALID.name
+
+
+def test_app_fetch_manifest_extension_options_at_max_size(
+    app_manifest, monkeypatch, staff_api_client, permission_manage_apps
+):
+    # given
+    options_at_limit = {
+        "data": "x" * 4080
+    }  # Close to 4096 but within limit when serialized
+    app_manifest["extensions"] = [
+        {
+            "permissions": ["MANAGE_PRODUCTS"],
+            "label": "Extension with options at max size",
+            "url": "https://example.com/app",
+            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "options": options_at_limit,
+        }
+    ]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    query = APP_FETCH_MANIFEST_MUTATION
+    manifest_url = "http://localhost:3000/configuration/manifest"
+    variables = {
+        "manifest_url": manifest_url,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+
+    assert len(errors) == 0
+    assert manifest["extensions"][0]["label"] == "Extension with options at max size"
+
+
+def test_app_fetch_manifest_extension_without_options(
+    app_manifest, monkeypatch, staff_api_client, permission_manage_apps
+):
+    # given
+    app_manifest["extensions"] = [
+        {
+            "permissions": ["MANAGE_PRODUCTS"],
+            "label": "Extension without options",
+            "url": "https://example.com/app",
+            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+        }
+    ]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    query = APP_FETCH_MANIFEST_MUTATION
+    manifest_url = "http://localhost:3000/configuration/manifest"
+    variables = {
+        "manifest_url": manifest_url,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+
+    assert len(errors) == 0
+    assert manifest["extensions"][0]["label"] == "Extension without options"
