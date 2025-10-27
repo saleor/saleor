@@ -117,14 +117,14 @@ class AppManifestExtension(BaseObjectType):
     url = graphene.String(
         description="URL of a view where extension's iframe is placed.", required=True
     )
-    # Deprecated
+    # Deprecated - typed options are now untyped settings. Remove in next minor.
     mount = graphene.Field(
         AppExtensionMountEnum,
         description="Place where given extension will be mounted.",
         required=True,
         deprecation_reason="Use `mountName` instead.",
     )
-    # Deprecated
+    # Deprecated - typed options are now untyped settings. Remove in next minor.
     target = graphene.Field(
         AppExtensionTargetEnum,
         description="Type of way how app extension will be opened.",
@@ -163,19 +163,19 @@ class AppManifestExtension(BaseObjectType):
         return resolve_app_extension_url(root)
 
 
-# Deprecated - typed options will be changed to JSON object
+# Deprecated - remove this field in next minor
 class HttpMethod(BaseEnum):
     POST = AppExtensionHttpMethod.POST
     GET = AppExtensionHttpMethod.GET
 
 
-# Deprecated - typed options will be changed to JSON object
+# Deprecated - typed options are now untyped settings. Remove in next minor.
 class NewTabTargetOptions(BaseObjectType):
     method = graphene.Field(
         HttpMethod,
         required=True,
         description="HTTP method for New Tab target (GET or POST)",
-        deprecation_reason="Options will be changed to JSON object and contract will be held by Dashboard.",
+        deprecation_reason="Use `settings` field directly.",
     )
 
     class Meta:
@@ -183,13 +183,13 @@ class NewTabTargetOptions(BaseObjectType):
         doc_category = DOC_CATEGORY_APPS
 
 
-# Deprecated - typed options will be changed to JSON object
+# Deprecated - typed options are now untyped settings. Remove in next minor.
 class WidgetTargetOptions(BaseObjectType):
     method = graphene.Field(
         HttpMethod,
         required=True,
         description="HTTP method for Widget target (GET or POST)",
-        deprecation_reason="Options will be changed to JSON object and contract will be held by Dashboard.",
+        deprecation_reason="Use `settings` field directly.",
     )
 
     class Meta:
@@ -197,13 +197,13 @@ class WidgetTargetOptions(BaseObjectType):
         doc_category = DOC_CATEGORY_APPS
 
 
-# Deprecated - typed options will be changed to JSON object
+# Deprecated - typed options are now untyped settings. Remove in next minor.
 class AppExtensionOptionsWidget(BaseObjectType):
     widget_target = graphene.Field(
         WidgetTargetOptions,
         description="Options for displaying a Widget",
         required=False,
-        deprecation_reason="Options will be changed to JSON object and contract will be held by Dashboard.",
+        deprecation_reason="Use `settings` field directly.",
     )
 
     class Meta:
@@ -211,13 +211,13 @@ class AppExtensionOptionsWidget(BaseObjectType):
         doc_category = DOC_CATEGORY_APPS
 
 
-# Deprecated - typed options will be changed to JSON object
+# Deprecated - typed options are now untyped settings. Remove in next minor.
 class AppExtensionOptionsNewTab(BaseObjectType):
     new_tab_target = graphene.Field(
         NewTabTargetOptions,
         description="Options controlling behavior of the NEW_TAB extension target",
         required=False,
-        deprecation_reason="Options will be changed to JSON object and contract will be held by Dashboard.",
+        deprecation_reason="Use `settings` field directly.",
     )
 
     class Meta:
@@ -225,7 +225,7 @@ class AppExtensionOptionsNewTab(BaseObjectType):
         doc_category = DOC_CATEGORY_APPS
 
 
-# Deprecated - typed options will be changed to JSON object
+# Deprecated - typed options are now untyped settings. Remove in next minor.
 class AppExtensionPossibleOptions(graphene.Union):
     class Meta:
         types = (AppExtensionOptionsWidget, AppExtensionOptionsNewTab)
@@ -246,7 +246,7 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     options = graphene.Field(
         AppExtensionPossibleOptions,
         description="App extension options." + ADDED_IN_322,
-        deprecation_reason="Options will be changed to JSON object and contract will be held by Dashboard.",
+        deprecation_reason="Use `settings` field instead.",
     )
 
     settings = graphene.Field(
