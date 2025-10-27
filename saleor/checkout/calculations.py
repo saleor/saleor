@@ -508,6 +508,7 @@ def _fetch_checkout_prices_if_expired(
     return checkout_info, lines
 
 
+@allow_writer()
 def recalculate_discounts(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
@@ -533,11 +534,10 @@ def recalculate_discounts(
 
     checkout.discount_price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
-    with allow_writer():
-        checkout.save(
-            update_fields=["discount_price_expiration"],
-            using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
-        )
+    checkout.save(
+        update_fields=["discount_price_expiration"],
+        using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    )
 
     return checkout_info, lines
 
