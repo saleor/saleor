@@ -521,10 +521,11 @@ def recalculate_discounts(
 
     checkout.discount_price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
-    checkout.save(
-        update_fields=["discount_price_expiration"],
-        using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    )
+    with allow_writer():
+        checkout.save(
+            update_fields=["discount_price_expiration"],
+            using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+        )
 
     return checkout_info, lines
 

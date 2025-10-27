@@ -116,7 +116,8 @@ def invalidate_checkout_prices(
     checkout = checkout_info.checkout
 
     checkout.price_expiration = timezone.now()
-    updated_fields = ["price_expiration", "last_change"]
+    checkout.discount_price_expiration = timezone.now()
+    updated_fields = ["price_expiration", "last_change", "discount_price_expiration"]
 
     if save:
         checkout.save(update_fields=updated_fields)
