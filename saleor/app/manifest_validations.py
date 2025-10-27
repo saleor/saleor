@@ -2,6 +2,7 @@ import logging
 from collections import defaultdict
 from collections.abc import Iterable
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
@@ -204,6 +205,7 @@ def _clean_extension_permissions(extension, app_permissions, errors):
     extension["permissions"] = extension_permissions
 
 
+# TODO Test with valid and invalid mount
 def _clean_extension_enum_field(enum, field_name, extension, errors):
     """Accept string values for enum fields without strict validation.
 
@@ -246,6 +248,17 @@ def _clean_extensions(manifest_data, app_permissions, errors):
                 ValidationError(
                     "Incorrect value for field: url.",
                     code=AppErrorCode.INVALID_URL_FORMAT.value,
+                )
+            )
+        extension_options = extension.get("options")
+
+        # TODO Add test
+        if len(extension_options) > settings.APP_EXTENSION_MAX_SETTINGS_JSON_SIZE:
+            errors["extensions"].append(
+                ValidationError(
+                    "Options field must be maximum length: "
+                    + settings.APP_EXTENSION_MAX_SETTINGS_JSON_SIZE,
+                    code=AppErrorCode.INVALID.value,
                 )
             )
 

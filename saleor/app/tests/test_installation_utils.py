@@ -368,7 +368,7 @@ def test_install_app_with_extension_widget(
 def test_install_app_extension_permission_out_of_scope(
     app_permissions, extension_permissions, app_manifest, app_installation, monkeypatch
 ):
-    # given - Extension permissions must be a subset of app permissions
+    # given
     label = "Create product with app"
     url = "http://127.0.0.1:8080/app-extension"
     app_manifest["permissions"] = app_permissions

@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="appextension",
             name="settings",
-            field=models.JSONField(blank=True, default=dict, max_length=4086),
+            field=models.JSONField(blank=True, default=dict),
         ),
         migrations.AlterField(
             model_name="appextension",
