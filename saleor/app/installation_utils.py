@@ -241,13 +241,12 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
-        # Manifest is already "clean" so values are snake case
         options = extension_data.get("options", {})
-        # Handle both camelCase (from manifest) and snake_case (from validated data)
-        new_tab_target = options.get("new_tab_target") or options.get("newTabTarget")
-        widget_target = options.get("widget_target") or options.get("widgetTarget")
+        new_tab_target = options.get("newTabTarget")
+        widget_target = options.get("widgetTarget")
 
-        # Ensure proper extraction of the method values from the options
+        # Once we drop typed options from schema, we will stop checking and saving
+        # this field. Now we still need to save it in the DB to properly resolve it in query
         http_target_method = None
 
         if (
