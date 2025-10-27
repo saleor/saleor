@@ -87,7 +87,6 @@ from ..webhook.dataloaders.pregenerated_payload_for_checkout_tax import (
 from .dataloaders import (
     CheckoutByTokenLoader,
     CheckoutInfoByCheckoutTokenLoader,
-    CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
     CheckoutMetadataByCheckoutIdLoader,
     TransactionItemsByCheckoutIDLoader,
@@ -119,6 +118,17 @@ def get_dataloaders_for_fetching_checkout_data(
         root.token
     )
     return address, lines, checkout_info, manager, payloads
+
+
+def get_dataloaders_for_recalculate_discounts(
+    root: models.Checkout, info: ResolveInfo
+) -> tuple[
+    Promise[list["CheckoutLineInfo"]],
+    Promise["CheckoutInfo"],
+]:
+    lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+    checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+    return lines, checkout_info
 
 
 class CheckoutLineProblemInsufficientStock(
@@ -974,7 +984,18 @@ class Checkout(ModelObjectType[models.Checkout]):
 
     @staticmethod
     def resolve_lines(root: models.Checkout, info: ResolveInfo):
-        return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+        @allow_writer_in_context(info.context)
+        def get_lines(data):
+            lines_info, checkout_info = data
+            database_connection_name = get_database_connection_name(info.context)
+            return calculations.checkout_lines(
+                lines_info=lines_info,
+                checkout_info=checkout_info,
+                database_connection_name=database_connection_name,
+            )
+
+        dataloaders = list(get_dataloaders_for_recalculate_discounts(root, info))
+        return Promise.all(dataloaders).then(get_lines)
 
     @staticmethod
     @traced_resolver
