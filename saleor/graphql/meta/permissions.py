@@ -160,7 +160,7 @@ def product_type_permissions(
 
 
 def order_permissions(_info: ResolveInfo, _object_pk: Any) -> list[BasePermissionEnum]:
-    return [OrderPermissions.MANAGE_ORDERS]
+    return [OrderPermissions.MANAGE_ORDERS, CheckoutPermissions.HANDLE_TAXES]
 
 
 def invoice_permissions(
@@ -204,7 +204,7 @@ def channel_permissions(
 def checkout_permissions(
     _info: ResolveInfo, _object_pk: Any
 ) -> list[BasePermissionEnum]:
-    return [CheckoutPermissions.MANAGE_CHECKOUTS]
+    return [CheckoutPermissions.MANAGE_CHECKOUTS, CheckoutPermissions.HANDLE_TAXES]
 
 
 def page_permissions(_info: ResolveInfo, _object_pk: Any) -> list[BasePermissionEnum]:
