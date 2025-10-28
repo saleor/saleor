@@ -139,6 +139,12 @@ class AppManifestExtension(BaseObjectType):
         required=True,
     )
 
+    settings = graphene.Field(
+        JSON,
+        description="JSON object with settings for this extension.",
+        required=False,
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_APPS
 

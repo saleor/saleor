@@ -3037,6 +3037,13 @@ type AppExtension implements Node @doc(category: "Apps") {
   """Name of the extension target in the dashboard. Replaces `target`"""
   targetName: String!
 
+  """
+  App extension settings. Replaces `options` field.
+  
+  Added in Saleor 3.22.
+  """
+  settings: JSON
+
   """The app assigned to app extension."""
   app: App!
 
@@ -3049,13 +3056,6 @@ type AppExtension implements Node @doc(category: "Apps") {
   Added in Saleor 3.22.
   """
   options: AppExtensionPossibleOptions @deprecated(reason: "Use `settings` field instead.")
-
-  """
-  App extension settings. Replaces `options` field.
-  
-  Added in Saleor 3.22.
-  """
-  settings: JSON
 }
 
 """All places where app extension can be mounted."""
@@ -3124,6 +3124,8 @@ enum AppExtensionTargetEnum @doc(category: "Apps") {
   WIDGET
 }
 
+scalar JSON
+
 union AppExtensionPossibleOptions = AppExtensionOptionsWidget | AppExtensionOptionsNewTab
 
 """Represents the options for an app extension."""
@@ -3154,8 +3156,6 @@ type NewTabTargetOptions @doc(category: "Apps") {
   """HTTP method for New Tab target (GET or POST)"""
   method: HttpMethod! @deprecated(reason: "Use `settings` field directly.")
 }
-
-scalar JSON
 
 """Represents the app's brand data."""
 type AppBrand @doc(category: "Apps") {
@@ -29866,6 +29866,9 @@ type AppManifestExtension @doc(category: "Apps") {
 
   """Name of the extension target in the dashboard. Replaces `target`"""
   targetName: String!
+
+  """JSON object with settings for this extension."""
+  settings: JSON
 }
 
 type AppManifestWebhook @doc(category: "Apps") {
