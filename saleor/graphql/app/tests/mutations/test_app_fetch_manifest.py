@@ -49,6 +49,7 @@ mutation AppFetchManifest(
         target
         mountName
         targetName
+        settings
         permissions{
           code
           name
@@ -687,6 +688,108 @@ def test_app_fetch_manifest_with_extensions(
     # Test new fields - they should return the string values (lowercase)
     assert extension["mountName"] == "PRODUCT_OVERVIEW_CREATE"
     assert extension["targetName"] == "POPUP"
+
+    # Test settings field for POPUP target (should be None)
+    assert extension["settings"] is None
+
+
+def test_app_fetch_manifest_with_widget_extension_settings(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    manifest_url = "http://localhost:3000/manifest"
+
+    app_manifest["extensions"] = [
+        {
+            "permissions": ["MANAGE_PRODUCTS"],
+            "label": "Product Widget",
+            "url": "http://127.0.0.1:8080/widget",
+            "mount": AppExtensionMountEnum.PRODUCT_DETAILS_WIDGETS.name,
+            "target": AppExtensionTargetEnum.WIDGET.name,
+            "options": {"widgetTarget": {"method": "POST"}},
+        }
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": manifest_url,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+
+    extensions = manifest["extensions"] if manifest else []
+
+    assert not errors, f"Expected no errors, got: {errors}"
+    assert len(extensions) == 1
+
+    extension = extensions[0]
+    assert extension["label"] == "Product Widget"
+    assert extension["target"] == AppExtensionTargetEnum.WIDGET.name
+
+    # Test settings field for WIDGET target
+    assert extension["settings"] == {"widgetTarget": {"method": "POST"}}
+
+
+def test_app_fetch_manifest_with_new_tab_extension_settings(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    manifest_url = "http://localhost:3000/manifest"
+
+    app_manifest["extensions"] = [
+        {
+            "permissions": ["MANAGE_ORDERS"],
+            "label": "Order Details",
+            "url": "https://127.0.0.1:8080/orders",
+            "mount": AppExtensionMountEnum.ORDER_DETAILS_MORE_ACTIONS.name,
+            "target": AppExtensionTargetEnum.NEW_TAB.name,
+            "options": {"newTabTarget": {"method": "GET"}},
+        }
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": manifest_url,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+    extensions = manifest["extensions"]
+
+    assert not errors
+    assert len(extensions) == 1
+
+    extension = extensions[0]
+    assert extension["label"] == "Order Details"
+    assert extension["target"] == AppExtensionTargetEnum.NEW_TAB.name
+
+    # Test settings field for NEW_TAB target
+    assert extension["settings"] == {"newTabTarget": {"method": "GET"}}
 
 
 def test_app_fetch_manifest_with_required_saleor_version(
