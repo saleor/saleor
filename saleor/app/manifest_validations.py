@@ -257,7 +257,9 @@ def _clean_extension_options(extension, errors):
             )
 
         # Update the extension with the validated options
-        extension["options"] = validated_options.model_dump(exclude_none=True)
+        extension["options"] = validated_options.model_dump(
+            exclude_none=True, by_alias=True
+        )
     except (ValidationError, PydanticValidationError) as e:
         errors["extensions"].append(
             ValidationError(

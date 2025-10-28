@@ -165,6 +165,11 @@ class AppManifestExtension(BaseObjectType):
     def resolve_mount_name(root, _info: ResolveInfo):
         return root.get("mount").upper()
 
+    @staticmethod
+    def resolve_settings(root, _info: ResolveInfo):
+        """Return app extension settings from manifest options field."""
+        return root.get("options")
+
 
 class HttpMethod(BaseEnum):
     POST = AppExtensionHttpMethod.POST

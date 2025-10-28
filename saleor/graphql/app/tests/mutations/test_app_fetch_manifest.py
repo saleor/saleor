@@ -689,8 +689,7 @@ def test_app_fetch_manifest_with_extensions(
     assert extension["mountName"] == "PRODUCT_OVERVIEW_CREATE"
     assert extension["targetName"] == "POPUP"
 
-    # Test settings field for POPUP target (should be None)
-    assert extension["settings"] is None
+    assert extension["settings"] == {}
 
 
 def test_app_fetch_manifest_with_widget_extension_settings(
