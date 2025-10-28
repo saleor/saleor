@@ -130,7 +130,8 @@ class AppManifestExtension(BaseObjectType):
     )
 
     mount_name = graphene.String(
-        description="Name of the extension mount point in the dashboard. Replaces `mount`",
+        description="Name of the extension mount point in the dashboard. Replaces `mount`"
+        + ADDED_IN_322,
         required=True,
     )
 

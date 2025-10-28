@@ -3031,7 +3031,11 @@ type AppExtension implements Node @doc(category: "Apps") {
   """Type of way how app extension will be opened."""
   target: AppExtensionTargetEnum! @deprecated(reason: "Use `targetName` instead.")
 
-  """Name of the extension mount point in the dashboard. Replaces `mount`"""
+  """
+  Name of the extension mount point in the dashboard. Replaces `mount`
+  
+  Added in Saleor 3.22.
+  """
   mountName: String!
 
   """Name of the extension target in the dashboard. Replaces `target`"""
@@ -29861,7 +29865,11 @@ type AppManifestExtension @doc(category: "Apps") {
   """Type of way how app extension will be opened."""
   target: AppExtensionTargetEnum! @deprecated(reason: "Use `targetName` instead.")
 
-  """Name of the extension mount point in the dashboard. Replaces `mount`"""
+  """
+  Name of the extension mount point in the dashboard. Replaces `mount`
+  
+  Added in Saleor 3.22.
+  """
   mountName: String!
 
   """Name of the extension target in the dashboard. Replaces `target`"""
