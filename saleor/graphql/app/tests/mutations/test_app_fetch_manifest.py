@@ -748,6 +748,7 @@ def test_app_fetch_manifest_with_new_tab_extension_settings(
     # given
     manifest_url = "http://localhost:3000/manifest"
 
+    app_manifest["permissions"] = ["MANAGE_ORDERS"]
     app_manifest["extensions"] = [
         {
             "permissions": ["MANAGE_ORDERS"],
