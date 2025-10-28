@@ -968,6 +968,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
             user,
             AccountPermissions.MANAGE_USERS,
             PaymentPermissions.HANDLE_PAYMENTS,
+            CheckoutPermissions.HANDLE_TAXES,
         )
         return user
 
