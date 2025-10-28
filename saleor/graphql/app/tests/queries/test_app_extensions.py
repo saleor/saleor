@@ -86,7 +86,6 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
 
     assert extension_data["options"]["widgetTarget"]["method"] == "POST"
 
-    # Test new fields
     assert extension_data["mountName"] == "PRODUCT_OVERVIEW_MORE_ACTIONS"
     assert extension_data["targetName"] == "WIDGET"
 

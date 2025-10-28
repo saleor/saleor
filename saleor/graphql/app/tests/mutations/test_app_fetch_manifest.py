@@ -685,7 +685,6 @@ def test_app_fetch_manifest_with_extensions(
     assert extension["mount"] == AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name
     assert extension["target"] == AppExtensionTargetEnum.POPUP.name
 
-    # Test new fields - they should return the string values (lowercase)
     assert extension["mountName"] == "PRODUCT_OVERVIEW_CREATE"
     assert extension["targetName"] == "POPUP"
 
@@ -738,7 +737,6 @@ def test_app_fetch_manifest_with_widget_extension_settings(
     assert extension["label"] == "Product Widget"
     assert extension["target"] == AppExtensionTargetEnum.WIDGET.name
 
-    # Test settings field for WIDGET target
     assert extension["settings"] == {"widgetTarget": {"method": "POST"}}
 
 
@@ -788,7 +786,6 @@ def test_app_fetch_manifest_with_new_tab_extension_settings(
     assert extension["label"] == "Order Details"
     assert extension["target"] == AppExtensionTargetEnum.NEW_TAB.name
 
-    # Test settings field for NEW_TAB target
     assert extension["settings"] == {"newTabTarget": {"method": "GET"}}
 
 

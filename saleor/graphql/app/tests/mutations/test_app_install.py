@@ -202,9 +202,7 @@ def test_install_app_mutation_with_extensions_and_new_fields(
     staff_user,
     monkeypatch,
 ):
-    # given - Test that manifest extensions with new fields (mountName, targetName)
-    # work correctly during app installation. We test via app fetch manifest
-    # which is part of the installation flow.
+    # given
     staff_user.user_permissions.set(
         [permission_manage_apps, permission_manage_orders, permission_manage_products]
     )
@@ -212,7 +210,6 @@ def test_install_app_mutation_with_extensions_and_new_fields(
         "manifest_url": "http://localhost:3000/manifest",
     }
 
-    # Mock manifest with extensions containing the new fields
     app_manifest_data = {
         "id": "app.test.extensions",
         "tokenTargetUrl": "http://localhost:3000/register",
@@ -230,7 +227,6 @@ def test_install_app_mutation_with_extensions_and_new_fields(
         ],
     }
 
-    # when - Test fetching manifest with extensions and new fields
     from unittest.mock import Mock
 
     from requests_hardened import HTTPSession
@@ -294,7 +290,6 @@ def test_install_app_mutation_with_extensions_and_new_fields(
     assert extension["mount"] == AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name
     assert extension["target"] == AppExtensionTargetEnum.POPUP.name
 
-    # Test new fields - they should return the string values (lowercase)
     assert extension["mountName"] == "PRODUCT_OVERVIEW_CREATE"
     assert extension["targetName"] == "POPUP"
     assert extension["permissions"][0]["code"] == "MANAGE_PRODUCTS"
