@@ -74,6 +74,10 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
 
     assert extension_data["options"]["widgetTarget"]["method"] == "POST"
 
+    # Test settings field (new field, replaces options)
+    assert extension_data["settings"] is not None
+    assert extension_data["settings"]["widgetTarget"]["method"] == "POST"
+
     # Test new fields
     assert extension_data["mountName"] == "PRODUCT_OVERVIEW_MORE_ACTIONS"
     assert extension_data["targetName"] == "WIDGET"
@@ -109,6 +113,9 @@ def test_app_extension_by_app(app, app_api_client, permission_manage_products):
     assert len(extension_data["permissions"]) == 1
     permission_code = extension_data["permissions"][0]["code"].lower()
     assert app_extension.permissions.first().codename == permission_code
+
+    # Test settings field - should be None for POPUP target
+    assert extension_data["settings"] is None
 
     # Test new fields
     assert extension_data["mountName"] == "PRODUCT_OVERVIEW_MORE_ACTIONS"
@@ -531,6 +538,13 @@ def test_app_extension_type_options(
 
     if target == AppExtensionTarget.WIDGET:
         assert extension_data["options"]["widgetTarget"]["method"] == method
+        # Test settings field has same structure as options
+        assert extension_data["settings"]["widgetTarget"]["method"] == method
+
+    if target == AppExtensionTarget.NEW_TAB:
+        assert extension_data["options"]["newTabTarget"]["method"] == method
+        # Test settings field has same structure as options
+        assert extension_data["settings"]["newTabTarget"]["method"] == method
 
     # Test new fields
     assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
