@@ -153,11 +153,11 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_target_name(root, _info: ResolveInfo):
-        return root.get("target") or "POPUP"
+        return (root.get("target") or "POPUP").upper()
 
     @staticmethod
     def resolve_mount_name(root, _info: ResolveInfo):
-        return root.get("mount")
+        return root.get("mount").upper()
 
 
 class HttpMethod(BaseEnum):
@@ -266,12 +266,14 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         return root.target
 
     @staticmethod
-    def resolve_mount_name(root, _info: ResolveInfo):
-        return root.mount
+    def resolve_mount_name(root: models.AppExtension, _info: ResolveInfo):
+        # Convert lowercase mount value to uppercase constant name
+        return root.mount.upper()
 
     @staticmethod
-    def resolve_target_name(root, _info: ResolveInfo):
-        return root.target
+    def resolve_target_name(root: models.AppExtension, _info: ResolveInfo):
+        # Convert lowercase target value to uppercase constant name
+        return root.target.upper()
 
     @staticmethod
     @app_promise_callback
@@ -324,6 +326,27 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
             return AppExtensionOptionsNewTab(
                 new_tab_target=NewTabTargetOptions(method=http_method),
             )
+
+        return None
+
+    @staticmethod
+    def resolve_settings(root: models.AppExtension, _info: ResolveInfo):
+        """Return app extension settings as plain JSON with same structure as options."""
+        http_method = root.http_target_method
+
+        if root.target == AppExtensionTarget.WIDGET:
+            return {
+                "widgetTarget": {
+                    "method": http_method,
+                }
+            }
+
+        if root.target == AppExtensionTarget.NEW_TAB:
+            return {
+                "newTabTarget": {
+                    "method": http_method,
+                }
+            }
 
         return None
 

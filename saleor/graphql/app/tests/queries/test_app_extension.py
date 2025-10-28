@@ -533,5 +533,5 @@ def test_app_extension_type_options(
         assert extension_data["options"]["widgetTarget"]["method"] == method
 
     # Test new fields
-    assert extension_data["mountName"] == app_extension.mount
-    assert extension_data["targetName"] == app_extension.target
+    assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
+    assert extension_data["targetName"] == app_extension.target.upper()
