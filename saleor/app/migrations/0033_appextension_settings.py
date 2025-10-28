@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="appextension",
             name="settings",
-            field=models.JSONField(blank=True, db_default=dict, default=dict),
+            field=models.JSONField(blank=True, db_default={}, default=dict),
         ),
     ]

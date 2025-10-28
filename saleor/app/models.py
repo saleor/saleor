@@ -173,7 +173,7 @@ class AppExtension(models.Model):
         null=True,
         choices=AppExtensionHttpMethod.CHOICES,
     )
-    settings = models.JSONField(blank=True, default=dict, db_default=dict)
+    settings = models.JSONField(blank=True, default=dict, db_default={})
 
 
 class AppInstallation(Job):
