@@ -721,6 +721,7 @@ def _resolve_checkout_delivery(
         CheckoutDeliveriesOnlyValidByCheckoutIdLoader(info.context).prime(
             checkout.pk, shipping_methods
         )
+        CheckoutInfoByCheckoutTokenLoader(info.context).clear(root.node.token)
 
         for sm in shipping_methods:
             if sm.id == assigned_delivery_id:

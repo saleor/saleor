@@ -14,7 +14,6 @@ from django.utils import timezone
 from prices import Money
 
 from ..account.models import User
-from ..checkout.fetch import update_delivery_method_lists_for_checkout_info
 from ..core.db.connection import allow_writer
 from ..core.exceptions import (
     NonExistingCheckout,
@@ -515,7 +514,6 @@ def change_shipping_address_in_checkout(
     checkout_info: "CheckoutInfo",
     address: "Address",
     store_in_user_addresses: bool,
-    lines: list["CheckoutLineInfo"],
 ):
     """Save shipping address in checkout if changed.
 
@@ -532,12 +530,7 @@ def change_shipping_address_in_checkout(
         if remove and checkout.shipping_address:
             checkout.shipping_address.delete()
         checkout.shipping_address = address
-        update_delivery_method_lists_for_checkout_info(
-            checkout_info=checkout_info,
-            collection_point=checkout_info.checkout.collection_point,
-            shipping_address=address,
-            lines=lines,
-        )
+        checkout_info.shipping_address = address
         updated_fields = ["shipping_address", "last_change"]
     if checkout.save_shipping_address != store_in_user_addresses:
         checkout.save_shipping_address = store_in_user_addresses

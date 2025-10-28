@@ -124,6 +124,7 @@ class CheckoutInfo:
     tax_configuration: "TaxConfiguration"
     discounts: list["CheckoutDiscount"]
     lines: list[CheckoutLineInfo]
+    assigned_delivery: CheckoutDelivery | None = None
     collection_point: Optional["Warehouse"] = None
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
@@ -145,7 +146,7 @@ class CheckoutInfo:
     def get_delivery_method_info(self) -> "DeliveryMethodBase":
         delivery_method: ShippingMethodData | Warehouse | None = None
 
-        if assigned_sm := self.checkout.assigned_delivery:
+        if assigned_sm := self.assigned_delivery:
             delivery_method = convert_checkout_delivery_to_shipping_method_data(
                 assigned_sm
             )
@@ -503,6 +504,7 @@ def fetch_checkout_info(
         discounts=list(checkout.discounts.all()),
         lines=lines,
         manager=manager,
+        assigned_delivery=checkout.assigned_delivery,
         collection_point=checkout.collection_point,
         voucher=voucher,
         voucher_code=voucher_code,
@@ -558,25 +560,6 @@ def fetch_external_shipping_methods_for_checkout_info(
         channel_slug=checkout_info.channel.slug,
         built_in_shipping_methods=available_built_in_methods,
     )
-
-
-# FIXME: Maciek: Rename to cc realted or extend with new model
-def update_delivery_method_lists_for_checkout_info(
-    checkout_info: "CheckoutInfo",
-    collection_point: Optional["Warehouse"],
-    shipping_address: Optional["Address"],
-    lines: list[CheckoutLineInfo],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    # Update checkout info fields with new data
-    checkout_info.collection_point = collection_point
-    checkout_info.shipping_address = shipping_address
-    checkout_info.lines = lines
-
-    try:
-        del checkout_info.valid_pick_up_points
-    except AttributeError:
-        pass
 
 
 def find_checkout_line_info(

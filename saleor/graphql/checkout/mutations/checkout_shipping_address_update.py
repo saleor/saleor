@@ -199,7 +199,6 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 checkout_info,
                 shipping_address_instance,
                 save_address,
-                lines,
             )
 
         shipping_update_fields = mark_checkout_deliveries_as_stale_if_needed(
