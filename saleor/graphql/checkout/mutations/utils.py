@@ -570,17 +570,20 @@ def assign_delivery_method_to_checkout(
                 checkout=checkout_info.checkout
             )
             checkout_info.collection_point = None
+            checkout_info.assigned_delivery = None
 
         elif isinstance(delivery_method, models.CheckoutDelivery):
             fields_to_update = assign_shipping_method_to_checkout(
                 checkout, delivery_method
             )
             checkout_info.collection_point = None
+            checkout_info.assigned_delivery = delivery_method
         elif isinstance(delivery_method, warehouse_models.Warehouse):
             fields_to_update = assign_collection_point_to_checkout(
                 checkout, delivery_method
             )
             checkout_info.shipping_address = checkout.shipping_address
+            checkout_info.assigned_delivery = None
 
         if not fields_to_update:
             return
