@@ -15,6 +15,8 @@ query ($filter: AppExtensionFilterInput){
         url
         mount
         target
+        mountName
+        targetName
         id
         accessToken
         options {
@@ -30,6 +32,7 @@ query ($filter: AppExtensionFilterInput){
           }
 
         }
+        settings
         permissions{
           code
         }
@@ -82,6 +85,10 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
     decode_token["permissions"] = ["MANAGE_PRODUCTS"]
 
     assert extension_data["options"]["widgetTarget"]["method"] == "POST"
+
+    # Test new fields
+    assert extension_data["mountName"] == app_extension.mount
+    assert extension_data["targetName"] == app_extension.target
 
 
 def test_app_extensions_app_not_active(

@@ -47,6 +47,8 @@ mutation AppFetchManifest(
         url
         mount
         target
+        mountName
+        targetName
         permissions{
           code
           name
@@ -681,6 +683,10 @@ def test_app_fetch_manifest_with_extensions(
     assert extension["url"] == "http://127.0.0.1:8080/app"
     assert extension["mount"] == AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name
     assert extension["target"] == AppExtensionTargetEnum.POPUP.name
+
+    # Test new fields - they should return the string values (lowercase)
+    assert extension["mountName"] == "PRODUCT_OVERVIEW_CREATE"
+    assert extension["targetName"] == "POPUP"
 
 
 def test_app_fetch_manifest_with_required_saleor_version(
