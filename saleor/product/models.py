@@ -253,6 +253,9 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     def __str__(self) -> str:
         return self.name
 
+    def __del__(self):
+        del self._state
+
     def get_first_image(self):
         all_media = self.media.all()
         images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
@@ -600,6 +603,9 @@ class DigitalContent(ModelWithMetadata):
     def create_new_url(self) -> "DigitalContentUrl":
         return self.urls.create()
 
+    def __del__(self):
+        del self._state
+
 
 class DigitalContentUrl(models.Model):
     token = models.UUIDField(editable=False, unique=True)
@@ -631,6 +637,9 @@ class DigitalContentUrl(models.Model):
     def get_absolute_url(self) -> str | None:
         url = reverse("digital-product", kwargs={"token": str(self.token)})
         return build_absolute_uri(url)
+
+    def __del__(self):
+        del self._state
 
 
 class ProductMedia(SortableModel, ModelWithMetadata):

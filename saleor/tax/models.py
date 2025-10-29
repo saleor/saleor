@@ -68,6 +68,9 @@ class TaxConfiguration(ModelWithMetadata):
     class Meta:
         ordering = ("pk",)
 
+    def __del__(self):
+        del self._state
+
 
 class TaxConfigurationPerCountry(models.Model):
     tax_configuration = models.ForeignKey(

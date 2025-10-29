@@ -132,6 +132,9 @@ class SiteSettings(ModelWithMetadata):
         value = str(Address(sender_name, addr_spec=sender_address))
         return value
 
+    def __del__(self):
+        del self._state
+
 
 class SiteSettingsTranslation(Translation):
     site_settings = models.ForeignKey(

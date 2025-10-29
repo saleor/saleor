@@ -407,3 +407,6 @@ class CheckoutMetadata(ModelWithMetadata):
     checkout = models.OneToOneField(
         Checkout, related_name="metadata_storage", on_delete=models.CASCADE
     )
+
+    def __del__(self):
+        del self._state

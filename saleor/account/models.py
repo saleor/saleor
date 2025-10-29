@@ -402,6 +402,9 @@ class StaffNotificationRecipient(models.Model):
     def get_email(self):
         return self.user.email if self.user else self.staff_email
 
+    def __del__(self):
+        del self._state
+
 
 class GroupManager(models.Manager):
     """The manager for the auth's Group model."""
