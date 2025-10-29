@@ -523,7 +523,7 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     expected_data = serialize("json", [order_with_lines])
 
     # when
-    with django_assert_num_queries(7):
+    with django_assert_num_queries(9):
         trigger_webhooks_async(
             expected_data,
             WebhookEventAsyncType.ORDER_CREATED,
@@ -536,7 +536,5 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     mock_async_apply.assert_called_once_with(
         kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
         queue=expected_queue_name,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+        MessageGroupId="mirumee.com:saleor.app.test",
     )

@@ -1944,7 +1944,7 @@ def test_sale_toggle(
     )
 
 
-@mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_async.delay")
+@mock.patch("saleor.plugins.webhook.plugin.send_webhook_request_async.apply_async")
 def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
@@ -1955,7 +1955,9 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
 
     # then
     mocked_webhook_send.assert_called_once_with(
-        event_delivery.pk, telemetry_context=ANY
+        kwargs={"event_delivery_id": event_delivery.pk, "telemetry_context": ANY},
+        queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
+        MessageGroupId="mirumee.com:saleor.app.test",
     )
 
 
