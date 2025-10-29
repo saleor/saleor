@@ -241,10 +241,10 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
-        # Manifest is already "clean" so values are snake case
+        # Manifest is already "clean" so values use serialization aliases (camelCase)
         options = extension_data.get("options", {})
-        new_tab_target = options.get("new_tab_target")
-        widget_target = options.get("widget_target")
+        new_tab_target = options.get("newTabTarget")
+        widget_target = options.get("widgetTarget")
 
         # Ensure proper extraction of the method values from the options
         http_target_method = None
