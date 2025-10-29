@@ -37,8 +37,8 @@ from ...tax.dataloaders import (
 from ..dataloaders import (
     ProductVariantsByProductIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
-    VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
+from ..dataloaders.products import VariantChannelListingsByProductIdLoader
 
 
 class Margin(BaseObjectType):
@@ -229,7 +229,16 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                 def load_variant_channel_listings(data):
                     tax_configs_per_country = data
 
-                    def load_default_tax_rate(variants_channel_listing):
+                    def load_default_tax_rate(
+                        variants_channel_listings: list[
+                            models.ProductVariantChannelListing
+                        ],
+                    ):
+                        variants_channel_listing = []
+                        for listing in variants_channel_listings:
+                            if listing and listing.channel_id == channel.id:
+                                variants_channel_listing.append(listing)
+
                         if not variants_channel_listing:
                             return None
 
@@ -289,8 +298,8 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                         )
 
                     return (
-                        VariantsChannelListingByProductIdAndChannelSlugLoader(context)
-                        .load((root.product_id, channel.slug))
+                        VariantChannelListingsByProductIdLoader(context)
+                        .load(root.product_id)
                         .then(load_default_tax_rate)
                     )
 
