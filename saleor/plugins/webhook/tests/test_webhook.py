@@ -1957,7 +1957,7 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
     mocked_webhook_send.assert_called_once_with(
         kwargs={"event_delivery_id": event_delivery.pk, "telemetry_context": ANY},
         queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
-        MessageGroupId="mirumee.com:saleor.app.test",
+        MessageGroupId="mirumee.com:saleorapptest",
     )
 
 

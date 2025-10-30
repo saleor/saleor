@@ -1184,7 +1184,7 @@ def test_checkout_shipping_address_update_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="mirumee.com:saleor.app.additional",
+        MessageGroupId="mirumee.com:saleorappadditional",
     )
 
     # confirm each sync webhook was called without saving event delivery
