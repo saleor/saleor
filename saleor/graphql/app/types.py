@@ -136,13 +136,14 @@ class AppManifestExtension(BaseObjectType):
     )
 
     target_name = graphene.String(
-        description="Name of the extension target in the dashboard. Replaces `target`",
+        description="Name of the extension target in the dashboard. Replaces `target`"
+        + ADDED_IN_322,
         required=True,
     )
 
     settings = graphene.Field(
         JSON,
-        description="JSON object with settings for this extension.",
+        description="JSON object with settings for this extension." + ADDED_IN_322,
         required=False,
     )
 
@@ -168,8 +169,7 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_settings(root, _info: ResolveInfo):
-        """Return app extension settings from manifest options field."""
-        return root.get("options")
+        return root.get("settings")
 
 
 class HttpMethod(BaseEnum):
