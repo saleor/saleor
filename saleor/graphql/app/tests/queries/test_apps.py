@@ -43,6 +43,8 @@ QUERY_APPS_WITH_FILTER = """
                         url
                         mount
                         target
+                        mountName
+                        targetName
                         permissions{
                             code
                         }
@@ -331,6 +333,8 @@ QUERY_APPS_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
                         url
                         mount
                         target
+                        mountName
+                        targetName
                         permissions{
                             code
                         }

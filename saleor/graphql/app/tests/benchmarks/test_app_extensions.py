@@ -23,6 +23,8 @@ def test_app_extensions(
             url
             mount
             target
+            mountName
+            targetName
             id
             accessToken
             permissions{
@@ -103,6 +105,8 @@ def test_app_extensions_with_filter(
             target
             id
             mount
+            mountName
+            targetName
             accessToken
             permissions{
               code

@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import graphene
 
-from .....app.models import App, AppInstallation
+from .....app.models import App, AppExtension, AppInstallation
 from .....app.tasks import install_app_task
 from .....core import JobStatus
 from ....core.enums import AppErrorCode, PermissionEnum
@@ -191,3 +191,72 @@ def test_install_app_mutation_with_the_same_identifier_twice(
         "identifier: "
         "['App with the same identifier is already installed: Sample app objects']"
     )
+
+
+@patch("saleor.app.installation_utils.send_app_token", Mock())
+@patch(
+    "saleor.graphql.app.mutations.app_install.install_app_task.delay", install_app_task
+)
+def test_install_app_mutation_with_extensions_plain_string_mount_and_target(
+    permission_manage_apps,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
+):
+    staff_user.user_permissions.set(
+        [permission_manage_apps, permission_manage_products]
+    )
+    variables = {
+        "app_name": "App with extensions",
+        "manifest_url": "http://localhost:3000/manifest",
+        "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
+    }
+
+    manifest_with_extensions = {
+        "id": "test-app-plain-strings",
+        "tokenTargetUrl": "http://localhost:3000/register",
+        "name": "Test App with Plain String Extensions",
+        "version": "1.0.0",
+        "extensions": [
+            {
+                "label": "First Extension",
+                "url": "https://example.com/extension1",
+                "mount": "plain_mount",
+                "target": "plain_target",
+                "options": {},
+            },
+            {
+                "label": "Second Extension",
+                "url": "https://example.com/extension2",
+                "mount": "custom_mount_value",
+                "target": "custom_target_value",
+                "options": {},
+            },
+        ],
+    }
+
+    # when
+    with patch("saleor.app.installation_utils.fetch_manifest") as mocked_fetch:
+        mocked_fetch.return_value = manifest_with_extensions
+        data = _mutate_app_install(staff_api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["appInstallation"]["status"] == JobStatus.PENDING.upper()
+
+    app = App.objects.get()
+    assert app.identifier == "test-app-plain-strings"
+    assert app.name == "App with extensions"
+
+    extensions = AppExtension.objects.filter(app=app).order_by("label")
+    assert extensions.count() == 2
+
+    ext1 = extensions[0]
+    assert ext1.label == "First Extension"
+    assert ext1.mount == "plain_mount"
+    assert ext1.target == "plain_target"
+
+    ext2 = extensions[1]
+    assert ext2.label == "Second Extension"
+    assert ext2.mount == "custom_mount_value"
+    assert ext2.target == "custom_target_value"

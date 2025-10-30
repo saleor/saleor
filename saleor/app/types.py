@@ -5,6 +5,7 @@ class AppType:
     CHOICES = [(LOCAL, "local"), (THIRDPARTY, "thirdparty")]
 
 
+# Deprecated, will be removed from schema and contract will be kept between Dashboard and Apps
 class AppExtensionMount:
     """All places where app extension can be mounted."""
 
@@ -123,6 +124,7 @@ class AppExtensionMount:
     ]
 
 
+# Deprecated, will be removed from schema and contract will be kept between Dashboard and Apps
 class AppExtensionTarget:
     """All available ways of opening an app extension.
 

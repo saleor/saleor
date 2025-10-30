@@ -47,6 +47,8 @@ QUERY_APP = """
                 url
                 mount
                 target
+                mountName
+                targetName
                 permissions{
                     code
                 }
@@ -422,6 +424,8 @@ QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
                 url
                 mount
                 target
+                mountName
+                targetName
                 permissions{
                     code
                 }
