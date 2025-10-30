@@ -19,6 +19,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db.models import Count
 from django.urls import reverse
+from django.utils.text import slugify
 from google.cloud import pubsub_v1
 from requests import RequestException
 from requests_hardened.ip_filter import InvalidIPAddress
@@ -658,3 +659,9 @@ def get_meta_description_key(app: App) -> str:
 def to_payment_app_id(app: "App", external_id: str) -> "str":
     app_identifier = app.identifier or app.id
     return f"{APP_ID_PREFIX}:{app_identifier}:{external_id}"
+
+
+def get_sqs_message_group_id(domain: str, app: "App") -> str:
+    identifier = slugify(app.identifier) if app.identifier else app.id
+    group_id = f"{domain}:{identifier}"
+    return group_id[:128]  # SQS MessageGroupId max length is 128 chars
