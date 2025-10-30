@@ -164,7 +164,7 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_mount_name(root, _info: ResolveInfo):
-        return root.get("mount").upper()
+        return root["mount"].upper()
 
     @staticmethod
     def resolve_settings(root, _info: ResolveInfo):
