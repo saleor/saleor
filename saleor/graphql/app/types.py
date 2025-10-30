@@ -172,7 +172,7 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_settings(root, _info: ResolveInfo):
-        return root.get("settings")
+        return root.get("options")
 
 
 class HttpMethod(BaseEnum):
