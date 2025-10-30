@@ -51,6 +51,7 @@ from ..utils import (
     delivery_update,
     get_delivery_for_webhook,
     get_multiple_deliveries_for_webhooks,
+    get_sqs_message_group_id,
     handle_webhook_retry,
     prepare_deferred_payload_data,
     send_webhook_using_scheme_method,
@@ -423,8 +424,7 @@ def trigger_webhooks_async_for_multiple_objects(
         )
     domain = get_domain()
     for delivery in deliveries:
-        app = delivery.webhook.app
-        message_group_id = f"{domain}:{app.identifier or app.id}"
+        message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
         send_webhook_request_async.apply_async(
             kwargs={
                 "event_delivery_id": delivery.pk,
@@ -562,8 +562,7 @@ def generate_deferred_payloads(
     domain = get_domain()
     for delivery in event_deliveries_for_bulk_update:
         # Trigger webhook delivery task when the payload is ready.
-        app = delivery.webhook.app
-        message_group_id = f"{domain}:{app.identifier or app.id}"
+        message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
         send_webhook_request_async.apply_async(
             kwargs={
                 "event_delivery_id": delivery.pk,
