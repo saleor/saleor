@@ -19,6 +19,7 @@ from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.urls import reverse
+from django.utils.text import slugify
 from google.cloud import pubsub_v1
 from requests import RequestException
 from requests_hardened.ip_filter import InvalidIPAddress
@@ -697,3 +698,9 @@ def parse_list_payment_gateways_response(
                 )
             )
     return gateways
+
+
+def get_sqs_message_group_id(domain: str, app: "App") -> str:
+    identifier = slugify(app.identifier) if app.identifier else app.id
+    group_id = f"{domain}:{identifier}"
+    return group_id[:128]  # SQS MessageGroupId max length is 128 chars

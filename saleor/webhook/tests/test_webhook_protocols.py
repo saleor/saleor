@@ -536,5 +536,5 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     mock_async_apply.assert_called_once_with(
         kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
         queue=expected_queue_name,
-        MessageGroupId="mirumee.com:saleor.app.test",
+        MessageGroupId="mirumee.com:saleorapptest",
     )

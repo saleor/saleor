@@ -454,7 +454,7 @@ def test_expire_orders_task_do_not_call_sync_webhooks(
             call(
                 kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-                MessageGroupId="mirumee.com:saleor.app.additional",
+                MessageGroupId="mirumee.com:saleorappadditional",
             )
             for delivery in order_deliveries
         ],
@@ -828,7 +828,7 @@ def test_send_order_updated(
             "telemetry_context": ANY,
         },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="mirumee.com:saleor.app.additional",
+        MessageGroupId="mirumee.com:saleorappadditional",
     )
 
     # confirm each sync webhook was called without saving event delivery
