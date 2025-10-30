@@ -3038,11 +3038,19 @@ type AppExtension implements Node @doc(category: "Apps") {
   """
   mountName: String!
 
-  """Name of the extension target in the dashboard. Replaces `target`"""
+  """
+  Name of the extension target in the dashboard. Replaces `target`
+  
+  Added in Saleor 3.22.
+  """
   targetName: String!
 
-  """JSON object with settings for this extension."""
-  settings: JSON
+  """
+  JSON object with settings for this extension.
+  
+  Added in Saleor 3.22.
+  """
+  settings: JSON!
 
   """The app assigned to app extension."""
   app: App!
@@ -29868,11 +29876,19 @@ type AppManifestExtension @doc(category: "Apps") {
   """
   mountName: String!
 
-  """Name of the extension target in the dashboard. Replaces `target`"""
+  """
+  Name of the extension target in the dashboard. Replaces `target`
+  
+  Added in Saleor 3.22.
+  """
   targetName: String!
 
-  """JSON object with settings for this extension."""
-  settings: JSON
+  """
+  JSON object with settings for this extension.
+  
+  Added in Saleor 3.22.
+  """
+  settings: JSON!
 }
 
 type AppManifestWebhook @doc(category: "Apps") {
