@@ -16,6 +16,7 @@ from ..utils import (
     create_attempt,
     get_delivery_for_webhook,
     get_multiple_deliveries_for_webhooks,
+    get_sqs_message_group_id,
     handle_webhook_retry,
     send_webhook_using_aws_sqs,
 )
@@ -355,3 +356,21 @@ def test_truncate_attempt_response(
     # then
     attempt.refresh_from_db(fields=["response"])
     assert attempt.response == expected_attempt_response
+
+
+@pytest.mark.parametrize(
+    ("app_identifier", "expected_slug"),
+    [
+        ("", None),
+        ("a" * 200, "a" * 116),  # 128 - 12 (length of `example.com:`)
+        ("App with spaces", "app-with-spaces"),
+        ("App@With#Special$Chars!", "appwithspecialchars"),
+    ],
+)
+def test_get_sqs_message_group_id(app, app_identifier, expected_slug):
+    app.identifier = app_identifier
+    app.save(update_fields=["identifier"])
+
+    message_group_id = get_sqs_message_group_id("example.com", app)
+
+    assert message_group_id == f"example.com:{expected_slug or app.id}"
