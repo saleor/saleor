@@ -50,6 +50,7 @@ from ..payment.interface import (
 )
 from ..tax.utils import calculate_tax_rate
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
+from .const import GIFT_CARD_PAYMENT_GATEWAY_ID, GIFT_CARD_PAYMENT_GATEWAY_NAME
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -2582,6 +2583,24 @@ class PluginsManager(PaymentInterface):
                     previous_value=None,
                 )
             )
+
+        if (
+            currency
+            and Channel.objects.using(self.database)
+            .filter(currency_code=currency)
+            .exists()
+        ):
+            gateways.extend(
+                [
+                    PaymentGateway(
+                        id=GIFT_CARD_PAYMENT_GATEWAY_ID,
+                        name=GIFT_CARD_PAYMENT_GATEWAY_NAME,
+                        currencies=[currency],
+                        config=[],
+                    )
+                ]
+            )
+
         return gateways
 
     def list_shipping_methods_for_checkout(

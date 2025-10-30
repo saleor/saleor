@@ -36,6 +36,7 @@ from ...payment.interface import (
 from ...product.models import Product
 from ...shipping.interface import ShippingMethodData
 from ..base_plugin import ExternalAccessTokens
+from ..const import GIFT_CARD_PAYMENT_GATEWAY_ID, GIFT_CARD_PAYMENT_GATEWAY_NAME
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
@@ -744,6 +745,12 @@ def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways
             name=ActiveDummyPaymentGateway.PLUGIN_NAME,
             config=ActiveDummyPaymentGateway.CLIENT_CONFIG,
             currencies=ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
+        ),
+        PaymentGateway(
+            id=GIFT_CARD_PAYMENT_GATEWAY_ID,
+            name=GIFT_CARD_PAYMENT_GATEWAY_NAME,
+            currencies=["USD"],
+            config=[],
         ),
     ]
 

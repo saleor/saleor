@@ -7,6 +7,10 @@ from django_countries import countries
 from ..... import __version__
 from .....core.tests.test_taxes import app_factory, tax_app_factory  # noqa: F401
 from .....permission.enums import get_permissions_codename
+from .....plugins.const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+)
 from .....shipping import PostalCodeRuleInclusionType
 from .....shipping.models import ShippingMethod
 from ....account.enums import CountryCodeEnum
@@ -592,10 +596,12 @@ def test_query_available_payment_gateways_specified_currency_USD(
     assert {gateway["id"] for gateway in data} == {
         "mirumee.payments.dummy",
         "sampleDummy.active",
+        GIFT_CARD_PAYMENT_GATEWAY_ID,
     }
     assert {gateway["name"] for gateway in data} == {
         "Dummy",
         "SampleDummy",
+        GIFT_CARD_PAYMENT_GATEWAY_NAME,
     }
 
 

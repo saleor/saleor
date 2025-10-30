@@ -20,6 +20,7 @@ from ..permission.enums import (
     split_permission_codename,
 )
 from ..permission.models import Permission
+from ..plugins.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
@@ -196,6 +197,15 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
                 code=AppErrorCode.UNIQUE.value,
             )
         )
+
+    if manifest_data.get("id") == GIFT_CARD_PAYMENT_GATEWAY_ID:
+        errors["identifier"].append(
+            ValidationError(
+                "App with this identifier cannot be installed",
+                code=AppErrorCode.UNIQUE.value,
+            )
+        )
+
     if not errors:
         _clean_extensions(manifest_data, app_permissions, errors)
         _clean_webhooks(manifest_data, errors)

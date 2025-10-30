@@ -42,6 +42,10 @@ from ....payment.interface import (
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
 )
+from ....plugins.const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+)
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import (
@@ -187,6 +191,18 @@ def expected_dummy_gateway():
     }
 
 
+@pytest.fixture
+def expected_gift_card_payment_gateway():
+    return {
+        "config": [],
+        "currencies": [
+            "USD",
+        ],
+        "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+        "name": GIFT_CARD_PAYMENT_GATEWAY_NAME,
+    }
+
+
 GET_CHECKOUT_PAYMENTS_QUERY = """
 query getCheckoutPayments($id: ID) {
     checkout(id: $id) {
@@ -208,6 +224,7 @@ def test_checkout_available_payment_gateways(
     api_client,
     checkout_with_item,
     expected_dummy_gateway,
+    expected_gift_card_payment_gateway,
 ):
     query = GET_CHECKOUT_PAYMENTS_QUERY
     variables = {"id": to_global_id_or_none(checkout_with_item)}
@@ -217,6 +234,7 @@ def test_checkout_available_payment_gateways(
     data = content["data"]["checkout"]
     assert data["availablePaymentGateways"] == [
         expected_dummy_gateway,
+        expected_gift_card_payment_gateway,
     ]
 
 
@@ -253,6 +271,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
     api_client,
     checkout_with_item,
     expected_dummy_gateway,
+    expected_gift_card_payment_gateway,
     sample_gateway,
 ):
     checkout_with_item.currency = "USD"
@@ -268,6 +287,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
     assert {gateway["id"] for gateway in data["availablePaymentGateways"]} == {
         expected_dummy_gateway["id"],
         ActiveDummyPaymentGateway.PLUGIN_ID,
+        expected_gift_card_payment_gateway["id"],
     }
 
 
