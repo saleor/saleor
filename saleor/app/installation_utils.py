@@ -297,12 +297,13 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     _, token = app.tokens.create(name="Default token")  # type: ignore[call-arg] # calling create on a related manager # noqa: E501
 
-    try:
-        send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)
-    except requests.RequestException as e:
-        fetch_brand_data_async(manifest_data, app_installation=app_installation)
-        app.delete()
-        raise e
+    if target_url := manifest_data.get("tokenTargetUrl"):
+        try:
+            send_app_token(target_url=target_url, token=token)
+        except requests.RequestException as e:
+            fetch_brand_data_async(manifest_data, app_installation=app_installation)
+            app.delete()
+            raise e
     PluginsManager(plugins=settings.PLUGINS).app_installed(app)
     fetch_brand_data_async(manifest_data, app=app)
     return app, token

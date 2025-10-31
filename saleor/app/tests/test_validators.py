@@ -260,7 +260,7 @@ def test_app_extension_options_accepts_only_one():
 @pytest.mark.parametrize(
     ("app_url", "extension_url", "should_raise"),
     [
-        (None, "/some-path", True),  # Test missing token_target_url
+        (None, "/some-path", False),  # Test missing token_target_url
         ("https://example.com", "/some-path", False),  # Test valid token_target_url
     ],
 )
@@ -384,9 +384,7 @@ def test_clean_extension_options_invalid_options():
     extension = {
         "target": AppExtensionTarget.WIDGET,
         "options": {
-            "widgetTarget": {
-                "method": "INVALID_METHOD"  # Only POST and GET are valid
-            }
+            "widgetTarget": {"method": "INVALID_METHOD"}  # Only POST and GET are valid
         },
     }
     errors = {"extensions": []}

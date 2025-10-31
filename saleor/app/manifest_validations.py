@@ -76,18 +76,12 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
     # At this point target should be already cleaned enum AppExtensionTarget
     target = extension.get("target") or AppExtensionTarget.POPUP
 
-    # Assume app URL is the one that originally received the token.
-    app_url = manifest_data.get("tokenTargetUrl")
-
     new_tab_method_post = (
         extension.get("options", {}).get("newTabTarget", {}).get("method") == "POST"
     )
     widget_method_post = (
         extension.get("options", {}).get("widgetTarget", {}).get("method") == "POST"
     )
-
-    if not app_url:
-        raise ValidationError("Manifest is invalid, token_target_url is missing")
 
     is_new_tab_post = target == AppExtensionTarget.NEW_TAB and new_tab_method_post
     is_widget_post = target == AppExtensionTarget.WIDGET and widget_method_post
@@ -99,15 +93,15 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
         logger.warning(msg)
         raise ValidationError(msg)
     elif (is_new_tab_post) or is_widget_post:
-        parsed_app_url = urlparse(app_url)
         parsed_extension_url = urlparse(extension_url)
-
         if parsed_extension_url.scheme != "https" and settings.ENABLE_SSL:
             raise ValidationError("Extension must start with https")
 
-        if parsed_app_url.hostname != parsed_extension_url.hostname:
-            raise ValidationError("Extension URL must match App URL")
-
+        # Assume app URL is the one that originally received the token.
+        if app_url := manifest_data.get("tokenTargetUrl"):
+            parsed_app_url = urlparse(app_url)
+            if parsed_app_url.hostname != parsed_extension_url.hostname:
+                raise ValidationError("Extension URL must match App URL")
     else:
         _clean_app_url(extension_url)
 
@@ -146,8 +140,8 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     _validate_required_fields(manifest_data, errors)
 
     try:
-        if "tokenTargetUrl" in manifest_data:
-            _clean_app_url(manifest_data["tokenTargetUrl"])
+        if token_target_url := manifest_data.get("tokenTargetUrl"):
+            _clean_app_url(token_target_url)
     except (ValidationError, AttributeError):
         errors["tokenTargetUrl"].append(
             ValidationError(
@@ -402,7 +396,7 @@ def _clean_webhooks(manifest_data, errors):
 
 
 def _validate_required_fields(manifest_data, errors):
-    manifest_required_fields = {"id", "version", "name", "tokenTargetUrl"}
+    manifest_required_fields = {"id", "version", "name"}
     extension_required_fields = {"label", "url", "mount"}
     webhook_required_fields = {"name", "targetUrl", "query"}
 
