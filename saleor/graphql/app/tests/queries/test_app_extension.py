@@ -112,7 +112,7 @@ def test_app_extension_by_app(app, app_api_client, permission_manage_products):
     permission_code = extension_data["permissions"][0]["code"].lower()
     assert app_extension.permissions.first().codename == permission_code
 
-    assert extension_data["settings"] is None
+    assert extension_data["settings"] == {}
 
     assert extension_data["mountName"] == "PRODUCT_OVERVIEW_MORE_ACTIONS"
     assert extension_data["targetName"] == "POPUP"
