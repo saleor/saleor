@@ -82,6 +82,7 @@ class AppExtensionOptions(BaseModel):
         NewTabTargetOptions | None,
         Field(
             validation_alias="newTabTarget",
+            serialization_alias="newTabTarget",
             description="Settings for extension target NEW_TAB",
         ),
     ] = None
@@ -89,6 +90,7 @@ class AppExtensionOptions(BaseModel):
         WidgetTargetOptions | None,
         Field(
             validation_alias="widgetTarget",
+            serialization_alias="widgetTarget",
             description="Settings for extension target WIDGET",
         ),
     ] = None
