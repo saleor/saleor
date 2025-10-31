@@ -137,7 +137,11 @@ def generate_payload_promise_from_subscription(
         if not payload:
             logger.warning(
                 "Subscription did not return a payload.",
-                extra={"query": subscription_query, "app": app_id},
+                extra={
+                    "query": subscription_query,
+                    "app": app_id,
+                    "event_type": event_type,
+                },
             )
             return None
 
@@ -215,7 +219,11 @@ def generate_payload_from_subscription(
     if not payload:
         logger.warning(
             "Subscription did not return a payload.",
-            extra={"query": subscription_query, "app": app_id},
+            extra={
+                "query": subscription_query,
+                "app": app_id,
+                "event_type": event_type,
+            },
         )
         return None
 

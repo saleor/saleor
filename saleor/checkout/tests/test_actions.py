@@ -9,6 +9,12 @@ from freezegun import freeze_time
 
 from ...core.models import EventDelivery
 from ...core.utils.events import call_event_including_protected_events
+from ...graphql.webhook.dataloaders.pregenerated_payload_for_checkout_tax import (
+    PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader,
+)
+from ...graphql.webhook.dataloaders.pregenerated_payloads_for_checkout_filter_shipping_methods import (
+    PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader,
+)
 from ...plugins.manager import get_plugins_manager
 from ...tests import race_condition
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -1924,3 +1930,71 @@ def test_transaction_amounts_for_checkout_updated_without_price_recalculation_co
     checkout.refresh_from_db()
     assert checkout.authorize_status == expected_authorize_status
     assert checkout.charge_status == expected_charge_status
+
+
+@freeze_time("2023-05-31 12:00:01")
+@patch(
+    "saleor.graphql.checkout.types.PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader",
+    wraps=PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader,
+)
+@patch(
+    "saleor.graphql.checkout.types."
+    "PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader",
+    wraps=PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@patch(
+    "saleor.checkout.actions.call_event_including_protected_events",
+    wraps=call_event_including_protected_events,
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_call_checkout_events_skips_pregenerated_payloads_in_non_deferred_async_webhooks(
+    mocked_call_event_including_protected_events,
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    mocked_pregenerated_tax_payload_loader,
+    mocked_pregenerated_filter_shipping_payload_loader,
+    checkout_with_items,
+    setup_checkout_webhooks,
+    settings,
+    django_capture_on_commit_callbacks,
+    address,
+    caplog,
+):
+    # given
+    plugins_manager = get_plugins_manager(allow_replica=False)
+    checkout_with_items.price_expiration = timezone.now()
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+
+    checkout_with_items.save(
+        update_fields=["price_expiration", "shipping_address", "billing_address"]
+    )
+
+    mocked_send_webhook_request_sync.return_value = []
+    setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        with freeze_time("2023-06-01 12:00:01"):
+            call_checkout_events(
+                plugins_manager,
+                [
+                    WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED,
+                ],
+                checkout_with_items,
+            )
+
+    # then
+    # Make sure that we didnt recieve notification about missing payloads for sync webhooks
+    # and make sure, that pregenerated payload loaders were called. Pregenerated dataloaders
+    # should skip the payload when called inside non-deferred webhook processing. This is skipped
+    # as all sync webhooks are called inside the mutation.
+    assert mocked_pregenerated_tax_payload_loader.called
+    assert mocked_pregenerated_filter_shipping_payload_loader.called
+    assert "Subscription did not return a payload." not in caplog.text
