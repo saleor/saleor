@@ -144,7 +144,7 @@ class AppManifestExtension(BaseObjectType):
     settings = graphene.Field(
         JSON,
         description="JSON object with settings for this extension." + ADDED_IN_322,
-        required=False,
+        required=True,
     )
 
     class Meta:

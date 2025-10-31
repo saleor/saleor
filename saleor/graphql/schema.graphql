@@ -29888,7 +29888,7 @@ type AppManifestExtension @doc(category: "Apps") {
   
   Added in Saleor 3.22.
   """
-  settings: JSON
+  settings: JSON!
 }
 
 type AppManifestWebhook @doc(category: "Apps") {
