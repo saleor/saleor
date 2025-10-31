@@ -22,7 +22,10 @@ from ..checkout.actions import (
     transaction_amounts_for_checkout_updated_without_price_recalculation,
     update_last_transaction_modified_at_for_checkout,
 )
-from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ..checkout.fetch import (
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ..checkout.models import Checkout
 from ..checkout.payment_utils import update_refundable_for_checkout
 from ..core.db.connection import allow_writer
@@ -706,12 +709,6 @@ def get_payment_token(payment: Payment):
     if auth_transaction is None:
         raise PaymentError("Cannot process unauthorized transaction")
     return auth_transaction.token
-
-
-def is_currency_supported(currency: str, gateway_id: str, manager: "PluginsManager"):
-    """Return true if the given gateway supports given currency."""
-    available_gateways = manager.list_payment_gateways(currency=currency)
-    return any(gateway.id == gateway_id for gateway in available_gateways)
 
 
 def price_from_minor_unit(value: str, currency: str):

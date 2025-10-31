@@ -14,6 +14,7 @@ from semantic_version.base import Range
 from .. import __version__
 from ..graphql.core.utils import str_to_enum
 from ..graphql.webhook.subscription_query import SubscriptionQuery
+from ..payment.gateway import GIFT_CARD_PAYMENT_GATEWAY_ID
 from ..permission.enums import (
     get_permissions,
     get_permissions_enum_list,
@@ -196,6 +197,15 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
                 code=AppErrorCode.UNIQUE.value,
             )
         )
+
+    if manifest_data.get("id") == GIFT_CARD_PAYMENT_GATEWAY_ID:
+        errors["identifier"].append(
+            ValidationError(
+                "App with this identifier cannot be installed",
+                code=AppErrorCode.UNIQUE.value,
+            )
+        )
+
     if not errors:
         _clean_extensions(manifest_data, app_permissions, errors)
         _clean_webhooks(manifest_data, errors)
