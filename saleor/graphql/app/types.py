@@ -144,7 +144,7 @@ class AppManifestExtension(BaseObjectType):
 
     settings = graphene.Field(
         JSON,
-        description="JSON object with settings for this extension." + ADDED_IN_322,
+        description="App extension settings. Replaces options field." + ADDED_IN_322,
         required=True,
     )
 
@@ -172,7 +172,7 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_settings(root, _info: ResolveInfo):
-        return root.get("options")
+        return root.get("options") or {}
 
 
 class HttpMethod(BaseEnum):

@@ -3046,7 +3046,7 @@ type AppExtension implements Node @doc(category: "Apps") {
   targetName: String!
 
   """
-  JSON object with settings for this extension.
+  App extension settings. Replaces options field.
   
   Added in Saleor 3.22.
   """
@@ -29884,7 +29884,7 @@ type AppManifestExtension @doc(category: "Apps") {
   targetName: String!
 
   """
-  JSON object with settings for this extension.
+  App extension settings. Replaces options field.
   
   Added in Saleor 3.22.
   """
