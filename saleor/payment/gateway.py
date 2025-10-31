@@ -600,7 +600,7 @@ def get_payment_gateways(
 ):
     """Use PluginsManager to assemble list of payment gateways.
 
-    Additionally, if there is a Channel matching given currency an additional built-in
+    Additionally, if currency is passed an additional built-in
     payment gateway dedicated for gift card payments is returned.
     """
     gateways = manager.list_payment_gateways(
