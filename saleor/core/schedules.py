@@ -125,4 +125,117 @@ class promotion_webhook_schedule(CustomSchedule):
         return schedstate(is_due, self.next_run.total_seconds())
 
 
+class SearchUpdateBaseSchedule(CustomSchedule):
+    """Base schedule for search update periodic tasks.
+
+    Arguments:
+        import_path (str): Import path of the schedule.
+        initial_timedelta (float, ~datetime.timedelta):
+            Initial time interval in seconds.
+        nowfun (Callable): Function returning the current date and time
+            (:class:`~datetime.datetime`).
+        app (Celery): Celery app instance.
+
+    """
+
+    class Meta:
+        abstract = True
+
+    def __init__(self, import_path: str, initial_timedelta, nowfun=None, app=None):
+        self.initial_timedelta: datetime.timedelta = cast(
+            datetime.timedelta, maybe_timedelta(initial_timedelta)
+        )
+        self.next_run: datetime.timedelta = self.initial_timedelta
+        super().__init__(
+            schedule=self,
+            nowfun=nowfun,
+            app=app,
+            import_path=import_path,
+        )
+
+    def are_dirty(self) -> bool:
+        raise NotImplementedError
+
+    def remaining_estimate(self, last_run_at):
+        """Estimate of next run time.
+
+        Returns when the periodic task should run next as a timedelta.
+        """
+        return remaining(
+            self.maybe_make_aware(last_run_at),
+            self.next_run,
+            self.maybe_make_aware(self.now()),
+        )
+
+    def is_due(self, last_run_at):
+        """Return tuple of ``(is_due, next_time_to_run)``.
+
+        Note:
+            Next time to run is in seconds.
+
+        """
+        last_run_at = self.maybe_make_aware(last_run_at)
+        rem_delta = self.remaining_estimate(last_run_at)
+        remaining_s = max(rem_delta.total_seconds(), 0)
+        if remaining_s == 0:
+            remaining_s = self.initial_timedelta.total_seconds()
+
+        are_marked_as_dirty = self.are_dirty()
+        return schedstate(is_due=are_marked_as_dirty, next=remaining_s)
+
+
+class page_search_update_schedule(SearchUpdateBaseSchedule):
+    def __init__(self, initial_timedelta=60, nowfun=None, app=None):
+        import_path = "saleor.core.schedules.initiated_page_search_update_schedule"
+        super().__init__(import_path, initial_timedelta, nowfun, app)
+
+    def are_dirty(self) -> bool:
+        from django.conf import settings
+
+        from ..page.models import Page
+
+        return (
+            Page.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(search_index_dirty=True)
+            .exists()
+        )
+
+
+class product_search_update_schedule(SearchUpdateBaseSchedule):
+    def __init__(self, initial_timedelta=60, nowfun=None, app=None):
+        import_path = "saleor.core.schedules.initiated_product_search_update_schedule"
+        super().__init__(import_path, initial_timedelta, nowfun, app)
+
+    def are_dirty(self) -> bool:
+        from django.conf import settings
+
+        from ..product.models import Product
+
+        return (
+            Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(search_index_dirty=True)
+            .exists()
+        )
+
+
+class gift_card_search_update_schedule(SearchUpdateBaseSchedule):
+    def __init__(self, initial_timedelta=60, nowfun=None, app=None):
+        import_path = "saleor.core.schedules.initiated_gift_card_search_update_schedule"
+        super().__init__(import_path, initial_timedelta, nowfun, app)
+
+    def are_dirty(self) -> bool:
+        from django.conf import settings
+
+        from ..giftcard.models import GiftCard
+
+        return (
+            GiftCard.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(search_index_dirty=True)
+            .exists()
+        )
+
+
 initiated_promotion_webhook_schedule = promotion_webhook_schedule()
+initiated_page_search_update_schedule = page_search_update_schedule()
+initiated_product_search_update_schedule = product_search_update_schedule()
+initiated_gift_card_search_update_schedule = gift_card_search_update_schedule()

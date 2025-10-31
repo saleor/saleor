@@ -1,12 +1,97 @@
 import datetime
 
+import pytest
 from celery.schedules import BaseSchedule
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from freezegun import freeze_time
 
 from ...discount.models import Promotion
-from ..schedules import promotion_webhook_schedule
+from ..schedules import (
+    gift_card_search_update_schedule,
+    page_search_update_schedule,
+    product_search_update_schedule,
+    promotion_webhook_schedule,
+)
+
+
+@pytest.mark.parametrize(
+    "schedule",
+    [
+        page_search_update_schedule(),
+        product_search_update_schedule(),
+        gift_card_search_update_schedule(),
+    ],
+)
+@freeze_time("2020-10-10 12:00:00")
+def test_search_update_schedule_remaining_estimate_initial_state(schedule):
+    # when
+    remaining = schedule.remaining_estimate(last_run_at=timezone.now())
+
+    # then
+    assert remaining == schedule.initial_timedelta
+
+
+@pytest.mark.parametrize(
+    "schedule",
+    [
+        page_search_update_schedule(),
+        product_search_update_schedule(),
+        gift_card_search_update_schedule(),
+    ],
+)
+@freeze_time("2020-10-10 12:00:00")
+def test_search_update_schedule_remaining_estimate(schedule):
+    # given
+    time_delta = datetime.timedelta(seconds=30)
+
+    # when
+    remaining = schedule.remaining_estimate(last_run_at=timezone.now() - time_delta)
+
+    # then
+    assert remaining == schedule.initial_timedelta - time_delta
+
+
+def test_gift_card_search_update_schedule_are_dirty(gift_card):
+    # given
+    schedule = gift_card_search_update_schedule()
+    gift_card.search_index_dirty = True
+    gift_card.save(update_fields=["search_index_dirty"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is True
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_page_search_update_schedule_are_dirty(page):
+    # given
+    schedule = page_search_update_schedule()
+    page.search_index_dirty = True
+    page.save(update_fields=["search_index_dirty"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is True
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_product_search_update_schedule_are_dirty(product):
+    # given
+    schedule = product_search_update_schedule()
+    product.search_index_dirty = True
+    product.save(update_fields=["search_index_dirty"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is True
+    assert next_run == schedule.initial_timedelta.total_seconds()
 
 
 @freeze_time("2020-10-10 12:00:00")
