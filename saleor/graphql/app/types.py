@@ -253,6 +253,7 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     settings = graphene.Field(
         JSON,
         description="App extension settings. Replaces `options` field." + ADDED_IN_322,
+        required=True,
     )
 
     class Meta:

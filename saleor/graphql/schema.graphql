@@ -3050,7 +3050,7 @@ type AppExtension implements Node @doc(category: "Apps") {
   
   Added in Saleor 3.22.
   """
-  settings: JSON
+  settings: JSON!
 
   """The app assigned to app extension."""
   app: App!
