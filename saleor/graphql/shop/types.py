@@ -9,6 +9,7 @@ from ...app.utils import get_active_tax_apps
 from ...channel import models as channel_models
 from ...core.models import ModelWithMetadata
 from ...core.utils import build_absolute_uri, get_domain, is_ssl_enabled
+from ...payment.gateway import get_payment_gateways
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AppPermission, SitePermissions, get_permissions
 from ...site import models as site_models
@@ -416,7 +417,11 @@ class Shop(graphene.ObjectType):
     def resolve_available_payment_gateways(
         _, _info, manager, currency: str | None = None, channel: str | None = None
     ):
-        return manager.list_payment_gateways(currency=currency, channel_slug=channel)
+        return get_payment_gateways(
+            manager=manager,
+            currency=currency,
+            channel_slug=channel,
+        )
 
     @staticmethod
     @traced_resolver
