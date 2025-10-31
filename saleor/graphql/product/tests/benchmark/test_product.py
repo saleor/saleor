@@ -9,9 +9,10 @@ from .....attribute.tests.model_helpers import (
     get_product_attributes,
 )
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....channel.models import Channel
 from .....core.taxes import TaxType
 from .....plugins.manager import PluginsManager
-from .....product.models import ProductMedia, ProductTranslation
+from .....product.models import ProductChannelListing, ProductMedia, ProductTranslation
 from ....tests.utils import get_graphql_content
 
 
@@ -249,11 +250,15 @@ def test_retrieve_product_media(product_list, api_client, count_queries, channel
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_retrieve_channel_listings(
+    django_assert_num_queries,
     product_list_with_many_channels,
+    product_list,
     staff_api_client,
     count_queries,
     permission_manage_products,
     channel_USD,
+    channel_JPY,
+    channel_PLN,
 ):
     query = """
         query($channel: String) {
@@ -313,15 +318,49 @@ def test_retrieve_channel_listings(
         }
     """
 
+    assert Channel.objects.count() > 1
+
     variables = {"channel": channel_USD.slug}
-    get_graphql_content(
-        staff_api_client.post_graphql(
-            query,
-            variables,
-            permissions=(permission_manage_products,),
-            check_no_permissions=False,
+
+    expected_db_queries = 14
+    with django_assert_num_queries(expected_db_queries):
+        get_graphql_content(
+            staff_api_client.post_graphql(
+                query,
+                variables,
+                permissions=(permission_manage_products,),
+                check_no_permissions=False,
+            )
         )
+
+    ProductChannelListing.objects.bulk_create(
+        [
+            ProductChannelListing(
+                product=product_list[0],
+                channel=channel_JPY,
+                is_published=True,
+            ),
+            ProductChannelListing(
+                product=product_list[1],
+                channel=channel_JPY,
+                is_published=True,
+            ),
+            ProductChannelListing(
+                product=product_list[2],
+                channel=channel_JPY,
+                is_published=True,
+            ),
+        ]
     )
+    with django_assert_num_queries(expected_db_queries):
+        get_graphql_content(
+            staff_api_client.post_graphql(
+                query,
+                variables,
+                permissions=(permission_manage_products,),
+                check_no_permissions=False,
+            )
+        )
 
 
 @pytest.mark.django_db
