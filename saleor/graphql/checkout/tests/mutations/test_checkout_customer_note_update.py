@@ -181,7 +181,7 @@ def test_checkout_customer_note_update_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        MessageGroupId="example.com:saleorappadditional",
     )
 
     # confirm each sync webhook was called without saving event delivery
