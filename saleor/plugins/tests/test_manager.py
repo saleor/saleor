@@ -719,7 +719,13 @@ def test_manager_serve_list_all_payment_gateways_specified_currency(channel_USD)
             name=ActiveDummyPaymentGateway.PLUGIN_NAME,
             config=ActiveDummyPaymentGateway.CLIENT_CONFIG,
             currencies=ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
-        )
+        ),
+        PaymentGateway(
+            id=GIFT_CARD_PAYMENT_GATEWAY_ID,
+            name=GIFT_CARD_PAYMENT_GATEWAY_NAME,
+            currencies=["EUR"],
+            config=[],
+        ),
     ]
 
     plugins = [

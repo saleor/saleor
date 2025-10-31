@@ -3,11 +3,8 @@ from collections.abc import Callable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
-from django.conf import settings
-
 from ..account.models import User
 from ..app.models import App
-from ..channel.models import Channel
 from ..checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
@@ -614,12 +611,7 @@ def get_payment_gateways(
         active_only=active_only,
     )
 
-    if (
-        currency
-        and Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(currency_code=currency)
-        .exists()
-    ):
+    if currency:
         gateways.extend(
             [
                 PaymentGateway(
