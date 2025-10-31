@@ -36,15 +36,15 @@ from ....core.db.connection import allow_writer
 from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
 from ....payment import TransactionAction
+from ....payment.gateway import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+)
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
-)
-from ....plugins.const import (
-    GIFT_CARD_PAYMENT_GATEWAY_ID,
-    GIFT_CARD_PAYMENT_GATEWAY_NAME,
 )
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
@@ -264,6 +264,7 @@ def test_checkout_available_payment_gateways_valid_info_sent(
         checkout_info=checkout_info,
         checkout_lines=checkout_lines_info,
         channel_slug=channel_slug,
+        active_only=True,
     )
 
 
