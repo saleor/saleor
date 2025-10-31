@@ -361,7 +361,7 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
                 }
             }
 
-        return None
+        return {}
 
 
 class AppExtensionCountableConnection(CountableConnection):
