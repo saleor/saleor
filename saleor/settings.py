@@ -137,6 +137,10 @@ DATABASES = {
     ),
 }
 
+# Fix for PostgreSQL cursor errors - disable server-side cursors
+DATABASES[DATABASE_CONNECTION_DEFAULT_NAME]["DISABLE_SERVER_SIDE_CURSORS"] = True
+DATABASES[DATABASE_CONNECTION_REPLICA_NAME]["DISABLE_SERVER_SIDE_CURSORS"] = True
+
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
