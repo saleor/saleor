@@ -275,14 +275,26 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
+CORS_ALLOW_ALL_ORIGINS = False
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
     "https://luxiormall.com",
+    "https://api.luxiormall.com",
+    "https://www.luxiormall.com",
     "https://admin.luxiormall.com",
-    "http://localhost:3000",
+    "https://api-luxiormall.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -523,7 +535,13 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
-ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
+ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS",
+                                        "api.luxiormall.com",
+                                        "admin.luxiormall.com",
+                                        "www.luxiormall.com"
+                                        ",luxiormall.com"
+                                        )
+)
 ALLOWED_GRAPHQL_ORIGINS: list[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 )
