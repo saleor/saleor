@@ -270,9 +270,31 @@ JWT_MANAGER_PATH = os.environ.get(
 )
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # ADD THIS LINE
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
+]
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = [
+    "https://luxiormall.com",
+    "https://admin.luxiormall.com",
+    "http://localhost:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'saleor-event-signature',
 ]
 
 ENABLE_RESTRICT_WRITER_MIDDLEWARE = get_bool_from_env(
@@ -285,6 +307,7 @@ if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
 CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.log_writer_usage"
 
 INSTALLED_APPS = [
+    "corsheaders",  # ADD THIS LINE
     # External apps that need to go before django's
     "storages",
     # Django modules
