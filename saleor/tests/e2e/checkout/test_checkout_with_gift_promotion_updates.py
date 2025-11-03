@@ -69,7 +69,7 @@ def get_checkout_with_lines(api_client, checkout_id):
 
 
 @pytest.mark.e2e
-def test_checkout_with_gift_promotion_updates_core_gift_001(
+def test_checkout_gift_promotion_update_flow(
     e2e_staff_api_client,
     e2e_not_logged_api_client,
     permission_manage_product_types_and_attributes,
@@ -78,13 +78,13 @@ def test_checkout_with_gift_promotion_updates_core_gift_001(
     permission_manage_discounts,
     shop_permissions,
 ):
-    """Test complete flow of gift promotion with updates.
+    """Test gift promotion update flow in checkout.
 
-    Verifies:
+    Checks:
     - Gift line is added when promotion is active
-    - Gift line is updated when promotion changes
-    - Discount recalculation happens correctly
-    - Checkout can be completed with gift lines
+    - Gift line updates when the promotion's gift variant changes
+    - Discount recalculation reflects updated gift variant and prices
+    - Checkout completes successfully with correct gift line in order
     """
     # Setup permissions
     permissions = [
@@ -230,7 +230,23 @@ def test_checkout_with_gift_promotion_updates_core_gift_001(
         promotion_rule_update_input,
     )
 
-    # Step 5 - Update shipping again - this should trigger discount recalculation
+    # Step 6 - Fetch checkout after promotion update.
+    # The gift line should still be the old variant (gift1), as checkout prices
+    # do not expired.
+    checkout_lines = get_checkout_with_lines(e2e_not_logged_api_client, checkout_id)
+    assert len(checkout_lines["lines"]) == 2
+
+    gift_lines = [line for line in checkout_lines["lines"] if line["isGift"]]
+    assert len(gift_lines) == 1
+
+    # Gift line should still be the original variant
+    gift_line = gift_lines[0]
+    assert gift_line["variant"]["id"] == gift1_variant_id
+    assert gift_line["unitPrice"]["gross"]["amount"] == 0
+    assert gift_line["totalPrice"]["gross"]["amount"] == 0
+    assert gift_line["undiscountedUnitPrice"]["amount"] == gift1_price
+
+    # Step 6 - Update shipping again - this should trigger discount recalculation
     # and update the gift line to new variant
     checkout_data = checkout_delivery_method_update(
         e2e_not_logged_api_client,
@@ -261,7 +277,7 @@ def test_checkout_with_gift_promotion_updates_core_gift_001(
     assert regular_line["variant"]["id"] == product_variant_id
     assert regular_line["unitPrice"]["gross"]["amount"] == variant_price
 
-    # Step 6 - Complete checkout
+    # Step 7 - Complete checkout
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
 
     # Create payment (only for regular product, gift is free)
