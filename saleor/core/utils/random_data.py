@@ -103,6 +103,7 @@ from ...shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ...site.models import SiteSettings
 from ...tax.models import TaxClass, TaxConfiguration
 from ...tax.utils import get_tax_class_kwargs_for_order_line
 from ...warehouse import WarehouseClickAndCollectOption
@@ -1787,6 +1788,29 @@ def create_pages():
         defaults["page_type_id"] = defaults.pop("page_type")
         page, _ = Page.objects.update_or_create(pk=pk, defaults=defaults)
         yield f"Page {page.slug} created"
+
+
+def create_site_settings():
+    types = get_sample_data()
+    data = types["site.sitesettings"]
+
+    fk_fields = [
+        "site",
+        "top_menu",
+        "bottom_menu",
+        "refund_reason_reference_type",
+    ]
+
+    for settings_item in data:
+        pk = settings_item["pk"]
+        defaults = dict(settings_item["fields"])
+
+        for field in fk_fields:
+            if field in defaults:
+                defaults[f"{field}_id"] = defaults.pop(field)
+
+        SiteSettings.objects.update_or_create(pk=pk, defaults=defaults)
+        yield "Site settings updated"
 
 
 def create_menus():
