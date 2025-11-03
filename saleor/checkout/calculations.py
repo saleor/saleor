@@ -389,6 +389,7 @@ def _fetch_checkout_prices_if_expired(
         checkout_info,
         lines,
         database_connection_name=database_connection_name,
+        force_update=force_update,
     )
 
     checkout.tax_error = None
@@ -514,15 +515,22 @@ def recalculate_discounts(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    force_update: bool = False,
 ) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Recalculate checkout discounts.
 
-    Discounts can be updated only if if time discount prices expired.
-    Update the catalogue promotion, voucher and order promotion discounts.
+    Discounts are recalculated only if force_update is True, or if both discount
+    and price expirations have passed.
+    This updates catalogue promotions, vouchers, and order promotion discounts.
     """
     checkout = checkout_info.checkout
 
-    if checkout.discount_price_expiration > timezone.now():
+    # Do not recalculate discounts in case the checkout prices are still valid, either
+    # discounts or tax prices.
+    if not force_update and (
+        checkout.discount_price_expiration > timezone.now()
+        or checkout.price_expiration > timezone.now()
+    ):
         return checkout_info, lines_info
 
     lines = cast(list, lines_info)

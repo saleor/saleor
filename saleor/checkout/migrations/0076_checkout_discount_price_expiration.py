@@ -15,4 +15,14 @@ class Migration(migrations.Migration):
             name="discount_price_expiration",
             field=models.DateTimeField(default=django.utils.timezone.now),
         ),
+        migrations.RunSQL(
+            sql=(
+                "ALTER TABLE checkout_checkout "
+                "ALTER COLUMN discount_price_expiration SET DEFAULT NOW();"
+            ),
+            reverse_sql=(
+                "ALTER TABLE checkout_checkout "
+                "ALTER COLUMN discount_price_expiration DROP DEFAULT;"
+            ),
+        ),
     ]
