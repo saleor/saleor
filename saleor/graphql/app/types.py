@@ -30,7 +30,7 @@ from ..core.dataloaders import DataLoader
 from ..core.descriptions import ADDED_IN_319, ADDED_IN_321, ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.scalars import DateTime
+from ..core.scalars import JSON, DateTime
 from ..core.types import (
     BaseEnum,
     BaseObjectType,
@@ -117,12 +117,34 @@ class AppManifestExtension(BaseObjectType):
     url = graphene.String(
         description="URL of a view where extension's iframe is placed.", required=True
     )
+
     mount = AppExtensionMountEnum(
         description="Place where given extension will be mounted.",
         required=True,
+        deprecation_reason="Use `mountName` instead.",
     )
     target = AppExtensionTargetEnum(
-        description="Type of way how app extension will be opened.", required=True
+        description="Type of way how app extension will be opened.",
+        required=True,
+        deprecation_reason="Use `targetName` instead.",
+    )
+
+    mount_name = graphene.String(
+        description="Name of the extension mount point in the dashboard. Replaces `mount`"
+        + ADDED_IN_322,
+        required=True,
+    )
+
+    target_name = graphene.String(
+        description="Name of the extension target in the dashboard. Replaces `target`"
+        + ADDED_IN_322,
+        required=True,
+    )
+
+    settings = graphene.Field(
+        JSON,
+        description="JSON object with settings for this extension." + ADDED_IN_322,
+        required=True,
     )
 
     class Meta:
@@ -137,6 +159,18 @@ class AppManifestExtension(BaseObjectType):
         """Return an extension URL."""
         return resolve_app_extension_url(root)
 
+    @staticmethod
+    def resolve_target_name(root, _info: ResolveInfo):
+        return (root.get("target") or "POPUP").upper()
+
+    @staticmethod
+    def resolve_mount_name(root, _info: ResolveInfo):
+        return root["mount"].upper()
+
+    @staticmethod
+    def resolve_settings(root, _info: ResolveInfo):
+        return root.get("options")
+
 
 class HttpMethod(BaseEnum):
     POST = AppExtensionHttpMethod.POST
@@ -148,6 +182,7 @@ class NewTabTargetOptions(BaseObjectType):
         HttpMethod,
         required=True,
         description="HTTP method for New Tab target (GET or POST)",
+        deprecation_reason="Use `settings` field directly.",
     )
 
     class Meta:
@@ -160,6 +195,7 @@ class WidgetTargetOptions(BaseObjectType):
         HttpMethod,
         required=True,
         description="HTTP method for Widget target (GET or POST)",
+        deprecation_reason="Use `settings` field directly.",
     )
 
     class Meta:
@@ -172,6 +208,7 @@ class AppExtensionOptionsWidget(BaseObjectType):
         WidgetTargetOptions,
         description="Options for displaying a Widget",
         required=False,
+        deprecation_reason="Use `settings` field directly.",
     )
 
     class Meta:
@@ -184,6 +221,7 @@ class AppExtensionOptionsNewTab(BaseObjectType):
         NewTabTargetOptions,
         description="Options controlling behavior of the NEW_TAB extension target",
         required=False,
+        deprecation_reason="Use `settings` field directly.",
     )
 
     class Meta:
@@ -209,6 +247,13 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     options = graphene.Field(
         AppExtensionPossibleOptions,
         description="App extension options." + ADDED_IN_322,
+        deprecation_reason="Use `settings` field instead.",
+    )
+
+    settings = graphene.Field(
+        JSON,
+        description="App extension settings. Replaces `options` field." + ADDED_IN_322,
+        required=True,
     )
 
     class Meta:
@@ -232,6 +277,16 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     @staticmethod
     def resolve_target(root, _info: ResolveInfo):
         return root.target
+
+    @staticmethod
+    def resolve_mount_name(root: models.AppExtension, _info: ResolveInfo):
+        # Convert lowercase mount value to uppercase constant name
+        return root.mount.upper()
+
+    @staticmethod
+    def resolve_target_name(root: models.AppExtension, _info: ResolveInfo):
+        # Convert lowercase target value to uppercase constant name
+        return root.target.upper()
 
     @staticmethod
     @app_promise_callback
@@ -286,6 +341,27 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
             )
 
         return None
+
+    @staticmethod
+    def resolve_settings(root: models.AppExtension, _info: ResolveInfo):
+        """Return app extension settings as plain JSON with same structure as options."""
+        http_method = root.http_target_method
+
+        if root.target == AppExtensionTarget.WIDGET:
+            return {
+                "widgetTarget": {
+                    "method": http_method,
+                }
+            }
+
+        if root.target == AppExtensionTarget.NEW_TAB:
+            return {
+                "newTabTarget": {
+                    "method": http_method,
+                }
+            }
+
+        return {}
 
 
 class AppExtensionCountableConnection(CountableConnection):

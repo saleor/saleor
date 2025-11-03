@@ -293,8 +293,8 @@ def test_clean_extension_options_valid_widget_options():
     assert "extensions" in errors
     assert len(errors["extensions"]) == 0
     assert "options" in extension
-    assert "widget_target" in extension["options"]
-    assert extension["options"]["widget_target"]["method"] == "POST"
+    assert "widgetTarget" in extension["options"]
+    assert extension["options"]["widgetTarget"]["method"] == "POST"
 
 
 def test_clean_extension_options_valid_new_tab_options():
@@ -312,8 +312,8 @@ def test_clean_extension_options_valid_new_tab_options():
     assert "extensions" in errors
     assert len(errors["extensions"]) == 0
     assert "options" in extension
-    assert "new_tab_target" in extension["options"]
-    assert extension["options"]["new_tab_target"]["method"] == "GET"
+    assert "newTabTarget" in extension["options"]
+    assert extension["options"]["newTabTarget"]["method"] == "GET"
 
 
 def test_clean_extension_options_both_targets():
