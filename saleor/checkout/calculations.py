@@ -536,12 +536,20 @@ def recalculate_discounts(
     lines = cast(list, lines_info)
     update_undiscounted_prices(checkout_info, lines)
 
-    # TODO: return from promotion the one that ends sooner, or now plus checkout ttl
-    create_or_update_discount_objects_from_promotion_for_checkout(
-        checkout_info, lines, database_connection_name
+    soonest_promotion_end_date = (
+        create_or_update_discount_objects_from_promotion_for_checkout(
+            checkout_info, lines, database_connection_name
+        )
     )
 
-    checkout.discount_price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+    if soonest_promotion_end_date is not None:
+        checkout.discount_price_expiration = min(
+            soonest_promotion_end_date, timezone.now() + settings.CHECKOUT_PRICES_TTL
+        )
+    else:
+        checkout.discount_price_expiration = (
+            timezone.now() + settings.CHECKOUT_PRICES_TTL
+        )
 
     checkout.save(
         update_fields=["discount_price_expiration"],
