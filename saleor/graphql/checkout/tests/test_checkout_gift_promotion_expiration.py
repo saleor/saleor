@@ -1,8 +1,12 @@
 from datetime import timedelta
+from unittest import mock
 
 import graphene
 from django.utils import timezone
 
+from ....discount.utils.checkout import (
+    create_or_update_discount_objects_from_promotion_for_checkout,
+)
 from ...tests.utils import get_graphql_content
 
 QUERY_CHECKOUT_BASIC_FIELDS = """
@@ -178,8 +182,16 @@ def test_checkout_gift_promotion_changed_only_line_id(
     assert checkout.price_expiration == initial_price_expiration
 
 
+@mock.patch(
+    "saleor.checkout.calculations.create_or_update_discount_objects_from_promotion_for_checkout",
+    wraps=create_or_update_discount_objects_from_promotion_for_checkout,
+)
 def test_checkout_gift_promotion_changed_with_line_prices(
-    user_api_client, checkout_with_item_and_gift_promotion, gift_promotion_rule, product
+    mocked_discount_creation,
+    user_api_client,
+    checkout_with_item_and_gift_promotion,
+    gift_promotion_rule,
+    product,
 ):
     """Test that querying line prices triggers both discount and tax recalculation.
 
@@ -250,6 +262,9 @@ def test_checkout_gift_promotion_changed_with_line_prices(
     assert checkout.discount_price_expiration > timezone.now()
     assert checkout.price_expiration > timezone.now()
 
+    # Ensure that discount recalculation called only once
+    mocked_discount_creation.assert_called_once()
+
 
 def test_checkout_gift_promotion_removed_only_line_id(
     user_api_client, checkout_with_item_and_gift_promotion, gift_promotion_rule
@@ -309,8 +324,15 @@ def test_checkout_gift_promotion_removed_only_line_id(
     assert checkout.price_expiration == initial_price_expiration
 
 
+@mock.patch(
+    "saleor.checkout.calculations.create_or_update_discount_objects_from_promotion_for_checkout",
+    wraps=create_or_update_discount_objects_from_promotion_for_checkout,
+)
 def test_checkout_gift_promotion_removed_with_line_prices(
-    user_api_client, checkout_with_item_and_gift_promotion, gift_promotion_rule
+    mocked_discount_creation,
+    user_api_client,
+    checkout_with_item_and_gift_promotion,
+    gift_promotion_rule,
 ):
     """Test that querying line prices triggers both discount and tax recalculation when gift promotion is removed.
 
@@ -363,6 +385,9 @@ def test_checkout_gift_promotion_removed_with_line_prices(
     checkout.refresh_from_db()
     assert checkout.discount_price_expiration > timezone.now()
     assert checkout.price_expiration > timezone.now()
+
+    # Ensure that discount recalculation called only once
+    mocked_discount_creation.assert_called_once()
 
 
 def test_checkout_gift_promotion_added_only_line_id(
@@ -435,8 +460,16 @@ def test_checkout_gift_promotion_added_only_line_id(
     assert checkout.price_expiration == initial_price_expiration
 
 
+@mock.patch(
+    "saleor.checkout.calculations.create_or_update_discount_objects_from_promotion_for_checkout",
+    wraps=create_or_update_discount_objects_from_promotion_for_checkout,
+)
 def test_checkout_gift_promotion_added_with_line_prices(
-    user_api_client, checkout_with_item, gift_promotion_rule, product
+    mocked_discount_creation,
+    user_api_client,
+    checkout_with_item,
+    gift_promotion_rule,
+    product,
 ):
     """Test that querying line prices triggers both discount and tax recalculation when gift promotion is added.
 
@@ -508,3 +541,6 @@ def test_checkout_gift_promotion_added_with_line_prices(
     checkout.refresh_from_db()
     assert checkout.discount_price_expiration > timezone.now()
     assert checkout.price_expiration > timezone.now()
+
+    # Ensure that discount recalculation called only once
+    mocked_discount_creation.assert_called_once()
