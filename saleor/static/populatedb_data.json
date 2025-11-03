@@ -9567,11 +9567,11 @@
     "model": "site.sitesettings",
     "pk": 1,
     "fields": {
-      "site": 1,
+      "site_id": 1,
       "header_text": "Test Saleor - a sample shop!",
       "description": "",
-      "top_menu": 1,
-      "bottom_menu": 2,
+      "top_menu_id": 1,
+      "bottom_menu_id": 2,
       "include_taxes_in_prices": true,
       "display_gross_prices": true,
       "charge_taxes_on_shipping": true,
@@ -9580,7 +9580,7 @@
       "automatic_fulfillment_digital_products": false,
       "default_digital_max_downloads": null,
       "default_digital_url_valid_days": null,
-      "company_address": null,
+      "company_address_id": null,
       "default_mail_sender_name": "",
       "default_mail_sender_address": null,
       "customer_set_password_url": null,
@@ -9593,7 +9593,8 @@
       "gift_card_expiry_type": "never_expire",
       "gift_card_expiry_period_type": null,
       "gift_card_expiry_period": null,
-      "automatically_fulfill_non_shippable_gift_card": true
+      "automatically_fulfill_non_shippable_gift_card": true,
+      "refund_reason_reference_type_id": 6
     }
   },
   {
@@ -9734,6 +9735,90 @@
     }
   },
   {
+    "model": "page.page",
+    "pk": 7,
+    "fields": {
+      "published_at": "2025-11-03T00:00:00Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "damaged-item",
+      "title": "Damaged Item",
+      "page_type": 6,
+      "content": {
+        "time": 1762137600000,
+        "blocks": [],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-11-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 8,
+    "fields": {
+      "published_at": "2025-11-03T00:00:00Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "package-lost",
+      "title": "Package Lost",
+      "page_type": 6,
+      "content": {
+        "time": 1762137600000,
+        "blocks": [],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-11-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 9,
+    "fields": {
+      "published_at": "2025-11-03T00:00:00Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "incorrect-address",
+      "title": "Incorrect Address",
+      "page_type": 6,
+      "content": {
+        "time": 1762137600000,
+        "blocks": [],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-11-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 10,
+    "fields": {
+      "published_at": "2025-11-03T00:00:00Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "package-not-picked-up-by-customer",
+      "title": "Package Not Picked Up by Customer",
+      "page_type": 6,
+      "content": {
+        "time": 1762137600000,
+        "blocks": [],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-11-03T00:00:00Z"
+    }
+  },
+  {
     "model": "page.pagetype",
     "pk": 4,
     "fields": {
@@ -9751,6 +9836,16 @@
       "metadata": {},
       "name": "Brand",
       "slug": "brand"
+    }
+  },
+  {
+    "model": "page.pagetype",
+    "pk": 6,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "name": "Refund Reason",
+      "slug": "refund-reason"
     }
   },
   {
