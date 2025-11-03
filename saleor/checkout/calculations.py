@@ -450,8 +450,9 @@ def _fetch_checkout_prices_if_expired(
             # Calculate net prices without taxes.
             _set_checkout_base_prices(checkout, checkout_info, lines)
 
-    checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
-    checkout.discount_price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+    price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+    checkout.price_expiration = price_expiration
+    checkout.discount_price_expiration = price_expiration
 
     with allow_writer():
         with transaction.atomic():
