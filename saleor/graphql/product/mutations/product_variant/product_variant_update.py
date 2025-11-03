@@ -27,7 +27,7 @@ from ....core.validators import validate_one_of_args_is_in_mutation
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
-from ...utils import clean_variant_sku, get_used_variants_attribute_values
+from ...utils import clean_variant_sku
 from ..utils import PRODUCT_VARIANT_UPDATE_FIELDS
 from . import product_variant_cleaner as cleaner
 from .product_variant_create import ProductVariantInput
@@ -118,30 +118,36 @@ class ProductVariantUpdate(DeprecatedModelMutation):
 
         cleaner.clean_weight(cleaned_input)
         cleaner.clean_quantity_limit(cleaned_input)
-        attribute_modified = cls.clean_attributes(cleaned_input, instance)
+        cls.clean_attributes(cleaned_input, instance)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
         cleaner.clean_preorder_settings(cleaned_input)
 
-        return cleaned_input, attribute_modified
+        return cleaned_input
 
     @classmethod
     def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
-        attribute_modified = False
         product = instance.product
         product_type = product.product_type
-        used_attribute_values = get_used_variants_attribute_values(product)
 
-        variant_attributes_ids = {
-            graphene.Node.to_global_id("Attribute", attr_id)
-            for attr_id in list(
-                product_type.variant_attributes.all().values_list("pk", flat=True)
-            )
+        variant_attributes_ids = set()
+        variant_attributes_external_refs = set()
+        for attr_id, external_ref in product_type.variant_attributes.values_list(
+            "id", "external_reference"
+        ):
+            if external_ref:
+                variant_attributes_external_refs.add(external_ref)
+            variant_attributes_ids.add(graphene.Node.to_global_id("Attribute", attr_id))
+
+        attributes = cleaned_input.get("attributes") or []
+        attributes_ids = {attr["id"] for attr in attributes if attr.get("id") or []}
+        attrs_external_refs = {
+            attr["external_reference"]
+            for attr in attributes
+            if attr.get("external_reference") or []
         }
-
-        attributes = cleaned_input.get("attributes")
-        attributes_ids = {attr["id"] for attr in attributes or []}
         invalid_attributes = attributes_ids - variant_attributes_ids
+        invalid_attributes |= attrs_external_refs - variant_attributes_external_refs
         if len(invalid_attributes) > 0:
             raise ValidationError(
                 "Given attributes are not a variant attributes.",
@@ -163,14 +169,6 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                             attributes, attributes_qs, creation=False
                         )
                     )
-                    # if assigned attributes is getting updated run duplicated attribute validation
-                    attribute_modified = has_input_modified_attribute_values(
-                        instance, cleaned_attributes
-                    )
-                    if attribute_modified:
-                        cleaner.validate_duplicated_attribute_values(
-                            cleaned_attributes, used_attribute_values
-                        )
                     cleaned_input["attributes"] = cleaned_attributes
 
             except ValidationError as e:
@@ -181,8 +179,6 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                     "Cannot assign attributes for product type without variants",
                     ProductErrorCode.INVALID.value,
                 )
-
-        return attribute_modified
 
     @classmethod
     def set_track_inventory(cls, _info, instance, cleaned_input):
@@ -200,8 +196,7 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         cls,
         instance_tracker: InstanceTracker,
         cleaned_input,
-        attribute_modified: bool,
-    ) -> tuple[bool, bool]:
+    ) -> tuple[bool, bool, bool]:
         instance = cast(models.ProductVariant, instance_tracker.instance)
         modified_instance_fields = instance_tracker.get_modified_fields()
         metadata_modified = (
@@ -221,9 +216,8 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                     refresh_product_search_index = True
 
             # handle attributes
+            attribute_modified = cls._save_attributes(instance, cleaned_input)
             if attribute_modified:
-                attributes_data = cleaned_input.get("attributes")
-                AttributeAssignmentMixin.save(instance, attributes_data)
                 refresh_product_search_index = True
 
             # handle product
@@ -238,7 +232,28 @@ class ProductVariantUpdate(DeprecatedModelMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            return bool(modified_instance_fields), metadata_modified
+            return bool(modified_instance_fields), metadata_modified, attribute_modified
+
+    @classmethod
+    def _save_attributes(cls, instance, cleaned_input) -> bool:
+        attribute_modified = False
+        if attributes_data := cleaned_input.get("attributes"):
+            try:
+                pre_save_bulk = AttributeAssignmentMixin.pre_save_values(
+                    instance, attributes_data
+                )
+                if attribute_modified := has_input_modified_attribute_values(
+                    instance,
+                    pre_save_bulk,
+                ):
+                    AttributeAssignmentMixin.save(
+                        instance,
+                        attributes_data,
+                        pre_save_bulk,
+                    )
+            except ValidationError as e:
+                raise ValidationError({"attributes": e}) from e
+        return attribute_modified
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input) -> models.ProductVariant:
@@ -317,15 +332,15 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         instance = cast(models.ProductVariant, instance)
         instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
 
-        cleaned_input, attribute_modified = cls.clean_input(info, instance, input)
+        cleaned_input = cls.clean_input(info, instance, input)
 
         cls.handle_metadata(instance, cleaned_input)
 
         cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
 
-        variant_modified, metadata_modified = cls._save(
-            instance_tracker, cleaned_input, attribute_modified
+        variant_modified, metadata_modified, attribute_modified = cls._save(
+            instance_tracker, cleaned_input
         )
         cls._save_m2m(info, instance, cleaned_input)
         cls._post_save_action(

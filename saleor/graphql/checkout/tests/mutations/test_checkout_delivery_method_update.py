@@ -390,6 +390,59 @@ def test_checkout_delivery_method_update_external_shipping(
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
     "clean_delivery_method"
 )
+def test_checkout_delivery_method_update_external_shipping_long_external_id(
+    mock_clean_delivery,
+    mock_send_request,
+    api_client,
+    checkout_with_item_for_cc,
+    settings,
+    shipping_app,
+    channel_USD,
+):
+    checkout = checkout_with_item_for_cc
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = True
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "A" * 700  # External ID longer than 512 characters
+    response_shipping_name = "Provider - Economy"
+    response_shipping_price = "10"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": response_shipping_name,
+            "amount": response_shipping_price,
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    errors = data["errors"]
+
+    assert not errors
+    assert (
+        PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
+    )
+    assert checkout.external_shipping_method_id == method_id
+    assert len(checkout.external_shipping_method_id) > 900
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "clean_delivery_method"
+)
 def test_checkout_delivery_method_update_external_shipping_when_invalid(
     mock_clean_delivery,
     mock_send_request,
@@ -1282,7 +1335,7 @@ def test_checkout_delivery_method_update_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        MessageGroupId="example.com:saleorappadditional",
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1376,7 +1429,7 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        MessageGroupId="example.com:saleorappadditional",
     )
 
     # Shipping sync webhooks are called twice - first call before saving the changes in
@@ -1487,7 +1540,7 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
             "telemetry_context": ANY,
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleor.app.additional",
+        MessageGroupId="example.com:saleorappadditional",
     )
 
     # confirm each sync webhook was called without saving event delivery

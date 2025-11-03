@@ -13,11 +13,14 @@ query ($id: ID!){
         url
         mount
         target
+        mountName
+        targetName
         id
         accessToken
         permissions{
             code
         }
+        settings
         options {
           ... on AppExtensionOptionsWidget{
             widgetTarget {
@@ -71,6 +74,12 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
 
     assert extension_data["options"]["widgetTarget"]["method"] == "POST"
 
+    assert extension_data["settings"] is not None
+    assert extension_data["settings"]["widgetTarget"]["method"] == "POST"
+
+    assert extension_data["mountName"] == "PRODUCT_OVERVIEW_MORE_ACTIONS"
+    assert extension_data["targetName"] == "WIDGET"
+
 
 def test_app_extension_by_app(app, app_api_client, permission_manage_products):
     # given
@@ -102,6 +111,11 @@ def test_app_extension_by_app(app, app_api_client, permission_manage_products):
     assert len(extension_data["permissions"]) == 1
     permission_code = extension_data["permissions"][0]["code"].lower()
     assert app_extension.permissions.first().codename == permission_code
+
+    assert extension_data["settings"] == {}
+
+    assert extension_data["mountName"] == "PRODUCT_OVERVIEW_MORE_ACTIONS"
+    assert extension_data["targetName"] == "POPUP"
 
 
 def test_app_extensions_app_removed_app(
@@ -515,8 +529,13 @@ def test_app_extension_type_options(
 
     assert extension_data["target"] == target.upper()
 
+    assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
+    assert extension_data["targetName"] == app_extension.target.upper()
+
     if target == AppExtensionTarget.NEW_TAB:
         assert extension_data["options"]["newTabTarget"]["method"] == method
+        assert extension_data["settings"]["newTabTarget"]["method"] == method
 
     if target == AppExtensionTarget.WIDGET:
         assert extension_data["options"]["widgetTarget"]["method"] == method
+        assert extension_data["settings"]["widgetTarget"]["method"] == method
