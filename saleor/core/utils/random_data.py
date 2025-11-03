@@ -1794,20 +1794,9 @@ def create_site_settings():
     types = get_sample_data()
     data = types["site.sitesettings"]
 
-    fk_fields = [
-        "site",
-        "top_menu",
-        "bottom_menu",
-        "refund_reason_reference_type",
-    ]
-
     for settings_item in data:
         pk = settings_item["pk"]
         defaults = dict(settings_item["fields"])
-
-        for field in fk_fields:
-            if field in defaults:
-                defaults[f"{field}_id"] = defaults.pop(field)
 
         SiteSettings.objects.update_or_create(pk=pk, defaults=defaults)
         yield "Site settings updated"
