@@ -87,7 +87,7 @@ class Checkout(models.Model):
         max_length=255, null=True, default=None, blank=True, editable=False
     )
     external_shipping_method_id = models.CharField(
-        max_length=512, null=True, default=None, blank=True, editable=False
+        max_length=1024, null=True, default=None, blank=True, editable=False
     )
 
     collection_point = models.ForeignKey(
