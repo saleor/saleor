@@ -1,7 +1,8 @@
 import graphene
 from django.db import transaction
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, prefetch_related_objects
 
+from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
 from ....core.utils.update_mutation_manager import InstanceTracker
 from ....page import models
@@ -37,10 +38,22 @@ class PageUpdate(PageCreate):
 
     @classmethod
     def clean_attributes(cls, attributes: list[dict], page_type: models.PageType):
-        attributes_qs = page_type.page_attributes.prefetch_related("values")
+        attributes_qs = page_type.page_attributes
         cleaned_attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False, is_page_attributes=True
         )
+        attributes_with_choices = [
+            attr
+            for attr, _ in cleaned_attributes
+            if attr.input_type
+            in {
+                AttributeInputType.DROPDOWN,
+                AttributeInputType.MULTISELECT,
+                AttributeInputType.SWATCH,
+                AttributeInputType.NUMERIC,
+            }
+        ]
+        prefetch_related_objects(attributes_with_choices, "values")
         return cleaned_attributes
 
     @classmethod
