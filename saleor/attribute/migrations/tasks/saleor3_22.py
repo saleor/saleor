@@ -59,7 +59,8 @@ def update_product_variant_assignment():
             )
             WHERE id IN (
                 SELECT ID FROM attribute_assignedvariantattributevalue
-                ORDER BY ID DESC
+                WHERE VARIANT_ID IS NULL
+                ORDER BY SORT_ORDER, ID DESC
                 FOR UPDATE
                 LIMIT %s
             );
