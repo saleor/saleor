@@ -37,7 +37,7 @@ def update_product_assignment():
                 WHERE id IN (
                     SELECT ID FROM attribute_assignedproductattributevalue
                     WHERE product_id IS NULL
-                    ORDER BY ID DESC
+                    ORDER BY SORT_ORDER, ID DESC
                     FOR UPDATE
                     LIMIT %s
                 );
