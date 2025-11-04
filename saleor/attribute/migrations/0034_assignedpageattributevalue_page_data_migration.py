@@ -34,7 +34,7 @@ def update_page_assignment():
                 SELECT av.id
                 FROM attribute_assignedpageattributevalue AS av
                 WHERE av.page_id IS NULL
-                ORDER BY av.id DESC
+                ORDER BY av.sort_order, av.id DESC
                 LIMIT %s
                 FOR UPDATE
             )
