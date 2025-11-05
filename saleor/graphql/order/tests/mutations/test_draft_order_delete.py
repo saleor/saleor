@@ -347,3 +347,78 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
     )
     assert not mocked_send_webhook_request_sync.called
     assert wrapped_call_order_event.called
+
+
+def test_draft_order_delete_with_voucher_and_include_draft_order_in_voucher_usage_false(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    voucher_code = voucher.codes.first()
+    order.voucher_code = voucher_code.code
+    order.save(update_fields=["voucher_code"])
+
+    # Ensure the channel flag is False
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    assert voucher_code.used == 0
+
+    query = DRAFT_ORDER_DELETE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    with pytest.raises(order._meta.model.DoesNotExist):
+        order.refresh_from_db()
+    voucher_code.refresh_from_db()
+    assert voucher_code.used == 0
+
+
+def test_draft_order_delete_with_voucher_and_include_draft_order_in_voucher_usage_true(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    voucher_code = voucher.codes.first()
+    order.voucher_code = voucher_code.code
+    order.save(update_fields=["voucher_code", "channel"])
+
+    # Ensure the channel flag is False
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+
+    voucher_code.used = 1
+    voucher_code.save(update_fields=["used"])
+
+    query = DRAFT_ORDER_DELETE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    with pytest.raises(order._meta.model.DoesNotExist):
+        order.refresh_from_db()
+    voucher_code.refresh_from_db()
+    # Voucher usage should be decremented
+    assert voucher_code.used == 0
