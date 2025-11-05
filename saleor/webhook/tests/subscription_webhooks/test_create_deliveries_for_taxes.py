@@ -291,12 +291,12 @@ def test_checkout_calculate_taxes_with_entire_order_voucher(
     checkout_with_voucher,
     tax_app,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_voucher
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 

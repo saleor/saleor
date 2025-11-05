@@ -13,10 +13,10 @@ from ..plugin import StripeGatewayPlugin
 
 
 @pytest.fixture
-def payment_stripe_for_checkout(checkout_with_items, address, shipping_method):
+def payment_stripe_for_checkout(checkout_with_items, address, checkout_delivery):
     checkout_with_items.billing_address = address
     checkout_with_items.shipping_address = address
-    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.assigned_delivery = checkout_delivery(checkout_with_items)
     checkout_with_items.email = "test@example.com"
     checkout_with_items.save()
     manager = get_plugins_manager(allow_replica=False)

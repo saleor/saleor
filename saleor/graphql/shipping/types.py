@@ -380,10 +380,14 @@ class ShippingMethod(BaseObjectType):
         Money, required=True, description="The price of selected shipping method."
     )
     maximum_order_price = graphene.Field(
-        Money, description="Maximum order price for this shipping method."
+        Money,
+        description="Maximum order price for this shipping method.",
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     minimum_order_price = graphene.Field(
-        Money, description="Minimal order price for this shipping method."
+        Money,
+        description="Minimal order price for this shipping method.",
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     active = graphene.Boolean(
         required=True,

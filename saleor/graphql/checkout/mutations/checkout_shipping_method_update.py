@@ -1,21 +1,17 @@
-from typing import TYPE_CHECKING
-
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     CheckoutInfo,
-    CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_or_fetch_checkout_deliveries,
 )
+from ....checkout.models import CheckoutDelivery
 from ....checkout.utils import (
     is_shipping_required,
 )
-from ....shipping import interface as shipping_interface
-from ....shipping import models as shipping_models
-from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
@@ -27,17 +23,12 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import WebhookEventInfo, from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ...shipping.types import ShippingMethod
 from ..types import Checkout
 from .utils import (
     ERROR_DOES_NOT_SHIP,
     assign_delivery_method_to_checkout,
-    clean_delivery_method,
     get_checkout,
 )
-
-if TYPE_CHECKING:
-    from ....plugins.manager import PluginsManager
 
 
 class CheckoutShippingMethodUpdate(BaseMutation):
@@ -82,7 +73,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         ]
 
     @staticmethod
-    def _resolve_delivery_method_type(id_) -> str | None:
+    def _resolve_delivery_method_id(id_) -> str | None:
         if id_ is None:
             return None
 
@@ -100,110 +91,35 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 }
             )
 
-        return str_type
-
-    @staticmethod
-    def _check_delivery_method(
-        checkout_info, lines, delivery_method: shipping_interface.ShippingMethodData
-    ) -> None:
-        delivery_method_is_valid = clean_delivery_method(
-            checkout_info=checkout_info,
-            method=delivery_method,
-        )
-        if not delivery_method_is_valid:
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        "This shipping method is not applicable.",
-                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
-                    )
-                }
-            )
+        return id_
 
     @classmethod
-    def get_built_in_shipping_method_as_delivery_method_data(
-        cls,
-        checkout_info,
-        shipping_method_id,
-        info: ResolveInfo,
-    ) -> shipping_interface.ShippingMethodData:
-        shipping_method: shipping_models.ShippingMethod = cls.get_node_or_error(
-            info,
-            shipping_method_id,
-            only_type=ShippingMethod,
-            field="shipping_method_id",
-            qs=shipping_models.ShippingMethod.objects.prefetch_related(
-                "postal_code_rules"
-            ),
-        )
-        listing = shipping_models.ShippingMethodChannelListing.objects.filter(
-            shipping_method=shipping_method,
-            channel=checkout_info.channel,
-        ).first()
-        if not listing:
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        "Shipping method not found for this channel.",
-                        code=CheckoutErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
-        return convert_to_shipping_method_data(shipping_method, listing)
-
-    @classmethod
-    def get_external_shipping_method_as_delivery_method_data(
-        cls,
-        checkout_info: CheckoutInfo,
-        shipping_method_id: str,
-        manager: "PluginsManager",
-    ):
-        delivery_method = manager.get_shipping_method(
-            checkout=checkout_info.checkout,
-            channel_slug=checkout_info.channel.slug,
-            shipping_method_id=shipping_method_id,
-        )
-        if delivery_method is None:
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        "This shipping method is not applicable.",
-                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
-                    )
-                }
-            )
-        return delivery_method
-
-    @classmethod
-    def get_delivery_method_data(
-        cls,
-        checkout_info: CheckoutInfo,
-        lines_info: list[CheckoutLineInfo],
-        shipping_method_id: str,
-        manager: "PluginsManager",
-        info: ResolveInfo,
-    ) -> shipping_interface.ShippingMethodData | None:
+    def get_checkout_delivery(
+        cls, checkout_info: CheckoutInfo, shipping_method_id: str | None
+    ) -> CheckoutDelivery | None:
         if shipping_method_id is None:
             return None
+        checkout_deliveries = get_or_fetch_checkout_deliveries(checkout_info)
+        internal_shipping_method_id = cls._resolve_delivery_method_id(
+            shipping_method_id
+        )
+        if internal_shipping_method_id is None:
+            return None
 
-        type_name = cls._resolve_delivery_method_type(shipping_method_id)
-        if type_name == "ShippingMethod":
-            delivery_method_data = (
-                cls.get_built_in_shipping_method_as_delivery_method_data(
-                    checkout_info, shipping_method_id, info
+        for method in checkout_deliveries:
+            if not method.active:
+                continue
+            if method.shipping_method_id == internal_shipping_method_id:
+                return method
+
+        raise ValidationError(
+            {
+                "shipping_method": ValidationError(
+                    "This shipping method is not applicable.",
+                    code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
                 )
-            )
-        else:
-            delivery_method_data = (
-                cls.get_external_shipping_method_as_delivery_method_data(
-                    checkout_info, shipping_method_id, manager
-                )
-            )
-
-        if delivery_method_data:
-            cls._check_delivery_method(checkout_info, lines_info, delivery_method_data)
-
-        return delivery_method_data
+            }
+        )
 
     @classmethod
     def perform_mutation(
@@ -250,14 +166,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     )
                 }
             )
-        delivery_method_data = cls.get_delivery_method_data(
-            checkout_info, lines, shipping_method_id, manager, info
-        )
+
+        checkout_delivery = cls.get_checkout_delivery(checkout_info, shipping_method_id)
         assign_delivery_method_to_checkout(
             checkout_info,
             lines,
             manager,
-            delivery_method_data,
+            checkout_delivery,
         )
         return CheckoutShippingMethodUpdate(
             checkout=SyncWebhookControlContext(checkout_info.checkout)

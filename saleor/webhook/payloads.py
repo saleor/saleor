@@ -37,6 +37,7 @@ from ..payment.models import Payment, TransactionItem
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product, ProductMedia, ProductVariant
 from ..shipping.interface import ShippingMethodData
+from ..shipping.models import ShippingMethod
 from ..tax.models import TaxClassCountryRate
 from ..tax.utils import get_charge_taxes_for_order
 from ..thumbnail.models import Thumbnail
@@ -329,7 +330,7 @@ def generate_order_payload(
         "number": order.number,
         "user_email": order.get_customer_email(),
         "created": order.created_at,
-        "original": graphene.Node.to_global_id("Order", order.original_id),
+        "original": graphene.Node.to_global_id("Order", order.shipping_method_id),
         "lines": json.loads(generate_order_lines_payload(lines)),
         "fulfillments": json.loads(fulfillments_data),
         "collection_point": (
@@ -555,6 +556,11 @@ def generate_checkout_payload(
             checkout.shipping_address.country.code, checkout.channel_id
         ).first()
 
+    shipping_method = None
+    if checkout.assigned_delivery and not checkout.assigned_delivery.is_external:
+        shipping_method = ShippingMethod.objects.filter(
+            id=checkout.assigned_delivery.shipping_method_id
+        ).first()
     checkout_data = serializer.serialize(
         [checkout],
         fields=checkout_fields,
@@ -572,7 +578,7 @@ def generate_checkout_payload(
         extra_dict_data={
             # Casting to list to make it json-serializable
             "shipping_method": _generate_shipping_method_payload(
-                checkout.shipping_method, checkout.channel
+                shipping_method, checkout.channel
             ),
             "lines": list(lines_dict_data),
             "collection_point": (
@@ -1332,10 +1338,10 @@ def generate_checkout_payload_for_tax_calculation(
         )
 
     # Prepare shipping data
-    shipping_method = checkout.shipping_method
+    assigned_delivery = checkout.assigned_delivery
     shipping_method_name = None
-    if shipping_method:
-        shipping_method_name = shipping_method.name
+    if assigned_delivery:
+        shipping_method_name = assigned_delivery.name
     shipping_method_amount = quantize_price(
         base_calculations.base_checkout_delivery_price(checkout_info, lines).amount,
         checkout.currency,

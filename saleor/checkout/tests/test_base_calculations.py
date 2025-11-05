@@ -636,13 +636,17 @@ def test_base_tax_rate_gross_price_zero():
     assert calculate_tax_rate(price) == Decimal("0.0")
 
 
-def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percentage):
+def test_base_checkout_total(
+    checkout_with_item, checkout_delivery, shipping_method, voucher_percentage
+):
     # given
     manager = get_plugins_manager(allow_replica=False)
     channel = checkout_with_item.channel
     currency = checkout_with_item.currency
 
-    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.assigned_delivery = checkout_delivery(
+        checkout_with_item, shipping_method
+    )
     # only line vouchers are applied on based price so this discount won't be included
     # in base price
     discount_amount = Money(5, currency)
@@ -669,7 +673,7 @@ def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percen
 
 
 def test_base_checkout_total_high_discount_on_entire_order_apply_once_per_order(
-    checkout_with_item, shipping_method, voucher_percentage
+    checkout_with_item, checkout_delivery, shipping_method, voucher_percentage
 ):
     # given
     voucher_percentage.apply_once_per_order = True
@@ -681,7 +685,9 @@ def test_base_checkout_total_high_discount_on_entire_order_apply_once_per_order(
 
     manager = get_plugins_manager(allow_replica=False)
 
-    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.assigned_delivery = checkout_delivery(
+        checkout_with_item, shipping_method
+    )
     checkout_with_item.voucher_code = voucher_percentage.code
     checkout_with_item.save(update_fields=["shipping_method", "voucher_code"])
 
@@ -704,7 +710,7 @@ def test_base_checkout_total_high_discount_on_entire_order_apply_once_per_order(
 
 
 def test_base_checkout_total_high_discount_on_shipping(
-    checkout_with_item, shipping_method, voucher_shipping_type
+    checkout_with_item, shipping_method, voucher_shipping_type, checkout_delivery
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
@@ -713,7 +719,9 @@ def test_base_checkout_total_high_discount_on_shipping(
     shipping_price = shipping_method.channel_listings.get(channel=channel).price
 
     currency = checkout_with_item.currency
-    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.assigned_delivery = checkout_delivery(
+        checkout_with_item, shipping_method
+    )
     checkout_with_item.voucher_code = voucher_shipping_type.code
     checkout_with_item.discount = shipping_price + Money(10, currency)
     checkout_with_item.save()
@@ -733,14 +741,14 @@ def test_base_checkout_total_high_discount_on_shipping(
 
 
 def test_base_checkout_total_order_discount(
-    checkout_with_item_and_order_discount, shipping_method
+    checkout_with_item_and_order_discount, shipping_method, checkout_delivery
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item_and_order_discount
     channel = checkout.channel
 
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout_lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
@@ -760,14 +768,14 @@ def test_base_checkout_total_order_discount(
 
 
 def test_checkout_total_order_discount(
-    checkout_with_item_and_order_discount, shipping_method
+    checkout_with_item_and_order_discount, shipping_method, checkout_delivery
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item_and_order_discount
     channel = checkout.channel
 
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout_lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
@@ -789,14 +797,14 @@ def test_checkout_total_order_discount(
 
 
 def test_base_checkout_total_gift_promotion(
-    checkout_with_item_and_gift_promotion, shipping_method
+    checkout_with_item_and_gift_promotion, shipping_method, checkout_delivery
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item_and_gift_promotion
     channel = checkout.channel
 
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout_lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
@@ -817,14 +825,14 @@ def test_base_checkout_total_gift_promotion(
 
 
 def test_checkout_total_gift_promotion(
-    checkout_with_item_and_gift_promotion, shipping_method
+    checkout_with_item_and_gift_promotion, shipping_method, checkout_delivery
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
     checkout = checkout_with_item_and_gift_promotion
     channel = checkout.channel
 
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout_lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 

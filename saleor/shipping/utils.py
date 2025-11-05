@@ -2,13 +2,15 @@ import logging
 from typing import TYPE_CHECKING, Optional
 
 from django_countries import countries
+from prices import Money
 
 from ..core.db.connection import allow_writer
 from ..plugins.base_plugin import ExcludedShippingMethod
+from ..tax.models import TaxClass
 from .interface import ShippingMethodData
 
 if TYPE_CHECKING:
-    from ..tax.models import TaxClass
+    from ..checkout.models import CheckoutDelivery
     from .models import ShippingMethod, ShippingMethodChannelListing
 
 
@@ -45,7 +47,6 @@ def convert_to_shipping_method_data(
         # TODO: load tax_class with data loader and pass as an argument
         with allow_writer():
             tax_class = shipping_method.tax_class
-
     return ShippingMethodData(
         id=str(shipping_method.id),
         name=shipping_method.name,
@@ -61,6 +62,29 @@ def convert_to_shipping_method_data(
         tax_class=tax_class,
         minimum_order_price=minimum_order_price,
         maximum_order_price=maximum_order_price,
+    )
+
+
+def convert_checkout_delivery_to_shipping_method_data(
+    checkout_delivery: "CheckoutDelivery",
+) -> "ShippingMethodData":
+    return ShippingMethodData(
+        id=checkout_delivery.shipping_method_id,
+        name=checkout_delivery.name,
+        description=checkout_delivery.description,
+        maximum_delivery_days=checkout_delivery.maximum_delivery_days,
+        minimum_delivery_days=checkout_delivery.minimum_delivery_days,
+        metadata=checkout_delivery.metadata,
+        private_metadata=checkout_delivery.private_metadata,
+        price=Money(checkout_delivery.price_amount, checkout_delivery.currency),
+        active=all([checkout_delivery.active, checkout_delivery.is_valid]),
+        message=checkout_delivery.message or "",
+        tax_class=TaxClass(
+            id=checkout_delivery.tax_class_id,
+            name=checkout_delivery.tax_class_name or "",
+            metadata=checkout_delivery.tax_class_metadata,
+            private_metadata=checkout_delivery.tax_class_private_metadata,
+        ),
     )
 
 

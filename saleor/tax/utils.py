@@ -284,9 +284,9 @@ def get_shipping_tax_rate_for_checkout(
             [line_info.line for line_info in lines], default_tax_rate
         )
     shipping_tax_rates: Iterable[TaxClassCountryRate] = []
-    if shipping_method := checkout_info.shipping_method:
+    if assigned_delivery := checkout_info.assigned_delivery:
         # external shipping methods do not have a way to provide tax-class
-        tax_class_id = shipping_method.tax_class_id
+        tax_class_id = assigned_delivery.tax_class_id
         if tax_class_id:
             shipping_tax_rates = TaxClassCountryRate.objects.using(
                 database_connection_name
