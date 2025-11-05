@@ -56,6 +56,7 @@ from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
+from ..shipping.interface import ShippingMethodData
 from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.utils import (
     get_shipping_tax_class_kwargs_for_order,
@@ -224,6 +225,14 @@ def _process_shipping_data_for_order(
     }
     result.update(delivery_method_info.delivery_method_order_field)
     result.update(delivery_method_info.delivery_method_name)
+
+    if isinstance(shipping_method, ShippingMethodData) and shipping_method.is_external:
+        result.update(
+            {
+                "shipping_method_metadata": shipping_method.metadata,
+                "shipping_method_private_metadata": shipping_method.private_metadata,
+            }
+        )
 
     return result
 
