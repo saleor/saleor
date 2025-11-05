@@ -390,8 +390,9 @@ def test_checkout_delivery_method_update_external_shipping_long_external_id(
     errors = data["errors"]
 
     assert not errors
-    assert checkout.external_shipping_method_id == method_id
-    assert len(checkout.external_shipping_method_id) > 900
+    assert checkout.assigned_delivery
+    assert checkout.assigned_delivery.external_shipping_method_id == method_id
+    assert len(checkout.assigned_delivery.external_shipping_method_id) > 900
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
