@@ -2587,6 +2587,8 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                     id=external_app_shipping_id,
                     name=order.shipping_method_name,
                     price=price,
+                    metadata=order.shipping_method_metadata,
+                    private_metadata=order.shipping_method_private_metadata,
                 )
 
             return tax_config.then(with_tax_config)
