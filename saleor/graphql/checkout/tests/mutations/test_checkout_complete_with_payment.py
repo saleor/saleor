@@ -88,6 +88,24 @@ MUTATION_CHECKOUT_COMPLETE = """
                         amount
                     }
                 }
+                shippingMethod {
+                    id
+                    name
+                    metadata {
+                        key
+                        value
+                    }
+                }
+                deliveryMethod {
+                    ... on ShippingMethod {
+                        id
+                        name
+                        metadata {
+                            key
+                            value
+                        }
+                    }
+                }
             }
             errors {
                 field,
@@ -5842,7 +5860,12 @@ def test_checkout_complete_with_external_shipping(
     # given
     external_shipping_method_id = "ABC"
     external_shipping_name = "Provider - Economy"
-    graphql_externa_method_id = graphene.Node.to_global_id(
+    external_shipping_metadata_key = "external_metadata_key"
+    external_shipping_metadata_value = "external_metadata_value"
+    external_shipping_metadata = {
+        external_shipping_metadata_key: external_shipping_metadata_value
+    }
+    graphql_external_method_id = graphene.Node.to_global_id(
         "app", f"{shipping_app.id}:{external_shipping_method_id}"
     )
     mock_json_response = [
@@ -5852,12 +5875,13 @@ def test_checkout_complete_with_external_shipping(
             "amount": "10",
             "currency": "USD",
             "maximum_delivery_days": "7",
+            "metadata": external_shipping_metadata,
         }
     ]
     mocked_sync_webhook.return_value = mock_json_response
 
     checkout = checkout_with_item
-    checkout.external_shipping_method_id = graphql_externa_method_id
+    checkout.external_shipping_method_id = graphql_external_method_id
     checkout.shipping_method_name = external_shipping_name
     checkout.shipping_address = address
     checkout.billing_address = address
@@ -5898,8 +5922,18 @@ def test_checkout_complete_with_external_shipping(
     order = payment.order
     assert (
         order.private_metadata[PRIVATE_META_APP_SHIPPING_ID]
-        == graphql_externa_method_id
+        == graphql_external_method_id
     )
+    assert order.shipping_method_metadata == external_shipping_metadata
+    assert data["order"]["shippingMethod"]["name"] == external_shipping_name
+    expected_metadata = [
+        {
+            "key": external_shipping_metadata_key,
+            "value": external_shipping_metadata_value,
+        }
+    ]
+    assert data["order"]["shippingMethod"]["metadata"] == expected_metadata
+    assert data["order"]["deliveryMethod"]["metadata"] == expected_metadata
 
 
 def test_checkout_complete_with_different_email_than_user_email(
