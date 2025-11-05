@@ -281,19 +281,23 @@ query OrdersQuery {
                     id
                     name
                 }
-                shippingMethod{
-                    id
-                    name
-                    price {
-                        amount
-                        currency
-                    }
-
-                }
                 deliveryMethod {
                     __typename
                     ... on ShippingMethod {
                         id
+                        name
+                        price {
+                            amount
+                            currency
+                        }
+                        metadata {
+                            key
+                            value
+                        }
+                        privateMetadata {
+                            key
+                            value
+                        }
                     }
                     ... on Warehouse {
                         id
@@ -1040,12 +1044,25 @@ def test_order_query_external_shipping_method(
     permission_group_manage_shipping,
     order_with_lines,
 ):
-    external_shipping_method_id = graphene.Node.to_global_id("app", "1:external123")
-
     # given
+    external_shipping_method_id = graphene.Node.to_global_id("app", "1:external123")
+    external_shipping_method_name = "External Shipping Method"
+    external_shipping_metadata_key = "external_metadata_key"
+    external_shipping_metadata_value = "external_metadata_value"
+    external_shipping_private_metadata_key = "external_private_metadata_key"
+    external_shipping_private_metadata_value = "external_private_metadata_value"
+
     order = order_with_lines
     order.shipping_method = None
     order.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: external_shipping_method_id}
+    order.shipping_method_name = external_shipping_method_name
+    order.shipping_method_metadata = {
+        external_shipping_metadata_key: external_shipping_metadata_value
+    }
+    order.shipping_method_private_metadata = {
+        external_shipping_private_metadata_key: external_shipping_private_metadata_value
+    }
+
     order.save()
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -1058,10 +1075,31 @@ def test_order_query_external_shipping_method(
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["shippingMethod"]["id"] == external_shipping_method_id
-    assert order_data["shippingMethod"]["name"] == order.shipping_method_name
+    assert order_data["deliveryMethod"]["id"] == external_shipping_method_id
+    assert order_data["shippingMethod"]["name"] == external_shipping_method_name
+    assert order_data["deliveryMethod"]["name"] == external_shipping_method_name
     assert order_data["shippingMethod"]["price"]["amount"] == float(
         order.shipping_price_gross.amount
     )
+    assert order_data["deliveryMethod"]["price"]["amount"] == float(
+        order.shipping_price_gross.amount
+    )
+    expected_metadata = [
+        {
+            "key": external_shipping_metadata_key,
+            "value": external_shipping_metadata_value,
+        }
+    ]
+    expected_private_metadata = [
+        {
+            "key": external_shipping_private_metadata_key,
+            "value": external_shipping_private_metadata_value,
+        }
+    ]
+    assert order_data["shippingMethod"]["metadata"] == expected_metadata
+    assert order_data["deliveryMethod"]["metadata"] == expected_metadata
+    assert order_data["shippingMethod"]["privateMetadata"] == expected_private_metadata
+    assert order_data["deliveryMethod"]["privateMetadata"] == expected_private_metadata
 
 
 def test_order_discounts_query(
