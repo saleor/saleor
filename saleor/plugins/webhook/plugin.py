@@ -137,6 +137,7 @@ from ...webhook.transport.utils import (
     from_payment_app_id,
     get_meta_code_key,
     get_meta_description_key,
+    get_sqs_message_group_id,
 )
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
@@ -2749,10 +2750,8 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
-        domain = get_domain()
         webhook = delivery.webhook
-        app = webhook.app
-        message_group_id = f"{domain}:{app.identifier or app.id}"
+        message_group_id = get_sqs_message_group_id(get_domain(), webhook.app)
         send_webhook_request_async.apply_async(
             kwargs={
                 "event_delivery_id": delivery.pk,

@@ -28,7 +28,6 @@ from ...types import ProductVariant
 from ...utils import (
     clean_variant_sku,
     create_stocks,
-    get_used_variants_attribute_values,
 )
 from ..product.product_create import StockInput
 from . import product_variant_cleaner as cleaner
@@ -156,24 +155,12 @@ class ProductVariantCreate(DeprecatedModelMutation):
     def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
         product = cls.get_product(cleaned_input)
         product_type = product.product_type
-        used_attribute_values = get_used_variants_attribute_values(product)
 
-        variant_attributes_ids = {
-            graphene.Node.to_global_id("Attribute", attr_id)
-            for attr_id in list(
-                product_type.variant_attributes.all().values_list("pk", flat=True)
-            )
-        }
-
-        attributes = cleaned_input.get("attributes")
-        attributes_ids = {attr["id"] for attr in attributes or []}
-        invalid_attributes = attributes_ids - variant_attributes_ids
-        if len(invalid_attributes) > 0:
-            raise ValidationError(
-                "Given attributes are not a variant attributes.",
-                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
-                params={"attributes": invalid_attributes},
-            )
+        attributes = cleaned_input.get("attributes") or []
+        try:
+            cleaner.clean_variant_attributes(product_type, attributes)
+        except ValidationError as e:
+            raise ValidationError({"attributes": e}) from e
 
         # Run the validation only if product type is configurable
         if product_type.has_variants:
@@ -186,9 +173,6 @@ class ProductVariantCreate(DeprecatedModelMutation):
                     attributes_qs = product_type.variant_attributes.all()
                     cleaned_attributes: T_INPUT_MAP = (
                         AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
-                    )
-                    cleaner.validate_duplicated_attribute_values(
-                        cleaned_attributes, used_attribute_values
                     )
                     cleaned_input["attributes"] = cleaned_attributes
                 elif product_type.variant_attributes.filter(value_required=True):
@@ -259,7 +243,10 @@ class ProductVariantCreate(DeprecatedModelMutation):
                 cls.create_variant_stocks(instance, stocks)
             attributes = cleaned_input.get("attributes")
             if attributes:
-                AttributeAssignmentMixin.save(instance, attributes)
+                try:
+                    AttributeAssignmentMixin.save(instance, attributes)
+                except ValidationError as e:
+                    raise ValidationError({"attributes": e}) from e
 
             if not instance.name:
                 generate_and_set_variant_name(instance, cleaned_input.get("sku"))

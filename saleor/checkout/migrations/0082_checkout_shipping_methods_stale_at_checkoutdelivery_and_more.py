@@ -10,7 +10,7 @@ import saleor.core.utils.json_serializer
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("checkout", "0080_merge_20250527_1210"),
+        ("checkout", "0081_merge_20251103_0924"),
     ]
 
     operations = [

@@ -9,7 +9,12 @@ from django.core.management.base import BaseCommand
 
 from ....account.models import Address, CustomerEvent, CustomerNote, User
 from ....checkout.models import Checkout, CheckoutLine, CheckoutMetadata
-from ....discount.models import OrderDiscount, OrderLineDiscount
+from ....discount.models import (
+    CheckoutDiscount,
+    CheckoutLineDiscount,
+    OrderDiscount,
+    OrderLineDiscount,
+)
 from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order.models import (
@@ -44,9 +49,9 @@ class Command(BaseCommand):
         self.delete_payments()
         self.delete_allocations()
         self.delete_reservations()
+        self.delete_gift_cards()
         self.delete_checkouts()
         self.delete_invoices()
-        self.delete_gift_cards()
         self.delete_orders()
         self.delete_unassigned_addresses()
 
@@ -75,6 +80,12 @@ class Command(BaseCommand):
     def delete_checkouts(self):
         metadata = CheckoutMetadata.objects.all()
         metadata._raw_delete(metadata.db)
+
+        checkout_discounts = CheckoutDiscount.objects.all()
+        checkout_discounts._raw_delete(checkout_discounts.db)
+
+        checkout_line_discounts = CheckoutLineDiscount.objects.all()
+        checkout_line_discounts._raw_delete(checkout_line_discounts.db)
 
         checkout_lines = CheckoutLine.objects.all()
         checkout_lines._raw_delete(checkout_lines.db)
@@ -117,6 +128,12 @@ class Command(BaseCommand):
 
         gift_card_tags = GiftCardTag.objects.all()
         gift_card_tags.delete()
+
+        checkout_gift_cards = Checkout.gift_cards.through.objects.all()
+        checkout_gift_cards.delete()
+
+        order_gift_cards = Order.gift_cards.through.objects.all()
+        order_gift_cards.delete()
 
         gift_cards = GiftCard.objects.all()
         gift_cards._raw_delete(gift_cards.db)

@@ -455,7 +455,7 @@ def send_order_confirmation(order_info, redirect_url, manager):
             }
             return payload
 
-        handler = NotifyHandler(_generate_payload)
+        handler = NotifyHandler(_generate_staff_payload)
         manager.notify(
             NotifyEventType.STAFF_ORDER_CONFIRMATION, payload_func=handler.payload
         )

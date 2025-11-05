@@ -192,7 +192,8 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     ):
         errors["identifier"].append(
             ValidationError(
-                f"App with the same identifier is already installed: {app.name}"
+                f"App with the same identifier is already installed: {app.name}",
+                code=AppErrorCode.UNIQUE.value,
             )
         )
     if not errors:
@@ -256,7 +257,9 @@ def _clean_extension_options(extension, errors):
             )
 
         # Update the extension with the validated options
-        extension["options"] = validated_options.model_dump(exclude_none=True)
+        extension["options"] = validated_options.model_dump(
+            exclude_none=True, by_alias=True
+        )
     except (ValidationError, PydanticValidationError) as e:
         errors["extensions"].append(
             ValidationError(

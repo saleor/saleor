@@ -13,4 +13,6 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 - Improved page search with search vectors. Pages can now be searched by slug, title, content, attribute values, and page type information.
 
+- Fix send order confirmation email to staff - #18342 by @Shaokun-X
+
 ### Deprecations

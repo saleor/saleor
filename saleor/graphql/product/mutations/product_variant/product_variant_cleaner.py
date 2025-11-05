@@ -1,12 +1,11 @@
-from collections import defaultdict
-
+import graphene
 from django.core.exceptions import ValidationError
 
 from .....attribute import models as attribute_models
 from .....product.error_codes import ProductErrorCode
+from .....product.models import ProductType
 from ....attribute.utils.shared import (
     AttrValuesInput,
-    get_values_from_attribute_values_input,
 )
 
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
@@ -51,20 +50,27 @@ def clean_preorder_settings(cleaned_input: dict):
         cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
 
 
-def validate_duplicated_attribute_values(
-    attributes_data: T_INPUT_MAP,
-    used_attribute_values: list[dict[str, list[str]]],
-):
-    attribute_values: defaultdict[str, list[str]] = defaultdict(list)
-    for attr, attr_data in attributes_data:
-        values = get_values_from_attribute_values_input(attr, attr_data)
-        if attr_data.global_id:
-            attribute_values[attr_data.global_id].extend(values)
+def clean_variant_attributes(product_type: "ProductType", attributes: list[dict]):
+    variant_attributes_ids = set()
+    variant_attributes_external_refs = set()
+    for attr_id, external_ref in product_type.variant_attributes.values_list(
+        "id", "external_reference"
+    ):
+        if external_ref:
+            variant_attributes_external_refs.add(external_ref)
+        variant_attributes_ids.add(graphene.Node.to_global_id("Attribute", attr_id))
 
-    if attribute_values in used_attribute_values:
+    attributes_ids = {attr["id"] for attr in attributes if attr.get("id") or []}
+    attrs_external_refs = {
+        attr["external_reference"]
+        for attr in attributes
+        if attr.get("external_reference") or []
+    }
+    invalid_attributes = attributes_ids - variant_attributes_ids
+    invalid_attributes |= attrs_external_refs - variant_attributes_external_refs
+    if len(invalid_attributes) > 0:
         raise ValidationError(
-            "Duplicated attribute values for product variant.",
-            code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-            params={"attributes": attribute_values.keys()},
+            "Given attributes are not a variant attributes.",
+            code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
+            params={"attributes": invalid_attributes},
         )
-    used_attribute_values.append(attribute_values)

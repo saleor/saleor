@@ -42,6 +42,7 @@ from ...permission.auth_filters import AuthorizationFilters, is_app, is_staff_us
 from ...permission.enums import (
     AccountPermissions,
     AppPermission,
+    CheckoutPermissions,
     OrderPermissions,
     PaymentPermissions,
     ProductPermissions,
@@ -2556,6 +2557,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 AccountPermissions.MANAGE_USERS,
                 OrderPermissions.MANAGE_ORDERS,
                 PaymentPermissions.HANDLE_PAYMENTS,
+                CheckoutPermissions.HANDLE_TAXES,
             )
             return user
 

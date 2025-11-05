@@ -42,6 +42,9 @@ if TYPE_CHECKING:
 
 
 T_INPUT_MAP = list[tuple["attribute_models.Attribute", "AttrValuesInput"]]
+T_PRE_SAVE_BULK = dict[
+    AttributeValueBulkActionEnum, dict[attribute_models.Attribute, list]
+]
 
 
 class AttributeAssignmentMixin:
@@ -270,9 +273,44 @@ class AttributeAssignmentMixin:
             errors.append(error)
 
     @classmethod
-    def save(cls, instance: T_INSTANCE, cleaned_input: T_INPUT_MAP):
-        """Save the cleaned input against the given instance."""
-        pre_save_bulk: dict = defaultdict(lambda: defaultdict(list))
+    def pre_save_values(
+        cls, instance: T_INSTANCE, cleaned_input: T_INPUT_MAP
+    ) -> T_PRE_SAVE_BULK:
+        """Prepare attribute values data for bulk database operations.
+
+        Example return structure:
+        {
+            AttributeValueBulkActionEnum.CREATE: {
+                <Attribute>: [<AttributeValue>, <AttributeValue>],
+                ...
+            },
+            AttributeValueBulkActionEnum.UPDATE_OR_CREATE: {
+                <Attribute>: [
+                    {
+                        "attribute": <Attribute>,
+                        "slug": "instance_id_attribute_id",
+                        "defaults": {"name": "...", "plain_text": "..."}
+                    }
+                ],
+                ...
+            },
+            AttributeValueBulkActionEnum.GET_OR_CREATE: {
+                <Attribute>: [
+                    {
+                        "attribute": <Attribute>,
+                        "slug": "attribute_id_True",
+                        "defaults": {"name": "Attribute: Yes", "boolean": True}
+                    }
+                ],
+                ...
+            },
+            AttributeValueBulkActionEnum.NONE: {
+                <Attribute>: [<AttributeValue>, <AttributeValue>],
+                ...
+            },
+        }
+        """
+        pre_save_bulk: T_PRE_SAVE_BULK = defaultdict(lambda: defaultdict(list))
         for attribute, values_input in cleaned_input:
             is_legacy_path = values_input.values and attribute.input_type in {
                 AttributeInputType.DROPDOWN,
@@ -301,6 +339,18 @@ class AttributeAssignmentMixin:
                 for action, value_data in prepared_values:
                     pre_save_bulk[action][attribute].append(value_data)
 
+        return pre_save_bulk
+
+    @classmethod
+    def save(
+        cls,
+        instance: T_INSTANCE,
+        cleaned_input: T_INPUT_MAP,
+        pre_save_bulk: T_PRE_SAVE_BULK | None = None,
+    ):
+        """Save the cleaned input against the given instance."""
+        if pre_save_bulk is None:
+            pre_save_bulk = cls.pre_save_values(instance, cleaned_input)
         attribute_and_values = cls._bulk_create_pre_save_values(pre_save_bulk)
 
         attr_val_map = defaultdict(list)

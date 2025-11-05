@@ -1927,7 +1927,7 @@ def test_update_product_variant_clear_attributes(
         variant_attr.refresh_from_db()
 
 
-def test_update_product_variant_with_duplicated_attribute(
+def test_update_product_variant_with_existing_values(
     staff_api_client,
     product_with_variant_with_two_attributes,
     color_attribute,
@@ -1954,6 +1954,9 @@ def test_update_product_variant_with_duplicated_attribute(
     assert variant2.attributes.first().values.first().slug == "blue"
     assert variant2.attributes.last().values.first().slug == "big"
 
+    color_attr_values_count = color_attribute.values.count()
+    size_attr_values_count = size_attribute.values.count()
+
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
     size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
@@ -1975,10 +1978,14 @@ def test_update_product_variant_with_duplicated_attribute(
 
     data = content["data"]["productVariantUpdate"]
     errors = data["errors"]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "attributes"
-    assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
-    assert set(errors[0]["attributes"]) == {color_attribute_id, size_attribute_id}
+    assert not errors
+    variant_data = data["productVariant"]
+    assert variant_data
+    assert len(variant_data["attributes"]) == 2
+    color_attribute.refresh_from_db()
+    size_attribute.refresh_from_db()
+    assert color_attribute.values.count() == color_attr_values_count
+    assert size_attribute.values.count() == size_attr_values_count
 
 
 def test_update_product_variant_with_current_file_attribute(
@@ -2038,7 +2045,7 @@ def test_update_product_variant_with_current_file_attribute(
     assert expected_assigned_attribute in assigned_attributes
 
 
-def test_update_product_variant_with_duplicated_file_attribute(
+def test_update_product_variant_with_existing_file_attribute(
     staff_api_client,
     product_with_variant_with_file_attribute,
     file_attribute,
@@ -2046,26 +2053,14 @@ def test_update_product_variant_with_duplicated_file_attribute(
 ):
     product = product_with_variant_with_file_attribute
     variant = product.variants.first()
-    variant2 = product.variants.first()
-
-    variant2.pk = None
-    variant2.sku = str(uuid4())[:12]
-    variant2.save()
     file_attr_value = file_attribute.values.last()
     associate_attribute_values_to_instance(
-        variant2, {file_attribute.id: [file_attr_value]}
+        variant, {file_attribute.id: [file_attr_value]}
     )
 
     sku = str(uuid4())[:12]
-    assert not variant.sku == sku
 
-    assert set(variant.attributes.first().values.values_list("slug", flat=True)) == {
-        "test_filetxt"
-    }
-    assert set(variant2.attributes.first().values.values_list("slug", flat=True)) == {
-        "test_filejpeg"
-    }
-
+    values_count = file_attribute.values.count()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     file_attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
     file_url = f"https://example.com{settings.MEDIA_URL}{file_attr_value.file_url}"
@@ -2085,11 +2080,12 @@ def test_update_product_variant_with_duplicated_file_attribute(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]
-    errors = data["errors"]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "attributes"
-    assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
-    assert set(errors[0]["attributes"]) == {file_attribute_id}
+    assert not data["errors"]
+    variant_data = data["productVariant"]
+    assert variant_data
+    assert len(variant_data["attributes"]) == 1
+    file_attribute.refresh_from_db()
+    assert file_attribute.values.count() == values_count
 
 
 def test_update_product_variant_with_file_attribute_new_value_is_not_created(
@@ -2968,6 +2964,148 @@ def test_update_product_variant_with_reference_attributes_ref_not_in_available_c
         product_ref_attr_id,
         variant_ref_attr_id,
     }
+
+
+def test_update_product_variant_attribute_by_external_reference_value_created(
+    staff_api_client,
+    variant,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    attribute = product_type.variant_attributes.first()
+    attr_external_ref = "test-attribute-ext-ref"
+    attribute.external_reference = attr_external_ref
+    attribute.save(update_fields=["external_reference"])
+
+    values_count = attribute.values.count()
+    value_external_ref = "test-value-ext-ref"
+    value = "test-value"
+
+    variables = {
+        "id": variant_id,
+        "attributes": [
+            {
+                "externalReference": attr_external_ref,
+                "dropdown": {"externalReference": value_external_ref, "value": value},
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    assert not content["errors"]
+    data = content["productVariant"]
+    assert len(data["attributes"]) == 1
+    assert data["attributes"][0]["attribute"]["slug"] == attribute.slug
+    assert data["attributes"][0]["values"][0]["slug"] == value
+    attribute.refresh_from_db()
+    assert attribute.values.count() == values_count + 1
+
+
+def test_update_product_variant_attribute_by_external_reference_existing_value(
+    staff_api_client,
+    variant,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    attribute = product_type.variant_attributes.first()
+    attr_external_ref = "test-attribute-ext-ref"
+    attribute.external_reference = attr_external_ref
+    attribute.save(update_fields=["external_reference"])
+
+    value_external_ref = "test-value-ext-ref"
+    value = attribute.values.create(
+        name="Big", slug="big", external_reference=value_external_ref
+    )
+    values_count = attribute.values.count()
+
+    variables = {
+        "id": variant_id,
+        "attributes": [
+            {
+                "externalReference": attr_external_ref,
+                "dropdown": {
+                    "externalReference": value_external_ref,
+                    "value": value.name,
+                },
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    assert not content["errors"]
+    data = content["productVariant"]
+    assert len(data["attributes"]) == 1
+    assert data["attributes"][0]["attribute"]["slug"] == attribute.slug
+    assert data["attributes"][0]["values"][0]["name"] == value.name
+    attribute.refresh_from_db()
+    assert attribute.values.count() == values_count
+
+
+def test_update_product_variant_attribute_by_external_reference_invalid_value(
+    staff_api_client,
+    variant,
+    product_type,
+    permission_manage_products,
+):
+    # given attributes input with external ref but value that does not match
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    attribute = product_type.variant_attributes.first()
+    attr_external_ref = "test-attribute-ext-ref"
+    attribute.external_reference = attr_external_ref
+    attribute.save(update_fields=["external_reference"])
+
+    value = attribute.values.first()
+    value_external_ref = "test-value-ext-ref"
+    value.external_reference = value_external_ref
+    value.save(update_fields=["external_reference"])
+    attr_value = "test-value"
+
+    variables = {
+        "id": variant_id,
+        "attributes": [
+            {
+                "externalReference": attr_external_ref,
+                "dropdown": {
+                    "externalReference": value_external_ref,
+                    "value": attr_value,
+                },
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    assert len(content["errors"]) == 1
+    assert not content["productVariant"]
+    assert content["errors"][0]["field"] == "attributes"
+    assert content["errors"][0]["code"] == "INVALID"
 
 
 def test_update_product_variant_with_price_does_not_raise_price_validation_error(
