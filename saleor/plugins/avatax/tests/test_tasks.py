@@ -31,7 +31,9 @@ def test_api_post_request_task_sends_request(
         from_postal_code="53-601",
         from_country="PL",
     )
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(
+        order_with_lines, config, list(order_with_lines.lines.all())
+    )
 
     transaction_url = urljoin(
         get_api_url(config.use_sandbox), "transactions/createoradjust"
@@ -63,7 +65,9 @@ def test_api_post_request_task_creates_order_event(
         from_postal_code="53-601",
         from_country="PL",
     )
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(
+        order_with_lines, config, list(order_with_lines.lines.all())
+    )
 
     transaction_url = urljoin(
         get_api_url(config.use_sandbox), "transactions/createoradjust"
@@ -96,7 +100,9 @@ def test_api_post_request_task_missing_response(
         from_postal_code="53-601",
         from_country="PL",
     )
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(
+        order_with_lines, config, list(order_with_lines.lines.all())
+    )
 
     transaction_url = urljoin(
         get_api_url(config.use_sandbox), "transactions/createoradjust"

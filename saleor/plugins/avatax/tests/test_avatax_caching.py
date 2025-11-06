@@ -1,3 +1,4 @@
+from copy import deepcopy
 from decimal import Decimal
 from unittest.mock import ANY, Mock, patch
 
@@ -132,12 +133,17 @@ def test_calculate_checkout_subtotal_use_cache(
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, transaction_token=[]
     )
-    mocked_cache = Mock(
-        return_value=(
+
+    def mock_side_effect(*args, **kwargs):
+        return (
             avalara_request_data,
-            avalara_response_for_checkout_with_items_and_shipping,
+            # Deep copy, as after caching the response, we replace list lines
+            # with dict lines
+            deepcopy(avalara_response_for_checkout_with_items_and_shipping),
         )
-    )
+
+    mocked_cache = Mock(side_effect=mock_side_effect)
+
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", mocked_cache)
     mock_validate_tax_data.return_value = ""
 
