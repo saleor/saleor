@@ -10,6 +10,7 @@ from .....checkout import models as checkout_models
 from .....checkout.utils import activate_payments, cancel_active_payments
 from .....core.exceptions import PermissionDenied
 from .....payment import TransactionItemIdempotencyUniqueError
+from .....payment.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....payment.interface import PaymentGatewayData
 from .....payment.utils import handle_transaction_initialize_session
 from .....permission.enums import PaymentPermissions
@@ -95,7 +96,18 @@ class TransactionInitialize(TransactionSessionBase):
         error_type_class = common_types.TransactionInitializeError
 
     @classmethod
-    def clean_action(cls, info, action: str | None, channel: "Channel"):
+    def clean_action(
+        cls,
+        info,
+        action: str | None,
+        channel: "Channel",
+        payment_gateway: PaymentGatewayData,
+    ) -> str:
+        if payment_gateway.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+            # TODO - what is passed action is explicilty different (not None but charge?
+            # - validation error?)
+            return TransactionFlowStrategyEnum.AUTHORIZATION.name
+
         if not action:
             return channel.default_transaction_flow_strategy
         app = get_app_promise(info.context).get()
@@ -120,6 +132,27 @@ class TransactionInitialize(TransactionSessionBase):
                 }
             )
         return app
+
+    @classmethod
+    def clean_gift_card_payment_gateway_data(
+        cls, payment_gateway: PaymentGatewayData
+    ) -> None:
+        data = payment_gateway.data
+        if (
+            not data
+            or not isinstance(data, dict)
+            or "code" not in data
+            or not data["code"]
+            or not isinstance(data["code"], str)
+        ):
+            raise ValidationError(
+                {
+                    "payment_gateway": ValidationError(
+                        message=f"Incorrect data for {payment_gateway.app_identifier} payment gateway.",
+                        code=TransactionInitializeErrorCode.INVALID.value,
+                    )
+                }
+            )
 
     @classmethod
     def clean_idempotency_key(cls, idempotency_key: str | None):
@@ -164,7 +197,9 @@ class TransactionInitialize(TransactionSessionBase):
             cls.validate_checkout(source_object)
 
         idempotency_key = cls.clean_idempotency_key(idempotency_key)
-        action = cls.clean_action(info, action, source_object.channel)
+        action = cls.clean_action(
+            info, action, source_object.channel, payment_gateway_data
+        )
         customer_ip_address = clean_customer_ip_address(
             info,
             customer_ip_address,
@@ -175,7 +210,13 @@ class TransactionInitialize(TransactionSessionBase):
             source_object,
             amount,
         )
-        app = cls.clean_app_from_payment_gateway(payment_gateway_data)
+
+        if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+            app = None
+            cls.clean_gift_card_payment_gateway_data(payment_gateway_data)
+        else:
+            app = cls.clean_app_from_payment_gateway(payment_gateway_data)
+
         payment_ids = []
         if isinstance(source_object, checkout_models.Checkout):
             # Deactivate active payment objects to avoid processing checkout

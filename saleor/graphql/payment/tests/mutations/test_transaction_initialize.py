@@ -19,6 +19,7 @@ from .....core.prices import quantize_price
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.models import Order
 from .....payment import TransactionEventType, TransactionItemIdempotencyUniqueError
+from .....payment.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
@@ -108,7 +109,7 @@ def _assert_fields(
     expected_psp_reference,
     response_event_type,
     app_identifier,
-    mocked_initialize,
+    mocked_initialize=None,
     request_event_type=TransactionEventType.CHARGE_REQUEST,
     action_type=TransactionFlowStrategy.CHARGE,
     request_event_include_in_calculations=False,
@@ -184,22 +185,23 @@ def _assert_fields(
     if expected_message is not None:
         assert response_event.message == expected_message
 
-    mocked_initialize.assert_called_with(
-        TransactionSessionData(
-            transaction=transaction,
-            source_object=source_object,
-            action=TransactionProcessActionData(
-                action_type=action_type,
-                amount=expected_amount,
-                currency=source_object.currency,
-            ),
-            customer_ip_address="127.0.0.1",
-            payment_gateway_data=PaymentGatewayData(
-                app_identifier=app_identifier, data=None, error=None
-            ),
-            idempotency_key=request_event.idempotency_key,
+    if mocked_initialize:
+        mocked_initialize.assert_called_with(
+            TransactionSessionData(
+                transaction=transaction,
+                source_object=source_object,
+                action=TransactionProcessActionData(
+                    action_type=action_type,
+                    amount=expected_amount,
+                    currency=source_object.currency,
+                ),
+                customer_ip_address="127.0.0.1",
+                payment_gateway_data=PaymentGatewayData(
+                    app_identifier=app_identifier, data=None, error=None
+                ),
+                idempotency_key=request_event.idempotency_key,
+            )
         )
-    )
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -3483,3 +3485,77 @@ def test_invalidate_stored_payment_methods_not_invalidated_for_checkout(
 
     # ensure that cache has not been cleared
     cache_delete_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "data", [None, {}, {"some": "value"}, {"code": None}, {"code": ""}]
+)
+def test_for_checkout_with_gift_card_payment_gateway_data_and_incorrect_data_format(
+    user_api_client,
+    checkout_with_prices,
+    data,
+):
+    # given
+    checkout = checkout_with_prices
+
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": GIFT_CARD_PAYMENT_GATEWAY_ID, "data": data},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["transactionInitialize"]["errors"]) == 1
+    assert (
+        content["data"]["transactionInitialize"]["errors"][0]["code"]
+        == TransactionInitializeErrorCode.INVALID.name
+    )
+    assert (
+        content["data"]["transactionInitialize"]["errors"][0]["field"]
+        == "paymentGateway"
+    )
+    assert (
+        content["data"]["transactionInitialize"]["errors"][0]["message"]
+        == f"Incorrect data for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway."
+    )
+
+
+def test_for_checkout_with_gift_card_payment_gateway_data(
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+):
+    # given
+    checkout = checkout_with_prices
+
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference="123",
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=Decimal(1),
+    )

@@ -14,7 +14,7 @@ from semantic_version.base import Range
 from .. import __version__
 from ..graphql.core.utils import str_to_enum
 from ..graphql.webhook.subscription_query import SubscriptionQuery
-from ..payment.gateway import GIFT_CARD_PAYMENT_GATEWAY_ID
+from ..payment.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from ..permission.enums import (
     get_permissions,
     get_permissions_enum_list,

@@ -26,6 +26,7 @@ from ..payment.interface import (
 from ..webhook.event_types import WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_event
 from . import GatewayError, PaymentError, TransactionAction, TransactionKind
+from .const import GIFT_CARD_PAYMENT_GATEWAY_ID, GIFT_CARD_PAYMENT_GATEWAY_NAME
 from .models import Payment, Transaction, TransactionEvent, TransactionItem
 from .utils import (
     clean_authorize,
@@ -46,10 +47,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 ERROR_MSG = "Oops! Something went wrong."
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful."
-
-
-GIFT_CARD_PAYMENT_GATEWAY_ID = "saleor.io.gift-card-payment-gateway"
-GIFT_CARD_PAYMENT_GATEWAY_NAME = "Gift Card Payment Gateway"
 
 
 def raise_payment_error(fn: Callable) -> Callable:

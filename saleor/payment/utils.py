@@ -60,6 +60,7 @@ from . import (
     TransactionItemIdempotencyUniqueError,
     TransactionKind,
 )
+from .const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .error_codes import PaymentErrorCode
 from .interface import (
     AddressData,
@@ -78,6 +79,7 @@ from .interface import (
     TransactionRequestResponse,
     TransactionSessionData,
     TransactionSessionResponse,
+    TransactionSessionResult,
 )
 from .lock_objects import (
     get_checkout_and_transaction_item_locked_for_update,
@@ -1144,7 +1146,7 @@ def get_already_existing_event(event: TransactionEvent) -> TransactionEvent | No
 
 
 def deduplicate_event(
-    event: TransactionEvent, app: App
+    event: TransactionEvent, app: App | None
 ) -> tuple[TransactionEvent, ErrorMsg | None]:
     """Deduplicate the TransactionEvent.
 
@@ -1183,8 +1185,8 @@ def deduplicate_event(
             extra={
                 "transaction_id": event.transaction_id,
                 "psp_reference": event.psp_reference,
-                "app_identifier": app.identifier,
-                "app_id": app.pk,
+                "app_identifier": app.identifier if app else None,
+                "app_id": app.pk if app else None,
             },
         )
     return event, error_message
@@ -1192,7 +1194,7 @@ def deduplicate_event(
 
 def _create_event_from_response(
     response: TransactionRequestEventResponse,
-    app: App,
+    app: App | None,
     transaction_id: int,
     currency: str,
     related_granted_refund_id: int | None = None,
@@ -1412,7 +1414,7 @@ def process_order_or_checkout_with_transaction(
 
 def create_transaction_event_for_transaction_session(
     request_event: TransactionEvent,
-    app: App,
+    app: App | None,
     manager: "PluginsManager",
     transaction_webhook_response: dict[str, Any] | None = None,
 ):
@@ -1824,7 +1826,7 @@ def handle_transaction_initialize_session(
     amount: Decimal,
     action: str,
     customer_ip_address: str | None,
-    app: App,
+    app: App | None,
     manager: PluginsManager,
     idempotency_key: str,
 ):
@@ -1877,7 +1879,12 @@ def handle_transaction_initialize_session(
         idempotency_key=idempotency_key,
     )
 
-    result = manager.transaction_initialize_session(session_data)
+    if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+        result = transaction_initialize_session_with_gift_card_payment_method(
+            session_data
+        )
+    else:
+        result = manager.transaction_initialize_session(session_data)
 
     response_data = result.response if result else None
 
@@ -1887,11 +1894,29 @@ def handle_transaction_initialize_session(
         transaction_webhook_response=response_data,
         manager=manager,
     )
-    invalidate_cache_for_stored_payment_methods_if_needed(
-        created_event, source_object, app.identifier
-    )
+
+    if payment_gateway_data.app_identifier != GIFT_CARD_PAYMENT_GATEWAY_ID:
+        invalidate_cache_for_stored_payment_methods_if_needed(
+            created_event,
+            source_object,
+            app.identifier,  # type: ignore[union-attr]
+        )
     data_to_return = response_data.get("data") if response_data else None
     return created_event.transaction, created_event, data_to_return
+
+
+def transaction_initialize_session_with_gift_card_payment_method(
+    transaction_session_data: "TransactionSessionData",
+) -> "TransactionSessionResult":
+    return TransactionSessionResult(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        response={
+            "result": "AUTHORIZATION_SUCCESS",
+            # "pspReference": str(uuid4()),
+            "pspReference": "123",
+            "amount": transaction_session_data.action.amount,
+        },
+    )
 
 
 def handle_transaction_process_session(
