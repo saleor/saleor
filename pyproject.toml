@@ -137,7 +137,7 @@ package-mode = false
     version = "^5.5.4"
 
     [tool.poetry.dependencies.django]
-    version = "^4.2"
+    version = "^4.2.26"
     extras = [ "bcrypt" ]
 
     [tool.poetry.dependencies.uvicorn]
