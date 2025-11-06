@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-from django.conf import settings
 from django.db.models import Exists, OuterRef, Q
 
 from ..page.models import Page
@@ -58,9 +57,7 @@ def validate_attribute_owns_values(attr_val_map: dict[int, list]) -> None:
         value_slugs = [value.slug for value in values]
         lookup |= Q(attribute_id=attribute_id, slug__in=value_slugs)
 
-    values = AttributeValue.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(lookup)
+    values = AttributeValue.objects.filter(lookup)
 
     for value in values:
         attr_id = value.attribute_id
