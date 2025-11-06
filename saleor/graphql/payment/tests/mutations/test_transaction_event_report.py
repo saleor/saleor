@@ -2219,7 +2219,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
-def test_transaction_event_report_for_draft_order_triggers_webhooks_when_fully_paid(
+def test_transaction_event_report_for_draft_order_does_not_trigger_webhooks_when_fully_paid(
     mock_order_fully_paid,
     mock_order_updated,
     mock_order_paid,
@@ -2273,9 +2273,9 @@ def test_transaction_event_report_for_draft_order_triggers_webhooks_when_fully_p
 
     assert order.status == OrderStatus.DRAFT
     assert order.charge_status == OrderChargeStatus.FULL
-    mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
-    mock_order_updated.assert_called_once_with(order, webhooks=set())
-    mock_order_paid.assert_called_once_with(order, webhooks=set())
+    mock_order_fully_paid.assert_not_called()
+    mock_order_updated.assert_not_called()
+    mock_order_paid.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
