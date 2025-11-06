@@ -5,6 +5,8 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....channel import models as channel_models
+from ....discount.tasks import release_voucher_code_usage_of_draft_orders
+from ....discount.utils.voucher import get_customer_email_for_voucher_usage
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ....payment.models import Payment, TransactionItem
@@ -81,6 +83,7 @@ class DraftOrderBulkDelete(
 
         instances_ids = [instance.id for instance in instances]
         related_objects = cls.get_ids_with_related_objects(instances_ids)
+        voucher_codes_with_emails = []
         for instance, node_id in zip(instances, ids, strict=False):
             instance_errors = []
 
@@ -100,12 +103,48 @@ class DraftOrderBulkDelete(
                 ValidationError({node_id: instance_errors_msg}).update_error_dict(
                     errors_dict
                 )
-        return clean_instance_ids, errors_dict
+
+            if instance.channel.include_draft_order_in_voucher_usage and (
+                code := instance.voucher_code
+            ):
+                voucher_codes_with_emails.append(
+                    (code, get_customer_email_for_voucher_usage(instance))
+                )
+        return clean_instance_ids, errors_dict, voucher_codes_with_emails
 
     @classmethod
     def get_channel_ids(cls, instances) -> Iterable[UUID | int]:
         """Get the instances channel ids for channel permission accessible check."""
         return [order.channel_id for order in instances]
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, ids, **data
+    ) -> tuple[int, ValidationError | None]:
+        """Perform a mutation that deletes a list of model instances."""
+        if not ids:
+            return 0, None
+        try:
+            instances = cls.get_nodes_or_error(ids, "id", Order, schema=info.schema)
+        except ValidationError as error:
+            return 0, error
+
+        channel_ids = cls.get_channel_ids(instances)
+        cls.check_channel_permissions(info, channel_ids)
+
+        clean_instance_ids, errors_dict, voucher_codes_with_emails = cls.clean_input(
+            info, instances, ids
+        )
+        if errors_dict:
+            errors = ValidationError(errors_dict)
+        else:
+            errors = None
+        count = len(clean_instance_ids)
+        if count:
+            qs = models.Order.objects.filter(pk__in=clean_instance_ids)
+            cls.bulk_action(info, qs, **data)
+        release_voucher_code_usage_of_draft_orders.delay(voucher_codes_with_emails)
+        return count, errors
 
 
 class DraftOrderLinesBulkDelete(

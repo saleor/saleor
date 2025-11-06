@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union, cast
 from uuid import UUID
 
-from django.db.models import Exists, F, OuterRef
+from django.db.models import Case, Exists, F, IntegerField, OuterRef, Value, When
 from django.utils import timezone
 from prices import Money
 
@@ -88,8 +88,13 @@ def increase_voucher_code_usage_value(code: "VoucherCode") -> None:
 
 def decrease_voucher_code_usage_value(code: "VoucherCode") -> None:
     """Decrease voucher code uses by 1."""
-    code.used = F("used") - 1
-    code.save(update_fields=["used"])
+    VoucherCode.objects.filter(pk=code.pk).update(
+        used=Case(
+            When(used__gt=0, then=F("used") - 1),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    )
 
 
 def deactivate_voucher_code(code: "VoucherCode") -> None:

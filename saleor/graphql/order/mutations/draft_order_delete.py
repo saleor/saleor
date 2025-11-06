@@ -3,7 +3,10 @@ from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
 from ....discount.models import VoucherCode
-from ....discount.utils.voucher import release_voucher_code_usage
+from ....discount.utils.voucher import (
+    get_customer_email_for_voucher_usage,
+    release_voucher_code_usage,
+)
 from ....order import OrderStatus, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
@@ -83,9 +86,13 @@ class DraftOrderDelete(
     @classmethod
     def post_save_action(cls, info, instance, _):
         if code := instance.voucher_code:
-            if voucher_code := VoucherCode.objects.filter(code=code).first():
+            channel = instance.channel
+            if channel.include_draft_order_in_voucher_usage and (
+                voucher_code := VoucherCode.objects.filter(code=code).first()
+            ):
+                user_email = get_customer_email_for_voucher_usage(instance)
                 voucher = voucher_code.voucher
-                release_voucher_code_usage(voucher_code, voucher, None)
+                release_voucher_code_usage(voucher_code, voucher, user_email)
 
     @classmethod
     def success_response(cls, order):

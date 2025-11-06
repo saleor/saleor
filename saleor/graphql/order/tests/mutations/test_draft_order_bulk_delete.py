@@ -1,5 +1,6 @@
 import graphene
 
+from .....discount.models import VoucherCode
 from .....order import OrderStatus
 from .....order import models as order_models
 from .....order.error_codes import OrderErrorCode
@@ -64,7 +65,10 @@ def test_delete_draft_orders_by_user_no_channel_access(
     query = DRAFT_ORDER_BULK_DELETE
 
     variables = {
-        "ids": [graphene.Node.to_global_id("Order", order.id) for order in order_list]
+        "ids": [
+            graphene.Node.to_global_id("Order", order.id)
+            for order in [order_1, order_2]
+        ]
     }
 
     # when
@@ -144,6 +148,96 @@ def test_delete_draft_orders_orders_with_transaction_item(
     assert order_models.Order.objects.filter(
         id__in=[order.id for order in order_list]
     ).count() == len(order_list)
+
+
+def test_draft_order_bulk_delete_with_voucher_and_include_draft_order_in_voucher_usage_false(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_list,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    voucher_code = voucher.codes.first()
+
+    for order in order_list:
+        order.voucher_code = voucher_code.code
+        order.status = OrderStatus.DRAFT
+        order.save(update_fields=["status", "voucher_code"])
+
+    order_ids = [order.id for order in order_list]
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = False
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    assert voucher_code.used == 0
+
+    query = DRAFT_ORDER_BULK_DELETE
+    variables = {
+        "ids": [graphene.Node.to_global_id("Order", order.id) for order in order_list]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["draftOrderBulkDelete"]["count"] == len(order_list)
+    assert not order_models.Order.objects.filter(id__in=order_ids).exists()
+
+    voucher_code.refresh_from_db()
+    assert voucher_code.used == 0
+
+
+def test_draft_order_bulk_delete_with_voucher_and_include_draft_order_in_voucher_usage_true(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_list,
+    voucher_with_many_codes,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    voucher_codes = []
+    voucher = voucher_with_many_codes
+
+    for order, voucher_code in zip(order_list, voucher.codes.all(), strict=False):
+        order.voucher_code = voucher_code.code
+        order.status = OrderStatus.DRAFT
+
+        voucher_codes.append(voucher_code)
+        voucher_code.used = 1
+
+    order_models.Order.objects.bulk_update(order_list, ["voucher_code", "status"])
+    VoucherCode.objects.bulk_update(voucher_codes, ["used"])
+
+    order_ids = [order.id for order in order_list]
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+
+    query = DRAFT_ORDER_BULK_DELETE
+    variables = {
+        "ids": [graphene.Node.to_global_id("Order", order.id) for order in order_list]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["draftOrderBulkDelete"]["count"] == len(order_list)
+    assert not order_models.Order.objects.filter(id__in=order_ids).exists()
+
+    for code in voucher_codes:
+        code.refresh_from_db()
+        assert code.used == 0
 
 
 MUTATION_DELETE_ORDER_LINES = """
