@@ -201,8 +201,6 @@ class TransactionRequestAction(BaseMutation):
 
     @classmethod
     def _prepare_refund_reason(cls, info: ResolveInfo, /, **data):
-        cls._validate_reason_and_event(data)
-
         reason_reference_id = data.get("refund_reason_reference")
 
         requestor_is_app = info.context.app is not None
@@ -253,6 +251,8 @@ class TransactionRequestAction(BaseMutation):
         action_type = data["action_type"]
         action_value = data.get("amount")
         reason = data.get("refund_reason")
+
+        cls._validate_reason_and_event(data)
 
         reason_reference_instance = (
             cls._prepare_refund_reason(info, **data)
