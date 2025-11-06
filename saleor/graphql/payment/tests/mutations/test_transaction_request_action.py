@@ -1979,7 +1979,6 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
     # Given
     mocked_is_active.return_value = False
 
-    # Enable refund reasons in settings
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     site_settings.refund_reason_reference_type = page_type
     site_settings.save(update_fields=["refund_reason_reference_type"])
@@ -1988,7 +1987,6 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
         event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
     )
 
-    # Create transaction with authorized value (simulating authorization_success event)
     authorization_amount = Decimal("10.00")
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
@@ -1996,7 +1994,6 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
         app=transaction_request_webhook.app,
     )
 
-    # Create authorization success event
     transaction.events.create(
         amount_value=authorization_amount,
         currency=transaction.currency,
@@ -2007,7 +2004,6 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,
         "amount": authorization_amount,
-        # Note: NOT providing refund_reason or refund_reason_reference
     }
     staff_api_client.user.groups.add(permission_group_handle_payments)
 
@@ -2023,7 +2019,6 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
     errors = data["errors"]
     assert not errors, f"Expected no errors but got: {errors}"
 
-    # Verify CHARGE_REQUEST event was created
     request_event = TransactionEvent.objects.filter(
         type=TransactionEventType.CHARGE_REQUEST,
     ).first()
@@ -2034,5 +2029,4 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
     assert request_event.message is None
     assert request_event.reason_reference is None
 
-    # Verify payment action was called
     assert mocked_payment_action_request.called
