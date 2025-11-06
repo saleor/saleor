@@ -252,7 +252,6 @@ class TransactionRequestAction(BaseMutation):
         action_value = data.get("amount")
         reason = data.get("refund_reason")
 
-        # Validate that refund reason fields are only used for REFUND actions
         cls._validate_reason_and_event(data)
 
         reason_reference_instance = (
