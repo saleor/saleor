@@ -1920,7 +1920,7 @@ def transaction_initialize_session_with_gift_card_payment_method(
 
     # Check for existence of an active gift card and validate currency.
     gift_card_qs = GiftCard.objects.filter(
-        code=transaction_session_data.payment_gateway_data.data["code"],
+        code=transaction_session_data.payment_gateway_data.data["code"],  # type: ignore[call-overload, index]
         currency=transaction_session_data.action.currency,
         is_active=True,
     )
@@ -1932,7 +1932,7 @@ def transaction_initialize_session_with_gift_card_payment_method(
     if transaction_session_data.action.amount > gift_card.current_balance_amount:
         return transaction_session_result
 
-    transaction_session_result.response["result"] = (
+    transaction_session_result.response["result"] = (  # type: ignore[index]
         TransactionEventType.AUTHORIZATION_SUCCESS.upper()
     )
     return transaction_session_result
