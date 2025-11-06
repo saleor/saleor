@@ -1935,6 +1935,10 @@ def transaction_initialize_session_with_gift_card_payment_method(
     transaction_session_result.response["result"] = (  # type: ignore[index]
         TransactionEventType.AUTHORIZATION_SUCCESS.upper()
     )
+
+    transaction_session_data.transaction.gift_card = gift_card
+    transaction_session_data.transaction.save(update_fields=["gift_card"])
+
     return transaction_session_result
 
 

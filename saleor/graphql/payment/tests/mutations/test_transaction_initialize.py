@@ -120,6 +120,7 @@ def _assert_fields(
     authorize_pending_value=Decimal(0),
     returned_data=None,
     expected_message=None,
+    gift_card=None,
 ):
     assert not content["data"]["transactionInitialize"]["errors"]
     response_data = content["data"]["transactionInitialize"]
@@ -203,6 +204,8 @@ def _assert_fields(
                 idempotency_key=request_event.idempotency_key,
             )
         )
+
+    assert transaction.gift_card == gift_card
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -3562,6 +3565,7 @@ def test_for_checkout_with_gift_card_payment_gateway(
         response_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         authorized_value=Decimal(1),
+        gift_card=gift_card_created_by_staff,
     )
 
 
