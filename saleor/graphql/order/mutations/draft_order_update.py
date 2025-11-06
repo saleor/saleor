@@ -314,12 +314,12 @@ class DraftOrderUpdate(
         # create or update voucher discount object
         create_or_update_voucher_discount_objects_for_order(instance)
 
-        # handle voucher usage
-        user_email = get_customer_email_for_voucher_usage(instance)
-
         channel = instance.channel
         if not channel.include_draft_order_in_voucher_usage:
             return
+
+        # handle voucher usage
+        user_email = get_customer_email_for_voucher_usage(instance)
 
         if voucher:
             code_instance = cleaned_input.pop("voucher_code_instance", None)
