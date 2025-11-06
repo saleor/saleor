@@ -203,6 +203,11 @@ class TransactionRequestAction(BaseMutation):
     def _prepare_refund_reason(cls, info: ResolveInfo, /, **data):
         cls._validate_reason_and_event(data)
 
+        # Only process refund reason logic for REFUND actions
+        action_type = data["action_type"]
+        if action_type != TransactionAction.REFUND:
+            return None
+
         reason_reference_id = data.get("refund_reason_reference")
 
         requestor_is_app = info.context.app is not None
