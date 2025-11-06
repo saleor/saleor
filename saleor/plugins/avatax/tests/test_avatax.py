@@ -1,4 +1,5 @@
 import datetime
+from copy import deepcopy
 from decimal import Decimal
 from json import JSONDecodeError
 from unittest.mock import Mock, patch
@@ -29,7 +30,7 @@ from ....discount.utils.checkout import (
 )
 from ....order import OrderStatus
 from ....product import ProductTypeKind
-from ....product.models import Product, ProductType
+from ....product.models import Product, ProductType, ProductVariant
 from ....product.utils.variant_prices import update_discounted_prices_for_promotion
 from ....product.utils.variants import fetch_variants_for_promotion_rules
 from ....tax import TaxCalculationStrategy
@@ -40,6 +41,7 @@ from .. import (
     DEFAULT_TAX_CODE,
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
+    SHIPPING_ITEM_CODE,
     TAX_CODE_NON_TAXABLE_PRODUCT,
     AvataxConfiguration,
     TransactionType,
@@ -4079,6 +4081,7 @@ def test_get_order_line_tax_rate(
     # when
     tax_rate = manager.get_order_line_tax_rate(
         order,
+        order_line,
         product,
         order_line.variant,
         None,
@@ -4105,6 +4108,7 @@ def test_get_order_line_tax_rate_order_not_valid_default_value_returned(
     # when
     tax_rate = manager.get_order_line_tax_rate(
         order,
+        order_line,
         product,
         order_line.variant,
         None,
@@ -4140,6 +4144,7 @@ def test_get_order_line_tax_rate_error_in_response(
     # when
     tax_rate = manager.get_order_line_tax_rate(
         order,
+        order_line,
         product,
         order_line.variant,
         None,
@@ -4188,11 +4193,16 @@ def test__get_item_tax_rate_for_shipping_handles_multiple_tax_districts(
 ):
     manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    shipping_line = next(
+        line
+        for line in avalara_response_for_checkout_with_items_and_shipping["lines"]
+        if line["itemCode"] == SHIPPING_ITEM_CODE
+    )
 
     # 0.46 == sum of two tax districts
     assert Decimal("0.46") == plugin._get_item_tax_rate(
-        avalara_response_for_checkout_with_items_and_shipping,
-        "Shipping",
+        {"lines": {SHIPPING_ITEM_CODE: shipping_line}},
+        SHIPPING_ITEM_CODE,
         Decimal(0.0),
         str(checkout.pk),
         "Checkout",
@@ -4205,11 +4215,17 @@ def test__get_item_tax_rate_handles_multiple_tax_districts(
 ):
     manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    line_id = "123"
+    line = next(
+        line
+        for line in avalara_response_for_checkout_with_items_and_shipping["lines"]
+        if line["itemCode"] == line_id
+    )
 
     # 0.36 == sum of two tax districts
     assert Decimal("0.36") == plugin._get_item_tax_rate(
-        avalara_response_for_checkout_with_items_and_shipping,
-        "123",
+        {"lines": {line_id: line}},
+        line_id,
         Decimal(0.0),
         str(checkout.pk),
         "Checkout",
@@ -4224,11 +4240,19 @@ def test__get_item_tax_rate_handles_tax_zero_and_rate_value(
 ):
     manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    line_id = "123"
+    line = next(
+        line
+        for line in avalara_response_with_line_details_and_zero_tax_with_returned_rate[
+            "lines"
+        ]
+        if line["itemCode"] == line_id
+    )
 
     # 0.36 == sum of two tax districts
     assert Decimal("0") == plugin._get_item_tax_rate(
-        avalara_response_with_line_details_and_zero_tax_with_returned_rate,
-        "123",
+        {"lines": {line_id: line}},
+        line_id,
         Decimal(0.0),
         str(checkout.pk),
         "Checkout",
@@ -4260,7 +4284,11 @@ def test__get_item_tax_rate_use_default_value_when_taxable_amount_is_different(
 
     # when
     returned_tax_rate = plugin._get_item_tax_rate(
-        response, item_code, default_rate_value, str(checkout.pk), object_type
+        {"lines": {item_code: line_data}},
+        item_code,
+        default_rate_value,
+        str(checkout.pk),
+        object_type,
     ).quantize(Decimal(".01"))
 
     # then
@@ -4294,7 +4322,7 @@ def test__get_item_tax_rate_use_default_value_when_taxable_amount_is_different(
             ],
             "id": str(checkout.pk),
             "type": object_type,
-            "item_code": item_code,
+            "object_line_id": item_code,
             "base_rate": default_rate_value,
         },
     )
@@ -4644,6 +4672,7 @@ def test_order_confirmed(
                     "quantity": order_line.quantity,
                     "taxCode": DEFAULT_TAX_CODE,
                     "taxIncluded": True,
+                    "number": "1",
                 }
             ],
             "code": str(order.id),
@@ -5017,7 +5046,9 @@ def test_get_order_request_data_checks_when_taxes_are_included_to_price(
     order_with_lines.save()
 
     # when
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(
+        order_with_lines, avatax_config, list(order_with_lines.lines.all())
+    )
     lines_data = request_data["createTransactionModel"]["lines"]
 
     # then
@@ -5048,7 +5079,9 @@ def test_get_order_request_data_uses_correct_address_for_cc(
     order_with_lines.save()
 
     # when
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(
+        order_with_lines, avatax_config, list(order_with_lines.lines.all())
+    )
 
     # then
     expected_address_data = address_other_country.as_data()
@@ -5096,7 +5129,9 @@ def test_get_order_request_data_uses_correct_address_for_cc_with_single_location
     avatax_config.from_country = address_data.get("country")
 
     # when
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(
+        order_with_lines, avatax_config, list(order_with_lines.lines.all())
+    )
 
     # then
     addresses = request_data["createTransactionModel"]["addresses"]
@@ -5137,7 +5172,9 @@ def test_get_order_request_data_for_line_with_already_included_taxes_in_price(
     order_with_lines.save()
 
     # when
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(
+        order_with_lines, avatax_config, list(order_with_lines.lines.all())
+    )
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -5194,7 +5231,9 @@ def test_get_order_request_data_confirmed_order_with_voucher(
         ]
     )
 
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(
+        order_with_lines, avatax_config, list(order_with_lines.lines.all())
+    )
     lines_data = request_data["createTransactionModel"]["lines"]
 
     # extra one from shipping data
@@ -5237,7 +5276,7 @@ def test_get_order_request_data_confirmed_order_with_promotion(
     )
 
     # when
-    request_data = get_order_request_data(order, avatax_config)
+    request_data = get_order_request_data(order, avatax_config, list(order.lines.all()))
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -5287,7 +5326,9 @@ def test_get_order_request_data_draft_order_with_voucher(
     )
 
     # when
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(
+        order_with_lines, avatax_config, list(order_with_lines.lines.all())
+    )
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -5347,7 +5388,9 @@ def test_get_order_request_data_draft_order_with_shipping_voucher(
     )
 
     # when
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(
+        order_with_lines, avatax_config, list(order_with_lines.lines.all())
+    )
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -5405,7 +5448,9 @@ def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
     )
 
     # when
-    request_data = get_order_request_data(order_with_lines, avatax_config)
+    request_data = get_order_request_data(
+        order_with_lines, avatax_config, list(order_with_lines.lines.all())
+    )
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -5458,7 +5503,7 @@ def test_get_order_request_data_draft_order_on_promotion(
     )
 
     # when
-    request_data = get_order_request_data(order, avatax_config)
+    request_data = get_order_request_data(order, avatax_config, list(order.lines.all()))
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -5472,7 +5517,7 @@ def test_get_order_request_data_draft_order_on_promotion(
 def test_get_order_tax_data(
     get_cached_response_or_fetch_mock,
     get_order_request_data_mock,
-    order,
+    order_with_lines,
     plugin_configuration,
 ):
     # given
@@ -5482,10 +5527,11 @@ def test_get_order_tax_data(
     get_cached_response_or_fetch_mock.return_value = return_value
 
     # when
-    response = get_order_tax_data(order, conf)
+    response = get_order_tax_data(order_with_lines, conf)
 
     # then
-    get_order_request_data_mock.assert_called_once_with(order, conf)
+    lines = list(order_with_lines.lines.all())
+    get_order_request_data_mock.assert_called_once_with(order_with_lines, conf, lines)
     assert response == return_value
 
 
@@ -5972,7 +6018,12 @@ def test_get_order_lines_data_gets_tax_code_from_product_tax_class(
     tax_class.save()
 
     # when
-    lines_data = get_order_lines_data(order_with_lines, avatax_config, discounted=False)
+    lines_data = get_order_lines_data(
+        order_with_lines,
+        avatax_config,
+        discounted=False,
+        lines=list(order_with_lines.lines.all()),
+    )
 
     # then
     assert lines_data[0]["taxCode"] == tax_code
@@ -5998,7 +6049,12 @@ def test_get_order_lines_data_gets_tax_code_from_product_type_tax_class(
     tax_class.save()
 
     # when
-    lines_data = get_order_lines_data(order_with_lines, avatax_config, discounted=False)
+    lines_data = get_order_lines_data(
+        order_with_lines,
+        avatax_config,
+        discounted=False,
+        lines=list(order_with_lines.lines.all()),
+    )
 
     # then
     assert lines_data[0]["taxCode"] == tax_code
@@ -6027,7 +6083,12 @@ def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
     variant.product.tax_class.save()
 
     # when
-    lines_data = get_order_lines_data(order_with_lines, avatax_config, discounted=False)
+    lines_data = get_order_lines_data(
+        order_with_lines,
+        avatax_config,
+        discounted=False,
+        lines=list(order_with_lines.lines.all()),
+    )
 
     # then
     assert lines_data[0]["amount"] == "0.000"
@@ -6035,12 +6096,13 @@ def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
 
 
 def test_get_order_lines_data_with_discounted(
-    settings, channel_USD, plugin_configuration, order, order_line, avatax_config
+    settings, channel_USD, plugin_configuration, order_line, avatax_config
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     plugin_configuration(channel=channel_USD)
 
+    order = order_line.order
     order_line.unit_price_gross_amount = Decimal("10")
     order_line.undiscounted_unit_price_gross_amount = Decimal("20")
     order_line.quantity = 1
@@ -6058,7 +6120,12 @@ def test_get_order_lines_data_with_discounted(
     variant.product.tax_class.save()
 
     # when
-    lines_data = get_order_lines_data(order, avatax_config, discounted=True)
+    lines_data = get_order_lines_data(
+        order,
+        avatax_config,
+        discounted=True,
+        lines=list(order.lines.all()),
+    )
 
     # then
     assert len(lines_data) == 1
@@ -6094,7 +6161,12 @@ def test_get_order_lines_data_sets_different_tax_code_only_for_zero_amount(
     config = avatax_config
 
     # when
-    lines_data = get_order_lines_data(order_with_lines, config, discounted=False)
+    lines_data = get_order_lines_data(
+        order_with_lines,
+        config,
+        discounted=False,
+        lines=list(order_with_lines.lines.all()),
+    )
 
     # then
     assert lines_data[0]["amount"] == "10.000"
@@ -6121,7 +6193,12 @@ def test_get_order_lines_data_adds_lines_with_taxes_disabled_for_line(
     line.variant.product.save(update_fields=["tax_class"])
 
     # when
-    lines_data = get_order_lines_data(order_with_lines, avatax_config, discounted=False)
+    lines_data = get_order_lines_data(
+        order_with_lines,
+        avatax_config,
+        discounted=False,
+        lines=list(order_with_lines.lines.all()),
+    )
 
     # then
     assert len(lines_data) == len(order_with_lines.lines.all())
@@ -6474,23 +6551,23 @@ def test_validate_plugin_tax_data_no_data(lines_info):
 def test_validate_plugin_tax_data_with_negative_values(lines_info, caplog):
     # given
     tax_data = {
-        "lines": [
-            {
+        "lines": {
+            "123": {
                 "lineAmount": -30.0000,
                 "quantity": 3.0,
                 "itemCode": "SKU_A",
             },
-            {
+            "124": {
                 "lineAmount": 40.0000,
                 "quantity": 2.0,
                 "itemCode": "SKU_B",
             },
-            {
+            "125": {
                 "lineAmount": 8.1300,
                 "quantity": 1.0,
                 "itemCode": "Shipping",
             },
-        ]
+        }
     }
 
     # when
@@ -6503,23 +6580,23 @@ def test_validate_plugin_tax_data_with_negative_values(lines_info, caplog):
 def test_validate_plugin_tax_data_price_overflow(lines_info, caplog):
     # given
     tax_data = {
-        "lines": [
-            {
+        "lines": {
+            "123": {
                 "lineAmount": 30.0000,
                 "quantity": 3.0,
                 "itemCode": "SKU_A",
             },
-            {
+            "124": {
                 "lineAmount": 99999999999999999.0000,
                 "quantity": 2.0,
                 "itemCode": "SKU_B",
             },
-            {
+            "125": {
                 "lineAmount": 8.1300,
                 "quantity": 1.0,
                 "itemCode": "Shipping",
             },
-        ]
+        }
     }
 
     # when
@@ -6527,3 +6604,183 @@ def test_validate_plugin_tax_data_price_overflow(lines_info, caplog):
 
     # then
     assert error_message == TaxDataErrorMessage.OVERFLOW
+
+
+@patch("saleor.plugins.avatax.get_cached_response_or_fetch")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_subtotal_with_additional_force_line(
+    mock_get_cached_response_or_fetch,
+    checkout_with_item,
+    monkeypatch,
+    ship_to_pl_address,
+    shipping_zone,
+    address,
+    plugin_configuration,
+    test_response_multiple_lines_with_same_item_code,
+):
+    # given
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+
+    def mocked_response(*args, **kwargs):
+        # Making a copy, as we are repalcing the list of lines with the dict of
+        # lines in the code
+        return deepcopy(test_response_multiple_lines_with_same_item_code)
+
+    mock_get_cached_response_or_fetch.side_effect = mocked_response
+    manager = get_plugins_manager(allow_replica=False)
+
+    tax_configuration = checkout_with_item.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = False
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
+
+    first_checkout_line = checkout_with_item.lines.first()
+    variant = first_checkout_line.variant
+    first_variant_base_price = variant.get_base_price(
+        variant.channel_listings.get(channel=checkout_with_item.channel)
+    ).amount
+    price_override = Decimal("22.33")
+    override_quantity = 1
+    add_variant_to_checkout(
+        checkout_info,
+        variant,
+        override_quantity,
+        force_new_line=True,
+        price_override=price_override,
+    )
+
+    # Make sure that price override is different than the original price
+    assert first_variant_base_price != price_override
+    # Make sure that quantity override is different than the original quantity
+    assert first_checkout_line.quantity != override_quantity
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    # when
+    subtotal = manager.calculate_checkout_subtotal(checkout_info, lines, address)
+
+    # then
+    expected_subtotal_net = quantize_price(
+        (first_variant_base_price * first_checkout_line.quantity + price_override),
+        checkout_with_item.currency,
+    )
+    expected_subtotal_gross = quantize_price(
+        expected_subtotal_net * Decimal("1.23"), checkout_with_item.currency
+    )
+    assert subtotal == TaxedMoney(
+        net=Money(expected_subtotal_net, checkout_with_item.currency),
+        gross=Money(expected_subtotal_gross, checkout_with_item.currency),
+    )
+
+
+@patch("saleor.plugins.avatax.get_cached_response_or_fetch")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_total_with_additional_force_line(
+    mock_get_cached_response_or_fetch,
+    order_line,
+    shipping_zone,
+    site_settings,
+    address,
+    plugin_configuration,
+    test_response_multiple_lines_with_same_item_code,
+):
+    # given
+    def mocked_response(*args, **kwargs):
+        # Making a copy, as we are repalcing the list of lines with the dict of
+        # lines in the code
+        return deepcopy(test_response_multiple_lines_with_same_item_code)
+
+    mock_get_cached_response_or_fetch.side_effect = mocked_response
+
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    order = order_line.order
+
+    assert order.lines.count() == 1
+
+    variant = order_line.variant
+    # Set SKU to the same as the lines from the:
+    # test_response_multiple_lines_with_same_item_code
+    ProductVariant.objects.filter(sku="123").delete()
+    variant.sku = "123"
+    variant.save()
+
+    product = variant.product
+    quantity = 1
+
+    channel = order.channel
+
+    tax_configuration = channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = False
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    price_overridden = Money(Decimal("22.33"), channel.currency_code)
+    overriden_unit_price = TaxedMoney(net=price_overridden, gross=price_overridden)
+    order_line.base_unit_price_amount = Decimal("10.00")
+    order_line.save()
+
+    assert order_line.unit_price.net.amount != price_overridden
+
+    order.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
+        is_shipping_required=True,
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=overriden_unit_price,
+        total_price=overriden_unit_price * quantity,
+        undiscounted_unit_price=overriden_unit_price,
+        undiscounted_total_price=overriden_unit_price * quantity,
+        base_unit_price=overriden_unit_price.gross,
+        undiscounted_base_unit_price=overriden_unit_price.gross,
+        tax_rate=Decimal("0"),
+        tax_class=variant.product.tax_class,
+        is_price_overridden=True,
+    )
+
+    order.status = OrderStatus.DRAFT
+    order.shipping_address = order.billing_address.get_copy()
+    order.should_refresh_prices = True
+    method = shipping_zone.shipping_methods.get()
+
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.base_shipping_price_amount = Decimal("10.00")
+    order.save()
+
+    # when
+    total = manager.calculate_order_total(order, order.lines.all())
+
+    # then
+    expected_tax_rate = Decimal("1.23")
+
+    expected_shipping_net = Money(order.base_shipping_price_amount, order.currency)
+
+    expected_total_net = quantize_price(
+        (
+            order_line.unit_price.net * order_line.quantity
+            + price_overridden
+            + expected_shipping_net
+        ),
+        order.currency,
+    )
+    expected_total_gross = quantize_price(
+        expected_total_net * expected_tax_rate,
+        order.currency,
+    )
+    assert total == TaxedMoney(net=expected_total_net, gross=expected_total_gross)
