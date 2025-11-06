@@ -357,6 +357,7 @@ def _recalculate_with_plugins(
 
             line.tax_rate = manager.get_order_line_tax_rate(
                 order,
+                line,
                 product,
                 variant,
                 None,
