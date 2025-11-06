@@ -88,7 +88,7 @@ def increase_voucher_code_usage_value(code: "VoucherCode") -> None:
 
 def decrease_voucher_code_usage_value(code: "VoucherCode") -> None:
     """Decrease voucher code uses by 1."""
-    code.used = F("used") - 1
+    code.used = F("used") - 1 if code.used >= 1 else 0
     code.save(update_fields=["used"])
 
 

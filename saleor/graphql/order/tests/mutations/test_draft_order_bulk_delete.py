@@ -65,7 +65,10 @@ def test_delete_draft_orders_by_user_no_channel_access(
     query = DRAFT_ORDER_BULK_DELETE
 
     variables = {
-        "ids": [graphene.Node.to_global_id("Order", order.id) for order in order_list]
+        "ids": [
+            graphene.Node.to_global_id("Order", order.id)
+            for order in [order_1, order_2]
+        ]
     }
 
     # when
@@ -213,7 +216,7 @@ def test_draft_order_bulk_delete_with_voucher_and_include_draft_order_in_voucher
     order_ids = [order.id for order in order_list]
 
     channel = order.channel
-    channel.include_draft_order_in_voucher_usage = False
+    channel.include_draft_order_in_voucher_usage = True
     channel.save(update_fields=["include_draft_order_in_voucher_usage"])
 
     voucher.usage_limit = 1

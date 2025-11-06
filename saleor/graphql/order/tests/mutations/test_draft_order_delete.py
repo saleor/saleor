@@ -255,6 +255,11 @@ def test_draft_order_delete_release_voucher_codes_multiple_use(
     query = DRAFT_ORDER_DELETE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order_list_with_multiple_use_voucher[0]
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
     voucher_code = VoucherCode.objects.get(code=order.voucher_code)
     assert voucher_code.used == 1
 
@@ -278,6 +283,11 @@ def test_draft_order_delete_release_voucher_codes_single_use(
     query = DRAFT_ORDER_DELETE_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order_list_with_single_use_voucher[0]
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = True
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
     voucher_code = VoucherCode.objects.get(code=order.voucher_code)
     assert voucher_code.is_active is False
 
@@ -364,7 +374,7 @@ def test_draft_order_delete_with_voucher_and_include_draft_order_in_voucher_usag
 
     # Ensure the channel flag is False
     channel = order.channel
-    channel.include_draft_order_in_voucher_usage = True
+    channel.include_draft_order_in_voucher_usage = False
     channel.save(update_fields=["include_draft_order_in_voucher_usage"])
 
     voucher.usage_limit = 1
@@ -381,6 +391,7 @@ def test_draft_order_delete_with_voucher_and_include_draft_order_in_voucher_usag
     # then
     with pytest.raises(order._meta.model.DoesNotExist):
         order.refresh_from_db()
+
     voucher_code.refresh_from_db()
     assert voucher_code.used == 0
 
