@@ -101,19 +101,22 @@ class TransactionInitialize(TransactionSessionBase):
         info,
         action: str | None,
         channel: "Channel",
-        payment_gateway: PaymentGatewayData,
     ) -> str:
-        if payment_gateway.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-            # TODO - what is passed action is explicilty different (not None but charge?
-            # - validation error?)
-            return TransactionFlowStrategyEnum.AUTHORIZATION.name
-
         if not action:
             return channel.default_transaction_flow_strategy
         app = get_app_promise(info.context).get()
         if not app or not app.has_perm(PaymentPermissions.HANDLE_PAYMENTS):
             raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
         return action
+
+    @classmethod
+    def clean_action_for_gift_card_payment_gateway(
+        cls,
+        action: str | None,
+    ):
+        # TODO - what is passed action is explicilty different (not None but charge?
+        # - validation error?)
+        return TransactionFlowStrategyEnum.AUTHORIZATION.name
 
     @classmethod
     def clean_app_from_payment_gateway(cls, payment_gateway: PaymentGatewayData) -> App:
@@ -197,9 +200,6 @@ class TransactionInitialize(TransactionSessionBase):
             cls.validate_checkout(source_object)
 
         idempotency_key = cls.clean_idempotency_key(idempotency_key)
-        action = cls.clean_action(
-            info, action, source_object.channel, payment_gateway_data
-        )
         customer_ip_address = clean_customer_ip_address(
             info,
             customer_ip_address,
@@ -212,9 +212,13 @@ class TransactionInitialize(TransactionSessionBase):
         )
 
         if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-            app = None
+            action = cls.clean_action_for_gift_card_payment_gateway(action)
+
             cls.clean_gift_card_payment_gateway_data(payment_gateway_data)
+            app = None
         else:
+            action = cls.clean_action(info, action, source_object.channel)
+
             app = cls.clean_app_from_payment_gateway(payment_gateway_data)
 
         payment_ids = []
