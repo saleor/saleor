@@ -233,6 +233,29 @@ def test_decrease_voucher_usage(channel_USD):
     assert code_instance.used == 9
 
 
+def test_decrease_voucher_usage_used_0(channel_USD):
+    # given
+    code = "unique"
+    voucher = Voucher.objects.create(
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=DiscountValueType.FIXED,
+        usage_limit=100,
+    )
+    code_instance = VoucherCode.objects.create(code=code, voucher=voucher, used=0)
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
+    )
+
+    # when
+    decrease_voucher_code_usage_value(code_instance)
+
+    # then
+    code_instance.refresh_from_db(fields=["used"])
+    assert code_instance.used == 0
+
+
 def test_deactivate_voucher_code(voucher):
     # given
     code_instance = voucher.codes.first()
