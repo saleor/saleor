@@ -238,7 +238,8 @@ def release_voucher_code_usage_of_draft_orders(
         usage_decrease = code_counter[voucher_code.code]
         if voucher_code.used < usage_decrease:
             voucher_code.used = 0
-        voucher_code.used = F("used") - usage_decrease
+        else:
+            voucher_code.used = F("used") - usage_decrease
     VoucherCode.objects.bulk_update(codes_to_release, ["used"])
 
     # drop customer usage
