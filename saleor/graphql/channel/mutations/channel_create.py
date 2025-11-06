@@ -12,6 +12,7 @@ from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
     ADDED_IN_321,
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -80,6 +81,14 @@ class CheckoutSettingsInput(BaseInputObjectType):
             "checkout's total amount."
         )
         + ADDED_IN_320,
+    )
+    allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation = graphene.Boolean(
+        description=(
+            "Default to `true`. Determines whether gift cards can be attached to "
+            "a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards "
+            "is deprecated."
+        )
+        + ADDED_IN_323,
     )
 
     class Meta:

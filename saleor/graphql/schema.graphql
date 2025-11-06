@@ -5422,6 +5422,13 @@ type CheckoutSettings {
   Added in Saleor 3.20.
   """
   automaticallyCompleteFullyPaidCheckouts: Boolean!
+
+  """
+  Default to `true`. Determines whether gift cards can be attached to a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards is deprecated.
+  
+  Added in Saleor 3.23.
+  """
+  allowAttachingGiftCardToCheckoutViaAddPromoCodeMutation: Boolean!
 }
 
 """Represents the channel-specific payment settings."""
@@ -28815,6 +28822,13 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   Added in Saleor 3.20.
   """
   automaticallyCompleteFullyPaidCheckouts: Boolean
+
+  """
+  Default to `true`. Determines whether gift cards can be attached to a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards is deprecated.
+  
+  Added in Saleor 3.23.
+  """
+  allowAttachingGiftCardToCheckoutViaAddPromoCodeMutation: Boolean
 }
 
 input PaymentSettingsInput @doc(category: "Payments") {

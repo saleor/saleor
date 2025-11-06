@@ -1218,6 +1218,35 @@ def test_checkout_add_gift_card_without_checkout_email_used_by_other_user(
     assert data["checkout"]["giftCards"][0]["last4CodeChars"] == gift_card.display_code
 
 
+def test_checkout_add_gift_card_disallowed_by_channel_flag(
+    api_client, checkout_with_item, gift_card
+):
+    # given
+    channel = checkout_with_item.channel
+    channel.allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation = False
+    channel.save(
+        update_fields=[
+            "allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation"
+        ]
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": gift_card.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "code": CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.name,
+        "field": "promoCode",
+        "message": "Adding gift card to checkout in this channel is not allowed.",
+    }
+
+
 @pytest.mark.parametrize("shipping_price", [12, 10, 5])
 def test_checkout_add_free_shipping_voucher_do_not_invalidate_shipping_method(
     shipping_price,
