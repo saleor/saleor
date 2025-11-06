@@ -378,15 +378,6 @@ def test_disconnect_voucher_codes_from_draft_orders(
         order_discount.refresh_from_db()
 
 
-@pytest.fixture
-def voucher_customers(voucher_codes_with_emails):
-    """Fixture to create VoucherCustomer entries."""
-    for code, email in voucher_codes_with_emails:
-        VoucherCustomer.objects.create(
-            voucher_code=VoucherCode.objects.get(code=code), customer_email=email
-        )
-
-
 def test_release_voucher_code_usage_of_draft_orders_single_use(voucher_single_use):
     # given
     single_use_code_1 = voucher_single_use.codes.first()
@@ -417,7 +408,7 @@ def test_release_voucher_code_usage_of_draft_orders_multiple_use(
     used, voucher_multiple_use
 ):
     # given
-    multiple_use_code = voucher_multiple_use.code.first()
+    multiple_use_code = voucher_multiple_use.codes.first()
     multiple_use_code.used = used
     multiple_use_code.save(update_fields=["used"])
 
@@ -436,52 +427,7 @@ def test_release_voucher_code_usage_of_draft_orders_multiple_use(
 
 
 def test_release_voucher_code_usage_of_draft_orders_clears_voucher_customers(
-    voucher_single_use, db
-):
-    # given
-    single_use_code = voucher_single_use.codes.first()
-    email_1 = "customer1@example.com"
-    email_2 = "customer2@example.com"
-    VoucherCustomer.objects.create(voucher_code=single_use_code, customer_email=email_1)
-    VoucherCustomer.objects.create(voucher_code=single_use_code, customer_email=email_2)
-    voucher_codes_with_emails = [
-        (single_use_code.code, email_1),
-        (single_use_code.code, email_2),
-    ]
-    assert VoucherCustomer.objects.filter(
-        voucher_code=single_use_code, customer_email=email_1
-    ).exists()
-    assert VoucherCustomer.objects.filter(
-        voucher_code=single_use_code, customer_email=email_2
-    ).exists()
-
-    # when
-    release_voucher_code_usage_of_draft_orders(voucher_codes_with_emails)
-
-    # then
-    assert not VoucherCustomer.objects.filter(
-        voucher_code=single_use_code, customer_email=email_1
-    ).exists()
-    assert not VoucherCustomer.objects.filter(
-        voucher_code=single_use_code, customer_email=email_2
-    ).exists()
-
-
-def test_release_voucher_code_usage_of_draft_orders_no_codes(db):
-    # given
-    voucher_codes_with_emails = []
-
-    # when
-    # Should not raise or do anything
-    release_voucher_code_usage_of_draft_orders(voucher_codes_with_emails)
-
-    # then
-    assert VoucherCode.objects.count() == 0
-    assert VoucherCustomer.objects.count() == 0
-
-
-def test_release_voucher_code_usage_of_draft_orders_partial_customers(
-    voucher_single_use, db
+    voucher_single_use,
 ):
     # given
     single_use_code_1 = voucher_single_use.codes.first()
@@ -515,3 +461,16 @@ def test_release_voucher_code_usage_of_draft_orders_partial_customers(
     assert VoucherCustomer.objects.filter(
         voucher_code=single_use_code_1, customer_email=email_2
     ).exists()
+
+
+def test_release_voucher_code_usage_of_draft_orders_no_codes():
+    # given
+    voucher_codes_with_emails = []
+
+    # when
+    # Should not raise or do anything
+    release_voucher_code_usage_of_draft_orders(voucher_codes_with_emails)
+
+    # then
+    assert VoucherCode.objects.count() == 0
+    assert VoucherCustomer.objects.count() == 0
