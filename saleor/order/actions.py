@@ -642,6 +642,11 @@ def order_charged(
     webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     order = order_info.order
+    if order.status == OrderStatus.DRAFT:
+        # Skip charging events for draft orders
+        # They are going to be triggered when order is confirmed
+        return
+
     if payment and amount is not None:
         events.payment_captured_event(
             order=order, user=user, app=app, amount=amount, payment=payment
