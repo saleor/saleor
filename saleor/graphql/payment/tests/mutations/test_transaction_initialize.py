@@ -1,6 +1,7 @@
 import datetime
 from decimal import Decimal
 from unittest import mock
+from uuid import uuid4
 
 import graphene
 import pytest
@@ -3525,13 +3526,16 @@ def test_for_checkout_with_gift_card_payment_gateway_data_and_incorrect_data_for
     )
 
 
-def test_for_checkout_with_gift_card_payment_gateway_data(
+@mock.patch("saleor.payment.utils.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway(
+    mocked_uuid4,
     user_api_client,
     checkout_with_prices,
     gift_card_created_by_staff,
 ):
     # given
     checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
 
     variables = {
         "action": None,
@@ -3553,9 +3557,169 @@ def test_for_checkout_with_gift_card_payment_gateway_data(
         content=content,
         source_object=checkout,
         expected_amount=Decimal(1),
-        expected_psp_reference="123",
+        expected_psp_reference=str(mocked_uuid4.return_value),
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         authorized_value=Decimal(1),
+    )
+
+
+@mock.patch("saleor.payment.utils.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_gift_card_does_not_exist(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": "not-existent-code"},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+    )
+
+
+@mock.patch("saleor.payment.utils.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_different_currency(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    gift_card_created_by_staff.currency = "CHF"
+    gift_card_created_by_staff.save(update_fields=["currency"])
+
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+    )
+
+
+@mock.patch("saleor.payment.utils.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_gift_card_is_inactive(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    gift_card_created_by_staff.is_active = False
+    gift_card_created_by_staff.save(update_fields=["is_active"])
+
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+    )
+
+
+@mock.patch("saleor.payment.utils.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_insufficient_funds(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    gift_card_created_by_staff.current_balance_amount = Decimal(0.1)
+    gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
+
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
     )

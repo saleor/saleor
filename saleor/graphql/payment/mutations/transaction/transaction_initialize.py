@@ -112,10 +112,7 @@ class TransactionInitialize(TransactionSessionBase):
     @classmethod
     def clean_action_for_gift_card_payment_gateway(
         cls,
-        action: str | None,
     ):
-        # TODO - what is passed action is explicilty different (not None but charge?
-        # - validation error?)
         return TransactionFlowStrategyEnum.AUTHORIZATION.name
 
     @classmethod
@@ -212,7 +209,7 @@ class TransactionInitialize(TransactionSessionBase):
         )
 
         if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-            action = cls.clean_action_for_gift_card_payment_gateway(action)
+            action = cls.clean_action_for_gift_card_payment_gateway()
 
             cls.clean_gift_card_payment_gateway_data(payment_gateway_data)
             app = None

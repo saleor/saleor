@@ -2,7 +2,7 @@ import json
 import logging
 from decimal import Decimal
 from typing import Any, Optional, cast, get_args, overload
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -32,6 +32,7 @@ from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.text import safe_truncate
+from ..giftcard.models import GiftCard
 from ..graphql.core.utils import str_to_enum
 from ..order import OrderStatus
 from ..order.actions import order_transaction_updated
@@ -1908,15 +1909,33 @@ def handle_transaction_initialize_session(
 def transaction_initialize_session_with_gift_card_payment_method(
     transaction_session_data: "TransactionSessionData",
 ) -> "TransactionSessionResult":
-    return TransactionSessionResult(
+    transaction_session_result = TransactionSessionResult(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         response={
-            "result": "AUTHORIZATION_SUCCESS",
-            # "pspReference": str(uuid4()),
-            "pspReference": "123",
+            "result": TransactionEventType.AUTHORIZATION_FAILURE.upper(),
+            "pspReference": str(uuid4()),
             "amount": transaction_session_data.action.amount,
         },
     )
+
+    # Check for existence of an active gift card and validate currency.
+    gift_card_qs = GiftCard.objects.filter(
+        code=transaction_session_data.payment_gateway_data.data["code"],
+        currency=transaction_session_data.action.currency,
+        is_active=True,
+    )
+    if gift_card_qs.count() != 1:
+        return transaction_session_result
+
+    # Check whether gift card has enough funds to cover the amount.
+    gift_card = gift_card_qs.get()
+    if transaction_session_data.action.amount > gift_card.current_balance_amount:
+        return transaction_session_result
+
+    transaction_session_result.response["result"] = (
+        TransactionEventType.AUTHORIZATION_SUCCESS.upper()
+    )
+    return transaction_session_result
 
 
 def handle_transaction_process_session(
