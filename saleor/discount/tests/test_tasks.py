@@ -11,7 +11,14 @@ from freezegun import freeze_time
 from ...order.models import Order
 from ...product.models import ProductChannelListing, ProductVariant
 from .. import DiscountType, RewardValueType
-from ..models import OrderDiscount, OrderLineDiscount, Promotion, PromotionRule
+from ..models import (
+    OrderDiscount,
+    OrderLineDiscount,
+    Promotion,
+    PromotionRule,
+    VoucherCode,
+    VoucherCustomer,
+)
 from ..tasks import (
     clear_promotion_rule_variants_task,
     decrease_voucher_code_usage_of_draft_orders,
@@ -19,6 +26,7 @@ from ..tasks import (
     disconnect_voucher_codes_from_draft_orders_task,
     fetch_promotion_variants_and_product_ids,
     handle_promotion_toggle,
+    release_voucher_code_usage_of_draft_orders,
     set_promotion_rule_variants_task,
 )
 from ..utils.promotion import mark_catalogue_promotion_rules_as_dirty
@@ -368,3 +376,101 @@ def test_disconnect_voucher_codes_from_draft_orders(
         line_discount.refresh_from_db()
     with pytest.raises(order_discount._meta.model.DoesNotExist):
         order_discount.refresh_from_db()
+
+
+def test_release_voucher_code_usage_of_draft_orders_single_use(voucher_single_use):
+    # given
+    single_use_code_1 = voucher_single_use.codes.first()
+    single_use_code_2 = voucher_single_use.codes.last()
+    single_use_code_1.is_active = False
+    single_use_code_2.is_active = False
+    VoucherCode.objects.bulk_update(
+        [single_use_code_1, single_use_code_2], ["is_active"]
+    )
+
+    voucher_codes_with_emails = [
+        (single_use_code_1.code, "test@example.com"),
+        (single_use_code_2.code, "test2@example.com"),
+    ]
+
+    # when
+    release_voucher_code_usage_of_draft_orders(voucher_codes_with_emails)
+
+    # then
+    single_use_code_2.refresh_from_db()
+    assert single_use_code_2.is_active is True
+    single_use_code_1.refresh_from_db()
+    assert single_use_code_1.is_active is True
+
+
+@pytest.mark.parametrize("used", [1, 2, 3, 4])
+def test_release_voucher_code_usage_of_draft_orders_multiple_use(
+    used, voucher_multiple_use
+):
+    # given
+    multiple_use_code = voucher_multiple_use.codes.first()
+    multiple_use_code.used = used
+    multiple_use_code.save(update_fields=["used"])
+
+    voucher_codes_with_emails = [
+        (multiple_use_code.code, "test@example.com"),
+        (multiple_use_code.code, "test2@example.com"),
+        (multiple_use_code.code, "test3@example.com"),
+    ]
+
+    # when
+    release_voucher_code_usage_of_draft_orders(voucher_codes_with_emails)
+
+    # then
+    multiple_use_code.refresh_from_db()
+    assert multiple_use_code.used == max(used - len(voucher_codes_with_emails), 0)
+
+
+def test_release_voucher_code_usage_of_draft_orders_clears_voucher_customers(
+    voucher_single_use,
+):
+    # given
+    single_use_code_1 = voucher_single_use.codes.first()
+    single_use_code_2 = voucher_single_use.codes.last()
+    email_1 = "customer1@example.com"
+    email_2 = "customer2@example.com"
+    email_3 = "customer3@example.com"
+    VoucherCustomer.objects.bulk_create(
+        [
+            VoucherCustomer(voucher_code=single_use_code_1, customer_email=email_1),
+            VoucherCustomer(voucher_code=single_use_code_1, customer_email=email_2),
+            VoucherCustomer(voucher_code=single_use_code_2, customer_email=email_3),
+        ]
+    )
+    voucher_codes_with_emails = [
+        (single_use_code_1.code, email_1),
+        (single_use_code_2.code, email_3),
+        (single_use_code_2.code, email_2),
+    ]
+
+    # when
+    release_voucher_code_usage_of_draft_orders(voucher_codes_with_emails)
+
+    # then
+    assert not VoucherCustomer.objects.filter(
+        voucher_code=single_use_code_1, customer_email=email_1
+    ).exists()
+    assert not VoucherCustomer.objects.filter(
+        voucher_code=single_use_code_2, customer_email=email_3
+    ).exists()
+    assert VoucherCustomer.objects.filter(
+        voucher_code=single_use_code_1, customer_email=email_2
+    ).exists()
+
+
+def test_release_voucher_code_usage_of_draft_orders_no_codes():
+    # given
+    voucher_codes_with_emails = []
+
+    # when
+    # Should not raise or do anything
+    release_voucher_code_usage_of_draft_orders(voucher_codes_with_emails)
+
+    # then
+    assert VoucherCode.objects.count() == 0
+    assert VoucherCustomer.objects.count() == 0

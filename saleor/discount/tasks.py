@@ -1,5 +1,5 @@
 import datetime
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import TYPE_CHECKING
 
 import graphene
@@ -29,7 +29,9 @@ from .models import (
     OrderLineDiscount,
     Promotion,
     PromotionRule,
+    Voucher,
     VoucherCode,
+    VoucherCustomer,
 )
 from .utils.promotion import mark_catalogue_promotion_rules_as_dirty
 
@@ -212,6 +214,39 @@ def clear_promotion_rule_variants_task():
         mark_products_in_channels_as_dirty_based_on_rules(rules, allow_replica=True)
         PromotionRuleVariant.objects.filter(pk__in=rule_variants_id).delete()
         clear_promotion_rule_variants_task.delay()
+
+
+@app.task
+@allow_writer()
+def release_voucher_code_usage_of_draft_orders(
+    voucher_codes_with_emails: list[tuple[str, str]],
+):
+    voucher_codes = [code for code, _ in voucher_codes_with_emails]
+    if not voucher_codes:
+        return
+    codes = VoucherCode.objects.filter(code__in=voucher_codes)
+
+    # activate single use vouchers
+    single_use_vouchers = Voucher.objects.filter(single_use=True)
+    codes.filter(voucher__in=single_use_vouchers).update(is_active=True)
+
+    # decrease usage for vouchers with usage limit
+    voucher_with_usage_limit = Voucher.objects.filter(usage_limit__isnull=False)
+    codes_to_release = codes.filter(voucher__in=voucher_with_usage_limit)
+    code_counter = Counter(voucher_codes)
+    for voucher_code in codes_to_release:
+        usage_decrease = code_counter[voucher_code.code]
+        if voucher_code.used < usage_decrease:
+            voucher_code.used = 0
+        else:
+            voucher_code.used = F("used") - usage_decrease
+    VoucherCode.objects.bulk_update(codes_to_release, ["used"])
+
+    # drop customer usage
+    lookup = Q()
+    for code, email in voucher_codes_with_emails:
+        lookup |= Q(voucher_code__code=code, customer_email=email)
+    VoucherCustomer.objects.filter(lookup).delete()
 
 
 def decrease_voucher_code_usage_of_draft_orders(channel_id: int):
