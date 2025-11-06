@@ -89,7 +89,7 @@ documentation = "https://docs.saleor.io/"
     extras = [ "binary" ]
 
     [tool.poetry.dependencies.django]
-    version = "^4.2"
+    version = "^4.2.26"
     extras = [ "bcrypt" ]
 
     [tool.poetry.dependencies.uvicorn]
