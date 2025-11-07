@@ -308,12 +308,16 @@ def checkout_line_undiscounted_total_price(
     return quantize_price(total_price, total_price.currency)
 
 
-def checkout_lines(
+def recalculate_discounts_and_fetch_lines(
     *,
     lines_info: Iterable["CheckoutLineInfo"],
     checkout_info: "CheckoutInfo",
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> Iterable["CheckoutLine"]:
+    """Recalculate discounts and return checkout lines.
+
+    The lines recalculation might change the
+    """
     recalculate_discounts(checkout_info, lines_info, database_connection_name)
     return (line_info.line for line_info in lines_info)
 

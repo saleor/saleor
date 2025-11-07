@@ -561,7 +561,7 @@ def create_gift_line(
         if fields_to_update:
             line.save(update_fields=fields_to_update)
 
-    return line, created
+    return line
 
 
 def _get_defaults_for_gift_line(
@@ -920,7 +920,7 @@ def _handle_gift_reward(
         else OrderLineDiscount
     )
     with transaction.atomic():
-        line, _line_created = create_gift_line(order_or_checkout, gift_listing)
+        line = create_gift_line(order_or_checkout, gift_listing)
         (
             line_discount,
             discount_created,

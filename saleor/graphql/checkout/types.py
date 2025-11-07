@@ -988,11 +988,11 @@ class Checkout(ModelObjectType[models.Checkout]):
         def get_lines(data):
             lines_info, checkout_info = data
             database_connection_name = get_database_connection_name(info.context)
-            return calculations.checkout_lines(
-                lines_info=lines_info,
-                checkout_info=checkout_info,
-                database_connection_name=database_connection_name,
+            # we need to recalculate discount as the gift line might be added / changed
+            calculations.recalculate_discounts(
+                checkout_info, lines_info, database_connection_name
             )
+            return (line_info.line for line_info in lines_info)
 
         dataloaders = list(get_dataloaders_for_recalculate_discounts(root, info))
         return Promise.all(dataloaders).then(get_lines)
