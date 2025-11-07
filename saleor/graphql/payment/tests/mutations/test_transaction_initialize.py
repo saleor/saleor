@@ -3590,7 +3590,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_does_not_exist(
         "id": to_global_id_or_none(checkout),
         "paymentGateway": {
             "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
-            "data": {"code": "not-existent-code"},
+            "data": {"code": "not-existing"},
         },
     }
 

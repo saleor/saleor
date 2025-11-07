@@ -1,5 +1,8 @@
+from typing import Annotated
+
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv46_address
+from pydantic import BaseModel, Field
 
 from .....core.exceptions import PermissionDenied
 from .....core.utils import get_client_ip
@@ -73,3 +76,14 @@ def clean_customer_ip_address(info, customer_ip_address: str | None, error_code:
             }
         ) from e
     return customer_ip_address
+
+
+class GiftCardPaymentGatewayDataSchema(BaseModel):
+    code: Annotated[
+        str,
+        Field(
+            description="Name of the payment method used for the transaction.",
+            min_length=8,
+            max_length=16,
+        ),
+    ]

@@ -1,6 +1,7 @@
 import uuid
 
 import graphene
+import pydantic
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
@@ -24,7 +25,7 @@ from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionEvent, TransactionItem
 from ..base import TransactionSessionBase
 from .payment_gateway_initialize import PaymentGatewayToInitialize
-from .utils import clean_customer_ip_address
+from .utils import GiftCardPaymentGatewayDataSchema, clean_customer_ip_address
 
 
 class TransactionInitialize(TransactionSessionBase):
@@ -148,14 +149,9 @@ class TransactionInitialize(TransactionSessionBase):
     def clean_gift_card_payment_gateway_data(
         cls, payment_gateway: PaymentGatewayData
     ) -> None:
-        data = payment_gateway.data
-        if (
-            not data
-            or not isinstance(data, dict)
-            or "code" not in data
-            or not data["code"]
-            or not isinstance(data["code"], str)
-        ):
+        try:
+            GiftCardPaymentGatewayDataSchema.model_validate(payment_gateway.data)
+        except pydantic.ValidationError as exc:
             raise ValidationError(
                 {
                     "payment_gateway": ValidationError(
@@ -163,7 +159,7 @@ class TransactionInitialize(TransactionSessionBase):
                         code=TransactionInitializeErrorCode.INVALID.value,
                     )
                 }
-            )
+            ) from exc
 
     @classmethod
     def clean_idempotency_key(cls, idempotency_key: str | None):
