@@ -519,6 +519,7 @@ def prepare_line_discount_objects_for_voucher(
     line_discounts_to_update: list[OrderLineDiscount] = []
     line_discounts_to_remove: list[OrderLineDiscount] = []
     updated_fields: list[str] = []
+    end_date = None
 
     if not lines_info:
         return None
@@ -612,6 +613,7 @@ def prepare_line_discount_objects_for_voucher(
         line_discounts_to_update,
         line_discounts_to_remove,
         updated_fields,
+        end_date,
     )
 
 

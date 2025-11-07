@@ -91,7 +91,6 @@ from ..webhook.dataloaders.pregenerated_payloads_for_checkout_filter_shipping_me
 from .dataloaders import (
     CheckoutByTokenLoader,
     CheckoutInfoByCheckoutTokenLoader,
-    CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
     CheckoutMetadataByCheckoutIdLoader,
     TransactionItemsByCheckoutIDLoader,
@@ -140,6 +139,18 @@ def get_dataloaders_for_fetching_checkout_data(
         tax_payloads,
         excluded_shipping_methods_payloads,
     )
+
+
+def get_dataloaders_for_recalculate_discounts(
+    root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+) -> tuple[
+    Promise[list["CheckoutLineInfo"]],
+    Promise["CheckoutInfo"],
+]:
+    checkout = root.node
+    lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(checkout.token)
+    checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(checkout.token)
+    return lines, checkout_info
 
 
 class CheckoutLineProblemInsufficientStock(
@@ -1170,19 +1181,23 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     def resolve_lines(
         root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
     ):
-        def _wrap_with_sync_webhook_control_context(lines):
-            return [
+        @allow_writer_in_context(info.context)
+        def get_lines(data):
+            lines_info, checkout_info = data
+            database_connection_name = get_database_connection_name(info.context)
+            # we need to recalculate discount as the gift line might be added / changed
+            calculations.recalculate_discounts(
+                checkout_info, lines_info, database_connection_name
+            )
+            return (
                 SyncWebhookControlContext(
-                    node=line, allow_sync_webhooks=root.allow_sync_webhooks
+                    line_info.line, allow_sync_webhooks=root.allow_sync_webhooks
                 )
-                for line in lines
-            ]
+                for line_info in lines_info
+            )
 
-        return (
-            CheckoutLinesByCheckoutTokenLoader(info.context)
-            .load(root.node.token)
-            .then(_wrap_with_sync_webhook_control_context)
-        )
+        dataloaders = list(get_dataloaders_for_recalculate_discounts(root, info))
+        return Promise.all(dataloaders).then(get_lines)
 
     @staticmethod
     @traced_resolver

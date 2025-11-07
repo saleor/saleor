@@ -3770,7 +3770,8 @@ def test_checkout_prices_expired_variant_listing_price_changed(
         force_update=True,
     )
     checkout_with_item.price_expiration = timezone.now() - datetime.timedelta(days=1)
-    checkout_with_item.save(update_fields=["price_expiration"])
+    checkout_with_item.discount_expiration = timezone.now() - datetime.timedelta(days=1)
+    checkout_with_item.save(update_fields=["price_expiration", "discount_expiration"])
 
     line = lines[0]
     listing = line.variant.channel_listings.get(
