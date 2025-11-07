@@ -1926,7 +1926,7 @@ def transaction_initialize_session_with_gift_card_payment_method(
         currency=transaction_session_data.action.currency,
         is_active=True,
     )
-    if gift_card_qs.count() != 1:
+    if gift_card_qs.count() < 1:
         return transaction_session_result
 
     # Check whether gift card has enough funds to cover the amount.
