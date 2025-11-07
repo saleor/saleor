@@ -813,6 +813,16 @@ def add_promo_code_to_checkout(
             promo_code,
         )
     elif promo_code_is_gift_card(promo_code):
+        if not checkout_info.channel.allow_legacy_gift_card_use:
+            raise ValidationError(
+                {
+                    "promo_code": ValidationError(
+                        "Adding gift card to checkout in this channel is not allowed.",
+                        code=CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
+
         user_email = cast(str, checkout_info.get_customer_email())
         add_gift_card_code_to_checkout(
             checkout_info.checkout,

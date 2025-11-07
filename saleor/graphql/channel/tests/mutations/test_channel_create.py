@@ -57,6 +57,7 @@ CHANNEL_CREATE_MUTATION = """
                     automaticallyCompleteFullyPaidCheckouts
                     automaticCompletionDelay
                     automaticCompletionCutOffDate
+                    allowLegacyGiftCardUse
                 }
                 paymentSettings {
                     defaultTransactionFlowStrategy
@@ -1495,3 +1496,44 @@ def test_channel_create_set_use_legacy_line_discount_propagation(
         == expected_result
     )
     assert channel.use_legacy_line_discount_propagation_for_order == expected_result
+
+
+@pytest.mark.parametrize("allow_legacy_gift_card_use", [True, False])
+def test_channel_create_allow_legacy_gift_card_use(
+    allow_legacy_gift_card_use,
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {"allowLegacyGiftCardUse": allow_legacy_gift_card_use},
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert (
+        channel_data["checkoutSettings"]["allowLegacyGiftCardUse"]
+        == allow_legacy_gift_card_use
+    )
+    assert channel.allow_legacy_gift_card_use == allow_legacy_gift_card_use

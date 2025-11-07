@@ -72,6 +72,8 @@ class Channel(ModelWithMetadata):
     )
     checkout_release_funds_cut_off_date = models.DateTimeField(null=True, blank=True)
 
+    allow_legacy_gift_card_use = models.BooleanField(default=True, db_default=True)
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"
