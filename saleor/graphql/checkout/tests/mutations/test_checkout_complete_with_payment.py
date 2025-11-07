@@ -5924,7 +5924,6 @@ def test_checkout_complete_with_external_shipping(
         order.private_metadata[PRIVATE_META_APP_SHIPPING_ID]
         == graphql_external_method_id
     )
-    assert order.shipping_method_metadata == external_shipping_metadata
     assert data["order"]["shippingMethod"]["name"] == external_shipping_name
     expected_metadata = [
         {
@@ -5932,8 +5931,137 @@ def test_checkout_complete_with_external_shipping(
             "value": external_shipping_metadata_value,
         }
     ]
+    assert order.shipping_method_metadata == external_shipping_metadata
     assert data["order"]["shippingMethod"]["metadata"] == expected_metadata
     assert data["order"]["deliveryMethod"]["metadata"] == expected_metadata
+
+
+@override_settings(
+    PLUGINS=[
+        "saleor.plugins.webhook.plugin.WebhookPlugin",
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    ]
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_checkout_complete_with_external_shipping_private_metadata(
+    mocked_sync_webhook,
+    staff_api_client,
+    checkout_with_item,
+    payment_dummy,
+    address,
+    shipping_app,
+    permission_manage_shipping,
+):
+    mutation_checkout_complete_with_private_metadata = """
+        mutation checkoutComplete(
+            $id: ID,
+            $redirectUrl: String,
+            $metadata: [MetadataInput!],
+        ) {
+        checkoutComplete(
+                id: $id,
+                redirectUrl: $redirectUrl,
+                metadata: $metadata,
+            ) {
+            order {
+                id
+                shippingMethod {
+                    privateMetadata {
+                        key
+                        value
+                    }
+                }
+                deliveryMethod {
+                    ... on ShippingMethod {
+                        privateMetadata {
+                            key
+                            value
+                        }
+                    }
+                }
+            }
+            errors {
+                field,
+                message,
+                variants,
+                code
+            }
+        }
+    }
+    """
+
+    # given
+    external_shipping_method_id = "ABC"
+    external_shipping_name = "External provider - Economy"
+    external_shipping_private_metadata_key = "external_private_metadata_key"
+    external_shipping_private_metadata_value = "external_private_metadata_value"
+    external_shipping_private_metadata = {
+        external_shipping_private_metadata_key: external_shipping_private_metadata_value
+    }
+    graphql_external_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{external_shipping_method_id}"
+    )
+    mock_json_response = [
+        {
+            "id": external_shipping_method_id,
+            "name": external_shipping_name,
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+            "private_metadata": external_shipping_private_metadata,
+        }
+    ]
+    mocked_sync_webhook.return_value = mock_json_response
+
+    checkout = checkout_with_item
+    checkout.external_shipping_method_id = graphql_external_method_id
+    checkout.shipping_method_name = external_shipping_name
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    response = staff_api_client.post_graphql(
+        mutation_checkout_complete_with_private_metadata, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    order = Order.objects.get(checkout_token=checkout.token)
+    expected_private_metadata = [
+        {
+            "key": external_shipping_private_metadata_key,
+            "value": external_shipping_private_metadata_value,
+        }
+    ]
+    assert order.shipping_method_private_metadata == external_shipping_private_metadata
+    assert (
+        data["order"]["shippingMethod"]["privateMetadata"] == expected_private_metadata
+    )
+    assert (
+        data["order"]["deliveryMethod"]["privateMetadata"] == expected_private_metadata
+    )
 
 
 def test_checkout_complete_with_different_email_than_user_email(
