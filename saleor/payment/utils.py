@@ -1919,7 +1919,9 @@ def transaction_initialize_session_with_gift_card_payment_method(
     )
 
     # Check for existence of an active gift card and validate currency.
-    gift_card_qs = GiftCard.objects.filter(
+    gift_card_qs = GiftCard.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(
         code=transaction_session_data.payment_gateway_data.data["code"],  # type: ignore[call-overload, index]
         currency=transaction_session_data.action.currency,
         is_active=True,
@@ -1936,6 +1938,7 @@ def transaction_initialize_session_with_gift_card_payment_method(
         TransactionEventType.AUTHORIZATION_SUCCESS.upper()
     )
 
+    # Attach gift card to the transaction item.
     transaction_session_data.transaction.gift_card = gift_card
     transaction_session_data.transaction.save(update_fields=["gift_card"])
 
