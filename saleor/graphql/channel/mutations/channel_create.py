@@ -82,7 +82,7 @@ class CheckoutSettingsInput(BaseInputObjectType):
         )
         + ADDED_IN_320,
     )
-    allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation = graphene.Boolean(
+    allow_legacy_gift_card_use = graphene.Boolean(
         description=(
             "Default to `true`. Determines whether gift cards can be attached to "
             "a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards "

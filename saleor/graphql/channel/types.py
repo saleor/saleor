@@ -92,7 +92,7 @@ class CheckoutSettings(ObjectType):
         )
         + ADDED_IN_320,
     )
-    allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation = graphene.Boolean(
+    allow_legacy_gift_card_use = graphene.Boolean(
         required=True,
         description=(
             "Default to `true`. Determines whether gift cards can be attached to "
@@ -520,7 +520,7 @@ class Channel(ModelObjectType):
         return CheckoutSettings(
             use_legacy_error_flow=root.use_legacy_error_flow_for_checkout,
             automatically_complete_fully_paid_checkouts=complete_paid_checkouts,
-            allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation=root.allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation,
+            allow_legacy_gift_card_use=root.allow_legacy_gift_card_use,
         )
 
     @staticmethod

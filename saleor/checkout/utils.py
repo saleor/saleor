@@ -820,7 +820,7 @@ def add_promo_code_to_checkout(
             promo_code,
         )
     elif promo_code_is_gift_card(promo_code):
-        if not checkout_info.channel.allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation:
+        if not checkout_info.channel.allow_legacy_gift_card_use:
             raise ValidationError(
                 {
                     "promo_code": ValidationError(

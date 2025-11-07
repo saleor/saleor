@@ -64,9 +64,7 @@ class Channel(ModelWithMetadata):
     )
     checkout_release_funds_cut_off_date = models.DateTimeField(null=True, blank=True)
 
-    allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation = (
-        models.BooleanField(default=True)
-    )
+    allow_legacy_gift_card_use = models.BooleanField(default=True)
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)

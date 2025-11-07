@@ -1223,12 +1223,8 @@ def test_checkout_add_gift_card_disallowed_by_channel_flag(
 ):
     # given
     channel = checkout_with_item.channel
-    channel.allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation = False
-    channel.save(
-        update_fields=[
-            "allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation"
-        ]
-    )
+    channel.allow_legacy_gift_card_use = False
+    channel.save(update_fields=["allow_legacy_gift_card_use"])
 
     variables = {
         "id": to_global_id_or_none(checkout_with_item),

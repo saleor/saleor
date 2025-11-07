@@ -476,7 +476,7 @@ QUERY_CHANNEL_CHECKOUT_SETTINGS = """
             checkoutSettings {
                 useLegacyErrorFlow
                 automaticallyCompleteFullyPaidCheckouts
-                allowAttachingGiftCardToCheckoutViaAddPromoCodeMutation
+                allowLegacyGiftCardUse
             }
         }
     }
@@ -489,14 +489,12 @@ def test_query_channel_checkout_settings_as_staff_user(
     # given
     channel_USD.use_legacy_error_flow_for_checkout = False
     channel_USD.automatically_complete_fully_paid_checkouts = True
-    channel_USD.allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation = (
-        False
-    )
+    channel_USD.allow_legacy_gift_card_use = False
     channel_USD.save(
         update_fields=[
             "use_legacy_error_flow_for_checkout",
             "automatically_complete_fully_paid_checkouts",
-            "allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation",
+            "allow_legacy_gift_card_use",
         ]
     )
 
@@ -523,10 +521,8 @@ def test_query_channel_checkout_settings_as_staff_user(
         == channel_USD.automatically_complete_fully_paid_checkouts
     )
     assert (
-        channel_data["checkoutSettings"][
-            "allowAttachingGiftCardToCheckoutViaAddPromoCodeMutation"
-        ]
-        == channel_USD.allow_attaching_gift_card_to_checkout_via_add_promo_code_mutation
+        channel_data["checkoutSettings"]["allowLegacyGiftCardUse"]
+        == channel_USD.allow_legacy_gift_card_use
     )
 
 

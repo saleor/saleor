@@ -5428,7 +5428,7 @@ type CheckoutSettings {
   
   Added in Saleor 3.23.
   """
-  allowAttachingGiftCardToCheckoutViaAddPromoCodeMutation: Boolean!
+  allowLegacyGiftCardUse: Boolean!
 }
 
 """Represents the channel-specific payment settings."""
@@ -28828,7 +28828,7 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   
   Added in Saleor 3.23.
   """
-  allowAttachingGiftCardToCheckoutViaAddPromoCodeMutation: Boolean
+  allowLegacyGiftCardUse: Boolean
 }
 
 input PaymentSettingsInput @doc(category: "Payments") {
