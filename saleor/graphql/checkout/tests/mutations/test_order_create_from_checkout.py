@@ -2935,3 +2935,117 @@ def test_order_from_checkout_with_external_shipping(
     ]
     assert data["order"]["shippingMethod"]["metadata"] == expected_metadata
     assert data["order"]["deliveryMethod"]["metadata"] == expected_metadata
+
+
+@pytest.mark.integration
+@override_settings(
+    PLUGINS=[
+        "saleor.plugins.webhook.plugin.WebhookPlugin",
+    ]
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_order_from_checkout_with_external_shipping_private_metadata(
+    mocked_sync_webhook,
+    app_api_client,
+    permission_handle_checkouts,
+    permission_manage_shipping,
+    checkout_with_item,
+    address,
+    shipping_app,
+):
+    mutation_order_create_from_checkout_with_private_metadata = """
+    mutation orderCreateFromCheckout(
+            $id: ID!, $metadata: [MetadataInput!], $privateMetadata: [MetadataInput!]
+        ){
+        orderCreateFromCheckout(
+                id: $id, metadata: $metadata, privateMetadata: $privateMetadata
+            ){
+            order{
+                id
+                shippingMethod {
+                    id
+                    name
+                    privateMetadata {
+                        key
+                        value
+                    }
+                }
+                deliveryMethod {
+                    ... on ShippingMethod {
+                        id
+                        name
+                        privateMetadata {
+                            key
+                            value
+                        }
+                    }
+                }
+            }
+            errors{
+                field
+                message
+                code
+                variants
+            }
+        }
+    }
+    """
+
+    # given
+    external_shipping_method_id = "ABC"
+    external_shipping_name = "External provider - Economy"
+    external_shipping_private_metadata_key = "external_private_metadata_key"
+    external_shipping_private_metadata_value = "external_private_metadata_value"
+    external_shipping_private_metadata = {
+        external_shipping_private_metadata_key: external_shipping_private_metadata_value
+    }
+
+    graphql_external_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{external_shipping_method_id}"
+    )
+    mock_json_response = [
+        {
+            "id": external_shipping_method_id,
+            "name": external_shipping_name,
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+            "private_metadata": external_shipping_private_metadata,
+        }
+    ]
+    mocked_sync_webhook.return_value = mock_json_response
+
+    checkout = checkout_with_item
+    checkout.external_shipping_method_id = graphql_external_method_id
+    checkout.shipping_method_name = external_shipping_name
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.save()
+
+    # when
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+    response = app_api_client.post_graphql(
+        mutation_order_create_from_checkout_with_private_metadata,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+    order = Order.objects.first()
+    assert data["order"]["shippingMethod"]["name"] == external_shipping_name
+    expected_private_metadata = [
+        {
+            "key": external_shipping_private_metadata_key,
+            "value": external_shipping_private_metadata_value,
+        }
+    ]
+    assert order.shipping_method_private_metadata == external_shipping_private_metadata
+    assert (
+        data["order"]["shippingMethod"]["privateMetadata"] == expected_private_metadata
+    )
+    assert (
+        data["order"]["deliveryMethod"]["privateMetadata"] == expected_private_metadata
+    )
