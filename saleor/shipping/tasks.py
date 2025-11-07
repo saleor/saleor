@@ -17,12 +17,14 @@ def drop_invalid_shipping_methods_relations_for_given_channels(
 ):
     # unlink shipping methods from order and checkout instances
     # when method is no longer available in given channels
+    current_time = timezone.now()
     Checkout.objects.filter(
         shipping_method_id__in=shipping_method_ids, channel_id__in=channel_ids
     ).update(
         shipping_method=None,
-        price_expiration=timezone.now(),
-        last_change=timezone.now(),
+        price_expiration=current_time,
+        discount_expiration=current_time,
+        last_change=current_time,
     )
     Order.objects.filter(
         status__in=ORDER_EDITABLE_STATUS,

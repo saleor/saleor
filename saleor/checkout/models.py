@@ -194,6 +194,9 @@ class Checkout(models.Model):
     )
 
     price_expiration = models.DateTimeField(default=timezone.now)
+    # Expiration time of the applied discounts.
+    # Decides if the discounts are updated before tax recalculation.
+    discount_expiration = models.DateTimeField(default=timezone.now)
 
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
