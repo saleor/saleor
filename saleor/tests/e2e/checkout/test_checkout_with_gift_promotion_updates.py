@@ -22,6 +22,7 @@ from .utils import (
     checkout_create,
     checkout_delivery_method_update,
     checkout_dummy_payment_create,
+    checkout_lines_add,
 )
 
 
@@ -117,6 +118,20 @@ def test_checkout_gift_promotion_update_flow(
         product_type_slug="regular-product",
     )
 
+    # Prepare another product (to be purchased)
+    variant_price = 25
+    (
+        _product_id_2,
+        product_variant_id_2,
+        _product_variant_price_2,
+    ) = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        variant_price,
+        product_type_slug="new-product",
+    )
+
     # Prepare two gift products (different variants for testing updates)
     gift1_price = 20
     (
@@ -153,8 +168,6 @@ def test_checkout_gift_promotion_update_flow(
         lines,
         channel_slug,
         email="testuser@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     assert checkout_data["isShippingRequired"] is True
@@ -246,17 +259,17 @@ def test_checkout_gift_promotion_update_flow(
     assert gift_line["totalPrice"]["gross"]["amount"] == 0
     assert gift_line["undiscountedUnitPrice"]["amount"] == gift1_price
 
-    # Step 6 - Update shipping again - this should trigger discount recalculation
+    # Step 6 - Add new checkout line - this should trigger discount recalculation
     # and update the gift line to new variant
-    checkout_data = checkout_delivery_method_update(
+    checkout_data = checkout_lines_add(
         e2e_not_logged_api_client,
         checkout_id,
-        shipping_method_id,
+        [{"variantId": product_variant_id_2, "quantity": 1}],
     )
 
     # Verify gift line was updated (new variant, new line ID)
     checkout_lines = get_checkout_with_lines(e2e_not_logged_api_client, checkout_id)
-    assert len(checkout_lines["lines"]) == 2
+    assert len(checkout_lines["lines"]) == 3
 
     gift_lines = [line for line in checkout_lines["lines"] if line["isGift"]]
     assert len(gift_lines) == 1
@@ -272,10 +285,21 @@ def test_checkout_gift_promotion_update_flow(
     assert updated_gift_line["totalPrice"]["gross"]["amount"] == 0
     assert updated_gift_line["undiscountedUnitPrice"]["amount"] == gift2_price
 
-    # Verify regular line is unchanged
-    regular_line = regular_lines[0]
-    assert regular_line["variant"]["id"] == product_variant_id
-    assert regular_line["unitPrice"]["gross"]["amount"] == variant_price
+    # Find and validate regular line for product_variant_id
+    regular_line_1 = next(
+        line
+        for line in checkout_lines["lines"]
+        if not line["isGift"] and line["variant"]["id"] == product_variant_id
+    )
+    assert regular_line_1["unitPrice"]["gross"]["amount"] == 50
+
+    # Find and validate regular line for product_variant_id_2
+    regular_line_2 = next(
+        line
+        for line in checkout_lines["lines"]
+        if not line["isGift"] and line["variant"]["id"] == product_variant_id_2
+    )
+    assert regular_line_2["unitPrice"]["gross"]["amount"] == 25
 
     # Step 7 - Complete checkout
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
@@ -299,7 +323,7 @@ def test_checkout_gift_promotion_update_flow(
 
     # Verify order has both lines (regular + gift)
     order_lines = order_data["lines"]
-    assert len(order_lines) == 2
+    assert len(order_lines) == 3
 
     # Verify gift line in order
     order_gift_lines = [line for line in order_lines if line["isGift"]]
