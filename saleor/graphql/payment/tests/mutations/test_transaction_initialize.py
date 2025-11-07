@@ -3525,13 +3525,18 @@ def test_for_checkout_with_gift_card_payment_gateway_data_and_incorrect_data_for
     )
     assert (
         content["data"]["transactionInitialize"]["errors"][0]["message"]
-        == f"Incorrect data for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway."
+        == f"Invalid data for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway."
     )
 
 
+@pytest.mark.parametrize(
+    "action",
+    [None, TransactionFlowStrategyEnum.AUTHORIZATION.name],
+)
 @mock.patch("saleor.payment.utils.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway(
     mocked_uuid4,
+    action,
     user_api_client,
     checkout_with_prices,
     gift_card_created_by_staff,
@@ -3541,7 +3546,7 @@ def test_for_checkout_with_gift_card_payment_gateway(
     mocked_uuid4.return_value = uuid4()
 
     variables = {
-        "action": None,
+        "action": action,
         "amount": 1,
         "id": to_global_id_or_none(checkout),
         "paymentGateway": {
@@ -3726,4 +3731,42 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_insufficient_
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+    )
+
+
+@mock.patch("saleor.payment.utils.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_invalid_action(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    variables = {
+        "action": TransactionFlowStrategyEnum.CHARGE.name,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["transactionInitialize"]["errors"]) == 1
+    assert (
+        content["data"]["transactionInitialize"]["errors"][0]["code"]
+        == TransactionInitializeErrorCode.INVALID.name
+    )
+    assert content["data"]["transactionInitialize"]["errors"][0]["field"] == "action"
+    assert (
+        content["data"]["transactionInitialize"]["errors"][0]["message"]
+        == f"Invalid action for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway."
     )

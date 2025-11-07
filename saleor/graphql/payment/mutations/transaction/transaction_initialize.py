@@ -112,8 +112,19 @@ class TransactionInitialize(TransactionSessionBase):
     @classmethod
     def clean_action_for_gift_card_payment_gateway(
         cls,
-    ):
-        return TransactionFlowStrategyEnum.AUTHORIZATION.name
+        action: str | None,
+    ) -> str:
+        if action is None or action == TransactionFlowStrategyEnum.AUTHORIZATION.value:
+            return TransactionFlowStrategyEnum.AUTHORIZATION.value
+
+        raise ValidationError(
+            {
+                "action": ValidationError(
+                    message=f"Invalid action for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway.",
+                    code=TransactionInitializeErrorCode.INVALID.value,
+                )
+            }
+        )
 
     @classmethod
     def clean_app_from_payment_gateway(cls, payment_gateway: PaymentGatewayData) -> App:
@@ -148,7 +159,7 @@ class TransactionInitialize(TransactionSessionBase):
             raise ValidationError(
                 {
                     "payment_gateway": ValidationError(
-                        message=f"Incorrect data for {payment_gateway.app_identifier} payment gateway.",
+                        message=f"Invalid data for {payment_gateway.app_identifier} payment gateway.",
                         code=TransactionInitializeErrorCode.INVALID.value,
                     )
                 }
@@ -209,7 +220,7 @@ class TransactionInitialize(TransactionSessionBase):
         )
 
         if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-            action = cls.clean_action_for_gift_card_payment_gateway()
+            action = cls.clean_action_for_gift_card_payment_gateway(action)
 
             cls.clean_gift_card_payment_gateway_data(payment_gateway_data)
             app = None
