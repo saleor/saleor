@@ -82,7 +82,7 @@ class GiftCardPaymentGatewayDataSchema(BaseModel):
     code: Annotated[
         str,
         Field(
-            description="Name of the payment method used for the transaction.",
+            description="Gift card code.",
             min_length=8,
             max_length=16,
         ),
