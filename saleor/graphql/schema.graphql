@@ -14843,8 +14843,11 @@ type AppExtensionCountableEdge @doc(category: "Apps") {
 }
 
 input AppExtensionFilterInput @doc(category: "Apps") {
-  mount: [AppExtensionMountEnum!]
-  target: AppExtensionTargetEnum
+  """DEPRECATED: Use `mountName` instead."""
+  mount: [AppExtensionMountEnum!] @deprecated
+
+  """DEPRECATED: Use `targetName` instead."""
+  target: AppExtensionTargetEnum @deprecated
   mountName: String
   targetName: String
 }

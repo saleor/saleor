@@ -2,6 +2,7 @@ import django_filters
 
 from ...app import models
 from ...app.types import AppExtensionTarget, AppType
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.filters import EnumFilter, ListObjectTypeFilter
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 
@@ -32,13 +33,13 @@ def filter_app_extension_mount(qs, _, value):
 
 def filter_app_extension_mount_name(qs, _, value):
     if value:
-        qs = qs.filter(mount__in=value)
+        qs = qs.filter(mount=value.lower())
     return qs
 
 
 def filter_app_extension_target_name(qs, _, value):
     if value:
-        qs = qs.filter(target=value)
+        qs = qs.filter(target=value.lower())
     return qs
 
 
@@ -54,10 +55,14 @@ class AppFilter(django_filters.FilterSet):
 
 class AppExtensionFilter(django_filters.FilterSet):
     mount = ListObjectTypeFilter(
-        input_class=AppExtensionMountEnum, method=filter_app_extension_mount
+        input_class=AppExtensionMountEnum,
+        method=filter_app_extension_mount,
+        help_text=f"DEPRECATED: Use `mountName` instead. {DEPRECATED_IN_3X_INPUT}",
     )
     target = EnumFilter(
-        input_class=AppExtensionTargetEnum, method=filter_app_extension_target
+        input_class=AppExtensionTargetEnum,
+        method=filter_app_extension_target,
+        help_text=f"DEPRECATED: Use `targetName` instead. {DEPRECATED_IN_3X_INPUT}",
     )
     mountName = django_filters.CharFilter(method=filter_app_extension_mount_name)
     targetName = django_filters.CharFilter(method=filter_app_extension_target_name)
