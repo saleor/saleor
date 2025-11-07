@@ -16,7 +16,7 @@ from .....checkout.calculations import fetch_checkout_data
 from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....core.prices import quantize_price
+from .....core.prices import Money, quantize_price
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.models import Order
 from .....payment import TransactionEventType, TransactionItemIdempotencyUniqueError
@@ -3769,4 +3769,86 @@ def test_for_checkout_with_gift_card_payment_gateway_invalid_action(
     assert (
         content["data"]["transactionInitialize"]["errors"][0]["message"]
         == f"Invalid action for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway."
+    )
+
+
+@mock.patch("saleor.payment.utils.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_authorizations(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    another_checkout = Checkout.objects.create(
+        currency=checkout.currency,
+        user=checkout.user,
+        channel=checkout.channel,
+        base_total=Money("15", checkout.currency),
+        base_subtotal=Money("10", checkout.currency),
+    )
+    another_checkout_authorize_transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        checkout_id=another_checkout.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=Decimal(15),
+    )
+    assert (
+        another_checkout_authorize_transaction.events.filter(
+            type=TransactionEventType.CANCEL_REQUEST
+        ).count()
+        == 0
+    )
+    assert (
+        another_checkout_authorize_transaction.events.filter(
+            type=TransactionEventType.CANCEL_SUCCESS
+        ).count()
+        == 0
+    )
+
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=Decimal(1),
+        gift_card=gift_card_created_by_staff,
+    )
+
+    another_checkout_authorize_transaction.refresh_from_db()
+    assert another_checkout_authorize_transaction.gift_card is None
+    assert (
+        another_checkout_authorize_transaction.events.filter(
+            type=TransactionEventType.CANCEL_REQUEST
+        ).count()
+        == 1
+    )
+    assert (
+        another_checkout_authorize_transaction.events.filter(
+            type=TransactionEventType.CANCEL_SUCCESS
+        ).count()
+        == 1
     )
