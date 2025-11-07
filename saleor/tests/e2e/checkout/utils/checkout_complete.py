@@ -60,7 +60,6 @@ mutation CheckoutComplete($checkoutId: ID!) {
       }
       lines {
         id
-        isGift
         unitPrice {
           gross {
             amount
@@ -76,14 +75,6 @@ mutation CheckoutComplete($checkoutId: ID!) {
           gross {
             amount
           }
-        }
-        totalPrice {
-          gross {
-            amount
-          }
-        }
-        variant {
-          id
         }
       }
       discounts {

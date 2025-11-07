@@ -115,10 +115,8 @@ def invalidate_checkout_prices(
     """Mark checkout as ready for prices recalculation."""
     checkout = checkout_info.checkout
 
-    price_expiration = timezone.now()
-    checkout.price_expiration = price_expiration
-    checkout.discount_expiration = price_expiration
-    updated_fields = ["price_expiration", "discount_expiration", "last_change"]
+    checkout.price_expiration = timezone.now()
+    updated_fields = ["price_expiration", "last_change"]
 
     if save:
         checkout.save(update_fields=updated_fields)
@@ -277,10 +275,7 @@ def add_variant_to_checkout(
         line.save(update_fields=["quantity"])
 
     # invalidate calculated prices
-    price_expiration = timezone.now()
-    checkout.price_expiration = price_expiration
-    checkout.discount_expiration = price_expiration
-
+    checkout.price_expiration = timezone.now()
     return checkout
 
 
