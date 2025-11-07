@@ -1,3 +1,4 @@
+import datetime
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING
@@ -71,6 +72,7 @@ def create_order_line_discount_objects(
         list["OrderLineDiscount"],
         list["OrderLineDiscount"],
         list[str],
+        datetime.datetime | None,
     ],
 ):
     if not discount_data or not lines_info:
@@ -81,6 +83,7 @@ def create_order_line_discount_objects(
         discounts_to_update,
         discount_to_remove,
         updated_fields,
+        _soonest_end_date,
     ) = discount_data
 
     new_line_discounts: list[OrderLineDiscount] = []
@@ -184,6 +187,7 @@ def create_order_discount_objects_for_order_promotions(
     (
         gift_promotion_applied,
         discount_object,
+        _end_date,
     ) = create_discount_objects_for_order_promotions(
         order,
         lines_info,

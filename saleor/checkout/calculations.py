@@ -41,6 +41,7 @@ if TYPE_CHECKING:
     from ..account.models import Address
     from ..plugins.manager import PluginsManager
     from .fetch import CheckoutInfo, CheckoutLineInfo
+    from .models import CheckoutLine
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +308,20 @@ def checkout_line_undiscounted_total_price(
     return quantize_price(total_price, total_price.currency)
 
 
+def recalculate_discounts_and_fetch_lines(
+    *,
+    lines_info: Iterable["CheckoutLineInfo"],
+    checkout_info: "CheckoutInfo",
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> Iterable["CheckoutLine"]:
+    """Recalculate discounts and return checkout lines.
+
+    The lines recalculation might change the
+    """
+    recalculate_discounts(checkout_info, lines_info, database_connection_name)
+    return (line_info.line for line_info in lines_info)
+
+
 def update_undiscounted_prices(
     checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
 ):
@@ -374,11 +389,11 @@ def _fetch_checkout_prices_if_expired(
         checkout_info, lines, database_connection_name
     )
 
-    lines = cast(list, lines)
-    update_undiscounted_prices(checkout_info, lines)
-
-    create_or_update_discount_objects_from_promotion_for_checkout(
-        checkout_info, lines, database_connection_name
+    recalculate_discounts(
+        checkout_info,
+        lines,
+        database_connection_name=database_connection_name,
+        force_update=force_update,
     )
 
     checkout.tax_error = None
@@ -440,7 +455,9 @@ def _fetch_checkout_prices_if_expired(
             # Calculate net prices without taxes.
             _set_checkout_base_prices(checkout, checkout_info, lines)
 
-    checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+    price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+    checkout.price_expiration = price_expiration
+    checkout.discount_expiration = price_expiration
 
     with allow_writer():
         with transaction.atomic():
@@ -475,6 +492,7 @@ def _fetch_checkout_prices_if_expired(
                     "currency",
                     "last_change",
                     "price_expiration",
+                    "discount_expiration",
                     "tax_error",
                 ]
 
@@ -493,6 +511,53 @@ def _fetch_checkout_prices_if_expired(
                         "undiscounted_unit_price_amount",
                     ],
                 )
+    return checkout_info, lines
+
+
+@allow_writer()
+def recalculate_discounts(
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    force_update: bool = False,
+) -> tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
+    """Recalculate checkout discounts.
+
+    Discounts are recalculated only if force_update is True, or if both discount
+    and price expirations have passed.
+    This updates catalogue promotions, vouchers, and order promotion discounts.
+    """
+    checkout = checkout_info.checkout
+
+    # Do not recalculate discounts in case the checkout prices are still valid, either
+    # discounts or tax prices.
+    if not force_update and (
+        checkout.discount_expiration > timezone.now()
+        or checkout.price_expiration > timezone.now()
+    ):
+        return checkout_info, lines_info
+
+    lines = cast(list, lines_info)
+    update_undiscounted_prices(checkout_info, lines)
+
+    soonest_promotion_end_date = (
+        create_or_update_discount_objects_from_promotion_for_checkout(
+            checkout_info, lines, database_connection_name
+        )
+    )
+
+    if soonest_promotion_end_date is not None:
+        checkout.discount_expiration = min(
+            soonest_promotion_end_date, timezone.now() + settings.CHECKOUT_PRICES_TTL
+        )
+    else:
+        checkout.discount_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
+
+    checkout.save(
+        update_fields=["discount_expiration"],
+        using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    )
+
     return checkout_info, lines
 
 
