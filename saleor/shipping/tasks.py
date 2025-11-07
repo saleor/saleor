@@ -21,7 +21,7 @@ def drop_invalid_shipping_methods_relations_for_given_channels(
     ).update(
         shipping_method=None,
         price_expiration=timezone.now(),
-        discount_price_expiration=timezone.now(),
+        discount_expiration=timezone.now(),
         last_change=timezone.now(),
     )
     Order.objects.filter(

@@ -77,7 +77,7 @@ def test_checkout_basic_fields_no_recalculation(
 
     This test ensures that when querying only basic fields (id, token, email)
     that don't involve lines or pricing, the system will:
-    1. NOT recalculate discounts (keep discount_price_expiration unchanged)
+    1. NOT recalculate discounts (keep discount_expiration unchanged)
     2. NOT recalculate taxes (keep price_expiration unchanged)
     3. Return data without triggering any expensive calculations
     """
@@ -86,10 +86,10 @@ def test_checkout_basic_fields_no_recalculation(
     query = QUERY_CHECKOUT_BASIC_FIELDS
 
     initial_price_expiration = timezone.now() - timedelta(minutes=5)
-    initial_discount_price_expiration = timezone.now() - timedelta(minutes=5)
+    initial_discount_expiration = timezone.now() - timedelta(minutes=5)
     checkout.price_expiration = initial_price_expiration
-    checkout.discount_price_expiration = initial_discount_price_expiration
-    checkout.save(update_fields=["price_expiration", "discount_price_expiration"])
+    checkout.discount_expiration = initial_discount_expiration
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -111,7 +111,7 @@ def test_checkout_basic_fields_no_recalculation(
 
     checkout.refresh_from_db()
     # Verify that NO recalculation happened - both expirations should remain unchanged
-    assert checkout.discount_price_expiration == initial_discount_price_expiration
+    assert checkout.discount_expiration == initial_discount_expiration
     assert checkout.price_expiration == initial_price_expiration
 
 
@@ -122,7 +122,7 @@ def test_checkout_gift_promotion_changed_only_line_id(
 
     This test ensures that when a gift promotion changes and we only query line IDs,
     the system will:
-    1. Recalculate discounts (update discount_price_expiration)
+    1. Recalculate discounts (update discount_expiration)
     2. Update gift lines to reflect the new promotion
     3. NOT recalculate taxes (keep price_expiration unchanged)
 
@@ -134,8 +134,8 @@ def test_checkout_gift_promotion_changed_only_line_id(
 
     initial_price_expiration = timezone.now() - timedelta(minutes=5)
     checkout.price_expiration = initial_price_expiration
-    checkout.discount_price_expiration = initial_price_expiration
-    checkout.save(update_fields=["price_expiration", "discount_price_expiration"])
+    checkout.discount_expiration = initial_price_expiration
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -180,10 +180,10 @@ def test_checkout_gift_promotion_changed_only_line_id(
         "CheckoutLine", gift_line.pk
     )
 
-    # Verify discount_price_expiration was updated (discount recalculation happened)
+    # Verify discount_expiration was updated (discount recalculation happened)
     # Should be set to promotion end_date as it's sooner than now + checkout ttl
     checkout.refresh_from_db()
-    assert checkout.discount_price_expiration == end_date
+    assert checkout.discount_expiration == end_date
 
     # Verify price_expiration was NOT updated (tax recalculation did NOT happen)
     assert checkout.price_expiration == initial_price_expiration
@@ -204,7 +204,7 @@ def test_checkout_gift_promotion_changed_with_line_prices(
 
     This test ensures that when a gift promotion changes and we query line prices,
     the system will:
-    1. Recalculate discounts (update discount_price_expiration)
+    1. Recalculate discounts (update discount_expiration)
     2. Update gift lines to reflect the new promotion
     3. Recalculate taxes (update price_expiration)
     4. Return correct pricing for gift lines (unit price = 0, undiscounted price > 0)
@@ -217,8 +217,8 @@ def test_checkout_gift_promotion_changed_with_line_prices(
 
     initial_price_expiration = timezone.now() - timedelta(minutes=5)
     checkout.price_expiration = initial_price_expiration
-    checkout.discount_price_expiration = initial_price_expiration
-    checkout.save(update_fields=["price_expiration", "discount_price_expiration"])
+    checkout.discount_expiration = initial_price_expiration
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -273,7 +273,7 @@ def test_checkout_gift_promotion_changed_with_line_prices(
     # Both price expiration should be the same
     checkout.refresh_from_db()
     assert checkout.price_expiration > timezone.now()
-    assert checkout.discount_price_expiration == checkout.price_expiration
+    assert checkout.discount_expiration == checkout.price_expiration
 
     # Ensure that discount recalculation called only once
     mocked_discount_creation.assert_called_once()
@@ -286,7 +286,7 @@ def test_checkout_gift_promotion_removed_only_line_id(
 
     This test ensures that when a gift promotion is removed and we only query line IDs,
     the system will:
-    1. Recalculate discounts (update discount_price_expiration)
+    1. Recalculate discounts (update discount_expiration)
     2. Remove gift lines that are no longer valid
     3. NOT recalculate taxes (keep price_expiration unchanged)
 
@@ -298,8 +298,8 @@ def test_checkout_gift_promotion_removed_only_line_id(
 
     initial_price_expiration = timezone.now() - timedelta(minutes=5)
     checkout.price_expiration = initial_price_expiration
-    checkout.discount_price_expiration = initial_price_expiration
-    checkout.save(update_fields=["price_expiration", "discount_price_expiration"])
+    checkout.discount_expiration = initial_price_expiration
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -329,9 +329,9 @@ def test_checkout_gift_promotion_removed_only_line_id(
     gift_line_exists = checkout.lines.filter(is_gift=True).exists()
     assert not gift_line_exists
 
-    # Verify discount_price_expiration was updated (discount recalculation happened)
+    # Verify discount_expiration was updated (discount recalculation happened)
     checkout.refresh_from_db()
-    assert checkout.discount_price_expiration > timezone.now()
+    assert checkout.discount_expiration > timezone.now()
 
     # Verify price_expiration was NOT updated (tax recalculation did NOT happen)
     assert checkout.price_expiration == initial_price_expiration
@@ -351,7 +351,7 @@ def test_checkout_gift_promotion_removed_with_line_prices(
 
     This test ensures that when a gift promotion is removed and we query line prices,
     the system will:
-    1. Recalculate discounts (update discount_price_expiration)
+    1. Recalculate discounts (update discount_expiration)
     2. Remove gift lines that are no longer valid
     3. Recalculate taxes (update price_expiration)
 
@@ -363,8 +363,8 @@ def test_checkout_gift_promotion_removed_with_line_prices(
 
     initial_price_expiration = timezone.now() - timedelta(minutes=5)
     checkout.price_expiration = initial_price_expiration
-    checkout.discount_price_expiration = initial_price_expiration
-    checkout.save(update_fields=["price_expiration", "discount_price_expiration"])
+    checkout.discount_expiration = initial_price_expiration
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -396,7 +396,7 @@ def test_checkout_gift_promotion_removed_with_line_prices(
 
     # Verify both expirations were updated (full recalculation happened)
     checkout.refresh_from_db()
-    assert checkout.discount_price_expiration > timezone.now()
+    assert checkout.discount_expiration > timezone.now()
     assert checkout.price_expiration > timezone.now()
 
     # Ensure that discount recalculation called only once
@@ -410,7 +410,7 @@ def test_checkout_gift_promotion_added_only_line_id(
 
     This test ensures that when a gift promotion is added to a checkout without gift lines
     and we only query line IDs, the system will:
-    1. Recalculate discounts (update discount_price_expiration)
+    1. Recalculate discounts (update discount_expiration)
     2. Add new gift lines based on the promotion
     3. NOT recalculate taxes (keep price_expiration unchanged)
 
@@ -422,8 +422,8 @@ def test_checkout_gift_promotion_added_only_line_id(
 
     initial_price_expiration = timezone.now() - timedelta(minutes=5)
     checkout.price_expiration = initial_price_expiration
-    checkout.discount_price_expiration = initial_price_expiration
-    checkout.save(update_fields=["price_expiration", "discount_price_expiration"])
+    checkout.discount_expiration = initial_price_expiration
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -470,10 +470,10 @@ def test_checkout_gift_promotion_added_only_line_id(
         "CheckoutLine", gift_line.pk
     )
 
-    # Verify discount_price_expiration was updated (discount recalculation happened)
+    # Verify discount_expiration was updated (discount recalculation happened)
     # Ensure it's not set to promotion end date as it's later than now + checkout ttl
     checkout.refresh_from_db()
-    assert checkout.discount_price_expiration > timezone.now() < end_date
+    assert checkout.discount_expiration > timezone.now() < end_date
 
     # Verify price_expiration was NOT updated (tax recalculation did NOT happen)
     assert checkout.price_expiration == initial_price_expiration
@@ -494,7 +494,7 @@ def test_checkout_gift_promotion_added_with_line_prices(
 
     This test ensures that when a gift promotion is added to a checkout without gift lines
     and we query line prices, the system will:
-    1. Recalculate discounts (update discount_price_expiration)
+    1. Recalculate discounts (update discount_expiration)
     2. Add new gift lines based on the promotion
     3. Recalculate taxes (update price_expiration)
     4. Return correct pricing for gift lines (unit price = 0, undiscounted price > 0)
@@ -507,8 +507,8 @@ def test_checkout_gift_promotion_added_with_line_prices(
 
     initial_price_expiration = timezone.now() - timedelta(minutes=5)
     checkout.price_expiration = initial_price_expiration
-    checkout.discount_price_expiration = initial_price_expiration
-    checkout.save(update_fields=["price_expiration", "discount_price_expiration"])
+    checkout.discount_expiration = initial_price_expiration
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -558,7 +558,7 @@ def test_checkout_gift_promotion_added_with_line_prices(
 
     # Verify both expirations were updated (full recalculation happened)
     checkout.refresh_from_db()
-    assert checkout.discount_price_expiration > timezone.now()
+    assert checkout.discount_expiration > timezone.now()
     assert checkout.price_expiration > timezone.now()
 
     # Ensure that discount recalculation called only once
@@ -566,7 +566,7 @@ def test_checkout_gift_promotion_added_with_line_prices(
 
 
 @pytest.mark.parametrize(
-    ("price_expiration", "discount_price_expiration"),
+    ("price_expiration", "discount_expiration"),
     [
         (
             timezone.now() + timedelta(minutes=10),
@@ -585,16 +585,16 @@ def test_checkout_gift_promotion_added_with_line_prices(
 def test_checkout_lines_with_prices_price_expiration_in_future_no_recalculation(
     product,
     price_expiration,
-    discount_price_expiration,
+    discount_expiration,
     user_api_client,
     checkout_with_item_and_gift_promotion,
     gift_promotion_rule,
 ):
     """Test that querying line prices does NOT trigger recalculation if price_expiration is in the future.
 
-    This test ensures that when price_expiration and discount_price_expiration are set to a future time,
+    This test ensures that when price_expiration and discount_expiration are set to a future time,
     querying line prices will:
-    1. NOT recalculate discounts (keep discount_price_expiration unchanged)
+    1. NOT recalculate discounts (keep discount_expiration unchanged)
     2. NOT recalculate taxes (keep price_expiration unchanged)
     3. Return correct pricing for gift lines
     """
@@ -603,8 +603,8 @@ def test_checkout_lines_with_prices_price_expiration_in_future_no_recalculation(
     query = QUERY_CHECKOUT_LINES_WITH_PRICES
 
     checkout.price_expiration = price_expiration
-    checkout.discount_price_expiration = discount_price_expiration
-    checkout.save(update_fields=["price_expiration", "discount_price_expiration"])
+    checkout.discount_expiration = discount_expiration
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -655,5 +655,5 @@ def test_checkout_lines_with_prices_price_expiration_in_future_no_recalculation(
 
     # Verify NO recalculation happened - both expirations should remain unchanged
     checkout.refresh_from_db()
-    assert checkout.discount_price_expiration == discount_price_expiration
+    assert checkout.discount_expiration == discount_expiration
     assert checkout.price_expiration == price_expiration

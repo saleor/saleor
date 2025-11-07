@@ -99,7 +99,7 @@ class TaxExemptionManage(BaseMutation):
                 update_fields=[
                     "tax_exemption",
                     "price_expiration",
-                    "discount_price_expiration",
+                    "discount_expiration",
                     "last_change",
                 ]
             )

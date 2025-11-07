@@ -453,7 +453,7 @@ def _fetch_checkout_prices_if_expired(
 
     price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
     checkout.price_expiration = price_expiration
-    checkout.discount_price_expiration = price_expiration
+    checkout.discount_expiration = price_expiration
 
     with allow_writer():
         with transaction.atomic():
@@ -488,7 +488,7 @@ def _fetch_checkout_prices_if_expired(
                     "currency",
                     "last_change",
                     "price_expiration",
-                    "discount_price_expiration",
+                    "discount_expiration",
                     "tax_error",
                 ]
 
@@ -528,7 +528,7 @@ def recalculate_discounts(
     # Do not recalculate discounts in case the checkout prices are still valid, either
     # discounts or tax prices.
     if not force_update and (
-        checkout.discount_price_expiration > timezone.now()
+        checkout.discount_expiration > timezone.now()
         or checkout.price_expiration > timezone.now()
     ):
         return checkout_info, lines_info
@@ -543,16 +543,14 @@ def recalculate_discounts(
     )
 
     if soonest_promotion_end_date is not None:
-        checkout.discount_price_expiration = min(
+        checkout.discount_expiration = min(
             soonest_promotion_end_date, timezone.now() + settings.CHECKOUT_PRICES_TTL
         )
     else:
-        checkout.discount_price_expiration = (
-            timezone.now() + settings.CHECKOUT_PRICES_TTL
-        )
+        checkout.discount_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
     checkout.save(
-        update_fields=["discount_price_expiration"],
+        update_fields=["discount_expiration"],
         using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
     )
 

@@ -12,17 +12,17 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="checkout",
-            name="discount_price_expiration",
+            name="discount_expiration",
             field=models.DateTimeField(default=django.utils.timezone.now),
         ),
         migrations.RunSQL(
             sql=(
                 "ALTER TABLE checkout_checkout "
-                "ALTER COLUMN discount_price_expiration SET DEFAULT NOW();"
+                "ALTER COLUMN discount_expiration SET DEFAULT NOW();"
             ),
             reverse_sql=(
                 "ALTER TABLE checkout_checkout "
-                "ALTER COLUMN discount_price_expiration DROP DEFAULT;"
+                "ALTER COLUMN discount_expiration DROP DEFAULT;"
             ),
         ),
     ]
