@@ -30,6 +30,18 @@ def filter_app_extension_mount(qs, _, value):
     return qs
 
 
+def filter_app_extension_mount_name(qs, _, value):
+    if value:
+        qs = qs.filter(mount__in=value)
+    return qs
+
+
+def filter_app_extension_target_name(qs, _, value):
+    if value:
+        qs = qs.filter(target=value)
+    return qs
+
+
 class AppFilter(django_filters.FilterSet):
     type = EnumFilter(input_class=AppTypeEnum, method=filter_app_type)
     search = django_filters.CharFilter(method=filter_app_search)
@@ -47,7 +59,9 @@ class AppExtensionFilter(django_filters.FilterSet):
     target = EnumFilter(
         input_class=AppExtensionTargetEnum, method=filter_app_extension_target
     )
+    mountName = django_filters.CharFilter(method=filter_app_extension_mount_name)
+    targetName = django_filters.CharFilter(method=filter_app_extension_target_name)
 
     class Meta:
         model = models.AppExtension
-        fields = ["mount", "target"]
+        fields = ["mount", "target", "mountName", "targetName"]

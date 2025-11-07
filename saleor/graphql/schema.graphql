@@ -14845,6 +14845,8 @@ type AppExtensionCountableEdge @doc(category: "Apps") {
 input AppExtensionFilterInput @doc(category: "Apps") {
   mount: [AppExtensionMountEnum!]
   target: AppExtensionTargetEnum
+  mountName: String
+  targetName: String
 }
 
 """Represents address validation rules for a country."""
