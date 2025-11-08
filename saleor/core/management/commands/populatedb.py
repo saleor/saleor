@@ -45,6 +45,7 @@ class Command(BaseCommand):
         )
         parser.add_argument("--user_password", type=str, default="password")
         parser.add_argument("--staff_password", type=str, default="password")
+        parser.add_argument("--superuser_email", type=str, default="admin@example.com")
         parser.add_argument("--superuser_password", type=str, default="admin")
         parser.add_argument(
             "--withoutimages",
@@ -82,6 +83,7 @@ class Command(BaseCommand):
         # example database
         user_password = options["user_password"]
         staff_password = options["staff_password"]
+        superuser_email = options["superuser_email"]
         superuser_password = options["superuser_password"]
 
         create_images = not options["withoutimages"]
@@ -124,7 +126,7 @@ class Command(BaseCommand):
 
         if options["createsuperuser"]:
             credentials = {
-                "email": "admin@example.com",
+                "email": superuser_email,
                 "password": superuser_password,
             }
             msg = create_superuser(credentials)
