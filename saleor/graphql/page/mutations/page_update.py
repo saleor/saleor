@@ -1,6 +1,8 @@
+from typing import cast
+
 import graphene
 from django.db import transaction
-from django.db.models import Exists, OuterRef, prefetch_related_objects
+from django.db.models import Exists, OuterRef, QuerySet, prefetch_related_objects
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
@@ -39,6 +41,7 @@ class PageUpdate(PageCreate):
     @classmethod
     def clean_attributes(cls, attributes: list[dict], page_type: models.PageType):
         attributes_qs = page_type.page_attributes
+        attributes_qs = cast(QuerySet, attributes_qs)
         cleaned_attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False, is_page_attributes=True
         )

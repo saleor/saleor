@@ -1,8 +1,9 @@
 import datetime
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import prefetch_related_objects
+from django.db.models import QuerySet, prefetch_related_objects
 
 from ....attribute import AttributeInputType
 from ....core.tracing import traced_atomic_transaction
@@ -71,6 +72,7 @@ class PageCreate(DeprecatedModelMutation):
     @classmethod
     def clean_attributes(cls, attributes: list[dict], page_type: models.PageType):
         attributes_qs = page_type.page_attributes
+        attributes_qs = cast(QuerySet, attributes_qs)
         cleaned_attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_page_attributes=True
         )
