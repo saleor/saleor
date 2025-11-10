@@ -3,9 +3,8 @@ from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import QuerySet, prefetch_related_objects
+from django.db.models import QuerySet
 
-from ....attribute import AttributeInputType
 from ....core.tracing import traced_atomic_transaction
 from ....page import models
 from ....page.error_codes import PageErrorCode
@@ -76,18 +75,6 @@ class PageCreate(DeprecatedModelMutation):
         cleaned_attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_page_attributes=True
         )
-        attributes_with_choices = [
-            attr
-            for attr, _ in cleaned_attributes
-            if attr.input_type
-            in {
-                AttributeInputType.DROPDOWN,
-                AttributeInputType.MULTISELECT,
-                AttributeInputType.SWATCH,
-                AttributeInputType.NUMERIC,
-            }
-        ]
-        prefetch_related_objects(attributes_with_choices, "values")
         return cleaned_attributes
 
     @classmethod

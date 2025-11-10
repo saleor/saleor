@@ -99,7 +99,7 @@ def clean_values(
     slugs_list: list = []
 
     if attribute:
-        slugs_list = list(attribute.values.values_list("slug", flat=True))
+        slugs_list = [value.slug for value in attribute.values.all()]
 
     duplicated_names = get_duplicated_values(
         [
