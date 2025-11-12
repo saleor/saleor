@@ -1017,6 +1017,7 @@ def _validate_transaction_session_action_data(
     success_schema = transaction_schemas.TransactionSessionSuccessSchema
     failure_schema = transaction_schemas.TransactionSessionFailureSchema
     action_required_schema = transaction_schemas.TransactionSessionActionRequiredSchema
+    cancel_success_schema = transaction_schemas.TransactionSessionCancelSuccessSchema
 
     result_value = response_data.get("result")
     if result_value in get_args(success_schema.model_fields["result"].annotation):
@@ -1027,6 +1028,10 @@ def _validate_transaction_session_action_data(
         action_required_schema.model_fields["result"].annotation
     ):
         return action_required_schema.model_validate(response_data)
+    if result_value in get_args(
+        cancel_success_schema.model_fields["result"].annotation
+    ):
+        return cancel_success_schema.model_validate(response_data)
     possible_values = ", ".join(
         [
             value.name
@@ -1881,8 +1886,12 @@ def handle_transaction_initialize_session(
     )
 
     if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-        result = transaction_initialize_session_with_gift_card_payment_method(
-            session_data
+        result, gift_card = (
+            transaction_initialize_session_with_gift_card_payment_method(session_data)
+        )
+        attach_gift_card_to_transaction(session_data, gift_card)
+        detach_gift_card_from_previous_checkout_transactions(
+            session_data, gift_card, manager
         )
     else:
         result = manager.transaction_initialize_session(session_data)
@@ -1908,7 +1917,7 @@ def handle_transaction_initialize_session(
 
 def transaction_initialize_session_with_gift_card_payment_method(
     transaction_session_data: "TransactionSessionData",
-) -> "TransactionSessionResult":
+) -> tuple["TransactionSessionResult", GiftCard | None]:
     transaction_session_result = TransactionSessionResult(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         response={
@@ -1927,22 +1936,73 @@ def transaction_initialize_session_with_gift_card_payment_method(
         is_active=True,
     )
     if gift_card_qs.count() < 1:
-        return transaction_session_result
+        return transaction_session_result, None
 
     # Check whether gift card has enough funds to cover the amount.
     gift_card = gift_card_qs.get()
     if transaction_session_data.action.amount > gift_card.current_balance_amount:
-        return transaction_session_result
+        return transaction_session_result, None
 
     transaction_session_result.response["result"] = (  # type: ignore[index]
         TransactionEventType.AUTHORIZATION_SUCCESS.upper()
     )
 
-    # Attach gift card to the transaction item.
+    return transaction_session_result, gift_card
+
+
+def attach_gift_card_to_transaction(
+    transaction_session_data: "TransactionSessionData",
+    gift_card: GiftCard | None,
+):
+    if not gift_card:
+        return
+
     transaction_session_data.transaction.gift_card = gift_card
     transaction_session_data.transaction.save(update_fields=["gift_card"])
 
-    return transaction_session_result
+
+def detach_gift_card_from_previous_checkout_transactions(
+    transaction_session_data: "TransactionSessionData",
+    gift_card: GiftCard | None,
+    manager: "PluginsManager",
+):
+    if not gift_card:
+        return
+
+    # Detach gift card from the previously attached transaction items and create authorization cancellation events.
+    transactions_to_cancel_qs = TransactionItem.objects.filter(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        gift_card=gift_card,
+    ).exclude(checkout__in=(transaction_session_data.source_object, None))
+
+    for transaction_item in transactions_to_cancel_qs:
+        response = {
+            "result": TransactionEventType.CANCEL_SUCCESS.upper(),
+            "pspReference": transaction_item.psp_reference,
+            "amount": transaction_item.amount_authorized.amount,
+        }
+
+        transaction_event, _ = TransactionEvent.objects.get_or_create(
+            transaction=transaction_item,
+            type=TransactionEventType.CANCEL_REQUEST,
+            currency=transaction_item.currency,
+            amount_value=transaction_item.amount_authorized.amount,
+            message="Gift card has been authorized as payment method in a different checkout.",
+            defaults={
+                "include_in_calculations": False,
+                "currency": transaction_item.currency,
+                "amount_value": transaction_item.amount_authorized.amount,
+            },
+        )
+
+        create_transaction_event_for_transaction_session(
+            transaction_event,
+            None,
+            transaction_webhook_response=response,
+            manager=manager,
+        )
+
+    transactions_to_cancel_qs.update(gift_card=None)
 
 
 def handle_transaction_process_session(
