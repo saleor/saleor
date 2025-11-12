@@ -1886,13 +1886,16 @@ def handle_transaction_initialize_session(
     )
 
     if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-        result, gift_card = (
-            transaction_initialize_session_with_gift_card_payment_method(session_data)
-        )
-        attach_gift_card_to_transaction(session_data, gift_card)
-        detach_gift_card_from_previous_checkout_transactions(
-            session_data, gift_card, manager
-        )
+        with transaction.atomic():
+            result, gift_card = (
+                transaction_initialize_session_with_gift_card_payment_method(
+                    session_data
+                )
+            )
+            attach_gift_card_to_transaction(session_data, gift_card)
+            detach_gift_card_from_previous_checkout_transactions(
+                session_data, gift_card, manager
+            )
     else:
         result = manager.transaction_initialize_session(session_data)
 
@@ -1929,11 +1932,15 @@ def transaction_initialize_session_with_gift_card_payment_method(
 
     # Check for existence of an active gift card and validate currency.
     try:
-        gift_card = GiftCard.objects.filter(
-            code=transaction_session_data.payment_gateway_data.data["code"],  # type: ignore[call-overload, index]
-            currency=transaction_session_data.action.currency,
-            is_active=True,
-        ).get()
+        gift_card = (
+            GiftCard.objects.filter(
+                code=transaction_session_data.payment_gateway_data.data["code"],  # type: ignore[call-overload, index]
+                currency=transaction_session_data.action.currency,
+                is_active=True,
+            )
+            .select_for_update()
+            .get()
+        )
     except GiftCard.DoesNotExist:
         return transaction_session_result, None
 
