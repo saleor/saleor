@@ -95,7 +95,14 @@ class TaxExemptionManage(BaseMutation):
 
         if isinstance(obj, Checkout):
             cls._invalidate_checkout(info, obj)
-            obj.save(update_fields=["tax_exemption", "price_expiration", "last_change"])
+            obj.save(
+                update_fields=[
+                    "tax_exemption",
+                    "price_expiration",
+                    "discount_expiration",
+                    "last_change",
+                ]
+            )
 
         if isinstance(obj, Order):
             cls.validate_order_status(obj)
