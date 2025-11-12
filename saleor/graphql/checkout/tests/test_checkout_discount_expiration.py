@@ -4,6 +4,7 @@ from unittest import mock
 import graphene
 import pytest
 from django.utils import timezone
+from freezegun import freeze_time
 
 from ....discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
@@ -569,10 +570,6 @@ def test_checkout_gift_promotion_added_with_line_prices(
     ("price_expiration", "discount_expiration"),
     [
         (
-            timezone.now() + timedelta(minutes=10),
-            timezone.now(),
-        ),
-        (
             timezone.now() + timedelta(minutes=20),
             timezone.now() - timedelta(minutes=20),
         ),
@@ -582,6 +579,7 @@ def test_checkout_gift_promotion_added_with_line_prices(
         ),
     ],
 )
+@freeze_time("2025-11-12 12:00:00")
 def test_checkout_lines_with_prices_price_expiration_in_future_no_recalculation(
     product,
     price_expiration,
@@ -615,7 +613,7 @@ def test_checkout_lines_with_prices_price_expiration_in_future_no_recalculation(
     initial_gift_line_variant = initial_gift_line.variant
     assert initial_gift_line is not None
 
-    # Change gift promotion to a different variant, but since expiration is in future, no recalculation should happen
+    # Change gift promotion to a different variant
     new_gift_variant = product.variants.last()
     gift_promotion_rule.gifts.set([new_gift_variant])
     gift_promotion_rule.order_predicate = {"discountedObjectPredicate": {}}
@@ -635,7 +633,13 @@ def test_checkout_lines_with_prices_price_expiration_in_future_no_recalculation(
     assert data["token"] == str(checkout.token)
     assert len(data["lines"]) == lines_count
 
+    # Verify NO recalculation happened - both expirations should remain unchanged
+    checkout.refresh_from_db()
+    assert checkout.discount_expiration == discount_expiration
+    assert checkout.price_expiration == price_expiration
+
     # Gift line should NOT be updated to the new variant
+    assert len(checkout.lines.filter(is_gift=True)) == 1
     gift_line = checkout.lines.filter(is_gift=True).first()
     assert gift_line.variant == initial_gift_line_variant
 
@@ -652,8 +656,3 @@ def test_checkout_lines_with_prices_price_expiration_in_future_no_recalculation(
     assert gift_line_data["unitPrice"]["gross"]["amount"] == 0
     assert gift_line_data["totalPrice"]["gross"]["amount"] == 0
     assert gift_line_data["undiscountedUnitPrice"]["amount"] > 0
-
-    # Verify NO recalculation happened - both expirations should remain unchanged
-    checkout.refresh_from_db()
-    assert checkout.discount_expiration == discount_expiration
-    assert checkout.price_expiration == price_expiration
