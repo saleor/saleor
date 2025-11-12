@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast
@@ -31,7 +32,7 @@ from ...warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...order.models import Order, OrderLine
-    from ...product.models import Product, ProductType
+    from ...product.models import Product, ProductType, ProductVariant
     from ...tax.models import TaxClass
 
 
@@ -600,6 +601,49 @@ def get_cached_response_or_fetch(
     return response
 
 
+def iter_checkout_lines(
+    lines_info: list["CheckoutLineInfo"],
+) -> Iterator[tuple[str, "ProductVariant", str]]:
+    for index, line_info in enumerate(lines_info, start=1):
+        yield str(index), line_info.variant, str(line_info.line.id)
+
+
+def iter_order_lines(
+    order_lines: list["OrderLine"],
+) -> Iterator[tuple[str, "ProductVariant", str]]:
+    for index, line in enumerate(order_lines, start=1):
+        if not line.variant:
+            continue
+        yield str(index), line.variant, str(line.id)
+
+
+def convert_response_lines_list_to_dict(
+    response: dict[str, Any],
+    lines_iterable: Iterator[tuple[str, "ProductVariant", str]],
+):
+    # Convert `lines` to dict as we can send multiple lines with the same itemCode
+    # and we need to be able to find proper line by line id.
+    lines_from_response = {
+        line["lineNumber"]: line for line in response.get("lines", [])
+    }
+    line_data_dict = {}
+    for line_index, variant, line_id in lines_iterable:
+        response_line = lines_from_response.get(line_index)
+        if not response_line:
+            continue
+
+        variant_item_code = variant.sku or variant.get_global_id()
+        if response_line.get("itemCode") != variant_item_code:
+            continue
+
+        line_data_dict[line_id] = response_line
+
+    for item in response.get("lines", []):
+        if item.get("itemCode") == SHIPPING_ITEM_CODE:
+            line_data_dict[SHIPPING_ITEM_CODE] = item
+    response["lines"] = line_data_dict
+
+
 def get_checkout_tax_data(
     checkout_info: "CheckoutInfo",
     lines_info: list["CheckoutLineInfo"],
@@ -613,27 +657,7 @@ def get_checkout_tax_data(
     if response is None:
         return response
 
-    # Convert `lines` to dict as we can send multiple lines with the same itemCode
-    # and we need to be able to find proper line by line id.
-    lines_from_response = {
-        line["lineNumber"]: line for line in response.get("lines", [])
-    }
-    line_data_dict = {}
-    for index, line_info in enumerate(lines_info, start=1):
-        response_line = lines_from_response.get(str(index))
-        if not response_line:
-            continue
-
-        variant_item_code = line_info.variant.sku or line_info.variant.get_global_id()
-        if response_line.get("itemCode") != variant_item_code:
-            continue
-
-        line_data_dict[str(line_info.line.id)] = response_line
-
-    for item in response.get("lines", []):
-        if item.get("itemCode") == SHIPPING_ITEM_CODE:
-            line_data_dict[SHIPPING_ITEM_CODE] = item
-    response["lines"] = line_data_dict
+    convert_response_lines_list_to_dict(response, iter_checkout_lines(lines_info))
     return response
 
 
@@ -695,27 +719,7 @@ def get_order_tax_data(
     if response is None:
         return response
 
-    # Convert `lines` to dict as we can send multiple lines with the same itemCode
-    # and we need to be able to find proper line by line id.
-    lines_from_response = {
-        line["lineNumber"]: line for line in response.get("lines", [])
-    }
-    line_data_dict = {}
-    for index, line in enumerate(order_lines, start=1):
-        if not line.variant:
-            continue
-        response_line = lines_from_response.get(str(index))
-        if not response_line:
-            continue
-        variant_item_code = line.variant.sku or line.variant.get_global_id()
-        if response_line.get("itemCode") != variant_item_code:
-            continue
-        line_data_dict[str(line.id)] = response_line
-    for item in response.get("lines", []):
-        if item.get("itemCode") == SHIPPING_ITEM_CODE:
-            line_data_dict[SHIPPING_ITEM_CODE] = item
-    response["lines"] = line_data_dict
-
+    convert_response_lines_list_to_dict(response, iter_order_lines(order_lines))
     return response
 
 
