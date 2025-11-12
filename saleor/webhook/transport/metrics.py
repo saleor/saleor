@@ -73,17 +73,15 @@ def record_external_request(
     target_url: str,
     webhook_response: WebhookResponse,
     payload_size: int,
+    app: App,
     sync: bool,
-    app: App | None,
 ) -> None:
     attributes = {
         server_attributes.SERVER_ADDRESS: urlparse(target_url).hostname or "",
         saleor_attributes.SALEOR_WEBHOOK_EVENT_TYPE: event_type,
         saleor_attributes.SALEOR_WEBHOOK_EXECUTION_MODE: "sync" if sync else "async",
+        saleor_attributes.SALEOR_APP_IDENTIFIER: app.identifier,
     }
-    if app:
-        attributes[saleor_attributes.SALEOR_APP_ID] = str(app.id)
-        attributes[saleor_attributes.SALEOR_APP_NAME] = app.name
     if webhook_response.status == EventDeliveryStatus.FAILED:
         attributes[error_attributes.ERROR_TYPE] = "request_error"
     meter.record(METRIC_EXTERNAL_REQUEST_COUNT, 1, Unit.REQUEST, attributes=attributes)

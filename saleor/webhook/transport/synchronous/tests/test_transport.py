@@ -95,8 +95,7 @@ def test_send_webhook_request_sync_record_external_request(
     # then
     attributes = {
         "server.address": "www.example.com",
-        "saleor.app.id": str(event_delivery_payload_in_database.webhook.app.id),
-        "saleor.app.name": event_delivery_payload_in_database.webhook.app.name,
+        "saleor.app.identifier": event_delivery_payload_in_database.webhook.app.identifier,
         "saleor.webhook.event_type": event_delivery_payload_in_database.event_type,
         "saleor.webhook.execution_mode": "sync",
         **global_attributes,
@@ -146,8 +145,7 @@ def test_send_webhook_request_sync_record_external_request_when_delivery_attempt
     attributes = {
         "server.address": "www.example.com",
         "error.type": "request_error",
-        "saleor.app.id": str(event_delivery_payload_in_database.webhook.app.id),
-        "saleor.app.name": event_delivery_payload_in_database.webhook.app.name,
+        "saleor.app.identifier": event_delivery_payload_in_database.webhook.app.identifier,
         "saleor.webhook.event_type": event_delivery_payload_in_database.event_type,
         "saleor.webhook.execution_mode": "sync",
         **global_attributes,
@@ -197,8 +195,7 @@ def test_send_webhook_request_sync_record_external_request_with_invalid_json_res
     attributes = {
         "server.address": "www.example.com",
         "error.type": "request_error",
-        "saleor.app.id": str(event_delivery_payload_in_database.webhook.app.id),
-        "saleor.app.name": event_delivery_payload_in_database.webhook.app.name,
+        "saleor.app.identifier": event_delivery_payload_in_database.webhook.app.identifier,
         "saleor.webhook.event_type": event_delivery_payload_in_database.event_type,
         "saleor.webhook.execution_mode": "sync",
         **global_attributes,
@@ -247,8 +244,7 @@ def test_send_webhook_request_sync_record_external_request_with_unknown_webhook_
     attributes = {
         "server.address": "www.example.com",
         "error.type": "request_error",
-        "saleor.app.id": str(event_delivery_payload_in_database.webhook.app.id),
-        "saleor.app.name": event_delivery_payload_in_database.webhook.app.name,
+        "saleor.app.identifier": event_delivery_payload_in_database.webhook.app.identifier,
         "saleor.webhook.event_type": event_delivery_payload_in_database.event_type,
         "saleor.webhook.execution_mode": "sync",
         **global_attributes,

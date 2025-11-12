@@ -122,8 +122,8 @@ def _send_webhook_request_sync(
             webhook.target_url,
             response,
             payload_size,
+            webhook.app,
             sync=True,
-            app=webhook.app,
         )
         raise ValueError(f"Unknown webhook scheme: {parts.scheme!r}")
 
@@ -136,7 +136,7 @@ def _send_webhook_request_sync(
         attempt = create_attempt(delivery=delivery, task_id=None, with_save=False)
 
     with webhooks_otel_trace(
-        delivery.event_type, payload_size, sync=True, app=webhook.app
+        delivery.event_type, payload_size, webhook.app, sync=True
     ) as span:
         try:
             response = send_webhook_using_http(
@@ -181,8 +181,8 @@ def _send_webhook_request_sync(
                 webhook.target_url,
                 response,
                 payload_size,
+                webhook.app,
                 sync=True,
-                app=webhook.app,
             )
 
     attempt_update(attempt, response)

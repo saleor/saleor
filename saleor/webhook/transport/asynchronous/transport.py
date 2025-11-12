@@ -624,7 +624,7 @@ def send_webhook_request_async(
         with webhooks_otel_trace(
             delivery.event_type,
             payload_size,
-            app=webhook.app,
+            webhook.app,
             span_links=telemetry_context.links,
         ) as span:
             try:
@@ -646,8 +646,8 @@ def send_webhook_request_async(
             webhook.target_url,
             response,
             payload_size,
+            webhook.app,
             sync=False,
-            app=webhook.app,
         )
 
     if response.status == EventDeliveryStatus.FAILED:
@@ -716,7 +716,7 @@ def send_webhooks_async_for_app(
             with webhooks_otel_trace(
                 delivery.event_type,
                 payload_size,
-                app=webhook.app,
+                webhook.app,
                 span_links=telemetry_context.links,
             ):
                 response = send_webhook_using_scheme_method(
@@ -733,8 +733,8 @@ def send_webhooks_async_for_app(
                 webhook.target_url,
                 response,
                 payload_size,
+                webhook.app,
                 sync=False,
-                app=webhook.app,
             )
             if response.status == EventDeliveryStatus.FAILED:
                 attempt_update(attempt, response, with_save=False)

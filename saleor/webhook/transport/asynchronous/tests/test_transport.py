@@ -60,8 +60,7 @@ def test_send_webhook_request_async_record_external_request(
     # then
     attributes = {
         "server.address": "www.example.com",
-        "saleor.app.id": str(event_delivery.webhook.app.id),
-        "saleor.app.name": event_delivery.webhook.app.name,
+        "saleor.app.identifier": event_delivery.webhook.app.identifier,
         "saleor.webhook.event_type": event_delivery.event_type,
         "saleor.webhook.execution_mode": "async",
         **global_attributes,
@@ -113,8 +112,7 @@ def test_send_webhook_request_async_record_external_request_when_delivery_attemp
     attributes = {
         "server.address": "www.example.com",
         "error.type": "request_error",
-        "saleor.app.id": str(event_delivery.webhook.app.id),
-        "saleor.app.name": event_delivery.webhook.app.name,
+        "saleor.app.identifier": event_delivery.webhook.app.identifier,
         "saleor.webhook.event_type": event_delivery.event_type,
         "saleor.webhook.execution_mode": "async",
         **global_attributes,
@@ -165,8 +163,7 @@ def test_send_webhook_request_async_record_external_request_with_unknown_webhook
     attributes = {
         "server.address": "www.example.com",
         "error.type": "request_error",
-        "saleor.app.id": str(event_delivery.webhook.app.id),
-        "saleor.app.name": event_delivery.webhook.app.name,
+        "saleor.app.identifier": event_delivery.webhook.app.identifier,
         "saleor.webhook.event_type": event_delivery.event_type,
         "saleor.webhook.execution_mode": "async",
         **global_attributes,
