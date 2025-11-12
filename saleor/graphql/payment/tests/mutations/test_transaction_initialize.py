@@ -3840,15 +3840,21 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
 
     another_checkout_authorize_transaction.refresh_from_db()
     assert another_checkout_authorize_transaction.gift_card is None
-    assert (
+    cancel_request_transaction_event = (
         another_checkout_authorize_transaction.events.filter(
             type=TransactionEventType.CANCEL_REQUEST
-        ).count()
-        == 1
+        ).get()
     )
     assert (
+        cancel_request_transaction_event.message
+        == "Gift card has been authorized as payment method in a different checkout."
+    )
+    cancel_success_transaction_event = (
         another_checkout_authorize_transaction.events.filter(
             type=TransactionEventType.CANCEL_SUCCESS
-        ).count()
-        == 1
+        ).get()
+    )
+    assert (
+        cancel_success_transaction_event.message
+        == "Gift card has been authorized as payment method in a different checkout."
     )

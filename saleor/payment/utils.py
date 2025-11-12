@@ -1886,12 +1886,12 @@ def handle_transaction_initialize_session(
     )
 
     if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-        result, maybe_gift_card = (
+        result, gift_card = (
             transaction_initialize_session_with_gift_card_payment_method(session_data)
         )
-        attach_gift_card_to_transaction(session_data, maybe_gift_card)
+        attach_gift_card_to_transaction(session_data, gift_card)
         detach_gift_card_from_previous_checkout_transactions(
-            session_data, maybe_gift_card, manager
+            session_data, gift_card, manager
         )
     else:
         result = manager.transaction_initialize_session(session_data)
@@ -1987,6 +1987,7 @@ def detach_gift_card_from_previous_checkout_transactions(
             type=TransactionEventType.CANCEL_REQUEST,
             currency=transaction_item.currency,
             amount_value=transaction_item.amount_authorized.amount,
+            message="Gift card has been authorized as payment method in a different checkout.",
             defaults={
                 "include_in_calculations": False,
                 "currency": transaction_item.currency,
