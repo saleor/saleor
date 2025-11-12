@@ -577,7 +577,7 @@ def test_order_filter_by_number_nothing_returned(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     variables = {
-        "where": {"number": {"eq": "123"}},
+        "where": {"number": {"eq": "11111111"}},
     }
 
     # when

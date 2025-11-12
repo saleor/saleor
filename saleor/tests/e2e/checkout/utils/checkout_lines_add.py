@@ -6,6 +6,7 @@ mutation checkoutLinesAdd($checkoutId: ID!, $lines: [CheckoutLineInput!]!) {
     checkout {
       lines {
         id
+        isGift
         quantity
         variant {
           id
