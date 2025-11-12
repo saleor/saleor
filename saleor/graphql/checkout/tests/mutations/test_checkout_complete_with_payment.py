@@ -5939,7 +5939,7 @@ def test_checkout_complete_with_external_shipping(
 @override_settings(
     PLUGINS=[
         "saleor.plugins.webhook.plugin.WebhookPlugin",
-        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+        "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
     ]
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
