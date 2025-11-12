@@ -584,9 +584,7 @@ def apply_gift_reward_if_applicable_on_checkout_creation(
         currency=checkout.currency,
     )
     with transaction.atomic():
-        line, _line_created = create_gift_line(
-            checkout, gift_listing, line_discount_data
-        )
+        line = create_gift_line(checkout, gift_listing, line_discount_data)
         CheckoutLineDiscount.objects.create(line=line, **asdict(line_discount_data))
 
 

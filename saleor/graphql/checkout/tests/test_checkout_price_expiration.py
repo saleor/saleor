@@ -369,7 +369,8 @@ def test_checkout_delivery_method_update_invalidate_prices(
 def test_invalidate_checkout_with_save(checkout, plugins_manager):
     # given
     checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
-    checkout.save(update_fields=["price_expiration"])
+    checkout.discount_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
 
@@ -381,7 +382,11 @@ def test_invalidate_checkout_with_save(checkout, plugins_manager):
     # then
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now()
-    assert updated_fields == ["price_expiration", "last_change"]
+    assert updated_fields == [
+        "price_expiration",
+        "discount_expiration",
+        "last_change",
+    ]
 
 
 @freeze_time("2020-12-12 12:00:00")
@@ -390,7 +395,8 @@ def test_invalidate_checkout_without_save(checkout, plugins_manager):
     original_expiration = checkout.price_expiration = (
         timezone.now() + datetime.timedelta(minutes=5)
     )
-    checkout.save(update_fields=["price_expiration"])
+    checkout.discount_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
 
@@ -402,4 +408,8 @@ def test_invalidate_checkout_without_save(checkout, plugins_manager):
     # then
     checkout.refresh_from_db()
     assert checkout.price_expiration == original_expiration
-    assert updated_fields == ["price_expiration", "last_change"]
+    assert updated_fields == [
+        "price_expiration",
+        "discount_expiration",
+        "last_change",
+    ]
