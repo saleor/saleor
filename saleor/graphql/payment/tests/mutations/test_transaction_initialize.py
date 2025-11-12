@@ -3779,6 +3779,7 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
     checkout_with_prices,
     gift_card_created_by_staff,
     transaction_item_generator,
+    order,
 ):
     # given
     checkout = checkout_with_prices
@@ -3805,6 +3806,25 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
     )
     assert (
         another_checkout_authorize_transaction.events.filter(
+            type=TransactionEventType.CANCEL_SUCCESS
+        ).count()
+        == 0
+    )
+
+    order_authorize_transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=Decimal(25),
+    )
+    assert (
+        order_authorize_transaction.events.filter(
+            type=TransactionEventType.CANCEL_REQUEST
+        ).count()
+        == 0
+    )
+    assert (
+        order_authorize_transaction.events.filter(
             type=TransactionEventType.CANCEL_SUCCESS
         ).count()
         == 0
@@ -3854,4 +3874,18 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
             type=TransactionEventType.CANCEL_SUCCESS
         ).count()
         == 1
+    )
+
+    assert order_authorize_transaction.gift_card is not None
+    assert (
+        order_authorize_transaction.events.filter(
+            type=TransactionEventType.CANCEL_REQUEST
+        ).count()
+        == 0
+    )
+    assert (
+        order_authorize_transaction.events.filter(
+            type=TransactionEventType.CANCEL_SUCCESS
+        ).count()
+        == 0
     )

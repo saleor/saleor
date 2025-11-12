@@ -1976,9 +1976,18 @@ def detach_gift_card_from_previous_checkout_transactions(
 
     # Detach gift card from the previously attached transaction items and create authorization cancellation events.
     transactions_to_cancel_qs = TransactionItem.objects.filter(
-        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        gift_card=gift_card,
-    ).exclude(checkout__in=(transaction_session_data.source_object, None))
+        # must cancel transactions for gift card payment gateway
+        Q(app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID),
+        # must cancel transactions for this gift card
+        Q(gift_card=gift_card),
+        # must not cancel transactions for the source object
+        ~Q(checkout=transaction_session_data.source_object)
+        # must cancel transactions where checkout identifier is not empty
+        & Q(checkout_id__isnull=False)
+        # must cancel transactions where order identifier is empty (transaction is not
+        # tied to an order yet)
+        & Q(order_id__isnull=True),
+    )
 
     for transaction_item in transactions_to_cancel_qs:
         response = {
