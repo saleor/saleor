@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                         blank=True,
                         db_index=True,
                         editable=False,
-                        max_length=512,
+                        max_length=1024,
                         null=True,
                     ),
                 ),
