@@ -165,7 +165,7 @@ def test_shipping_method_schema_invalid_private_metadata_skipped(private_metadat
 
     # when
     shipping_method_model = ShippingMethodSchema.model_validate(
-        data, context={"app": app}
+        data, context={"app": app, "currency": data["currency"]}
     )
 
     # then
