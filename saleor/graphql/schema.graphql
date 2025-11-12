@@ -14848,7 +14848,11 @@ input AppExtensionFilterInput @doc(category: "Apps") {
 
   """DEPRECATED: Use `targetName` instead."""
   target: AppExtensionTargetEnum @deprecated
+
+  """Plain-text mount name (case insensitive)"""
   mountName: String
+
+  """Plain-text target name (case insensitive)"""
   targetName: String
 }
 

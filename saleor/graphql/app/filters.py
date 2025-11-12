@@ -64,8 +64,14 @@ class AppExtensionFilter(django_filters.FilterSet):
         method=filter_app_extension_target,
         help_text=f"DEPRECATED: Use `targetName` instead. {DEPRECATED_IN_3X_INPUT}",
     )
-    mountName = django_filters.CharFilter(method=filter_app_extension_mount_name)
-    targetName = django_filters.CharFilter(method=filter_app_extension_target_name)
+    mountName = django_filters.CharFilter(
+        method=filter_app_extension_mount_name,
+        help_text="Plain-text mount name (case insensitive)",
+    )
+    targetName = django_filters.CharFilter(
+        method=filter_app_extension_target_name,
+        help_text="Plain-text target name (case insensitive)",
+    )
 
     class Meta:
         model = models.AppExtension
