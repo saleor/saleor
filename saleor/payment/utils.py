@@ -1928,18 +1928,16 @@ def transaction_initialize_session_with_gift_card_payment_method(
     )
 
     # Check for existence of an active gift card and validate currency.
-    gift_card_qs = GiftCard.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(
-        code=transaction_session_data.payment_gateway_data.data["code"],  # type: ignore[call-overload, index]
-        currency=transaction_session_data.action.currency,
-        is_active=True,
-    )
-    if gift_card_qs.count() < 1:
+    try:
+        gift_card = GiftCard.objects.filter(
+            code=transaction_session_data.payment_gateway_data.data["code"],  # type: ignore[call-overload, index]
+            currency=transaction_session_data.action.currency,
+            is_active=True,
+        ).get()
+    except GiftCard.DoesNotExist:
         return transaction_session_result, None
 
     # Check whether gift card has enough funds to cover the amount.
-    gift_card = gift_card_qs.get()
     if transaction_session_data.action.amount > gift_card.current_balance_amount:
         return transaction_session_result, None
 
