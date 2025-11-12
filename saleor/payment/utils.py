@@ -2001,7 +2001,7 @@ def detach_gift_card_from_previous_checkout_transactions(
             type=TransactionEventType.CANCEL_REQUEST,
             currency=transaction_item.currency,
             amount_value=transaction_item.amount_authorized.amount,
-            message="Gift card has been authorized as payment method in a different checkout.",
+            message=f"Gift card (code ending with: {gift_card.display_code}) has been authorized as payment method in a different checkout.",
             defaults={
                 "include_in_calculations": False,
                 "currency": transaction_item.currency,

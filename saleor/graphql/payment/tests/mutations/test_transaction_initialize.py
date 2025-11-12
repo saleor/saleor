@@ -3867,7 +3867,7 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
     )
     assert (
         cancel_request_transaction_event.message
-        == "Gift card has been authorized as payment method in a different checkout."
+        == f"Gift card (code ending with: {gift_card_created_by_staff.display_code}) has been authorized as payment method in a different checkout."
     )
     assert (
         another_checkout_authorize_transaction.events.filter(
