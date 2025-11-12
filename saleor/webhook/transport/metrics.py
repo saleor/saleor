@@ -100,16 +100,13 @@ def record_external_request(
 
 
 def record_first_delivery_attempt_delay(
-    created_at: datetime, event_type: str, app: App | None
+    created_at: datetime, event_type: str, app: App
 ) -> None:
     delay = (datetime.now(UTC) - created_at).total_seconds()
     attributes = {
         saleor_attributes.SALEOR_WEBHOOK_EVENT_TYPE: event_type,
+        saleor_attributes.SALEOR_APP_IDENTIFIER: app.identifier,
     }
-    if app:
-        attributes[saleor_attributes.SALEOR_APP_ID] = str(app.id)
-        attributes[saleor_attributes.SALEOR_APP_NAME] = app.name
-
     meter.record(
         METRIC_EXTERNAL_REQUEST_FIRST_ATTEMPT_DELAY,
         delay,
