@@ -449,7 +449,7 @@ def create_gift_line(
         if fields_to_update:
             line.save(update_fields=fields_to_update)
 
-    return line, created
+    return line
 
 
 def _get_defaults_for_gift_line(
@@ -705,6 +705,7 @@ def create_discount_objects_for_order_promotions(
     """
     gift_promotion_applied = False
     discount_object = None
+    promotion_end_date = None
     rules = fetch_promotion_rules_for_checkout_or_order(
         order_or_checkout, database_connection_name
     )
@@ -716,7 +717,7 @@ def create_discount_objects_for_order_promotions(
         database_connection_name=database_connection_name,
     )
     if not rule_data:
-        return gift_promotion_applied, discount_object
+        return gift_promotion_applied, discount_object, promotion_end_date
 
     best_rule, best_discount_amount, gift_listing = rule_data
     promotion = best_rule.promotion
@@ -747,7 +748,7 @@ def create_discount_objects_for_order_promotions(
         translated_name=get_discount_translated_name(rule_info),
         reason=prepare_promotion_discount_reason(rule_info.promotion),
     )
-
+    promotion_end_date = promotion.end_date
     if gift_listing:
         _handle_gift_reward(
             order_or_checkout,
@@ -765,7 +766,7 @@ def create_discount_objects_for_order_promotions(
             line_discount,
             rule_info,
         )
-    return gift_promotion_applied, discount_object
+    return gift_promotion_applied, discount_object, promotion_end_date
 
 
 @allow_writer()
@@ -812,9 +813,7 @@ def _handle_gift_reward(
         else OrderLineDiscount
     )
     with transaction.atomic():
-        line, line_created = create_gift_line(
-            order_or_checkout, gift_listing, line_discount_data
-        )
+        line = create_gift_line(order_or_checkout, gift_listing, line_discount_data)
         (
             line_discount,
             discount_created,
@@ -840,34 +839,34 @@ def _handle_gift_reward(
         if fields_to_update:
             line_discount.save(update_fields=fields_to_update)
 
-    if line_created:
-        variant = gift_listing.variant
-        init_values = {
-            "line": line,
-            "variant": variant,
-            "product": variant.product,
-            "product_type": variant.product.product_type,
-            "collections": [],
-            "discounts": [line_discount],
-            "channel": channel,
-            "voucher": None,
-            "voucher_code": None,
-        }
-        gift_line_info: CheckoutLineInfo | EditableOrderLineInfo
-        if isinstance(order_or_checkout, Checkout):
-            init_values["channel_listing"] = gift_listing
-            init_values["rules_info"] = [rule_info]
-            gift_line_info = CheckoutLineInfo(**init_values)
-        else:
-            init_values["voucher_denormalized_info"] = None
-            gift_line_info = EditableOrderLineInfo(**init_values)
-        lines_info.append(gift_line_info)  # type: ignore[arg-type]
+    # replace the current line info with the new one to prevent the mismatch
+    line_info = next(
+        (line_info for line_info in lines_info if line_info.line.pk == line.id), None
+    )
+    if line_info:
+        lines_info.remove(line_info)  # type: ignore[arg-type]
+
+    variant = gift_listing.variant
+    init_values = {
+        "line": line,
+        "variant": variant,
+        "product": variant.product,
+        "product_type": variant.product.product_type,
+        "collections": [],
+        "discounts": [line_discount],
+        "channel": channel,
+        "voucher": None,
+        "voucher_code": None,
+    }
+    gift_line_info: CheckoutLineInfo | EditableOrderLineInfo
+    if isinstance(order_or_checkout, Checkout):
+        init_values["channel_listing"] = gift_listing
+        init_values["rules_info"] = [rule_info]
+        gift_line_info = CheckoutLineInfo(**init_values)
     else:
-        line_info = next(
-            line_info for line_info in lines_info if line_info.line.pk == line.id
-        )
-        line_info.line = line
-        line_info.discounts = [line_discount]  # type: ignore[assignment]
+        init_values["voucher_denormalized_info"] = None
+        gift_line_info = EditableOrderLineInfo(**init_values)
+    lines_info.append(gift_line_info)  # type: ignore[arg-type]
 
 
 def get_active_catalogue_promotion_rules(
