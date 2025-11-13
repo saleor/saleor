@@ -10,6 +10,9 @@ from ..payment.interface import (
     TransactionSessionResult,
 )
 from ..payment.models import TransactionEvent, TransactionItem
+from ..payment.utils import (
+    create_transaction_event_from_request_and_webhook_response,
+)
 from .const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .models import GiftCard
 
@@ -121,10 +124,6 @@ def detach_gift_card_from_previous_checkout_transactions(
                 "currency": transaction_item.currency,
                 "amount_value": transaction_item.amount_authorized.amount,
             },
-        )
-
-        from ..payment.utils import (
-            create_transaction_event_from_request_and_webhook_response,
         )
 
         create_transaction_event_from_request_and_webhook_response(
