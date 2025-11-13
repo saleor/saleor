@@ -598,6 +598,7 @@ class PluginsManager(PaymentInterface):
     def get_order_line_tax_rate(
         self,
         order: "Order",
+        order_line: "OrderLine",
         product: "Product",
         variant: "ProductVariant",
         address: Optional["Address"],
@@ -609,6 +610,7 @@ class PluginsManager(PaymentInterface):
             "get_order_line_tax_rate",
             default_value,
             order,
+            order_line,
             product,
             variant,
             address,
