@@ -177,8 +177,6 @@ class TransactionInitialize(TransactionSessionBase):
         )
         if isinstance(source_object, checkout_models.Checkout):
             cls.validate_checkout(source_object)
-        else:
-            cls.validate_other_types(payment_gateway_data)
 
         idempotency_key = cls.clean_idempotency_key(idempotency_key)
         action = cls.clean_action(
@@ -241,18 +239,6 @@ class TransactionInitialize(TransactionSessionBase):
                         f"finished (max {settings.CHECKOUT_COMPLETION_LOCK_TIME} "
                         "seconds).",
                         code=error_code,
-                    )
-                }
-            )
-
-    @staticmethod
-    def validate_other_types(payment_gateway_data: PaymentGatewayData) -> None:
-        if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        f"Transaction cannot be initialized for {payment_gateway_data.app_identifier} payment gateway and object type other than checkout.",
-                        code=TransactionInitializeErrorCode.INVALID.value,
                     )
                 }
             )

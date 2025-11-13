@@ -1893,7 +1893,7 @@ def handle_transaction_initialize_session(
         with transaction.atomic():
             result, gift_card = (
                 transaction_initialize_session_with_gift_card_payment_method(
-                    session_data
+                    session_data, source_object
                 )
             )
             attach_gift_card_to_transaction(session_data, gift_card)

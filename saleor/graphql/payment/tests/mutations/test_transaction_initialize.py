@@ -3873,7 +3873,9 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
     )
 
 
+@mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_order_with_gift_card_payment_gateway(
+    mocked_uuid4,
     user_api_client,
     order,
     gift_card_created_by_staff,
@@ -3894,13 +3896,13 @@ def test_for_order_with_gift_card_payment_gateway(
 
     # then
     content = get_graphql_content(response)
-    assert len(content["data"]["transactionInitialize"]["errors"]) == 1
-    assert content["data"]["transactionInitialize"]["errors"][0]["field"] == "id"
-    assert (
-        content["data"]["transactionInitialize"]["errors"][0]["code"]
-        == TransactionInitializeErrorCode.INVALID.name
-    )
-    assert (
-        content["data"]["transactionInitialize"]["errors"][0]["message"]
-        == f"Transaction cannot be initialized for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway and object type other than checkout."
+    order.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=order,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
     )

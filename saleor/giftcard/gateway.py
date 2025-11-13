@@ -4,6 +4,8 @@ from uuid import uuid4
 import pydantic
 from django.db.models import Q
 
+from ..checkout.models import Checkout
+from ..order.models import Order
 from ..payment import TransactionEventType
 from ..payment.interface import (
     TransactionSessionData,
@@ -30,6 +32,7 @@ class GiftCardPaymentGatewayDataSchema(pydantic.BaseModel):
 
 def transaction_initialize_session_with_gift_card_payment_method(
     transaction_session_data: "TransactionSessionData",
+    source_object: Checkout | Order,
 ) -> tuple["TransactionSessionResult", GiftCard | None]:
     transaction_session_result = TransactionSessionResult(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
@@ -39,6 +42,9 @@ def transaction_initialize_session_with_gift_card_payment_method(
             "amount": transaction_session_data.action.amount,
         },
     )
+
+    if not isinstance(source_object, Checkout):
+        return transaction_session_result, None
 
     try:
         GiftCardPaymentGatewayDataSchema.model_validate(
