@@ -251,7 +251,7 @@ class TransactionInitialize(TransactionSessionBase):
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        f"Transaction cannot be initialized for {payment_gateway_data.app_identifier} and object type other than checkout.",
+                        f"Transaction cannot be initialized for {payment_gateway_data.app_identifier} payment gateway and object type other than checkout.",
                         code=TransactionInitializeErrorCode.INVALID.value,
                     )
                 }

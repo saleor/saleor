@@ -3894,4 +3894,13 @@ def test_for_order_with_gift_card_payment_gateway(
 
     # then
     content = get_graphql_content(response)
-    assert content["data"]["transactionInitialize"]["errors"]
+    assert len(content["data"]["transactionInitialize"]["errors"]) == 1
+    assert content["data"]["transactionInitialize"]["errors"][0]["field"] == "id"
+    assert (
+        content["data"]["transactionInitialize"]["errors"][0]["code"]
+        == TransactionInitializeErrorCode.INVALID.name
+    )
+    assert (
+        content["data"]["transactionInitialize"]["errors"][0]["message"]
+        == f"Transaction cannot be initialized for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway and object type other than checkout."
+    )
