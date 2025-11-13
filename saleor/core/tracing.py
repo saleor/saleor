@@ -26,8 +26,8 @@ def otel_trace(span_name, component_name):
 def webhooks_otel_trace(
     event_type: str,
     payload_size: int,
+    app: App,
     sync=False,
-    app: App | None = None,
     span_links: Sequence[Link] | None = None,
 ):
     """Context manager for tracing webhooks.
@@ -40,9 +40,9 @@ def webhooks_otel_trace(
         kind=SpanKind.CLIENT,
         links=span_links,
     ) as span:
-        if app:
-            span.set_attribute(saleor_attributes.SALEOR_APP_ID, app.id)
-            span.set_attribute(saleor_attributes.SALEOR_APP_NAME, app.name)
+        span.set_attribute(saleor_attributes.SALEOR_APP_ID, app.id)
+        span.set_attribute(saleor_attributes.SALEOR_APP_IDENTIFIER, app.identifier)
+        span.set_attribute(saleor_attributes.SALEOR_APP_NAME, app.name)
         span.set_attribute(saleor_attributes.COMPONENT, "webhooks")
         span.set_attribute(
             saleor_attributes.SALEOR_WEBHOOK_EXECUTION_MODE, "sync" if sync else "async"

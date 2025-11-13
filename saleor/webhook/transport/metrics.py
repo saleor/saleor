@@ -1,9 +1,18 @@
+from datetime import UTC, datetime
 from urllib.parse import urlparse
 
 from opentelemetry.semconv.attributes import error_attributes, server_attributes
 
+from ...app.models import App
 from ...core.models import EventDeliveryStatus
-from ...core.telemetry import DEFAULT_DURATION_BUCKETS, MetricType, Scope, Unit, meter
+from ...core.telemetry import (
+    DEFAULT_DURATION_BUCKETS,
+    MetricType,
+    Scope,
+    Unit,
+    meter,
+    saleor_attributes,
+)
 from .utils import WebhookResponse
 
 # Initialize metrics
@@ -50,11 +59,29 @@ METRIC_EXTERNAL_REQUEST_BODY_SIZE = meter.create_metric(
     bucket_boundaries=BODY_SIZE_BUCKETS,
 )
 
+METRIC_EXTERNAL_REQUEST_FIRST_ATTEMPT_DELAY = meter.create_metric(
+    "saleor.external_request.async.first_attempt_delay",
+    scope=Scope.CORE,
+    type=MetricType.HISTOGRAM,
+    unit=Unit.MILLISECOND,
+    description="Delay of the first delivery attempt for async webhook.",
+)
+
 
 def record_external_request(
-    target_url: str, webhook_response: WebhookResponse, payload_size: int
+    event_type: str,
+    target_url: str,
+    webhook_response: WebhookResponse,
+    payload_size: int,
+    app: App,
+    sync: bool,
 ) -> None:
-    attributes = {server_attributes.SERVER_ADDRESS: urlparse(target_url).hostname or ""}
+    attributes = {
+        server_attributes.SERVER_ADDRESS: urlparse(target_url).hostname or "",
+        saleor_attributes.SALEOR_WEBHOOK_EVENT_TYPE: event_type,
+        saleor_attributes.SALEOR_WEBHOOK_EXECUTION_MODE: "sync" if sync else "async",
+        saleor_attributes.SALEOR_APP_IDENTIFIER: app.identifier,
+    }
     if webhook_response.status == EventDeliveryStatus.FAILED:
         attributes[error_attributes.ERROR_TYPE] = "request_error"
     meter.record(METRIC_EXTERNAL_REQUEST_COUNT, 1, Unit.REQUEST, attributes=attributes)
@@ -68,5 +95,21 @@ def record_external_request(
         METRIC_EXTERNAL_REQUEST_DURATION,
         webhook_response.duration,
         Unit.SECOND,
+        attributes=attributes,
+    )
+
+
+def record_first_delivery_attempt_delay(
+    created_at: datetime, event_type: str, app: App
+) -> None:
+    delay = (datetime.now(UTC) - created_at).total_seconds()
+    attributes = {
+        saleor_attributes.SALEOR_WEBHOOK_EVENT_TYPE: event_type,
+        saleor_attributes.SALEOR_APP_IDENTIFIER: app.identifier,
+    }
+    meter.record(
+        METRIC_EXTERNAL_REQUEST_FIRST_ATTEMPT_DELAY,
+        delay,
+        unit=Unit.SECOND,
         attributes=attributes,
     )
