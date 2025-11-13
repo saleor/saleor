@@ -11,6 +11,10 @@ from ..checkout.fetch import (
 )
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
+from ..giftcard.const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+)
 from ..order.events import (
     event_transaction_cancel_requested,
     event_transaction_charge_requested,
@@ -26,7 +30,6 @@ from ..payment.interface import (
 from ..webhook.event_types import WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_event
 from . import GatewayError, PaymentError, TransactionAction, TransactionKind
-from .const import GIFT_CARD_PAYMENT_GATEWAY_ID, GIFT_CARD_PAYMENT_GATEWAY_NAME
 from .models import Payment, Transaction, TransactionEvent, TransactionItem
 from .utils import (
     clean_authorize,

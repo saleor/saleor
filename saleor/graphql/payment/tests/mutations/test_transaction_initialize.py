@@ -17,10 +17,10 @@ from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core.prices import Money, quantize_price
+from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.models import Order
 from .....payment import TransactionEventType, TransactionItemIdempotencyUniqueError
-from .....payment.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
@@ -3533,7 +3533,7 @@ def test_for_checkout_with_gift_card_payment_gateway_data_and_incorrect_data_for
     "action",
     [None, TransactionFlowStrategyEnum.AUTHORIZATION.name],
 )
-@mock.patch("saleor.payment.utils.uuid4")
+@mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway(
     mocked_uuid4,
     action,
@@ -3574,7 +3574,7 @@ def test_for_checkout_with_gift_card_payment_gateway(
     )
 
 
-@mock.patch("saleor.payment.utils.uuid4")
+@mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway_gift_card_does_not_exist(
     mocked_uuid4,
     user_api_client,
@@ -3611,7 +3611,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_does_not_exist(
     )
 
 
-@mock.patch("saleor.payment.utils.uuid4")
+@mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_different_currency(
     mocked_uuid4,
     user_api_client,
@@ -3652,7 +3652,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_different_cur
     )
 
 
-@mock.patch("saleor.payment.utils.uuid4")
+@mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway_gift_card_is_inactive(
     mocked_uuid4,
     user_api_client,
@@ -3693,7 +3693,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_is_inactive(
     )
 
 
-@mock.patch("saleor.payment.utils.uuid4")
+@mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_insufficient_funds(
     mocked_uuid4,
     user_api_client,
@@ -3734,7 +3734,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_insufficient_
     )
 
 
-@mock.patch("saleor.payment.utils.uuid4")
+@mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway_invalid_action(
     mocked_uuid4,
     user_api_client,
@@ -3772,7 +3772,7 @@ def test_for_checkout_with_gift_card_payment_gateway_invalid_action(
     )
 
 
-@mock.patch("saleor.payment.utils.uuid4")
+@mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_authorizations(
     mocked_uuid4,
     user_api_client,

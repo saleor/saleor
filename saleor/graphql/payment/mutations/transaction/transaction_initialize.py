@@ -1,7 +1,6 @@
 import uuid
 
 import graphene
-import pydantic
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
@@ -10,8 +9,12 @@ from .....channel.models import Channel
 from .....checkout import models as checkout_models
 from .....checkout.utils import activate_payments, cancel_active_payments
 from .....core.exceptions import PermissionDenied
+from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
+from .....giftcard.gateway import (
+    clean_action_for_gift_card_payment_gateway,
+    clean_gift_card_payment_gateway_data,
+)
 from .....payment import TransactionItemIdempotencyUniqueError
-from .....payment.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....payment.interface import PaymentGatewayData
 from .....payment.utils import handle_transaction_initialize_session
 from .....permission.enums import PaymentPermissions
@@ -25,7 +28,7 @@ from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionEvent, TransactionItem
 from ..base import TransactionSessionBase
 from .payment_gateway_initialize import PaymentGatewayToInitialize
-from .utils import GiftCardPaymentGatewayDataSchema, clean_customer_ip_address
+from .utils import clean_customer_ip_address
 
 
 class TransactionInitialize(TransactionSessionBase):
@@ -111,23 +114,6 @@ class TransactionInitialize(TransactionSessionBase):
         return action
 
     @classmethod
-    def clean_action_for_gift_card_payment_gateway(
-        cls,
-        action: str | None,
-    ) -> str:
-        if action is None or action == TransactionFlowStrategyEnum.AUTHORIZATION.value:
-            return TransactionFlowStrategyEnum.AUTHORIZATION.value
-
-        raise ValidationError(
-            {
-                "action": ValidationError(
-                    message=f"Invalid action for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway.",
-                    code=TransactionInitializeErrorCode.INVALID.value,
-                )
-            }
-        )
-
-    @classmethod
     def clean_app_from_payment_gateway(cls, payment_gateway: PaymentGatewayData) -> App:
         app = App.objects.filter(
             identifier=payment_gateway.app_identifier,
@@ -144,22 +130,6 @@ class TransactionInitialize(TransactionSessionBase):
                 }
             )
         return app
-
-    @classmethod
-    def clean_gift_card_payment_gateway_data(
-        cls, payment_gateway: PaymentGatewayData
-    ) -> None:
-        try:
-            GiftCardPaymentGatewayDataSchema.model_validate(payment_gateway.data)
-        except pydantic.ValidationError as exc:
-            raise ValidationError(
-                {
-                    "payment_gateway": ValidationError(
-                        message=f"Invalid data for {payment_gateway.app_identifier} payment gateway.",
-                        code=TransactionInitializeErrorCode.INVALID.value,
-                    )
-                }
-            ) from exc
 
     @classmethod
     def clean_idempotency_key(cls, idempotency_key: str | None):
@@ -216,9 +186,9 @@ class TransactionInitialize(TransactionSessionBase):
         )
 
         if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-            action = cls.clean_action_for_gift_card_payment_gateway(action)
+            action = clean_action_for_gift_card_payment_gateway(action)
 
-            cls.clean_gift_card_payment_gateway_data(payment_gateway_data)
+            clean_gift_card_payment_gateway_data(payment_gateway_data)
             app = None
         else:
             action = cls.clean_action(info, action, source_object.channel)
