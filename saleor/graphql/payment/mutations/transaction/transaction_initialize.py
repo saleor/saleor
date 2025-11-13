@@ -181,6 +181,9 @@ class TransactionInitialize(TransactionSessionBase):
             cls.validate_other_types(payment_gateway_data)
 
         idempotency_key = cls.clean_idempotency_key(idempotency_key)
+        action = cls.clean_action(
+            info, action, source_object.channel, payment_gateway_data
+        )
         customer_ip_address = clean_customer_ip_address(
             info,
             customer_ip_address,
@@ -191,12 +194,7 @@ class TransactionInitialize(TransactionSessionBase):
             source_object,
             amount,
         )
-
-        action = cls.clean_action(
-            info, action, source_object.channel, payment_gateway_data
-        )
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
-
         payment_ids = []
         if isinstance(source_object, checkout_models.Checkout):
             # Deactivate active payment objects to avoid processing checkout
