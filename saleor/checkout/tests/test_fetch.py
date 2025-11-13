@@ -718,7 +718,8 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_built_in_ship
     checkout.save()
 
     # Change the price of the shipping method in channel listing
-    shipping_channel_listing.price_amount = previous_shipping_price + Decimal(10)
+    new_shipping_price_amount = previous_shipping_price + Decimal(10)
+    shipping_channel_listing.price_amount = new_shipping_price_amount
     shipping_channel_listing.save(update_fields=["price_amount"])
 
     lines_info, _ = fetch_checkout_lines(checkout)
@@ -731,12 +732,16 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_built_in_ship
 
     # then
     checkout.refresh_from_db()
+    assigned_delivery.refresh_from_db()
     assert checkout.assigned_delivery_id == assigned_delivery.id
 
     # Changing the price of shipping method assigned to checkout
     # caused that after fetching shipping methods, the checkout
     # prices are marked as expired.
     assert checkout.price_expiration == timezone.now()
+
+    # The assigned shipping method has updated price
+    assert assigned_delivery.price_amount == new_shipping_price_amount
 
 
 @freeze_time("2024-05-31 12:00:01")
@@ -1133,11 +1138,11 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
     settings,
 ):
     # given
-    new_shipping_price_amount = Decimal(10)
+    shipping_price_amount = Decimal(10)
 
     available_shipping_method = ShippingMethodData(
         id=to_shipping_app_id(app, "external-shipping-method-id"),
-        price=Money(new_shipping_price_amount, checkout_with_item.currency),
+        price=Money(shipping_price_amount, checkout_with_item.currency),
         active=False,
         name="External Shipping",
         description="External Shipping Description",
@@ -1150,13 +1155,14 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
 
     mocked_webhook.return_value = [available_shipping_method]
 
+    new_shipping_price_amount = shipping_price_amount + Decimal(99)
     checkout = checkout_with_item
     assigned_delivery = checkout.shipping_methods.create(
         external_shipping_method_id=to_shipping_app_id(
             app, "external-shipping-method-id"
         ),
         name="External Shipping name",
-        price_amount=new_shipping_price_amount + Decimal(99),
+        price_amount=new_shipping_price_amount,
         currency="USD",
     )
     checkout.assigned_delivery = assigned_delivery
@@ -1181,3 +1187,6 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
     # caused that after fetching shipping methods, the checkout
     # prices are marked as expired.
     assert checkout.price_expiration == timezone.now()
+
+    # The assigned shipping method has updated price
+    assert assigned_delivery.price_amount == new_shipping_price_amount
