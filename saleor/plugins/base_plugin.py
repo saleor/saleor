@@ -741,7 +741,14 @@ class BasePlugin:
     get_client_token: Callable[[Any, Any], Any]
 
     get_order_line_tax_rate: Callable[
-        ["Order", "Product", "ProductVariant", Union["Address", None], Decimal],
+        [
+            "Order",
+            "OrderLine",
+            "Product",
+            "ProductVariant",
+            Union["Address", None],
+            Decimal,
+        ],
         Decimal,
     ]
 

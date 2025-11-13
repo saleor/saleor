@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast
@@ -30,8 +31,8 @@ from ...warehouse.models import Warehouse
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
-    from ...order.models import Order
-    from ...product.models import Product, ProductType
+    from ...order.models import Order, OrderLine
+    from ...product.models import Product, ProductType, ProductVariant
     from ...tax.models import TaxClass
 
 
@@ -241,6 +242,7 @@ def append_line_to_data(
     tax_override_data: dict | None = None,
     ref1: str | None = None,
     ref2: str | None = None,
+    number: str | None = None,
 ):
     line_data = {
         "quantity": quantity,
@@ -252,6 +254,8 @@ def append_line_to_data(
         "description": name,
     }
 
+    if number:
+        line_data["number"] = number
     if tax_override_data:
         line_data["taxOverride"] = tax_override_data
     if ref1:
@@ -296,7 +300,7 @@ def generate_request_data_from_checkout_lines(
         bool(checkout_info.discounts) or is_entire_order_discount
     )
 
-    for line_info in lines_info:
+    for index, line_info in enumerate(lines_info, start=1):
         product = line_info.product
         product_type = line_info.product_type
         tax_code = _get_product_tax_code(product, product_type)
@@ -341,6 +345,7 @@ def generate_request_data_from_checkout_lines(
             "prices_entered_with_tax": prices_entered_with_tax,
             "discounted": applicable_checkout_discount,
             "tax_override_data": tax_override_data,
+            "number": str(index),
         }
 
         append_line_to_data(
@@ -368,19 +373,17 @@ def generate_request_data_from_checkout_lines(
 
 
 def get_order_lines_data(
-    order: "Order", config: AvataxConfiguration, discounted: bool
+    order: "Order",
+    config: AvataxConfiguration,
+    discounted: bool,
+    lines: list["OrderLine"],
 ) -> list[dict[str, str | int | bool | None]]:
     data: list[dict[str, str | int | bool | None]] = []
-    lines = order.lines.prefetch_related(
-        "variant__product__category",
-        "variant__product__collections",
-        "variant__product__product_type",
-    )
 
     tax_configuration = order.channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
-    for line in lines:
+    for line_number, line in enumerate(lines, start=1):
         if not line.variant:
             continue
 
@@ -416,6 +419,7 @@ def get_order_lines_data(
             "name": line.variant.product.name,
             "prices_entered_with_tax": prices_entered_with_tax,
             "discounted": discounted,
+            "number": str(line_number),
         }
         append_line_to_data(
             **append_line_to_data_kwargs,
@@ -597,16 +601,69 @@ def get_cached_response_or_fetch(
     return response
 
 
+def iter_checkout_lines(
+    lines_info: list["CheckoutLineInfo"],
+) -> Iterator[tuple[str, "ProductVariant", str]]:
+    for index, line_info in enumerate(lines_info, start=1):
+        yield str(index), line_info.variant, str(line_info.line.id)
+
+
+def iter_order_lines(
+    order_lines: list["OrderLine"],
+) -> Iterator[tuple[str, "ProductVariant", str]]:
+    for index, line in enumerate(order_lines, start=1):
+        if not line.variant:
+            continue
+        yield str(index), line.variant, str(line.id)
+
+
+def convert_response_lines_list_to_dict(
+    response: dict[str, Any],
+    lines_iterable: Iterator[tuple[str, "ProductVariant", str]],
+):
+    # Convert `lines` to dict as we can send multiple lines with the same itemCode
+    # and we need to be able to find proper line by line id.
+    lines_from_response = {
+        line["lineNumber"]: line for line in response.get("lines", [])
+    }
+    line_data_dict = {}
+    for line_index, variant, line_id in lines_iterable:
+        response_line = lines_from_response.get(line_index)
+        if not response_line:
+            continue
+
+        variant_item_code = variant.sku or variant.get_global_id()
+        if response_line.get("itemCode") != variant_item_code:
+            continue
+
+        line_data_dict[line_id] = response_line
+
+    for item in response.get("lines", []):
+        if item.get("itemCode") == SHIPPING_ITEM_CODE:
+            line_data_dict[SHIPPING_ITEM_CODE] = item
+    response["lines"] = line_data_dict
+
+
 def get_checkout_tax_data(
     checkout_info: "CheckoutInfo",
     lines_info: list["CheckoutLineInfo"],
     config: AvataxConfiguration,
-) -> dict[str, Any]:
+) -> dict[str, Any] | None:
     data = generate_request_data_from_checkout(checkout_info, lines_info, config)
-    return get_cached_response_or_fetch(data, str(checkout_info.checkout.token), config)
+    response = get_cached_response_or_fetch(
+        data, str(checkout_info.checkout.token), config
+    )
+
+    if response is None:
+        return response
+
+    convert_response_lines_list_to_dict(response, iter_checkout_lines(lines_info))
+    return response
 
 
-def get_order_request_data(order: "Order", config: AvataxConfiguration):
+def get_order_request_data(
+    order: "Order", config: AvataxConfiguration, order_lines: list["OrderLine"]
+):
     address = get_address_for_order_taxes(order)
     transaction = (
         TransactionType.INVOICE
@@ -615,7 +672,9 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
     )
     discount_amount = get_total_order_discount_excluding_shipping(order).amount
     discounted_lines = discount_amount != Decimal(0)
-    lines = get_order_lines_data(order, config, discounted=discounted_lines)
+    lines = get_order_lines_data(
+        order, config, discounted=discounted_lines, lines=order_lines
+    )
     # if there is no lines to sent we do not want to send the request to avalara
     if not lines:
         return {}
@@ -634,8 +693,15 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
 
 def get_order_tax_data(
     order: "Order", config: AvataxConfiguration, force_refresh=False
-) -> dict[str, Any]:
-    data = get_order_request_data(order, config)
+) -> dict[str, Any] | None:
+    order_lines = list(
+        order.lines.prefetch_related(
+            "variant__product__category",
+            "variant__product__collections",
+            "variant__product__product_type",
+        ).all()
+    )
+    data = get_order_request_data(order, config, order_lines)
     response = get_cached_response_or_fetch(
         data, f"order_{order.id}", config, force_refresh
     )
@@ -650,6 +716,10 @@ def get_order_tax_data(
         )
         log_address_if_validation_skipped_for_order(order, logger)
         raise TaxError(response.get("error"))
+    if response is None:
+        return response
+
+    convert_response_lines_list_to_dict(response, iter_order_lines(order_lines))
     return response
 
 

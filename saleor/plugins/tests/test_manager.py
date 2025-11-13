@@ -358,6 +358,7 @@ def test_manager_get_order_line_tax_rate_sample_plugin(order_with_lines):
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
     tax_rate = PluginsManager(plugins=plugins).get_order_line_tax_rate(
         order,
+        line,
         product,
         line.variant,
         None,
@@ -381,6 +382,7 @@ def test_manager_get_order_line_tax_rate_no_plugins(
     product = Product.objects.get(name=line.product_name)
     tax_rate = PluginsManager(plugins=[]).get_order_line_tax_rate(
         order,
+        line,
         product,
         line.variant,
         None,
