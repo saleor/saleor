@@ -3855,3 +3855,27 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
         ).count()
         == 0
     )
+
+
+def test_for_order_with_gift_card_payment_gateway(
+    user_api_client,
+    order,
+    gift_card_created_by_staff,
+):
+    # given
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["transactionInitialize"]["errors"]
