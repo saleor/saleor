@@ -9,7 +9,6 @@ from ..graphql.channel.types import TransactionFlowStrategyEnum
 from ..payment import TransactionEventType
 from ..payment.error_codes import TransactionInitializeErrorCode
 from ..payment.interface import (
-    PaymentGatewayData,
     TransactionSessionData,
     TransactionSessionResult,
 )
@@ -28,20 +27,6 @@ class GiftCardPaymentGatewayDataSchema(pydantic.BaseModel):
             max_length=16,
         ),
     ]
-
-
-def clean_gift_card_payment_gateway_data(payment_gateway: PaymentGatewayData) -> None:
-    try:
-        GiftCardPaymentGatewayDataSchema.model_validate(payment_gateway.data)
-    except pydantic.ValidationError as exc:
-        raise ValidationError(
-            {
-                "payment_gateway": ValidationError(
-                    message=f"Invalid data for {payment_gateway.app_identifier} payment gateway.",
-                    code=TransactionInitializeErrorCode.INVALID.value,
-                )
-            }
-        ) from exc
 
 
 def clean_action_for_gift_card_payment_gateway(
@@ -71,6 +56,13 @@ def transaction_initialize_session_with_gift_card_payment_method(
             "amount": transaction_session_data.action.amount,
         },
     )
+
+    try:
+        GiftCardPaymentGatewayDataSchema.model_validate(
+            transaction_session_data.payment_gateway_data.data
+        )
+    except pydantic.ValidationError:
+        return transaction_session_result, None
 
     # Check for existence of an active gift card and validate currency.
     try:

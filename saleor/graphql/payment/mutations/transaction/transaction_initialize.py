@@ -12,7 +12,6 @@ from .....core.exceptions import PermissionDenied
 from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....giftcard.gateway import (
     clean_action_for_gift_card_payment_gateway,
-    clean_gift_card_payment_gateway_data,
 )
 from .....payment import TransactionItemIdempotencyUniqueError
 from .....payment.interface import PaymentGatewayData
@@ -187,8 +186,6 @@ class TransactionInitialize(TransactionSessionBase):
 
         if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
             action = clean_action_for_gift_card_payment_gateway(action)
-
-            clean_gift_card_payment_gateway_data(payment_gateway_data)
             app = None
         else:
             action = cls.clean_action(info, action, source_object.channel)

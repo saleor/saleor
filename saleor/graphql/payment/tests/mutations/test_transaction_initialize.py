@@ -3494,13 +3494,16 @@ def test_invalidate_stored_payment_methods_not_invalidated_for_checkout(
 @pytest.mark.parametrize(
     "data", [None, {}, {"some": "value"}, {"code": None}, {"code": ""}]
 )
+@mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway_data_and_incorrect_data_format(
+    mocked_uuid4,
     user_api_client,
     checkout_with_prices,
     data,
 ):
     # given
     checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
 
     variables = {
         "action": None,
@@ -3514,18 +3517,15 @@ def test_for_checkout_with_gift_card_payment_gateway_data_and_incorrect_data_for
 
     # then
     content = get_graphql_content(response)
-    assert len(content["data"]["transactionInitialize"]["errors"]) == 1
-    assert (
-        content["data"]["transactionInitialize"]["errors"][0]["code"]
-        == TransactionInitializeErrorCode.INVALID.name
-    )
-    assert (
-        content["data"]["transactionInitialize"]["errors"][0]["field"]
-        == "paymentGateway"
-    )
-    assert (
-        content["data"]["transactionInitialize"]["errors"][0]["message"]
-        == f"Invalid data for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway."
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
     )
 
 
