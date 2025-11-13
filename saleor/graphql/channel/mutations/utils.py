@@ -132,19 +132,20 @@ def clean_automatic_completion_delay(
         if "automatically_complete_fully_paid_checkouts" in checkout_settings
         else current_automatic_completion_setting
     )
-    if (
-        automatic_completion is False
-        and "automatic_completion_delay" in checkout_settings
-    ):
-        raise ValidationError(
-            {
-                "automatic_completion_delay": ValidationError(
-                    "Cannot set 'automatic_completion_delay' when "
-                    "'automatically_complete_fully_paid_checkouts' is disabled.",
-                    code=ChannelErrorCode.INVALID.value,
-                )
-            }
-        )
+    if automatic_completion is False:
+        if checkout_settings.get("automatic_completion_delay") is not None:
+            raise ValidationError(
+                {
+                    "automatic_completion_delay": ValidationError(
+                        "Cannot set 'automatic_completion_delay' when "
+                        "'automatically_complete_fully_paid_checkouts' is disabled.",
+                        code=ChannelErrorCode.INVALID.value,
+                    )
+                }
+            )
+        checkout_settings["automatic_completion_delay"] = None
+        return
+
     automatic_completion_delay = checkout_settings.get("automatic_completion_delay")
     if automatic_completion_delay is None:
         checkout_settings["automatic_completion_delay"] = 30

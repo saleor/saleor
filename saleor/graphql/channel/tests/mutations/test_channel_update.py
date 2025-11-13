@@ -1437,6 +1437,52 @@ def test_channel_update_with_automatic_completion_delay_value_only_for_channel_w
     assert channel_USD.automatic_completion_delay == delay
 
 
+def test_channel_update_set_automatic_checkout_completion_change_to_false(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_USD.automatic_completion_delay = 10
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.save(
+        update_fields=[
+            "automatic_completion_delay",
+            "automatically_complete_fully_paid_checkouts",
+        ]
+    )
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticallyCompleteFullyPaidCheckouts": False,
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert channel_USD.automatically_complete_fully_paid_checkouts is False
+    assert channel_USD.automatic_completion_delay is None
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is False
+    )
+    assert channel_data["checkoutSettings"]["automaticCompletionDelay"] is None
+
+
 def test_channel_update_set_automatic_checkout_completion_false_with_delay_value(
     permission_manage_channels,
     staff_api_client,
