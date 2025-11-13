@@ -32,6 +32,7 @@ from .....payment.lock_objects import (
     get_order_and_transaction_item_locked_for_update,
 )
 from .....payment.models import Payment, TransactionItem
+from .....plugins.manager import get_plugins_manager
 from .....tests import race_condition
 from .....webhook.event_types import WebhookEventSyncType
 from .....webhook.models import Webhook
@@ -3764,6 +3765,18 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
         gift_card=gift_card_created_by_staff,
         authorized_value=Decimal(15),
     )
+
+    manager = get_plugins_manager(allow_replica=False)
+    another_checkout_info = fetch_checkout_info(another_checkout, [], manager)
+    fetch_checkout_data(
+        checkout_info=another_checkout_info,
+        manager=manager,
+        lines=[],
+    )
+    assert (
+        another_checkout_info.checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    )
+
     assert (
         another_checkout_authorize_transaction.events.filter(
             type=TransactionEventType.CANCEL_REQUEST
@@ -3841,6 +3854,9 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
         ).count()
         == 1
     )
+    assert another_checkout_authorize_transaction.authorized_value == Decimal(0)
+    another_checkout.refresh_from_db()
+    assert another_checkout.authorize_status == CheckoutAuthorizeStatus.NONE
 
     assert order_authorize_transaction.gift_card is not None
     assert (

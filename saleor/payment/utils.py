@@ -1552,7 +1552,7 @@ def update_order_granted_status_if_needed(request_event: TransactionEvent):
 
 def create_transaction_event_from_request_and_webhook_response(
     request_event: TransactionEvent,
-    app: App,
+    app: App | None,
     transaction_webhook_response: dict[str, Any] | None = None,
 ):
     transaction_request_response, error_msg = (
@@ -1648,7 +1648,7 @@ def create_transaction_event_from_request_and_webhook_response(
             transaction_item, manager, app=app, user=None
         )
     source_object = transaction_item.checkout or transaction_item.order
-    if event and source_object:
+    if event and source_object and app:
         invalidate_cache_for_stored_payment_methods_if_needed(
             event, source_object, app.identifier
         )
@@ -1898,7 +1898,7 @@ def handle_transaction_initialize_session(
             )
             attach_gift_card_to_transaction(session_data, gift_card)
             detach_gift_card_from_previous_checkout_transactions(
-                session_data, gift_card, manager
+                session_data, gift_card
             )
     else:
         result = manager.transaction_initialize_session(session_data)

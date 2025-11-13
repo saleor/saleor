@@ -10,7 +10,6 @@ from ..payment.interface import (
     TransactionSessionResult,
 )
 from ..payment.models import TransactionEvent, TransactionItem
-from ..plugins.manager import PluginsManager
 from .const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .models import GiftCard
 
@@ -84,7 +83,6 @@ def attach_gift_card_to_transaction(
 def detach_gift_card_from_previous_checkout_transactions(
     transaction_session_data: "TransactionSessionData",
     gift_card: GiftCard | None,
-    manager: "PluginsManager",
 ):
     if not gift_card:
         return
@@ -112,6 +110,7 @@ def detach_gift_card_from_previous_checkout_transactions(
         }
 
         transaction_event, _ = TransactionEvent.objects.get_or_create(
+            app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
             transaction=transaction_item,
             type=TransactionEventType.CANCEL_REQUEST,
             currency=transaction_item.currency,
@@ -124,13 +123,14 @@ def detach_gift_card_from_previous_checkout_transactions(
             },
         )
 
-        from ..payment.utils import create_transaction_event_for_transaction_session
+        from ..payment.utils import (
+            create_transaction_event_from_request_and_webhook_response,
+        )
 
-        create_transaction_event_for_transaction_session(
+        create_transaction_event_from_request_and_webhook_response(
             transaction_event,
             None,
             transaction_webhook_response=response,
-            manager=manager,
         )
 
     transactions_to_cancel_qs.update(gift_card=None)
