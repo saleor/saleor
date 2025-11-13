@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import Mock
 
 import pytest
 
@@ -116,6 +117,34 @@ def test_get_tax_country_fallbacks_to_channel_country(channel_USD):
 
     # when
     country = get_active_country(channel_USD, shipping_address, billing_address)
+
+    # then
+    assert country == channel_USD.default_country.code
+
+
+def test_get_tax_country_use_address_data(
+    channel_USD,
+):
+    # given
+    address_data = Mock()
+    address_data.country = "PL"
+
+    # when
+    country = get_active_country(channel_USD, address_data=address_data)
+
+    # then
+    assert country == "PL"
+
+
+def test_get_tax_country_fallbacks_to_channel_country_address_data_with_empty_country(
+    channel_USD,
+):
+    # given
+    address_data = Mock()
+    address_data.country = None
+
+    # when
+    country = get_active_country(channel_USD, address_data=address_data)
 
     # then
     assert country == channel_USD.default_country.code

@@ -24,7 +24,7 @@ def get_active_country(
 
     To get country code from address data from mutation input use address_data parameter
     """
-    if address_data is not None:
+    if address_data is not None and address_data.country:
         return address_data.country
 
     if shipping_address:
