@@ -10,9 +10,6 @@ from .....checkout import models as checkout_models
 from .....checkout.utils import activate_payments, cancel_active_payments
 from .....core.exceptions import PermissionDenied
 from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
-from .....giftcard.gateway import (
-    clean_action_for_gift_card_payment_gateway,
-)
 from .....payment import TransactionItemIdempotencyUniqueError
 from .....payment.interface import PaymentGatewayData
 from .....payment.utils import handle_transaction_initialize_session
@@ -104,7 +101,11 @@ class TransactionInitialize(TransactionSessionBase):
         info,
         action: str | None,
         channel: "Channel",
+        payment_gateway: PaymentGatewayData,
     ) -> str:
+        if payment_gateway.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+            return TransactionFlowStrategyEnum.AUTHORIZATION.value
+
         if not action:
             return channel.default_transaction_flow_strategy
         app = get_app_promise(info.context).get()
@@ -113,7 +114,12 @@ class TransactionInitialize(TransactionSessionBase):
         return action
 
     @classmethod
-    def clean_app_from_payment_gateway(cls, payment_gateway: PaymentGatewayData) -> App:
+    def clean_app_from_payment_gateway(
+        cls, payment_gateway: PaymentGatewayData
+    ) -> App | None:
+        if payment_gateway.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+            return None
+
         app = App.objects.filter(
             identifier=payment_gateway.app_identifier,
             removed_at__isnull=True,
@@ -184,13 +190,10 @@ class TransactionInitialize(TransactionSessionBase):
             amount,
         )
 
-        if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-            action = clean_action_for_gift_card_payment_gateway(action)
-            app = None
-        else:
-            action = cls.clean_action(info, action, source_object.channel)
-
-            app = cls.clean_app_from_payment_gateway(payment_gateway_data)
+        action = cls.clean_action(
+            info, action, source_object.channel, payment_gateway_data
+        )
+        app = cls.clean_app_from_payment_gateway(payment_gateway_data)
 
         payment_ids = []
         if isinstance(source_object, checkout_models.Checkout):

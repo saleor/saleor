@@ -2,12 +2,9 @@ from typing import Annotated
 from uuid import uuid4
 
 import pydantic
-from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-from ..graphql.channel.types import TransactionFlowStrategyEnum
 from ..payment import TransactionEventType
-from ..payment.error_codes import TransactionInitializeErrorCode
 from ..payment.interface import (
     TransactionSessionData,
     TransactionSessionResult,
@@ -27,22 +24,6 @@ class GiftCardPaymentGatewayDataSchema(pydantic.BaseModel):
             max_length=16,
         ),
     ]
-
-
-def clean_action_for_gift_card_payment_gateway(
-    action: str | None,
-) -> str:
-    if action is None or action == TransactionFlowStrategyEnum.AUTHORIZATION.value:
-        return TransactionFlowStrategyEnum.AUTHORIZATION.value
-
-    raise ValidationError(
-        {
-            "action": ValidationError(
-                message=f"Invalid action for {GIFT_CARD_PAYMENT_GATEWAY_ID} payment gateway.",
-                code=TransactionInitializeErrorCode.INVALID.value,
-            )
-        }
-    )
 
 
 def transaction_initialize_session_with_gift_card_payment_method(
