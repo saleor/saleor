@@ -51,6 +51,7 @@ def parse_list_shipping_methods_response(
             minimum_delivery_days=shipping_method.minimum_delivery_days,
             description=shipping_method.description,
             metadata=shipping_method.metadata,
+            private_metadata=shipping_method.private_metadata,
         )
         for shipping_method in list_shipping_method_model.root
     ]

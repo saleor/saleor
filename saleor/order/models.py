@@ -255,6 +255,12 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     shipping_tax_class_metadata = JSONField(
         blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
+    shipping_method_private_metadata = JSONField(
+        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+    )
+    shipping_method_metadata = JSONField(
+        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+    )
 
     # Token of a checkout instance that this order was created from
     checkout_token = models.CharField(max_length=36, blank=True)
