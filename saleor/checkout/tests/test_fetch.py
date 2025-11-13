@@ -691,6 +691,108 @@ def test_fetch_shipping_methods_for_checkout_with_excluded_built_in_shipping_met
     assert checkout_delivery.message == exclude_reason
 
 
+@freeze_time("2024-05-31 12:00:01")
+def test_fetch_shipping_methods_for_checkout_with_changed_price_of_built_in_shipping_method(
+    checkout_with_item, plugins_manager, address, settings
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+
+    CheckoutDelivery.objects.all().delete()
+
+    available_shipping_method = ShippingMethod.objects.get()
+    shipping_channel_listing = available_shipping_method.channel_listings.get(
+        channel_id=checkout.channel_id
+    )
+    previous_shipping_price = shipping_channel_listing.price_amount
+
+    assigned_delivery = checkout.shipping_methods.create(
+        built_in_shipping_method_id=available_shipping_method.id,
+        name="Nonexisting Shipping Method",
+        price_amount=previous_shipping_price,
+        currency="USD",
+    )
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    # Change the price of the shipping method in channel listing
+    new_shipping_price_amount = previous_shipping_price + Decimal(10)
+    shipping_channel_listing.price_amount = new_shipping_price_amount
+    shipping_channel_listing.save(update_fields=["price_amount"])
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    fetch_shipping_methods_for_checkout(checkout_info)
+
+    # then
+    checkout.refresh_from_db()
+    assigned_delivery.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+
+    # Changing the price of shipping method assigned to checkout
+    # caused that after fetching shipping methods, the checkout
+    # prices are marked as expired.
+    assert checkout.price_expiration == timezone.now()
+
+    # The assigned shipping method has updated price
+    assert assigned_delivery.price_amount == new_shipping_price_amount
+
+
+@freeze_time("2024-05-31 12:00:01")
+def test_fetch_shipping_methods_for_checkout_with_changed_tax_class_of_built_in_shipping_method(
+    checkout_with_item, plugins_manager, address, settings, tax_class_zero_rates
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+
+    CheckoutDelivery.objects.all().delete()
+
+    available_shipping_method = ShippingMethod.objects.get()
+    shipping_channel_listing = available_shipping_method.channel_listings.get(
+        channel_id=checkout.channel_id
+    )
+    previous_shipping_price = shipping_channel_listing.price_amount
+
+    assigned_delivery = checkout.shipping_methods.create(
+        built_in_shipping_method_id=available_shipping_method.id,
+        name="Nonexisting Shipping Method",
+        price_amount=previous_shipping_price,
+        currency="USD",
+        tax_class_id=available_shipping_method.tax_class_id,
+    )
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    assert available_shipping_method.tax_class != tax_class_zero_rates
+    available_shipping_method.tax_class = tax_class_zero_rates
+    available_shipping_method.save()
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    fetch_shipping_methods_for_checkout(checkout_info)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+
+    # Changing the tax class of shipping method assigned to checkout
+    # caused that after fetching shipping methods, the checkout
+    # prices are marked as expired.
+    assert checkout.price_expiration == timezone.now()
+
+
 def _assert_external_shipping_method(
     checkout_delivery: CheckoutDelivery,
     available_shipping_method: ShippingMethodData,
@@ -1023,3 +1125,68 @@ def test_fetch_shipping_methods_for_checkout_with_excluded_external_shipping_met
 
     assert checkout_delivery.active is False
     assert checkout_delivery.message == exclude_reason
+
+
+@freeze_time("2024-05-31 12:00:01")
+@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_shipping_method(
+    mocked_webhook,
+    checkout_with_item,
+    plugins_manager,
+    address,
+    app,
+    settings,
+):
+    # given
+    shipping_price_amount = Decimal(10)
+
+    available_shipping_method = ShippingMethodData(
+        id=to_shipping_app_id(app, "external-shipping-method-id"),
+        price=Money(shipping_price_amount, checkout_with_item.currency),
+        active=False,
+        name="External Shipping",
+        description="External Shipping Description",
+        maximum_delivery_days=10,
+        minimum_delivery_days=5,
+        metadata={
+            "key": "value",
+        },
+    )
+
+    mocked_webhook.return_value = [available_shipping_method]
+
+    new_shipping_price_amount = shipping_price_amount + Decimal(99)
+    checkout = checkout_with_item
+    assigned_delivery = checkout.shipping_methods.create(
+        external_shipping_method_id=to_shipping_app_id(
+            app, "external-shipping-method-id"
+        ),
+        name="External Shipping name",
+        price_amount=new_shipping_price_amount,
+        currency="USD",
+    )
+    checkout.assigned_delivery = assigned_delivery
+    checkout.shipping_address = address
+    checkout.shipping_methods_stale_at = timezone.now()
+    checkout.save()
+
+    ShippingMethod.objects.all().delete()
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    fetch_shipping_methods_for_checkout(checkout_info)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+    # Changing the price of shipping method assigned to checkout
+    # caused that after fetching shipping methods, the checkout
+    # prices are marked as expired.
+    assert checkout.price_expiration == timezone.now()
+
+    # The assigned shipping method has updated price
+    assert assigned_delivery.price_amount == new_shipping_price_amount

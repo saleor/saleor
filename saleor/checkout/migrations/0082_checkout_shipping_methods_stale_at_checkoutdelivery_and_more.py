@@ -122,6 +122,7 @@ class Migration(migrations.Migration):
                     "checkout",
                     "external_shipping_method_id",
                     "built_in_shipping_method_id",
+                    "is_valid",
                 ),
                 name="unique_contraint",
                 nulls_distinct=False,

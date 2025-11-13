@@ -24,6 +24,7 @@ from ..discount.interface import (
 from ..shipping.interface import ShippingMethodData
 from ..shipping.utils import (
     convert_checkout_delivery_to_shipping_method_data,
+    convert_shipping_method_data_to_checkout_delivery,
     initialize_shipping_method_active_status,
 )
 from ..warehouse import WarehouseClickAndCollectOption
@@ -573,6 +574,137 @@ def find_checkout_line_info(
     return next(line_info for line_info in lines if line_info.line.pk == line_id)
 
 
+def _get_refreshed_assigned_delivery_data(
+    assigned_delivery: CheckoutDelivery | None,
+    built_in_shipping_methods_dict: dict[int, ShippingMethodData],
+    external_shipping_methods_dict: dict[str, ShippingMethodData],
+) -> ShippingMethodData | None:
+    """Get refreshed shipping method data for assigned delivery.
+
+    Returns the updated ShippingMethodData for the assigned delivery method,
+    or None if the assigned delivery is no longer valid.
+    """
+    if not assigned_delivery:
+        return None
+
+    if external_shipping_method_id := assigned_delivery.external_shipping_method_id:
+        return external_shipping_methods_dict.get(external_shipping_method_id)
+
+    if built_in_shipping_method_id := assigned_delivery.built_in_shipping_method_id:
+        return built_in_shipping_methods_dict.get(built_in_shipping_method_id)
+
+    return None
+
+
+def _refresh_checkout_deliveries(
+    checkout: "Checkout",
+    assigned_delivery: CheckoutDelivery | None,
+    checkout_deliveries: list["CheckoutDelivery"],
+    built_in_shipping_methods_dict: dict[int, ShippingMethodData],
+    external_shipping_methods_dict: dict[str, ShippingMethodData],
+):
+    """Refresh checkout deliveries assigned to the checkout.
+
+    It updates the `CheckoutDelivery` instances associated with the checkout, based
+    on the shipping methods available for the checkout.
+    The non-available shipping methods are removed from the DB, except for the currently
+    assigned delivery method, which is always preserved even if it's no longer valid.
+    """
+    exclude_from_delete = Q(
+        built_in_shipping_method_id__in=list(built_in_shipping_methods_dict.keys())
+    ) | Q(external_shipping_method_id__in=list(external_shipping_methods_dict.keys()))
+
+    if assigned_delivery:
+        # Always preserve the assigned delivery even if it's no longer available
+        exclude_from_delete |= Q(pk=assigned_delivery.pk)
+
+        refreshed_delivery_method = _get_refreshed_assigned_delivery_data(
+            assigned_delivery,
+            built_in_shipping_methods_dict,
+            external_shipping_methods_dict,
+        )
+
+        # Missing refreshed delivery method means that assigned
+        # delivery is no more valid.
+        if not refreshed_delivery_method:
+            assigned_delivery.is_valid = False
+            assigned_delivery.save(update_fields=["is_valid"])
+
+    CheckoutDelivery.objects.filter(
+        checkout_id=checkout.pk,
+    ).exclude(exclude_from_delete).delete()
+
+    if checkout_deliveries:
+        CheckoutDelivery.objects.bulk_create(
+            checkout_deliveries,
+            update_conflicts=True,
+            unique_fields=[
+                "checkout_id",
+                "external_shipping_method_id",
+                "built_in_shipping_method_id",
+                "is_valid",
+            ],
+            update_fields=[
+                "name",
+                "description",
+                "price_amount",
+                "currency",
+                "maximum_delivery_days",
+                "minimum_delivery_days",
+                "metadata",
+                "private_metadata",
+                "active",
+                "message",
+                "updated_at",
+                "is_valid",
+                "is_external",
+                "tax_class_id",
+                "tax_class_name",
+                "tax_class_metadata",
+                "tax_class_private_metadata",
+            ],
+        )
+
+
+def _refreshed_assigned_delivery_has_impact_on_prices(
+    assigned_delivery: CheckoutDelivery | None,
+    built_in_shipping_methods_dict: dict[int, ShippingMethodData],
+    external_shipping_methods_dict: dict[str, ShippingMethodData],
+) -> bool:
+    """Check if refreshed assigned delivery impacts checkout prices.
+
+    If the assigned delivery method has changed in a way that affects pricing,
+    such as a change in tax class, price or marking as invalid, this function
+    returns True. Otherwise, it doesn't impact prices and returns False.
+    """
+    if not assigned_delivery:
+        return False
+
+    refreshed_delivery_method = _get_refreshed_assigned_delivery_data(
+        assigned_delivery,
+        built_in_shipping_methods_dict,
+        external_shipping_methods_dict,
+    )
+
+    if not refreshed_delivery_method:
+        return True
+
+    refreshed_tax_class_id = (
+        refreshed_delivery_method.tax_class.id
+        if refreshed_delivery_method.tax_class
+        else None
+    )
+    # Different tax class can impact on prices
+    if refreshed_tax_class_id != assigned_delivery.tax_class_id:
+        return True
+
+    # Different price means that assigned delivery is invalid
+    if refreshed_delivery_method.price != assigned_delivery.price:
+        return True
+
+    return False
+
+
 @allow_writer()
 def fetch_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
@@ -614,39 +746,10 @@ def fetch_shipping_methods_for_checkout(
     checkout_deliveries = {}
 
     for shipping_method_data in all_methods:
-        tax_class_details = {}
-        if shipping_method_data.tax_class:
-            tax_class_details = {
-                "tax_class_id": shipping_method_data.tax_class.id,
-                "tax_class_name": shipping_method_data.tax_class.name,
-                "tax_class_metadata": shipping_method_data.tax_class.metadata,
-                "tax_class_private_metadata": shipping_method_data.tax_class.private_metadata,
-            }
-        shipping_method_is_external = shipping_method_data.is_external
-        built_in_shipping_method_id = (
-            int(shipping_method_data.id) if not shipping_method_is_external else None
+        checkout_delivery_method = convert_shipping_method_data_to_checkout_delivery(
+            shipping_method_data, checkout
         )
-        external_shipping_method_id = (
-            shipping_method_data.id if shipping_method_is_external else None
-        )
-        checkout_deliveries[shipping_method_data.id] = CheckoutDelivery(
-            checkout=checkout,
-            external_shipping_method_id=external_shipping_method_id,
-            built_in_shipping_method_id=built_in_shipping_method_id,
-            name=shipping_method_data.name or "",
-            description=shipping_method_data.description,
-            price_amount=shipping_method_data.price.amount,
-            currency=shipping_method_data.price.currency,
-            maximum_delivery_days=shipping_method_data.maximum_delivery_days,
-            minimum_delivery_days=shipping_method_data.minimum_delivery_days,
-            metadata=shipping_method_data.metadata,
-            private_metadata=shipping_method_data.private_metadata,
-            active=shipping_method_data.active,
-            message=shipping_method_data.message,
-            is_valid=True,
-            is_external=shipping_method_is_external,
-            **tax_class_details,
-        )
+        checkout_deliveries[shipping_method_data.id] = checkout_delivery_method
 
     with traced_atomic_transaction():
         locked_checkout = (
@@ -657,69 +760,34 @@ def fetch_shipping_methods_for_checkout(
         if locked_checkout.assigned_delivery_id != checkout.assigned_delivery_id:
             return []
 
+        assigned_delivery = checkout.assigned_delivery
+
         checkout.shipping_methods_stale_at = (
             timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
         )
         checkout.save(update_fields=["shipping_methods_stale_at"])
 
-        exclude_from_delete = Q(
-            built_in_shipping_method_id__in=built_in_shipping_methods_dict.keys()
-        ) | Q(external_shipping_method_id__in=external_shipping_methods_dict.keys())
+        _refresh_checkout_deliveries(
+            checkout=locked_checkout,
+            assigned_delivery=assigned_delivery,
+            checkout_deliveries=list(checkout_deliveries.values()),
+            built_in_shipping_methods_dict=built_in_shipping_methods_dict,
+            external_shipping_methods_dict=external_shipping_methods_dict,
+        )
 
-        if assigned_delivery := checkout.assigned_delivery:
-            if (
-                assigned_delivery.built_in_shipping_method_id
-                and assigned_delivery.built_in_shipping_method_id
-                not in built_in_shipping_methods_dict.keys()
-            ):
-                exclude_from_delete |= Q(
-                    built_in_shipping_method_id=assigned_delivery.built_in_shipping_method_id
-                )
-                assigned_delivery.is_valid = False
-                assigned_delivery.save(update_fields=["is_valid"])
-            elif (
-                assigned_delivery.external_shipping_method_id
-                and assigned_delivery.external_shipping_method_id
-                not in external_shipping_methods_dict.keys()
-            ):
-                exclude_from_delete |= Q(
-                    external_shipping_method_id=assigned_delivery.external_shipping_method_id
-                )
-                assigned_delivery.is_valid = False
-                assigned_delivery.save(update_fields=["is_valid"])
+        if _refreshed_assigned_delivery_has_impact_on_prices(
+            assigned_delivery,
+            built_in_shipping_methods_dict,
+            external_shipping_methods_dict,
+        ):
+            from .utils import invalidate_checkout
 
-        CheckoutDelivery.objects.filter(
-            checkout_id=checkout.pk,
-        ).exclude(exclude_from_delete).delete()
-
-        if checkout_deliveries:
-            CheckoutDelivery.objects.bulk_create(
-                checkout_deliveries.values(),
-                update_conflicts=True,
-                unique_fields=[
-                    "checkout_id",
-                    "external_shipping_method_id",
-                    "built_in_shipping_method_id",
-                ],
-                update_fields=[
-                    "name",
-                    "description",
-                    "price_amount",
-                    "currency",
-                    "maximum_delivery_days",
-                    "minimum_delivery_days",
-                    "metadata",
-                    "private_metadata",
-                    "active",
-                    "message",
-                    "updated_at",
-                    "is_valid",
-                    "is_external",
-                    "tax_class_id",
-                    "tax_class_name",
-                    "tax_class_metadata",
-                    "tax_class_private_metadata",
-                ],
+            invalidate_checkout(
+                checkout_info=checkout_info,
+                lines=checkout_info.lines,
+                manager=checkout_info.manager,
+                recalculate_discount=True,
+                save=True,
             )
 
     if checkout_deliveries:

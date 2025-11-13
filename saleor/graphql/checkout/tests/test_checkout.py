@@ -3,6 +3,7 @@ import json
 from decimal import Decimal
 from unittest import mock
 
+import freezegun
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
@@ -4898,3 +4899,303 @@ def test_query_checkout_email_with_explicit_email_for_authenticated_user(
     content = get_graphql_content(response)
     # Return the email explicitly assigned to the user
     assert content["data"]["checkout"]["email"] == expected_email
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_delivery_method_invalidates_taxes_when_delivery_price_is_changed(
+    user_api_client, checkout_with_item, checkout_delivery, shipping_method, address
+):
+    # This test confirms that any change in the price of assigned delivery method
+    # will invalidate checkout prices and taxes even when shipping method is not changed.
+    # This confirms that the `deliveryMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+
+    checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.save()
+
+    current_checkout_delivery_price = checkout.assigned_delivery.price_amount
+
+    # Change shipping method price
+    shipping_method.channel_listings.all().update(
+        price_amount=current_checkout_delivery_price + 10
+    )
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            deliveryMethod {
+                ... on ShippingMethod{
+                  id
+                }
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now()
+    assert content["data"]["checkout"]["deliveryMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_delivery_method_invalidates_taxes_when_delivery_tax_class_is_changed(
+    user_api_client,
+    checkout_with_item,
+    checkout_delivery,
+    shipping_method,
+    address,
+    tax_class_zero_rates,
+):
+    # This test confirms that any change in the tax class of assigned delivery method
+    # will invalidate checkout prices and taxes even when shipping method is not changed.
+    # This confirms that the `deliveryMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.save()
+
+    # Change tax class of shipping
+    assert shipping_method.tax_class != tax_class_zero_rates
+    shipping_method.tax_class = tax_class_zero_rates
+    shipping_method.save(update_fields=["tax_class"])
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            deliveryMethod {
+                ... on ShippingMethod{
+                  id
+                }
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now()
+    assert content["data"]["checkout"]["deliveryMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_delivery_method_dont_invalidate_taxes_when_nothing_changed(
+    user_api_client,
+    checkout_with_item,
+    checkout_delivery,
+    shipping_method,
+    address,
+):
+    # This test confirms that no change in the assigned delivery method
+    # will not trigger invalidation of checkout prices and taxes.
+    # This confirms that the `deliveryMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    expected_price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.price_expiration = expected_price_expiration
+    checkout.save()
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            deliveryMethod {
+                ... on ShippingMethod{
+                  id
+                }
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == expected_price_expiration
+    assert content["data"]["checkout"]["deliveryMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_shipping_method_invalidates_taxes_when_shipping_price_is_changed(
+    user_api_client, checkout_with_item, checkout_delivery, shipping_method, address
+):
+    # This test confirms that any change in the price of assigned delivery method
+    # will invalidate checkout prices and taxes even when shipping method is not changed.
+    # This confirms that the `shippingMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+
+    checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.save()
+
+    current_checkout_delivery_price = checkout.assigned_delivery.price_amount
+
+    # Change shipping method price
+    shipping_method.channel_listings.all().update(
+        price_amount=current_checkout_delivery_price + 10
+    )
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            shippingMethod {
+                id
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now()
+    assert content["data"]["checkout"]["shippingMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_shipping_method_invalidates_taxes_when_shipping_tax_class_is_changed(
+    user_api_client,
+    checkout_with_item,
+    checkout_delivery,
+    shipping_method,
+    address,
+    tax_class_zero_rates,
+):
+    # This test confirms that any change in the tax class of assigned delivery method
+    # will invalidate checkout prices and taxes even when shipping method is not changed.
+    # This confirms that the `shippingMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.save()
+
+    # Change tax class of shipping
+    assert shipping_method.tax_class != tax_class_zero_rates
+    shipping_method.tax_class = tax_class_zero_rates
+    shipping_method.save(update_fields=["tax_class"])
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            shippingMethod {
+                id
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now()
+    assert content["data"]["checkout"]["shippingMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_shipping_method_dont_invalidate_taxes_when_nothing_changed(
+    user_api_client,
+    checkout_with_item,
+    checkout_delivery,
+    shipping_method,
+    address,
+):
+    # This test confirms that no change in the assigned delivery method
+    # will not trigger invalidation of checkout prices and taxes.
+    # This confirms that the `shippingMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    expected_price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.price_expiration = expected_price_expiration
+    checkout.save()
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            shippingMethod {
+                id
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == expected_price_expiration
+    assert content["data"]["checkout"]["shippingMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
