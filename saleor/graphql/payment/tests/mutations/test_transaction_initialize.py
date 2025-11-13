@@ -3527,6 +3527,7 @@ def test_for_checkout_with_gift_card_payment_gateway_data_and_incorrect_data_for
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message="Incorrect payment gateway data.",
     )
 
 
@@ -3613,6 +3614,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_does_not_exist(
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message="Gift card code is not valid.",
     )
 
 
@@ -3654,6 +3656,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_different_cur
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message="Gift card code is not valid.",
     )
 
 
@@ -3695,6 +3698,49 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_is_inactive(
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message="Gift card code is not valid.",
+    )
+
+
+@mock.patch("saleor.giftcard.gateway.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_gift_card_is_expired(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    gift_card_created_by_staff.expiry_date = timezone.now() - datetime.timedelta(days=3)
+    gift_card_created_by_staff.save(update_fields=["expiry_date"])
+
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message="Gift card code is not valid.",
     )
 
 
@@ -3736,6 +3782,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_insufficient_
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message="Gift card has insufficient amount to cover requested amount.",
     )
 
 
@@ -3905,4 +3952,5 @@ def test_for_order_with_gift_card_payment_gateway(
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message=f"Cannot initialize transaction for payment gateway: {GIFT_CARD_PAYMENT_GATEWAY_ID} and object type other than Checkout.",
     )

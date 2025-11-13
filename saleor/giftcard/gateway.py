@@ -3,6 +3,7 @@ from uuid import uuid4
 
 import pydantic
 from django.db.models import Q
+from django.utils import timezone
 
 from ..checkout.models import Checkout
 from ..order.models import Order
@@ -44,6 +45,9 @@ def transaction_initialize_session_with_gift_card_payment_method(
     )
 
     if not isinstance(source_object, Checkout):
+        transaction_session_result.response["message"] = (  # type: ignore[index]
+            f"Cannot initialize transaction for payment gateway: {GIFT_CARD_PAYMENT_GATEWAY_ID} and object type other than Checkout."
+        )
         return transaction_session_result, None
 
     try:
@@ -51,24 +55,31 @@ def transaction_initialize_session_with_gift_card_payment_method(
             transaction_session_data.payment_gateway_data.data
         )
     except pydantic.ValidationError:
+        transaction_session_result.response["message"] = (  # type: ignore[index]
+            "Incorrect payment gateway data."
+        )
         return transaction_session_result, None
 
     # Check for existence of an active gift card and validate currency.
     try:
         gift_card = (
-            GiftCard.objects.filter(
+            GiftCard.objects.active(date=timezone.now().date())
+            .filter(
                 code=transaction_session_data.payment_gateway_data.data["code"],  # type: ignore[call-overload, index]
                 currency=transaction_session_data.action.currency,
-                is_active=True,
             )
             .select_for_update()
             .get()
         )
     except GiftCard.DoesNotExist:
+        transaction_session_result.response["message"] = "Gift card code is not valid."  # type: ignore[index]
         return transaction_session_result, None
 
     # Check whether gift card has enough funds to cover the amount.
     if transaction_session_data.action.amount > gift_card.current_balance_amount:
+        transaction_session_result.response["message"] = (  # type: ignore[index]
+            "Gift card has insufficient amount to cover requested amount."
+        )
         return transaction_session_result, None
 
     transaction_session_result.response["result"] = (  # type: ignore[index]
