@@ -81,6 +81,15 @@ class CheckoutSettingsInput(BaseInputObjectType):
         )
         + ADDED_IN_320,
     )
+    automatic_completion_delay = Minute(
+        required=False,
+        description=(
+            "Time in minutes to wait after a checkout is fully paid before "
+            "automatically completing it. Applies only when "
+            "`automatically_complete_fully_paid_checkouts` is enabled. "
+            "Default is 30 minutes. Set to 0 for immediate completion." + ADDED_IN_320
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT

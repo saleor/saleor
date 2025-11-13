@@ -5446,6 +5446,13 @@ type CheckoutSettings {
   Added in Saleor 3.20.
   """
   automaticallyCompleteFullyPaidCheckouts: Boolean!
+
+  """
+  The time in minutes to wait after a checkout is fully paid before automatically completing it.
+  
+  Added in Saleor 3.20.
+  """
+  automaticCompletionDelay: Minute
 }
 
 """Represents the channel-specific payment settings."""
@@ -28837,6 +28844,13 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   Added in Saleor 3.20.
   """
   automaticallyCompleteFullyPaidCheckouts: Boolean
+
+  """
+  Time in minutes to wait after a checkout is fully paid before automatically completing it. Applies only when `automatically_complete_fully_paid_checkouts` is enabled. Default is 30 minutes. Set to 0 for immediate completion.
+  
+  Added in Saleor 3.20.
+  """
+  automaticCompletionDelay: Minute
 }
 
 input PaymentSettingsInput @doc(category: "Payments") {

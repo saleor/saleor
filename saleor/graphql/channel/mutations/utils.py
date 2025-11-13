@@ -107,14 +107,56 @@ def clean_input_order_settings(
         )
 
 
-def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):
+def clean_input_checkout_settings(
+    checkout_settings: dict, cleaned_input: dict, instance: Channel | None = None
+):
+    clean_automatic_completion_delay(checkout_settings, instance)
     input_to_model_fields = {
         "use_legacy_error_flow": "use_legacy_error_flow_for_checkout",
         "automatically_complete_fully_paid_checkouts": "automatically_complete_fully_paid_checkouts",
+        "automatic_completion_delay": "automatic_completion_delay",
     }
     for input_field, model_field in input_to_model_fields.items():
         if input_field in checkout_settings:
             cleaned_input[model_field] = checkout_settings[input_field]
+
+
+def clean_automatic_completion_delay(
+    checkout_settings: dict, instance: Channel | None = None
+):
+    current_automatic_completion_setting = (
+        instance.automatically_complete_fully_paid_checkouts if instance else False
+    )
+    automatic_completion = (
+        checkout_settings["automatically_complete_fully_paid_checkouts"]
+        if "automatically_complete_fully_paid_checkouts" in checkout_settings
+        else current_automatic_completion_setting
+    )
+    if (
+        automatic_completion is False
+        and "automatic_completion_delay" in checkout_settings
+    ):
+        raise ValidationError(
+            {
+                "automatic_completion_delay": ValidationError(
+                    "Cannot set 'automatic_completion_delay' when "
+                    "'automatically_complete_fully_paid_checkouts' is disabled.",
+                    code=ChannelErrorCode.INVALID.value,
+                )
+            }
+        )
+    automatic_completion_delay = checkout_settings.get("automatic_completion_delay")
+    if automatic_completion_delay is None:
+        checkout_settings["automatic_completion_delay"] = 30
+    elif automatic_completion_delay < 0:
+        raise ValidationError(
+            {
+                "automatic_completion_delay": ValidationError(
+                    "The automatic completion delay must be greater than or equal to 0.",
+                    code=ChannelErrorCode.INVALID.value,
+                )
+            }
+        )
 
 
 def clean_input_payment_settings(payment_settings: dict, cleaned_input: dict):

@@ -91,6 +91,14 @@ class CheckoutSettings(ObjectType):
         )
         + ADDED_IN_320,
     )
+    automatic_completion_delay = Minute(
+        required=False,
+        description=(
+            "The time in minutes to wait after a checkout is fully paid "
+            "before automatically completing it."
+        )
+        + ADDED_IN_320,
+    )
 
     class Meta:
         description = "Represents the channel-specific checkout settings."
@@ -510,6 +518,7 @@ class Channel(ModelObjectType):
         return CheckoutSettings(
             use_legacy_error_flow=root.use_legacy_error_flow_for_checkout,
             automatically_complete_fully_paid_checkouts=complete_paid_checkouts,
+            automatic_completion_delay=root.automatic_completion_delay,
         )
 
     @staticmethod
