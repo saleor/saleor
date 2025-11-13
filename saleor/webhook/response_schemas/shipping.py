@@ -35,6 +35,7 @@ class ShippingMethodSchema(BaseModel):
     minimum_delivery_days: Annotated[int, Field(ge=0)] | None = None
     description: str | None = None
     metadata: DefaultIfNone[Metadata] = {}
+    private_metadata: DefaultIfNone[Metadata] = {}
 
     @property
     def price(self) -> Money:
