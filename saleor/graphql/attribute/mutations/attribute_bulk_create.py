@@ -98,9 +98,6 @@ def clean_values(
     cleand_values: list = []
     slugs_list: list = []
 
-    if attribute:
-        slugs_list = [value.slug for value in attribute.values.all()]
-
     duplicated_names = get_duplicated_values(
         [
             unidecode(value_data.name.lower().strip())
@@ -174,6 +171,9 @@ def clean_values(
                 )
             )
             continue
+
+        if attribute:
+            slugs_list = [value.slug for value in attribute.values.all()]
 
         validate_value(
             value_data,
