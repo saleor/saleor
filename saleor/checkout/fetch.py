@@ -28,11 +28,11 @@ from ..shipping.utils import (
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
 from ..webhook.transport.shipping_helpers import convert_to_app_id_with_identifier
+from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..checkout.models import CheckoutLine
     from ..discount.models import (
         CheckoutDiscount,
         CheckoutLineDiscount,
@@ -48,7 +48,6 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
     )
     from ..tax.models import TaxClass, TaxConfiguration
-    from .models import Checkout
 
 
 @dataclass
@@ -223,7 +222,14 @@ class CheckoutInfo:
             fields_to_update.append("undiscounted_base_shipping_price_amount")
 
         if fields_to_update:
+            from .utils import _update_assigned_checkout_delivery_method
+
             with allow_writer():
+                if isinstance(delivery_method, ShippingMethodData):
+                    shipping_data = delivery_method
+                else:
+                    shipping_data = None
+                _update_assigned_checkout_delivery_method(checkout, shipping_data)
                 checkout.save(update_fields=fields_to_update)
 
     def get_delivery_method_info(self) -> "DeliveryMethodBase":
@@ -271,6 +277,10 @@ class CheckoutInfo:
 
         if isinstance(delivery_method, ShippingMethodData):
             self._update_denormalized_shipping_method_fields(delivery_method)
+        elif self.checkout.assigned_delivery_id:
+            from .utils import delete_assigned_checkout_delivery_method
+
+            delete_assigned_checkout_delivery_method(self.checkout)
 
         return get_delivery_method_info(delivery_method, self.shipping_address)
 

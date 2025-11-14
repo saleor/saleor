@@ -2,7 +2,7 @@
 
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from uuid import UUID
 
 import graphene
@@ -60,6 +60,7 @@ from ..product import models as product_models
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
+from ..tax.models import TaxClass
 from ..warehouse.availability import check_stock_and_preorder_quantity
 from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
@@ -69,7 +70,7 @@ from .lock_objects import (
     checkout_lines_qs_select_for_update,
     checkout_qs_select_for_update,
 )
-from .models import Checkout, CheckoutLine, CheckoutMetadata
+from .models import Checkout, CheckoutDelivery, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
     from measurement.measures import Weight
@@ -1199,10 +1200,15 @@ def remove_click_and_collect_from_checkout(checkout: Checkout) -> list[str]:
 
 def remove_delivery_method_from_checkout(checkout: Checkout) -> list[str]:
     fields_to_update = []
-    fields_to_update += _remove_undiscounted_base_shipping_price(checkout)
     fields_to_update += remove_built_in_shipping_from_checkout(checkout)
-    fields_to_update += remove_click_and_collect_from_checkout(checkout)
     fields_to_update += remove_external_shipping_from_checkout(checkout)
+    if fields_to_update:
+        # If there was any shipping method assigned, we need to
+        # clear assigned delivery method as well
+        delete_assigned_checkout_delivery_method(checkout)
+    fields_to_update += _remove_undiscounted_base_shipping_price(checkout)
+    fields_to_update += remove_click_and_collect_from_checkout(checkout)
+
     return fields_to_update
 
 
@@ -1217,6 +1223,66 @@ def _assign_undiscounted_base_shipping_price_to_checkout(
         checkout.undiscounted_base_shipping_price_amount = new_shipping_price.amount
         return ["undiscounted_base_shipping_price_amount"]
     return []
+
+
+def delete_assigned_checkout_delivery_method(checkout: Checkout):
+    with allow_writer():
+        CheckoutDelivery.objects.filter(checkout_id=checkout.pk).delete()
+        checkout.assigned_delivery_id = None
+
+
+def _update_assigned_checkout_delivery_method(
+    checkout: Checkout, shipping_data: ShippingMethodData | None
+):
+    if not checkout.assigned_delivery_id and not shipping_data:
+        return
+
+    if not shipping_data:
+        delete_assigned_checkout_delivery_method(checkout)
+        return
+
+    external_shipping_method_id = (
+        shipping_data.id if shipping_data.is_external else None
+    )
+    built_in_shipping_method_id = (
+        int(shipping_data.id) if not shipping_data.is_external else None
+    )
+
+    tax_data: dict[str, Any] = {}
+    if shipping_data.tax_class:
+        tax_class: TaxClass = shipping_data.tax_class
+        tax_data["tax_class_id"] = tax_class.id
+        tax_data["tax_class_name"] = tax_class.name
+        tax_data["tax_class_private_metadata"] = tax_class.private_metadata
+        tax_data["tax_class_metadata"] = tax_class.metadata
+
+    shipping_data_dict = {
+        "external_shipping_method_id": external_shipping_method_id,
+        "built_in_shipping_method_id": built_in_shipping_method_id,
+        "checkout": checkout,
+        "name": shipping_data.name or "",
+        "description": shipping_data.description,
+        "price_amount": shipping_data.price.amount,
+        "currency": checkout.currency,
+        "maximum_delivery_days": shipping_data.maximum_delivery_days,
+        "minimum_delivery_days": shipping_data.minimum_delivery_days,
+        "metadata": shipping_data.metadata,
+        "private_metadata": shipping_data.private_metadata,
+        "message": shipping_data.message,
+        "is_external": shipping_data.is_external,
+        "active": shipping_data.active,
+        **tax_data,
+    }
+    assigned_delivery, created = CheckoutDelivery.objects.update_or_create(
+        checkout=checkout,
+        external_shipping_method_id=external_shipping_method_id,
+        built_in_shipping_method_id=built_in_shipping_method_id,
+        defaults=shipping_data_dict,
+        create_defaults=shipping_data_dict,
+    )
+    checkout.assigned_delivery = assigned_delivery
+    if created:
+        checkout.save(update_fields=["assigned_delivery_id"])
 
 
 def assign_external_shipping_to_checkout(
@@ -1240,6 +1306,12 @@ def assign_external_shipping_to_checkout(
         checkout.shipping_method_name = external_shipping_method_data.name
         fields_to_update.append("shipping_method_name")
 
+    if fields_to_update:
+        # Update assigned delivery method data when something has changed
+        _update_assigned_checkout_delivery_method(
+            checkout, external_shipping_method_data
+        )
+
     return fields_to_update
 
 
@@ -1259,6 +1331,10 @@ def assign_built_in_shipping_to_checkout(
     if checkout.shipping_method_name != shipping_method_data.name:
         checkout.shipping_method_name = shipping_method_data.name
         fields_to_update.append("shipping_method_name")
+
+    if fields_to_update:
+        # Update assigned delivery method data when something has changed
+        _update_assigned_checkout_delivery_method(checkout, shipping_method_data)
     return fields_to_update
 
 
@@ -1277,6 +1353,9 @@ def assign_collection_point_to_checkout(
         checkout.save_shipping_address = False
         fields_to_update.extend(["shipping_address_id", "save_shipping_address"])
 
+    if fields_to_update:
+        # Update assigned delivery method data when something has changed
+        delete_assigned_checkout_delivery_method(checkout)
     return fields_to_update
 
 
