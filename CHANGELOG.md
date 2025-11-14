@@ -15,4 +15,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Fix send order confirmation email to staff - #18342 by @Shaokun-X
 
+- Add possability to customize email and password using --superuser_email --superuser_password flags when populating database with example data - #18467
+
 ### Deprecations
