@@ -379,6 +379,21 @@ class TransactionSessionFailureSchema(TransactionSessionBaseSchema):
     ]
 
 
+class TransactionSessionCancelSuccessSchema(TransactionSessionBaseSchema):
+    result: Annotated[  # type: ignore[name-defined]
+        Literal[TransactionEventTypeEnum.CANCEL_SUCCESS.name,],
+        Field(description="Result of the action"),
+    ]
+    psp_reference: Annotated[
+        DefaultIfNone[str],
+        Field(
+            validation_alias="pspReference",
+            default=None,
+            description="PSP reference received from payment provider.",
+        ),
+    ]
+
+
 class TransactionSessionActionRequiredSchema(TransactionSessionBaseSchema):
     result: Annotated[  # type: ignore[name-defined]
         Literal[

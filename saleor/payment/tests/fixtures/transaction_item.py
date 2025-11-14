@@ -14,6 +14,7 @@ def transaction_item_generator():
         order_id=None,
         checkout_id=None,
         app=None,
+        app_identifier=None,
         user=None,
         psp_reference="PSP ref1",
         name="Credit card",
@@ -34,6 +35,7 @@ def transaction_item_generator():
         cc_exp_year=None,
         metadata=None,
         currency="USD",
+        gift_card=None,
     ):
         if available_actions is None:
             available_actions = []
@@ -48,7 +50,7 @@ def transaction_item_generator():
             currency=currency,
             order_id=order_id,
             checkout_id=checkout_id,
-            app_identifier=app.identifier if app else None,
+            app_identifier=app.identifier if app else app_identifier,
             app=app,
             user=user,
             use_old_id=use_old_id,
@@ -61,6 +63,7 @@ def transaction_item_generator():
             cc_exp_month=cc_exp_month,
             cc_exp_year=cc_exp_year,
             metadata=metadata,
+            gift_card=gift_card,
         )
         create_manual_adjustment_events(
             transaction=transaction,
