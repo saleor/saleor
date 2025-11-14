@@ -13,6 +13,7 @@ from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from opentelemetry.trace import StatusCode
+from promise import Promise
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -28,7 +29,6 @@ from ....core.utils import get_domain
 from ....core.utils.url import sanitize_url_for_logging
 from ....graphql.core.dataloaders import DataLoader
 from ....graphql.webhook.subscription_payload import (
-    generate_payload_from_subscription,
     generate_payload_promise_from_subscription,
     get_pre_save_payload_key,
     initialize_request,
@@ -88,7 +88,7 @@ def create_deliveries_for_multiple_subscription_objects(
     allow_replica=False,
     pre_save_payloads: dict | None = None,
     request_time: datetime.datetime | None = None,
-) -> list[EventDelivery]:
+) -> Promise:  # [list[EventDelivery]]:
     """Create event deliveries with payloads based on multiple subscription objects.
 
     Trigger webhooks for each object in `subscribable_objects`. EventDeliveries and
@@ -110,11 +110,6 @@ def create_deliveries_for_multiple_subscription_objects(
         )
         return []
 
-    event_payloads = []
-    event_payloads_data = []
-    event_deliveries = []
-    event_deliveries_for_bulk_update = []
-
     for subscribable_object in subscribable_objects:
         # Dataloaders are shared between calls to generate_payload_from_subscription to
         # reuse their cache. This avoids unnecessary DB queries when different webhooks
@@ -129,76 +124,92 @@ def create_deliveries_for_multiple_subscription_objects(
             request_time=request_time,
             dataloaders=dataloaders,
         )
-
+        promises = []
         for webhook in webhooks:
-            data = generate_payload_from_subscription(
-                event_type=event_type,
-                subscribable_object=subscribable_object,
-                subscription_query=webhook.subscription_query,
-                request=request,
-                app=webhook.app,
+            promises.append(
+                generate_payload_promise_from_subscription(
+                    event_type=event_type,
+                    subscribable_object=subscribable_object,
+                    subscription_query=webhook.subscription_query,
+                    request=request,
+                    app=webhook.app,
+                )
             )
 
-            if not data:
-                logger.info(
-                    "No payload was generated with subscription for event: %s",
-                    event_type,
-                )
-                continue
+        def process_webhook_payloads(webhook_payloads):
+            event_payloads = []
+            event_payloads_data = []
+            event_deliveries = []
+            event_deliveries_for_bulk_update = []
 
-            if (
-                settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS
-                and pre_save_payloads
-            ):
-                key = get_pre_save_payload_key(webhook, subscribable_object)
-                pre_save_payload = pre_save_payloads.get(key)
-                if pre_save_payload and pre_save_payload == data:
+            for webhook, data in zip(webhooks, webhook_payloads, strict=False):
+                if not data:
                     logger.info(
-                        "[Webhook ID:%r] No data changes for event %r, skip delivery to %r",
-                        webhook.id,
+                        "No payload was generated with subscription for event: %s",
                         event_type,
-                        sanitize_url_for_logging(webhook.target_url),
                     )
                     continue
 
-            payload_data = json.dumps({**data})
-            event_payloads_data.append(payload_data)
-            event_payload = EventPayload()
-            event_payloads.append(event_payload)
-            event_delivery = EventDelivery(
-                status=EventDeliveryStatus.PENDING,
-                event_type=event_type,
-                payload=event_payload,
-                webhook=webhook,
-            )
-            event_deliveries_for_bulk_update.append(event_delivery)
-
-            if len(event_deliveries_for_bulk_update) > MAX_WEBHOOK_EVENTS_IN_DB_BULK:
-                with allow_writer():
-                    # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
-                    with transaction.atomic():
-                        EventPayload.objects.bulk_create_with_payload_files(
-                            event_payloads, event_payloads_data
+                if (
+                    settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS
+                    and pre_save_payloads
+                ):
+                    key = get_pre_save_payload_key(webhook, subscribable_object)
+                    pre_save_payload = pre_save_payloads.get(key)
+                    if pre_save_payload and pre_save_payload == data:
+                        logger.info(
+                            "[Webhook ID:%r] No data changes for event %r, skip delivery to %r",
+                            webhook.id,
+                            event_type,
+                            sanitize_url_for_logging(webhook.target_url),
                         )
-                        event_deliveries.extend(
-                            EventDelivery.objects.bulk_create(
-                                event_deliveries_for_bulk_update
+                        continue
+
+                payload_data = json.dumps({**data})
+                event_payloads_data.append(payload_data)
+                event_payload = EventPayload()
+                event_payloads.append(event_payload)
+                event_delivery = EventDelivery(
+                    status=EventDeliveryStatus.PENDING,
+                    event_type=event_type,
+                    payload=event_payload,
+                    webhook=webhook,
+                )
+                event_deliveries_for_bulk_update.append(event_delivery)
+
+                if (
+                    len(event_deliveries_for_bulk_update)
+                    > MAX_WEBHOOK_EVENTS_IN_DB_BULK
+                ):
+                    with allow_writer():
+                        # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+                        with transaction.atomic():
+                            EventPayload.objects.bulk_create_with_payload_files(
+                                event_payloads, event_payloads_data
                             )
-                        )
-                event_payloads = []
-                event_payloads_data = []
-                event_deliveries_for_bulk_update = []
+                            event_deliveries.extend(
+                                EventDelivery.objects.bulk_create(
+                                    event_deliveries_for_bulk_update
+                                )
+                            )
+                    event_payloads = []
+                    event_payloads_data = []
+                    event_deliveries_for_bulk_update = []
 
-    with allow_writer():
-        # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
-        with transaction.atomic():
-            EventPayload.objects.bulk_create_with_payload_files(
-                event_payloads, event_payloads_data
-            )
-            event_deliveries.extend(
-                EventDelivery.objects.bulk_create(event_deliveries_for_bulk_update)
-            )
-        return event_deliveries
+            with allow_writer():
+                # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+                with transaction.atomic():
+                    EventPayload.objects.bulk_create_with_payload_files(
+                        event_payloads, event_payloads_data
+                    )
+                    event_deliveries.extend(
+                        EventDelivery.objects.bulk_create(
+                            event_deliveries_for_bulk_update
+                        )
+                    )
+                return event_deliveries
+
+    return Promise.all(promises).then(process_webhook_payloads)
 
 
 def create_deliveries_for_subscriptions(
@@ -209,7 +220,7 @@ def create_deliveries_for_subscriptions(
     allow_replica=False,
     pre_save_payloads: dict | None = None,
     request_time: datetime.datetime | None = None,
-) -> list[EventDelivery]:
+) -> Promise:  # list[EventDelivery]:
     """Create a list of event deliveries with payloads based on subscription query.
 
     It uses a subscription query, defined for webhook to explicitly determine
@@ -346,6 +357,7 @@ def trigger_webhooks_async_for_multiple_objects(
 
     # List of deliveries with payloads.
     deliveries: list[EventDelivery] = []
+    deliveries_promise: Promise | None = None
 
     # List of deliveries and data to generate deferred payloads for each subscribable
     # object. Note: we assume that all subscribable objects are of the same type.
@@ -393,16 +405,14 @@ def trigger_webhooks_async_for_multiple_objects(
                 )
             )
         else:
-            deliveries.extend(
-                create_deliveries_for_multiple_subscription_objects(
-                    event_type=event_type,
-                    subscribable_objects=subscribable_objects,
-                    webhooks=subscription_webhooks,
-                    requestor=requestor,
-                    allow_replica=allow_replica,
-                    pre_save_payloads=pre_save_payloads,
-                    request_time=request_time,
-                )
+            deliveries_promise = create_deliveries_for_multiple_subscription_objects(
+                event_type=event_type,
+                subscribable_objects=subscribable_objects,
+                webhooks=subscription_webhooks,
+                requestor=requestor,
+                allow_replica=allow_replica,
+                pre_save_payloads=pre_save_payloads,
+                request_time=request_time,
             )
 
     for _, deferred_deliveries in deferred_deliveries_per_object.items():
@@ -428,21 +438,27 @@ def trigger_webhooks_async_for_multiple_objects(
             bind=True,
         )
     domain = get_domain()
-    for delivery in deliveries:
-        message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
-        # TODO: switch to new `send_webhooks_async_for_app` task when we have
-        # deduplication mechanism in place.
-        send_webhook_request_async.apply_async(
-            kwargs={
-                "event_delivery_id": delivery.pk,
-                "telemetry_context": get_task_context().to_dict(),
-            },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            MessageGroupId=message_group_id,  # for AWS SQS fair queues
-        )
+
+    def process_deliveries(deliveries_list):
+        for delivery in deliveries_list:
+            message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
+            # TODO: switch to new `send_webhooks_async_for_app` task when we have
+            # deduplication mechanism in place.
+            send_webhook_request_async.apply_async(
+                kwargs={
+                    "event_delivery_id": delivery.pk,
+                    "telemetry_context": get_task_context().to_dict(),
+                },
+                queue=get_queue_name_for_webhook(
+                    delivery.webhook,
+                    default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+                ),
+                MessageGroupId=message_group_id,  # for AWS SQS fair queues
+            )
+
+    process_deliveries(deliveries)
+    if deliveries_promise:
+        deliveries_promise.then(process_deliveries).get()
 
 
 def trigger_webhooks_async(
