@@ -35,11 +35,11 @@ from ....checkout.utils import (
 from ....core.db.connection import allow_writer
 from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
-from ....payment import TransactionAction
-from ....payment.gateway import (
+from ....giftcard.const import (
     GIFT_CARD_PAYMENT_GATEWAY_ID,
     GIFT_CARD_PAYMENT_GATEWAY_NAME,
 )
+from ....payment import TransactionAction
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
