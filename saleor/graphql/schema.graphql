@@ -14843,8 +14843,25 @@ type AppExtensionCountableEdge @doc(category: "Apps") {
 }
 
 input AppExtensionFilterInput @doc(category: "Apps") {
-  mount: [AppExtensionMountEnum!]
-  target: AppExtensionTargetEnum
+  """DEPRECATED: Use `mountName` instead."""
+  mount: [AppExtensionMountEnum!] @deprecated
+
+  """DEPRECATED: Use `targetName` instead."""
+  target: AppExtensionTargetEnum @deprecated
+
+  """
+  Plain-text mount name (case insensitive)
+  
+  Added in Saleor 3.22.
+  """
+  mountName: String
+
+  """
+  Plain-text target name (case insensitive)
+  
+  Added in Saleor 3.22.
+  """
+  targetName: String
 }
 
 """Represents address validation rules for a country."""
