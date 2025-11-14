@@ -87,6 +87,9 @@ def transaction_initialize_session_with_gift_card_payment_method(
     transaction_session_result.response["result"] = (  # type: ignore[index]
         TransactionEventType.AUTHORIZATION_SUCCESS.upper()
     )
+    transaction_session_result.response["message"] = (  # type: ignore[index]
+        f"Gift card (ending: {gift_card.display_code})."
+    )
 
     return transaction_session_result, gift_card
 
