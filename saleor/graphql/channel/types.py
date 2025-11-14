@@ -21,6 +21,7 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
     ADDED_IN_321,
+    ADDED_IN_322,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -97,7 +98,7 @@ class CheckoutSettings(ObjectType):
             "The time in minutes to wait after a checkout is fully paid "
             "before automatically completing it."
         )
-        + ADDED_IN_320,
+        + ADDED_IN_322,
     )
 
     class Meta:

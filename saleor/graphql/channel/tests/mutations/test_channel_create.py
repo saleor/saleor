@@ -4,6 +4,7 @@ from unittest import mock
 
 import graphene
 import pytest
+from django.conf import settings
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -969,7 +970,6 @@ def test_channel_create_set_automatic_checkout_completion_with_delay_value(
     slug = "test_slug"
     currency_code = "USD"
     default_country = "US"
-    delay = 10
     variables = {
         "input": {
             "name": name,
@@ -978,7 +978,181 @@ def test_channel_create_set_automatic_checkout_completion_with_delay_value(
             "defaultCountry": default_country,
             "checkoutSettings": {
                 "automaticallyCompleteFullyPaidCheckouts": True,
-                "automaticCompletionDelay": delay,
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is True
+    )
+    assert (
+        channel_data["checkoutSettings"]["automaticCompletionDelay"]
+        == settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY
+    )
+
+    assert channel.automatically_complete_fully_paid_checkouts is True
+    assert (
+        channel.automatic_completion_delay
+        == settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY
+    )
+
+
+def test_channel_create_set_automatic_checkout_completion_false(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {
+                "automaticallyCompleteFullyPaidCheckouts": False,
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel = Channel.objects.get()
+    assert channel.automatically_complete_fully_paid_checkouts is False
+    assert channel.automatic_completion_delay is None
+
+
+def test_channel_create_with_automatic_completion_delay_value_below_0(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": True,
+                    "delay": -1,
+                }
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["channelCreate"]["errors"][0]
+    assert error["field"] == "delay"
+    assert error["code"] == ChannelErrorCode.INVALID.name
+
+
+def test_channel_create_with_new_automatic_completion_enabled_with_default_delay(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": True,
+                }
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is True
+    )
+    default_delay = settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY
+    assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == default_delay
+    assert channel.automatically_complete_fully_paid_checkouts is True
+    assert channel.automatic_completion_delay == default_delay
+
+
+def test_channel_create_with_new_automatic_completion_enabled_with_custom_delay(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    delay = 15
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": True,
+                    "delay": delay,
+                }
             },
         }
     }
@@ -1001,12 +1175,11 @@ def test_channel_create_set_automatic_checkout_completion_with_delay_value(
         is True
     )
     assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == delay
-
     assert channel.automatically_complete_fully_paid_checkouts is True
     assert channel.automatic_completion_delay == delay
 
 
-def test_channel_create_set_automatic_checkout_completion_false_with_delay_value(
+def test_channel_create_with_automatic_completion_disabled(
     permission_manage_channels,
     staff_api_client,
 ):
@@ -1022,8 +1195,49 @@ def test_channel_create_set_automatic_checkout_completion_false_with_delay_value
             "currencyCode": currency_code,
             "defaultCountry": default_country,
             "checkoutSettings": {
-                "automaticallyCompleteFullyPaidCheckouts": False,
-                "automaticCompletionDelay": 10,
+                "automaticCompletion": {
+                    "enabled": False,
+                }
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel = Channel.objects.get()
+    assert channel.automatically_complete_fully_paid_checkouts is False
+    assert channel.automatic_completion_delay is None
+
+
+def test_channel_create_with_automatic_completion_disabled_and_delay(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": False,
+                    "delay": 10,
+                }
             },
         }
     }
@@ -1038,11 +1252,11 @@ def test_channel_create_set_automatic_checkout_completion_false_with_delay_value
 
     # then
     error = content["data"]["channelCreate"]["errors"][0]
-    assert error["field"] == "automaticCompletionDelay"
+    assert error["field"] == "delay"
     assert error["code"] == ChannelErrorCode.INVALID.name
 
 
-def test_channel_create_with_automatic_completion_only_delay_value(
+def test_channel_create_with_both_old_and_new_automatic_completion_fields(
     permission_manage_channels,
     staff_api_client,
 ):
@@ -1058,7 +1272,11 @@ def test_channel_create_with_automatic_completion_only_delay_value(
             "currencyCode": currency_code,
             "defaultCountry": default_country,
             "checkoutSettings": {
-                "automaticCompletionDelay": 10,
+                "automaticallyCompleteFullyPaidCheckouts": True,
+                "automaticCompletion": {
+                    "enabled": True,
+                    "delay": 10,
+                },
             },
         }
     }
@@ -1073,42 +1291,7 @@ def test_channel_create_with_automatic_completion_only_delay_value(
 
     # then
     error = content["data"]["channelCreate"]["errors"][0]
-    assert error["field"] == "automaticCompletionDelay"
-    assert error["code"] == ChannelErrorCode.INVALID.name
-
-
-def test_channel_create_with_automatic_completion_delay_value_below_0(
-    permission_manage_channels,
-    staff_api_client,
-):
-    # given
-    name = "testName"
-    slug = "test_slug"
-    currency_code = "USD"
-    default_country = "US"
-    variables = {
-        "input": {
-            "name": name,
-            "slug": slug,
-            "currencyCode": currency_code,
-            "defaultCountry": default_country,
-            "checkoutSettings": {
-                "automaticCompletionDelay": -1,
-            },
-        }
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        CHANNEL_CREATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_channels,),
-    )
-    content = get_graphql_content(response)
-
-    # then
-    error = content["data"]["channelCreate"]["errors"][0]
-    assert error["field"] == "automaticCompletionDelay"
+    assert error["field"] == "automaticallyCompleteFullyPaidCheckouts"
     assert error["code"] == ChannelErrorCode.INVALID.name
 
 
