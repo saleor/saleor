@@ -3782,7 +3782,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_insufficient_
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        expected_message="Gift card has insufficient amount to cover requested amount.",
+        expected_message="Gift card has insufficient amount (0.10) to cover requested amount (1.00).",
     )
 
 

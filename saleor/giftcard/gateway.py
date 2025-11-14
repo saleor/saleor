@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from ..checkout.models import Checkout
+from ..core.prices import quantize_price
 from ..order.models import Order
 from ..payment import TransactionEventType
 from ..payment.interface import (
@@ -78,7 +79,8 @@ def transaction_initialize_session_with_gift_card_payment_method(
     # Check whether gift card has enough funds to cover the amount.
     if transaction_session_data.action.amount > gift_card.current_balance_amount:
         transaction_session_result.response["message"] = (  # type: ignore[index]
-            "Gift card has insufficient amount to cover requested amount."
+            f"Gift card has insufficient amount ({quantize_price(gift_card.current_balance_amount, gift_card.currency)}) "
+            f"to cover requested amount ({quantize_price(transaction_session_data.action.amount, transaction_session_data.action.currency)})."
         )
         return transaction_session_result, None
 
