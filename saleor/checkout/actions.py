@@ -276,8 +276,6 @@ def _transaction_amounts_for_checkout_updated(
     user: Optional["User"],
     app: Optional["App"],
 ):
-    from .tasks import automatic_checkout_completion_task
-
     checkout = checkout_info.checkout
 
     previous_charge_status_is_fully_paid = previous_charge_status in [
@@ -321,14 +319,3 @@ def _transaction_amounts_for_checkout_updated(
             checkout_info=checkout_info,
             lines=lines,
         )
-
-    channel = checkout_info.channel
-    if (
-        channel.automatically_complete_fully_paid_checkouts
-        and
-        # ensure that checkout completion is triggered only once
-        (not previous_authorize_status_is_full and current_authorize_status_is_full)
-    ):
-        user_id = user.id if user else None
-        app_id = app.id if app else None
-        automatic_checkout_completion_task.delay(checkout.pk, user_id, app_id)
