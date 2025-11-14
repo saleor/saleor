@@ -3,6 +3,7 @@ from decimal import Decimal
 from prices import Money
 
 from ...shipping.interface import ShippingMethodData
+from ...webhook.transport.shipping_helpers import to_shipping_app_id
 from ..utils import (
     PRIVATE_META_APP_SHIPPING_ID,
     assign_built_in_shipping_to_checkout,
@@ -80,11 +81,11 @@ def test_remove_delivery_method_from_checkout_without_method(checkout_with_item)
 
 
 def test_assign_external_shipping_to_checkout_with_cc(
-    checkout_with_delivery_method_for_cc,
+    checkout_with_delivery_method_for_cc, app
 ):
     # given
-    app_shipping_id = "abcd"
     app_shipping_name = "Shipping"
+    app_shipping_id = to_shipping_app_id(app, "abcd")
     external_shipping_data = ShippingMethodData(
         name=app_shipping_name, id=app_shipping_id, price=Money(0, "USD")
     )
@@ -114,9 +115,9 @@ def test_assign_external_shipping_to_checkout_with_cc(
     assert checkout.shipping_address_id is None
 
 
-def test_assign_external_shipping_to_checkout_without_delivery_method(checkout):
+def test_assign_external_shipping_to_checkout_without_delivery_method(checkout, app):
     # given
-    app_shipping_id = "abcd"
+    app_shipping_id = to_shipping_app_id(app, "abcd")
     app_shipping_name = "Shipping"
     external_shipping_data = ShippingMethodData(
         name=app_shipping_name, id=app_shipping_id, price=Money(0, "USD")
@@ -142,10 +143,10 @@ def test_assign_external_shipping_to_checkout_without_delivery_method(checkout):
 
 
 def test_assign_external_shipping_to_checkout_with_built_in_shipping(
-    checkout_with_item, shipping_method
+    checkout_with_item, shipping_method, app
 ):
     # given
-    app_shipping_id = "abcd"
+    app_shipping_id = to_shipping_app_id(app, "abcd")
     app_shipping_name = "Shipping"
     external_shipping_data = ShippingMethodData(
         name=app_shipping_name, id=app_shipping_id, price=Money(0, "USD")
@@ -175,10 +176,10 @@ def test_assign_external_shipping_to_checkout_with_built_in_shipping(
 
 
 def test_assign_external_shipping_to_checkout_with_different_external_shipping(
-    checkout_with_item,
+    checkout_with_item, app
 ):
     # given
-    app_shipping_id = "abcd"
+    app_shipping_id = to_shipping_app_id(app, "abcd")
     app_shipping_name = "Shipping"
     external_shipping_data = ShippingMethodData(
         name=app_shipping_name, id=app_shipping_id, price=Money(0, "USD")

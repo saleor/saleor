@@ -31,6 +31,7 @@ from .....warehouse.models import Reservation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.transport.asynchronous.transport import send_webhook_request_async
+from .....webhook.transport.shipping_helpers import to_shipping_app_id
 from .....webhook.transport.utils import WebhookResponse
 from ....core.mutations import MISSING_NODE_ERROR_MESSAGE_PREFIX
 from ....core.utils import to_global_id_or_none
@@ -1396,10 +1397,11 @@ def test_checkout_lines_add_doesnt_delete_external_shipping_method_if_valid(
     checkout_with_item,
     permission_handle_checkouts,
     address,
+    app,
 ):
     # given
     external_method_data = ShippingMethodData(
-        id=graphene.Node.to_global_id("App", app_api_client.app.id),
+        id=to_shipping_app_id(app, "abcd"),
         price=Money(Decimal(10), checkout_with_item.currency),
         active=True,
     )
