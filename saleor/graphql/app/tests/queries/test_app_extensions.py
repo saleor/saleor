@@ -285,7 +285,7 @@ def test_app_extensions_with_name_filter(
     filter, expected_count, staff_api_client, app, permission_manage_products
 ):
     # given
-    app_extensions = AppExtension.objects.bulk_create(
+    AppExtension.objects.bulk_create(
         [
             AppExtension(
                 app=app,
@@ -315,7 +315,6 @@ def test_app_extensions_with_name_filter(
             ),
         ]
     )
-    app_extensions[0].permissions.add(permission_manage_products)
     variables = {"filter": filter}
 
     # when
