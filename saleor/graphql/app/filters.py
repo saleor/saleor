@@ -2,7 +2,7 @@ import django_filters
 
 from ...app import models
 from ...app.types import AppExtensionTarget, AppType
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ..core.filters import EnumFilter, ListObjectTypeFilter
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 
@@ -66,11 +66,11 @@ class AppExtensionFilter(django_filters.FilterSet):
     )
     mountName = django_filters.CharFilter(
         method=filter_app_extension_mount_name,
-        help_text="Plain-text mount name (case insensitive)",
+        help_text="Plain-text mount name (case insensitive)" + ADDED_IN_322,
     )
     targetName = django_filters.CharFilter(
         method=filter_app_extension_target_name,
-        help_text="Plain-text target name (case insensitive)",
+        help_text="Plain-text target name (case insensitive)" + ADDED_IN_322,
     )
 
     class Meta:
