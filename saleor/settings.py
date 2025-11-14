@@ -1051,6 +1051,11 @@ ORDER_RULES_LIMIT = os.environ.get("ORDER_RULES_LIMIT", 100)
 # The max number of gits assigned to promotion rule
 GIFTS_LIMIT_PER_RULE = os.environ.get("GIFTS_LIMIT_PER_RULE", 500)
 
+# Default automatic completion delay for checkout in minutes.
+DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY = int(
+    os.environ.get("AUTOMATIC_CHECKOUT_COMPLETION_DELAY", 30)
+)
+
 # Whether to enable the comparison of pre-save and post-save webhook payloads in
 # mutations, in order to limit sending webhooks where the payload has not changed as
 # a result of the mutation. Note: this works only for subscriptions webhooks; legacy

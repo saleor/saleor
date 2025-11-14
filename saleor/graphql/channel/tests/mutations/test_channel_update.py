@@ -4,6 +4,7 @@ from unittest.mock import call, patch
 
 import graphene
 import pytest
+from django.conf import settings
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -1291,6 +1292,7 @@ CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
                 checkoutSettings {
                     useLegacyErrorFlow
                     automaticallyCompleteFullyPaidCheckouts
+                    automaticCompletionDelay
                 }
             }
             errors{
@@ -1342,12 +1344,374 @@ def test_channel_update_channel_settings(
         channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
         == automatically_complete_fully_paid_checkouts
     )
+    default_delay = 30
+    assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == default_delay
+
     channel_USD.refresh_from_db()
     assert channel_USD.use_legacy_error_flow_for_checkout == use_legacy_error_flow
     assert (
         channel_USD.automatically_complete_fully_paid_checkouts
         == automatically_complete_fully_paid_checkouts
     )
+    assert channel_USD.automatic_completion_delay == default_delay
+
+
+def test_channel_update_set_automatic_checkout_completion(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticallyCompleteFullyPaidCheckouts": True,
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    delay = settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is True
+    )
+    assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == delay
+    assert channel_USD.automatically_complete_fully_paid_checkouts is True
+    assert channel_USD.automatic_completion_delay == delay
+
+
+def test_channel_update_set_automatic_checkout_completion_change_to_false(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_USD.automatic_completion_delay = 10
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.save(
+        update_fields=[
+            "automatic_completion_delay",
+            "automatically_complete_fully_paid_checkouts",
+        ]
+    )
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticallyCompleteFullyPaidCheckouts": False,
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert channel_USD.automatically_complete_fully_paid_checkouts is False
+    assert channel_USD.automatic_completion_delay is None
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is False
+    )
+    assert channel_data["checkoutSettings"]["automaticCompletionDelay"] is None
+
+
+def test_channel_update_set_automatic_checkout_completion_false(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": False,
+                },
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert channel_USD.automatically_complete_fully_paid_checkouts is False
+    assert channel_USD.automatic_completion_delay is None
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is False
+    )
+    assert channel_data["checkoutSettings"]["automaticCompletionDelay"] is None
+
+
+def test_channel_update_with_automatic_completion_delay_below_0(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": True,
+                    "delay": -1,
+                }
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["channelUpdate"]["errors"][0]
+    assert error["field"] == "delay"
+    assert error["code"] == ChannelErrorCode.INVALID.name
+
+
+def test_channel_update_with_new_automatic_completion_enabled_with_default_delay(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": True,
+                }
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is True
+    )
+    default_delay = settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY
+    assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == default_delay
+    assert channel_USD.automatically_complete_fully_paid_checkouts is True
+    assert channel_USD.automatic_completion_delay == default_delay
+
+
+def test_channel_update_with_new_automatic_completion_enabled_with_custom_delay(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    delay = 15
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": True,
+                    "delay": delay,
+                }
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is True
+    )
+    assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == delay
+    assert channel_USD.automatically_complete_fully_paid_checkouts is True
+    assert channel_USD.automatic_completion_delay == delay
+
+
+def test_channel_update_with_new_automatic_completion_disabled(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    # Set initial state
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 10
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": False,
+                }
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert channel_USD.automatically_complete_fully_paid_checkouts is False
+    assert channel_USD.automatic_completion_delay is None
+    assert (
+        channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
+        is False
+    )
+    assert channel_data["checkoutSettings"]["automaticCompletionDelay"] is None
+
+
+def test_channel_update_with_new_automatic_completion_disabled_with_delay(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": False,
+                    "delay": 10,
+                }
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["channelUpdate"]["errors"][0]
+    assert error["field"] == "delay"
+    assert error["code"] == ChannelErrorCode.INVALID.name
+
+
+def test_channel_update_with_both_old_and_new_automatic_completion_fields(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticallyCompleteFullyPaidCheckouts": True,
+                "automaticCompletion": {
+                    "enabled": True,
+                    "delay": 10,
+                },
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["channelUpdate"]["errors"][0]
+    assert error["field"] == "automaticallyCompleteFullyPaidCheckouts"
+    assert error["code"] == ChannelErrorCode.INVALID.name
 
 
 def test_channel_update_channel_settings_with_checkout_permission(
