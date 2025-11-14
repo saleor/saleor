@@ -11,6 +11,10 @@ from ..checkout.fetch import (
 )
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
+from ..giftcard.const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+)
 from ..order.events import (
     event_transaction_cancel_requested,
     event_transaction_charge_requested,
@@ -46,10 +50,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 ERROR_MSG = "Oops! Something went wrong."
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful."
-
-
-GIFT_CARD_PAYMENT_GATEWAY_ID = "saleor.io.gift-card-payment-gateway"
-GIFT_CARD_PAYMENT_GATEWAY_NAME = "Gift Card Payment Gateway"
 
 
 def raise_payment_error(fn: Callable) -> Callable:

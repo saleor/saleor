@@ -13,11 +13,13 @@ from ...channel import TransactionFlowStrategy
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_money, zero_taxed_money
+from ...giftcard.const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+)
 from ...graphql.discount.utils import convert_migrated_sale_predicate_to_catalogue_info
 from ...payment import TokenizedPaymentFlow
 from ...payment.gateway import (
-    GIFT_CARD_PAYMENT_GATEWAY_ID,
-    GIFT_CARD_PAYMENT_GATEWAY_NAME,
     get_payment_gateways,
 )
 from ...payment.interface import (
