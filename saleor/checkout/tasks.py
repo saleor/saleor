@@ -1,3 +1,4 @@
+import datetime
 import logging
 from decimal import Decimal
 
@@ -12,6 +13,8 @@ from django.utils import timezone
 from ..account.models import User
 from ..app.models import App
 from ..celeryconf import app
+from ..channel.models import Channel
+from ..checkout import CheckoutAuthorizeStatus
 from ..core.db.connection import allow_writer
 from ..payment.models import TransactionItem
 from ..plugins.manager import get_plugins_manager
@@ -21,6 +24,8 @@ from .models import Checkout, CheckoutLine
 from .utils import delete_checkouts
 
 task_logger: logging.Logger = get_task_logger(__name__)
+
+AUTOMATIC_COMPLETION_BATCH_SIZE = 50
 
 
 @app.task
@@ -123,6 +128,111 @@ def delete_expired_checkouts(
     return total_deleted, has_more
 
 
+@app.task
+def trigger_automatic_checkout_completion_task():
+    channels = Channel.objects.filter(automatically_complete_fully_paid_checkouts=True)
+    lookup = Q()
+    for channel in channels:
+        # calculate threshold time for automatic completion for given channel
+        threshold_time = timezone.now() - datetime.timedelta(
+            minutes=channel.automatic_completion_delay
+        )
+        lookup |= Q(
+            channel_id=channel.pk,
+            last_change__lt=threshold_time,
+        )
+
+    checkouts = (
+        Checkout.objects.filter(authorize_status=CheckoutAuthorizeStatus.FULL)
+        .filter(lookup)
+        .order_by("last_change")
+    )
+
+    if not checkouts:
+        task_logger.info("No checkouts found for automatic completion.")
+
+    for checkout in checkouts[:AUTOMATIC_COMPLETION_BATCH_SIZE]:
+        automatic_checkout_completion(checkout.pk)
+
+
+@allow_writer()
+def automatic_checkout_completion(checkout_pk):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    try:
+        checkout = Checkout.objects.get(pk=checkout_pk)
+    except Checkout.DoesNotExist:
+        return
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    if unavailable_variant_pks:
+        checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+        not_available_variants_ids = {
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in unavailable_variant_pks
+        }
+        task_logger.info(
+            "The automatic checkout completion not triggered, as the checkout %s "
+            "contains unavailable variants: %s.",
+            checkout_id,
+            ", ".join(not_available_variants_ids),
+            extra={
+                "checkout_id": checkout_id,
+                "variant_ids": not_available_variants_ids,
+            },
+        )
+        return
+
+    task_logger.info(
+        "Automatic checkout completion triggered for checkout: %s.",
+        checkout_id,
+        extra={"checkout_id": checkout_id},
+    )
+
+    failed_error_msg = "Automatic checkout completion failed for checkout: %s."
+    try:
+        complete_checkout(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            user=None,
+            app=None,
+            is_automatic_completion=True,
+        )
+    except ValidationError as error:
+        task_logger.warning(
+            failed_error_msg,
+            checkout_id,
+            extra={
+                "checkout_id": checkout_id,
+                "error": str(error),
+            },
+        )
+    except (IntegrityError, DatabaseError) as error:
+        if not Checkout.objects.filter(pk=checkout_pk).exists():
+            failed_error_msg = failed_error_msg + " The checkout no longer exists."
+
+        task_logger.warning(
+            failed_error_msg,
+            checkout_id,
+            extra={
+                "checkout_id": checkout_id,
+                "error": str(error),
+            },
+        )
+    else:
+        task_logger.info(
+            "Automatic checkout completion succeeded for checkout: %s.",
+            checkout_id,
+            extra={"checkout_id": checkout_id},
+        )
+
+
+# The task is deprecated, will be removed in 3.23
 @app.task(
     queue=settings.AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME,
     bind=True,
