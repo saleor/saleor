@@ -1,5 +1,7 @@
+from typing import cast
+
 import graphene
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, QuerySet
 
 from ....attribute import models as attribute_models
 from ....core.utils.update_mutation_manager import InstanceTracker
@@ -36,7 +38,8 @@ class PageUpdate(PageCreate):
 
     @classmethod
     def clean_attributes(cls, attributes: list[dict], page_type: models.PageType):
-        attributes_qs = page_type.page_attributes.prefetch_related("values")
+        attributes_qs = page_type.page_attributes
+        attributes_qs = cast(QuerySet, attributes_qs)
         cleaned_attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False, is_page_attributes=True
         )

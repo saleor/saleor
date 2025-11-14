@@ -4,13 +4,13 @@ from dataclasses import dataclass, field
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, prefetch_related_objects
 from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 from graphql.error import GraphQLError
 from text_unidecode import unidecode
 
-from ....attribute import AttributeEntityType, models
+from ....attribute import AttributeEntityType, AttributeInputType, models
 from ....attribute.error_codes import AttributeBulkUpdateErrorCode
 from ....attribute.lock_objects import (
     attribute_reference_page_types_qs_select_for_update,
@@ -632,7 +632,13 @@ class AttributeBulkUpdate(BaseMutation):
         else:
             return []
 
-        attributes = models.Attribute.objects.filter(lookup).prefetch_related("values")
+        attributes = list(models.Attribute.objects.filter(lookup))
+        attributes_with_choices = [
+            attr
+            for attr in attributes
+            if attr.input_type in AttributeInputType.TYPES_WITH_CHOICES
+        ]
+        prefetch_related_objects(attributes_with_choices, "values")
         return list(attributes)
 
     @classmethod
