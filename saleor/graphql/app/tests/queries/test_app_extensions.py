@@ -246,3 +246,85 @@ def test_app_extensions_with_filter(
     extensions_data = content["data"]["appExtensions"]["edges"]
 
     assert len(extensions_data) == expected_count
+
+
+@pytest.mark.parametrize(
+    ("filter", "expected_count"),
+    [
+        ({}, 4),
+        ({"targetName": "APP_PAGE"}, 1),
+        ({"targetName": "POPUP"}, 3),
+        ({"mountName": "PRODUCT_OVERVIEW_MORE_ACTIONS"}, 1),
+        ({"mountName": "PRODUCT_OVERVIEW_CREATE"}, 2),
+        ({"mountName": "PRODUCT_DETAILS_MORE_ACTIONS"}, 1),
+        (
+            {
+                "targetName": "APP_PAGE",
+                "mountName": "PRODUCT_OVERVIEW_MORE_ACTIONS",
+            },
+            1,
+        ),
+        (
+            {
+                "targetName": "POPUP",
+                "mountName": "PRODUCT_OVERVIEW_CREATE",
+            },
+            2,
+        ),
+        (
+            {
+                "targetName": "APP_PAGE",
+                "mountName": "PRODUCT_DETAILS_MORE_ACTIONS",
+            },
+            0,
+        ),
+    ],
+)
+def test_app_extensions_with_name_filter(
+    filter, expected_count, staff_api_client, app, permission_manage_products
+):
+    # given
+    AppExtension.objects.bulk_create(
+        [
+            AppExtension(
+                app=app,
+                label="Create product with App1",
+                url="https://www.example.com/app-product",
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+                target=AppExtensionTarget.APP_PAGE,
+            ),
+            AppExtension(
+                app=app,
+                label="Create product with App2",
+                url="https://www.example.com/app-product",
+                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                target=AppExtensionTarget.POPUP,
+            ),
+            AppExtension(
+                app=app,
+                label="Create product with App3",
+                url="https://www.example.com/app-product",
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+            ),
+            AppExtension(
+                app=app,
+                label="Create product with App4",
+                url="https://www.example.com/app-product",
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+            ),
+        ]
+    )
+    variables = {"filter": filter}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSIONS,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    extensions_data = content["data"]["appExtensions"]["edges"]
+
+    assert len(extensions_data) == expected_count
