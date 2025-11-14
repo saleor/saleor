@@ -272,6 +272,7 @@ def _clean_extension_options(extension, errors):
 def _validate_mounts_for_widget(mount: str):
     widget_available_mounts = [
         AppExtensionMount.ORDER_DETAILS_WIDGETS,
+        AppExtensionMount.ORDER_FULFILLMENTS_WIDGETS,
         AppExtensionMount.PRODUCT_DETAILS_WIDGETS,
         AppExtensionMount.VOUCHER_DETAILS_WIDGETS,
         AppExtensionMount.DRAFT_ORDER_DETAILS_WIDGETS,
