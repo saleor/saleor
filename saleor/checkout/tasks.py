@@ -6,6 +6,7 @@ import graphene
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Exists, F, OuterRef, Q, QuerySet, Subquery
 from django.db.utils import DatabaseError, IntegrityError
 from django.utils import timezone
@@ -150,12 +151,17 @@ def trigger_automatic_checkout_completion_task():
         channels = Channel.objects.filter(
             automatically_complete_fully_paid_checkouts=True
         )
+        if not channels:
+            task_logger.info(
+                "No channels configured for automatic checkout completion."
+            )
+            return
+
         lookup = Q()
         for channel in channels:
             # calculate threshold time for automatic completion for given channel
-            threshold_time = now - datetime.timedelta(
-                minutes=channel.automatic_completion_delay
-            )
+            delay_minutes = channel.automatic_completion_delay or 0
+            threshold_time = now - datetime.timedelta(minutes=float(delay_minutes))
             lookup |= Q(
                 channel_id=channel.pk,
                 last_change__lt=threshold_time,
@@ -183,8 +189,13 @@ def trigger_automatic_checkout_completion_task():
 def automatic_checkout_completion(checkout):
     checkout_pk = checkout.pk
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    checkout.last_automatic_completion_attempt = timezone.now()
-    checkout.save(update_fields=["last_automatic_completion_attempt"])
+
+    with transaction.atomic():
+        checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+        if not checkout:
+            return
+        checkout.last_automatic_completion_attempt = timezone.now()
+        checkout.save(update_fields=["last_automatic_completion_attempt"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
