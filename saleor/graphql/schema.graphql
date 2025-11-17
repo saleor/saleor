@@ -14854,7 +14854,7 @@ input AppExtensionFilterInput @doc(category: "Apps") {
   
   Added in Saleor 3.22.
   """
-  mountName: String
+  mountName: [String!]
 
   """
   Plain-text target name (case insensitive)
