@@ -5,8 +5,8 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.23.0 [Unreleased]
 
 ### Breaking changes
-- Fix missing denormalization of shipping methods metadata when creating an order - #18505 by @fowczarek
-
+- Fix missing denormalization of shipping methods metadata when creating an order.
+    Shipping method metadata is now copied to dedicated order fields (`shipping_method_metadata` and `shipping_method_private_metadata`) during checkout-to-order conversion. This ensures that order metadata remains consistent even if the original shipping method is modified or deleted. As a result, updates made to a shipping method's metadata after order creation will no longer be reflected in the order's `shippingMethod.metadata` field.
 ### GraphQL API
 
 ### Webhooks
