@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.23.0 [Unreleased]
 
 ### Breaking changes
+- Fix missing denormalization of shipping methods metadata when creating an order - #18505 by @fowczarek
 
 ### GraphQL API
 
