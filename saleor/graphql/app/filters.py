@@ -1,4 +1,5 @@
 import django_filters
+import graphene
 
 from ...app import models
 from ...app.types import AppExtensionTarget, AppType
@@ -33,7 +34,7 @@ def filter_app_extension_mount(qs, _, value):
 
 def filter_app_extension_mount_name(qs, _, value):
     if value:
-        qs = qs.filter(mount=value.lower())
+        qs = qs.filter(mount__in=[v.lower() for v in value])
     return qs
 
 
@@ -64,7 +65,8 @@ class AppExtensionFilter(django_filters.FilterSet):
         method=filter_app_extension_target,
         help_text=f"DEPRECATED: Use `targetName` instead. {DEPRECATED_IN_3X_INPUT}",
     )
-    mountName = django_filters.CharFilter(
+    mountName = ListObjectTypeFilter(
+        input_class=graphene.String,
         method=filter_app_extension_mount_name,
         help_text="Plain-text mount name (case insensitive)" + ADDED_IN_322,
     )
