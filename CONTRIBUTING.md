@@ -54,7 +54,7 @@ Clone this [repository](https://github.com/saleor/saleor) and setup database and
 
 ```shell
 cd .devcontainer
-docker compose up db dashboard redis mailpit
+docker compose up db dashboard cache mailpit
 ```
 
 If you didn't set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
