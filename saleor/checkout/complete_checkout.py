@@ -226,7 +226,7 @@ def _process_shipping_data_for_order(
     result.update(delivery_method_info.delivery_method_order_field)
     result.update(delivery_method_info.delivery_method_name)
 
-    if isinstance(shipping_method, ShippingMethodData) and shipping_method.is_external:
+    if isinstance(shipping_method, ShippingMethodData):
         result.update(
             {
                 "shipping_method_metadata": shipping_method.metadata,

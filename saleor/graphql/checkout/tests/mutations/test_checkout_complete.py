@@ -13,12 +13,14 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
+from .....core.taxes import zero_money
 from .....order import OrderStatus
 from .....order.models import Order
 from .....payment.model_helpers import get_subtotal
 from .....plugins import PLUGIN_IDENTIFIER_PREFIX
 from .....plugins.manager import get_plugins_manager
 from .....plugins.tests.sample_plugins import PluginSample
+from .....tests import race_condition
 from .....webhook.event_types import WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -45,6 +47,10 @@ MUTATION_CHECKOUT_COMPLETE = """
                     }
                     ... on ShippingMethod {
                         id
+                        metadata {
+                            key
+                            value
+                        }
                     }
                 }
                 total {
@@ -661,3 +667,77 @@ def test_checkout_complete_existing_user_address_save_address_options_off(
 
     assert order.draft_save_billing_address is None
     assert order.draft_save_shipping_address is None
+
+
+@pytest.mark.integration
+def test_checkout_complete_builtin_shipping_method_metadata_denormalization(
+    user_api_client,
+    checkout_with_item_total_0,
+    shipping_method_price_0,
+    address,
+):
+    # given
+    checkout = checkout_with_item_total_0
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method_price_0
+    checkout.save()
+
+    expected_metadata_key = "AnyKey"
+    expected_metadata_value = "AnyValue"
+    expected_shipping_metadata = {
+        expected_metadata_key: expected_metadata_value,
+    }
+    shipping_method_price_0.metadata = expected_shipping_metadata
+    shipping_method_price_0.save()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    def clear_shipping_metadata(*args, **kwargs):
+        # Clear shipping method metadata to ensure data is denormalized properly
+        shipping_method_price_0.metadata = {}
+        shipping_method_price_0.save()
+
+    with race_condition.RunAfter(
+        "saleor.graphql.checkout.mutations.checkout_complete.complete_checkout",
+        clear_shipping_metadata,
+    ):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
+    assert (
+        data["order"]["deliveryMethod"]["metadata"][0]["key"] == expected_metadata_key
+    )
+    assert (
+        data["order"]["deliveryMethod"]["metadata"][0]["value"]
+        == expected_metadata_value
+    )
+
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+    assert order.total.gross == zero_money(order.currency)
+    assert order.shipping_method.pk == shipping_method_price_0.pk
+
+    # Ensure shipping metadata was denormalized properly
+    assert order.shipping_method_metadata == expected_shipping_metadata
+
+    # Ensure shipping method metadata in DB was cleared after denormalization
+    shipping_method_price_0.refresh_from_db()
+    assert shipping_method_price_0.metadata == {}
+
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
