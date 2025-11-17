@@ -7,7 +7,8 @@
     8000,
     "dashboard:9000",
     "mailpit:8025",
-    "db:5432"
+    "db:5432",
+    "cache:6379"
   ],
   "portsAttributes": {
     "8000": {
