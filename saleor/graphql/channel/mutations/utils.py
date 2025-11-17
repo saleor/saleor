@@ -170,12 +170,25 @@ def clean_automatic_completion(checkout_settings: dict, cleaned_input: dict):
             cleaned_input["automatic_completion_delay"] = None
         else:
             # When enabled (or not explicitly set), validate and set delay
+            oldest_allowed_checkout = (
+                settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED.total_seconds()
+                // 60
+            )
             if delay is not None:
                 if delay < 0:
                     raise ValidationError(
                         {
                             "delay": ValidationError(
                                 "The automatic completion delay must be greater than or equal to 0.",
+                                code=ChannelErrorCode.INVALID.value,
+                            )
+                        }
+                    )
+                if delay >= oldest_allowed_checkout:
+                    raise ValidationError(
+                        {
+                            "delay": ValidationError(
+                                f"The automatic completion delay must be less than {oldest_allowed_checkout}, that is the threshold for the oldest modified checkout eligible for automatic completion.",
                                 code=ChannelErrorCode.INVALID.value,
                             )
                         }

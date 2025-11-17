@@ -76,7 +76,9 @@ class CheckoutAutoCompleteInput(BaseInputObjectType):
             "The time in minutes after which the fully paid checkout will be "
             "automatically completed. Default is "
             f"{settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY}. "
-            "Set to 0 for immediate completion."
+            "Set to 0 for immediate completion. "
+            "Should be less than the threshold for the oldest modified checkout "
+            "eligible for automatic completion."
         ),
     )
 

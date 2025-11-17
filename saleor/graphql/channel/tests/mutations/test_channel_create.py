@@ -1086,6 +1086,49 @@ def test_channel_create_with_automatic_completion_delay_value_below_0(
     assert error["code"] == ChannelErrorCode.INVALID.name
 
 
+def test_channel_create_with_delay_exceeding_threshold(
+    permission_manage_channels,
+    staff_api_client,
+    settings,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    oldest_allowed_checkout = (
+        settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED.total_seconds() // 60
+    )
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": True,
+                    "delay": oldest_allowed_checkout + 1,  # Exceeds threshold
+                },
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "delay"
+    assert data["errors"][0]["code"] == ChannelErrorCode.INVALID.name
+
+
 def test_channel_create_with_new_automatic_completion_enabled_with_default_delay(
     permission_manage_channels,
     staff_api_client,

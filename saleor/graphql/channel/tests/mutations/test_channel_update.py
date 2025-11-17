@@ -1514,6 +1514,44 @@ def test_channel_update_with_automatic_completion_delay_below_0(
     assert error["code"] == ChannelErrorCode.INVALID.name
 
 
+def test_channel_update_with_delay_exceeding_threshold(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    settings,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    oldest_allowed_checkout = (
+        settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED.total_seconds() // 60
+    )
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": True,
+                    "delay": oldest_allowed_checkout + 1,  # Exceeds threshold
+                },
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["channelUpdate"]["errors"]
+    assert errors
+    assert errors[0]["field"] == "delay"
+    assert errors[0]["code"] == ChannelErrorCode.INVALID.name
+
+
 def test_channel_update_with_new_automatic_completion_enabled_with_default_delay(
     permission_manage_channels,
     staff_api_client,
