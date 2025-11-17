@@ -2,12 +2,12 @@ name: Tests & Linters
 
 on:
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types: [opened, synchronize, reopened]
     paths:
       - "**.py"
       - Dockerfile
       - "saleor/**"
-      - "tests-and-linters.yml"
+      - .github/workflows/tests-and-linters.yml
       - pyproject.toml
       - poetry.lock
   push:
@@ -18,7 +18,7 @@ on:
       - "**.py"
       - Dockerfile
       - "saleor/**"
-      - "tests-and-linters.yml"
+      - .github/workflows/tests-and-linters.yml
       - pyproject.toml
       - poetry.lock
 
