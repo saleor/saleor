@@ -132,6 +132,9 @@ def clean_input_checkout_settings(
             if automatically_complete is True
             else None
         )
+        cleaned_input["automatic_completion_cut_off_date"] = (
+            timezone.now() if automatically_complete else None
+        )
 
 
 def clean_automatic_completion(checkout_settings: dict, cleaned_input: dict):

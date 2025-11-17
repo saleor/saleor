@@ -5453,6 +5453,13 @@ type CheckoutSettings {
   Added in Saleor 3.22.
   """
   automaticCompletionDelay: Minute
+
+  """
+  The date time defines the earliest checkout creation date on which fully paid checkouts can begin to be automatically completed. 
+  
+  Added in Saleor 3.22.
+  """
+  automaticCompletionCutOffDate: DateTime
 }
 
 """Represents the channel-specific payment settings."""

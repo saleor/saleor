@@ -5,6 +5,7 @@ from unittest.mock import call, patch
 import graphene
 import pytest
 from django.conf import settings
+from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -1293,6 +1294,7 @@ CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
                     useLegacyErrorFlow
                     automaticallyCompleteFullyPaidCheckouts
                     automaticCompletionDelay
+                    automaticCompletionCutOffDate
                 }
             }
             errors{
@@ -1307,6 +1309,7 @@ CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
 """
 
 
+@freeze_time("2022-05-12 12:00:00")
 def test_channel_update_channel_settings(
     permission_manage_channels, staff_api_client, channel_USD
 ):
@@ -1346,6 +1349,10 @@ def test_channel_update_channel_settings(
     )
     default_delay = 30
     assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == default_delay
+    assert (
+        channel_data["checkoutSettings"]["automaticCompletionCutOffDate"]
+        == timezone.now().isoformat()
+    )
 
     channel_USD.refresh_from_db()
     assert channel_USD.use_legacy_error_flow_for_checkout == use_legacy_error_flow
@@ -1354,8 +1361,10 @@ def test_channel_update_channel_settings(
         == automatically_complete_fully_paid_checkouts
     )
     assert channel_USD.automatic_completion_delay == default_delay
+    assert channel_USD.automatic_completion_cut_off_date == timezone.now()
 
 
+@freeze_time("2022-05-12 12:00:00")
 def test_channel_update_set_automatic_checkout_completion(
     permission_manage_channels,
     staff_api_client,
@@ -1391,8 +1400,13 @@ def test_channel_update_set_automatic_checkout_completion(
         is True
     )
     assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == delay
+    assert (
+        channel_data["checkoutSettings"]["automaticCompletionCutOffDate"]
+        == timezone.now().isoformat()
+    )
     assert channel_USD.automatically_complete_fully_paid_checkouts is True
     assert channel_USD.automatic_completion_delay == delay
+    assert channel_USD.automatic_completion_cut_off_date == timezone.now()
 
 
 def test_channel_update_set_automatic_checkout_completion_change_to_false(
@@ -1434,11 +1448,13 @@ def test_channel_update_set_automatic_checkout_completion_change_to_false(
     channel_USD.refresh_from_db()
     assert channel_USD.automatically_complete_fully_paid_checkouts is False
     assert channel_USD.automatic_completion_delay is None
+    assert channel_USD.automatic_completion_cut_off_date is None
     assert (
         channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
         is False
     )
     assert channel_data["checkoutSettings"]["automaticCompletionDelay"] is None
+    assert channel_data["checkoutSettings"]["automaticCompletionCutOffDate"] is None
 
 
 def test_channel_update_set_automatic_checkout_completion_false(
@@ -1474,11 +1490,13 @@ def test_channel_update_set_automatic_checkout_completion_false(
     channel_USD.refresh_from_db()
     assert channel_USD.automatically_complete_fully_paid_checkouts is False
     assert channel_USD.automatic_completion_delay is None
+    assert channel_USD.automatic_completion_cut_off_date is None
     assert (
         channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
         is False
     )
     assert channel_data["checkoutSettings"]["automaticCompletionDelay"] is None
+    assert channel_data["checkoutSettings"]["automaticCompletionCutOffDate"] is None
 
 
 def test_channel_update_with_automatic_completion_delay_below_0(
@@ -1552,6 +1570,7 @@ def test_channel_update_with_delay_exceeding_threshold(
     assert errors[0]["code"] == ChannelErrorCode.INVALID.name
 
 
+@freeze_time("2024-01-01 12:00:00")
 def test_channel_update_with_new_automatic_completion_enabled_with_default_delay(
     permission_manage_channels,
     staff_api_client,
@@ -1591,9 +1610,10 @@ def test_channel_update_with_new_automatic_completion_enabled_with_default_delay
     assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == default_delay
     assert channel_USD.automatically_complete_fully_paid_checkouts is True
     assert channel_USD.automatic_completion_delay == default_delay
+    assert channel_USD.automatic_completion_cut_off_date == timezone.now()
 
 
-def test_channel_update_with_new_automatic_completion_enabled_with_custom_delay(
+def test_channel_update_with_new_automatic_completion_enabled_with_custom_delay_and_cut_off(
     permission_manage_channels,
     staff_api_client,
     channel_USD,
@@ -1601,6 +1621,7 @@ def test_channel_update_with_new_automatic_completion_enabled_with_custom_delay(
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     delay = 15
+    cut_off = timezone.now() + datetime.timedelta(days=5)
     variables = {
         "id": channel_id,
         "input": {
@@ -1608,6 +1629,7 @@ def test_channel_update_with_new_automatic_completion_enabled_with_custom_delay(
                 "automaticCompletion": {
                     "enabled": True,
                     "delay": delay,
+                    "cutOffDate": cut_off.isoformat(),
                 }
             },
         },
@@ -1631,8 +1653,47 @@ def test_channel_update_with_new_automatic_completion_enabled_with_custom_delay(
         is True
     )
     assert channel_data["checkoutSettings"]["automaticCompletionDelay"] == delay
+    assert (
+        channel_data["checkoutSettings"]["automaticCompletionCutOffDate"]
+        == cut_off.isoformat()
+    )
     assert channel_USD.automatically_complete_fully_paid_checkouts is True
     assert channel_USD.automatic_completion_delay == delay
+    assert channel_USD.automatic_completion_cut_off_date == cut_off
+
+
+def test_channel_update_mutation_with_invalid_cutoff_date(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    invalid_cut_off_date = timezone.now() - datetime.timedelta(days=40)
+    variables = {
+        "id": graphene.Node.to_global_id("Channel", channel_USD.id),
+        "input": {
+            "checkoutSettings": {
+                "automaticCompletion": {
+                    "enabled": True,
+                    "cutOffDate": invalid_cut_off_date.isoformat(),
+                }
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "cutOffDate"
+    assert data["errors"][0]["code"] == ChannelErrorCode.INVALID.name
 
 
 def test_channel_update_with_new_automatic_completion_disabled(
@@ -1678,11 +1739,13 @@ def test_channel_update_with_new_automatic_completion_disabled(
     channel_USD.refresh_from_db()
     assert channel_USD.automatically_complete_fully_paid_checkouts is False
     assert channel_USD.automatic_completion_delay is None
+    assert channel_USD.automatic_completion_cut_off_date is None
     assert (
         channel_data["checkoutSettings"]["automaticallyCompleteFullyPaidCheckouts"]
         is False
     )
     assert channel_data["checkoutSettings"]["automaticCompletionDelay"] is None
+    assert channel_data["checkoutSettings"]["automaticCompletionCutOffDate"] is None
 
 
 def test_channel_update_with_new_automatic_completion_disabled_with_delay(
