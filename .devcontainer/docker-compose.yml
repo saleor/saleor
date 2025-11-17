@@ -1,5 +1,3 @@
-version: "3.4"
-
 services:
   saleor:
     image: saleor
@@ -12,7 +10,7 @@ services:
       - backend.env
     depends_on:
       - db
-      - redis
+      - cache
     volumes:
       - ..:/app
 
@@ -25,7 +23,7 @@ services:
   db:
     image: library/postgres:15-alpine
     ports:
-     - 5432:5432
+      - 5432:5432
     restart: unless-stopped
     volumes:
       - saleor-db:/var/lib/postgresql/data
@@ -33,11 +31,11 @@ services:
       - POSTGRES_USER=saleor
       - POSTGRES_PASSWORD=saleor
 
-  redis:
-    image: library/redis:7.0-alpine
+  cache:
+    image: valkey/valkey:8.1-alpine
     restart: unless-stopped
     volumes:
-      - saleor-redis:/data
+      - saleor-cache:/data
     ports:
       - 6379:6379
 
@@ -51,5 +49,5 @@ services:
 volumes:
   saleor-db:
     driver: local
-  saleor-redis:
+  saleor-cache:
     driver: local
