@@ -47,7 +47,7 @@ Clone this [repository](https://github.com/saleor/saleor) and setup database and
 
 ```shell
 cd .devcontainer
-docker compose up db dashboard redis mailpit
+docker compose up db dashboard cache mailpit
 ```
 
 To create virtualenv and install dependencies run in root of the repository:
