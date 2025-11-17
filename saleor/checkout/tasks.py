@@ -6,7 +6,7 @@ import graphene
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef, Q, QuerySet, Subquery
+from django.db.models import Exists, F, OuterRef, Q, QuerySet, Subquery
 from django.db.utils import DatabaseError, IntegrityError
 from django.utils import timezone
 
@@ -25,7 +25,9 @@ from .utils import delete_checkouts
 
 task_logger: logging.Logger = get_task_logger(__name__)
 
-AUTOMATIC_COMPLETION_BATCH_SIZE = 50
+# Checkout complete might take even 3 seconds. The task is scheduled to run
+# every 1 minute, so to avoid overlapping executions, the limit is set to 20.
+AUTOMATIC_COMPLETION_BATCH_SIZE = 20
 
 
 @app.task
@@ -130,38 +132,59 @@ def delete_expired_checkouts(
 
 @app.task
 def trigger_automatic_checkout_completion_task():
-    channels = Channel.objects.filter(automatically_complete_fully_paid_checkouts=True)
-    lookup = Q()
-    for channel in channels:
-        # calculate threshold time for automatic completion for given channel
-        threshold_time = timezone.now() - datetime.timedelta(
-            minutes=channel.automatic_completion_delay
-        )
-        lookup |= Q(
-            channel_id=channel.pk,
-            last_change__lt=threshold_time,
-        )
+    """Trigger automatic checkout completion for eligible checkouts.
 
-    checkouts = (
-        Checkout.objects.filter(authorize_status=CheckoutAuthorizeStatus.FULL)
-        .filter(lookup)
-        .order_by("last_change")
+    This task:
+    - Finds checkouts that are fully authorized and ready for completion
+    - Tracks the last completion attempt time to avoid repeated retries
+    - Sorts by last attempt time to prioritize checkouts that haven't been tried recently
+    - Includes a safety check to skip very old checkouts (older than 30 days)
+    """
+    now = timezone.now()
+    # Don't retry checkouts older than defined threshold
+    oldest_allowed_checkout = (
+        now - settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED
     )
 
-    if not checkouts:
-        task_logger.info("No checkouts found for automatic completion.")
+    with allow_writer():
+        channels = Channel.objects.filter(
+            automatically_complete_fully_paid_checkouts=True
+        )
+        lookup = Q()
+        for channel in channels:
+            # calculate threshold time for automatic completion for given channel
+            threshold_time = now - datetime.timedelta(
+                minutes=channel.automatic_completion_delay
+            )
+            lookup |= Q(
+                channel_id=channel.pk,
+                last_change__lt=threshold_time,
+            )
 
-    for checkout in checkouts[:AUTOMATIC_COMPLETION_BATCH_SIZE]:
-        automatic_checkout_completion(checkout.pk)
+        checkouts = (
+            Checkout.objects.filter(authorize_status=CheckoutAuthorizeStatus.FULL)
+            .filter(last_change__gte=oldest_allowed_checkout)
+            .filter(lookup)
+            # Sort by last attempt time (nulls first - never attempted), then by last_change
+            .order_by(
+                F("last_automatic_completion_attempt").asc(nulls_first=True),
+                "last_change",
+            )
+        )
+
+        if not checkouts:
+            task_logger.info("No checkouts found for automatic completion.")
+
+        for checkout in checkouts[:AUTOMATIC_COMPLETION_BATCH_SIZE]:
+            automatic_checkout_completion(checkout)
 
 
 @allow_writer()
-def automatic_checkout_completion(checkout_pk):
+def automatic_checkout_completion(checkout):
+    checkout_pk = checkout.pk
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    try:
-        checkout = Checkout.objects.get(pk=checkout_pk)
-    except Checkout.DoesNotExist:
-        return
+    checkout.last_automatic_completion_attempt = timezone.now()
+    checkout.save(update_fields=["last_automatic_completion_attempt"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines, unavailable_variant_pks = fetch_checkout_lines(checkout)

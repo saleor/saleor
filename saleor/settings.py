@@ -954,6 +954,13 @@ CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = datetime.timedelta(
 TRANSACTION_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
     "TRANSACTION_BATCH_FOR_RELEASING_FUNDS", 60
 )
+# Oldest checkout modification for automatic completion. Older checkouts will not be
+# processed.
+AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED = datetime.timedelta(
+    seconds=parse(
+        os.environ.get("AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED", "30 days")
+    )
+)
 
 
 # The maximum SearchVector expression count allowed per index SQL statement
