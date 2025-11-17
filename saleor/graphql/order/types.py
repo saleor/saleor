@@ -2619,7 +2619,11 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 if not listing:
                     return None
                 return convert_to_shipping_method_data(
-                    shipping_method, listing, tax_class
+                    shipping_method,
+                    listing,
+                    tax_class,
+                    order.shipping_method_metadata,
+                    order.shipping_method_private_metadata,
                 )
 
             return Promise.all([listing, tax_class]).then(calculate_price)

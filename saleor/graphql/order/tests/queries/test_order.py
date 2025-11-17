@@ -351,9 +351,8 @@ def test_order_query(
     private_value = "abc123"
     public_value = "123abc"
     order.checkout_token = checkout.token
-    order.shipping_method.store_value_in_metadata({"test": public_value})
-    order.shipping_method.store_value_in_private_metadata({"test": private_value})
-    order.shipping_method.save()
+    order.shipping_method_metadata = {"test": public_value}
+    order.shipping_method_private_metadata = {"test": private_value}
     order.save()
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)

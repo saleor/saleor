@@ -35,6 +35,8 @@ def convert_to_shipping_method_data(
     shipping_method: "ShippingMethod",
     listing: "ShippingMethodChannelListing",
     tax_class: Optional["TaxClass"] = None,
+    metadata: dict | None = None,
+    private_metadata: dict | None = None,
 ) -> "ShippingMethodData":
     price = listing.price
     minimum_order_price = listing.minimum_order_price
@@ -55,8 +57,8 @@ def convert_to_shipping_method_data(
         maximum_order_weight=shipping_method.maximum_order_weight,
         maximum_delivery_days=shipping_method.maximum_delivery_days,
         minimum_delivery_days=shipping_method.minimum_delivery_days,
-        metadata=shipping_method.metadata,
-        private_metadata=shipping_method.private_metadata,
+        metadata=metadata or shipping_method.metadata,
+        private_metadata=private_metadata or shipping_method.private_metadata,
         price=price,
         tax_class=tax_class,
         minimum_order_price=minimum_order_price,
