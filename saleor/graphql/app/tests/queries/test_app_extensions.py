@@ -254,29 +254,57 @@ def test_app_extensions_with_filter(
         ({}, 4),
         ({"targetName": "APP_PAGE"}, 1),
         ({"targetName": "POPUP"}, 3),
-        ({"mountName": "PRODUCT_OVERVIEW_MORE_ACTIONS"}, 1),
-        ({"mountName": "PRODUCT_OVERVIEW_CREATE"}, 2),
-        ({"mountName": "PRODUCT_DETAILS_MORE_ACTIONS"}, 1),
+        ({"mountName": ["PRODUCT_OVERVIEW_MORE_ACTIONS"]}, 1),
+        ({"mountName": ["PRODUCT_OVERVIEW_CREATE"]}, 2),
+        ({"mountName": ["PRODUCT_DETAILS_MORE_ACTIONS"]}, 1),
+        (
+            {
+                "mountName": [
+                    "PRODUCT_OVERVIEW_CREATE",
+                    "PRODUCT_OVERVIEW_MORE_ACTIONS",
+                ]
+            },
+            3,
+        ),
+        (
+            {
+                "mountName": [
+                    "PRODUCT_OVERVIEW_CREATE",
+                    "PRODUCT_DETAILS_MORE_ACTIONS",
+                ]
+            },
+            3,
+        ),
         (
             {
                 "targetName": "APP_PAGE",
-                "mountName": "PRODUCT_OVERVIEW_MORE_ACTIONS",
+                "mountName": ["PRODUCT_OVERVIEW_MORE_ACTIONS"],
             },
             1,
         ),
         (
             {
                 "targetName": "POPUP",
-                "mountName": "PRODUCT_OVERVIEW_CREATE",
+                "mountName": ["PRODUCT_OVERVIEW_CREATE"],
             },
             2,
         ),
         (
             {
                 "targetName": "APP_PAGE",
-                "mountName": "PRODUCT_DETAILS_MORE_ACTIONS",
+                "mountName": ["PRODUCT_DETAILS_MORE_ACTIONS"],
             },
             0,
+        ),
+        (
+            {
+                "targetName": "POPUP",
+                "mountName": [
+                    "PRODUCT_OVERVIEW_CREATE",
+                    "PRODUCT_DETAILS_MORE_ACTIONS",
+                ],
+            },
+            3,
         ),
     ],
 )
