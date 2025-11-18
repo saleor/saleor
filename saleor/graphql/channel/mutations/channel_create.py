@@ -76,7 +76,9 @@ class CheckoutAutoCompleteInput(BaseInputObjectType):
             "The time in minutes after which the fully paid checkout will be "
             "automatically completed. Default is "
             f"{settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY}. "
-            "Set to 0 for immediate completion."
+            "Set to 0 for immediate completion. "
+            "Should be less than the threshold for the oldest modified checkout "
+            "eligible for automatic completion."
         ),
     )
 
@@ -104,7 +106,7 @@ class CheckoutSettingsInput(BaseInputObjectType):
             "completed. This setting applies only to checkouts where payment "
             "was processed through transactions."
             "When enabled, the checkout will be automatically completed once the "
-            "checkout `charge_status` reaches `FULL`. This occurs when the total sum "
+            "checkout `authorize_status` reaches `FULL`. This occurs when the total sum "
             "of charged and authorized transaction amounts equals or exceeds the "
             "checkout's total amount."
             + ADDED_IN_320
