@@ -3895,7 +3895,7 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
     )
     assert (
         cancel_request_transaction_event.message
-        == f"Gift card (code ending with: {gift_card_created_by_staff.display_code}) has been authorized as payment method in a different checkout."
+        == f"Gift card (code ending with: {gift_card_created_by_staff.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again."
     )
     assert (
         another_checkout_authorize_transaction.events.filter(
@@ -3956,3 +3956,98 @@ def test_for_order_with_gift_card_payment_gateway(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         expected_message=f"Cannot initialize transaction for payment gateway: {GIFT_CARD_PAYMENT_GATEWAY_ID} and object type other than Checkout.",
     )
+
+
+@pytest.mark.parametrize(
+    ("first_call_amount", "second_call_amount"),
+    [
+        (1, 1),
+        (1, 2),
+        (2, 1),
+    ],
+)
+@mock.patch("saleor.giftcard.gateway.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_initialize_transaction_using_the_same_gift_card(
+    mocked_uuid4,
+    first_call_amount,
+    second_call_amount,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    variables = {
+        "action": None,
+        "amount": first_call_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(first_call_amount),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=Decimal(first_call_amount),
+        gift_card=gift_card_created_by_staff,
+        expected_message=f"Gift card (ending: {gift_card_created_by_staff.display_code}).",
+    )
+    assert checkout.payment_transactions.all().count() == 1
+    assert checkout.payment_transactions.first().events.all().count() == 2
+
+    variables["amount"] = second_call_amount
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(second_call_amount),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=Decimal(second_call_amount),
+        gift_card=gift_card_created_by_staff,
+        expected_message=f"Gift card (ending: {gift_card_created_by_staff.display_code}).",
+    )
+
+    assert checkout.payment_transactions.all().count() == 2
+
+    cancelled_transaction = checkout.payment_transactions.first()
+    assert cancelled_transaction.authorized_value == Decimal(0)
+    assert cancelled_transaction.charged_value == Decimal(0)
+    assert cancelled_transaction.events.count() == 4
+    cancelled_transaction.events.get(type=TransactionEventType.AUTHORIZATION_REQUEST)
+    cancelled_transaction.events.get(type=TransactionEventType.AUTHORIZATION_SUCCESS)
+    cancelled_transaction.events.get(type=TransactionEventType.CANCEL_REQUEST)
+    assert (
+        cancelled_transaction.events.get(
+            type=TransactionEventType.CANCEL_REQUEST
+        ).message
+        == f"Gift card (code ending with: {gift_card_created_by_staff.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again."
+    )
+    cancelled_transaction.events.get(type=TransactionEventType.CANCEL_SUCCESS)
+
+    latest_transaction = checkout.payment_transactions.last()
+    assert latest_transaction.authorized_value == Decimal(second_call_amount)
+    assert latest_transaction.charged_value == Decimal(0)
+    assert latest_transaction.events.count() == 2
+    latest_transaction.events.get(type=TransactionEventType.AUTHORIZATION_REQUEST)
+    latest_transaction.events.get(type=TransactionEventType.AUTHORIZATION_SUCCESS)
