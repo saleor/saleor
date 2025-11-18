@@ -2,80 +2,11 @@
 
 from django.db import migrations
 
-from saleor.app.types import AppExtensionTarget
-
-BATCH_SIZE = 100
-
-
-def queryset_in_batches(queryset):
-    """Slice a queryset into batches.
-
-    Input queryset should be sorted be pk.
-    """
-    start_pk = 0
-
-    while True:
-        qs = queryset.order_by("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
-
-        if not pks:
-            break
-
-        yield pks
-
-        start_pk = pks[-1]
-
-
-def migrate_target_enum_upper_string(apps, schema_editor):
-    AppExtension = apps.get_model("app", "AppExtension")
-
-    qs = AppExtension.objects.all().only("target")
-
-    for chunk in queryset_in_batches(qs):
-        app_extensions = list(chunk)
-
-        for extension in app_extensions:
-            extension.target = extension.target.upper()
-
-        AppExtension.objects.bulk_update(app_extensions, fields=["target"])
-
-
-def migrate_mount_enum_upper_string(apps, schema_editor):
-    AppExtension = apps.get_model("app", "AppExtension")
-
-    qs = AppExtension.objects.all().only("mount")
-
-    for chunk in queryset_in_batches(qs):
-        app_extensions = list(chunk)
-
-        for extension in app_extensions:
-            extension.mount = extension.mount.upper()
-
-        AppExtension.objects.bulk_update(app_extensions, fields=["mount"])
-
-
-def fill_settings_json(apps, schema_editor):
-    AppExtension = apps.get_model("app", "AppExtension")
-
-    qs = AppExtension.objects.exclude(settings__exact={}).only(
-        "target", "http_target_method", "settings"
-    )
-
-    for chunk in queryset_in_batches(qs):
-        app_extensions = list(chunk)
-
-        for extension in app_extensions:
-            if extension.target == AppExtensionTarget.WIDGET:
-                extension.settings = {
-                    "widgetTarget": {"method": extension.http_target_method}
-                }
-
-            if extension.target == AppExtensionTarget.NEW_TAB:
-                extension.settings = {
-                    "newTabTarget": {"method": extension.http_target_method}
-                }
-
-        AppExtension.objects.bulk_update(app_extensions, fields=["settings"])
+from saleor.app.migration_utils import (
+    fill_settings_json,
+    migrate_mount_enum_upper_string,
+    migrate_target_enum_upper_string,
+)
 
 
 class Migration(migrations.Migration):
