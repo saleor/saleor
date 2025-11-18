@@ -1203,6 +1203,8 @@ def remove_delivery_method_from_checkout(checkout: Checkout) -> list[str]:
     fields_to_update += remove_built_in_shipping_from_checkout(checkout)
     fields_to_update += remove_external_shipping_from_checkout(checkout)
     if fields_to_update:
+        checkout.shipping_methods_stale_at = None
+        fields_to_update.append("shipping_methods_stale_at")
         # If there was any shipping method assigned, we need to
         # clear assigned delivery method as well
         delete_assigned_checkout_delivery_method(checkout)
@@ -1229,6 +1231,22 @@ def delete_assigned_checkout_delivery_method(checkout: Checkout):
     with allow_writer():
         CheckoutDelivery.objects.filter(checkout_id=checkout.pk).delete()
         checkout.assigned_delivery_id = None
+
+
+def _update_checkout_with_assigned_delivery_method(
+    checkout: Checkout,
+    shipping_data: ShippingMethodData | None,
+    fields_to_update: list[str],
+):
+    if shipping_data:
+        checkout.shipping_methods_stale_at = (
+            timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        )
+    else:
+        checkout.shipping_methods_stale_at = None
+
+    fields_to_update.append("shipping_methods_stale_at")
+    _update_assigned_checkout_delivery_method(checkout, shipping_data)
 
 
 def _update_assigned_checkout_delivery_method(
@@ -1275,8 +1293,6 @@ def _update_assigned_checkout_delivery_method(
     }
     assigned_delivery, created = CheckoutDelivery.objects.update_or_create(
         checkout=checkout,
-        external_shipping_method_id=external_shipping_method_id,
-        built_in_shipping_method_id=built_in_shipping_method_id,
         defaults=shipping_data_dict,
         create_defaults=shipping_data_dict,
     )
@@ -1308,8 +1324,8 @@ def assign_external_shipping_to_checkout(
 
     if fields_to_update:
         # Update assigned delivery method data when something has changed
-        _update_assigned_checkout_delivery_method(
-            checkout, external_shipping_method_data
+        _update_checkout_with_assigned_delivery_method(
+            checkout, external_shipping_method_data, fields_to_update
         )
 
     return fields_to_update
@@ -1334,7 +1350,9 @@ def assign_built_in_shipping_to_checkout(
 
     if fields_to_update:
         # Update assigned delivery method data when something has changed
-        _update_assigned_checkout_delivery_method(checkout, shipping_method_data)
+        _update_checkout_with_assigned_delivery_method(
+            checkout, shipping_method_data, fields_to_update
+        )
     return fields_to_update
 
 
@@ -1354,7 +1372,9 @@ def assign_collection_point_to_checkout(
         fields_to_update.extend(["shipping_address_id", "save_shipping_address"])
 
     if fields_to_update:
-        # Update assigned delivery method data when something has changed
+        checkout.shipping_methods_stale_at = None
+        fields_to_update.append("shipping_methods_stale_at")
+
         delete_assigned_checkout_delivery_method(checkout)
     return fields_to_update
 

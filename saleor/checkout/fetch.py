@@ -222,14 +222,16 @@ class CheckoutInfo:
             fields_to_update.append("undiscounted_base_shipping_price_amount")
 
         if fields_to_update:
-            from .utils import _update_assigned_checkout_delivery_method
+            from .utils import _update_checkout_with_assigned_delivery_method
 
             with allow_writer():
                 if isinstance(delivery_method, ShippingMethodData):
                     shipping_data = delivery_method
                 else:
                     shipping_data = None
-                _update_assigned_checkout_delivery_method(checkout, shipping_data)
+                _update_checkout_with_assigned_delivery_method(
+                    checkout, shipping_data, fields_to_update
+                )
                 checkout.save(update_fields=fields_to_update)
 
     def get_delivery_method_info(self) -> "DeliveryMethodBase":
