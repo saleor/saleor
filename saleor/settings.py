@@ -31,7 +31,10 @@ from .account.i18n_rules_override import i18n_rules_override
 from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.rlimit import validate_and_set_rlimit
-from .core.schedules import initiated_promotion_webhook_schedule
+from .core.schedules import (
+    initiated_checkout_automatic_completion_schedule,
+    initiated_promotion_webhook_schedule,
+)
 from .graphql.executor import patch_executor
 from .graphql.promise import patch_promise
 from .patch_local import patch_local
@@ -647,13 +650,6 @@ BEAT_PRICE_RECALCULATION_SCHEDULE = parse(
 )
 BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC = BEAT_PRICE_RECALCULATION_SCHEDULE
 
-BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE = parse(
-    os.environ.get("BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE", "60 seconds")
-)
-BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE_EXPIRE_AFTER_SEC = (
-    BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE
-)
-
 # Defines the Celery beat scheduler entries.
 #
 # Note: if a Celery task triggered by a Celery beat entry has an expiration
@@ -737,13 +733,10 @@ CELERY_BEAT_SCHEDULE = {
         "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
     },
     "checkout-automatic-completion": {
+        # Scheduled task that runs every 60 seconds to check for checkout
+        # readiness for automatic completion.
         "task": "saleor.checkout.tasks.trigger_automatic_checkout_completion_task",
-        "schedule": datetime.timedelta(
-            seconds=BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE
-        ),
-        "options": {
-            "expires": BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE_EXPIRE_AFTER_SEC
-        },
+        "schedule": initiated_checkout_automatic_completion_schedule,
     },
 }
 
