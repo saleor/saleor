@@ -44,6 +44,11 @@ class Checkout(models.Model):
     last_transaction_modified_at = models.DateTimeField(null=True, blank=True)
     automatically_refundable = models.BooleanField(default=False)
 
+    # Tracks the last time automatic checkout completion was attempted
+    last_automatic_completion_attempt = models.DateTimeField(
+        null=True, blank=True, db_index=True
+    )
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,

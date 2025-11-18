@@ -647,6 +647,13 @@ BEAT_PRICE_RECALCULATION_SCHEDULE = parse(
 )
 BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC = BEAT_PRICE_RECALCULATION_SCHEDULE
 
+BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE = parse(
+    os.environ.get("BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE", "60 seconds")
+)
+BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE_EXPIRE_AFTER_SEC = (
+    BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE
+)
+
 # Defines the Celery beat scheduler entries.
 #
 # Note: if a Celery task triggered by a Celery beat entry has an expiration
@@ -733,6 +740,15 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.product.tasks.recalculate_discounted_price_for_products_task",
         "schedule": datetime.timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
         "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
+    },
+    "checkout-automatic-completion": {
+        "task": "saleor.checkout.tasks.trigger_automatic_checkout_completion_task",
+        "schedule": datetime.timedelta(
+            seconds=BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE
+        ),
+        "options": {
+            "expires": BEAT_AUTOMATIC_CHECKOUT_COMPLETION_SCHEDULE_EXPIRE_AFTER_SEC
+        },
     },
 }
 
@@ -942,6 +958,13 @@ CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = datetime.timedelta(
 )
 TRANSACTION_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
     "TRANSACTION_BATCH_FOR_RELEASING_FUNDS", 60
+)
+# Oldest checkout modification for automatic completion. Older checkouts will not be
+# processed.
+AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED = datetime.timedelta(
+    seconds=parse(
+        os.environ.get("AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED", "30 days")
+    )
 )
 
 
