@@ -6,6 +6,13 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 
+from ...core.telemetry import (
+    MetricType,
+    Scope,
+    Unit,
+    meter,
+    saleor_attributes,
+)
 from ...graphql.app.enums import CircuitBreakerState
 from ...webhook.event_types import WebhookEventSyncType
 
@@ -37,6 +44,24 @@ BREAKER_BOARD_SUCCESS_COUNT_RECOVERY: int = 50
 
 # Time to keep circuit breaker in opened state before starting recovery (half-open state).
 BREAKER_BOARD_COOLDOWN_SECONDS: int = 2 * 60
+
+METRIC_CIRCUIT_BREAKER_EVENT_COUNT = meter.create_metric(
+    "saleor.external_request.sync.circuit_breaker.event_count",
+    scope=Scope.SERVICE,
+    type=MetricType.COUNTER,
+    unit=Unit.EVENT,
+    description="Number of circuit breaker state changes.",
+)
+
+
+def record_circuit_breaker_state_change(app: "App", state: str) -> None:
+    attributes = {
+        saleor_attributes.SALEOR_APP_IDENTIFIER: app.identifier,
+        saleor_attributes.SALEOR_CIRCUIT_BREAKER_STATE: state,
+    }
+    meter.record(
+        METRIC_CIRCUIT_BREAKER_EVENT_COUNT, 1, Unit.EVENT, attributes=attributes
+    )
 
 
 class BreakerBoard:
@@ -112,12 +137,14 @@ class BreakerBoard:
         changed_at = int(time.time())
         self.storage.set_app_state(app.id, state, changed_at)
 
+        record_circuit_breaker_state_change(app, state)
         logger.info(
             "[App ID: %r] Circuit breaker changed state to %s.",
             app.id,
             state,
             extra={
                 "app_name": app.name,
+                "app_identifier": app.identifier,
                 "webhooks_total_count": total,
                 "webhooks_errors_count": errors,
                 "webhooks_cooldown_seconds": self.cooldown_seconds,
