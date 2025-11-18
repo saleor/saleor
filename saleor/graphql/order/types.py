@@ -2623,6 +2623,10 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                     listing,
                     tax_class,
                 )
+                if order.status == OrderStatus.DRAFT:
+                    # For draft orders, we always use the metadata stored on the order itself.
+                    return shipping_method_data
+
                 # TODO (ENG-1053): Remove this fallback logic after migration period.
                 # When shipping_method_metadata is None, we fall back to the shipping method's
                 # metadata from the assigned shipping method for backward compatibility reasons.
