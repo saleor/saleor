@@ -157,7 +157,13 @@ class AppExtension(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="extensions")
     label = models.CharField(max_length=256)
     url = models.URLField()
+    # Choices will be removed and be strings.
+    # Client sends UPPERCASE but durrent data is lowercase
+    # TODO: Migration should make upper() on these
     mount = models.CharField(choices=AppExtensionMount.CHOICES, max_length=256)
+    # This will be removed and be strings.
+    # Client sends UPPERCASE but durrent data is lowercase
+    # TODO: Migration should make upper() on these
     target = models.CharField(
         choices=AppExtensionTarget.CHOICES,
         max_length=128,
@@ -168,11 +174,13 @@ class AppExtension(models.Model):
         blank=True,
         help_text="Specific permissions for this app extension.",
     )
+    # TODO Field will be removed but we will first have to convert it to plain json in "settings"
     http_target_method = models.CharField(
         blank=False,
         null=True,
         choices=AppExtensionHttpMethod.CHOICES,
     )
+    # TODO In migration we need to fill this object based on http_target_method and target
     settings = models.JSONField(blank=True, default=dict, db_default={})
 
 
