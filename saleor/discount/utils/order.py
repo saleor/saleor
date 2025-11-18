@@ -201,6 +201,7 @@ def create_order_discount_objects_for_order_promotions(
     (
         gift_promotion_applied,
         discount_object,
+        _end_date,
     ) = create_discount_objects_for_order_promotions(
         order,
         lines_info,

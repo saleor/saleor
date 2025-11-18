@@ -1961,3 +1961,72 @@ def test_transaction_request_refund_with_reason_reference_not_valid_id_format(
         type=TransactionEventType.REFUND_REQUEST,
     ).first()
     assert request_event is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
+    mocked_payment_action_request,
+    mocked_is_active,
+    order_with_lines,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+    site_settings,
+):
+    # Given
+    mocked_is_active.return_value = False
+
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save(update_fields=["refund_reason_reference_type"])
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
+    )
+
+    authorization_amount = Decimal("10.00")
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        authorized_value=authorization_amount,
+        app=transaction_request_webhook.app,
+    )
+
+    transaction.events.create(
+        amount_value=authorization_amount,
+        currency=transaction.currency,
+        type=TransactionEventType.AUTHORIZATION_SUCCESS,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CHARGE.name,
+        "amount": authorization_amount,
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # When
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # Then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionRequestAction"]
+    errors = data["errors"]
+    assert not errors, f"Expected no errors but got: {errors}"
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.amount_value == authorization_amount
+    assert request_event.user == staff_api_client.user
+    assert request_event.message is None
+    assert request_event.reason_reference is None
+
+    assert mocked_payment_action_request.called

@@ -268,6 +268,10 @@ class Checkout(models.Model):
 
     shipping_methods_stale_at = models.DateTimeField(null=True, blank=True)
     price_expiration = models.DateTimeField(default=timezone.now)
+    # Expiration time of the applied discounts.
+    # Decides if the discounts are updated before tax recalculation.
+    discount_expiration = models.DateTimeField(default=timezone.now)
+
     assigned_delivery = models.ForeignKey(
         CheckoutDelivery,
         blank=True,

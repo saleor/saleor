@@ -2583,10 +2583,16 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                     if prices_entered_with_tax
                     else order.shipping_price_net
                 )
+                shipping_method_metadata = order.shipping_method_metadata or {}
+                shipping_method_private_metadata = (
+                    order.shipping_method_private_metadata or {}
+                )
                 return ShippingMethodData(
                     id=external_app_shipping_id,
                     name=order.shipping_method_name,
                     price=price,
+                    metadata=shipping_method_metadata,
+                    private_metadata=shipping_method_private_metadata,
                 )
 
             return tax_config.then(with_tax_config)

@@ -34,6 +34,7 @@ def decode_id(id):
             "minimum_delivery_days": 2,
             "description": "Fast delivery",
             "metadata": {"key1": "value1", "key2": "value2"},
+            "private_metadata": {"private_key": "private_value"},
         },
         # Optional fields not provided
         {
@@ -73,6 +74,7 @@ def decode_id(id):
             "minimum_delivery_days": None,
             "description": None,
             "metadata": {},  # Empty metadata
+            "private_metadata": {},  # Empty private metadata
         },
         # No description or metadata
         {
@@ -91,6 +93,7 @@ def decode_id(id):
             "currency": "USD",
             "description": None,
             "metadata": None,
+            "private_metadata": None,
         },
     ],
 )
@@ -113,6 +116,9 @@ def test_shipping_method_schema_valid(data, app):
     )
     assert shipping_method_model.description == data.get("description")
     assert shipping_method_model.metadata == (data.get("metadata") or {})
+    assert shipping_method_model.private_metadata == (
+        data.get("private_metadata") or {}
+    )
 
 
 @pytest.mark.parametrize(
@@ -142,6 +148,36 @@ def test_shipping_method_schema_invalid_metadata_skipped(metadata, app):
     assert shipping_method_model.minimum_delivery_days is None
     assert shipping_method_model.description is None
     assert shipping_method_model.metadata == {}
+
+
+@pytest.mark.parametrize(
+    "private_metadata", [12345, "not_a_dict", {123: 123}, {"123": 123}, {123: "123"}]
+)
+def test_shipping_method_schema_invalid_private_metadata_skipped(private_metadata, app):
+    # given
+    data = {
+        "id": "4",
+        "name": "Free Shipping",
+        "amount": Decimal("0.00"),
+        "currency": "USD",
+        "private_metadata": private_metadata,
+    }
+
+    # when
+    shipping_method_model = ShippingMethodSchema.model_validate(
+        data, context={"app": app, "currency": data["currency"]}
+    )
+
+    # then
+    assert shipping_method_model.id == to_shipping_app_id(app, data["id"])
+    assert shipping_method_model.name == data["name"]
+    assert shipping_method_model.amount == data["amount"]
+    assert shipping_method_model.currency == data["currency"]
+    assert shipping_method_model.maximum_delivery_days is None
+    assert shipping_method_model.minimum_delivery_days is None
+    assert shipping_method_model.description is None
+    assert shipping_method_model.metadata == {}
+    assert shipping_method_model.private_metadata == {}
 
 
 @pytest.mark.parametrize(

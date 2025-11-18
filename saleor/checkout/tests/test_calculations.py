@@ -1169,18 +1169,18 @@ def test_fetch_order_data_plugin_tax_data_with_negative_values(
     channel.tax_configuration.save(update_fields=["tax_app_id"])
 
     tax_data = {
-        "lines": [
-            {
+        "lines": {
+            str(checkout.lines.first().id): {
                 "lineAmount": 30.0000,
                 "quantity": 3.0,
                 "itemCode": "SKU_A",
             },
-            {
+            "Shipping": {
                 "lineAmount": -8.1300,
                 "quantity": 1.0,
                 "itemCode": "Shipping",
             },
-        ]
+        }
     }
     mock_get_tax_data.return_value = tax_data
 
@@ -1214,18 +1214,18 @@ def test_fetch_order_data_plugin_tax_data_price_overflow(
     channel.tax_configuration.save(update_fields=["tax_app_id"])
 
     tax_data = {
-        "lines": [
-            {
+        "lines": {
+            str(checkout.lines.first().id): {
                 "lineAmount": 3892370265647658029.0000,
                 "quantity": 3.0,
                 "itemCode": "SKU_A",
             },
-            {
+            "Shipping": {
                 "lineAmount": 8.1300,
                 "quantity": 1.0,
                 "itemCode": "Shipping",
             },
-        ]
+        }
     }
     mock_get_tax_data.return_value = tax_data
 

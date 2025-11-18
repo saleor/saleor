@@ -76,6 +76,7 @@ class ShippingMethodSchema(BaseModel):
         | None
     ) = None
     metadata: DefaultIfNone[Metadata] = {}
+    private_metadata: DefaultIfNone[Metadata] = {}
 
     @property
     def price(self) -> Money:

@@ -1,5 +1,4 @@
 from collections import defaultdict
-from functools import reduce
 
 from django.db.models import Exists, OuterRef, Q
 
@@ -10,8 +9,6 @@ from .models import (
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
-    AttributePage,
-    AttributeProduct,
     AttributeValue,
     AttributeVariant,
 )
@@ -21,16 +18,14 @@ T_INSTANCE = Product | ProductVariant | Page
 
 instance_to_function_variables_mapping = {
     "Product": (
-        AttributeProduct,
         AssignedProductAttributeValue,
         "product",
     ),
     "ProductVariant": (
-        AttributeVariant,
         AssignedVariantAttributeValue,
         "variant",
     ),
-    "Page": (AttributePage, AssignedPageAttributeValue, "page"),
+    "Page": (AssignedPageAttributeValue, "page"),
 }
 
 
@@ -56,15 +51,12 @@ def validate_attribute_owns_values(attr_val_map: dict[int, list]) -> None:
     values_map = defaultdict(set)
     slug_value_to_value_map = {}
 
-    # we need to fetch the proper values which attribute ids and value slug matches
-    lookup = reduce(
-        lambda acc, val_map_item: acc
-        | Q(
-            attribute_id=val_map_item[0], slug__in=[val.slug for val in val_map_item[1]]
-        ),
-        attr_val_map.items(),
-        Q(),
-    )
+    # prepare a lookup with all attributes and their values to get them from the db
+    lookup = Q()
+    for attribute_id, values in attr_val_map.items():
+        value_slugs = [value.slug for value in values]
+        lookup |= Q(attribute_id=attribute_id, slug__in=value_slugs)
+
     values = AttributeValue.objects.filter(lookup)
 
     for value in values:
@@ -91,9 +83,7 @@ def _associate_attribute_to_instance(
 
     if not variables:
         raise AssertionError(f"{instance_type} is unsupported")
-
     (
-        instance_attribute_model,
         value_model,
         instance_field_name,
     ) = variables
@@ -105,7 +95,8 @@ def _associate_attribute_to_instance(
             "attribute_id__in": list(attr_val_map.keys()),
             "product_type_id": prod_type_id,
         }
-        instance_attrs_ids = instance_attribute_model.objects.filter(  # type: ignore[attr-defined]
+
+        instance_attrs_ids = AttributeVariant.objects.filter(
             **attribute_filter
         ).values_list("pk", flat=True)
 
@@ -122,9 +113,7 @@ def _associate_attribute_to_instance(
     )
 
     if isinstance(instance, ProductVariant):
-        _order_variant_assigned_attr_values(
-            values_order_map, assignments, attr_val_map, AssignedVariantAttributeValue
-        )
+        _order_variant_assigned_attr_values(values_order_map, assignments, attr_val_map)
     else:
         _order_assigned_attr_values(
             values_order_map, attr_val_map, value_model, instance_field_name, instance
@@ -197,6 +186,7 @@ def _overwrite_values(
     # unique_together is set for product + value on AssignedProductAttributeValue
     values_order_map = defaultdict(list)
     assigned_attr_values_instances = []
+
     for attr_id, values in attr_val_map.items():
         assignment = assignment_attr_map.get(attr_id)
 
@@ -249,13 +239,23 @@ def _order_assigned_attr_values(
 
 
 def _order_variant_assigned_attr_values(
-    values_order_map, assignments, attr_val_map, assignment_model
+    values_order_map,
+    assignments,
+    attr_val_map,
 ) -> None:
-    assigned_attrs_values = assignment_model.objects.filter(
+    assigned_attrs_values = AssignedVariantAttributeValue.objects.filter(
         assignment_id__in=(a.pk for a in assignments),
         value_id__in=(v.pk for values in attr_val_map.values() for v in values),
     )
     for value in assigned_attrs_values:
         value.sort_order = values_order_map[value.assignment_id].index(value.value_id)
 
-    assignment_model.objects.bulk_update(assigned_attrs_values, ["sort_order"])
+        # While migrating to a new structure we need to make sure we also
+        # copy the assigned variant to AssignedVariantAttributeValue
+        # where it will live after issue #12881 will be implemented
+        value.variant_id = value.assignment.variant_id
+
+    # Remove "variant" once the above double save is removed
+    AssignedVariantAttributeValue.objects.bulk_update(
+        assigned_attrs_values, ["sort_order", "variant"]
+    )

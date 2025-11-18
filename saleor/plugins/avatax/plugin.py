@@ -229,7 +229,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
         for line in lines:
             taxed_line_total_data = self._calculate_checkout_line_total_price(
                 taxes_data=response,
-                item_code=line.variant.sku or line.variant.get_global_id(),
+                checkout_line_id=str(line.line.id),
                 prices_entered_with_tax=prices_entered_with_tax,
                 # for some cases we will need a base_value but no need to call it for
                 # each line
@@ -243,7 +243,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
             checkout_info, lines
         )
         shipping_price = self._calculate_checkout_shipping(
-            checkout_info, currency, response.get("lines", []), base_shipping_price
+            checkout_info, currency, response.get("lines", {}), base_shipping_price
         )
 
         taxed_total += shipping_price
@@ -257,21 +257,20 @@ class DeprecatedAvataxPlugin(BasePlugin):
         self,
         checkout_info: "CheckoutInfo",
         currency: str,
-        lines: list[dict],
+        lines: dict[str, dict],
         shipping_price: Money,
     ) -> TaxedMoney:
         discount_amount = Decimal(0.0)
         shipping_tax = Decimal(0.0)
         shipping_net = shipping_price.amount
-        for line in lines:
-            if line["itemCode"] == SHIPPING_ITEM_CODE:
-                # The lineAmount does not include the discountAmount,
-                # but tax is calculated for discounted net price, that
-                # take into account provided discount.
-                shipping_net = Decimal(line["lineAmount"])
-                discount_amount = Decimal(line.get("discountAmount", 0.0))
-                shipping_tax = Decimal(line["tax"])
-                break
+        line = lines.get(SHIPPING_ITEM_CODE)
+        if line:
+            # The lineAmount does not include the discountAmount,
+            # but tax is calculated for discounted net price, that
+            # take into account provided discount.
+            shipping_net = Decimal(line["lineAmount"])
+            discount_amount = Decimal(line.get("discountAmount", 0.0))
+            shipping_tax = Decimal(line["tax"])
 
         prices_entered_with_tax = partial(
             _get_prices_entered_with_tax_for_checkout, checkout_info
@@ -304,7 +303,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
 
         currency = str(response.get("currencyCode"))
         return self._calculate_checkout_shipping(
-            checkout_info, currency, response.get("lines", []), base_shipping_price.net
+            checkout_info, currency, response.get("lines", {}), base_shipping_price.net
         )
 
     def preprocess_order_creation(
@@ -381,7 +380,14 @@ class DeprecatedAvataxPlugin(BasePlugin):
         ):
             return previous_value
 
-        request_data = get_order_request_data(order, self.config)
+        order_lines = list(
+            order.lines.prefetch_related(
+                "variant__product__category",
+                "variant__product__collections",
+                "variant__product__product_type",
+            ).all()
+        )
+        request_data = get_order_request_data(order, self.config, order_lines)
         if not request_data:
             return previous_value
 
@@ -410,14 +416,13 @@ class DeprecatedAvataxPlugin(BasePlugin):
         )
 
         taxes_data = self._get_checkout_tax_data(checkout_info, lines, previous_value)
-        variant = checkout_line_info.variant
 
         if not taxes_data or "error" in taxes_data:
             return previous_value
 
         return self._calculate_checkout_line_total_price(
             taxes_data,
-            variant.sku or variant.get_global_id(),
+            str(checkout_line_info.line.id),
             prices_entered_with_tax,
             base_value=SimpleLazyObject(
                 lambda: base_calculations.calculate_base_line_total_price(
@@ -429,17 +434,15 @@ class DeprecatedAvataxPlugin(BasePlugin):
     @staticmethod
     def _calculate_checkout_line_total_price(
         taxes_data: dict[str, Any],
-        item_code: str,
+        checkout_line_id: str,
         prices_entered_with_tax: Callable[[], bool],
         # base_value should be provided as SimpleLazyObject
         base_value: Money,
     ) -> TaxedMoney:
-        currency = taxes_data.get("currencyCode")
+        currency: str = taxes_data.get("currencyCode") or base_value.currency
 
-        for line in taxes_data.get("lines", []):
-            if line.get("itemCode") != item_code:
-                continue
-
+        line = taxes_data.get("lines", {}).get(checkout_line_id)
+        if line:
             # The lineAmount does not include the discountAmount, but tax is calculated
             # for discounted net price, that take into account provided discount.
             tax = Decimal(line.get("tax", 0.0))
@@ -458,7 +461,6 @@ class DeprecatedAvataxPlugin(BasePlugin):
                 net -= discount_amount
                 line_gross = Money(amount=net + tax, currency=currency)
                 line_net = Money(amount=net, currency=currency)
-
             return TaxedMoney(net=line_net, gross=line_gross)
         if isinstance(base_value, SimpleLazyObject):
             base_value = base_value._setupfunc()  # type: ignore[attr-defined]
@@ -485,15 +487,15 @@ class DeprecatedAvataxPlugin(BasePlugin):
         taxes_data = self._get_order_tax_data(order, previous_value)
         return self._calculate_order_line_total_price(
             taxes_data,
-            variant.sku or variant.get_global_id(),
+            str(order_line.id),
             prices_entered_with_tax,
             base_value,
         )
 
     @staticmethod
     def _calculate_order_line_total_price(
-        taxes_data: dict[str, Any],
-        item_code: str,
+        taxes_data: dict[str, Any] | None,
+        order_line_id: str,
         prices_entered_with_tax: Callable[[], bool],
         base_value: OrderTaxedPricesData,
     ) -> OrderTaxedPricesData:
@@ -503,10 +505,8 @@ class DeprecatedAvataxPlugin(BasePlugin):
         currency = taxes_data.get("currencyCode")
         line_price_with_discounts = None
 
-        for line in taxes_data.get("lines", []):
-            if line.get("itemCode") != item_code:
-                continue
-
+        line = taxes_data.get("lines", {}).get(order_line_id)
+        if line:
             # The lineAmount does not include the discountAmount, but tax is calculated
             # for discounted net price, that take into account provided discount.
             tax = Decimal(line.get("tax", 0.0))
@@ -550,7 +550,6 @@ class DeprecatedAvataxPlugin(BasePlugin):
         prices_entered_with_tax = partial(
             _get_prices_entered_with_tax_for_checkout, checkout_info
         )
-        variant = checkout_line_info.variant
 
         quantity = checkout_line_info.line.quantity
         taxes_data = self._get_checkout_tax_data(checkout_info, lines, previous_value)
@@ -559,7 +558,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
 
         taxed_total_price = self._calculate_checkout_line_total_price(
             taxes_data,
-            variant.sku or variant.get_global_id(),
+            str(checkout_line_info.line.id),
             prices_entered_with_tax,
             base_value=SimpleLazyObject(
                 lambda: base_calculations.calculate_base_line_total_price(
@@ -590,7 +589,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
 
         taxed_total_prices_data = self._calculate_order_line_total_price(
             taxes_data,
-            variant.sku or variant.get_global_id(),
+            str(order_line.id),
             prices_entered_with_tax,
             base_total,
         )
@@ -603,18 +602,18 @@ class DeprecatedAvataxPlugin(BasePlugin):
     def _calculate_order_shipping(self, order, taxes_data) -> TaxedMoney:
         prices_entered_with_tax = partial(_get_prices_entered_with_tax_for_order, order)
         currency = taxes_data.get("currencyCode")
-        for line in taxes_data.get("lines", []):
-            if line["itemCode"] == SHIPPING_ITEM_CODE:
-                tax = Decimal(line.get("tax", 0.0))
-                discount_amount = Decimal(line.get("discountAmount", 0.0))
-                net = Decimal(line.get("lineAmount", 0.0)) - discount_amount
-                if currency == "JPY" and prices_entered_with_tax():
-                    gross = order.base_shipping_price
-                    net = Money(amount=gross.amount - tax, currency=currency)
-                else:
-                    gross = Money(amount=net + tax, currency=currency)
-                    net = Money(amount=net, currency=currency)
-                return TaxedMoney(net=net, gross=gross)
+        line = taxes_data.get("lines", {}).get(SHIPPING_ITEM_CODE)
+        if line:
+            tax = Decimal(line.get("tax", 0.0))
+            discount_amount = Decimal(line.get("discountAmount", 0.0))
+            net = Decimal(line.get("lineAmount", 0.0)) - discount_amount
+            if currency == "JPY" and prices_entered_with_tax():
+                gross = order.base_shipping_price
+                net = Money(amount=gross.amount - tax, currency=currency)
+            else:
+                gross = Money(amount=net + tax, currency=currency)
+                net = Money(amount=net, currency=currency)
+            return TaxedMoney(net=net, gross=gross)
 
         price = order.base_shipping_price
         return TaxedMoney(
@@ -652,7 +651,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
             )
             taxed_line_total_data = self._calculate_order_line_total_price(
                 taxes_data,
-                line.product_sku or line.variant_name,
+                str(line.id),
                 prices_entered_with_tax,
                 base_line_price,
             ).price_with_discounts
@@ -690,10 +689,9 @@ class DeprecatedAvataxPlugin(BasePlugin):
             return previous_value
 
         response = self._get_checkout_tax_data(checkout_info, lines, previous_value)
-        variant = checkout_line_info.variant
         return self._get_item_tax_rate(
             response,
-            variant.sku or variant.get_global_id(),
+            str(checkout_line_info.line.id),
             previous_value,
             str(checkout_info.checkout.pk),
             "Checkout",
@@ -702,6 +700,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
     def get_order_line_tax_rate(
         self,
         order: "Order",
+        order_line: "OrderLine",
         product: "Product",
         variant: "ProductVariant",
         address: Optional["Address"],
@@ -714,7 +713,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
         response = self._get_order_tax_data(order, previous_value)
         return self._get_item_tax_rate(
             response,
-            variant.sku or variant.get_global_id(),
+            str(order_line.id),
             previous_value,
             str(order.pk),
             "Order",
@@ -730,16 +729,20 @@ class DeprecatedAvataxPlugin(BasePlugin):
         response = self._get_checkout_tax_data(checkout_info, lines, previous_value)
         return self._get_item_tax_rate(
             response,
-            SHIPPING_ITEM_CODE,
-            previous_value,
-            str(checkout_info.checkout.pk),
-            "Checkout",
+            object_line_id=SHIPPING_ITEM_CODE,
+            base_rate=previous_value,
+            related_object_id=str(checkout_info.checkout.pk),
+            related_object_type="Checkout",
         )
 
     def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
         response = self._get_order_tax_data(order, previous_value)
         return self._get_item_tax_rate(
-            response, SHIPPING_ITEM_CODE, previous_value, str(order.pk), "Order"
+            response,
+            object_line_id=SHIPPING_ITEM_CODE,
+            base_rate=previous_value,
+            related_object_id=str(order.pk),
+            related_object_type="Order",
         )
 
     def _get_checkout_tax_data(
@@ -787,7 +790,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
 
     def _get_order_tax_data(
         self, order: "Order", base_value: Decimal | OrderTaxedPricesData
-    ):
+    ) -> dict[str, Any] | None:
         if self._skip_plugin(base_value):
             self._set_order_tax_error(order, TaxDataErrorMessage.EMPTY)
             return None
@@ -816,66 +819,62 @@ class DeprecatedAvataxPlugin(BasePlugin):
 
     @staticmethod
     def _get_item_tax_rate(
-        response: dict[str, Any],
-        item_code: str,
+        response: dict[str, Any] | None,
+        object_line_id: str,
         base_rate: Decimal,
         related_object_id: str,
         related_object_type: str,
     ):
         if response is None:
             return base_rate
-        lines_data = response.get("lines", [])
-        for line in lines_data:
-            if line["itemCode"] == item_code:
-                taxable_amount = Decimal(line["taxableAmount"]).quantize(
-                    Decimal(".0001")
-                )
-                details = line.get("details")
-                if not details:
-                    return base_rate
+        lines_data = response.get("lines", {})
+        line = lines_data.get(object_line_id)
+        if line:
+            taxable_amount = Decimal(line["taxableAmount"]).quantize(Decimal(".0001"))
+            details = line.get("details")
+            if not details:
+                return base_rate
 
-                # when tax is equal to 0 tax rate for product is still provided
-                # in the response
-                rate = Decimal(0)
-                for detail in details:
-                    if not Decimal(detail.get("tax", 0)):
-                        # When tax is zero, any rate provided in response should not be
-                        # included in returned tax-rate
-                        continue
-                    taxable_amount_from_detail = Decimal(
-                        detail.get("taxableAmount", 0)
-                    ).quantize(Decimal(".0001"))
-                    if (
-                        taxable_amount_from_detail
-                        and taxable_amount_from_detail != taxable_amount
-                    ):
-                        logger.warning(
-                            "taxableAmounts from line.details[] are different than "
-                            "line.taxableAmount. Returning the rate calculated by "
-                            "Saleor. For %s:%s",
-                            related_object_type,
-                            related_object_id,
-                            extra={
-                                "line_taxable_amount": line["taxableAmount"],
-                                "line_details": [
-                                    {
-                                        "tax": log_detail.get("tax"),
-                                        "taxable_amount": log_detail.get(
-                                            "taxableAmount"
-                                        ),
-                                        "rate": log_detail.get("rate"),
-                                    }
-                                    for log_detail in line["details"]
-                                ],
-                                "id": related_object_id,
-                                "type": related_object_type,
-                                "item_code": item_code,
-                                "base_rate": base_rate,
-                            },
-                        )
-                        return base_rate
-                    rate += Decimal(detail.get("rate", 0.0))
-                return rate
+            # when tax is equal to 0 tax rate for product is still provided
+            # in the response
+            rate = Decimal(0)
+            for detail in details:
+                if not Decimal(detail.get("tax", 0)):
+                    # When tax is zero, any rate provided in response should not be
+                    # included in returned tax-rate
+                    continue
+                taxable_amount_from_detail = Decimal(
+                    detail.get("taxableAmount", 0)
+                ).quantize(Decimal(".0001"))
+                if (
+                    taxable_amount_from_detail
+                    and taxable_amount_from_detail != taxable_amount
+                ):
+                    logger.warning(
+                        "taxableAmounts from line.details[] are different than "
+                        "line.taxableAmount. Returning the rate calculated by "
+                        "Saleor. For %s:%s",
+                        related_object_type,
+                        related_object_id,
+                        extra={
+                            "line_taxable_amount": line["taxableAmount"],
+                            "line_details": [
+                                {
+                                    "tax": log_detail.get("tax"),
+                                    "taxable_amount": log_detail.get("taxableAmount"),
+                                    "rate": log_detail.get("rate"),
+                                }
+                                for log_detail in line["details"]
+                            ],
+                            "id": related_object_id,
+                            "type": related_object_type,
+                            "object_line_id": object_line_id,
+                            "base_rate": base_rate,
+                        },
+                    )
+                    return base_rate
+                rate += Decimal(detail.get("rate", 0.0))
+            return rate
         return base_rate
 
     def get_tax_code_from_object_meta(
@@ -980,7 +979,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
         if not tax_data:
             return False
 
-        for line in tax_data.get("lines", []):
+        for line in tax_data.get("lines", {}).values():
             if line.get("lineAmount", 0) < 0:
                 return True
 
@@ -992,7 +991,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
         if not tax_data:
             return False
 
-        for line in tax_data.get("lines", []):
+        for line in tax_data.get("lines", {}).values():
             if line.get("lineAmount", 0) > MAXIMUM_PRICE:
                 return True
 

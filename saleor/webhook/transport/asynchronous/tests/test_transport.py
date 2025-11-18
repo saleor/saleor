@@ -60,6 +60,9 @@ def test_send_webhook_request_async_record_external_request(
     # then
     attributes = {
         "server.address": "www.example.com",
+        "saleor.app.identifier": event_delivery.webhook.app.identifier,
+        "saleor.webhook.event_type": event_delivery.event_type,
+        "saleor.webhook.execution_mode": "async",
         **global_attributes,
     }
     metrics_data = get_test_metrics_data()
@@ -109,6 +112,9 @@ def test_send_webhook_request_async_record_external_request_when_delivery_attemp
     attributes = {
         "server.address": "www.example.com",
         "error.type": "request_error",
+        "saleor.app.identifier": event_delivery.webhook.app.identifier,
+        "saleor.webhook.event_type": event_delivery.event_type,
+        "saleor.webhook.execution_mode": "async",
         **global_attributes,
     }
     metrics_data = get_test_metrics_data()
@@ -157,6 +163,9 @@ def test_send_webhook_request_async_record_external_request_with_unknown_webhook
     attributes = {
         "server.address": "www.example.com",
         "error.type": "request_error",
+        "saleor.app.identifier": event_delivery.webhook.app.identifier,
+        "saleor.webhook.event_type": event_delivery.event_type,
+        "saleor.webhook.execution_mode": "async",
         **global_attributes,
     }
     metrics_data = get_test_metrics_data()
