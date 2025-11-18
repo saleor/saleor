@@ -207,6 +207,7 @@ def _assert_fields(
         )
 
     assert transaction.gift_card == gift_card
+    assert transaction.app_identifier == app_identifier
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
