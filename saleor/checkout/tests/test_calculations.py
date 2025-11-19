@@ -1121,7 +1121,6 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
             checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
             checkout_to_modify.lines.update(quantity=F("quantity") + 1)
             checkout_to_modify.email = expected_email
-            checkout_to_modify.last_price_recalculation = timezone.now()
             checkout_to_modify.save(update_fields=["email", "last_price_recalculation"])
 
     with before_after.after(
