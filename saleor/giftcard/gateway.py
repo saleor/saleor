@@ -34,38 +34,77 @@ class GiftCardPaymentGatewayDataSchema(pydantic.BaseModel):
     ]
 
 
+class GiftCardPaymentGatewayException(Exception):
+    def __init__(self, msg=None):
+        if msg is None:
+            msg = "Gift card payment gateway error"
+        super().__init__(msg)
+
+
 def transaction_initialize_session_with_gift_card_payment_method(
     transaction_session_data: "TransactionSessionData",
     source_object: Checkout | Order,
-) -> tuple["TransactionSessionResult", GiftCard | None]:
+) -> "TransactionSessionResult":
+    attach_app_identifier_to_transaction(transaction_session_data)
+    gift_card = None
+
+    try:
+        validate_transaction_session_data(transaction_session_data, source_object)
+        gift_card = validate_and_get_gift_card(transaction_session_data)
+    except GiftCardPaymentGatewayException as exc:
+        return TransactionSessionResult(
+            app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+            response={
+                "result": TransactionEventType.AUTHORIZATION_FAILURE.upper(),
+                "pspReference": str(uuid4()),
+                "amount": transaction_session_data.action.amount,
+                "message": exc,
+            },
+        )
+    else:
+        return TransactionSessionResult(
+            app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+            response={
+                "result": TransactionEventType.AUTHORIZATION_SUCCESS.upper(),
+                "pspReference": str(uuid4()),
+                "amount": transaction_session_data.action.amount,
+                "message": f"Gift card (ending: {gift_card.display_code}).",
+            },
+        )
+    finally:
+        detach_gift_card_from_previous_checkout_transactions(gift_card)
+        attach_gift_card_to_transaction(transaction_session_data, gift_card)
+
+
+def attach_app_identifier_to_transaction(
+    transaction_session_data: "TransactionSessionData",
+):
     transaction_session_data.transaction.app_identifier = GIFT_CARD_PAYMENT_GATEWAY_ID
     transaction_session_data.transaction.save(update_fields=["app_identifier"])
 
-    transaction_session_result = TransactionSessionResult(
-        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        response={
-            "result": TransactionEventType.AUTHORIZATION_FAILURE.upper(),
-            "pspReference": str(uuid4()),
-            "amount": transaction_session_data.action.amount,
-        },
-    )
 
+def validate_transaction_session_data(
+    transaction_session_data: "TransactionSessionData",
+    source_object: Checkout | Order,
+):
     if not isinstance(source_object, Checkout):
-        transaction_session_result.response["message"] = (  # type: ignore[index]
-            f"Cannot initialize transaction for payment gateway: {GIFT_CARD_PAYMENT_GATEWAY_ID} and object type other than Checkout."
+        raise GiftCardPaymentGatewayException(
+            msg=f"Cannot initialize transaction for payment gateway: {GIFT_CARD_PAYMENT_GATEWAY_ID} and object type other than Checkout."
         )
-        return transaction_session_result, None
 
     try:
         GiftCardPaymentGatewayDataSchema.model_validate(
             transaction_session_data.payment_gateway_data.data
         )
-    except pydantic.ValidationError:
-        transaction_session_result.response["message"] = (  # type: ignore[index]
-            "Incorrect payment gateway data."
-        )
-        return transaction_session_result, None
+    except pydantic.ValidationError as exc:
+        raise GiftCardPaymentGatewayException(
+            msg="Incorrect payment gateway data."
+        ) from exc
 
+
+def validate_and_get_gift_card(
+    transaction_session_data: "TransactionSessionData",
+):
     # Check for existence of an active gift card and validate currency.
     try:
         gift_card = (
@@ -77,26 +116,19 @@ def transaction_initialize_session_with_gift_card_payment_method(
             .select_for_update()
             .get()
         )
-    except GiftCard.DoesNotExist:
-        transaction_session_result.response["message"] = "Gift card code is not valid."  # type: ignore[index]
-        return transaction_session_result, None
+    except GiftCard.DoesNotExist as exc:
+        raise GiftCardPaymentGatewayException(
+            msg="Gift card code is not valid."
+        ) from exc
 
     # Check whether gift card has enough funds to cover the amount.
     if transaction_session_data.action.amount > gift_card.current_balance_amount:
-        transaction_session_result.response["message"] = (  # type: ignore[index]
-            f"Gift card has insufficient amount ({quantize_price(gift_card.current_balance_amount, gift_card.currency)}) "
+        raise GiftCardPaymentGatewayException(
+            msg=f"Gift card has insufficient amount ({quantize_price(gift_card.current_balance_amount, gift_card.currency)}) "
             f"to cover requested amount ({quantize_price(transaction_session_data.action.amount, transaction_session_data.action.currency)})."
         )
-        return transaction_session_result, None
 
-    transaction_session_result.response["result"] = (  # type: ignore[index]
-        TransactionEventType.AUTHORIZATION_SUCCESS.upper()
-    )
-    transaction_session_result.response["message"] = (  # type: ignore[index]
-        f"Gift card (ending: {gift_card.display_code})."
-    )
-
-    return transaction_session_result, gift_card
+    return gift_card
 
 
 def attach_gift_card_to_transaction(
@@ -111,7 +143,6 @@ def attach_gift_card_to_transaction(
 
 
 def detach_gift_card_from_previous_checkout_transactions(
-    transaction_session_data: "TransactionSessionData",
     gift_card: GiftCard | None,
 ):
     if not gift_card:
@@ -123,13 +154,11 @@ def detach_gift_card_from_previous_checkout_transactions(
         Q(app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID),
         # must cancel transactions for this gift card
         Q(gift_card=gift_card),
-        # must not cancel transactions for the source object
-        ~Q(checkout=transaction_session_data.source_object)
         # must cancel transactions where checkout identifier is not empty
-        & Q(checkout_id__isnull=False)
+        Q(checkout_id__isnull=False),
         # must cancel transactions where order identifier is empty (transaction is not
         # tied to an order yet)
-        & Q(order_id__isnull=True),
+        Q(order_id__isnull=True),
     )
 
     for transaction_item in transactions_to_cancel_qs:
@@ -145,7 +174,7 @@ def detach_gift_card_from_previous_checkout_transactions(
             type=TransactionEventType.CANCEL_REQUEST,
             currency=transaction_item.currency,
             amount_value=transaction_item.amount_authorized.amount,
-            message=f"Gift card (code ending with: {gift_card.display_code}) has been authorized as payment method in a different checkout.",
+            message=f"Gift card (code ending with: {gift_card.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again.",
             defaults={
                 "include_in_calculations": False,
                 "currency": transaction_item.currency,
