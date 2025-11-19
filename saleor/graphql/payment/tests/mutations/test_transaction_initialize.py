@@ -207,6 +207,7 @@ def _assert_fields(
         )
 
     assert transaction.gift_card == gift_card
+    assert transaction.app_identifier == app_identifier
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -3577,6 +3578,7 @@ def test_for_checkout_with_gift_card_payment_gateway(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         authorized_value=Decimal(1),
         gift_card=gift_card_created_by_staff,
+        expected_message=f"Gift card (ending: {gift_card_created_by_staff.display_code}).",
     )
 
 
