@@ -15,7 +15,6 @@ from ...discount.models import (
 )
 from ...graphql.shop.types import Shop
 from ...menu.models import MenuItemTranslation
-from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
@@ -38,7 +37,6 @@ from ...webhook.const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
-from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..channel.enums import TransactionFlowStrategyEnum
 from ..core import ResolveInfo
 from ..core.context import (
@@ -74,16 +72,10 @@ from ..order.dataloaders import OrderByIdLoader
 from ..order.types import Order, OrderGrantedRefund
 from ..payment.enums import TokenizedPaymentFlowEnum, TransactionActionEnum
 from ..payment.types import TransactionItem
-from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..product.dataloaders import ProductVariantByIdLoader
-from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
 from ..shipping.types import ShippingMethod
 from ..translations import types as translation_types
 from ..warehouse.dataloaders import WarehouseByIdLoader
-from .resolvers import (
-    resolve_only_internal_shipping_methods_for_checkout,
-    resolve_shipping_methods_for_checkout,
-)
 
 TRANSLATIONS_TYPES_MAP = {
     ProductTranslation: translation_types.ProductTranslation,
@@ -2482,15 +2474,18 @@ class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
     )
 
     @staticmethod
-    @plugin_manager_promise_callback
-    def resolve_shipping_methods(root, info: ResolveInfo, manager):
+    def resolve_checkout(root, _info: ResolveInfo):
+        _, data = root
+        checkout, _ = data
+        return SyncWebhookControlContext(node=checkout)
+
+    @staticmethod
+    def resolve_shipping_methods(root, info: ResolveInfo):
         # We should only use internal shipping methods to prevent the generation of circular payloads.
         # We aren't able to list shipping methods that are not internal for listing shipping methods webhook type.
-        _, checkout = root
-        database_connection_name = get_database_connection_name(info.context)
-        return resolve_only_internal_shipping_methods_for_checkout(
-            info, checkout, manager, database_connection_name
-        )
+        _, data = root
+        _, built_in_shipping_methods = data
+        return built_in_shipping_methods
 
     class Meta:
         root_type = None
@@ -2525,13 +2520,16 @@ class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
     )
 
     @staticmethod
-    @plugin_manager_promise_callback
-    def resolve_shipping_methods(root, info: ResolveInfo, manager):
-        _, checkout = root
-        database_connection_name = get_database_connection_name(info.context)
-        return resolve_shipping_methods_for_checkout(
-            info, checkout, manager, database_connection_name
-        )
+    def resolve_checkout(root, _info: ResolveInfo):
+        _, data = root
+        checkout, _ = data
+        return SyncWebhookControlContext(node=checkout)
+
+    @staticmethod
+    def resolve_shipping_methods(root, _info: ResolveInfo):
+        _, data = root
+        _, shipping_methods = data
+        return shipping_methods
 
     class Meta:
         root_type = None
@@ -2548,20 +2546,16 @@ class OrderFilterShippingMethods(SubscriptionObjectType, OrderBase):
     )
 
     @staticmethod
+    def resolve_order(root, info: ResolveInfo):
+        _, data = root
+        order, _ = data
+        return SyncWebhookControlContext(order)
+
+    @staticmethod
     def resolve_shipping_methods(root, info: ResolveInfo):
-        _, order = root
-
-        def with_channel(channel):
-            def with_listings(channel_listings):
-                return get_all_shipping_methods_for_order(order, channel_listings)
-
-            return (
-                ShippingMethodChannelListingByChannelSlugLoader(info.context)
-                .load(channel.slug)
-                .then(with_listings)
-            )
-
-        return ChannelByIdLoader(info.context).load(order.channel_id).then(with_channel)
+        _, data = root
+        _, shipping_methods = data
+        return shipping_methods
 
     class Meta:
         root_type = None

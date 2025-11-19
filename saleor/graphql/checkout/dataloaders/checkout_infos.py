@@ -24,12 +24,9 @@ from ...product.dataloaders import (
     ProductVariantByIdLoader,
     VariantChannelListingByVariantIdAndChannelIdLoader,
 )
-from ...shipping.dataloaders import (
-    ShippingMethodByIdLoader,
-    ShippingMethodChannelListingByChannelSlugLoader,
-)
 from ...tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChannelId
 from ...warehouse.dataloaders import WarehouseByIdLoader
+from .checkout_delivery import CheckoutDeliveryByIdLoader
 from .models import CheckoutByTokenLoader, CheckoutLinesByCheckoutTokenLoader
 from .promotion_rule_infos import VariantPromotionRuleInfoByCheckoutLineIdLoader
 
@@ -65,20 +62,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                 users = UserByUserIdLoader(self.context).load_many(
                     [checkout.user_id for checkout in checkouts if checkout.user_id]
                 )
-                shipping_method_ids = [
-                    checkout.shipping_method_id
-                    for checkout in checkouts
-                    if checkout.shipping_method_id
-                ]
-                shipping_methods = ShippingMethodByIdLoader(self.context).load_many(
-                    shipping_method_ids
-                )
-                channel_slugs = [channel.slug for channel in channels]
-                shipping_method_channel_listings = (
-                    ShippingMethodChannelListingByChannelSlugLoader(
-                        self.context
-                    ).load_many(channel_slugs)
-                )
+
                 collection_point_ids = [
                     checkout.collection_point_id
                     for checkout in checkouts
@@ -101,22 +85,27 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     self.context
                 ).load_many(channel_ids)
 
+                assigned_deliveries_ids = [
+                    checkout.assigned_delivery_id
+                    for checkout in checkouts
+                    if checkout.assigned_delivery_id
+                ]
+                assigned_deliveries_loader = CheckoutDeliveryByIdLoader(
+                    self.context
+                ).load_many(assigned_deliveries_ids)
+
                 def with_checkout_info(results):
                     (
                         addresses,
                         users,
-                        shipping_methods,
-                        listings_for_channels,
                         collection_points,
                         voucher_codes,
                         tax_configurations,
+                        assigned_deliveries,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
-                    shipping_method_map = {
-                        shipping_method.id: shipping_method
-                        for shipping_method in shipping_methods
-                    }
+
                     collection_points_map = {
                         collection_point.id: collection_point
                         for collection_point in collection_points
@@ -130,6 +119,11 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     tax_configuration_by_channel_map = {
                         tax_configuration.channel_id: tax_configuration
                         for tax_configuration in tax_configurations
+                    }
+                    assigned_deliveries_map = {
+                        delivery.id: delivery
+                        for delivery in assigned_deliveries
+                        if delivery
                     }
 
                     checkout_info_map = {}
@@ -147,20 +141,13 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                         checkout_discounts,
                         strict=False,
                     ):
-                        shipping_method = shipping_method_map.get(
-                            checkout.shipping_method_id
+                        assigned_delivery = assigned_deliveries_map.get(
+                            checkout.assigned_delivery_id
                         )
                         collection_point = collection_points_map.get(
                             checkout.collection_point_id
                         )
                         voucher_code = voucher_code_map.get(checkout.voucher_code)
-
-                        shipping_channel_listings = [
-                            listing
-                            for channel_listings in listings_for_channels
-                            for listing in channel_listings
-                            if listing.channel_id == channel.id
-                        ]
 
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
@@ -178,9 +165,8 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             discounts=discounts,
                             lines=checkout_lines,
                             manager=manager,
-                            shipping_channel_listings=shipping_channel_listings,
-                            shipping_method=shipping_method,
                             collection_point=collection_point,
+                            assigned_delivery=assigned_delivery,
                             voucher=voucher_code.voucher if voucher_code else None,
                             voucher_code=voucher_code,
                             database_connection_name=self.database_connection_name,
@@ -193,11 +179,10 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     [
                         addresses,
                         users,
-                        shipping_methods,
-                        shipping_method_channel_listings,
                         collection_points,
                         voucher_codes,
                         tax_configurations,
+                        assigned_deliveries_loader,
                     ]
                 ).then(with_checkout_info)
 

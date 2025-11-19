@@ -25,7 +25,7 @@ from ...discount.types import Voucher
 from ...giftcard.types import GiftCard
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
-from .utils import get_checkout
+from .utils import get_checkout, mark_checkout_deliveries_as_stale_if_needed
 
 
 class CheckoutRemovePromoCode(BaseMutation):
@@ -101,13 +101,20 @@ class CheckoutRemovePromoCode(BaseMutation):
             )
         # if this step is reached, it means promo code was removed
         lines, _ = fetch_checkout_lines(checkout)
-        invalidate_checkout(
+
+        fields_to_update = mark_checkout_deliveries_as_stale_if_needed(
+            checkout_info.checkout, lines
+        )
+        fields_to_update += invalidate_checkout(
             checkout_info,
             lines,
             manager,
             recalculate_discount=True,
-            save=True,
+            save=False,
         )
+        if fields_to_update:
+            checkout.save(update_fields=fields_to_update)
+
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,

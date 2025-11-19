@@ -13,10 +13,10 @@ from .....checkout.utils import invalidate_checkout
 from .....core.models import EventDelivery
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
-from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import update_checkout_shipping_method_if_invalid
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_LINES_DELETE = """
     mutation checkoutLinesDelete($id: ID, $linesIds: [ID!]!) {
@@ -44,8 +44,8 @@ MUTATION_CHECKOUT_LINES_DELETE = """
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout",
@@ -53,7 +53,7 @@ MUTATION_CHECKOUT_LINES_DELETE = """
 )
 def test_checkout_lines_delete(
     mocked_invalidate_checkout,
-    mocked_update_shipping_method,
+    mocked_mark_shipping_methods_as_stale,
     user_api_client,
     checkout_with_items,
 ):
@@ -81,7 +81,9 @@ def test_checkout_lines_delete(
     assert lines_list not in lines_ids
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_mark_shipping_methods_as_stale.assert_called_once_with(
+        checkout_info.checkout, lines
+    )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
 
@@ -95,8 +97,8 @@ def test_checkout_lines_delete(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout",
@@ -104,7 +106,7 @@ def test_checkout_lines_delete(
 )
 def test_checkout_lines_delete_when_line_without_channel_listing(
     mocked_invalidate_checkout,
-    mocked_update_shipping_method,
+    mocked_mark_shipping_methods_as_stale,
     channel_listing_model,
     listing_filter_field,
     user_api_client,
@@ -144,7 +146,9 @@ def test_checkout_lines_delete_when_line_without_channel_listing(
     assert lines_list not in lines_ids
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_mark_shipping_methods_as_stale.assert_called_once_with(
+        checkout_info.checkout, lines
+    )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
 
@@ -158,8 +162,8 @@ def test_checkout_lines_delete_when_line_without_channel_listing(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout",
@@ -167,7 +171,7 @@ def test_checkout_lines_delete_when_line_without_channel_listing(
 )
 def test_checkout_lines_delete_when_checkout_has_variant_without_channel_listing(
     mocked_invalidate_checkout,
-    mocked_update_shipping_method,
+    mocked_mark_shipping_methods_as_stale,
     channel_listing_model,
     listing_filter_field,
     user_api_client,
@@ -209,7 +213,9 @@ def test_checkout_lines_delete_when_checkout_has_variant_without_channel_listing
     assert lines_list not in lines_ids
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_mark_shipping_methods_as_stale.assert_called_once_with(
+        checkout_info.checkout, lines
+    )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
 
@@ -343,8 +349,12 @@ def test_checkout_lines_delete_not_associated_with_checkout(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_lines_delete_triggers_webhooks(
+    mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -393,39 +403,22 @@ def test_checkout_lines_delete_triggers_webhooks(
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_generate_deferred_payloads.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "event_delivery_ids": [checkout_update_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "checkout.checkout",
+                "object_id": checkout_with_items.pk,
+                "requestor_model_name": None,
+                "requestor_object_id": None,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleorappadditional",
+        bind=True,
     )
 
-    # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 3
-    assert not EventDelivery.objects.exclude(
-        webhook_id=checkout_updated_webhook.id
-    ).exists()
-
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
-    )
-    shipping_methods_delivery = shipping_methods_call.args[0]
-    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-    assert (
-        shipping_methods_delivery.event_type
-        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    )
-    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
-
-    filter_shipping_delivery = filter_shipping_call.args[0]
-    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-    assert (
-        filter_shipping_delivery.event_type
-        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    )
-    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
-
-    tax_delivery = tax_delivery_call.args[0]
-    assert tax_delivery.webhook_id == tax_webhook.id
+    # Deferred payload covers the sync and async actions
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called

@@ -17,7 +17,7 @@ from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import resolve_global_ids_to_primary_keys
 from ..types import Checkout
-from .utils import get_checkout, update_checkout_shipping_method_if_invalid
+from .utils import get_checkout, mark_checkout_deliveries_as_stale_if_needed
 
 
 class CheckoutLinesDelete(BaseMutation):
@@ -100,8 +100,8 @@ class CheckoutLinesDelete(BaseMutation):
 
         manager = get_plugin_manager_promise(info.context).get()
         checkout_info = fetch_checkout_info(checkout, lines, manager)
-        shipping_update_fields = update_checkout_shipping_method_if_invalid(
-            checkout_info, lines
+        shipping_update_fields = mark_checkout_deliveries_as_stale_if_needed(
+            checkout_info.checkout, lines
         )
         invalidate_update_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False

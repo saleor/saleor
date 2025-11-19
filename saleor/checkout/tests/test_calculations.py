@@ -10,6 +10,7 @@ from freezegun import freeze_time
 from graphene import Node
 from prices import Money, TaxedMoney
 
+from ...checkout.models import CheckoutDelivery
 from ...core.prices import quantize_price
 from ...core.taxes import (
     TaxData,
@@ -26,7 +27,6 @@ from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
 from ...plugins.manager import get_plugins_manager
 from ...plugins.tests.sample_plugins import PluginSample
 from ...product.models import ProductVariantChannelListing
-from ...shipping.interface import ShippingMethodData
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ...tax.models import TaxClass, TaxClassCountryRate
@@ -46,7 +46,9 @@ from ..calculations import (
 )
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 from ..models import Checkout
-from ..utils import add_promo_code_to_checkout, assign_external_shipping_to_checkout
+from ..utils import (
+    add_promo_code_to_checkout,
+)
 
 
 @pytest.fixture
@@ -334,8 +336,10 @@ def test_fetch_checkout_data_flat_rates(
             country=country_code, rate=23
         )
 
-    checkout.shipping_method.tax_class.country_rates.update_or_create(
-        country=country_code, rate=23
+    TaxClassCountryRate.objects.update_or_create(
+        country=country_code,
+        rate=23,
+        tax_class_id=checkout.assigned_delivery.tax_class_id,
     )
 
     # when
@@ -389,8 +393,8 @@ def test_fetch_checkout_data_flat_rates_with_weighted_shipping_tax(
 
     third_tax_class = tax_classes[1]
     third_tax_class.country_rates.filter(country=country_code).update(rate=223)
-    checkout.shipping_method.tax_class = third_tax_class
-    checkout.shipping_method.save()
+    checkout.assigned_delivery.tax_class_id = third_tax_class.id
+    checkout.assigned_delivery.save()
 
     lines, _ = fetch_checkout_lines(checkout_with_items_and_shipping)
     checkout_info = fetch_checkout_info(
@@ -439,9 +443,10 @@ def test_fetch_checkout_data_flat_rates_and_no_tax_calc_strategy(
         line.variant.product.tax_class.country_rates.update_or_create(
             country=country_code, rate=23
         )
-
-    checkout.shipping_method.tax_class.country_rates.update_or_create(
-        country=country_code, rate=23
+    TaxClassCountryRate.objects.update_or_create(
+        country=country_code,
+        rate=23,
+        tax_class_id=checkout.assigned_delivery.tax_class_id,
     )
 
     # when
@@ -934,7 +939,7 @@ def test_fetch_checkout_data_flat_rates_shipping_tax_differs_from_default(
 
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-def test_external_shipping_method_called_only_once_during_tax_calculations(
+def test_external_shipping_webhook_it_not_called_during_tax_calculations(
     mock_send_webhook_request_sync,
     checkout_with_single_item,
     settings,
@@ -946,41 +951,33 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     external_method_id = "method-1-from-shipping-app"
     shipping_name = "Shipping app method 1"
     shipping_price = Decimal(10)
-    currency = "USD"
-    mock_send_webhook_request_sync.side_effect = (
-        [
-            {
-                "amount": shipping_price,
-                "currency": currency,
-                "id": external_method_id,
-                "name": shipping_name,
-            }
+    mock_send_webhook_request_sync.return_value = {
+        "lines": [
+            {"tax_rate": 0, "total_gross_amount": "21.6", "total_net_amount": 20}
         ],
-        {
-            "lines": [
-                {"tax_rate": 0, "total_gross_amount": "21.6", "total_net_amount": 20}
-            ],
-            "shipping_price_gross_amount": "1443.96",
-            "shipping_price_net_amount": "1337",
-            "shipping_tax_rate": 0,
-        },
-    )
+        "shipping_price_gross_amount": "1443.96",
+        "shipping_price_net_amount": "1337",
+        "shipping_tax_rate": 0,
+    }
+
     external_shipping_method_id = Node.to_global_id(
         "app", f"{shipping_app_with_subscription.id}:{external_method_id}"
-    )
-    external_shipping_method = ShippingMethodData(
-        id=external_shipping_method_id,
-        name=shipping_name,
-        price=Money(shipping_price, currency),
     )
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager(allow_replica=False)
 
-    checkout_with_single_item.shipping_address = address
-    assign_external_shipping_to_checkout(
-        checkout_with_single_item, external_shipping_method
+    checkout_with_single_item.assigned_delivery = CheckoutDelivery.objects.create(
+        checkout=checkout_with_single_item,
+        external_shipping_method_id=external_shipping_method_id,
+        name=shipping_name,
+        price_amount=shipping_price,
+        currency="USD",
+        maximum_delivery_days=7,
     )
+
+    checkout_with_single_item.shipping_address = address
+
     checkout_with_single_item.save()
     checkout_with_single_item.metadata_storage.save()
     checkout_lines, _ = fetch_checkout_lines(checkout_with_single_item)
@@ -1003,7 +1000,7 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     )
 
     # then
-    assert mock_send_webhook_request_sync.call_count == 2
+    assert mock_send_webhook_request_sync.call_count == 1
     assert checkout_with_single_item.shipping_price == TaxedMoney(
         net=Money("1337.00", "USD"), gross=Money("1443.96", "USD")
     )

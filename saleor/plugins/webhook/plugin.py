@@ -3616,7 +3616,10 @@ class WebhookPlugin(BasePlugin):
         )
 
     def get_shipping_methods_for_checkout(
-        self, checkout: "Checkout", previous_value: Any
+        self,
+        checkout: "Checkout",
+        built_in_shipping_methods: list["ShippingMethodData"],
+        previous_value: Any,
     ) -> list["ShippingMethodData"]:
         methods = []
         event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
@@ -3631,7 +3634,7 @@ class WebhookPlugin(BasePlugin):
                     webhook=webhook,
                     cache_data=cache_data,
                     allow_replica=self.allow_replica,
-                    subscribable_object=checkout,
+                    subscribable_object=(checkout, built_in_shipping_methods),
                     request_timeout=WEBHOOK_SYNC_TIMEOUT,
                     cache_timeout=CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
                     requestor=self.requestor,
@@ -3689,7 +3692,7 @@ class WebhookPlugin(BasePlugin):
             event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,
             payload_fun=payload_fun,
-            subscribable_object=order,
+            subscribable_object=(order, available_shipping_methods),
             allow_replica=self.allow_replica,
             requestor=self.requestor,
         )
@@ -3712,7 +3715,7 @@ class WebhookPlugin(BasePlugin):
             event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,
             payload_fun=payload_function,
-            subscribable_object=checkout,
+            subscribable_object=(checkout, available_shipping_methods),
             allow_replica=self.allow_replica,
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )

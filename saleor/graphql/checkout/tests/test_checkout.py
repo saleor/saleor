@@ -3,6 +3,7 @@ import json
 from decimal import Decimal
 from unittest import mock
 
+import freezegun
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
@@ -50,7 +51,6 @@ from ....product.models import (
     ProductVariantChannelListing,
 )
 from ....shipping.models import ShippingMethod, ShippingMethodTranslation
-from ....shipping.utils import convert_to_shipping_method_data
 from ....tests import race_condition
 from ....tests.utils import dummy_editorjs
 from ....warehouse import WarehouseClickAndCollectOption
@@ -59,122 +59,6 @@ from ...core.utils import to_global_id_or_none
 from ...payment.enums import TokenizedPaymentFlowEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
-from ..mutations.utils import (
-    clean_delivery_method,
-    update_checkout_shipping_method_if_invalid,
-)
-
-
-def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
-    checkout_with_single_item, address, shipping_method, other_shipping_method
-):
-    """Ensure the current shipping method applies to new address.
-
-    If it does, then it doesn't need to be changed.
-    """
-
-    checkout = checkout_with_single_item
-    checkout.shipping_address = address
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method = convert_to_shipping_method_data(
-        shipping_method, shipping_method.channel_listings.first()
-    )
-    is_valid_method = clean_delivery_method(checkout_info, delivery_method)
-    assert is_valid_method is True
-
-
-def test_clean_delivery_method_with_preorder_is_valid_for_enabled_warehouse(
-    checkout_with_preorders_only, address, warehouses_for_cc
-):
-    checkout = checkout_with_preorders_only
-    checkout.shipping_address = address
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    is_valid_method = clean_delivery_method(checkout_info, warehouses_for_cc[1])
-
-    assert is_valid_method is True
-
-
-def test_clean_delivery_method_does_nothing_if_no_shipping_method(
-    checkout_with_single_item, address, other_shipping_method
-):
-    """If no shipping method was selected, it shouldn't return an error."""
-
-    checkout = checkout_with_single_item
-    checkout.shipping_address = address
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    is_valid_method = clean_delivery_method(checkout_info, None)
-    assert is_valid_method is True
-
-
-def test_update_checkout_shipping_method_if_invalid(
-    checkout_with_single_item,
-    address,
-    shipping_method,
-    other_shipping_method,
-    shipping_zone_without_countries,
-):
-    # If the shipping method is invalid, it should be removed.
-
-    checkout = checkout_with_single_item
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-
-    shipping_method.shipping_zone = shipping_zone_without_countries
-    shipping_method.save(update_fields=["shipping_zone"])
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    update_checkout_shipping_method_if_invalid(checkout_info, lines)
-
-    assert checkout.shipping_method is None
-    assert checkout_info.get_delivery_method_info().delivery_method is None
-
-    # Ensure the checkout's shipping method was saved
-    checkout.refresh_from_db(fields=["shipping_method"])
-    assert checkout.shipping_method is None
-
-
-def test_update_checkout_shipping_method_if_invalid_no_checkout_metadata(
-    checkout_with_single_item,
-    address,
-    shipping_method,
-    other_shipping_method,
-    shipping_zone_without_countries,
-):
-    # If the shipping method is invalid, it should be removed.
-
-    # given
-    checkout = checkout_with_single_item
-    checkout.metadata_storage.delete()
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-
-    shipping_method.shipping_zone = shipping_zone_without_countries
-    shipping_method.save(update_fields=["shipping_zone"])
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-
-    # when
-    update_checkout_shipping_method_if_invalid(checkout_info, lines)
-
-    # then
-    assert checkout.shipping_method is None
-    assert checkout_info.get_delivery_method_info().delivery_method is None
-
-    # Ensure the checkout's shipping method was saved
-    checkout.refresh_from_db(fields=["shipping_method"])
-    assert checkout.shipping_method is None
 
 
 @pytest.fixture
@@ -336,9 +220,11 @@ query getCheckout($id: ID) {
 
 
 def test_checkout_selected_shipping_method(
-    api_client, checkout_with_item, address, shipping_zone
+    api_client, checkout_with_item, address, shipping_zone, checkout_delivery
 ):
+    # given
     checkout_with_item.shipping_address = address
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
     checkout_with_item.save()
 
     shipping_method = shipping_zone.shipping_methods.first()
@@ -357,8 +243,6 @@ def test_checkout_selected_shipping_method(
     ShippingMethodTranslation.objects.create(
         language_code="pl", shipping_method=shipping_method, name=translated_name
     )
-    checkout_with_item.shipping_method = shipping_method
-    checkout_with_item.save()
 
     # when
     query = GET_CHECKOUT_SELECTED_SHIPPING_METHOD
@@ -367,7 +251,6 @@ def test_checkout_selected_shipping_method(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    shipping_method = shipping_zone.shipping_methods.first()
     # then
     assert data["shippingMethod"]["id"] == (
         graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
@@ -384,10 +267,8 @@ def test_checkout_selected_shipping_method(
         data["shippingMethod"]["maximumDeliveryDays"]
         == shipping_method.maximum_delivery_days
     )
-    assert data["shippingMethod"]["minimumOrderWeight"]["unit"] == "KG"
-    assert data["shippingMethod"]["minimumOrderWeight"]["value"] == min_weight
-    assert data["shippingMethod"]["maximumOrderWeight"]["unit"] == "KG"
-    assert data["shippingMethod"]["maximumOrderWeight"]["value"] == max_weight
+    assert data["shippingMethod"]["minimumOrderWeight"] is None
+    assert data["shippingMethod"]["maximumOrderWeight"] is None
     assert data["shippingMethod"]["metadata"][0]["key"] == metadata_key
     assert data["shippingMethod"]["metadata"][0]["value"] == metadata_value
     assert data["shippingMethod"]["translation"]["name"] == translated_name
@@ -409,22 +290,32 @@ query getCheckout($id: ID) {
 
 
 def test_checkout_selected_shipping_method_as_staff(
-    staff_api_client, checkout_with_item, shipping_zone, permission_manage_shipping
+    staff_api_client,
+    checkout_with_item,
+    shipping_zone,
+    checkout_delivery,
+    permission_manage_shipping,
+    address,
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
-    shipping_method = shipping_zone.shipping_methods.first()
+
+    shipping_method = shipping_zone.shipping_methods.get()
     metadata_key = "md key"
     metadata_value = "md value"
     shipping_method.store_value_in_private_metadata({metadata_key: metadata_value})
     shipping_method.save()
-    checkout_with_item.shipping_method = shipping_method
+
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
+    checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
     # when
     query = GET_CHECKOUT_SELECTED_SHIPPING_METHOD_PRIVATE_FIELDS
     variables = {"id": to_global_id_or_none(checkout_with_item)}
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
@@ -482,19 +373,18 @@ GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS = (
 
 @pytest.mark.parametrize("field", ["availableShippingMethods", "shippingMethods"])
 def test_checkout_available_shipping_methods(
-    api_client, checkout_with_item, address, shipping_zone, field
+    api_client,
+    checkout_with_item,
+    address,
+    shipping_zone,
+    checkout_delivery,
+    field,
 ):
     # given
-    checkout_with_item.shipping_address = address
-    checkout_with_item.save()
     shipping_method = shipping_zone.shipping_methods.first()
-    min_weight = 0
-    shipping_method.minimum_order_weight = Weight(oz=min_weight)
-    max_weight = 10
-    shipping_method.maximum_order_weight = Weight(kg=max_weight)
     metadata_key = "md key"
     metadata_value = "md value"
-    raw_description = "this is descr"
+    raw_description = "Description"
     description = dummy_editorjs(raw_description)
     shipping_method.description = description
     shipping_method.store_value_in_metadata({metadata_key: metadata_value})
@@ -503,6 +393,11 @@ def test_checkout_available_shipping_methods(
     ShippingMethodTranslation.objects.create(
         language_code="pl", shipping_method=shipping_method, name=translated_name
     )
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
+    checkout_with_item.shipping_methods_stale_at = timezone.now()
+    checkout_with_item.save()
 
     # when
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS_TEMPLATE % field
@@ -516,20 +411,14 @@ def test_checkout_available_shipping_methods(
         graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     )
     assert data[field][0]["name"] == shipping_method.name
-    assert data[field][0]["type"] == shipping_method.type.upper()
+    assert data[field][0]["type"] is None
     assert raw_description in data[field][0]["description"]
     assert data[field][0]["active"]
     assert data[field][0]["message"] == ""
-    assert (
-        data[field][0]["minimumDeliveryDays"] == shipping_method.minimum_delivery_days
-    )
-    assert (
-        data[field][0]["maximumDeliveryDays"] == shipping_method.maximum_delivery_days
-    )
-    assert data[field][0]["minimumOrderWeight"]["unit"] == "KG"
-    assert data[field][0]["minimumOrderWeight"]["value"] == min_weight
-    assert data[field][0]["maximumOrderWeight"]["unit"] == "KG"
-    assert data[field][0]["maximumOrderWeight"]["value"] == max_weight
+    assert data[field][0]["minimumDeliveryDays"] is None
+    assert data[field][0]["maximumDeliveryDays"] is None
+    assert data[field][0]["minimumOrderWeight"] is None
+    assert data[field][0]["maximumOrderWeight"] is None
     assert data[field][0]["metadata"][0]["key"] == metadata_key
     assert data[field][0]["metadata"][0]["value"] == metadata_value
     assert data[field][0]["translation"]["name"] == translated_name
@@ -731,7 +620,7 @@ def test_checkout_available_shipping_methods_weight_method_with_higher_minimal_w
     assert shipping_method.name not in shipping_methods
 
 
-def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount(
+def test_checkout_deliveries_with_price_based_shipping_method_and_discount(
     api_client,
     checkout_with_item,
     address,
@@ -771,7 +660,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount
     assert shipping_method.name not in shipping_methods
 
 
-def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discount(
+def test_checkout_deliveries_with_price_based_shipping_and_shipping_discount(
     api_client,
     checkout_with_item,
     address,
@@ -816,7 +705,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discou
     assert shipping_method.name in shipping_methods
 
 
-def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
+def test_checkout_deliveries_with_price_based_method_and_product_voucher(
     api_client, checkout_with_item, address, shipping_method, voucher, channel_USD
 ):
     """Test that product discounts properly qualify checkout for price-based shipping."""
@@ -934,6 +823,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     listing.maximum_order_price = expected_max_order_price
     listing.save()
     checkout_with_item.shipping_address = address
+
     checkout_with_item.save()
     translated_name = "Dostawa ekspresowa"
     ShippingMethodTranslation.objects.create(
@@ -952,14 +842,6 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     assert (
         data["availableShippingMethods"][0]["price"]["amount"]
         == expected_shipping_price.amount
-    )
-    assert (
-        data["availableShippingMethods"][0]["minimumOrderPrice"]["amount"]
-        == expected_min_order_price.amount
-    )
-    assert (
-        data["availableShippingMethods"][0]["maximumOrderPrice"]["amount"]
-        == expected_max_order_price.amount
     )
     assert data["availableShippingMethods"][0]["translation"]["name"] == translated_name
 
@@ -4255,10 +4137,16 @@ def test_query_checkout_lines_with_meta(
     assert lines == expected_lines
 
 
-def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_method):
+def test_clean_checkout(
+    checkout_with_item,
+    payment_dummy,
+    address,
+    shipping_method,
+    checkout_delivery,
+):
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.save()
 
@@ -4300,9 +4188,11 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
     assert e.value.error_dict["shipping_method"][0].message == msg
 
 
-def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method):
+def test_clean_checkout_no_shipping_address(
+    checkout_with_item, shipping_method, checkout_delivery
+):
     checkout = checkout_with_item
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.save()
 
     manager = get_plugins_manager(allow_replica=False)
@@ -4315,13 +4205,18 @@ def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method)
 
 
 def test_clean_checkout_invalid_shipping_method(
-    checkout_with_item, address, shipping_zone_without_countries
+    checkout_with_item,
+    address,
+    shipping_zone_without_countries,
+    checkout_delivery,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
     shipping_method = shipping_zone_without_countries.shipping_methods.first()
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.save()
+    checkout.assigned_delivery.is_valid = False
+    checkout.assigned_delivery.save(update_fields=["is_valid"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -5005,3 +4900,303 @@ def test_query_checkout_email_with_explicit_email_for_authenticated_user(
     content = get_graphql_content(response)
     # Return the email explicitly assigned to the user
     assert content["data"]["checkout"]["email"] == expected_email
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_delivery_method_invalidates_taxes_when_delivery_price_is_changed(
+    user_api_client, checkout_with_item, checkout_delivery, shipping_method, address
+):
+    # This test confirms that any change in the price of assigned delivery method
+    # will invalidate checkout prices and taxes even when shipping method is not changed.
+    # This confirms that the `deliveryMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+
+    checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.save()
+
+    current_checkout_delivery_price = checkout.assigned_delivery.price_amount
+
+    # Change shipping method price
+    shipping_method.channel_listings.all().update(
+        price_amount=current_checkout_delivery_price + 10
+    )
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            deliveryMethod {
+                ... on ShippingMethod{
+                  id
+                }
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now()
+    assert content["data"]["checkout"]["deliveryMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_delivery_method_invalidates_taxes_when_delivery_tax_class_is_changed(
+    user_api_client,
+    checkout_with_item,
+    checkout_delivery,
+    shipping_method,
+    address,
+    tax_class_zero_rates,
+):
+    # This test confirms that any change in the tax class of assigned delivery method
+    # will invalidate checkout prices and taxes even when shipping method is not changed.
+    # This confirms that the `deliveryMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.save()
+
+    # Change tax class of shipping
+    assert shipping_method.tax_class != tax_class_zero_rates
+    shipping_method.tax_class = tax_class_zero_rates
+    shipping_method.save(update_fields=["tax_class"])
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            deliveryMethod {
+                ... on ShippingMethod{
+                  id
+                }
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now()
+    assert content["data"]["checkout"]["deliveryMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_delivery_method_dont_invalidate_taxes_when_nothing_changed(
+    user_api_client,
+    checkout_with_item,
+    checkout_delivery,
+    shipping_method,
+    address,
+):
+    # This test confirms that no change in the assigned delivery method
+    # will not trigger invalidation of checkout prices and taxes.
+    # This confirms that the `deliveryMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    expected_price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.price_expiration = expected_price_expiration
+    checkout.save()
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            deliveryMethod {
+                ... on ShippingMethod{
+                  id
+                }
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == expected_price_expiration
+    assert content["data"]["checkout"]["deliveryMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_shipping_method_invalidates_taxes_when_shipping_price_is_changed(
+    user_api_client, checkout_with_item, checkout_delivery, shipping_method, address
+):
+    # This test confirms that any change in the price of assigned delivery method
+    # will invalidate checkout prices and taxes even when shipping method is not changed.
+    # This confirms that the `shippingMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+
+    checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.save()
+
+    current_checkout_delivery_price = checkout.assigned_delivery.price_amount
+
+    # Change shipping method price
+    shipping_method.channel_listings.all().update(
+        price_amount=current_checkout_delivery_price + 10
+    )
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            shippingMethod {
+                id
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now()
+    assert content["data"]["checkout"]["shippingMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_shipping_method_invalidates_taxes_when_shipping_tax_class_is_changed(
+    user_api_client,
+    checkout_with_item,
+    checkout_delivery,
+    shipping_method,
+    address,
+    tax_class_zero_rates,
+):
+    # This test confirms that any change in the tax class of assigned delivery method
+    # will invalidate checkout prices and taxes even when shipping method is not changed.
+    # This confirms that the `shippingMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.save()
+
+    # Change tax class of shipping
+    assert shipping_method.tax_class != tax_class_zero_rates
+    shipping_method.tax_class = tax_class_zero_rates
+    shipping_method.save(update_fields=["tax_class"])
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            shippingMethod {
+                id
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == timezone.now()
+    assert content["data"]["checkout"]["shippingMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+
+
+@freezegun.freeze_time("2023-01-01 12:00:00")
+def test_query_checkout_shipping_method_dont_invalidate_taxes_when_nothing_changed(
+    user_api_client,
+    checkout_with_item,
+    checkout_delivery,
+    shipping_method,
+    address,
+):
+    # This test confirms that no change in the assigned delivery method
+    # will not trigger invalidation of checkout prices and taxes.
+    # This confirms that the `shippingMethod` field behaves the same way as before
+    # denormalizing deliveries on DB side.
+
+    # given
+    expected_price_expiration = timezone.now() + datetime.timedelta(minutes=5)
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.price_expiration = expected_price_expiration
+    checkout.save()
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            shippingMethod {
+                id
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == expected_price_expiration
+    assert content["data"]["checkout"]["shippingMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )

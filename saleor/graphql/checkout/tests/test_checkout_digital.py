@@ -4,7 +4,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....plugins.manager import get_plugins_manager
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
-from ..mutations.utils import update_checkout_shipping_method_if_invalid
+from ..mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 
 def test_checkout_has_no_available_shipping_methods(
@@ -39,19 +39,19 @@ def test_checkout_has_no_available_shipping_methods(
     assert len(data["availableShippingMethods"]) == 0
 
 
-def test_remove_shipping_method_if_only_digital_in_checkout(
-    checkout_with_digital_item, address, shipping_method
+def test_do_not_remove_shipping_method_if_only_digital_in_checkout(
+    checkout_with_digital_item, address, checkout_delivery
 ):
     checkout = checkout_with_digital_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save()
 
-    assert checkout.shipping_method
+    assert checkout.assigned_delivery
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    update_checkout_shipping_method_if_invalid(checkout_info, lines)
+    mark_checkout_deliveries_as_stale_if_needed(checkout_info.checkout, lines)
 
     checkout.refresh_from_db()
-    assert not checkout.shipping_method
+    assert checkout.assigned_delivery
