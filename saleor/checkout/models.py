@@ -240,6 +240,14 @@ class Checkout(models.Model):
         return iter(self.lines.all())
 
     def safe_update(self, update_fields: list[str]) -> None:
+        """Safely update the checkout instance.
+
+        This method locks the checkout row in the database to prevent concurrent updates.
+        In case the checkout does not exist, it raises a CheckoutDoesNotExist exception.
+
+        It prevents the DatabaseError that occurs in case save with update_fields is
+        called on a deleted checkout instance.
+        """
         with transaction.atomic():
             checkout = (
                 Checkout.objects.select_for_update()
@@ -248,7 +256,9 @@ class Checkout(models.Model):
                 .first()
             )
             if not checkout:
-                return
+                raise Checkout.DoesNotExist(
+                    "Checkout does not exist. Unable to update."
+                )
             self.save(update_fields=update_fields)
 
     def get_customer_email(self) -> str | None:
