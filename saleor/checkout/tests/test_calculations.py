@@ -1,7 +1,7 @@
+import datetime
 from decimal import Decimal
 from typing import Literal, Union
 from unittest.mock import Mock, patch
-import datetime
 
 import before_after
 import pytest
