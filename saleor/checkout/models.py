@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
@@ -238,6 +238,18 @@ class Checkout(models.Model):
 
     def __iter__(self):
         return iter(self.lines.all())
+
+    def safe_update(self, update_fields: list[str]) -> None:
+        with transaction.atomic():
+            checkout = (
+                Checkout.objects.select_for_update()
+                .filter(pk=self.pk)
+                .only("pk")
+                .first()
+            )
+            if not checkout:
+                return
+            self.save(update_fields=update_fields)
 
     def get_customer_email(self) -> str | None:
         if self.email:
