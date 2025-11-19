@@ -248,18 +248,21 @@ class Checkout(models.Model):
         It prevents the DatabaseError that occurs in case save with update_fields is
         called on a deleted checkout instance.
         """
-        with transaction.atomic():
-            checkout = (
-                Checkout.objects.select_for_update()
-                .filter(pk=self.pk)
-                .only("pk")
-                .first()
-            )
-            if not checkout:
-                raise Checkout.DoesNotExist(
-                    "Checkout does not exist. Unable to update."
+        from ..core.db.connection import allow_writer
+
+        with allow_writer():
+            with transaction.atomic():
+                checkout = (
+                    Checkout.objects.select_for_update()
+                    .filter(pk=self.pk)
+                    .only("pk")
+                    .first()
                 )
-            self.save(update_fields=update_fields)
+                if not checkout:
+                    raise Checkout.DoesNotExist(
+                        "Checkout does not exist. Unable to update."
+                    )
+                self.save(update_fields=update_fields)
 
     def get_customer_email(self) -> str | None:
         if self.email:
