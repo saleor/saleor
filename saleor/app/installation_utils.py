@@ -269,8 +269,9 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             url=extension_data.get("url"),
             mount=extension_data.get("mount"),
             target=extension_data.get("target", AppExtensionTarget.POPUP),
-            http_target_method=http_target_method,
             settings=extension_data.get("options"),
+            # TODO Drop in 3.23
+            http_target_method=http_target_method,
         )
         extension.permissions.set(extension_data.get("permissions", []))
 
