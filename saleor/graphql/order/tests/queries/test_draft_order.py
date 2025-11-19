@@ -508,3 +508,85 @@ def test_draft_orders_query_with_search(
     # then
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == count
+
+
+DRAFT_ORDER_QUERY_WITH_SHIPPING_METHOD_METADATA = """
+    query DraftOrdersQuery {
+        draftOrders(first: 1) {
+            edges {
+                node {
+                    id
+                    shippingMethod {
+                        id
+                        name
+                        metadata {
+                            key
+                            value
+                        }
+                    }
+                    deliveryMethod {
+                        ... on ShippingMethod {
+                            id
+                            name
+                            metadata {
+                                key
+                                value
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_draft_order_build_in_shipping_method_metadata(
+    staff_api_client,
+    permission_group_manage_orders,
+    order,
+    shipping_method,
+):
+    # given
+    expected_metadata_key = "AnyKey"
+    expected_metadata_value = "AnyValue"
+    expected_shipping_metadata = {
+        expected_metadata_key: expected_metadata_value,
+    }
+    shipping_method.metadata = expected_shipping_metadata
+    shipping_method.save()
+
+    order.status = OrderStatus.DRAFT
+    order.shipping_method = shipping_method
+    order.shipping_method_metadata = {
+        "InvalidKeyForDraftOrder": "InvalidValueForDraftOrder"
+    }
+    order.save()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_QUERY_WITH_SHIPPING_METHOD_METADATA,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    draft_order_data = content["data"]["draftOrders"]["edges"][0]["node"]
+    assert draft_order_data["shippingMethod"]["name"] == shipping_method.name
+    assert (
+        draft_order_data["shippingMethod"]["metadata"][0]["key"]
+        == expected_metadata_key
+    )
+    assert (
+        draft_order_data["shippingMethod"]["metadata"][0]["value"]
+        == expected_metadata_value
+    )
+    assert draft_order_data["deliveryMethod"]["name"] == shipping_method.name
+    assert (
+        draft_order_data["deliveryMethod"]["metadata"][0]["key"]
+        == expected_metadata_key
+    )
+    assert (
+        draft_order_data["deliveryMethod"]["metadata"][0]["value"]
+        == expected_metadata_value
+    )

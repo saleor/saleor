@@ -158,6 +158,16 @@ class DraftOrderComplete(BaseMutation):
                     ]
                 )
 
+            if shipping_method := order.shipping_method:
+                # Denormalize shipping method metadata into order
+                order.shipping_method_metadata = shipping_method.metadata
+                order.shipping_method_private_metadata = (
+                    shipping_method.private_metadata
+                )
+                update_fields.extend(
+                    ["shipping_method_metadata", "shipping_method_private_metadata"]
+                )
+
             order.search_vector = FlatConcatSearchVector(
                 *prepare_order_search_vector_value(order)
             )

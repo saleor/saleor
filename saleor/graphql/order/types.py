@@ -2618,9 +2618,27 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 listing, tax_class = data
                 if not listing:
                     return None
-                return convert_to_shipping_method_data(
-                    shipping_method, listing, tax_class
+                shipping_method_data = convert_to_shipping_method_data(
+                    shipping_method,
+                    listing,
+                    tax_class,
                 )
+                if order.status == OrderStatus.DRAFT:
+                    # For draft orders, we always use the metadata stored on the order itself.
+                    return shipping_method_data
+
+                # TODO (ENG-1053): Remove this fallback logic after migration period.
+                # When shipping_method_metadata is None, we fall back to the shipping method's
+                # metadata from the assigned shipping method for backward compatibility reasons.
+                # This ensures that orders created before the metadata was stored directly on
+                # the order will still have access to the shipping method's metadata.
+                if order.shipping_method_metadata is not None:
+                    shipping_method_data.metadata = order.shipping_method_metadata
+                if order.shipping_method_private_metadata is not None:
+                    shipping_method_data.private_metadata = (
+                        order.shipping_method_private_metadata
+                    )
+                return shipping_method_data
 
             return Promise.all([listing, tax_class]).then(calculate_price)
 
