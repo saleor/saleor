@@ -1,8 +1,10 @@
+from decimal import Decimal
 from typing import Annotated
 from uuid import uuid4
 
 import pydantic
-from django.db.models import Q
+from django.db import transaction
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ..checkout.models import Checkout
@@ -36,6 +38,9 @@ def transaction_initialize_session_with_gift_card_payment_method(
     transaction_session_data: "TransactionSessionData",
     source_object: Checkout | Order,
 ) -> tuple["TransactionSessionResult", GiftCard | None]:
+    transaction_session_data.transaction.app_identifier = GIFT_CARD_PAYMENT_GATEWAY_ID
+    transaction_session_data.transaction.save(update_fields=["app_identifier"])
+
     transaction_session_result = TransactionSessionResult(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         response={
@@ -86,6 +91,9 @@ def transaction_initialize_session_with_gift_card_payment_method(
 
     transaction_session_result.response["result"] = (  # type: ignore[index]
         TransactionEventType.AUTHORIZATION_SUCCESS.upper()
+    )
+    transaction_session_result.response["message"] = (  # type: ignore[index]
+        f"Gift card (ending: {gift_card.display_code})."
     )
 
     return transaction_session_result, gift_card
@@ -152,3 +160,74 @@ def detach_gift_card_from_previous_checkout_transactions(
         )
 
     transactions_to_cancel_qs.update(gift_card=None)
+
+
+def charge_gift_card_transactions(
+    order: "Order",
+):
+    # Order object may already have prefetched related objects.
+    # Prefetched payment transactions cause logic called a few layers beneath to operate on outdated
+    # order transactions therfore here the cache is dropped.
+    if hasattr(order, "_prefetched_objects_cache"):
+        order._prefetched_objects_cache.pop("payment_transactions", None)
+
+    # Ensure that gift card transaction is not attempted to be charged more than once.
+    gift_card_transactions = order.payment_transactions.filter(
+        ~Exists(
+            TransactionEvent.objects.filter(
+                transaction=OuterRef("pk"), type=TransactionEventType.CHARGE_REQUEST
+            )
+        ),
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        gift_card__isnull=False,
+        authorized_value__gt=Decimal(0),
+        charged_value=Decimal(0),
+    )
+
+    for gift_card_transaction in gift_card_transactions:
+        with transaction.atomic():
+            gift_card = (
+                GiftCard.objects.filter(id=gift_card_transaction.gift_card_id)  # type: ignore[misc]
+                .select_for_update()
+                .get()
+            )
+            transaction_event, _ = TransactionEvent.objects.get_or_create(
+                app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+                transaction=gift_card_transaction,
+                type=TransactionEventType.CHARGE_REQUEST,
+                currency=gift_card_transaction.currency,
+                amount_value=gift_card_transaction.amount_authorized.amount,
+                defaults={
+                    "include_in_calculations": False,
+                    "currency": gift_card_transaction.currency,
+                    "amount_value": gift_card_transaction.amount_authorized.amount,
+                },
+            )
+
+            response = {
+                "result": TransactionEventType.CHARGE_FAILURE.upper(),
+                "pspReference": gift_card_transaction.psp_reference,
+                "amount": gift_card_transaction.amount_authorized.amount,
+            }
+
+            if (
+                gift_card_transaction.authorized_value
+                > gift_card.current_balance_amount
+            ):
+                response["message"] = (
+                    f"Gift card has insufficient amount ({quantize_price(gift_card.current_balance_amount, gift_card.currency)}) "
+                    f"to cover requested amount ({quantize_price(gift_card_transaction.authorized_value, gift_card_transaction.currency)})."
+                )
+            else:
+                gift_card.current_balance_amount -= (
+                    gift_card_transaction.authorized_value
+                )
+                gift_card.save(update_fields=["current_balance_amount"])
+                response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+                response["message"] = f"Gift card (ending: {gift_card.display_code})."
+
+            create_transaction_event_from_request_and_webhook_response(
+                transaction_event,
+                None,
+                transaction_webhook_response=response,
+            )
