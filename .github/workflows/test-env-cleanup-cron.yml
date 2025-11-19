@@ -39,7 +39,7 @@ jobs:
               .map(pr => pr.head.ref);
 
             // Deduplicate (in case there are multiple PRs with the same source branch) and then slugify the branch names
-            // using the same logic as https://github.com/marketplace/actions/github-slug-action#overview (this GHA is used 
+            // using the same logic as https://github.com/marketplace/actions/github-slug-action#overview (this GHA is used
             // to slugify branch names in the https://github.com/saleor/saleor/actions/workflows/test-env-deploy.yml workflow,
             // which this workflow cleans up after).
             return [...new Set(branches)].map(ref =>
