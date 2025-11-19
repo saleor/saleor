@@ -280,3 +280,89 @@ def test_automatic_completion_schedule_are_dirty(checkout_with_prices, channel_U
     # then
     assert is_due is True
     assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_automatic_completion_schedule_are_dirty_checkout_too_old(
+    checkout_with_prices, channel_USD, settings
+):
+    # given
+    schedule = checkout_automatic_completion_schedule()
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(days=60),
+    )
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_automatic_completion_schedule_are_dirty_checkout_not_in_cut_off_date(
+    checkout_with_prices, channel_USD
+):
+    # given
+    schedule = checkout_automatic_completion_schedule()
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.automatic_completion_cut_off_date = timezone.now() + datetime.timedelta(
+        days=1
+    )
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+            "automatic_completion_cut_off_date",
+        ]
+    )
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
+    )
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_automatic_completion_schedule_are_dirty_checkout_in_cut_off_date(
+    checkout_with_prices, channel_USD
+):
+    # given
+    schedule = checkout_automatic_completion_schedule()
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.automatic_completion_cut_off_date = timezone.now() - datetime.timedelta(
+        days=1
+    )
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+            "automatic_completion_cut_off_date",
+        ]
+    )
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
+    )
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is True
+    assert next_run == schedule.initial_timedelta.total_seconds()

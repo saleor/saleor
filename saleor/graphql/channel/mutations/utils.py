@@ -120,22 +120,6 @@ def clean_input_checkout_settings(
             "use_legacy_error_flow"
         ]
 
-    if "automatically_complete_fully_paid_checkouts" in checkout_settings:
-        automatically_complete = checkout_settings[
-            "automatically_complete_fully_paid_checkouts"
-        ]
-        cleaned_input["automatically_complete_fully_paid_checkouts"] = (
-            automatically_complete
-        )
-        cleaned_input["automatic_completion_delay"] = (
-            settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY
-            if automatically_complete is True
-            else None
-        )
-        cleaned_input["automatic_completion_cut_off_date"] = (
-            timezone.now() if automatically_complete else None
-        )
-
 
 def clean_automatic_completion(checkout_settings: dict, cleaned_input: dict):
     # Validate that both old and new fields aren't provided together
@@ -162,6 +146,22 @@ def clean_automatic_completion(checkout_settings: dict, cleaned_input: dict):
         cleaned_input["automatically_complete_fully_paid_checkouts"] = enabled
         clean_automatic_completion_delay(delay, enabled, cleaned_input)
         clean_automatic_completion_cut_off_date(cut_off_date, enabled, cleaned_input)
+    # Handle deprecated field for backward compatibility
+    elif "automatically_complete_fully_paid_checkouts" in checkout_settings:
+        automatically_complete = checkout_settings[
+            "automatically_complete_fully_paid_checkouts"
+        ]
+        cleaned_input["automatically_complete_fully_paid_checkouts"] = (
+            automatically_complete
+        )
+        cleaned_input["automatic_completion_delay"] = (
+            settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY
+            if automatically_complete is True
+            else None
+        )
+        cleaned_input["automatic_completion_cut_off_date"] = (
+            timezone.now() if automatically_complete else None
+        )
 
 
 def clean_automatic_completion_delay(
