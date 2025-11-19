@@ -3871,16 +3871,18 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
     order = order_with_lines
     manager = get_plugins_manager(False)
 
+    gift_card_created_by_staff.current_balance_amount = Decimal(100)
+    gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
+
     transaction = transaction_item_generator(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         order_id=order.pk,
         gift_card=gift_card_created_by_staff,
-        authorized_value=Decimal(10),
+        authorized_value=order.total_gross_amount,
     )
 
-    assert transaction.authorized_value == Decimal(10)
+    assert transaction.authorized_value == order.total_gross_amount
     assert transaction.charged_value == Decimal(0)
-    assert gift_card_created_by_staff.current_balance_amount == Decimal(10)
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
@@ -3889,16 +3891,25 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
     # then
     transaction.refresh_from_db()
     gift_card_created_by_staff.refresh_from_db()
+    order.refresh_from_db()
 
     assert transaction.authorized_value == Decimal(0)
-    assert transaction.charged_value == Decimal(10)
-    assert gift_card_created_by_staff.current_balance_amount == Decimal(0)
+    assert transaction.charged_value == order.total_gross_amount
+    assert (
+        gift_card_created_by_staff.current_balance_amount
+        == Decimal(100) - order.total_gross_amount
+    )
 
     transaction.events.get(type=TransactionEventType.CHARGE_REQUEST)
     charge_success_event = transaction.events.get(
         type=TransactionEventType.CHARGE_SUCCESS
     )
     assert charge_success_event.message == "Gift card (ending: taff)."
+
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
+    assert order.charge_status == OrderChargeStatus.FULL
+    assert order.total_authorized_amount == Decimal(0)
+    assert order.total_charged_amount == order.total_gross_amount
 
 
 def test_order_confirmed_checks_gift_card_funds_amount_when_charging_funds_authorized_from_gift_card(
@@ -3932,6 +3943,7 @@ def test_order_confirmed_checks_gift_card_funds_amount_when_charging_funds_autho
     # then
     transaction.refresh_from_db()
     gift_card_created_by_staff.refresh_from_db()
+    order.refresh_from_db()
 
     assert transaction.authorized_value == Decimal(10)
     assert transaction.charged_value == Decimal(0)
@@ -3945,6 +3957,11 @@ def test_order_confirmed_checks_gift_card_funds_amount_when_charging_funds_autho
         charge_success_event.message
         == "Gift card has insufficient amount (5.00) to cover requested amount (10.00)."
     )
+
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert order.charge_status == OrderChargeStatus.NONE
+    assert order.total_authorized_amount == Decimal(10)
+    assert order.total_charged_amount == Decimal(0)
 
 
 def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_once(
@@ -3970,6 +3987,7 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
 
     transaction.refresh_from_db()
     gift_card_created_by_staff.refresh_from_db()
+    order.refresh_from_db()
 
     assert transaction.authorized_value == Decimal(0)
     assert transaction.charged_value == Decimal(10)
@@ -3981,6 +3999,11 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
     assert (
         transaction.events.filter(type=TransactionEventType.CHARGE_SUCCESS).count() == 1
     )
+
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert order.charge_status == OrderChargeStatus.PARTIAL
+    assert order.total_authorized_amount == Decimal(0)
+    assert order.total_charged_amount == Decimal(10)
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
@@ -3989,6 +4012,7 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
     # then
     transaction.refresh_from_db()
     gift_card_created_by_staff.refresh_from_db()
+    order.refresh_from_db()
 
     assert transaction.authorized_value == Decimal(0)
     assert transaction.charged_value == Decimal(10)
@@ -4000,3 +4024,8 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
     assert (
         transaction.events.filter(type=TransactionEventType.CHARGE_SUCCESS).count() == 1
     )
+
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert order.charge_status == OrderChargeStatus.PARTIAL
+    assert order.total_authorized_amount == Decimal(0)
+    assert order.total_charged_amount == Decimal(10)
