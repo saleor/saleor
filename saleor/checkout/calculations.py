@@ -449,7 +449,7 @@ def _fetch_checkout_prices_if_expired(
             try:
                 locked_checkout = (
                     checkout_qs_select_for_update()
-                    .only("last_change")
+                    .only("last_price_recalculation")
                     .get(token=checkout.token)
                 )
             except Checkout.DoesNotExist:
@@ -460,7 +460,10 @@ def _fetch_checkout_prices_if_expired(
             # If so, we should skip saving. The same applies if the checkout has been removed. This is important
             # to avoid overwriting changes made by the other requests. Skipping the save function does not affect
             # the query response because it returns the adjusted checkout and line info objects.
-            if checkout.last_change == locked_checkout.last_change:
+            if (
+                checkout.last_price_recalculation
+                == locked_checkout.last_price_recalculation
+            ):
                 checkout_update_fields = [
                     "voucher_code",
                     "total_net_amount",
@@ -475,7 +478,7 @@ def _fetch_checkout_prices_if_expired(
                     "discount_amount",
                     "discount_name",
                     "currency",
-                    "last_change",
+                    "last_price_recalculation",
                     "price_expiration",
                     "discount_expiration",
                     "tax_error",
