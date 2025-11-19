@@ -1885,20 +1885,12 @@ def handle_transaction_initialize_session(
 
     if payment_gateway_data.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
         from ..giftcard.gateway import (
-            attach_gift_card_to_transaction,
-            detach_gift_card_from_previous_checkout_transactions,
             transaction_initialize_session_with_gift_card_payment_method,
         )
 
         with transaction.atomic():
-            result, gift_card = (
-                transaction_initialize_session_with_gift_card_payment_method(
-                    session_data, source_object
-                )
-            )
-            attach_gift_card_to_transaction(session_data, gift_card)
-            detach_gift_card_from_previous_checkout_transactions(
-                session_data, gift_card
+            result = transaction_initialize_session_with_gift_card_payment_method(
+                session_data, source_object
             )
     else:
         result = manager.transaction_initialize_session(session_data)
