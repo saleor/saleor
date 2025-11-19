@@ -205,18 +205,26 @@ class checkout_automatic_completion_schedule(TimeBaseSchedule):
         channels = Channel.objects.filter(
             automatically_complete_fully_paid_checkouts=True
         )
+        now = timezone.now()
+        oldest_allowed_checkout = (
+            now - settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED
+        )
         for channel in channels:
             # calculate threshold time for automatic completion for given channel
             delay_minutes = channel.automatic_completion_delay or 0
-            threshold_time = timezone.now() - datetime.timedelta(
-                minutes=float(delay_minutes)
-            )
+            threshold_time = now - datetime.timedelta(minutes=float(delay_minutes))
+            filter_kwargs = {
+                "authorize_status": CheckoutAuthorizeStatus.FULL,
+                "last_change__gte": oldest_allowed_checkout,
+                "channel_id": channel.pk,
+                "last_change__lt": threshold_time,
+            }
+            if cut_off_date := channel.automatic_completion_cut_off_date:
+                filter_kwargs["created_at__gte"] = cut_off_date
             if (
                 Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
                 .filter(
-                    authorize_status=CheckoutAuthorizeStatus.FULL,
-                    channel_id=channel.pk,
-                    last_change__lt=threshold_time,
+                    **filter_kwargs,
                 )
                 .exists()
             ):
