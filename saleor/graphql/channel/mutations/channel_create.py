@@ -81,6 +81,16 @@ class CheckoutAutoCompleteInput(BaseInputObjectType):
             "eligible for automatic completion."
         ),
     )
+    cut_off_date = DateTime(
+        required=False,
+        description=(
+            "Specifies the earliest date on which fully paid checkouts can begin "
+            "to be automatically completed. Fully paid checkouts dated before this "
+            "cut-off will not be automatically completed. Must be less than the "
+            "threshold of the oldest modified checkout eligible for automatic "
+            "completion. Default is current date time."
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT

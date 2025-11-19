@@ -54,6 +54,8 @@ class Channel(ModelWithMetadata):
     automatic_completion_delay = models.IntegerField(
         null=True, blank=True, default=None
     )
+    # define the cut-off date for automatic completion of fully paid checkouts
+    automatic_completion_cut_off_date = models.DateTimeField(null=True, blank=True)
 
     # time in hours after which the draft order line price will be refreshed
     draft_order_line_price_freeze_period = models.PositiveIntegerField(

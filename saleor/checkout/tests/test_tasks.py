@@ -1125,3 +1125,58 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
     assert checkout_usd.pk in called_checkouts
     assert checkout_pln.pk in called_checkouts
     assert checkout_pln_not_ready.pk not in called_checkouts
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
+    mocked_automatic_checkout_completion,
+    checkouts_list,
+    channel_USD,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.automatic_completion_cut_off_date = timezone.now() - datetime.timedelta(
+        days=10
+    )
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+            "automatic_completion_cut_off_date",
+        ]
+    )
+
+    eligible_checkout = checkouts_list[0]
+    eligible_checkout.channel = channel_USD
+    eligible_checkout.authorize_status = CheckoutAuthorizeStatus.FULL
+    eligible_checkout.last_change = timezone.now() - datetime.timedelta(minutes=15)
+    eligible_checkout.created_at = timezone.now() - datetime.timedelta(days=5)
+
+    ineligible_checkout_due_to_cut_off = checkouts_list[1]
+    ineligible_checkout_due_to_cut_off.channel = channel_USD
+    ineligible_checkout_due_to_cut_off.authorize_status = CheckoutAuthorizeStatus.FULL
+    ineligible_checkout_due_to_cut_off.last_change = (
+        timezone.now() - datetime.timedelta(minutes=15)
+    )
+    ineligible_checkout_due_to_cut_off.created_at = timezone.now() - datetime.timedelta(
+        days=15
+    )
+
+    Checkout.objects.bulk_update(
+        [eligible_checkout, ineligible_checkout_due_to_cut_off],
+        ["channel", "authorize_status", "last_change", "created_at"],
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert mocked_automatic_checkout_completion.call_count == 1
+    called_checkouts = [
+        call.kwargs["args"][0]
+        for call in mocked_automatic_checkout_completion.call_args_list
+    ]
+    assert eligible_checkout.pk in called_checkouts
+    assert ineligible_checkout_due_to_cut_off.pk not in called_checkouts

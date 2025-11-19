@@ -100,6 +100,14 @@ class CheckoutSettings(ObjectType):
         )
         + ADDED_IN_322,
     )
+    automatic_completion_cut_off_date = DateTime(
+        required=False,
+        description=(
+            "The date time defines the earliest checkout creation date on which "
+            "fully paid checkouts can begin to be automatically completed. "
+        )
+        + ADDED_IN_322,
+    )
 
     class Meta:
         description = "Represents the channel-specific checkout settings."
@@ -520,6 +528,7 @@ class Channel(ModelObjectType):
             use_legacy_error_flow=root.use_legacy_error_flow_for_checkout,
             automatically_complete_fully_paid_checkouts=complete_paid_checkouts,
             automatic_completion_delay=root.automatic_completion_delay,
+            automatic_completion_cut_off_date=root.automatic_completion_cut_off_date,
         )
 
     @staticmethod

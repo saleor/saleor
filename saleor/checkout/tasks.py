@@ -163,10 +163,13 @@ def trigger_automatic_checkout_completion_task():
             # calculate threshold time for automatic completion for given channel
             delay_minutes = channel.automatic_completion_delay or 0
             threshold_time = now - datetime.timedelta(minutes=float(delay_minutes))
-            lookup |= Q(
-                channel_id=channel.pk,
-                last_change__lt=threshold_time,
-            )
+            kwargs = {
+                "channel_id": channel.pk,
+                "last_change__lt": threshold_time,
+            }
+            if cut_off_date := channel.automatic_completion_cut_off_date:
+                kwargs["created_at__gte"] = cut_off_date
+            lookup |= Q(**kwargs)
 
         checkouts = (
             Checkout.objects.filter(authorize_status=CheckoutAuthorizeStatus.FULL)
