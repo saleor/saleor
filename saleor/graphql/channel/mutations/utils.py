@@ -130,8 +130,8 @@ def clean_automatic_completion(checkout_settings: dict, cleaned_input: dict):
         raise ValidationError(
             {
                 "automatically_complete_fully_paid_checkouts": ValidationError(
-                    "Cannot provide both 'automatically_complete_fully_paid_checkouts' "
-                    "and 'automatic_completion'. Use 'automatic_completion' instead.",
+                    "Cannot provide both 'automaticallyCompleteFullyPaidCheckouts' "
+                    "and 'automaticCompletion'. Use 'automaticCompletion' instead.",
                     code=ChannelErrorCode.INVALID.value,
                 )
             }
