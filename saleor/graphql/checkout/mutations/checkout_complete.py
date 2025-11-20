@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....checkout import AddressType
+from ....checkout import AddressType, models
 from ....checkout.checkout_cleaner import (
     clean_checkout_shipping,
     validate_checkout_email,
@@ -312,7 +312,26 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             )
         checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-        cls.validate_checkout_addresses(checkout_info, lines)
+        try:
+            cls.validate_checkout_addresses(checkout_info, lines)
+        except models.Checkout.DoesNotExist as e:
+            order = order_models.Order.objects.get_by_checkout_token(
+                checkout_info.checkout.token
+            )
+            if order:
+                return CheckoutComplete(
+                    order=SyncWebhookControlContext(order),
+                    confirmation_needed=False,
+                    confirmation_data={},
+                )
+            raise ValidationError(
+                {
+                    "checkout": ValidationError(
+                        "Checkout does not exist anymore.",
+                        code=CheckoutErrorCode.NOT_FOUND.value,
+                    )
+                }
+            ) from e
 
         requestor = get_user_or_app_from_context(info.context)
         if requestor and requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
