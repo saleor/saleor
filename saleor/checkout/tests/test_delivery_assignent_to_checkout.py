@@ -48,7 +48,7 @@ def test_remove_delivery_method_from_checkout_with_external_shipping(
     expected_updated_fields = {
         "shipping_method_name",
         "external_shipping_method_id",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
     # when
     updated_fields = remove_delivery_method_from_checkout(checkout_with_item)
@@ -57,7 +57,7 @@ def test_remove_delivery_method_from_checkout_with_external_shipping(
     assert expected_updated_fields == set(updated_fields)
     assert checkout_with_item.external_shipping_method_id is None
     assert checkout_with_item.shipping_method_name is None
-    assert checkout_with_item.shipping_methods_stale_at is None
+    assert checkout_with_item.delivery_methods_stale_at is None
 
 
 def test_remove_delivery_method_from_checkout_with_built_in_shipping(
@@ -70,7 +70,7 @@ def test_remove_delivery_method_from_checkout_with_built_in_shipping(
     expected_updated_fields = {
         "shipping_method_id",
         "shipping_method_name",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
     # when
     updated_fields = remove_delivery_method_from_checkout(checkout_with_item)
@@ -79,7 +79,7 @@ def test_remove_delivery_method_from_checkout_with_built_in_shipping(
     assert expected_updated_fields == set(updated_fields)
     assert checkout_with_item.shipping_method is None
     assert checkout_with_item.shipping_method_name is None
-    assert checkout_with_item.shipping_methods_stale_at is None
+    assert checkout_with_item.delivery_methods_stale_at is None
 
 
 def test_remove_delivery_method_from_checkout_without_method(checkout_with_item):
@@ -111,7 +111,7 @@ def test_assign_external_shipping_to_checkout_with_cc(
         "collection_point_id",
         "shipping_address_id",
         "save_shipping_address",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
 
     # when
@@ -130,7 +130,7 @@ def test_assign_external_shipping_to_checkout_with_cc(
     assert checkout.shipping_address_id is None
 
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -155,7 +155,7 @@ def test_assign_external_shipping_to_checkout_without_delivery_method(
     expected_updated_fields = {
         "external_shipping_method_id",
         "shipping_method_name",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
 
     # when
@@ -171,7 +171,7 @@ def test_assign_external_shipping_to_checkout_without_delivery_method(
     assert checkout.external_shipping_method_id == app_shipping_id
     assert checkout.shipping_method_name == app_shipping_name
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -210,7 +210,7 @@ def test_assign_external_shipping_to_checkout_with_built_in_shipping(
         "external_shipping_method_id",
         "shipping_method_name",
         "shipping_method_id",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
 
     # when
@@ -228,7 +228,7 @@ def test_assign_external_shipping_to_checkout_with_built_in_shipping(
     assert checkout.shipping_method_id is None
 
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -270,7 +270,7 @@ def test_assign_external_shipping_to_checkout_with_different_external_shipping(
     expected_updated_fields = {
         "external_shipping_method_id",
         "shipping_method_name",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
 
     # when
@@ -287,7 +287,7 @@ def test_assign_external_shipping_to_checkout_with_different_external_shipping(
     assert checkout.shipping_method_name == app_shipping_name
 
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -336,7 +336,7 @@ def test_assign_external_shipping_to_checkout_with_the_same_shipping_method(
     )
     assert checkout.external_shipping_method_id == app_shipping_id
     assert checkout.shipping_method_name == app_shipping_name
-    assert checkout.shipping_methods_stale_at is None
+    assert checkout.delivery_methods_stale_at is None
 
     assigned_delivery.refresh_from_db()
     assert assigned_delivery.name == app_shipping_name
@@ -355,7 +355,7 @@ def test_assign_built_in_shipping_to_checkout_without_delivery_method(
         "shipping_method_id",
         "shipping_method_name",
         "undiscounted_base_shipping_price_amount",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
     shipping_method_data = ShippingMethodData(
         id=str(shipping_method.id),
@@ -372,7 +372,7 @@ def test_assign_built_in_shipping_to_checkout_without_delivery_method(
     assert checkout.shipping_method == shipping_method
     assert checkout.shipping_method_name == shipping_method.name
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -397,7 +397,7 @@ def test_assign_built_in_shipping_to_checkout_with_cc(
         "shipping_address_id",
         "undiscounted_base_shipping_price_amount",
         "save_shipping_address",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
     shipping_method_data = ShippingMethodData(
         id=str(shipping_method.id),
@@ -415,7 +415,7 @@ def test_assign_built_in_shipping_to_checkout_with_cc(
     assert checkout.collection_point_id is None
     assert checkout.shipping_address_id is None
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -439,7 +439,7 @@ def test_assign_built_in_shipping_to_checkout_with_external_shipping_method(
         "shipping_method_name",
         "external_shipping_method_id",
         "undiscounted_base_shipping_price_amount",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
     assigned_delivery = CheckoutDelivery.objects.create(
         checkout=checkout,
@@ -467,7 +467,7 @@ def test_assign_built_in_shipping_to_checkout_with_external_shipping_method(
     assert checkout.external_shipping_method_id is None
 
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -508,7 +508,7 @@ def test_assign_built_in_shipping_to_checkout_with_different_shipping_method(
         "shipping_method_id",
         "shipping_method_name",
         "undiscounted_base_shipping_price_amount",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
 
     # when
@@ -522,7 +522,7 @@ def test_assign_built_in_shipping_to_checkout_with_different_shipping_method(
     assert checkout.shipping_method_name == shipping_method.name
 
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -587,7 +587,7 @@ def test_assign_collection_point_to_checkout_without_delivery_method(
         "collection_point_id",
         "shipping_address_id",
         "save_shipping_address",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
 
     # when
@@ -625,7 +625,7 @@ def test_assign_collection_point_to_checkout_with_external_shipping_method(
         "external_shipping_method_id",
         "shipping_method_name",
         "save_shipping_address",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
 
     # when
@@ -638,7 +638,7 @@ def test_assign_collection_point_to_checkout_with_external_shipping_method(
     assert int(checkout.shipping_address_id) != int(collection_point.address.id)
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_name is None
-    assert checkout.shipping_methods_stale_at is None
+    assert checkout.delivery_methods_stale_at is None
     assert checkout.assigned_delivery is None
     assert CheckoutDelivery.objects.count() == 0
 
@@ -667,7 +667,7 @@ def test_assign_collection_point_to_checkout_with_shipping_method(
         "shipping_method_id",
         "shipping_method_name",
         "save_shipping_address",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
 
     # when
@@ -681,7 +681,7 @@ def test_assign_collection_point_to_checkout_with_shipping_method(
     assert checkout.shipping_method_id is None
     assert checkout.shipping_method_name is None
 
-    assert checkout.shipping_methods_stale_at is None
+    assert checkout.delivery_methods_stale_at is None
     assert checkout.assigned_delivery is None
     assert CheckoutDelivery.objects.count() == 0
 
@@ -702,7 +702,7 @@ def test_assign_collection_point_to_checkout_with_different_cc(
         "collection_point_id",
         "shipping_address_id",
         "save_shipping_address",
-        "shipping_methods_stale_at",
+        "delivery_methods_stale_at",
     }
 
     # when

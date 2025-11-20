@@ -271,7 +271,7 @@ class Checkout(models.Model):
         on_delete=models.SET_NULL,
     )
 
-    shipping_methods_stale_at = models.DateTimeField(null=True, blank=True)
+    delivery_methods_stale_at = models.DateTimeField(null=True, blank=True)
 
     price_expiration = models.DateTimeField(default=timezone.now)
     # Expiration time of the applied discounts.
