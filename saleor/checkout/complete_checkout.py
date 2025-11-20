@@ -917,7 +917,6 @@ def _create_order(
 
 
 def _prepare_checkout(
-    manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     redirect_url,
@@ -949,7 +948,7 @@ def _prepare_checkout(
 
     if to_update:
         to_update.append("last_change")
-        checkout.save(update_fields=to_update)
+        checkout.safe_update(update_fields=to_update)
 
 
 def _prepare_checkout_with_transactions(
@@ -983,7 +982,6 @@ def _prepare_checkout_with_transactions(
         )
     _validate_gift_cards(checkout_info.checkout)
     _prepare_checkout(
-        manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         redirect_url=redirect_url,
@@ -1013,7 +1011,6 @@ def _prepare_checkout_with_payment(
         last_payment=payment,
     )
     _prepare_checkout(
-        manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         redirect_url=redirect_url,
@@ -1123,6 +1120,9 @@ def complete_checkout_pre_payment_part(
             redirect_url=redirect_url,
             payment=payment,
         )
+    except Checkout.DoesNotExist:
+        order = Order.objects.get_by_checkout_token(checkout_info.checkout.token)
+        return order
     except ValidationError as exc:
         _complete_checkout_fail_handler(checkout_info, manager, payment=payment)
         raise exc
@@ -1597,13 +1597,19 @@ def create_order_from_checkout(
     """
 
     code = None
+    checkout_pk = checkout_info.checkout.pk
 
     if voucher := checkout_info.voucher:
         with transaction.atomic():
+            checkout = (
+                Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            )
+            if not checkout:
+                order = Order.objects.get_by_checkout_token(checkout_pk)
+                return order
             code = _increase_voucher_code_usage_value(checkout_info=checkout_info)
 
     with transaction.atomic():
-        checkout_pk = checkout_info.checkout.pk
         checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
         if not checkout:
             order = Order.objects.get_by_checkout_token(checkout_pk)
@@ -1788,6 +1794,9 @@ def complete_checkout_with_transaction(
             private_metadata_list=private_metadata_list,
             is_automatic_completion=is_automatic_completion,
         )
+    except Checkout.DoesNotExist:
+        order = Order.objects.get_by_checkout_token(checkout_info.checkout.token)
+        return order
     except NotApplicable as e:
         raise ValidationError(
             {

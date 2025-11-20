@@ -390,12 +390,16 @@ def _fetch_checkout_prices_if_expired(
         checkout_info, database_connection_name
     )
 
-    recalculate_discounts(
-        checkout_info,
-        lines,
-        database_connection_name=database_connection_name,
-        force_update=force_update,
-    )
+    try:
+        recalculate_discounts(
+            checkout_info,
+            lines,
+            database_connection_name=database_connection_name,
+            force_update=force_update,
+        )
+    except Checkout.DoesNotExist:
+        # Checkout was removed or converted to a order. Return data without saving.
+        return checkout_info, lines
 
     checkout.tax_error = None
 
@@ -529,9 +533,8 @@ def recalculate_discounts(
     else:
         checkout.discount_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
-    checkout.save(
+    checkout.safe_update(
         update_fields=["discount_expiration"],
-        using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
     )
 
     return checkout_info, lines
