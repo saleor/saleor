@@ -1462,13 +1462,15 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
         "lines": lines_info,
     }
     expected_email = "new_email@example.com"
+    freeze_time_str = "2024-01-01T12:00:00+00:00"
 
     # when
     def modify_checkout(*args, **kwargs):
-        checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
-        checkout_to_modify.lines.update(quantity=F("quantity") + 1)
-        checkout_to_modify.email = expected_email
-        checkout_to_modify.save(update_fields=["email", "last_change"])
+        with freeze_time(freeze_time_str):
+            checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
+            checkout_to_modify.lines.update(quantity=F("quantity") + 1)
+            checkout_to_modify.email = expected_email
+            checkout_to_modify.save(update_fields=["email", "last_change"])
 
     with race_condition.RunAfter(
         "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
@@ -1489,7 +1491,8 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
 
     # Check if database contains updated checkout by other requests.
     checkout.refresh_from_db()
-    assert checkout.last_change > last_change_before_recalculation
+    assert checkout.last_change != last_change_before_recalculation
+    assert checkout.last_change.isoformat() == freeze_time_str
     assert checkout.email == expected_email
     for old_line, new_line in zip(lines, checkout.lines.all(), strict=True):
         assert old_line.quantity + 1 == new_line.quantity
