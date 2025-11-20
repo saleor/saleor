@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from .....app.models import App
 from .....core.prices import quantize_price
+from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....order.models import Order
 from .....page.models import Page
 from .....payment import PaymentError, TransactionAction, TransactionEventType
@@ -93,17 +94,22 @@ class TransactionRequestAction(BaseMutation):
     ):
         if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
-            action_value = action_value or transaction.authorized_value
-            action_value = min(action_value, transaction.authorized_value)
-            request_event = cls.create_transaction_event_requested(
-                transaction, action_value, action, user=user, app=app
-            )
-            request_cancelation_action(
-                **action_kwargs,
-                cancel_value=action_value,
-                request_event=request_event,
-                action=action,
-            )
+            if transaction.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+                from .....giftcard.gateway import cancel_gift_card_authorization
+
+                cancel_gift_card_authorization(transaction)
+            else:
+                action_value = action_value or transaction.authorized_value
+                action_value = min(action_value, transaction.authorized_value)
+                request_event = cls.create_transaction_event_requested(
+                    transaction, action_value, action, user=user, app=app
+                )
+                request_cancelation_action(
+                    **action_kwargs,
+                    cancel_value=action_value,
+                    request_event=request_event,
+                    action=action,
+                )
         elif action == TransactionAction.CHARGE:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value

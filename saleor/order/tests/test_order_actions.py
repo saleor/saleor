@@ -11,7 +11,13 @@ from ...giftcard import GiftCardEvents
 from ...giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.fetch import OrderLineInfo, fetch_order_info
-from ...payment import ChargeStatus, PaymentError, TransactionEventType, TransactionKind
+from ...payment import (
+    ChargeStatus,
+    PaymentError,
+    TransactionAction,
+    TransactionEventType,
+    TransactionKind,
+)
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
@@ -3879,6 +3885,7 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
         order_id=order.pk,
         gift_card=gift_card_created_by_staff,
         authorized_value=order.total_gross_amount,
+        available_actions=[TransactionAction.CANCEL],
     )
 
     assert transaction.authorized_value == order.total_gross_amount
@@ -3895,6 +3902,7 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
 
     assert transaction.authorized_value == Decimal(0)
     assert transaction.charged_value == order.total_gross_amount
+    assert transaction.available_actions == []
     assert (
         gift_card_created_by_staff.current_balance_amount
         == Decimal(100) - order.total_gross_amount
@@ -3928,6 +3936,7 @@ def test_order_confirmed_checks_gift_card_funds_amount_when_charging_funds_autho
         order_id=order.pk,
         gift_card=gift_card_created_by_staff,
         authorized_value=Decimal(10),
+        available_actions=[TransactionAction.CANCEL],
     )
 
     assert transaction.authorized_value == Decimal(10)
@@ -3947,6 +3956,7 @@ def test_order_confirmed_checks_gift_card_funds_amount_when_charging_funds_autho
 
     assert transaction.authorized_value == Decimal(10)
     assert transaction.charged_value == Decimal(0)
+    assert transaction.available_actions == [TransactionAction.CANCEL]
     assert gift_card_created_by_staff.current_balance_amount == Decimal(5)
 
     transaction.events.get(type=TransactionEventType.CHARGE_REQUEST)
@@ -3980,6 +3990,7 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
         order_id=order.pk,
         gift_card=gift_card_created_by_staff,
         authorized_value=Decimal(10),
+        available_actions=[TransactionAction.CANCEL],
     )
 
     with django_capture_on_commit_callbacks(execute=True):
@@ -3991,6 +4002,7 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
 
     assert transaction.authorized_value == Decimal(0)
     assert transaction.charged_value == Decimal(10)
+    assert transaction.available_actions == []
     assert gift_card_created_by_staff.current_balance_amount == Decimal(0)
 
     assert (
@@ -4016,6 +4028,7 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
 
     assert transaction.authorized_value == Decimal(0)
     assert transaction.charged_value == Decimal(10)
+    assert transaction.available_actions == []
     assert gift_card_created_by_staff.current_balance_amount == Decimal(0)
 
     assert (

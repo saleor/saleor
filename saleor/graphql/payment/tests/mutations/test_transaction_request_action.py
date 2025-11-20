@@ -5,11 +5,15 @@ import graphene
 import pytest
 
 from .....app.models import App
+from .....checkout import CheckoutAuthorizeStatus
+from .....checkout.payment_utils import update_checkout_payment_statuses
+from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....order import OrderEvents
 from .....page.models import Page, PageType
 from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionEvent, TransactionItem
+from .....tests.e2e.utils import assign_permissions
 from .....webhook.event_types import WebhookEventSyncType
 from ....core.enums import TransactionRequestActionErrorCode
 from ....core.utils import to_global_id_or_none
@@ -2030,3 +2034,177 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
     assert request_event.reason_reference is None
 
     assert mocked_payment_action_request.called
+
+
+def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    checkout = checkout_with_prices
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        checkout_id=checkout.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=gift_card_created_by_staff.current_balance_amount,
+        available_actions=[TransactionAction.CANCEL],
+    )
+    assert transaction.gift_card is not None
+
+    update_checkout_payment_statuses(
+        checkout, checkout.total.gross, checkout_has_lines=True
+    )
+
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CANCEL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    transaction.refresh_from_db()
+    checkout.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(0)
+    assert transaction.gift_card is None
+    assert transaction.available_actions == []
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_SUCCESS,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )
+
+
+def test_transaction_request_cancelation_fails_when_cancel_action_is_not_available(
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    checkout = checkout_with_prices
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        checkout_id=checkout.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=gift_card_created_by_staff.current_balance_amount,
+        available_actions=[],
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CANCEL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_FAILURE,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )
+
+
+def test_transaction_request_cancelation_for_type_other_than_checkout(
+    order_with_lines,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=gift_card_created_by_staff.current_balance_amount,
+        available_actions=[TransactionAction.CANCEL],
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CANCEL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    transaction.refresh_from_db()
+
+    assert (
+        transaction.authorized_value
+        == gift_card_created_by_staff.current_balance_amount
+    )
+    assert transaction.charged_value == Decimal(0)
+    assert transaction.gift_card is not None
+    assert transaction.available_actions == [TransactionAction.CANCEL]
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_FAILURE,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )

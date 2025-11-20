@@ -10,7 +10,7 @@ from django.utils import timezone
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..order.models import Order
-from ..payment import TransactionEventType
+from ..payment import TransactionAction, TransactionEventType
 from ..payment.interface import (
     TransactionSessionData,
     TransactionSessionResult,
@@ -69,6 +69,7 @@ def transaction_initialize_session_with_gift_card_payment_method(
                 "pspReference": str(uuid4()),
                 "amount": transaction_session_data.action.amount,
                 "message": f"Gift card (ending: {gift_card.display_code}).",
+                "actions": [TransactionAction.CANCEL.upper()],
             },
         )
     finally:
@@ -166,6 +167,7 @@ def detach_gift_card_from_previous_checkout_transactions(
             "result": TransactionEventType.CANCEL_SUCCESS.upper(),
             "pspReference": transaction_item.psp_reference,
             "amount": transaction_item.amount_authorized.amount,
+            "actions": [],
         }
 
         transaction_event, _ = TransactionEvent.objects.get_or_create(
@@ -254,9 +256,51 @@ def charge_gift_card_transactions(
                 gift_card.save(update_fields=["current_balance_amount"])
                 response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
                 response["message"] = f"Gift card (ending: {gift_card.display_code})."
+                response["actions"] = []
 
             create_transaction_event_from_request_and_webhook_response(
                 transaction_event,
                 None,
                 transaction_webhook_response=response,
             )
+
+
+def cancel_gift_card_authorization(transaction_item: "TransactionItem"):
+    transaction_event, _ = TransactionEvent.objects.get_or_create(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        transaction=transaction_item,
+        type=TransactionEventType.CANCEL_REQUEST,
+        currency=transaction_item.currency,
+        amount_value=transaction_item.amount_authorized.amount,
+        defaults={
+            "include_in_calculations": False,
+            "currency": transaction_item.currency,
+            "amount_value": transaction_item.amount_authorized.amount,
+        },
+    )
+
+    if (
+        not transaction_item.checkout
+        or TransactionAction.CANCEL not in transaction_item.available_actions
+    ):
+        response = {
+            "result": TransactionEventType.CANCEL_FAILURE.upper(),
+            "pspReference": transaction_item.psp_reference,
+            "amount": transaction_item.amount_authorized.amount,
+        }
+    else:
+        response = {
+            "result": TransactionEventType.CANCEL_SUCCESS.upper(),
+            "pspReference": transaction_item.psp_reference,
+            "amount": transaction_item.amount_authorized.amount,
+            "actions": [],
+        }
+
+        transaction_item.gift_card = None
+        transaction_item.save(update_fields=["gift_card"])
+
+    create_transaction_event_from_request_and_webhook_response(
+        transaction_event,
+        None,
+        transaction_webhook_response=response,
+    )
