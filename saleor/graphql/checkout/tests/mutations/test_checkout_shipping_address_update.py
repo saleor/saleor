@@ -1373,12 +1373,12 @@ def test_checkout_shipping_address_marks_shipping_as_stale(
     checkout = checkout_with_item
     checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = expected_stale_time
+    checkout.delivery_methods_stale_at = expected_stale_time
     checkout.save(
         update_fields=[
             "assigned_delivery",
             "shipping_address",
-            "shipping_methods_stale_at",
+            "delivery_methods_stale_at",
         ]
     )
 
@@ -1400,4 +1400,4 @@ def test_checkout_shipping_address_marks_shipping_as_stale(
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    assert checkout.shipping_methods_stale_at == new_now
+    assert checkout.delivery_methods_stale_at == new_now

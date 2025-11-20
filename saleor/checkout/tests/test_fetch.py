@@ -412,7 +412,7 @@ def _assert_built_in_shipping_method(
 
     checkout.refresh_from_db()
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -479,14 +479,14 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_built_in_shipping_
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = (
+    checkout.delivery_methods_stale_at = (
         timezone.now() - settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
     checkout.assigned_delivery_id = None
     checkout.save(
         update_fields=[
             "shipping_address",
-            "shipping_methods_stale_at",
+            "delivery_methods_stale_at",
             "assigned_delivery_id",
         ]
     )
@@ -560,10 +560,10 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_built_in_shi
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = (
+    checkout.delivery_methods_stale_at = (
         timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
-    checkout.save(update_fields=["shipping_address", "shipping_methods_stale_at"])
+    checkout.save(update_fields=["shipping_address", "delivery_methods_stale_at"])
 
     available_shipping_method = ShippingMethod.objects.get()
 
@@ -603,10 +603,10 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_built_in_sh
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = (
+    checkout.delivery_methods_stale_at = (
         timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
-    checkout.save(update_fields=["shipping_address", "shipping_methods_stale_at"])
+    checkout.save(update_fields=["shipping_address", "delivery_methods_stale_at"])
 
     available_shipping_method = ShippingMethod.objects.get()
 
@@ -818,7 +818,7 @@ def _assert_external_shipping_method(
     assert checkout_delivery.is_external is True
     checkout.refresh_from_db()
     assert (
-        checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at
         == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
     )
 
@@ -911,8 +911,8 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_external_shipping_
         currency="USD",
     )
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = timezone.now()
-    checkout.save(update_fields=["shipping_address", "shipping_methods_stale_at"])
+    checkout.delivery_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["shipping_address", "delivery_methods_stale_at"])
 
     ShippingMethod.objects.all().delete()
 
@@ -973,8 +973,8 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_external_shi
         currency="USD",
     )
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = timezone.now()
-    checkout.save(update_fields=["shipping_address", "shipping_methods_stale_at"])
+    checkout.delivery_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["shipping_address", "delivery_methods_stale_at"])
 
     ShippingMethod.objects.all().delete()
 
@@ -1034,7 +1034,7 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_external_sh
         currency="USD",
     )
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = timezone.now()
+    checkout.delivery_methods_stale_at = timezone.now()
     checkout.assigned_delivery = assigned_delivery
     checkout.save()
 
@@ -1167,7 +1167,7 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
     )
     checkout.assigned_delivery = assigned_delivery
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = timezone.now()
+    checkout.delivery_methods_stale_at = timezone.now()
     checkout.save()
 
     ShippingMethod.objects.all().delete()

@@ -762,10 +762,10 @@ def fetch_shipping_methods_for_checkout(
 
         assigned_delivery = checkout.assigned_delivery
 
-        checkout.shipping_methods_stale_at = (
+        checkout.delivery_methods_stale_at = (
             timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
         )
-        checkout.save(update_fields=["shipping_methods_stale_at"])
+        checkout.save(update_fields=["delivery_methods_stale_at"])
 
         _refresh_checkout_deliveries(
             checkout=locked_checkout,
@@ -810,8 +810,8 @@ def get_or_fetch_checkout_deliveries(
     """
     checkout = checkout_info.checkout
     if (
-        checkout.shipping_methods_stale_at is None
-        or checkout.shipping_methods_stale_at <= timezone.now()
+        checkout.delivery_methods_stale_at is None
+        or checkout.delivery_methods_stale_at <= timezone.now()
     ):
         return fetch_shipping_methods_for_checkout(checkout_info)
     return list(
