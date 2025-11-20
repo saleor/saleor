@@ -7,7 +7,7 @@ from django.test import override_settings
 from prices import Money, TaxedMoney
 
 from ...channel import MarkAsPaidStrategy
-from ...checkout.models import CheckoutLine
+from ...checkout.models import Checkout, CheckoutLine
 from ...core.exceptions import InsufficientStock
 from ...core.prices import quantize_price
 from ...core.taxes import (
@@ -836,6 +836,41 @@ def test_note_in_created_order_checkout_line_deleted_in_the_meantime(
 
     # then
     assert order
+
+
+def test_note_in_created_order_checkout_deleted_in_the_meantime(
+    checkout_with_item, address, shipping_method, app, voucher_percentage
+):
+    # given
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.tracking_code = "tracking_code"
+    checkout_with_item.redirect_url = "https://www.example.com"
+    checkout_with_item.save()
+    manager = get_plugins_manager(allow_replica=False)
+
+    checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
+
+    def delete_checkout(*args, **kwargs):
+        Checkout.objects.get(pk=checkout_with_item.pk).delete()
+
+    # when
+    with race_condition.RunAfter(
+        "saleor.checkout.complete_checkout._increase_voucher_code_usage_value",
+        delete_checkout,
+    ):
+        order = create_order_from_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            user=None,
+            app=app,
+        )
+
+    # then
+    assert order is None
 
 
 @mock.patch("saleor.checkout.calculations.checkout_line_total")

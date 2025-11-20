@@ -1597,16 +1597,23 @@ def create_order_from_checkout(
     """
 
     code = None
+    checkout_pk = checkout_info.checkout.pk
+
+    if voucher := checkout_info.voucher:
+        with transaction.atomic():
+            checkout = (
+                Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            )
+            if not checkout:
+                order = Order.objects.get_by_checkout_token(checkout_pk)
+                return order
+            code = _increase_voucher_code_usage_value(checkout_info=checkout_info)
 
     with transaction.atomic():
-        checkout_pk = checkout_info.checkout.pk
         checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
         if not checkout:
             order = Order.objects.get_by_checkout_token(checkout_pk)
             return order
-
-        if voucher := checkout_info.voucher:
-            code = _increase_voucher_code_usage_value(checkout_info=checkout_info)
 
         # Fetching checkout info inside the transaction block with select_for_update
         # ensure that we are processing checkout on the current data.
