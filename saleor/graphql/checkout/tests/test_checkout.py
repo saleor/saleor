@@ -11,6 +11,7 @@ from django.test import override_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_countries.fields import Country
+from freezegun import freeze_time
 from measurement.measures import Weight
 from prices import Money
 
@@ -2949,14 +2950,16 @@ def test_checkout_prices_with_checkout_updated_during_price_recalculation(
     }
     total_before_recalculation = checkout.total
     lines_before_recalculation = list(checkout.lines.all())
+    freeze_time_str = "2024-01-01T12:00:00+00:00"
 
     # when
     def modify_checkout(*args, **kwargs):
-        with allow_writer():
-            checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
-            checkout_to_modify.lines.update(quantity=F("quantity") + 1)
-            checkout_to_modify.email = expected_email
-            checkout_to_modify.save(update_fields=["email", "last_change"])
+        with freeze_time(freeze_time_str):
+            with allow_writer():
+                checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
+                checkout_to_modify.lines.update(quantity=F("quantity") + 1)
+                checkout_to_modify.email = expected_email
+                checkout_to_modify.save(update_fields=["email", "last_change"])
 
     with race_condition.RunAfter(
         "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
@@ -2976,6 +2979,7 @@ def test_checkout_prices_with_checkout_updated_during_price_recalculation(
 
     checkout.refresh_from_db()
     assert checkout.email == expected_email
+    assert checkout.last_change.isoformat() == freeze_time_str
 
     # Confirm that total price hasn't changed in database due to recalculation
     assert checkout.total == total_before_recalculation
