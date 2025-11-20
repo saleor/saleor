@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.utils.text import slugify
 
 from ....channel import models
@@ -12,6 +13,7 @@ from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
     ADDED_IN_321,
+    ADDED_IN_322,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -55,6 +57,45 @@ class StockSettingsInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
+class CheckoutAutoCompleteInput(BaseInputObjectType):
+    enabled = graphene.Boolean(
+        required=True,
+        description=(
+            "Default `false`. Determines if the paid checkouts should be automatically "
+            "completed. This setting applies only to checkouts where payment "
+            "was processed through transactions."
+            "When enabled, the checkout will be automatically completed once the "
+            "checkout `charge_status` reaches `FULL`. This occurs when the total sum "
+            "of charged and authorized transaction amounts equals or exceeds the "
+            "checkout's total amount."
+        ),
+    )
+    delay = Minute(
+        required=False,
+        description=(
+            "The time in minutes after which the fully paid checkout will be "
+            "automatically completed. Default is "
+            f"{settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY}. "
+            "Set to 0 for immediate completion. "
+            "Should be less than the threshold for the oldest modified checkout "
+            "eligible for automatic completion."
+        ),
+    )
+    cut_off_date = DateTime(
+        required=False,
+        description=(
+            "Specifies the earliest date on which fully paid checkouts can begin "
+            "to be automatically completed. Fully paid checkouts dated before this "
+            "cut-off will not be automatically completed. Must be less than the "
+            "threshold of the oldest modified checkout eligible for automatic "
+            "completion. Default is current date time."
+        ),
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
 class CheckoutSettingsInput(BaseInputObjectType):
     use_legacy_error_flow = graphene.Boolean(
         description=(
@@ -75,11 +116,18 @@ class CheckoutSettingsInput(BaseInputObjectType):
             "completed. This setting applies only to checkouts where payment "
             "was processed through transactions."
             "When enabled, the checkout will be automatically completed once the "
-            "checkout `charge_status` reaches `FULL`. This occurs when the total sum "
+            "checkout `authorize_status` reaches `FULL`. This occurs when the total sum "
             "of charged and authorized transaction amounts equals or exceeds the "
             "checkout's total amount."
+            + ADDED_IN_320
+            + DEPRECATED_IN_3X_INPUT
+            + " Use `automatic_completion` instead."
         )
-        + ADDED_IN_320,
+    )
+    automatic_completion = CheckoutAutoCompleteInput(
+        description="Settings for automatic completion of fully paid checkouts."
+        + ADDED_IN_322,
+        required=False,
     )
 
     class Meta:

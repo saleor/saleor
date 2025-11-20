@@ -1,6 +1,8 @@
 import datetime
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from ....channel.models import Channel
 from ...core.enums import ChannelErrorCode
@@ -107,14 +109,147 @@ def clean_input_order_settings(
         )
 
 
-def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):
-    input_to_model_fields = {
-        "use_legacy_error_flow": "use_legacy_error_flow_for_checkout",
-        "automatically_complete_fully_paid_checkouts": "automatically_complete_fully_paid_checkouts",
-    }
-    for input_field, model_field in input_to_model_fields.items():
-        if input_field in checkout_settings:
-            cleaned_input[model_field] = checkout_settings[input_field]
+def clean_input_checkout_settings(
+    checkout_settings: dict, cleaned_input: dict, instance: Channel | None = None
+):
+    clean_automatic_completion(checkout_settings, cleaned_input)
+
+    # Handle legacy fields
+    if "use_legacy_error_flow" in checkout_settings:
+        cleaned_input["use_legacy_error_flow_for_checkout"] = checkout_settings[
+            "use_legacy_error_flow"
+        ]
+
+
+def clean_automatic_completion(checkout_settings: dict, cleaned_input: dict):
+    # Validate that both old and new fields aren't provided together
+    if (
+        "automatically_complete_fully_paid_checkouts" in checkout_settings
+        and "automatic_completion" in checkout_settings
+    ):
+        raise ValidationError(
+            {
+                "automatically_complete_fully_paid_checkouts": ValidationError(
+                    "Cannot provide both 'automaticallyCompleteFullyPaidCheckouts' "
+                    "and 'automaticCompletion'. Use 'automaticCompletion' instead.",
+                    code=ChannelErrorCode.INVALID.value,
+                )
+            }
+        )
+
+    # Handle the automatic_completion nested input
+    if automatic_completion := checkout_settings.get("automatic_completion"):
+        enabled = automatic_completion.get("enabled")
+        delay = automatic_completion.get("delay")
+        cut_off_date = automatic_completion.get("cut_off_date")
+
+        cleaned_input["automatically_complete_fully_paid_checkouts"] = enabled
+        clean_automatic_completion_delay(delay, enabled, cleaned_input)
+        clean_automatic_completion_cut_off_date(cut_off_date, enabled, cleaned_input)
+    # Handle deprecated field for backward compatibility
+    elif "automatically_complete_fully_paid_checkouts" in checkout_settings:
+        automatically_complete = checkout_settings[
+            "automatically_complete_fully_paid_checkouts"
+        ]
+        cleaned_input["automatically_complete_fully_paid_checkouts"] = (
+            automatically_complete
+        )
+        cleaned_input["automatic_completion_delay"] = (
+            settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY
+            if automatically_complete is True
+            else None
+        )
+        cleaned_input["automatic_completion_cut_off_date"] = (
+            timezone.now() if automatically_complete else None
+        )
+
+
+def clean_automatic_completion_delay(
+    delay: int, automatic_completion_enabled: bool, cleaned_input: dict
+):
+    if automatic_completion_enabled is False:
+        if delay is not None:
+            raise ValidationError(
+                {
+                    "delay": ValidationError(
+                        "The delay cannot be set when automatic completion is disabled.",
+                        code=ChannelErrorCode.INVALID.value,
+                    )
+                }
+            )
+        # When disabled, clear the delay
+        cleaned_input["automatic_completion_delay"] = None
+    else:
+        oldest_allowed_checkout = (
+            settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED.total_seconds() // 60
+        )
+        if delay is not None:
+            if delay < 0:
+                raise ValidationError(
+                    {
+                        "delay": ValidationError(
+                            "The automatic completion delay must be greater than or equal to 0.",
+                            code=ChannelErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            if delay >= oldest_allowed_checkout:
+                raise ValidationError(
+                    {
+                        "delay": ValidationError(
+                            f"The automatic completion delay must be less than "
+                            f"{oldest_allowed_checkout}, that is the threshold for the "
+                            "oldest modified checkout eligible for automatic "
+                            "completion.",
+                            code=ChannelErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            cleaned_input["automatic_completion_delay"] = delay
+        else:
+            # If enabled and delay is missing, set default
+            cleaned_input["automatic_completion_delay"] = (
+                settings.DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY
+            )
+
+
+def clean_automatic_completion_cut_off_date(
+    cut_off_date: datetime.datetime,
+    automatic_completion_enabled: bool,
+    cleaned_input: dict,
+):
+    if automatic_completion_enabled is False:
+        if cut_off_date is not None:
+            raise ValidationError(
+                {
+                    "cut_off_date": ValidationError(
+                        "The cut-off date cannot be set when automatic completion is disabled.",
+                        code=ChannelErrorCode.INVALID.value,
+                    )
+                }
+            )
+        # When disabled, clear the delay
+        cleaned_input["automatic_completion_cut_off_date"] = None
+    else:
+        if cut_off_date is not None:
+            if (
+                cut_off_date
+                < timezone.now()
+                - settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED
+            ):
+                raise ValidationError(
+                    {
+                        "cut_off_date": ValidationError(
+                            "The cut-off date must be more recent than "
+                            "the threshold for the oldest modified checkout "
+                            "eligible for automatic completion.",
+                            code=ChannelErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            cleaned_input["automatic_completion_cut_off_date"] = cut_off_date
+        else:
+            cleaned_input["automatic_completion_cut_off_date"] = timezone.now()
 
 
 def clean_input_payment_settings(payment_settings: dict, cleaned_input: dict):

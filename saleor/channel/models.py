@@ -49,6 +49,14 @@ class Channel(ModelWithMetadata):
     use_legacy_error_flow_for_checkout = models.BooleanField(default=True)
     automatically_complete_fully_paid_checkouts = models.BooleanField(default=False)
 
+    # automatic_completion_delay applies only when
+    # automatically_complete_fully_paid_checkouts is set to True
+    automatic_completion_delay = models.IntegerField(
+        null=True, blank=True, default=None
+    )
+    # define the cut-off date for automatic completion of fully paid checkouts
+    automatic_completion_cut_off_date = models.DateTimeField(null=True, blank=True)
+
     # time in hours after which the draft order line price will be refreshed
     draft_order_line_price_freeze_period = models.PositiveIntegerField(
         default=24, null=True, blank=True

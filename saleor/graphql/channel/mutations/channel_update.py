@@ -131,7 +131,7 @@ class ChannelUpdate(DeprecatedModelMutation):
             clean_input_order_settings(order_settings, cleaned_input, instance)
 
         if checkout_settings := cleaned_input.get("checkout_settings"):
-            clean_input_checkout_settings(checkout_settings, cleaned_input)
+            clean_input_checkout_settings(checkout_settings, cleaned_input, instance)
 
         if payment_settings := cleaned_input.get("payment_settings"):
             clean_input_payment_settings(payment_settings, cleaned_input)
