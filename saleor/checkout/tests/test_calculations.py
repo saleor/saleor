@@ -1,4 +1,3 @@
-import datetime
 from decimal import Decimal
 from typing import Literal, Union
 from unittest.mock import Mock, patch
@@ -1097,11 +1096,10 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
     checkout = checkout_with_prices
     currency = checkout.currency
     checkout.price_expiration = timezone.now()
-    checkout.last_price_recalculation = timezone.now() - datetime.timedelta(minutes=10)
-    checkout.save(update_fields=["price_expiration", "last_price_recalculation"])
+    checkout.save(update_fields=["price_expiration", "last_change"])
     checkout.refresh_from_db()
     total_price_before_recalculation = checkout.total
-    last_price_recalculation = checkout.last_price_recalculation
+    last_change_before_recalculation = checkout.last_change
     lines = list(checkout.lines.all())
 
     manager = get_plugins_manager(allow_replica=False)
@@ -1121,7 +1119,7 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
             checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
             checkout_to_modify.lines.update(quantity=F("quantity") + 1)
             checkout_to_modify.email = expected_email
-            checkout_to_modify.save(update_fields=["email", "last_price_recalculation"])
+            checkout_to_modify.save(update_fields=["email", "last_change"])
 
     with before_after.after(
         "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
@@ -1142,8 +1140,8 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
 
     # Check if database contains updated checkout by other requests.
     checkout.refresh_from_db()
-    assert checkout.last_price_recalculation != last_price_recalculation
-    assert checkout.last_price_recalculation.isoformat() == freeze_time_str
+    assert checkout.last_change != last_change_before_recalculation
+    assert checkout.last_change.isoformat() == freeze_time_str
     assert checkout.email == expected_email
     for old_line, new_line in zip(lines, checkout.lines.all(), strict=True):
         assert old_line.quantity + 1 == new_line.quantity

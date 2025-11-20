@@ -2833,9 +2833,7 @@ def test_checkout_prices_with_checkout_updated_during_price_recalculation(
                 checkout_to_modify = Checkout.objects.get(pk=checkout.pk)
                 checkout_to_modify.lines.update(quantity=F("quantity") + 1)
                 checkout_to_modify.email = expected_email
-                checkout_to_modify.save(
-                    update_fields=["email", "last_price_recalculation"]
-                )
+                checkout_to_modify.save(update_fields=["email", "last_change"])
 
     with before_after.before(
         "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
@@ -2855,7 +2853,7 @@ def test_checkout_prices_with_checkout_updated_during_price_recalculation(
 
     checkout.refresh_from_db()
     assert checkout.email == expected_email
-    assert checkout.last_price_recalculation.isoformat() == freeze_time_str
+    assert checkout.last_change.isoformat() == freeze_time_str
 
     # Confirm that total price hasn't changed in database due to recalculation
     assert checkout.total == total_before_recalculation

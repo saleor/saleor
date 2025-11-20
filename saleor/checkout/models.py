@@ -38,9 +38,6 @@ class Checkout(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now=True, db_index=True)
     completing_started_at = models.DateTimeField(blank=True, null=True)
-    last_price_recalculation = models.DateTimeField(
-        blank=True, null=True, auto_now=True
-    )
 
     # Denormalized modified_at for the latest modified transactionItem assigned to
     # checkout
