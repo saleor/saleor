@@ -3,6 +3,7 @@ from typing import NamedTuple, cast
 
 from celery.utils.time import maybe_timedelta, remaining
 from django.db.models import F, Q
+from django.utils import timezone
 
 from ..schedulers.customschedule import CustomSchedule
 
@@ -125,4 +126,113 @@ class promotion_webhook_schedule(CustomSchedule):
         return schedstate(is_due, self.next_run.total_seconds())
 
 
+class TimeBaseSchedule(CustomSchedule):
+    """Base schedule for time-based periodic tasks.
+
+    Arguments:
+        import_path (str): Import path of the schedule.
+        initial_timedelta (float, ~datetime.timedelta):
+            Initial time interval in seconds.
+        nowfun (Callable): Function returning the current date and time
+            (:class:`~datetime.datetime`).
+        app (Celery): Celery app instance.
+
+    """
+
+    class Meta:
+        abstract = True
+
+    def __init__(self, import_path: str, initial_timedelta, nowfun=None, app=None):
+        self.initial_timedelta: datetime.timedelta = cast(
+            datetime.timedelta, maybe_timedelta(initial_timedelta)
+        )
+        self.next_run: datetime.timedelta = self.initial_timedelta
+        super().__init__(
+            schedule=self,
+            nowfun=nowfun,
+            app=app,
+            import_path=import_path,
+        )
+
+    def are_dirty(self) -> bool:
+        raise NotImplementedError
+
+    def remaining_estimate(self, last_run_at):
+        """Estimate of next run time.
+
+        Returns when the periodic task should run next as a timedelta.
+        """
+        return remaining(
+            self.maybe_make_aware(last_run_at),
+            self.next_run,
+            self.maybe_make_aware(self.now()),
+        )
+
+    def is_due(self, last_run_at):
+        """Return tuple of ``(is_due, next_time_to_run)``.
+
+        Note:
+            Next time to run is in seconds.
+
+        """
+        last_run_at = self.maybe_make_aware(last_run_at)
+        rem_delta = self.remaining_estimate(last_run_at)
+        remaining_s = max(rem_delta.total_seconds(), 0)
+        if remaining_s == 0:
+            remaining_s = self.initial_timedelta.total_seconds()
+
+        are_marked_as_dirty = self.are_dirty()
+        return schedstate(is_due=are_marked_as_dirty, next=remaining_s)
+
+
+class checkout_automatic_completion_schedule(TimeBaseSchedule):
+    def __init__(self, initial_timedelta=60, nowfun=None, app=None):
+        # initial_timedelta defaults to 60 seconds, as referencing settings.py variables
+        # would require rebuilding the schedule. settings depends on this class instance,
+        # leading to a circular import if accessed directly.
+        import_path = (
+            "saleor.core.schedules.initiated_checkout_automatic_completion_schedule"
+        )
+        super().__init__(import_path, initial_timedelta, nowfun, app)
+
+    def are_dirty(self) -> bool:
+        from django.conf import settings
+
+        from ..channel.models import Channel
+        from ..checkout import CheckoutAuthorizeStatus
+        from ..checkout.models import Checkout
+
+        channels = Channel.objects.filter(
+            automatically_complete_fully_paid_checkouts=True
+        )
+        now = timezone.now()
+        oldest_allowed_checkout = (
+            now - settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED
+        )
+        for channel in channels:
+            # calculate threshold time for automatic completion for given channel
+            delay_minutes = channel.automatic_completion_delay or 0
+            threshold_time = now - datetime.timedelta(minutes=float(delay_minutes))
+            filter_kwargs = {
+                "authorize_status": CheckoutAuthorizeStatus.FULL,
+                "last_change__gte": oldest_allowed_checkout,
+                "channel_id": channel.pk,
+                "last_change__lt": threshold_time,
+            }
+            if cut_off_date := channel.automatic_completion_cut_off_date:
+                filter_kwargs["created_at__gte"] = cut_off_date
+            if (
+                Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                .filter(
+                    **filter_kwargs,
+                )
+                .exists()
+            ):
+                return True
+        return False
+
+
 initiated_promotion_webhook_schedule = promotion_webhook_schedule()
+initiated_checkout_automatic_completion_schedule = (
+    checkout_automatic_completion_schedule()
+)

@@ -6,8 +6,6 @@ from unittest.mock import patch
 import pytest
 from freezegun import freeze_time
 
-from ....checkout import CheckoutAuthorizeStatus
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....order import OrderAuthorizeStatus
 from ... import TransactionEventType
 from ...models import TransactionEvent
@@ -912,63 +910,6 @@ def test_create_transaction_event_with_invalid_message(
     assert (
         "Incorrect value for field: message in response of transaction action webhook."
     ) in (record.message for record in caplog.records)
-
-
-@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
-@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
-@patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
-def test_create_transaction_event_from_session_when_authorized_triggers_checkout_completion(
-    mocked_checkout_fully_authorized,
-    mocked_checkout_fully_paid,
-    mocked_automatic_checkout_completion_task,
-    transaction_item_generator,
-    app,
-    checkout_with_prices,
-    plugins_manager,
-    django_capture_on_commit_callbacks,
-):
-    # given
-    checkout = checkout_with_prices
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-
-    channel = checkout_info.channel
-    channel.automatically_complete_fully_paid_checkouts = True
-    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
-
-    transaction = transaction_item_generator(checkout_id=checkout.pk)
-    request_event = TransactionEvent.objects.create(
-        type=TransactionEventType.AUTHORIZATION_REQUEST,
-        amount_value=checkout.total.gross.amount,
-        currency="USD",
-        transaction_id=transaction.id,
-    )
-
-    event_amount = checkout.total.gross.amount
-    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
-
-    expected_psp_reference = "psp:122:222"
-
-    response_data = {
-        "pspReference": expected_psp_reference,
-        "amount": event_amount,
-        "result": event_type.upper(),
-    }
-
-    # when
-    with django_capture_on_commit_callbacks(execute=True):
-        create_transaction_event_for_transaction_session(
-            request_event, app, plugins_manager, response_data
-        )
-
-    # then
-    checkout.refresh_from_db()
-    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
-    mocked_checkout_fully_paid.assert_not_called()
-    mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())
-    mocked_automatic_checkout_completion_task.assert_called_once_with(
-        checkout.pk, None, app.id
-    )
 
 
 def test_create_transaction_event_from_request_and_webhook_response_incorrect_data(

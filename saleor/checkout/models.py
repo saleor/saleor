@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.indexes import BTreeIndex
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -43,6 +44,9 @@ class Checkout(models.Model):
     # checkout
     last_transaction_modified_at = models.DateTimeField(null=True, blank=True)
     automatically_refundable = models.BooleanField(default=False)
+
+    # Tracks the last time automatic checkout completion was attempted
+    last_automatic_completion_attempt = models.DateTimeField(null=True, blank=True)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -235,6 +239,12 @@ class Checkout(models.Model):
             (CheckoutPermissions.HANDLE_TAXES.codename, "Handle taxes"),
             (CheckoutPermissions.MANAGE_TAXES.codename, "Manage taxes"),
         )
+        indexes = [
+            BTreeIndex(
+                fields=["last_automatic_completion_attempt"],
+                name="automaticcompletionattempt_idx",
+            )
+        ]
 
     def __iter__(self):
         return iter(self.lines.all())

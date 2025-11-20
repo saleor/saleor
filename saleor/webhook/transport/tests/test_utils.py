@@ -374,3 +374,9 @@ def test_get_sqs_message_group_id(app, app_identifier, expected_slug):
     message_group_id = get_sqs_message_group_id("example.com", app)
 
     assert message_group_id == f"example.com:{expected_slug or app.id}"
+
+
+def test_get_sqs_message_group_id_no_app():
+    message_group_id = get_sqs_message_group_id("example.com", None)
+
+    assert message_group_id == "example.com"

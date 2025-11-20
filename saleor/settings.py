@@ -31,7 +31,10 @@ from .account.i18n_rules_override import i18n_rules_override
 from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.rlimit import validate_and_set_rlimit
-from .core.schedules import initiated_promotion_webhook_schedule
+from .core.schedules import (
+    initiated_checkout_automatic_completion_schedule,
+    initiated_promotion_webhook_schedule,
+)
 from .graphql.executor import patch_executor
 from .graphql.promise import patch_promise
 from .patch_local import patch_local
@@ -734,6 +737,12 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": datetime.timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
         "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
     },
+    "checkout-automatic-completion": {
+        # Scheduled task that runs every 60 seconds to check for checkout
+        # readiness for automatic completion.
+        "task": "saleor.checkout.tasks.trigger_automatic_checkout_completion_task",
+        "schedule": initiated_checkout_automatic_completion_schedule,
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
@@ -943,6 +952,13 @@ CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = datetime.timedelta(
 TRANSACTION_BATCH_FOR_RELEASING_FUNDS = os.environ.get(
     "TRANSACTION_BATCH_FOR_RELEASING_FUNDS", 60
 )
+# Oldest checkout modification for automatic completion. Older checkouts will not be
+# processed.
+AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED = datetime.timedelta(
+    seconds=parse(
+        os.environ.get("AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED", "30 days")
+    )
+)
 
 
 # The maximum SearchVector expression count allowed per index SQL statement
@@ -1050,6 +1066,11 @@ ORDER_RULES_LIMIT = os.environ.get("ORDER_RULES_LIMIT", 100)
 
 # The max number of gits assigned to promotion rule
 GIFTS_LIMIT_PER_RULE = os.environ.get("GIFTS_LIMIT_PER_RULE", 500)
+
+# Default automatic completion delay for checkout in minutes.
+DEFAULT_AUTOMATIC_CHECKOUT_COMPLETION_DELAY = int(
+    os.environ.get("AUTOMATIC_CHECKOUT_COMPLETION_DELAY", 30)
+)
 
 # Whether to enable the comparison of pre-save and post-save webhook payloads in
 # mutations, in order to limit sending webhooks where the payload has not changed as
