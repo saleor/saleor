@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="checkout",
-            name="shipping_methods_stale_at",
+            name="delivery_methods_stale_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.CreateModel(

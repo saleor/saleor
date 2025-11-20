@@ -72,8 +72,8 @@ def mark_checkout_deliveries_as_stale_if_needed(
 ) -> list[str]:
     if not is_shipping_required(lines):
         return []
-    checkout.shipping_methods_stale_at = timezone.now()
-    return ["shipping_methods_stale_at"]
+    checkout.delivery_methods_stale_at = timezone.now()
+    return ["delivery_methods_stale_at"]
 
 
 def get_variants_and_total_quantities(

@@ -630,8 +630,8 @@ def _should_load_denormalized_checkout_deliveries(
     checkout_context: SyncWebhookControlContext[models.Checkout],
 ):
     return not checkout_context.allow_sync_webhooks or (
-        checkout_context.node.shipping_methods_stale_at
-        and checkout_context.node.shipping_methods_stale_at > timezone.now()
+        checkout_context.node.delivery_methods_stale_at
+        and checkout_context.node.delivery_methods_stale_at > timezone.now()
     )
 
 
@@ -663,8 +663,8 @@ def _resolve_checkout_deliveries(
         )
         checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
         shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
-        checkout.shipping_methods_stale_at = (
-            checkout_info.checkout.shipping_methods_stale_at
+        checkout.delivery_methods_stale_at = (
+            checkout_info.checkout.delivery_methods_stale_at
         )
         CheckoutDeliveriesOnlyValidByCheckoutIdLoader(info.context).prime(
             checkout.pk, shipping_methods
@@ -704,8 +704,8 @@ def _resolve_checkout_delivery(
         return None
 
     if (
-        checkout.shipping_methods_stale_at
-        and checkout.shipping_methods_stale_at > timezone.now()
+        checkout.delivery_methods_stale_at
+        and checkout.delivery_methods_stale_at > timezone.now()
     ) or not root.allow_sync_webhooks:
         return (
             CheckoutDeliveryByIdLoader(info.context)
@@ -726,8 +726,8 @@ def _resolve_checkout_delivery(
         )
         checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
         shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
-        root.node.shipping_methods_stale_at = (
-            checkout_info.checkout.shipping_methods_stale_at
+        root.node.delivery_methods_stale_at = (
+            checkout_info.checkout.delivery_methods_stale_at
         )
         CheckoutDeliveriesOnlyValidByCheckoutIdLoader(info.context).prime(
             checkout.pk, shipping_methods

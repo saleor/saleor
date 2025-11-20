@@ -5771,8 +5771,8 @@ def test_complete_refreshes_shipping_methods_when_stale(
 ):
     # given
     checkout = checkout_ready_to_complete
-    checkout.shipping_methods_stale_at = timezone.now()
-    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.delivery_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["delivery_methods_stale_at"])
     checkout.gift_cards.all().delete()
 
     manager = get_plugins_manager(allow_replica=False)
@@ -5819,8 +5819,8 @@ def test_complete_do_not_refresh_shipping_methods_when_not_stale(
 ):
     # given
     checkout = checkout_ready_to_complete
-    checkout.shipping_methods_stale_at = timezone.now() + datetime.timedelta(hours=1)
-    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.delivery_methods_stale_at = timezone.now() + datetime.timedelta(hours=1)
+    checkout.save(update_fields=["delivery_methods_stale_at"])
     checkout.gift_cards.all().delete()
 
     manager = get_plugins_manager(allow_replica=False)
@@ -5868,8 +5868,8 @@ def test_complete_refreshes_shipping_methods_when_stale_and_invalid(
 ):
     # given
     checkout = checkout_ready_to_complete
-    checkout.shipping_methods_stale_at = timezone.now()
-    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.delivery_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["delivery_methods_stale_at"])
     checkout.gift_cards.all().delete()
 
     # Shipping is not available anymore

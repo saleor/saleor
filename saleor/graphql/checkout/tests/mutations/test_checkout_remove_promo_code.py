@@ -956,12 +956,12 @@ def test_checkout_remove_voucher_code_marks_shipping_as_stale(
     checkout = checkout_with_voucher
     checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = previous_stale_time
+    checkout.delivery_methods_stale_at = previous_stale_time
     checkout.save(
         update_fields=[
             "assigned_delivery",
             "shipping_address",
-            "shipping_methods_stale_at",
+            "delivery_methods_stale_at",
         ]
     )
 
@@ -981,4 +981,4 @@ def test_checkout_remove_voucher_code_marks_shipping_as_stale(
     assert data["checkout"]["token"] == str(checkout_with_voucher.token)
     assert data["checkout"]["voucherCode"] is None
     checkout.refresh_from_db()
-    assert checkout.shipping_methods_stale_at == expected_stale_time
+    assert checkout.delivery_methods_stale_at == expected_stale_time

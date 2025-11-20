@@ -1434,7 +1434,7 @@ def test_checkout_lines_update_marks_shipping_as_stale(
     lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 1
     assert checkout.assigned_delivery
-    assert checkout.shipping_methods_stale_at == timezone.now()
+    assert checkout.delivery_methods_stale_at == timezone.now()
 
 
 @freeze_time("2022-04-12 12:00:00")
@@ -1477,7 +1477,7 @@ def test_checkout_lines_update_do_not_remove_shipping_if_removed_product_with_sh
     checkout.refresh_from_db()
     assert checkout.lines.count() == 1
     assert checkout.assigned_delivery
-    assert checkout.shipping_methods_stale_at == timezone.now()
+    assert checkout.delivery_methods_stale_at == timezone.now()
 
 
 def test_with_active_problems_flow(

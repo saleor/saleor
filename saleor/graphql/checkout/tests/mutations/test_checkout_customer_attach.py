@@ -390,12 +390,12 @@ def test_checkout_customer_attach_do_not_mark_shipping_as_stale(
     checkout.email = "old@email.com"
     checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
-    checkout.shipping_methods_stale_at = expected_stale_time
+    checkout.delivery_methods_stale_at = expected_stale_time
     checkout.save(
         update_fields=[
             "assigned_delivery",
             "shipping_address",
-            "shipping_methods_stale_at",
+            "delivery_methods_stale_at",
         ]
     )
 
@@ -417,4 +417,4 @@ def test_checkout_customer_attach_do_not_mark_shipping_as_stale(
     assert not data["errors"]
     assert data["checkout"]["email"] == customer_user2.email
     checkout.refresh_from_db()
-    assert checkout.shipping_methods_stale_at == expected_stale_time
+    assert checkout.delivery_methods_stale_at == expected_stale_time

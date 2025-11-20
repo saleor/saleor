@@ -122,8 +122,8 @@ def test_checkout_shipping_method_update_not_valid_shipping_method(
 ):
     # given
     checkout = checkout_with_item_and_shipping_method
-    checkout.shipping_methods_stale_at = timezone.now() + timedelta(minutes=10)
-    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.delivery_methods_stale_at = timezone.now() + timedelta(minutes=10)
+    checkout.save(update_fields=["delivery_methods_stale_at"])
 
     old_shipping_method = checkout.assigned_delivery
     previous_last_change = checkout.last_change
