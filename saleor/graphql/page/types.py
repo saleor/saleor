@@ -149,6 +149,7 @@ class PageTypeCountableConnection(CountableConnection):
         node = PageType
 
 
+@key("id")
 class Page(ChannelContextType[models.Page]):
     id = graphene.GlobalID(required=True, description="ID of the page.")
     seo_title = graphene.String(description="Title of the page for SEO.")
