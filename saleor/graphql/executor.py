@@ -21,3 +21,19 @@ def patch_executor():
     """
 
     executor.complete_value_catching_error = _patched_complete_value_catching_error
+
+
+def __del_execution_context__(self):
+    if hasattr(self, "errors"):
+        del self.errors
+
+
+def patch_execution_context():
+    """Patch `__del__` method of `ExecutionContext` to delete `errors` attribute.
+
+    The `errors` attribute is used to store errors that occurred during the execution
+    of the query. This patch ensures that the attribute is deleted when the execution
+    context is deleted. This is to avoid reference cycles, as the attribute can hold
+    references to objects that are no longer needed.
+    """
+    executor.ExecutionContext.__del__ = __del_execution_context__  # type: ignore[attr-defined]

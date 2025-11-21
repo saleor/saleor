@@ -32,7 +32,7 @@ from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.rlimit import validate_and_set_rlimit
 from .core.schedules import initiated_promotion_webhook_schedule
-from .graphql.executor import patch_executor
+from .graphql.executor import patch_execution_context, patch_executor
 from .graphql.promise import patch_promise
 from .patch_local import patch_local
 
@@ -1089,3 +1089,7 @@ patch_db()
 # Patch `Local` to remove all references that could result in reference cycles,
 # allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
 patch_local()
+
+# Patch `ExecutionContext` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_execution_context()
