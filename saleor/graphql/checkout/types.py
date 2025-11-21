@@ -639,7 +639,7 @@ class Delivery(graphene.ObjectType):
         doc_category = DOC_CATEGORY_CHECKOUT
 
     def resolve_id(root: models.CheckoutDelivery, info: ResolveInfo) -> str:
-        return str(root.id)
+        return graphene.Node.to_global_id("CheckoutDelivery", root.pk)
 
     def resolve_shipping_method(
         root: models.CheckoutDelivery, _info: ResolveInfo
