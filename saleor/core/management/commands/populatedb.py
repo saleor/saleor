@@ -22,6 +22,7 @@ from ...utils.random_data import (
     create_permission_groups,
     create_products_by_schema,
     create_shipping_zones,
+    create_site_settings,
     create_staffs,
     create_tax_classes,
     create_users,
@@ -117,6 +118,8 @@ class Command(BaseCommand):
         for msg in create_tax_classes():
             self.stdout.write(msg)
         for msg in create_checkout_with_same_variant_in_multiple_lines():
+            self.stdout.write(msg)
+        for msg in create_site_settings():
             self.stdout.write(msg)
 
         if options["createsuperuser"]:
