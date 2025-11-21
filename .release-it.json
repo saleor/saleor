@@ -2,7 +2,8 @@
   "git": {
     "commit": true,
     "tag": false,
-    "push": false
+    "push": false,
+    "commitArgs": ["-n"]
   },
   "github": {
     "release": false
