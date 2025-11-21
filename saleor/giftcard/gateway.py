@@ -293,8 +293,10 @@ def cancel_gift_card_authorization(transaction_item: "TransactionItem", amount):
             "result": TransactionEventType.CANCEL_SUCCESS.upper(),
             "pspReference": transaction_item.psp_reference,
             "amount": amount,
-            "actions": [],
         }
+
+        if amount >= transaction_item.authorized_value:
+            response["actions"] = []
 
     create_transaction_event_from_request_and_webhook_response(
         transaction_event,
@@ -321,8 +323,10 @@ def refund_gift_card_charge(transaction_item: "TransactionItem", amount):
         "result": TransactionEventType.REFUND_SUCCESS.upper(),
         "pspReference": transaction_item.psp_reference,
         "amount": amount,
-        "actions": [],
     }
+
+    if amount >= transaction_item.charged_value:
+        response["actions"] = []
 
     create_transaction_event_from_request_and_webhook_response(
         transaction_event,

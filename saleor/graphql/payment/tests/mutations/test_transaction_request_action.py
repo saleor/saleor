@@ -2037,18 +2037,29 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
 
 
 @pytest.mark.parametrize(
-    ("amount", "expected_cancel_amount", "expected_authorize_status"),
+    (
+        "amount",
+        "expected_cancel_amount",
+        "expected_authorize_status",
+        "expected_available_actions",
+    ),
     [
-        (None, Decimal(10), CheckoutAuthorizeStatus.NONE),
-        (Decimal(1), Decimal(1), CheckoutAuthorizeStatus.PARTIAL),
-        (Decimal(10), Decimal(10), CheckoutAuthorizeStatus.NONE),
-        (Decimal(11), Decimal(10), CheckoutAuthorizeStatus.NONE),
+        (None, Decimal(10), CheckoutAuthorizeStatus.NONE, []),
+        (
+            Decimal(1),
+            Decimal(1),
+            CheckoutAuthorizeStatus.PARTIAL,
+            [TransactionAction.CANCEL],
+        ),
+        (Decimal(10), Decimal(10), CheckoutAuthorizeStatus.NONE, []),
+        (Decimal(11), Decimal(10), CheckoutAuthorizeStatus.NONE, []),
     ],
 )
 def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
     amount,
     expected_cancel_amount,
     expected_authorize_status,
+    expected_available_actions,
     checkout_with_prices,
     gift_card_created_by_staff,
     transaction_item_generator,
@@ -2099,7 +2110,7 @@ def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
     assert transaction.authorized_value == Decimal(10) - expected_cancel_amount
     assert transaction.charged_value == Decimal(0)
     assert transaction.gift_card is not None
-    assert transaction.available_actions == []
+    assert transaction.available_actions == expected_available_actions
     assert checkout.authorize_status == expected_authorize_status
 
     TransactionEvent.objects.get(
@@ -2224,17 +2235,18 @@ def test_transaction_request_cancelation_for_type_other_than_checkout(
 
 
 @pytest.mark.parametrize(
-    ("amount", "expected_refund_amount"),
+    ("amount", "expected_refund_amount", "expected_available_actions"),
     [
-        (None, Decimal(10)),
-        (Decimal(1), Decimal(1)),
-        (Decimal(10), Decimal(10)),
-        (Decimal(11), Decimal(10)),
+        (None, Decimal(10), []),
+        (Decimal(1), Decimal(1), [TransactionAction.REFUND]),
+        (Decimal(10), Decimal(10), []),
+        (Decimal(11), Decimal(10), []),
     ],
 )
 def test_transaction_request_refund_for_order_gift_card_charge(
     amount,
     expected_refund_amount,
+    expected_available_actions,
     order_with_lines,
     gift_card_created_by_staff,
     transaction_item_generator,
@@ -2281,7 +2293,7 @@ def test_transaction_request_refund_for_order_gift_card_charge(
     assert transaction.charged_value == Decimal(10) - expected_refund_amount
     assert transaction.refunded_value == expected_refund_amount
     assert transaction.gift_card is not None
-    assert transaction.available_actions == []
+    assert transaction.available_actions == expected_available_actions
     assert gift_card_created_by_staff.current_balance_amount == expected_refund_amount
 
     TransactionEvent.objects.get(
