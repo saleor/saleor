@@ -48,6 +48,7 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
     ADDED_IN_321,
+    ADDED_IN_323,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
@@ -626,6 +627,26 @@ class DeliveryMethod(graphene.Union):
         return super().resolve_type(instance, info)
 
 
+class Delivery(graphene.ObjectType):
+    id = graphene.ID(required=True, description="The ID of the delivery.")
+    shipping_method = graphene.Field(
+        ShippingMethod,
+        description="Shipping method represented by the delivery.",
+    )
+
+    class Meta:
+        description = "Represents a delivery option for the checkout." + ADDED_IN_323
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+    def resolve_id(root: models.CheckoutDelivery, info: ResolveInfo) -> str:
+        return str(root.id)
+
+    def resolve_shipping_method(
+        root: models.CheckoutDelivery, _info: ResolveInfo
+    ) -> ShippingMethodData | None:
+        return convert_checkout_delivery_to_shipping_method_data(root)
+
+
 def _should_load_denormalized_checkout_deliveries(
     checkout_context: SyncWebhookControlContext[models.Checkout],
 ):
@@ -926,10 +947,15 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
             ),
         ],
     )
+    delivery = BaseField(
+        Delivery,
+        description="The delivery method selected for this checkout." + ADDED_IN_323,
+    )
+
     shipping_method = BaseField(
         ShippingMethod,
         description="The shipping method related with checkout.",
-        deprecation_reason="Use `deliveryMethod` instead.",
+        deprecation_reason="Use `delivery` instead.",
         webhook_events_info=[
             WebhookEventInfo(
                 type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
@@ -950,6 +976,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     delivery_method = BaseField(
         DeliveryMethod,
         description="The delivery method selected for this checkout.",
+        deprecation_reason="Use `delivery` instead.",
         webhook_events_info=[
             WebhookEventInfo(
                 type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
@@ -1154,6 +1181,17 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
             return WarehouseByIdLoader(info.context).load(checkout.collection_point_id)
 
         return _resolve_checkout_delivery(root, info)
+
+    @staticmethod
+    def resolve_delivery(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
+        if not root.node.assigned_delivery_id:
+            return None
+
+        return CheckoutDeliveryByIdLoader(info.context).load(
+            root.node.assigned_delivery_id
+        )
 
     @staticmethod
     def resolve_quantity(

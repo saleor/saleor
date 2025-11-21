@@ -5200,3 +5200,145 @@ def test_query_checkout_shipping_method_dont_invalidate_taxes_when_nothing_chang
     assert content["data"]["checkout"]["shippingMethod"]["id"] == to_global_id_or_none(
         shipping_method
     )
+
+
+def test_checkout_delivery_returns_external_shipping_methods(
+    user_api_client, checkout_with_delivery_method_for_external_shipping
+):
+    # given
+    checkout = checkout_with_delivery_method_for_external_shipping
+    delivery = checkout.assigned_delivery
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            delivery {
+                id
+                shippingMethod {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]["delivery"]
+    assert data is not None
+    assert data["id"] == str(delivery.id)
+    assert data["shippingMethod"]["name"] == delivery.name
+
+
+def test_checkout_delivery_returns_built_in_shipping_methods(
+    user_api_client, checkout_with_item, checkout_delivery, shipping_method, address
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.save()
+
+    delivery = checkout.assigned_delivery
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            delivery {
+                id
+                shippingMethod {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]["delivery"]
+    assert data is not None
+    assert data["id"] == str(delivery.id)
+    assert data["shippingMethod"]["name"] == shipping_method.name
+
+
+def test_checkout_delivery_returns_none_when_no_delivery_assigned(
+    user_api_client, checkout_with_item
+):
+    # given
+    checkout = checkout_with_item
+    assert checkout.assigned_delivery_id is None
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            delivery {
+                id
+                shippingMethod {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["delivery"] is None
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_checkout_delivery_do_not_trigger_any_webhook_calls(
+    mock_send_webhook_request_sync,
+    user_api_client,
+    checkout_with_item,
+    checkout_delivery,
+    shipping_method,
+    address,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.delivery_methods_stale_at = timezone.now()
+    checkout.save()
+
+    query = """
+    query getCheckout($id: ID) {
+        checkout(id: $id) {
+            delivery {
+                id
+                shippingMethod {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["delivery"] is not None
+    # Ensure no webhook was triggered
+    mock_send_webhook_request_sync.assert_not_called()
