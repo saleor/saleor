@@ -15,6 +15,11 @@ from .utils import (
     disable_gc_for_garbage_collection_test,
 )
 
+
+def raise_graphql_error(*args, **kwargs):
+    raise GraphQLError("Exception in resolver")
+
+
 PRODUCTS_QUERY_PERMISSION_REQUIRED = """
 query FetchProducts($channel: String!){
     products(first: 10, channel: $channel) {
@@ -136,12 +141,9 @@ def test_query_cost_error(rf, product, channel_USD):
 # This is necessary to ensure that tests don't interfere with each other.
 # Without grouping we could receive false positive results.
 @pytest.mark.xdist_group(name="garbage_collection")
-@mock.patch("saleor.graphql.product.schema.resolve_products")
-def test_exception_in_resolver(mock_resolve_products, rf, product, channel_USD):
+def test_exception_in_resolver(rf, product, channel_USD):
     try:
         # given
-        # Mock the resolver to raise an exception.
-        mock_resolve_products.side_effect = GraphQLError("Exception in resolver")
         # Disable automatic garbage collection and set debugging flag.
         disable_gc_for_garbage_collection_test()
         # Prepare request body with GraphQL query and variables.
@@ -151,12 +153,19 @@ def test_exception_in_resolver(mock_resolve_products, rf, product, channel_USD):
 
         # when
         # Execute the query with GraphQLError in the resolver.
-        content = get_graphql_content(
-            GraphQLView(backend=backend, schema=schema).handle_query(
-                rf.post(path="/graphql/", data=data, content_type="application/json")
-            ),
-            ignore_errors=True,
-        )
+        with mock.patch(
+            "saleor.graphql.product.schema.resolve_products",
+            side_effect=raise_graphql_error,
+        ) as _mocked_resolver:
+            content = get_graphql_content(
+                GraphQLView(backend=backend, schema=schema).handle_query(
+                    rf.post(
+                        path="/graphql/", data=data, content_type="application/json"
+                    )
+                ),
+                ignore_errors=True,
+            )
+
         # Enforce garbage collection to populate the garbage list for inspection.
         gc.collect()
 
@@ -177,12 +186,9 @@ def test_exception_in_resolver(mock_resolve_products, rf, product, channel_USD):
 # This is necessary to ensure that tests don't interfere with each other.
 # Without grouping we could receive false positive results.
 @pytest.mark.xdist_group(name="garbage_collection")
-@mock.patch("saleor.graphql.product.schema.ChannelBySlugLoader.batch_load")
-def test_exception_in_dataloader(mock_ChannelBySlugLoader, rf, product, channel_USD):
+def test_exception_in_dataloader(rf, product, channel_USD):
     try:
         # given
-        # Mock the dataloader to raise an exception.
-        mock_ChannelBySlugLoader.side_effect = GraphQLError("Exception in resolver")
         # Disable automatic garbage collection and set debugging flag.
         disable_gc_for_garbage_collection_test()
         # Prepare request body with GraphQL query and variables.
@@ -192,12 +198,18 @@ def test_exception_in_dataloader(mock_ChannelBySlugLoader, rf, product, channel_
 
         # when
         # Execute the query with GraphQLError in the dataloader.
-        content = get_graphql_content(
-            GraphQLView(backend=backend, schema=schema).handle_query(
-                rf.post(path="/graphql/", data=data, content_type="application/json")
-            ),
-            ignore_errors=True,
-        )
+        with mock.patch(
+            "saleor.graphql.product.schema.ChannelBySlugLoader.batch_load",
+            side_effect=raise_graphql_error,
+        ) as _mocked_dataloader:
+            content = get_graphql_content(
+                GraphQLView(backend=backend, schema=schema).handle_query(
+                    rf.post(
+                        path="/graphql/", data=data, content_type="application/json"
+                    )
+                ),
+                ignore_errors=True,
+            )
         # Enforce garbage collection to populate the garbage list for inspection.
         gc.collect()
 
