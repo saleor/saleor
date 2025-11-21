@@ -265,17 +265,17 @@ def charge_gift_card_transactions(
             )
 
 
-def cancel_gift_card_authorization(transaction_item: "TransactionItem"):
+def cancel_gift_card_authorization(transaction_item: "TransactionItem", amount):
     transaction_event, _ = TransactionEvent.objects.get_or_create(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         transaction=transaction_item,
         type=TransactionEventType.CANCEL_REQUEST,
         currency=transaction_item.currency,
-        amount_value=transaction_item.amount_authorized.amount,
+        amount_value=amount,
         defaults={
             "include_in_calculations": False,
             "currency": transaction_item.currency,
-            "amount_value": transaction_item.amount_authorized.amount,
+            "amount_value": amount,
         },
     )
 
@@ -286,18 +286,15 @@ def cancel_gift_card_authorization(transaction_item: "TransactionItem"):
         response = {
             "result": TransactionEventType.CANCEL_FAILURE.upper(),
             "pspReference": transaction_item.psp_reference,
-            "amount": transaction_item.amount_authorized.amount,
+            "amount": amount,
         }
     else:
         response = {
             "result": TransactionEventType.CANCEL_SUCCESS.upper(),
             "pspReference": transaction_item.psp_reference,
-            "amount": transaction_item.amount_authorized.amount,
+            "amount": amount,
             "actions": [],
         }
-
-        transaction_item.gift_card = None
-        transaction_item.save(update_fields=["gift_card"])
 
     create_transaction_event_from_request_and_webhook_response(
         transaction_event,

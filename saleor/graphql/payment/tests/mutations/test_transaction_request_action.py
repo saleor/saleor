@@ -2036,7 +2036,19 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
     assert mocked_payment_action_request.called
 
 
+@pytest.mark.parametrize(
+    ("amount", "expected_cancel_amount", "expected_authorize_status"),
+    [
+        (None, Decimal(10), CheckoutAuthorizeStatus.NONE),
+        (Decimal(1), Decimal(1), CheckoutAuthorizeStatus.PARTIAL),
+        (Decimal(10), Decimal(10), CheckoutAuthorizeStatus.NONE),
+        (Decimal(11), Decimal(10), CheckoutAuthorizeStatus.NONE),
+    ],
+)
 def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
+    amount,
+    expected_cancel_amount,
+    expected_authorize_status,
     checkout_with_prices,
     gift_card_created_by_staff,
     transaction_item_generator,
@@ -2052,7 +2064,7 @@ def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         checkout_id=checkout.pk,
         gift_card=gift_card_created_by_staff,
-        authorized_value=gift_card_created_by_staff.current_balance_amount,
+        authorized_value=Decimal(10),
         available_actions=[TransactionAction.CANCEL],
     )
     assert transaction.gift_card is not None
@@ -2067,6 +2079,7 @@ def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CANCEL.name,
+        "amount": amount,
     }
 
     # when
@@ -2083,22 +2096,22 @@ def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
     transaction.refresh_from_db()
     checkout.refresh_from_db()
 
-    assert transaction.authorized_value == Decimal(0)
+    assert transaction.authorized_value == Decimal(10) - expected_cancel_amount
     assert transaction.charged_value == Decimal(0)
-    assert transaction.gift_card is None
+    assert transaction.gift_card is not None
     assert transaction.available_actions == []
-    assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
+    assert checkout.authorize_status == expected_authorize_status
 
     TransactionEvent.objects.get(
         transaction=transaction,
         type=TransactionEventType.CANCEL_REQUEST,
-        amount_value=gift_card_created_by_staff.current_balance_amount,
+        amount_value=expected_cancel_amount,
     )
 
     TransactionEvent.objects.get(
         transaction=transaction,
         type=TransactionEventType.CANCEL_SUCCESS,
-        amount_value=gift_card_created_by_staff.current_balance_amount,
+        amount_value=expected_cancel_amount,
     )
 
 
