@@ -5231,7 +5231,7 @@ def test_checkout_delivery_returns_external_shipping_methods(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]["delivery"]
     assert data is not None
-    assert data["id"] == str(delivery.id)
+    assert data["id"] == to_global_id_or_none(delivery)
     assert data["shippingMethod"]["name"] == delivery.name
 
 
@@ -5268,7 +5268,7 @@ def test_checkout_delivery_returns_built_in_shipping_methods(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]["delivery"]
     assert data is not None
-    assert data["id"] == str(delivery.id)
+    assert data["id"] == to_global_id_or_none(delivery)
     assert data["shippingMethod"]["name"] == shipping_method.name
 
 
@@ -5392,6 +5392,6 @@ def test_checkout_delivery_returns_shipping_when_marked_as_invalid(
     data = content["data"]["checkout"]["delivery"]
     # The delivery field should still return the delivery object even when marked as invalid
     assert data is not None
-    assert data["id"] == str(delivery.id)
+    assert data["id"] == to_global_id_or_none(delivery)
     assert data["shippingMethod"]["name"] == shipping_method.name
     mocked_shipping_webhook_fetch.assert_not_called()
