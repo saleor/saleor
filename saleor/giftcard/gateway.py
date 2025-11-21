@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pydantic
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, F, OuterRef, Q
 from django.utils import timezone
 
 from ..checkout.models import Checkout
@@ -256,7 +256,7 @@ def charge_gift_card_transactions(
                 gift_card.save(update_fields=["current_balance_amount"])
                 response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
                 response["message"] = f"Gift card (ending: {gift_card.display_code})."
-                response["actions"] = []
+                response["actions"] = [TransactionAction.REFUND.upper()]
 
             create_transaction_event_from_request_and_webhook_response(
                 transaction_event,
@@ -301,3 +301,40 @@ def cancel_gift_card_authorization(transaction_item: "TransactionItem", amount):
         None,
         transaction_webhook_response=response,
     )
+
+
+def refund_gift_card_charge(transaction_item: "TransactionItem", amount):
+    transaction_event, _ = TransactionEvent.objects.get_or_create(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        transaction=transaction_item,
+        type=TransactionEventType.REFUND_REQUEST,
+        currency=transaction_item.currency,
+        amount_value=amount,
+        defaults={
+            "include_in_calculations": False,
+            "currency": transaction_item.currency,
+            "amount_value": amount,
+        },
+    )
+
+    response = {
+        "result": TransactionEventType.REFUND_SUCCESS.upper(),
+        "pspReference": transaction_item.psp_reference,
+        "amount": amount,
+        "actions": [],
+    }
+
+    create_transaction_event_from_request_and_webhook_response(
+        transaction_event,
+        None,
+        transaction_webhook_response=response,
+    )
+
+    with transaction.atomic():
+        gift_card = (
+            GiftCard.objects.filter(id=transaction_item.gift_card_id)  # type: ignore[misc]
+            .select_for_update()
+            .get()
+        )
+        gift_card.current_balance_amount = F("current_balance_amount") + amount
+        gift_card.save(update_fields=["current_balance_amount"])

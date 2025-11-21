@@ -2221,3 +2221,77 @@ def test_transaction_request_cancelation_for_type_other_than_checkout(
         type=TransactionEventType.CANCEL_FAILURE,
         amount_value=gift_card_created_by_staff.current_balance_amount,
     )
+
+
+@pytest.mark.parametrize(
+    ("amount", "expected_refund_amount"),
+    [
+        (None, Decimal(10)),
+        (Decimal(1), Decimal(1)),
+        (Decimal(10), Decimal(10)),
+        (Decimal(11), Decimal(10)),
+    ],
+)
+def test_transaction_request_refund_for_order_gift_card_charge(
+    amount,
+    expected_refund_amount,
+    order_with_lines,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+
+    gift_card_created_by_staff.current_balance_amount = Decimal(0)
+    gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        charged_value=Decimal(10),
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "amount": amount,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    transaction.refresh_from_db()
+    gift_card_created_by_staff.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(10) - expected_refund_amount
+    assert transaction.refunded_value == expected_refund_amount
+    assert transaction.gift_card is not None
+    assert transaction.available_actions == []
+    assert gift_card_created_by_staff.current_balance_amount == expected_refund_amount
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=expected_refund_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_SUCCESS,
+        amount_value=expected_refund_amount,
+    )

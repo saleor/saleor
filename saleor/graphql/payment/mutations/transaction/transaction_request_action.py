@@ -92,8 +92,9 @@ class TransactionRequestAction(BaseMutation):
         reason: str | None = None,
         reason_reference: Page | None = None,
     ):
+        transaction = action_kwargs["transaction"]
+
         if action == TransactionAction.CANCEL:
-            transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
             if transaction.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
@@ -111,7 +112,6 @@ class TransactionRequestAction(BaseMutation):
                     action=action,
                 )
         elif action == TransactionAction.CHARGE:
-            transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
             request_event = cls.create_transaction_event_requested(
@@ -121,21 +121,27 @@ class TransactionRequestAction(BaseMutation):
                 **action_kwargs, charge_value=action_value, request_event=request_event
             )
         elif action == TransactionAction.REFUND:
-            transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
-            request_event = cls.create_transaction_event_requested(
-                transaction,
-                action_value,
-                TransactionAction.REFUND,
-                user=user,
-                app=app,
-                reason=reason,
-                reason_reference=reason_reference,
-            )
-            request_refund_action(
-                **action_kwargs, refund_value=action_value, request_event=request_event
-            )
+            if transaction.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+                from .....giftcard.gateway import refund_gift_card_charge
+
+                refund_gift_card_charge(transaction, action_value)
+            else:
+                request_event = cls.create_transaction_event_requested(
+                    transaction,
+                    action_value,
+                    TransactionAction.REFUND,
+                    user=user,
+                    app=app,
+                    reason=reason,
+                    reason_reference=reason_reference,
+                )
+                request_refund_action(
+                    **action_kwargs,
+                    refund_value=action_value,
+                    request_event=request_event,
+                )
 
     @classmethod
     def create_transaction_event_requested(

@@ -3902,7 +3902,7 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
 
     assert transaction.authorized_value == Decimal(0)
     assert transaction.charged_value == order.total_gross_amount
-    assert transaction.available_actions == []
+    assert transaction.available_actions == [TransactionAction.REFUND]
     assert (
         gift_card_created_by_staff.current_balance_amount
         == Decimal(100) - order.total_gross_amount
@@ -4002,7 +4002,7 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
 
     assert transaction.authorized_value == Decimal(0)
     assert transaction.charged_value == Decimal(10)
-    assert transaction.available_actions == []
+    assert transaction.available_actions == [TransactionAction.REFUND]
     assert gift_card_created_by_staff.current_balance_amount == Decimal(0)
 
     assert (
@@ -4028,7 +4028,7 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
 
     assert transaction.authorized_value == Decimal(0)
     assert transaction.charged_value == Decimal(10)
-    assert transaction.available_actions == []
+    assert transaction.available_actions == [TransactionAction.REFUND]
     assert gift_card_created_by_staff.current_balance_amount == Decimal(0)
 
     assert (
