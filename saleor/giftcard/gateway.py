@@ -305,17 +305,21 @@ def cancel_gift_card_authorization(transaction_item: "TransactionItem", amount):
     )
 
 
-def refund_gift_card_charge(transaction_item: "TransactionItem", amount):
+def refund_gift_card_charge(
+    transaction_item: "TransactionItem", amount, related_granted_refund=None
+):
     transaction_event, _ = TransactionEvent.objects.get_or_create(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         transaction=transaction_item,
         type=TransactionEventType.REFUND_REQUEST,
         currency=transaction_item.currency,
         amount_value=amount,
+        related_granted_refund=related_granted_refund,
         defaults={
             "include_in_calculations": False,
             "currency": transaction_item.currency,
             "amount_value": amount,
+            "related_granted_refund": related_granted_refund,
         },
     )
 
