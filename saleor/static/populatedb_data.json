@@ -13,7 +13,13 @@
       "updated_at": "2022-05-16T12:35:53.164Z",
       "categories": [],
       "collections": [],
-      "products": [128, 137, 126, 141, 143],
+      "products": [
+        128,
+        137,
+        126,
+        141,
+        143
+      ],
       "variants": []
     }
   },
@@ -40,7 +46,9 @@
   {
     "model": "giftcard.giftcardtag",
     "pk": 1,
-    "fields": { "name": "issued-gift-cards" }
+    "fields": {
+      "name": "issued-gift-cards"
+    }
   },
   {
     "model": "product.category",
@@ -526,7 +534,9 @@
         "blocks": [
           {
             "id": "32SKrcyWwb",
-            "data": { "text": "Launch <b>new markets fast</b>" },
+            "data": {
+              "text": "Launch <b>new markets fast</b>"
+            },
             "type": "paragraph"
           }
         ],
@@ -996,7 +1006,9 @@
         "blocks": [
           {
             "id": "g2sLxZcLZa",
-            "data": { "text": "Scale <b>effortlessly</b>" },
+            "data": {
+              "text": "Scale <b>effortlessly</b>"
+            },
             "type": "paragraph"
           }
         ],
@@ -1028,7 +1040,9 @@
         "blocks": [
           {
             "id": "w3x66nix3o",
-            "data": { "text": "Open Source <b>without the DevOps</b>" },
+            "data": {
+              "text": "Open Source <b>without the DevOps</b>"
+            },
             "type": "paragraph"
           }
         ],
@@ -1354,7 +1368,9 @@
         "blocks": [
           {
             "id": "x5bGwCbYOX",
-            "data": { "text": "Gift card to use in the shop." },
+            "data": {
+              "text": "Gift card to use in the shop."
+            },
             "type": "paragraph"
           }
         ],
@@ -6491,42 +6507,74 @@
   {
     "model": "product.collectionproduct",
     "pk": 9,
-    "fields": { "sort_order": null, "collection": 4, "product": 150 }
+    "fields": {
+      "sort_order": null,
+      "collection": 4,
+      "product": 150
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 10,
-    "fields": { "sort_order": null, "collection": 4, "product": 134 }
+    "fields": {
+      "sort_order": null,
+      "collection": 4,
+      "product": 134
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 11,
-    "fields": { "sort_order": null, "collection": 4, "product": 127 }
+    "fields": {
+      "sort_order": null,
+      "collection": 4,
+      "product": 127
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 12,
-    "fields": { "sort_order": null, "collection": 5, "product": 128 }
+    "fields": {
+      "sort_order": null,
+      "collection": 5,
+      "product": 128
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 13,
-    "fields": { "sort_order": null, "collection": 5, "product": 136 }
+    "fields": {
+      "sort_order": null,
+      "collection": 5,
+      "product": 136
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 14,
-    "fields": { "sort_order": null, "collection": 5, "product": 144 }
+    "fields": {
+      "sort_order": null,
+      "collection": 5,
+      "product": 144
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 15,
-    "fields": { "sort_order": null, "collection": 4, "product": 161 }
+    "fields": {
+      "sort_order": null,
+      "collection": 4,
+      "product": 161
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 17,
-    "fields": { "sort_order": null, "collection": 5, "product": 161 }
+    "fields": {
+      "sort_order": null,
+      "collection": 5,
+      "product": 161
+    }
   },
   {
     "model": "product.collection",
@@ -6545,7 +6593,9 @@
         "blocks": [
           {
             "id": "vSuHF7x1Ph",
-            "data": { "text": "Team's favourites" },
+            "data": {
+              "text": "Team's favourites"
+            },
             "type": "paragraph"
           }
         ],
@@ -6570,7 +6620,9 @@
         "blocks": [
           {
             "id": "U2Pv1bCoAr",
-            "data": { "text": "Get ready for the summer" },
+            "data": {
+              "text": "Get ready for the summer"
+            },
             "type": "paragraph"
           }
         ],
@@ -6787,6 +6839,27 @@
     }
   },
   {
+    "model": "attribute.attribute",
+    "pk": 44,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "slug": "brand",
+      "name": "Brand",
+      "type": "product-type",
+      "input_type": "single-reference",
+      "entity_type": "Page",
+      "unit": null,
+      "value_required": false,
+      "is_variant_only": false,
+      "visible_in_storefront": true,
+      "filterable_in_storefront": false,
+      "filterable_in_dashboard": false,
+      "storefront_search_position": 0,
+      "available_in_grid": false
+    }
+  },
+  {
     "model": "attribute.attributevalue",
     "pk": 105,
     "fields": {
@@ -6801,7 +6874,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7107,7 +7180,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7125,7 +7198,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7143,7 +7216,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7161,7 +7234,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7179,7 +7252,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7197,7 +7270,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7215,7 +7288,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7233,7 +7306,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7251,7 +7324,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7269,7 +7342,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7287,7 +7360,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7305,7 +7378,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7323,7 +7396,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7341,7 +7414,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7359,7 +7432,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7377,7 +7450,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7395,7 +7468,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7413,7 +7486,7 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
     }
   },
   {
@@ -7431,683 +7504,1500 @@
       "boolean": null,
       "date_time": null,
       "reference_product": null,
-      "reference_page": null
+      "reference_page_id": null
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 142,
+    "fields": {
+      "sort_order": 1,
+      "name": "Frutello",
+      "value": "",
+      "slug": "152_4",
+      "file_url": null,
+      "content_type": null,
+      "attribute": 44,
+      "rich_text": null,
+      "boolean": null,
+      "date_time": null,
+      "reference_product": null,
+      "reference_page_id": 4
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 143,
+    "fields": {
+      "sort_order": 2,
+      "name": "Saleor Loom",
+      "value": "",
+      "slug": "saleor-loom",
+      "file_url": null,
+      "content_type": null,
+      "attribute": 44,
+      "rich_text": null,
+      "boolean": null,
+      "date_time": null,
+      "reference_product": null,
+      "reference_page_id": 5
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 144,
+    "fields": {
+      "sort_order": 3,
+      "name": "CozyNest",
+      "value": "",
+      "slug": "cozzynest",
+      "file_url": null,
+      "content_type": null,
+      "attribute": 44,
+      "rich_text": null,
+      "boolean": null,
+      "date_time": null,
+      "reference_product": null,
+      "reference_page_id": 6
     }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 193,
-    "fields": { "sort_order": 0, "value": 138, "product": 126 }
+    "fields": {
+      "sort_order": 0,
+      "value": 138,
+      "product": 126
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 194,
-    "fields": { "sort_order": 0, "value": 105, "product": 131 }
+    "fields": {
+      "sort_order": 0,
+      "value": 105,
+      "product": 131
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 195,
-    "fields": { "sort_order": 0, "value": 107, "product": 132 }
+    "fields": {
+      "sort_order": 0,
+      "value": 107,
+      "product": 132
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 196,
-    "fields": { "sort_order": 0, "value": 105, "product": 133 }
+    "fields": {
+      "sort_order": 0,
+      "value": 105,
+      "product": 133
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 197,
-    "fields": { "sort_order": 0, "value": 105, "product": 134 }
+    "fields": {
+      "sort_order": 0,
+      "value": 105,
+      "product": 134
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 198,
-    "fields": { "sort_order": 0, "value": 106, "product": 135 }
+    "fields": {
+      "sort_order": 0,
+      "value": 106,
+      "product": 135
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 199,
-    "fields": { "sort_order": 0, "value": 105, "product": 136 }
+    "fields": {
+      "sort_order": 0,
+      "value": 105,
+      "product": 136
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 200,
-    "fields": { "sort_order": 0, "value": 105, "product": 137 }
+    "fields": {
+      "sort_order": 0,
+      "value": 105,
+      "product": 137
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 201,
-    "fields": { "sort_order": 0, "value": 105, "product": 138 }
+    "fields": {
+      "sort_order": 0,
+      "value": 105,
+      "product": 138
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 204,
-    "fields": { "sort_order": 0, "value": 105, "product": 141 }
+    "fields": {
+      "sort_order": 0,
+      "value": 105,
+      "product": 141
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 206,
-    "fields": { "sort_order": 0, "value": 140, "product": 143 }
+    "fields": {
+      "sort_order": 0,
+      "value": 140,
+      "product": 143
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 207,
-    "fields": { "sort_order": 0, "value": 141, "product": 146 }
+    "fields": {
+      "sort_order": 0,
+      "value": 141,
+      "product": 146
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 208,
-    "fields": { "sort_order": 0, "value": 141, "product": 147 }
+    "fields": {
+      "sort_order": 0,
+      "value": 141,
+      "product": 147
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 210,
-    "fields": { "sort_order": 0, "value": 129, "product": 152 }
+    "fields": {
+      "sort_order": 0,
+      "value": 129,
+      "product": 152
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 211,
-    "fields": { "sort_order": 0, "value": 123, "product": 153 }
+    "fields": {
+      "sort_order": 0,
+      "value": 123,
+      "product": 153
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 212,
-    "fields": { "sort_order": 0, "value": 122, "product": 154 }
+    "fields": {
+      "sort_order": 0,
+      "value": 122,
+      "product": 154
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 213,
-    "fields": { "sort_order": 0, "value": 124, "product": 155 }
+    "fields": {
+      "sort_order": 0,
+      "value": 124,
+      "product": 155
+    }
   },
   {
     "model": "attribute.assignedproductattributevalue",
     "pk": 214,
-    "fields": { "sort_order": 0, "value": 105, "product": 161 }
+    "fields": {
+      "sort_order": 0,
+      "value": 105,
+      "product": 161
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 215,
+    "fields": {
+      "sort_order": 0,
+      "value": 142,
+      "product": 152
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 216,
+    "fields": {
+      "sort_order": 0,
+      "value": 142,
+      "product": 153
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 217,
+    "fields": {
+      "sort_order": 0,
+      "value": 142,
+      "product": 154
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 218,
+    "fields": {
+      "sort_order": 0,
+      "value": 142,
+      "product": 155
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 219,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 127
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 220,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 128
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 221,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 129
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 222,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 130
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 223,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 131
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 224,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 132
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 225,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 133
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 226,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 134
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 227,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 135
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 228,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 136
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 229,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 137
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 230,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 138
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 231,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 157
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 232,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 161
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 233,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 141
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 234,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 143
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 235,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 144
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 236,
+    "fields": {
+      "sort_order": 0,
+      "value": 144,
+      "product": 150
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 237,
+    "fields": {
+      "sort_order": 0,
+      "value": 144,
+      "product": 151
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 238,
+    "fields": {
+      "sort_order": 0,
+      "value": 143,
+      "product": 156
+    }
+  },
+  {
+    "model": "attribute.assignedproductattributevalue",
+    "pk": 239,
+    "fields": {
+      "sort_order": 0,
+      "value": 144,
+      "product": 162
+    }
   },
   {
     "model": "attribute.attributeproduct",
     "pk": 10,
-    "fields": { "sort_order": 0, "attribute": 43, "product_type": 17 }
+    "fields": {
+      "sort_order": 0,
+      "attribute": 43,
+      "product_type": 17
+    }
   },
   {
     "model": "attribute.attributeproduct",
     "pk": 11,
-    "fields": { "sort_order": 0, "attribute": 36, "product_type": 19 }
+    "fields": {
+      "sort_order": 0,
+      "attribute": 36,
+      "product_type": 19
+    }
   },
   {
     "model": "attribute.attributeproduct",
     "pk": 12,
-    "fields": { "sort_order": 0, "attribute": 36, "product_type": 20 }
+    "fields": {
+      "sort_order": 0,
+      "attribute": 36,
+      "product_type": 20
+    }
   },
   {
     "model": "attribute.attributeproduct",
     "pk": 13,
-    "fields": { "sort_order": 0, "attribute": 36, "product_type": 21 }
+    "fields": {
+      "sort_order": 0,
+      "attribute": 36,
+      "product_type": 21
+    }
   },
   {
     "model": "attribute.attributeproduct",
     "pk": 14,
-    "fields": { "sort_order": 0, "attribute": 40, "product_type": 23 }
+    "fields": {
+      "sort_order": 0,
+      "attribute": 40,
+      "product_type": 23
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 16,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 23
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 17,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 18
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 18,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 19
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 19,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 20
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 20,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 21
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 21,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 44,
+      "product_type": 22
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 676,
-    "fields": { "sort_order": 0, "value": 137, "assignment": 136 }
+    "fields": {
+      "sort_order": 0,
+      "value": 137,
+      "assignment": 136
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 677,
-    "fields": { "sort_order": 0, "value": 108, "assignment": 137 }
+    "fields": {
+      "sort_order": 0,
+      "value": 108,
+      "assignment": 137
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 678,
-    "fields": { "sort_order": 0, "value": 109, "assignment": 138 }
+    "fields": {
+      "sort_order": 0,
+      "value": 109,
+      "assignment": 138
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 679,
-    "fields": { "sort_order": 0, "value": 110, "assignment": 139 }
+    "fields": {
+      "sort_order": 0,
+      "value": 110,
+      "assignment": 139
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 680,
-    "fields": { "sort_order": 0, "value": 111, "assignment": 140 }
+    "fields": {
+      "sort_order": 0,
+      "value": 111,
+      "assignment": 140
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 681,
-    "fields": { "sort_order": 0, "value": 112, "assignment": 141 }
+    "fields": {
+      "sort_order": 0,
+      "value": 112,
+      "assignment": 141
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 682,
-    "fields": { "sort_order": 0, "value": 113, "assignment": 142 }
+    "fields": {
+      "sort_order": 0,
+      "value": 113,
+      "assignment": 142
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 683,
-    "fields": { "sort_order": 0, "value": 114, "assignment": 143 }
+    "fields": {
+      "sort_order": 0,
+      "value": 114,
+      "assignment": 143
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 684,
-    "fields": { "sort_order": 0, "value": 110, "assignment": 144 }
+    "fields": {
+      "sort_order": 0,
+      "value": 110,
+      "assignment": 144
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 685,
-    "fields": { "sort_order": 0, "value": 109, "assignment": 145 }
+    "fields": {
+      "sort_order": 0,
+      "value": 109,
+      "assignment": 145
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 686,
-    "fields": { "sort_order": 0, "value": 111, "assignment": 146 }
+    "fields": {
+      "sort_order": 0,
+      "value": 111,
+      "assignment": 146
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 687,
-    "fields": { "sort_order": 0, "value": 108, "assignment": 147 }
+    "fields": {
+      "sort_order": 0,
+      "value": 108,
+      "assignment": 147
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 688,
-    "fields": { "sort_order": 0, "value": 109, "assignment": 148 }
+    "fields": {
+      "sort_order": 0,
+      "value": 109,
+      "assignment": 148
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 689,
-    "fields": { "sort_order": 0, "value": 110, "assignment": 149 }
+    "fields": {
+      "sort_order": 0,
+      "value": 110,
+      "assignment": 149
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 690,
-    "fields": { "sort_order": 0, "value": 111, "assignment": 150 }
+    "fields": {
+      "sort_order": 0,
+      "value": 111,
+      "assignment": 150
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 691,
-    "fields": { "sort_order": 0, "value": 112, "assignment": 151 }
+    "fields": {
+      "sort_order": 0,
+      "value": 112,
+      "assignment": 151
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 692,
-    "fields": { "sort_order": 0, "value": 108, "assignment": 152 }
+    "fields": {
+      "sort_order": 0,
+      "value": 108,
+      "assignment": 152
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 693,
-    "fields": { "sort_order": 0, "value": 109, "assignment": 153 }
+    "fields": {
+      "sort_order": 0,
+      "value": 109,
+      "assignment": 153
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 694,
-    "fields": { "sort_order": 0, "value": 110, "assignment": 154 }
+    "fields": {
+      "sort_order": 0,
+      "value": 110,
+      "assignment": 154
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 695,
-    "fields": { "sort_order": 0, "value": 111, "assignment": 155 }
+    "fields": {
+      "sort_order": 0,
+      "value": 111,
+      "assignment": 155
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 696,
-    "fields": { "sort_order": 0, "value": 114, "assignment": 156 }
+    "fields": {
+      "sort_order": 0,
+      "value": 114,
+      "assignment": 156
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 697,
-    "fields": { "sort_order": 0, "value": 115, "assignment": 157 }
+    "fields": {
+      "sort_order": 0,
+      "value": 115,
+      "assignment": 157
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 698,
-    "fields": { "sort_order": 0, "value": 116, "assignment": 158 }
+    "fields": {
+      "sort_order": 0,
+      "value": 116,
+      "assignment": 158
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 699,
-    "fields": { "sort_order": 0, "value": 117, "assignment": 159 }
+    "fields": {
+      "sort_order": 0,
+      "value": 117,
+      "assignment": 159
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 700,
-    "fields": { "sort_order": 0, "value": 118, "assignment": 160 }
+    "fields": {
+      "sort_order": 0,
+      "value": 118,
+      "assignment": 160
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 701,
-    "fields": { "sort_order": 0, "value": 119, "assignment": 161 }
+    "fields": {
+      "sort_order": 0,
+      "value": 119,
+      "assignment": 161
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 702,
-    "fields": { "sort_order": 0, "value": 115, "assignment": 162 }
+    "fields": {
+      "sort_order": 0,
+      "value": 115,
+      "assignment": 162
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 703,
-    "fields": { "sort_order": 0, "value": 116, "assignment": 163 }
+    "fields": {
+      "sort_order": 0,
+      "value": 116,
+      "assignment": 163
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 704,
-    "fields": { "sort_order": 0, "value": 117, "assignment": 164 }
+    "fields": {
+      "sort_order": 0,
+      "value": 117,
+      "assignment": 164
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 705,
-    "fields": { "sort_order": 0, "value": 118, "assignment": 165 }
+    "fields": {
+      "sort_order": 0,
+      "value": 118,
+      "assignment": 165
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 706,
-    "fields": { "sort_order": 0, "value": 119, "assignment": 166 }
+    "fields": {
+      "sort_order": 0,
+      "value": 119,
+      "assignment": 166
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 707,
-    "fields": { "sort_order": 0, "value": 115, "assignment": 167 }
+    "fields": {
+      "sort_order": 0,
+      "value": 115,
+      "assignment": 167
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 708,
-    "fields": { "sort_order": 0, "value": 116, "assignment": 168 }
+    "fields": {
+      "sort_order": 0,
+      "value": 116,
+      "assignment": 168
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 709,
-    "fields": { "sort_order": 0, "value": 119, "assignment": 169 }
+    "fields": {
+      "sort_order": 0,
+      "value": 119,
+      "assignment": 169
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 710,
-    "fields": { "sort_order": 0, "value": 116, "assignment": 170 }
+    "fields": {
+      "sort_order": 0,
+      "value": 116,
+      "assignment": 170
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 711,
-    "fields": { "sort_order": 0, "value": 117, "assignment": 171 }
+    "fields": {
+      "sort_order": 0,
+      "value": 117,
+      "assignment": 171
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 712,
-    "fields": { "sort_order": 0, "value": 118, "assignment": 172 }
+    "fields": {
+      "sort_order": 0,
+      "value": 118,
+      "assignment": 172
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 713,
-    "fields": { "sort_order": 0, "value": 115, "assignment": 173 }
+    "fields": {
+      "sort_order": 0,
+      "value": 115,
+      "assignment": 173
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 714,
-    "fields": { "sort_order": 0, "value": 116, "assignment": 174 }
+    "fields": {
+      "sort_order": 0,
+      "value": 116,
+      "assignment": 174
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 715,
-    "fields": { "sort_order": 0, "value": 117, "assignment": 175 }
+    "fields": {
+      "sort_order": 0,
+      "value": 117,
+      "assignment": 175
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 716,
-    "fields": { "sort_order": 0, "value": 133, "assignment": 176 }
+    "fields": {
+      "sort_order": 0,
+      "value": 133,
+      "assignment": 176
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 717,
-    "fields": { "sort_order": 0, "value": 135, "assignment": 177 }
+    "fields": {
+      "sort_order": 0,
+      "value": 135,
+      "assignment": 177
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 718,
-    "fields": { "sort_order": 0, "value": 137, "assignment": 178 }
+    "fields": {
+      "sort_order": 0,
+      "value": 137,
+      "assignment": 178
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 719,
-    "fields": { "sort_order": 0, "value": 132, "assignment": 179 }
+    "fields": {
+      "sort_order": 0,
+      "value": 132,
+      "assignment": 179
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 720,
-    "fields": { "sort_order": 0, "value": 133, "assignment": 180 }
+    "fields": {
+      "sort_order": 0,
+      "value": 133,
+      "assignment": 180
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 721,
-    "fields": { "sort_order": 0, "value": 135, "assignment": 181 }
+    "fields": {
+      "sort_order": 0,
+      "value": 135,
+      "assignment": 181
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 722,
-    "fields": { "sort_order": 0, "value": 136, "assignment": 182 }
+    "fields": {
+      "sort_order": 0,
+      "value": 136,
+      "assignment": 182
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 723,
-    "fields": { "sort_order": 0, "value": 135, "assignment": 183 }
+    "fields": {
+      "sort_order": 0,
+      "value": 135,
+      "assignment": 183
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 724,
-    "fields": { "sort_order": 0, "value": 137, "assignment": 184 }
+    "fields": {
+      "sort_order": 0,
+      "value": 137,
+      "assignment": 184
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 725,
-    "fields": { "sort_order": 0, "value": 118, "assignment": 185 }
+    "fields": {
+      "sort_order": 0,
+      "value": 118,
+      "assignment": 185
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 726,
-    "fields": { "sort_order": 0, "value": 119, "assignment": 186 }
+    "fields": {
+      "sort_order": 0,
+      "value": 119,
+      "assignment": 186
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 727,
-    "fields": { "sort_order": 0, "value": 115, "assignment": 187 }
+    "fields": {
+      "sort_order": 0,
+      "value": 115,
+      "assignment": 187
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 728,
-    "fields": { "sort_order": 0, "value": 116, "assignment": 188 }
+    "fields": {
+      "sort_order": 0,
+      "value": 116,
+      "assignment": 188
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 729,
-    "fields": { "sort_order": 0, "value": 117, "assignment": 189 }
+    "fields": {
+      "sort_order": 0,
+      "value": 117,
+      "assignment": 189
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 730,
-    "fields": { "sort_order": 0, "value": 118, "assignment": 190 }
+    "fields": {
+      "sort_order": 0,
+      "value": 118,
+      "assignment": 190
+    }
   },
   {
     "model": "attribute.assignedvariantattributevalue",
     "pk": 731,
-    "fields": { "sort_order": 0, "value": 119, "assignment": 191 }
+    "fields": {
+      "sort_order": 0,
+      "value": 119,
+      "assignment": 191
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 136,
-    "fields": { "variant": 324, "assignment": 13 }
+    "fields": {
+      "variant": 324,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 137,
-    "fields": { "variant": 325, "assignment": 14 }
+    "fields": {
+      "variant": 325,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 138,
-    "fields": { "variant": 326, "assignment": 14 }
+    "fields": {
+      "variant": 326,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 139,
-    "fields": { "variant": 327, "assignment": 14 }
+    "fields": {
+      "variant": 327,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 140,
-    "fields": { "variant": 328, "assignment": 14 }
+    "fields": {
+      "variant": 328,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 141,
-    "fields": { "variant": 329, "assignment": 14 }
+    "fields": {
+      "variant": 329,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 142,
-    "fields": { "variant": 330, "assignment": 14 }
+    "fields": {
+      "variant": 330,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 143,
-    "fields": { "variant": 331, "assignment": 14 }
+    "fields": {
+      "variant": 331,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 144,
-    "fields": { "variant": 332, "assignment": 14 }
+    "fields": {
+      "variant": 332,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 145,
-    "fields": { "variant": 333, "assignment": 14 }
+    "fields": {
+      "variant": 333,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 146,
-    "fields": { "variant": 334, "assignment": 14 }
+    "fields": {
+      "variant": 334,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 147,
-    "fields": { "variant": 335, "assignment": 14 }
+    "fields": {
+      "variant": 335,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 148,
-    "fields": { "variant": 336, "assignment": 14 }
+    "fields": {
+      "variant": 336,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 149,
-    "fields": { "variant": 337, "assignment": 14 }
+    "fields": {
+      "variant": 337,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 150,
-    "fields": { "variant": 338, "assignment": 14 }
+    "fields": {
+      "variant": 338,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 151,
-    "fields": { "variant": 339, "assignment": 14 }
+    "fields": {
+      "variant": 339,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 152,
-    "fields": { "variant": 340, "assignment": 14 }
+    "fields": {
+      "variant": 340,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 153,
-    "fields": { "variant": 341, "assignment": 14 }
+    "fields": {
+      "variant": 341,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 154,
-    "fields": { "variant": 342, "assignment": 14 }
+    "fields": {
+      "variant": 342,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 155,
-    "fields": { "variant": 343, "assignment": 14 }
+    "fields": {
+      "variant": 343,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 156,
-    "fields": { "variant": 344, "assignment": 14 }
+    "fields": {
+      "variant": 344,
+      "assignment": 14
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 157,
-    "fields": { "variant": 348, "assignment": 15 }
+    "fields": {
+      "variant": 348,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 158,
-    "fields": { "variant": 349, "assignment": 15 }
+    "fields": {
+      "variant": 349,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 159,
-    "fields": { "variant": 350, "assignment": 15 }
+    "fields": {
+      "variant": 350,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 160,
-    "fields": { "variant": 351, "assignment": 15 }
+    "fields": {
+      "variant": 351,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 161,
-    "fields": { "variant": 352, "assignment": 15 }
+    "fields": {
+      "variant": 352,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 162,
-    "fields": { "variant": 353, "assignment": 15 }
+    "fields": {
+      "variant": 353,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 163,
-    "fields": { "variant": 354, "assignment": 15 }
+    "fields": {
+      "variant": 354,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 164,
-    "fields": { "variant": 355, "assignment": 15 }
+    "fields": {
+      "variant": 355,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 165,
-    "fields": { "variant": 356, "assignment": 15 }
+    "fields": {
+      "variant": 356,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 166,
-    "fields": { "variant": 357, "assignment": 15 }
+    "fields": {
+      "variant": 357,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 167,
-    "fields": { "variant": 358, "assignment": 15 }
+    "fields": {
+      "variant": 358,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 168,
-    "fields": { "variant": 359, "assignment": 15 }
+    "fields": {
+      "variant": 359,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 169,
-    "fields": { "variant": 360, "assignment": 15 }
+    "fields": {
+      "variant": 360,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 170,
-    "fields": { "variant": 361, "assignment": 15 }
+    "fields": {
+      "variant": 361,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 171,
-    "fields": { "variant": 362, "assignment": 15 }
+    "fields": {
+      "variant": 362,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 172,
-    "fields": { "variant": 363, "assignment": 15 }
+    "fields": {
+      "variant": 363,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 173,
-    "fields": { "variant": 364, "assignment": 15 }
+    "fields": {
+      "variant": 364,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 174,
-    "fields": { "variant": 365, "assignment": 15 }
+    "fields": {
+      "variant": 365,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 175,
-    "fields": { "variant": 366, "assignment": 15 }
+    "fields": {
+      "variant": 366,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 176,
-    "fields": { "variant": 372, "assignment": 13 }
+    "fields": {
+      "variant": 372,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 177,
-    "fields": { "variant": 373, "assignment": 13 }
+    "fields": {
+      "variant": 373,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 178,
-    "fields": { "variant": 374, "assignment": 13 }
+    "fields": {
+      "variant": 374,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 179,
-    "fields": { "variant": 375, "assignment": 13 }
+    "fields": {
+      "variant": 375,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 180,
-    "fields": { "variant": 376, "assignment": 13 }
+    "fields": {
+      "variant": 376,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 181,
-    "fields": { "variant": 377, "assignment": 13 }
+    "fields": {
+      "variant": 377,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 182,
-    "fields": { "variant": 378, "assignment": 13 }
+    "fields": {
+      "variant": 378,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 183,
-    "fields": { "variant": 379, "assignment": 13 }
+    "fields": {
+      "variant": 379,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 184,
-    "fields": { "variant": 380, "assignment": 13 }
+    "fields": {
+      "variant": 380,
+      "assignment": 13
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 185,
-    "fields": { "variant": 389, "assignment": 15 }
+    "fields": {
+      "variant": 389,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 186,
-    "fields": { "variant": 390, "assignment": 15 }
+    "fields": {
+      "variant": 390,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 187,
-    "fields": { "variant": 394, "assignment": 15 }
+    "fields": {
+      "variant": 394,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 188,
-    "fields": { "variant": 395, "assignment": 15 }
+    "fields": {
+      "variant": 395,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 189,
-    "fields": { "variant": 396, "assignment": 15 }
+    "fields": {
+      "variant": 396,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 190,
-    "fields": { "variant": 397, "assignment": 15 }
+    "fields": {
+      "variant": 397,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.assignedvariantattribute",
     "pk": 191,
-    "fields": { "variant": 398, "assignment": 15 }
+    "fields": {
+      "variant": 398,
+      "assignment": 15
+    }
   },
   {
     "model": "attribute.attributevariant",
@@ -8137,6 +9027,14 @@
       "attribute": 38,
       "product_type": 20,
       "variant_selection": true
+    }
+  },
+  {
+    "model": "attribute.attribute_reference_page_types",
+    "pk": 1,
+    "fields": {
+      "attribute": 44,
+      "page_type": 5
     }
   },
   {
@@ -8631,7 +9529,9 @@
       "countries": "US,CA,BR,AR,MX,UY,CL,PE,VE",
       "default": false,
       "description": "",
-      "channels": [1]
+      "channels": [
+        1
+      ]
     }
   },
   {
@@ -8667,11 +9567,11 @@
     "model": "site.sitesettings",
     "pk": 1,
     "fields": {
-      "site": 1,
+      "site_id": 1,
       "header_text": "Test Saleor - a sample shop!",
       "description": "",
-      "top_menu": 1,
-      "bottom_menu": 2,
+      "top_menu_id": 1,
+      "bottom_menu_id": 2,
       "include_taxes_in_prices": true,
       "display_gross_prices": true,
       "charge_taxes_on_shipping": true,
@@ -8680,20 +9580,21 @@
       "automatic_fulfillment_digital_products": false,
       "default_digital_max_downloads": null,
       "default_digital_url_valid_days": null,
-      "company_address": null,
+      "company_address_id": null,
       "default_mail_sender_name": "",
       "default_mail_sender_address": null,
       "customer_set_password_url": null,
       "automatically_confirm_all_new_orders": true,
       "fulfillment_auto_approve": true,
-      "fulfillment_allow_unpaid": true,
+      "fulfillment_allow_unpaid": false,
       "reserve_stock_duration_anonymous_user": null,
       "reserve_stock_duration_authenticated_user": null,
       "limit_quantity_per_checkout": 50,
       "gift_card_expiry_type": "never_expire",
       "gift_card_expiry_period_type": null,
       "gift_card_expiry_period": null,
-      "automatically_fulfill_non_shippable_gift_card": true
+      "automatically_fulfill_non_shippable_gift_card": true,
+      "refund_reason_reference_type_id": 6
     }
   },
   {
@@ -8747,6 +9648,177 @@
     }
   },
   {
+    "model": "page.page",
+    "pk": 4,
+    "fields": {
+      "published_at": "2025-09-25T09:55:21Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "frutello",
+      "title": "Frutello",
+      "page_type": 5,
+      "content": {
+        "time": 1759136694252,
+        "blocks": [
+          {
+            "id": "gQR87kggYT",
+            "data": {
+              "text": "<b>Frutello</b> was founded with a simple goal: to make everyday hydration refreshing, fun, and natural. We blend exotic fruits with bold flavors to bring you juices that spark energy and joy."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-09-25T08:55:21Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 5,
+    "fields": {
+      "published_at": "2025-10-14T06:38:16Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "saleor-loom",
+      "title": "Saleor Loom",
+      "page_type": 5,
+      "content": {
+        "time": 1760423902356,
+        "blocks": [
+          {
+            "id": "-6od1Tl3ok",
+            "data": {
+              "text": "Saleor Loom is a creative studio redefining comfort wear. Every piece is designed with mindful craftsmanship - from breathable organic fabrics to urban-inspired silhouettes. Our mission? To make fashion that moves with you, not against you."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-10-14T06:38:16Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 6,
+    "fields": {
+      "published_at": "2025-10-14T06:38:16Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "cozynest",
+      "title": "CozyNest",
+      "page_type": 5,
+      "content": {
+        "time": 1760423902356,
+        "blocks": [
+          {
+            "id": "O6Yitsup5b",
+            "data": {
+              "text": "At CozyNest, we believe every home tells a story - one of warmth, comfort, and personality. Our textiles and decor are crafted to make your favorite spaces feel inviting, calm, and beautifully lived-in."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-10-14T06:38:16Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 7,
+    "fields": {
+      "published_at": "2025-11-03T00:00:00Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "damaged-item",
+      "title": "Damaged Item",
+      "page_type": 6,
+      "content": {
+        "time": 1762137600000,
+        "blocks": [],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-11-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 8,
+    "fields": {
+      "published_at": "2025-11-03T00:00:00Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "package-lost",
+      "title": "Package Lost",
+      "page_type": 6,
+      "content": {
+        "time": 1762137600000,
+        "blocks": [],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-11-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 9,
+    "fields": {
+      "published_at": "2025-11-03T00:00:00Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "incorrect-address",
+      "title": "Incorrect Address",
+      "page_type": 6,
+      "content": {
+        "time": 1762137600000,
+        "blocks": [],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-11-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "page.page",
+    "pk": 10,
+    "fields": {
+      "published_at": "2025-11-03T00:00:00Z",
+      "is_published": true,
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": "",
+      "seo_description": "",
+      "slug": "package-not-picked-up-by-customer",
+      "title": "Package Not Picked Up by Customer",
+      "page_type": 6,
+      "content": {
+        "time": 1762137600000,
+        "blocks": [],
+        "version": "2.30.7"
+      },
+      "created_at": "2025-11-03T00:00:00Z"
+    }
+  },
+  {
     "model": "page.pagetype",
     "pk": 4,
     "fields": {
@@ -8754,6 +9826,26 @@
       "metadata": {},
       "name": "Simple",
       "slug": "default-page"
+    }
+  },
+  {
+    "model": "page.pagetype",
+    "pk": 5,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "name": "Brand",
+      "slug": "brand"
+    }
+  },
+  {
+    "model": "page.pagetype",
+    "pk": 6,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "name": "Refund Reason",
+      "slug": "refund-reason"
     }
   },
   {
@@ -8768,7 +9860,9 @@
       "email": "",
       "click_and_collect_option": "disabled",
       "is_private": true,
-      "shipping_zones": [26]
+      "shipping_zones": [
+        26
+      ]
     }
   },
   {
