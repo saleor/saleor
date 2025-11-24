@@ -10620,13 +10620,20 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   shippingPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """
+  The delivery method selected for this checkout.
+  
+  Added in Saleor 3.23.
+  """
+  delivery: Delivery
+
+  """
   The shipping method related with checkout.
   
   Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
-  shippingMethod: ShippingMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `deliveryMethod` instead.")
+  shippingMethod: ShippingMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `delivery` instead.")
 
   """
   The delivery method selected for this checkout.
@@ -10635,7 +10642,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
-  deliveryMethod: DeliveryMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
+  deliveryMethod: DeliveryMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `delivery` instead.")
 
   """
   The price of the checkout before shipping, with taxes included.
@@ -11032,6 +11039,19 @@ The variant assigned to the checkout line is not available.Placing the order wil
 type CheckoutLineProblemVariantNotAvailable @doc(category: "Checkout") {
   """The line that has variant that is not available."""
   line: CheckoutLine!
+}
+
+"""
+Represents a delivery option for the checkout.
+
+Added in Saleor 3.23.
+"""
+type Delivery {
+  """The ID of the delivery."""
+  id: ID!
+
+  """Shipping method represented by the delivery."""
+  shippingMethod: ShippingMethod
 }
 
 """
