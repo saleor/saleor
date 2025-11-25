@@ -979,3 +979,67 @@ def test_transaction_request_refund_for_granted_refund_for_order_gift_card_charg
     assert transaction.gift_card is not None
     assert transaction.available_actions == [TransactionAction.REFUND]
     assert gift_card_created_by_staff.current_balance_amount == Decimal(0)
+
+
+def test_transaction_request_refund_for_granted_refund_for_order_gift_card_charge_when_gift_card_does_not_exist_anymore(
+    order_with_lines,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+    amount = Decimal(10)
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=None,
+        charged_value=amount,
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=amount,
+        transaction_item=transaction,
+    )
+
+    variables = {
+        "grantedRefundID": to_global_id_or_none(granted_refund),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestRefundForGrantedRefund"]["errors"] == []
+
+    transaction.refresh_from_db()
+    granted_refund.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == amount
+    assert transaction.refunded_value == Decimal(0)
+    assert transaction.gift_card is None
+    assert transaction.available_actions == [TransactionAction.REFUND]
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_FAILURE,
+        amount_value=amount,
+    )
+
+    assert granted_refund.status == OrderGrantedRefundStatus.FAILURE

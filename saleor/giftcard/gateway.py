@@ -323,26 +323,33 @@ def refund_gift_card_charge(
         },
     )
 
-    response = {
-        "result": TransactionEventType.REFUND_SUCCESS.upper(),
-        "pspReference": transaction_item.psp_reference,
-        "amount": amount,
-    }
+    try:
+        with transaction.atomic():
+            gift_card = (
+                GiftCard.objects.filter(id=transaction_item.gift_card_id)  # type: ignore[misc]
+                .select_for_update()
+                .get()
+            )
+            gift_card.current_balance_amount = F("current_balance_amount") + amount
+            gift_card.save(update_fields=["current_balance_amount"])
+    except GiftCard.DoesNotExist:
+        response = {
+            "result": TransactionEventType.REFUND_FAILURE.upper(),
+            "pspReference": transaction_item.psp_reference,
+            "amount": amount,
+        }
+    else:
+        response = {
+            "result": TransactionEventType.REFUND_SUCCESS.upper(),
+            "pspReference": transaction_item.psp_reference,
+            "amount": amount,
+        }
 
-    if amount >= transaction_item.charged_value:
-        response["actions"] = []
+        if amount >= transaction_item.charged_value:
+            response["actions"] = []
 
     create_transaction_event_from_request_and_webhook_response(
         transaction_event,
         None,
         transaction_webhook_response=response,
     )
-
-    with transaction.atomic():
-        gift_card = (
-            GiftCard.objects.filter(id=transaction_item.gift_card_id)  # type: ignore[misc]
-            .select_for_update()
-            .get()
-        )
-        gift_card.current_balance_amount = F("current_balance_amount") + amount
-        gift_card.save(update_fields=["current_balance_amount"])

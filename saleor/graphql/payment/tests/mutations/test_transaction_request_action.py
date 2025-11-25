@@ -2307,3 +2307,60 @@ def test_transaction_request_refund_for_order_gift_card_charge(
         type=TransactionEventType.REFUND_SUCCESS,
         amount_value=expected_refund_amount,
     )
+
+
+def test_transaction_request_refund_for_order_gift_card_charge_when_gift_card_does_not_exist_anymore(
+    order_with_lines,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+    amount = Decimal(10)
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=None,
+        charged_value=amount,
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "amount": amount,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    transaction.refresh_from_db()
+
+    assert transaction.charged_value == amount
+    assert transaction.refunded_value == Decimal(0)
+    assert transaction.gift_card is None
+    assert transaction.available_actions == [TransactionAction.REFUND]
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_FAILURE,
+        amount_value=amount,
+    )
