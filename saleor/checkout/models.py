@@ -99,7 +99,7 @@ class CheckoutDelivery(models.Model):
                     "built_in_shipping_method_id",
                     "is_valid",
                 ],
-                name="unique_contraint",
+                name="unique_for_checkout",
                 nulls_distinct=False,
             ),
         ]
