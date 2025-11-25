@@ -9,7 +9,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
@@ -248,6 +248,31 @@ class Checkout(models.Model):
 
     def __iter__(self):
         return iter(self.lines.all())
+
+    def safe_update(self, update_fields: list[str]) -> None:
+        """Safely update the checkout instance.
+
+        This method locks the checkout row in the database to prevent concurrent updates.
+        In case the checkout does not exist, it raises a CheckoutDoesNotExist exception.
+
+        It prevents the DatabaseError that occurs in case save with update_fields is
+        called on a deleted checkout instance.
+        """
+        from ..core.db.connection import allow_writer
+
+        with allow_writer():
+            with transaction.atomic():
+                checkout = (
+                    Checkout.objects.select_for_update()
+                    .filter(pk=self.pk)
+                    .only("pk")
+                    .first()
+                )
+                if not checkout:
+                    raise Checkout.DoesNotExist(
+                        "Checkout does not exist. Unable to update."
+                    )
+                self.save(update_fields=update_fields)
 
     def get_customer_email(self) -> str | None:
         if self.email:

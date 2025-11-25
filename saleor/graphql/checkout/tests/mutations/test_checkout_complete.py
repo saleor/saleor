@@ -741,3 +741,93 @@ def test_checkout_complete_builtin_shipping_method_metadata_denormalization(
     assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
         "Checkout should have been deleted"
     )
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_complete.CheckoutComplete.validate_checkout_addresses"
+)
+def test_checkout_complete_validate_checkout_addresses_raises_does_not_exist_error(
+    validate_addresses_mock,
+    user_api_client,
+    checkout_with_item,
+    shipping_method,
+    address,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.save_shipping_address = False
+    checkout.save_billing_address = False
+    checkout.shipping_method = shipping_method
+    checkout.save(
+        update_fields=[
+            "billing_address",
+            "shipping_address",
+            "save_shipping_address",
+            "save_billing_address",
+            "shipping_method",
+        ]
+    )
+    validate_addresses_mock.side_effect = Checkout.DoesNotExist()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_complete.CheckoutComplete.validate_checkout_addresses"
+)
+def test_checkout_complete_validate_checkout_addresses_raises_does_not_exist_error_order_returned(
+    validate_addresses_mock,
+    user_api_client,
+    checkout_with_item,
+    order,
+    shipping_method,
+    address,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.save_shipping_address = False
+    checkout.save_billing_address = False
+    checkout.shipping_method = shipping_method
+    checkout.save(
+        update_fields=[
+            "billing_address",
+            "shipping_address",
+            "save_shipping_address",
+            "save_billing_address",
+            "shipping_method",
+        ]
+    )
+    validate_addresses_mock.side_effect = Checkout.DoesNotExist()
+    order.checkout_token = checkout.pk
+    order.save(update_fields=["checkout_token"])
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert data["order"]

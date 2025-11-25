@@ -1496,3 +1496,38 @@ def test_fetch_checkout_data_checkout_updated_during_price_recalculation(
     assert checkout.email == expected_email
     for old_line, new_line in zip(lines, checkout.lines.all(), strict=True):
         assert old_line.quantity + 1 == new_line.quantity
+
+
+def test_fetch_checkout_data_checkout_deleted_during_discount_recalculation(
+    checkout_with_item_and_order_discount,
+):
+    # given
+    checkout = checkout_with_item_and_order_discount
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+    }
+
+    # when
+    def delete_checkout(*args, **kwargs):
+        Checkout.objects.filter(pk=checkout.pk).delete()
+
+    with patch(
+        "saleor.checkout.calculations.recalculate_discounts",
+        side_effect=delete_checkout,
+    ):
+        result_checkout_info, result_lines_info = fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    # Check if checkout was deleted.
+    with pytest.raises(Checkout.DoesNotExist):
+        checkout.refresh_from_db()
+
+    assert result_checkout_info.checkout.total is not None
+    assert result_lines_info
