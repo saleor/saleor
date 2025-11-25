@@ -112,6 +112,7 @@ def test_assign_external_shipping_to_checkout_with_cc(
         "shipping_address_id",
         "save_shipping_address",
         "delivery_methods_stale_at",
+        "assigned_delivery_id",
     }
 
     # when
@@ -156,6 +157,7 @@ def test_assign_external_shipping_to_checkout_without_delivery_method(
         "external_shipping_method_id",
         "shipping_method_name",
         "delivery_methods_stale_at",
+        "assigned_delivery_id",
     }
 
     # when
@@ -356,6 +358,7 @@ def test_assign_built_in_shipping_to_checkout_without_delivery_method(
         "shipping_method_name",
         "undiscounted_base_shipping_price_amount",
         "delivery_methods_stale_at",
+        "assigned_delivery_id",
     }
     shipping_method_data = ShippingMethodData(
         id=str(shipping_method.id),
@@ -398,6 +401,7 @@ def test_assign_built_in_shipping_to_checkout_with_cc(
         "undiscounted_base_shipping_price_amount",
         "save_shipping_address",
         "delivery_methods_stale_at",
+        "assigned_delivery_id",
     }
     shipping_method_data = ShippingMethodData(
         id=str(shipping_method.id),

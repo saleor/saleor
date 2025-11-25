@@ -1246,11 +1246,13 @@ def _update_checkout_with_assigned_delivery_method(
         checkout.delivery_methods_stale_at = None
 
     fields_to_update.append("delivery_methods_stale_at")
-    _update_assigned_checkout_delivery_method(checkout, shipping_data)
+    _update_assigned_checkout_delivery_method(checkout, shipping_data, fields_to_update)
 
 
 def _update_assigned_checkout_delivery_method(
-    checkout: Checkout, shipping_data: ShippingMethodData | None
+    checkout: Checkout,
+    shipping_data: ShippingMethodData | None,
+    checkout_fields_to_update: list[str],
 ):
     if not checkout.assigned_delivery_id and not shipping_data:
         return
@@ -1316,7 +1318,7 @@ def _update_assigned_checkout_delivery_method(
         )
         checkout.assigned_delivery = assigned_delivery
         if created:
-            checkout.save(update_fields=["assigned_delivery_id"])
+            checkout_fields_to_update.append("assigned_delivery_id")
 
 
 def assign_external_shipping_to_checkout(
