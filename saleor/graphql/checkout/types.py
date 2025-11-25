@@ -242,6 +242,30 @@ def _resolve_line_problem_type(
     return None
 
 
+class CheckoutProblemDeliveryMethodStale(
+    SyncWebhookControlContextObjectType[problems.CheckoutProblemDeliveryMethodStale]
+):
+    delivery = graphene.Field("saleor.graphql.checkout.types.Delivery", required=True)
+
+    class Meta:
+        default_resolver = SyncWebhookControlContextObjectType.resolver_with_context
+        description = "Indicates that the delivery methods are stale." + ADDED_IN_323
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
+class CheckoutProblemDeliveryMethodInvalid(
+    SyncWebhookControlContextObjectType[problems.CheckoutProblemDeliveryMethodInvalid]
+):
+    delivery = graphene.Field("saleor.graphql.checkout.types.Delivery", required=True)
+
+    class Meta:
+        default_resolver = SyncWebhookControlContextObjectType.resolver_with_context
+        description = (
+            "Indicates that the selected delivery method is invalid." + ADDED_IN_323
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
 class CheckoutLineProblem(graphene.Union):
     class Meta:
         types = (
@@ -265,7 +289,10 @@ class CheckoutLineProblem(graphene.Union):
 
 class CheckoutProblem(graphene.Union):
     class Meta:
-        types = [] + list(CheckoutLineProblem._meta.types)
+        types = [
+            CheckoutProblemDeliveryMethodStale,
+            CheckoutProblemDeliveryMethodInvalid,
+        ] + list(CheckoutLineProblem._meta.types)
         description = "Represents an problem in the checkout."
         doc_category = DOC_CATEGORY_CHECKOUT
 
@@ -278,6 +305,13 @@ class CheckoutProblem(graphene.Union):
         line_problem_type = _resolve_line_problem_type(instance)
         if line_problem_type:
             return line_problem_type
+
+        problem_instance = instance.node
+        if isinstance(problem_instance, problems.CheckoutProblemDeliveryMethodStale):
+            return CheckoutProblemDeliveryMethodStale
+        if isinstance(problem_instance, problems.CheckoutProblemDeliveryMethodInvalid):
+            return CheckoutProblemDeliveryMethodInvalid
+
         return super().resolve_type(instance.node, info)
 
 

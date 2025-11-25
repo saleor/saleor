@@ -7,7 +7,7 @@ from ..graphql.core.context import ChannelContext
 from ..product.models import ProductChannelListing, ProductVariant
 from ..warehouse.models import Stock
 from .fetch import CheckoutInfo, CheckoutLineInfo
-from .models import CheckoutLine
+from .models import Checkout, CheckoutDelivery, CheckoutLine
 
 
 @dataclass
@@ -22,11 +22,24 @@ class CheckoutLineProblemVariantNotAvailable:
     line: CheckoutLine
 
 
+@dataclass
+class CheckoutProblemDeliveryMethodStale:
+    delivery: CheckoutDelivery
+
+
+@dataclass
+class CheckoutProblemDeliveryMethodInvalid:
+    delivery: CheckoutDelivery
+
+
 CHECKOUT_LINE_PROBLEM_TYPE = (
     CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 )
 CHECKOUT_PROBLEM_TYPE = (
-    CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
+    CheckoutLineProblemInsufficientStock
+    | CheckoutLineProblemVariantNotAvailable
+    | CheckoutProblemDeliveryMethodStale
+    | CheckoutProblemDeliveryMethodInvalid
 )
 
 VARIANT_ID = int
@@ -179,6 +192,8 @@ def get_checkout_lines_problems(
 
 
 def get_checkout_problems(
+    checkout: Checkout,
+    assigned_delivery: CheckoutDelivery | None,
     checkout_lines_problem: dict[
         CHECKOUT_LINE_PK_TYPE, list[CHECKOUT_LINE_PROBLEM_TYPE]
     ],
@@ -190,7 +205,22 @@ def get_checkout_problems(
 
     The stocks need to have annotated available_quantity field.
     """
-    problems = []
+    problems: list[CHECKOUT_PROBLEM_TYPE] = []
     for line_problems in checkout_lines_problem.values():
         problems.extend(line_problems)
+
+    if assigned_delivery is None:
+        return problems
+
+    if (
+        checkout.delivery_methods_stale_at
+        and checkout.delivery_methods_stale_at < datetime.datetime.now(tz=datetime.UTC)
+    ):
+        problems.append(CheckoutProblemDeliveryMethodStale(delivery=assigned_delivery))
+
+    if assigned_delivery and not assigned_delivery.is_valid:
+        problems.append(
+            CheckoutProblemDeliveryMethodInvalid(delivery=assigned_delivery)
+        )
+
     return problems

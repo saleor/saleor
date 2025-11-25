@@ -12760,7 +12760,25 @@ enum TokenizedPaymentFlowEnum @doc(category: "Payments") {
 }
 
 """Represents an problem in the checkout."""
-union CheckoutProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
+union CheckoutProblem = CheckoutProblemDeliveryMethodStale | CheckoutProblemDeliveryMethodInvalid | CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
+
+"""
+Indicates that the delivery methods are stale.
+
+Added in Saleor 3.23.
+"""
+type CheckoutProblemDeliveryMethodStale @doc(category: "Checkout") {
+  delivery: Delivery!
+}
+
+"""
+Indicates that the selected delivery method is invalid.
+
+Added in Saleor 3.23.
+"""
+type CheckoutProblemDeliveryMethodInvalid @doc(category: "Checkout") {
+  delivery: Delivery!
+}
 
 type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
