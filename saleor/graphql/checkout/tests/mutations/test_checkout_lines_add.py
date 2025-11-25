@@ -1399,7 +1399,7 @@ def test_checkout_lines_marks_shipping_methods_as_stale(
     # then
     checkout.refresh_from_db()
     assert checkout.assigned_delivery
-    assert checkout.shipping_methods_stale_at == timezone.now()
+    assert checkout.delivery_methods_stale_at == timezone.now()
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]

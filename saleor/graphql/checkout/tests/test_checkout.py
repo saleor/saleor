@@ -396,7 +396,7 @@ def test_checkout_available_shipping_methods(
 
     checkout_with_item.shipping_address = address
     checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
-    checkout_with_item.shipping_methods_stale_at = timezone.now()
+    checkout_with_item.delivery_methods_stale_at = timezone.now()
     checkout_with_item.save()
 
     # when
@@ -4917,7 +4917,7 @@ def test_query_checkout_delivery_method_invalidates_taxes_when_delivery_price_is
     checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
 
     checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
-    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
     checkout.save()
 
     current_checkout_delivery_price = checkout.assigned_delivery.price_amount
@@ -4971,7 +4971,7 @@ def test_query_checkout_delivery_method_invalidates_taxes_when_delivery_tax_clas
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
-    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
     checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
     checkout.save()
 
@@ -5025,7 +5025,7 @@ def test_query_checkout_delivery_method_dont_invalidate_taxes_when_nothing_chang
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
-    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
     checkout.price_expiration = expected_price_expiration
     checkout.save()
 
@@ -5070,7 +5070,7 @@ def test_query_checkout_shipping_method_invalidates_taxes_when_shipping_price_is
     checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
 
     checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
-    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
     checkout.save()
 
     current_checkout_delivery_price = checkout.assigned_delivery.price_amount
@@ -5122,7 +5122,7 @@ def test_query_checkout_shipping_method_invalidates_taxes_when_shipping_tax_clas
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
-    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
     checkout.price_expiration = timezone.now() + datetime.timedelta(minutes=5)
     checkout.save()
 
@@ -5174,7 +5174,7 @@ def test_query_checkout_shipping_method_dont_invalidate_taxes_when_nothing_chang
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
-    checkout.shipping_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
     checkout.price_expiration = expected_price_expiration
     checkout.save()
 

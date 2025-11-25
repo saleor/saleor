@@ -291,7 +291,7 @@ def test_checkout_line_marks_shipping_as_stale_if_removed_product_with_shipping(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 1
     assert checkout.assigned_delivery
-    assert checkout.shipping_methods_stale_at == timezone.now()
+    assert checkout.delivery_methods_stale_at == timezone.now()
 
 
 def test_with_active_problems_flow(

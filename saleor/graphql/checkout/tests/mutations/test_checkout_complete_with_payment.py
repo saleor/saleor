@@ -6252,7 +6252,7 @@ def test_complete_refreshes_shipping_methods_when_stale(
 ):
     # given
     checkout = checkout_ready_to_complete
-    checkout.shipping_methods_stale_at = timezone.now()
+    checkout.delivery_methods_stale_at = timezone.now()
     checkout.save()
 
     checkout.gift_cards.all().delete()
@@ -6299,7 +6299,7 @@ def test_complete_do_not_refresh_shipping_methods_when_not_stale(
 ):
     # given
     checkout = checkout_ready_to_complete
-    checkout.shipping_methods_stale_at = timezone.now() + datetime.timedelta(hours=1)
+    checkout.delivery_methods_stale_at = timezone.now() + datetime.timedelta(hours=1)
     checkout.save()
 
     checkout.gift_cards.all().delete()
@@ -6348,7 +6348,7 @@ def test_complete_refreshes_shipping_methods_when_stale_and_invalid(
     # given
 
     checkout = checkout_ready_to_complete
-    checkout.shipping_methods_stale_at = timezone.now()
+    checkout.delivery_methods_stale_at = timezone.now()
     checkout.save()
     checkout.gift_cards.all().delete()
 

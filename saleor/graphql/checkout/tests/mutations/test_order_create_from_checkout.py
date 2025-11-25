@@ -2899,8 +2899,8 @@ def test_order_from_checkout_refreshes_shipping_methods_when_stale(
 ):
     # given
     checkout = checkout_ready_to_complete
-    checkout.shipping_methods_stale_at = timezone.now()
-    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.delivery_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["delivery_methods_stale_at"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -2936,8 +2936,8 @@ def test_order_from_checkout_do_not_refresh_shipping_methods_when_not_stale(
 ):
     # given
     checkout = checkout_ready_to_complete
-    checkout.shipping_methods_stale_at = timezone.now() + datetime.timedelta(hours=1)
-    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.delivery_methods_stale_at = timezone.now() + datetime.timedelta(hours=1)
+    checkout.save(update_fields=["delivery_methods_stale_at"])
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -2975,8 +2975,8 @@ def test_order_from_checkout_refreshes_shipping_methods_when_stale_and_invalid(
 ):
     # given
     checkout = checkout_ready_to_complete
-    checkout.shipping_methods_stale_at = timezone.now()
-    checkout.save(update_fields=["shipping_methods_stale_at"])
+    checkout.delivery_methods_stale_at = timezone.now()
+    checkout.save(update_fields=["delivery_methods_stale_at"])
 
     # Shipping is not available anymore
     ShippingMethod.objects.all().delete()
