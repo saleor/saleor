@@ -276,18 +276,25 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
             )
         )
 
+    def resolve_mount(root: models.AppExtension, _info: ResolveInfo):
+        # Convert to lowercase for enum compatibility (deprecated field)
+        # Handles both lowercase (pre-migration) and uppercase (post-migration) values
+        return root.mount.lower()
+
     @staticmethod
-    def resolve_target(root, _info: ResolveInfo):
-        return root.target
+    def resolve_target(root: models.AppExtension, _info: ResolveInfo):
+        # Convert to lowercase for enum compatibility (deprecated field)
+        # Handles both lowercase (pre-migration) and uppercase (post-migration) values
+        return root.target.lower()
 
     @staticmethod
     def resolve_mount_name(root: models.AppExtension, _info: ResolveInfo):
-        # Temporary upper(), but TODO return it directly from DB once we migrate DB
+        # Convert to uppercase due to migration logic (lowercase enum -> uppercase string after migration)
         return root.mount.upper()
 
     @staticmethod
     def resolve_target_name(root: models.AppExtension, _info: ResolveInfo):
-        # Temporary upper(), but TODO return it directly from DB once we migrate DB
+        # Convert to uppercase due to migration logic (lowercase enum -> uppercase string after migration)
         return root.target.upper()
 
     @staticmethod
@@ -328,16 +335,19 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
         return AppByIdLoader(info.context).load(root.app_id).then(_resolve_access_token)
 
+    # TODO Remove in 3.23 - deprecated field
     @staticmethod
     def resolve_options(root: models.AppExtension, _info: ResolveInfo):
         http_method = root.http_target_method
 
-        if root.target == AppExtensionTarget.WIDGET:
+        # Make it case-insensitive due to migration logic - enum will become uppercased in DB
+        if root.target.upper() == AppExtensionTarget.WIDGET.upper():
             return AppExtensionOptionsWidget(
                 widget_target=WidgetTargetOptions(method=http_method),
             )
 
-        if root.target == AppExtensionTarget.NEW_TAB:
+        # Make it case-insensitive due to migration logic - enum will become uppercased in DB
+        if root.target.upper() == AppExtensionTarget.NEW_TAB.upper():
             return AppExtensionOptionsNewTab(
                 new_tab_target=NewTabTargetOptions(method=http_method),
             )
@@ -350,14 +360,20 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         """Return app extension settings as plain JSON with same structure as options."""
         http_method = root.http_target_method
 
-        if root.target == AppExtensionTarget.WIDGET:
+        # New data model contains settings, migration will fill the old ones
+        if root.settings:
+            return root.settings
+
+        # Fallback if settings not propagated in DB yet
+        # Make it case-insensitive due to migration logic - enum will become uppercased in DB
+        if root.target.upper() == AppExtensionTarget.WIDGET.upper():
             return {
                 "widgetTarget": {
                     "method": http_method,
                 }
             }
 
-        if root.target == AppExtensionTarget.NEW_TAB:
+        if root.target.upper() == AppExtensionTarget.NEW_TAB.upper():
             return {
                 "newTabTarget": {
                     "method": http_method,

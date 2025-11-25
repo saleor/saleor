@@ -157,7 +157,9 @@ class AppExtension(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="extensions")
     label = models.CharField(max_length=256)
     url = models.URLField()
+    # TODO Remove choices and store plain value
     mount = models.CharField(choices=AppExtensionMount.CHOICES, max_length=256)
+    # TODO Remove choices and store plain value
     target = models.CharField(
         choices=AppExtensionTarget.CHOICES,
         max_length=128,
@@ -168,6 +170,7 @@ class AppExtension(models.Model):
         blank=True,
         help_text="Specific permissions for this app extension.",
     )
+    # TODO Remove in 3.23 or earlier - options resolver can extract from setting
     http_target_method = models.CharField(
         blank=False,
         null=True,
