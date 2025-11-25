@@ -1291,14 +1291,32 @@ def _update_assigned_checkout_delivery_method(
         "active": shipping_data.active,
         **tax_data,
     }
-    assigned_delivery, created = CheckoutDelivery.objects.update_or_create(
-        checkout=checkout,
-        defaults=shipping_data_dict,
-        create_defaults=shipping_data_dict,
-    )
-    checkout.assigned_delivery = assigned_delivery
-    if created:
-        checkout.save(update_fields=["assigned_delivery_id"])
+    with transaction.atomic():
+        locked_checkout = (
+            Checkout.objects.select_for_update()
+            .filter(pk=checkout.pk)
+            .only("pk")
+            .first()
+        )
+        if not locked_checkout:
+            return
+
+        qs_to_delete = CheckoutDelivery.objects.filter(
+            checkout=locked_checkout,
+        )
+        if locked_checkout.assigned_delivery_id:
+            qs_to_delete = qs_to_delete.exclude(pk=locked_checkout.assigned_delivery_id)
+        # Drop any obsolete assigned delivery methods
+        qs_to_delete.delete()
+
+        assigned_delivery, created = CheckoutDelivery.objects.update_or_create(
+            checkout=locked_checkout,
+            defaults=shipping_data_dict,
+            create_defaults=shipping_data_dict,
+        )
+        checkout.assigned_delivery = assigned_delivery
+        if created:
+            checkout.save(update_fields=["assigned_delivery_id"])
 
 
 def assign_external_shipping_to_checkout(
