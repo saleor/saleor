@@ -542,3 +542,185 @@ def test_app_extension_type_options(
 
     assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
     assert extension_data["targetName"] == app_extension.target.upper()
+
+
+@pytest.mark.parametrize(
+    ("base_target", "use_uppercase", "method"),
+    [
+        (AppExtensionTarget.WIDGET, False, "POST"),
+        (AppExtensionTarget.WIDGET, True, "POST"),
+        (AppExtensionTarget.NEW_TAB, False, "GET"),
+        (AppExtensionTarget.NEW_TAB, True, "GET"),
+    ],
+)
+def test_app_extension_resolve_options_with_case_variations(
+    base_target,
+    use_uppercase,
+    method,
+    app,
+    staff_api_client,
+):
+    """Test that resolve_options works with both uppercase and lowercase target values.
+
+    This is important for zero-downtime migrations where the target field
+    transitions from lowercase enum values to uppercase string values.
+    """
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        http_target_method=method,
+        target=base_target,
+    )
+
+    # Simulate migration by updating to uppercase value directly in DB
+    if use_uppercase:
+        AppExtension.objects.filter(pk=app_extension.pk).update(
+            target=base_target.upper()
+        )
+        app_extension.refresh_from_db()
+
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+
+    # Check that options are resolved correctly regardless of case
+    if base_target.upper() == AppExtensionTarget.WIDGET.upper():
+        assert extension_data["options"]["widgetTarget"]["method"] == method
+    elif base_target.upper() == AppExtensionTarget.NEW_TAB.upper():
+        assert extension_data["options"]["newTabTarget"]["method"] == method
+
+
+@pytest.mark.parametrize(
+    ("base_target", "use_uppercase", "method"),
+    [
+        (AppExtensionTarget.WIDGET, False, "POST"),
+        (AppExtensionTarget.WIDGET, True, "POST"),
+        (AppExtensionTarget.NEW_TAB, False, "GET"),
+        (AppExtensionTarget.NEW_TAB, True, "GET"),
+    ],
+)
+def test_app_extension_resolve_settings_with_case_variations(
+    base_target,
+    use_uppercase,
+    method,
+    app,
+    staff_api_client,
+):
+    """Test that resolve_settings works with both uppercase and lowercase target values.
+
+    This is important for zero-downtime migrations where the target field
+    transitions from lowercase enum values to uppercase string values.
+    """
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        http_target_method=method,
+        target=base_target,
+    )
+
+    # Simulate migration by updating to uppercase value directly in DB
+    if use_uppercase:
+        AppExtension.objects.filter(pk=app_extension.pk).update(
+            target=base_target.upper()
+        )
+        app_extension.refresh_from_db()
+
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+
+    # Check that settings are resolved correctly regardless of case
+    if base_target.upper() == AppExtensionTarget.WIDGET.upper():
+        assert extension_data["settings"]["widgetTarget"]["method"] == method
+    elif base_target.upper() == AppExtensionTarget.NEW_TAB.upper():
+        assert extension_data["settings"]["newTabTarget"]["method"] == method
+
+
+@pytest.mark.parametrize(
+    ("base_mount", "base_target", "use_uppercase"),
+    [
+        # lowercase values (current DB state before migration)
+        (
+            AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+            AppExtensionTarget.POPUP,
+            False,
+        ),
+        (AppExtensionMount.ORDER_DETAILS_WIDGETS, AppExtensionTarget.WIDGET, False),
+        # uppercase values (after migration)
+        (
+            AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+            AppExtensionTarget.POPUP,
+            True,
+        ),
+        (AppExtensionMount.ORDER_DETAILS_WIDGETS, AppExtensionTarget.WIDGET, True),
+    ],
+)
+def test_app_extension_resolve_mount_name_and_target_name_with_case_variations(
+    base_mount,
+    base_target,
+    use_uppercase,
+    app,
+    staff_api_client,
+):
+    """Test that resolve_mount_name and resolve_target_name work with both cases.
+
+    This is important for zero-downtime migrations where mount and target fields
+    transition from lowercase enum values to uppercase string values.
+    """
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=base_mount,
+        target=base_target,
+        http_target_method="POST",
+    )
+
+    # Simulate migration by updating to uppercase values directly in DB
+    if use_uppercase:
+        AppExtension.objects.filter(pk=app_extension.pk).update(
+            mount=base_mount.upper(), target=base_target.upper()
+        )
+        app_extension.refresh_from_db()
+
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+
+    # Both mountName and targetName should always return uppercase values
+    assert extension_data["mountName"] == base_mount.upper()
+    assert extension_data["targetName"] == base_target.upper()

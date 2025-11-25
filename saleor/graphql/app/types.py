@@ -276,8 +276,16 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         )
 
     @staticmethod
-    def resolve_target(root, _info: ResolveInfo):
-        return root.target
+    def resolve_mount(root: models.AppExtension, _info: ResolveInfo):
+        # Convert to lowercase for enum compatibility (deprecated field)
+        # Handles both lowercase (pre-migration) and uppercase (post-migration) values
+        return root.mount.lower()
+
+    @staticmethod
+    def resolve_target(root: models.AppExtension, _info: ResolveInfo):
+        # Convert to lowercase for enum compatibility (deprecated field)
+        # Handles both lowercase (pre-migration) and uppercase (post-migration) values
+        return root.target.lower()
 
     @staticmethod
     def resolve_mount_name(root: models.AppExtension, _info: ResolveInfo):
