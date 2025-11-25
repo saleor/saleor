@@ -71,7 +71,6 @@ def extra_transaction_item_actions(instance, info: ResolveInfo, **data):
 
 def extra_user_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
-    manager.customer_updated(instance)
     manager.customer_metadata_updated(instance)
 
 
