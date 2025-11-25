@@ -6,23 +6,20 @@ from uuid import UUID
 
 import graphene
 import pytest
-from celery.exceptions import Retry as CeleryTaskRetryError
-from django.db.utils import DatabaseError, IntegrityError
 from django.utils import timezone
+from freezegun import freeze_time
 
-from ...core.taxes import zero_money
+from ...channel.models import Channel
 from ...order import OrderEvents
 from ...order.models import Order
-from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductChannelListing, ProductVariantChannelListing
-from .. import calculations
-from ..fetch import fetch_checkout_info, fetch_checkout_lines
+from .. import CheckoutAuthorizeStatus
 from ..models import Checkout, CheckoutLine
-from ..payment_utils import update_checkout_payment_statuses
 from ..tasks import (
     automatic_checkout_completion_task,
     delete_expired_checkouts,
     task_logger,
+    trigger_automatic_checkout_completion_task,
 )
 
 
@@ -598,7 +595,7 @@ def test_aborts_deleting_checkouts_when_invocation_count_exhausted(
     mocked_task.assert_not_called()
 
 
-def test_automatic_checkout_completion_task_transaction_flow(
+def test_automatic_checkout_completion_transaction_flow(
     checkout_with_prices,
     transaction_item_generator,
     app,
@@ -619,7 +616,7 @@ def test_automatic_checkout_completion_task_transaction_flow(
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
-        automatic_checkout_completion_task(checkout_pk, None, app.id)
+        automatic_checkout_completion_task(checkout.pk)
 
     # then
     assert not Checkout.objects.filter(pk=checkout_pk).exists()
@@ -644,7 +641,7 @@ def test_automatic_checkout_completion_task_transaction_flow(
     assert caplog.records[1].levelno == logging.INFO
 
 
-def test_automatic_checkout_completion_task_payment_flow(
+def test_automatic_checkout_completion_payment_flow(
     checkout_ready_to_complete,
     payment_dummy,
     app,
@@ -664,7 +661,7 @@ def test_automatic_checkout_completion_task_payment_flow(
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
-        automatic_checkout_completion_task(checkout_pk, None, app.id)
+        automatic_checkout_completion_task(checkout.pk)
 
     # then
     assert not Checkout.objects.filter(pk=checkout_pk).exists()
@@ -689,9 +686,8 @@ def test_automatic_checkout_completion_task_payment_flow(
     assert caplog.records[1].levelno == logging.INFO
 
 
-def test_automatic_checkout_completion_task_missing_checkout(checkout, caplog):
+def test_automatic_checkout_completion_missing_checkout(checkout, caplog):
     # given
-    checkout_pk = checkout.pk
     checkout.delete()
 
     # allow catching the log in caplog
@@ -699,13 +695,13 @@ def test_automatic_checkout_completion_task_missing_checkout(checkout, caplog):
     parent_logger.propagate = True
 
     # when
-    automatic_checkout_completion_task(checkout_pk, None, None)
+    automatic_checkout_completion_task(checkout.pk)
 
     # then
     assert not caplog.records
 
 
-def test_automatic_checkout_completion_task_unavailable_variant(
+def test_automatic_checkout_completion_unavailable_variant(
     checkout_with_prices,
     transaction_item_generator,
     app,
@@ -732,7 +728,7 @@ def test_automatic_checkout_completion_task_unavailable_variant(
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
-        automatic_checkout_completion_task(checkout_pk, None, app.id)
+        automatic_checkout_completion_task(checkout.pk)
 
     # then
     assert Checkout.objects.filter(pk=checkout_pk).exists()
@@ -754,7 +750,7 @@ def test_automatic_checkout_completion_task_unavailable_variant(
         (ProductChannelListing, "product__variants__id"),
     ],
 )
-def test_automatic_checkout_completion_task_line_without_listing(
+def test_automatic_checkout_completion_line_without_listing(
     channel_listing_model,
     listing_filter_field,
     checkout_with_prices,
@@ -786,7 +782,7 @@ def test_automatic_checkout_completion_task_line_without_listing(
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
-        automatic_checkout_completion_task(checkout_pk, None, app.id)
+        automatic_checkout_completion_task(checkout.pk)
 
     # then
     assert Checkout.objects.filter(pk=checkout_pk).exists()
@@ -801,7 +797,7 @@ def test_automatic_checkout_completion_task_line_without_listing(
     assert caplog.records[0].levelno == logging.INFO
 
 
-def test_automatic_checkout_completion_task_error_raised(checkout, app, caplog):
+def test_automatic_checkout_completion_error_raised(checkout, app, caplog):
     # given
     checkout_pk = checkout.pk
     checkout.billing_address = None
@@ -812,7 +808,7 @@ def test_automatic_checkout_completion_task_error_raised(checkout, app, caplog):
     parent_logger.propagate = True
 
     # when
-    automatic_checkout_completion_task(checkout_pk, None, app.id)
+    automatic_checkout_completion_task(checkout.pk)
 
     # then
     assert Checkout.objects.filter(pk=checkout_pk).exists()
@@ -832,147 +828,355 @@ def test_automatic_checkout_completion_task_error_raised(checkout, app, caplog):
     assert caplog.records[1].levelno == logging.WARNING
 
 
-@pytest.mark.parametrize(
-    "error",
-    [IntegrityError, DatabaseError],
-)
-@mock.patch("saleor.checkout.tasks.complete_checkout")
-@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.retry")
-def test_automatic_checkout_completion_task_checkout_error_task_retried(
-    mocked_retry,
-    mocked_complete_checkout,
-    error,
-    checkout_with_prices,
-    transaction_item_generator,
-    app,
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+def test_trigger_automatic_checkout_completion_task_no_channels(
+    mocked_automatic_checkout_completion,
     caplog,
-    django_capture_on_commit_callbacks,
+    checkouts_list,
 ):
     # given
-    checkout = checkout_with_prices
-    checkout_pk = checkout.pk
-
-    mocked_complete_checkout.side_effect = error()
-    mocked_retry.side_effect = CeleryTaskRetryError()
+    Channel.objects.all().update(automatically_complete_fully_paid_checkouts=False)
+    Checkout.objects.update(authorize_status=CheckoutAuthorizeStatus.FULL)
 
     # allow catching the log in caplog
     parent_logger = task_logger.parent
     parent_logger.propagate = True
 
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout.shipping_address,
-    )
-    transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount
-    )
-    update_checkout_payment_statuses(
-        checkout, zero_money(checkout.currency), checkout_has_lines=True
-    )
-
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        try:
-            automatic_checkout_completion_task(checkout_pk, None, app.id)
-        except CeleryTaskRetryError:
-            pass
+    trigger_automatic_checkout_completion_task()
 
     # then
-    # Checkout exists so task is retired
-    mocked_retry.assert_called_once()
-
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    assert len(caplog.records) == 3
-    assert caplog.records[0].message == (
-        f"Automatic checkout completion triggered for checkout: {checkout_id}."
+    assert not mocked_automatic_checkout_completion.called
+    assert len(caplog.records) == 1
+    assert (
+        caplog.records[0].message
+        == "No channels configured for automatic checkout completion."
     )
-    assert caplog.records[0].checkout_id == checkout_id
     assert caplog.records[0].levelno == logging.INFO
 
-    assert caplog.records[1].message == (
-        f"Automatic checkout completion failed for checkout: {checkout_id}."
-    )
-    assert caplog.records[1].checkout_id == checkout_id
-    assert caplog.records[1].levelno == logging.WARNING
 
-    assert caplog.records[2].message == (
-        f"Retrying automatic checkout completion for checkout: {checkout_id}."
-    )
-    assert caplog.records[2].checkout_id == checkout_id
-    assert caplog.records[2].levelno == logging.INFO
-
-
-@pytest.mark.parametrize(
-    "error",
-    [IntegrityError, DatabaseError],
-)
-@mock.patch("saleor.checkout.tasks.complete_checkout")
-@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.retry")
-def test_automatic_checkout_completion_task_checkout_deleted_in_meantime(
-    mocked_retry,
-    mocked_complete_checkout,
-    error,
-    checkout_with_prices,
-    transaction_item_generator,
-    app,
-    caplog,
-    django_capture_on_commit_callbacks,
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_no_eligible_checkouts(
+    mocked_automatic_checkout_completion, channel_USD, caplog, checkouts_list
 ):
     # given
-    checkout = checkout_with_prices
-    checkout_pk = checkout.pk
-
-    def delete_checkout_and_raise_an_error(*args, **kwargs):
-        checkout.delete()
-        raise error()
-
-    mocked_complete_checkout.side_effect = delete_checkout_and_raise_an_error
-    mocked_retry.side_effect = CeleryTaskRetryError()
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
 
     # allow catching the log in caplog
     parent_logger = task_logger.parent
     parent_logger.propagate = True
 
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    total = calculations.calculate_checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout.shipping_address,
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert not mocked_automatic_checkout_completion.called
+    assert len(caplog.records) == 1
+    assert caplog.records[0].message == "No checkouts found for automatic completion."
+    assert caplog.records[0].levelno == logging.INFO
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_with_eligible_checkouts(
+    mocked_automatic_checkout_completion,
+    checkout_with_prices,
+    channel_USD,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
     )
-    transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount
-    )
-    update_checkout_payment_statuses(
-        checkout, zero_money(checkout.currency), checkout_has_lines=True
+
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
     )
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        automatic_checkout_completion_task(checkout_pk, None, app.id)
+    trigger_automatic_checkout_completion_task()
 
     # then
-    # Checkout exists so task is retired
-    mocked_retry.assert_not_called()
-
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    assert len(caplog.records) == 2
-    assert caplog.records[0].message == (
-        f"Automatic checkout completion triggered for checkout: {checkout_id}."
+    assert mocked_automatic_checkout_completion.call_count == 1
+    mocked_automatic_checkout_completion.assert_called_once_with(
+        args=[checkout_with_prices.token],
+        kwargs={},
+        headers={"MessageGroupId": mock.ANY},
     )
-    assert caplog.records[0].checkout_id == checkout_id
-    assert caplog.records[0].levelno == logging.INFO
 
-    assert caplog.records[1].message == (
-        f"Automatic checkout completion failed for checkout: {checkout_id}. "
-        "The checkout no longer exists."
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_checkout_not_eligible_due_to_delay(
+    mocked_automatic_checkout_completion,
+    checkout_with_prices,
+    channel_USD,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 10
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
     )
-    assert caplog.records[1].checkout_id == checkout_id
-    assert caplog.records[1].levelno == logging.WARNING
+
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=5),
+        channel=channel_USD,
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert not mocked_automatic_checkout_completion.called
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_checkout_too_old(
+    mocked_automatic_checkout_completion,
+    checkout_with_prices,
+    channel_USD,
+    settings,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+
+    checkout = checkout_with_prices
+    # Older than the threshold defined in settings
+    Checkout.objects.filter(pk=checkout.pk).update(
+        last_change=timezone.now()
+        - (
+            settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED
+            + datetime.timedelta(days=1)
+        ),
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        channel=channel_USD,
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert not mocked_automatic_checkout_completion.called
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+@pytest.mark.parametrize("batch_size", [1, 2, 5])
+def test_trigger_automatic_checkout_completion_task_respects_batch_size(
+    mocked_automatic_checkout_completion, checkouts_list, channel_USD, batch_size
+):
+    # given
+
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        channel=channel_USD,
+        last_change=timezone.now() - datetime.timedelta(minutes=10),
+    )
+
+    # when
+    with mock.patch(
+        "saleor.checkout.tasks.AUTOMATIC_COMPLETION_BATCH_SIZE", batch_size
+    ):
+        trigger_automatic_checkout_completion_task()
+
+    # then
+    # Should only process the specified batch of checkouts
+    assert mocked_automatic_checkout_completion.call_count == batch_size
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
+    mocked_automatic_checkout_completion,
+    checkouts_list,
+    channel_USD,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+
+    # Create checkouts with different last_automatic_completion_attempt times
+    never_attempted = checkouts_list[0]
+    attempted_recently = checkouts_list[1]
+
+    never_attempted.authorize_status = CheckoutAuthorizeStatus.FULL
+    never_attempted.last_change = timezone.now() - datetime.timedelta(minutes=10)
+    never_attempted.last_automatic_completion_attempt = None
+    never_attempted.channel = channel_USD
+
+    attempted_recently.authorize_status = CheckoutAuthorizeStatus.FULL
+    attempted_recently.last_change = timezone.now() - datetime.timedelta(minutes=10)
+    attempted_recently.last_automatic_completion_attempt = (
+        timezone.now() - datetime.timedelta(minutes=2)
+    )
+    attempted_recently.channel = channel_USD
+
+    Checkout.objects.bulk_update(
+        [never_attempted, attempted_recently],
+        [
+            "authorize_status",
+            "last_change",
+            "last_automatic_completion_attempt",
+            "channel",
+        ],
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert mocked_automatic_checkout_completion.call_count == 2
+    # Never attempted should be processed first
+    assert (
+        mocked_automatic_checkout_completion.call_args_list[0][1]["args"][0]
+        == never_attempted.pk
+    )
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_multiple_channels(
+    mocked_automatic_checkout_completion,
+    checkouts_list,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+
+    channel_PLN.automatically_complete_fully_paid_checkouts = True
+    channel_PLN.automatic_completion_delay = 10
+    Channel.objects.bulk_update(
+        [channel_USD, channel_PLN],
+        ["automatically_complete_fully_paid_checkouts", "automatic_completion_delay"],
+    )
+
+    # Prepare checkouts for bulk update
+    checkout_usd = checkouts_list[0]
+    checkout_usd.channel = channel_USD
+    checkout_usd.authorize_status = CheckoutAuthorizeStatus.FULL
+    checkout_usd.last_change = timezone.now() - datetime.timedelta(minutes=10)
+
+    checkout_pln = checkouts_list[1]
+    checkout_pln.channel = channel_PLN
+    checkout_pln.authorize_status = CheckoutAuthorizeStatus.FULL
+    checkout_pln.last_change = timezone.now() - datetime.timedelta(minutes=15)
+
+    checkout_pln_not_ready = checkouts_list[2]
+    checkout_pln_not_ready.channel = channel_PLN
+    checkout_pln_not_ready.authorize_status = CheckoutAuthorizeStatus.FULL
+
+    Checkout.objects.bulk_update(
+        [checkout_usd, checkout_pln, checkout_pln_not_ready],
+        ["channel", "authorize_status", "last_change"],
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert mocked_automatic_checkout_completion.call_count == 2
+    called_checkouts = [
+        call.kwargs["args"][0]
+        for call in mocked_automatic_checkout_completion.call_args_list
+    ]
+    assert checkout_usd.pk in called_checkouts
+    assert checkout_pln.pk in called_checkouts
+    assert checkout_pln_not_ready.pk not in called_checkouts
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
+    mocked_automatic_checkout_completion,
+    checkouts_list,
+    channel_USD,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.automatic_completion_cut_off_date = timezone.now() - datetime.timedelta(
+        days=10
+    )
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+            "automatic_completion_cut_off_date",
+        ]
+    )
+
+    eligible_checkout = checkouts_list[0]
+    eligible_checkout.channel = channel_USD
+    eligible_checkout.authorize_status = CheckoutAuthorizeStatus.FULL
+    eligible_checkout.last_change = timezone.now() - datetime.timedelta(minutes=15)
+    eligible_checkout.created_at = timezone.now() - datetime.timedelta(days=5)
+
+    ineligible_checkout_due_to_cut_off = checkouts_list[1]
+    ineligible_checkout_due_to_cut_off.channel = channel_USD
+    ineligible_checkout_due_to_cut_off.authorize_status = CheckoutAuthorizeStatus.FULL
+    ineligible_checkout_due_to_cut_off.last_change = (
+        timezone.now() - datetime.timedelta(minutes=15)
+    )
+    ineligible_checkout_due_to_cut_off.created_at = timezone.now() - datetime.timedelta(
+        days=15
+    )
+
+    Checkout.objects.bulk_update(
+        [eligible_checkout, ineligible_checkout_due_to_cut_off],
+        ["channel", "authorize_status", "last_change", "created_at"],
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert mocked_automatic_checkout_completion.call_count == 1
+    called_checkouts = [
+        call.kwargs["args"][0]
+        for call in mocked_automatic_checkout_completion.call_args_list
+    ]
+    assert eligible_checkout.pk in called_checkouts
+    assert ineligible_checkout_due_to_cut_off.pk not in called_checkouts
