@@ -5806,6 +5806,47 @@ def test_complete_refreshes_shipping_methods_when_stale(
     assert mocked_get_or_fetch_checkout_deliveries.called
 
 
+def test_checkout_complete_race_condition_on_preparing_checkout(
+    user_api_client,
+    checkout_with_item,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+    order,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_with_item,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+    order.checkout_token = checkout.token
+    order.save(update_fields=["checkout_token"])
+
+    redirect_url = "https://www.example.com/new"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    def delete_checkout(*args, **kwargs):
+        checkout.delete()
+
+    # when
+    with race_condition.RunAfter(
+        "saleor.checkout.complete_checkout.clean_checkout_shipping", delete_checkout
+    ):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+    assert data["order"]
+
+
 @patch(
     "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
     wraps=fetch_shipping_methods_for_checkout,

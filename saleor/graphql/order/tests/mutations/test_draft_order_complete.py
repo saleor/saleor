@@ -30,6 +30,7 @@ from .....plugins import PLUGIN_IDENTIFIER_PREFIX
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.tests.sample_plugins import PluginSample
 from .....product.models import ProductVariant
+from .....tests import race_condition
 from .....warehouse.models import Allocation, PreorderAllocation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -52,6 +53,24 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
                 paymentStatus
                 voucher {
                     code
+                }
+                shippingMethod {
+                    id
+                    name
+                    metadata {
+                        key
+                        value
+                    }
+                }
+                deliveryMethod {
+                    ... on ShippingMethod {
+                        id
+                        name
+                        metadata {
+                            key
+                            value
+                        }
+                    }
                 }
                 voucherCode
                 total {
@@ -825,6 +844,69 @@ def test_draft_order_complete_with_not_excluded_shipping_method(
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert len(data["errors"]) == 0
+
+
+def test_draft_order_complete_builtin_shipping_method_metadata_denormalization(
+    draft_order,
+    shipping_method,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.shipping_method = shipping_method
+    order.shipping_method_name = shipping_method.name
+    order.save()
+
+    expected_metadata_key = "AnyKey"
+    expected_metadata_value = "AnyValue"
+    expected_shipping_metadata = {
+        expected_metadata_key: expected_metadata_value,
+    }
+    shipping_method.metadata = expected_shipping_metadata
+    shipping_method.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    def clear_shipping_metadata(*args, **kwargs):
+        # Clear shipping method metadata to ensure data is denormalized properly
+        shipping_method.metadata = {}
+        shipping_method.save()
+
+    with race_condition.RunAfter(
+        "saleor.graphql.order.mutations.draft_order_complete.get_app_promise",
+        clear_shipping_metadata,
+    ):
+        response = staff_api_client.post_graphql(
+            DRAFT_ORDER_COMPLETE_MUTATION, variables
+        )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["errors"]) == 0
+    order_data = data["order"]
+    assert order_data["shippingMethod"]["name"] == shipping_method.name
+    assert order_data["shippingMethod"]["metadata"][0]["key"] == expected_metadata_key
+    assert (
+        order_data["shippingMethod"]["metadata"][0]["value"] == expected_metadata_value
+    )
+    assert order_data["deliveryMethod"]["name"] == shipping_method.name
+    assert order_data["deliveryMethod"]["metadata"][0]["key"] == expected_metadata_key
+    assert (
+        order_data["deliveryMethod"]["metadata"][0]["value"] == expected_metadata_value
+    )
+
+    # Ensure shipping metadata was denormalized properly
+    order.refresh_from_db()
+    assert order.shipping_method_metadata == expected_shipping_metadata
+
+    # Ensure shipping method metadata in DB was cleared after denormalization
+    shipping_method.refresh_from_db()
+    assert shipping_method.metadata == {}
 
 
 def test_draft_order_complete_out_of_stock_variant(

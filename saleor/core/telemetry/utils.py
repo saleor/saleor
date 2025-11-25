@@ -35,6 +35,7 @@ class Unit(Enum):
     REQUEST = "{request}"
     BYTE = "By"
     COST = "{cost}"
+    EVENT = "{event}"
 
 
 UNIT_CONVERSIONS: dict[tuple[Unit, Unit], float] = {

@@ -24,6 +24,25 @@ def shipping_method(shipping_zone, channel_USD, default_tax_class):
 
 
 @pytest.fixture
+def shipping_method_price_0(shipping_zone, channel_USD, default_tax_class):
+    method = ShippingMethod.objects.create(
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
+        maximum_delivery_days=10,
+        minimum_delivery_days=5,
+        tax_class=default_tax_class,
+    )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=method,
+        channel=channel_USD,
+        minimum_order_price=Money(0, "USD"),
+        price=Money(0, "USD"),
+    )
+    return method
+
+
+@pytest.fixture
 def other_shipping_method(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
         name="DPD",

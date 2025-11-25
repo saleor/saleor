@@ -1050,7 +1050,7 @@ def clear_cc_delivery_method(
     if updated_fields:
         updated_fields.append("last_change")
         if save:
-            checkout.save(update_fields=updated_fields)
+            checkout.safe_update(updated_fields)
 
     return updated_fields
 

@@ -1,3 +1,4 @@
+import datetime
 import logging
 from decimal import Decimal
 
@@ -5,22 +6,30 @@ import graphene
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef, Q, QuerySet, Subquery
-from django.db.utils import DatabaseError, IntegrityError
+from django.db import transaction
+from django.db.models import Exists, F, OuterRef, Q, QuerySet, Subquery
 from django.utils import timezone
 
 from ..account.models import User
 from ..app.models import App
 from ..celeryconf import app
+from ..channel.models import Channel
+from ..checkout import CheckoutAuthorizeStatus
 from ..core.db.connection import allow_writer
+from ..core.utils import get_domain
 from ..payment.models import TransactionItem
 from ..plugins.manager import get_plugins_manager
+from ..webhook.transport.utils import get_sqs_message_group_id
 from .complete_checkout import complete_checkout
 from .fetch import fetch_checkout_info, fetch_checkout_lines
 from .models import Checkout, CheckoutLine
 from .utils import delete_checkouts
 
 task_logger: logging.Logger = get_task_logger(__name__)
+
+# Checkout complete might take even 3 seconds. The task is scheduled to run
+# every 1 minute, so to avoid overlapping executions, the limit is set to 20.
+AUTOMATIC_COMPLETION_BATCH_SIZE = 20
 
 
 @app.task
@@ -123,6 +132,68 @@ def delete_expired_checkouts(
     return total_deleted, has_more
 
 
+@app.task
+def trigger_automatic_checkout_completion_task():
+    """Trigger automatic checkout completion for eligible checkouts.
+
+    This task:
+    - Finds checkouts that are fully authorized and ready for completion
+    - Tracks the last completion attempt time to avoid repeated retries
+    - Sorts by last attempt time to prioritize checkouts that haven't been tried recently
+    - Includes a safety check to skip very old checkouts (older than 30 days)
+    """
+    now = timezone.now()
+    # Don't retry checkouts older than defined threshold
+    oldest_allowed_checkout = (
+        now - settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED
+    )
+
+    with allow_writer():
+        channels = Channel.objects.filter(
+            automatically_complete_fully_paid_checkouts=True
+        )
+        if not channels:
+            task_logger.info(
+                "No channels configured for automatic checkout completion."
+            )
+            return
+
+        lookup = Q()
+        for channel in channels:
+            # calculate threshold time for automatic completion for given channel
+            delay_minutes = channel.automatic_completion_delay or 0
+            threshold_time = now - datetime.timedelta(minutes=float(delay_minutes))
+            kwargs = {
+                "channel_id": channel.pk,
+                "last_change__lt": threshold_time,
+            }
+            if cut_off_date := channel.automatic_completion_cut_off_date:
+                kwargs["created_at__gte"] = cut_off_date
+            lookup |= Q(**kwargs)
+
+        checkouts = (
+            Checkout.objects.filter(authorize_status=CheckoutAuthorizeStatus.FULL)
+            .filter(last_change__gte=oldest_allowed_checkout)
+            .filter(lookup)
+            # Sort by last attempt time (nulls first - never attempted), then by last_change
+            .order_by(
+                F("last_automatic_completion_attempt").asc(nulls_first=True),
+                "last_change",
+            )
+        )
+
+        if not checkouts:
+            task_logger.info("No checkouts found for automatic completion.")
+
+        domain = get_domain()
+        for checkout in checkouts[:AUTOMATIC_COMPLETION_BATCH_SIZE]:
+            automatic_checkout_completion_task.apply_async(
+                args=[checkout.pk],
+                kwargs={},
+                headers={"MessageGroupId": get_sqs_message_group_id(domain)},
+            )
+
+
 @app.task(
     queue=settings.AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME,
     bind=True,
@@ -133,21 +204,23 @@ def delete_expired_checkouts(
 def automatic_checkout_completion_task(
     self,
     checkout_pk,
-    user_id,
-    app_id,
+    user_id=None,
+    app_id=None,
 ):
     """Try to automatically complete the checkout.
 
     If any error is raised during the process, it will be caught and logged.
     """
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    try:
-        checkout = Checkout.objects.get(pk=checkout_pk)
-    except Checkout.DoesNotExist:
-        return
+    with transaction.atomic():
+        checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+        if not checkout:
+            return
+        checkout.last_automatic_completion_attempt = timezone.now()
+        checkout.save(update_fields=["last_automatic_completion_attempt"])
 
-    user = User.objects.filter(pk=user_id).first()
-    app = App.objects.filter(pk=app_id).first()
+    user = User.objects.filter(pk=user_id).first() if user_id else None
+    app = App.objects.filter(pk=app_id).first() if app_id else None
 
     manager = get_plugins_manager(allow_replica=False)
     lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
@@ -198,25 +271,6 @@ def automatic_checkout_completion_task(
                 "error": str(error),
             },
         )
-    except (IntegrityError, DatabaseError) as error:
-        if checkout_not_exists := not Checkout.objects.filter(pk=checkout_pk).exists():
-            failed_error_msg = failed_error_msg + " The checkout no longer exists."
-
-        task_logger.warning(
-            failed_error_msg,
-            checkout_id,
-            extra={
-                "checkout_id": checkout_id,
-                "error": str(error),
-            },
-        )
-        if not checkout_not_exists:
-            task_logger.info(
-                "Retrying automatic checkout completion for checkout: %s.",
-                checkout_id,
-                extra={"checkout_id": checkout_id},
-            )
-            raise self.retry() from error
     else:
         task_logger.info(
             "Automatic checkout completion succeeded for checkout: %s.",
