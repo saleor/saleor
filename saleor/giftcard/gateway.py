@@ -163,7 +163,7 @@ def detach_gift_card_from_previous_checkout_transactions(
     )
 
     for transaction_item in transactions_to_cancel_qs:
-        response = {
+        response: dict[str, str | Decimal | list | None] = {
             "result": TransactionEventType.CANCEL_SUCCESS.upper(),
             "pspReference": transaction_item.psp_reference,
             "amount": transaction_item.amount_authorized.amount,
@@ -265,7 +265,9 @@ def charge_gift_card_transactions(
             )
 
 
-def cancel_gift_card_authorization(transaction_item: "TransactionItem", amount):
+def cancel_gift_card_authorization(
+    transaction_item: "TransactionItem", amount: Decimal
+):
     transaction_event, _ = TransactionEvent.objects.get_or_create(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         transaction=transaction_item,
@@ -278,6 +280,8 @@ def cancel_gift_card_authorization(transaction_item: "TransactionItem", amount):
             "amount_value": amount,
         },
     )
+
+    response: dict[str, str | Decimal | list | None]
 
     if (
         not transaction_item.checkout
@@ -306,7 +310,7 @@ def cancel_gift_card_authorization(transaction_item: "TransactionItem", amount):
 
 
 def refund_gift_card_charge(
-    transaction_item: "TransactionItem", amount, related_granted_refund=None
+    transaction_item: "TransactionItem", amount: Decimal, related_granted_refund=None
 ):
     transaction_event, _ = TransactionEvent.objects.get_or_create(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
@@ -322,6 +326,8 @@ def refund_gift_card_charge(
             "related_granted_refund": related_granted_refund,
         },
     )
+
+    response: dict[str, str | Decimal | list | None]
 
     try:
         with transaction.atomic():
