@@ -444,6 +444,7 @@ def test_app_extensions_case_insensitive_filter(
         url="https://www.example.com/app-extension",
         mount=mount_value,
         target=target_value,
+        http_target_method="POST",
     )
     variables = {"filter": filter}
 
