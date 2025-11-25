@@ -343,6 +343,7 @@ def refund_gift_card_charge(
             "result": TransactionEventType.REFUND_FAILURE.upper(),
             "pspReference": transaction_item.psp_reference,
             "amount": amount,
+            "message": "Gift card could not be found.",
         }
     else:
         response = {

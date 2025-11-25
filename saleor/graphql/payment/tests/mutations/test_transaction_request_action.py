@@ -2363,4 +2363,5 @@ def test_transaction_request_refund_for_order_gift_card_charge_when_gift_card_do
         transaction=transaction,
         type=TransactionEventType.REFUND_FAILURE,
         amount_value=amount,
+        message="Gift card could not be found.",
     )
