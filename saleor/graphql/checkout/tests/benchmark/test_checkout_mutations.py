@@ -419,7 +419,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(90):
+    with django_assert_num_queries(88):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -437,7 +437,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(90):
+    with django_assert_num_queries(88):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -569,7 +569,7 @@ def test_create_checkout_with_order_promotion(
 
     # when
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(96):
+    with django_assert_num_queries(102):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     # then
@@ -825,7 +825,7 @@ def test_update_checkout_lines_with_reservations(
     )
 
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(112):
+    with django_assert_num_queries(107):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "id": to_global_id_or_none(checkout),
@@ -839,7 +839,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(112):
+    with django_assert_num_queries(107):
         variables = {
             "id": to_global_id_or_none(checkout),
             "lines": [],
@@ -1099,7 +1099,7 @@ def test_add_checkout_lines_with_reservations(
 
     user_api_client.ensure_access_token()
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(109):
+    with django_assert_num_queries(104):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -1112,7 +1112,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(109):
+    with django_assert_num_queries(104):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
@@ -1163,7 +1163,7 @@ def test_add_checkout_lines_catalogue_discount_applies(
 
     # when
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(100):
+    with django_assert_num_queries(95):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then
@@ -1249,7 +1249,7 @@ def test_add_checkout_lines_multiple_catalogue_discount_applies(
 
     # when
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(100):
+    with django_assert_num_queries(95):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then
@@ -1285,7 +1285,7 @@ def test_add_checkout_lines_order_discount_applies(
 
     # when
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(106):
+    with django_assert_num_queries(101):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then
@@ -1320,7 +1320,7 @@ def test_add_checkout_lines_gift_discount_applies(
 
     # when
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(138):
+    with django_assert_num_queries(133):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then

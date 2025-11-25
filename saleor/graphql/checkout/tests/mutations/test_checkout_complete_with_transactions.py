@@ -5814,13 +5814,14 @@ def test_checkout_complete_race_condition_on_preparing_checkout(
     transaction_events_generator,
     transaction_item_generator,
     order,
+    checkout_delivery,
 ):
     # given
     checkout = prepare_checkout_for_test(
         checkout_with_item,
         address,
         address,
-        shipping_method,
+        checkout_delivery(checkout_with_item, shipping_method),
         transaction_item_generator,
         transaction_events_generator,
     )

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from unittest import mock
 
 import graphene
@@ -663,27 +664,33 @@ def test_checkout_complete_existing_user_address_save_address_options_off(
     assert order.draft_save_shipping_address is None
 
 
+@freeze_time("2023-01-01 12:00:00")
 @pytest.mark.integration
 def test_checkout_complete_builtin_shipping_method_metadata_denormalization(
     user_api_client,
     checkout_with_item_total_0,
     shipping_method_price_0,
+    checkout_delivery,
     address,
 ):
     # given
     checkout = checkout_with_item_total_0
-    checkout.billing_address = address
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method_price_0
-    checkout.save()
 
     expected_metadata_key = "AnyKey"
     expected_metadata_value = "AnyValue"
     expected_shipping_metadata = {
         expected_metadata_key: expected_metadata_value,
     }
-    shipping_method_price_0.metadata = expected_shipping_metadata
-    shipping_method_price_0.save()
+
+    assigned_delivery = checkout_delivery(checkout, shipping_method_price_0)
+    assigned_delivery.metadata = expected_shipping_metadata
+    assigned_delivery.save()
+
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.assigned_delivery = assigned_delivery
+    checkout.delivery_methods_stale_at = timezone.now() + timedelta(minutes=5)
+    checkout.save()
 
     orders_count = Order.objects.count()
     variables = {

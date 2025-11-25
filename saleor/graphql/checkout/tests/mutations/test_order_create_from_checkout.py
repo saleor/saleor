@@ -3209,6 +3209,7 @@ def test_order_from_checkout_with_external_shipping_private_metadata(
     )
 
 
+@freeze_time("2023-01-01 12:00:00")
 @pytest.mark.integration
 def test_order_from_checkout_builtin_shipping_method_metadata_denormalization(
     app_api_client,
@@ -3216,21 +3217,26 @@ def test_order_from_checkout_builtin_shipping_method_metadata_denormalization(
     checkout_with_item,
     shipping_method,
     address,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item
-    checkout.shipping_address = address
-    checkout.billing_address = address
-    checkout.shipping_method = shipping_method
-    checkout.save()
 
     expected_metadata_key = "AnyKey"
     expected_metadata_value = "AnyValue"
     expected_shipping_metadata = {
         expected_metadata_key: expected_metadata_value,
     }
-    shipping_method.metadata = expected_shipping_metadata
-    shipping_method.save()
+    assigned_delivery = checkout_delivery(checkout, shipping_method)
+    assigned_delivery.metadata = expected_shipping_metadata
+    assigned_delivery.save()
+
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.assigned_delivery = assigned_delivery
+    checkout.delivery_methods_stale_at = timezone.now() + datetime.timedelta(minutes=5)
+    checkout.save()
+
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     # when
