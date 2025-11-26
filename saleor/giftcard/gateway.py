@@ -170,18 +170,14 @@ def detach_gift_card_from_previous_checkout_transactions(
             "actions": [],
         }
 
-        transaction_event, _ = TransactionEvent.objects.get_or_create(
+        transaction_event = TransactionEvent.objects.create(
             app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
             transaction=transaction_item,
             type=TransactionEventType.CANCEL_REQUEST,
             currency=transaction_item.currency,
             amount_value=transaction_item.amount_authorized.amount,
             message=f"Gift card (code ending with: {gift_card.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again.",
-            defaults={
-                "include_in_calculations": False,
-                "currency": transaction_item.currency,
-                "amount_value": transaction_item.amount_authorized.amount,
-            },
+            include_in_calculations=False,
         )
 
         create_transaction_event_from_request_and_webhook_response(
@@ -222,17 +218,13 @@ def charge_gift_card_transactions(
                 .select_for_update()
                 .get()
             )
-            transaction_event, _ = TransactionEvent.objects.get_or_create(
+            transaction_event = TransactionEvent.objects.create(
                 app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
                 transaction=gift_card_transaction,
                 type=TransactionEventType.CHARGE_REQUEST,
                 currency=gift_card_transaction.currency,
                 amount_value=gift_card_transaction.amount_authorized.amount,
-                defaults={
-                    "include_in_calculations": False,
-                    "currency": gift_card_transaction.currency,
-                    "amount_value": gift_card_transaction.amount_authorized.amount,
-                },
+                include_in_calculations=False,
             )
 
             response = {
@@ -266,17 +258,13 @@ def charge_gift_card_transactions(
 
 
 def cancel_gift_card_transaction(transaction_item: "TransactionItem", amount: Decimal):
-    transaction_event, _ = TransactionEvent.objects.get_or_create(
+    transaction_event = TransactionEvent.objects.create(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         transaction=transaction_item,
         type=TransactionEventType.CANCEL_REQUEST,
         currency=transaction_item.currency,
         amount_value=amount,
-        defaults={
-            "include_in_calculations": False,
-            "currency": transaction_item.currency,
-            "amount_value": amount,
-        },
+        include_in_calculations=False,
     )
 
     response: dict[str, str | Decimal | list | None]
@@ -310,19 +298,14 @@ def cancel_gift_card_transaction(transaction_item: "TransactionItem", amount: De
 def refund_gift_card_transaction(
     transaction_item: "TransactionItem", amount: Decimal, related_granted_refund=None
 ):
-    transaction_event, _ = TransactionEvent.objects.get_or_create(
+    transaction_event = TransactionEvent.objects.create(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         transaction=transaction_item,
         type=TransactionEventType.REFUND_REQUEST,
         currency=transaction_item.currency,
         amount_value=amount,
         related_granted_refund=related_granted_refund,
-        defaults={
-            "include_in_calculations": False,
-            "currency": transaction_item.currency,
-            "amount_value": amount,
-            "related_granted_refund": related_granted_refund,
-        },
+        include_in_calculations=False,
     )
 
     response: dict[str, str | Decimal | list | None]
