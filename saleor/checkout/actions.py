@@ -137,9 +137,9 @@ def call_checkout_events(
             lines_info,
             manager,
         )
-        _trigger_checkout_sync_webhooks(
-            manager, checkout_info, lines_info, webhook_event_map=webhook_event_map
-        )
+        # _trigger_checkout_sync_webhooks(
+        #     manager, checkout_info, lines_info, webhook_event_map=webhook_event_map
+        # )
 
     for event_name in event_names:
         plugin_manager_method_name = CHECKOUT_WEBHOOK_EVENT_MAP[event_name]
