@@ -1,20 +1,19 @@
 import datetime
 from decimal import Decimal
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 from django.test import override_settings
 from django.utils import timezone
-from prices import Money
+from freezegun import freeze_time
 
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.utils import (
-    PRIVATE_META_APP_SHIPPING_ID,
     add_variants_to_checkout,
     calculate_checkout_quantity,
     invalidate_checkout,
@@ -24,14 +23,12 @@ from .....core.models import EventDelivery
 from .....discount import RewardType, RewardValueType
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
-from .....shipping.interface import ShippingMethodData
 from .....tests import race_condition
 from .....warehouse import WarehouseClickAndCollectOption
 from .....warehouse.models import Reservation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock
-from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.transport.asynchronous.transport import send_webhook_request_async
-from .....webhook.transport.utils import WebhookResponse
 from ....core.mutations import MISSING_NODE_ERROR_MESSAGE_PREFIX
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import (
@@ -39,7 +36,7 @@ from ....tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
-from ...mutations.utils import update_checkout_shipping_method_if_invalid
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_LINES_ADD = """
 mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
@@ -93,8 +90,8 @@ mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
@@ -102,7 +99,7 @@ mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
 )
 def test_checkout_lines_add(
     mocked_invalidate_checkout,
-    mocked_update_shipping_method,
+    mocked_mark_shipping_methods_as_stale,
     user_api_client,
     checkout_with_item,
     stock,
@@ -141,7 +138,9 @@ def test_checkout_lines_add(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_mark_shipping_methods_as_stale.assert_called_once_with(
+        checkout_info.checkout, lines
+    )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
 
@@ -155,8 +154,8 @@ def test_checkout_lines_add(
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
@@ -164,7 +163,7 @@ def test_checkout_lines_add(
 )
 def test_checkout_lines_add_when_checkout_has_line_without_listing(
     mocked_invalidate_checkout,
-    mocked_update_shipping_method,
+    mocked_mark_shipping_methods_as_stale,
     channel_listing_model,
     listing_filter_field,
     user_api_client,
@@ -210,15 +209,17 @@ def test_checkout_lines_add_when_checkout_has_line_without_listing(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_mark_shipping_methods_as_stale.assert_called_once_with(
+        checkout_info.checkout, lines
+    )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
 
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
@@ -226,7 +227,7 @@ def test_checkout_lines_add_when_checkout_has_line_without_listing(
 )
 def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     mocked_invalidate_checkout,
-    mocked_update_shipping_method,
+    mocked_mark_shipping_methods_as_stale,
     user_api_client,
     checkout_with_item,
     stock,
@@ -327,6 +328,10 @@ def test_add_to_existing_line_with_sale_when_checkout_has_voucher(
     assert (
         Decimal(checkout_discount_amount)
         == expected_discount_per_single_item * line.quantity
+    )
+
+    mocked_mark_shipping_methods_as_stale.assert_called_once_with(
+        checkout_info.checkout, lines
     )
 
 
@@ -909,11 +914,14 @@ def test_checkout_lines_add_with_empty_metadata_and_old_exist(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_lines_add_only_stock_in_cc_warehouse(
-    mocked_update_shipping_method, user_api_client, checkout_with_item, warehouse_for_cc
+    mocked_mark_shipping_methods_as_stale,
+    user_api_client,
+    checkout_with_item,
+    warehouse_for_cc,
 ):
     """Test that click-and-collect quantities are available if no shipping method is set."""
     # given
@@ -956,12 +964,14 @@ def test_checkout_lines_add_only_stock_in_cc_warehouse(
 
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_mark_shipping_methods_as_stale.assert_called_once_with(
+        checkout_info.checkout, lines
+    )
     assert checkout.last_change != previous_last_change
 
 
 def test_checkout_lines_add_only_stock_in_cc_warehouse_delivery_method_set(
-    user_api_client, checkout_with_item, warehouse_for_cc, shipping_method
+    user_api_client, checkout_with_item, warehouse_for_cc, checkout_delivery
 ):
     """Test that click-and-collect quantities are unavailable if a non-C&C shipping method is set."""
 
@@ -977,8 +987,8 @@ def test_checkout_lines_add_only_stock_in_cc_warehouse_delivery_method_set(
         warehouse=warehouse_for_cc, product_variant=variant, quantity=10
     )
 
-    checkout.shipping_method = shipping_method
-    checkout.save(update_fields=["shipping_method"])
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.save(update_fields=["assigned_delivery"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -1353,64 +1363,22 @@ def test_checkout_lines_add_custom_price_and_catalogue_promotion(
     assert line_discount.value_type == promotion_rule.reward_value_type
 
 
+@freeze_time("2024-05-31 12:00:01")
 @mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
-def test_checkout_lines_add_deletes_external_shipping_method_if_invalid(
-    mocked_webhook, app_api_client, checkout_with_item, permission_handle_checkouts
-):
-    # given
-    mocked_webhook.return_value = []
-    checkout = checkout_with_item
-    line = checkout.lines.first()
-    metadata = checkout.metadata_storage
-    metadata.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: "QXBwOjEzMzc="}
-    metadata.save(update_fields=["private_metadata"])
-
-    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
-    price = Decimal("13.11")
-
-    variables = {
-        "id": to_global_id_or_none(checkout),
-        "lines": [{"variantId": variant_id, "quantity": 7, "price": price}],
-        "channelSlug": checkout.channel.slug,
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_CHECKOUT_LINES_ADD,
-        variables,
-        permissions=[permission_handle_checkouts],
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["checkoutLinesAdd"]
-    assert not data["errors"]
-    metadata.refresh_from_db()
-    assert metadata.private_metadata == {}
-
-
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
-def test_checkout_lines_add_doesnt_delete_external_shipping_method_if_valid(
+def test_checkout_lines_marks_shipping_methods_as_stale(
     mocked_webhook,
     app_api_client,
     checkout_with_item,
     permission_handle_checkouts,
-    address,
+    checkout_delivery,
 ):
     # given
-    external_method_data = ShippingMethodData(
-        id=graphene.Node.to_global_id("App", app_api_client.app.id),
-        price=Money(Decimal(10), checkout_with_item.currency),
-        active=True,
-    )
-    mocked_webhook.return_value = [external_method_data]
+    mocked_webhook.return_value = []
     checkout = checkout_with_item
-    checkout.shipping_address = address
-    checkout.save()
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.save(update_fields=["assigned_delivery"])
+
     line = checkout.lines.first()
-    metadata = checkout.metadata_storage
-    metadata.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: external_method_data.id}
-    metadata.save(update_fields=["private_metadata"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
     price = Decimal("13.11")
@@ -1429,12 +1397,12 @@ def test_checkout_lines_add_doesnt_delete_external_shipping_method_if_valid(
     )
 
     # then
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery
+    assert checkout.delivery_methods_stale_at == timezone.now()
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
-    assert metadata.private_metadata == {
-        PRIVATE_META_APP_SHIPPING_ID: external_method_data.id
-    }
 
 
 def test_checkout_lines_add_custom_price_and_order_fixed_discount(
@@ -2080,6 +2048,23 @@ def test_with_active_problems_flow(
     assert not content["data"]["checkoutLinesAdd"]["errors"]
 
 
+MUTATION_CHECKOUT_LINES_ADD_WITH_ONLY_ID = """
+mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
+  checkoutLinesAdd(id: $id, lines: $lines) {
+    checkout {
+      id
+    }
+    errors {
+      field
+      code
+      message
+      variants
+    }
+  }
+}
+"""
+
+
 @patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add.call_checkout_info_event",
     wraps=call_checkout_info_event,
@@ -2090,11 +2075,11 @@ def test_with_active_problems_flow(
     wraps=send_webhook_request_async.apply_async,
 )
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_lines_add_triggers_webhooks(
-    mocked_send_webhook_using_scheme_method,
+    mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -2106,7 +2091,6 @@ def test_checkout_lines_add_triggers_webhooks(
     address,
 ):
     # given
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     mocked_send_webhook_request_sync.return_value = []
     (
         tax_webhook,
@@ -2141,40 +2125,38 @@ def test_checkout_lines_add_triggers_webhooks(
     }
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD_WITH_ONLY_ID, variables
+    )
 
     # then
     content = get_graphql_content(response)
     assert not content["data"]["checkoutLinesAdd"]["errors"]
-    assert wrapped_call_checkout_info_event.called
-    assert mocked_send_webhook_request_async.call_count == 1
 
-    # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 3
-    assert not EventDelivery.objects.exclude(
+    # confirm that event delivery was generated for each async webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
-    ).exists()
+    )
 
-    sync_deliveries = {
-        call.args[0].event_type: call.args[0]
-        for call in mocked_send_webhook_request_sync.mock_calls
-    }
+    mocked_generate_deferred_payloads.assert_called_once_with(
+        kwargs={
+            "event_delivery_ids": [checkout_update_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "checkout.checkout",
+                "object_id": checkout_with_item.pk,
+                "requestor_model_name": "account.user",
+                "requestor_object_id": user_api_client.user.pk,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+            "telemetry_context": ANY,
+        },
+        bind=True,
+    )
 
-    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
-    shipping_methods_delivery = sync_deliveries[
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    ]
-    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-
-    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
-    filter_shipping_delivery = sync_deliveries[
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    ]
-    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-
-    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
-    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
-    assert tax_delivery.webhook_id == tax_webhook.id
+    # Deferred payload covers the sync and async actions
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called
 
 
 def test_checkout_lines_add_when_line_deleted(user_api_client, checkout_with_item):

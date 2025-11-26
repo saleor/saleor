@@ -17,14 +17,14 @@ def checkout_with_prices(
     address_other_country,
     warehouse,
     customer_user,
-    shipping_method,
+    checkout_delivery,
     voucher,
 ):
     # Need to save shipping_method before fetching checkout info.
-    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.assigned_delivery = checkout_delivery(checkout_with_items)
     country_code = address_other_country.country.code
     checkout_with_items.set_country(country_code, commit=False)
-    checkout_with_items.save(update_fields=["shipping_method", "country"])
+    checkout_with_items.save(update_fields=["assigned_delivery", "country"])
 
     manager = get_plugins_manager(allow_replica=False)
     lines = checkout_with_items.lines.all()

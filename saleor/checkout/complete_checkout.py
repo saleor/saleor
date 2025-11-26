@@ -59,7 +59,6 @@ from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..shipping.interface import ShippingMethodData
 from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.utils import (
-    get_shipping_tax_class_kwargs_for_order,
     get_tax_class_kwargs_for_order_line,
 )
 from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
@@ -213,7 +212,16 @@ def _process_shipping_data_for_order(
         shipping_address = shipping_address.get_copy()
 
     shipping_method = delivery_method_info.delivery_method
-    tax_class = getattr(shipping_method, "tax_class", None)
+    is_external = getattr(shipping_method, "is_external", False)
+    if is_external and shipping_method:
+        # It is temporary solution for setting up the external shipping method
+        # for order. Order doesn't have any field for storing the external shipping
+        # method.
+        checkout_metadata = get_or_create_checkout_metadata(checkout_info.checkout)
+        checkout_metadata.store_value_in_private_metadata(
+            {PRIVATE_META_APP_SHIPPING_ID: shipping_method.id}
+        )
+        checkout_metadata.save()
 
     result: dict[str, Any] = {
         "undiscounted_base_shipping_price": undiscounted_base_shipping_price,
@@ -221,10 +229,8 @@ def _process_shipping_data_for_order(
         "base_shipping_price": base_shipping_price,
         "shipping_price": shipping_price,
         "weight": calculate_checkout_weight(lines),
-        **get_shipping_tax_class_kwargs_for_order(tax_class),
+        **delivery_method_info.get_details_for_conversion_to_order(),
     }
-    result.update(delivery_method_info.delivery_method_order_field)
-    result.update(delivery_method_info.delivery_method_name)
 
     if isinstance(shipping_method, ShippingMethodData):
         result.update(
@@ -873,15 +879,6 @@ def _create_order(
             {data.key: data.value for data in private_metadata_list}
         )
 
-    if checkout_info.checkout.external_shipping_method_id:
-        # Add external shipping method to metadata, as order still uses private
-        # metadata for external shipping id.
-        order.store_value_in_private_metadata(
-            {
-                PRIVATE_META_APP_SHIPPING_ID: checkout_info.checkout.external_shipping_method_id
-            }
-        )
-
     update_order_charge_data(order, with_save=False)
     update_order_authorize_data(order, with_save=False)
     order.search_vector = FlatConcatSearchVector(
@@ -1450,15 +1447,14 @@ def _create_order_from_checkout(
             {data.key: data.value for data in private_metadata_list}
         )
 
-    if checkout_info.checkout.external_shipping_method_id:
-        # Add external shipping method to metadata, as order still uses private
-        # metadata for external shipping id. The metadata will be transfered to the
-        # order.
-        checkout_metadata.store_value_in_private_metadata(
-            {
-                PRIVATE_META_APP_SHIPPING_ID: checkout_info.checkout.external_shipping_method_id
-            }
-        )
+    shipping_details = _process_shipping_data_for_order(
+        checkout_info,
+        undiscounted_base_shipping_price,
+        base_shipping_price,
+        shipping_total,
+        manager,
+        checkout_lines_info,
+    )
 
     # order
     order = Order.objects.create(  # type: ignore[misc] # see below:
@@ -1478,14 +1474,7 @@ def _create_order_from_checkout(
         tax_exemption=checkout_info.checkout.tax_exemption,
         tax_error=checkout_info.checkout.tax_error,
         lines_count=len(checkout_lines_info),
-        **_process_shipping_data_for_order(
-            checkout_info,
-            undiscounted_base_shipping_price,
-            base_shipping_price,
-            shipping_total,
-            manager,
-            checkout_lines_info,
-        ),
+        **shipping_details,
         **_process_user_data_for_order(checkout_info, manager),
     )
 

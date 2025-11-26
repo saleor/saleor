@@ -18,7 +18,7 @@ from .....checkout.utils import calculate_checkout_quantity
 from .....core.models import EventDelivery
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....warehouse.models import Reservation, Stock
-from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -2724,6 +2724,24 @@ def test_checkout_create_skip_validation_billing_address_by_app(
     assert new_checkout.billing_address.validation_skipped is True
 
 
+MUTATION_CHECKOUT_CREATE_WITH_ONLY_ID = """
+    mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
+      checkoutCreate(input: $checkoutInput) {
+        checkout {
+          id
+        }
+        errors {
+          field
+          message
+          code
+          variants
+          addressType
+        }
+      }
+    }
+"""
+
+
 @patch(
     "saleor.graphql.checkout.mutations.checkout_create.call_checkout_event",
     wraps=call_checkout_event,
@@ -2732,8 +2750,12 @@ def test_checkout_create_skip_validation_billing_address_by_app(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_create_triggers_webhooks(
+    mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_event,
@@ -2774,53 +2796,37 @@ def test_checkout_create_triggers_webhooks(
     }
 
     # when
-    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE_WITH_ONLY_ID, variables)
 
     # then
+    checkout = Checkout.objects.first()
     content = get_graphql_content(response)
     assert not content["data"]["checkoutCreate"]["errors"]
-
-    assert wrapped_call_checkout_event.called
 
     # confirm that event delivery was generated for each async webhook.
     checkout_create_delivery = EventDelivery.objects.get(
         webhook_id=checkout_created_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+
+    mocked_generate_deferred_payloads.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "event_delivery_ids": [checkout_create_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "checkout.checkout",
+                "object_id": checkout.pk,
+                "requestor_model_name": None,
+                "requestor_object_id": None,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleorappadditional",
+        bind=True,
     )
 
-    # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 3
-    assert not EventDelivery.objects.exclude(
-        webhook_id=checkout_created_webhook.id
-    ).exists()
-
-    sync_deliveries = {
-        call.args[0].event_type: call.args[0]
-        for call in mocked_send_webhook_request_sync.mock_calls
-    }
-
-    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
-    shipping_methods_delivery = sync_deliveries[
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    ]
-    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-
-    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
-    filter_shipping_delivery = sync_deliveries[
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    ]
-    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-
-    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
-    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
-    assert tax_delivery.webhook_id == tax_webhook.id
+    # Deferred payload covers the sync and async actions
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called
 
 
 @pytest.mark.parametrize(

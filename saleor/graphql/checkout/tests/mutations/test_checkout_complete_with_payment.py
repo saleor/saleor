@@ -13,8 +13,13 @@ from django.utils import timezone
 from .....account.models import Address
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
-from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.models import Checkout, CheckoutLine
+from .....checkout.fetch import (
+    fetch_checkout_info,
+    fetch_checkout_lines,
+    fetch_shipping_methods_for_checkout,
+    get_or_fetch_checkout_deliveries,
+)
+from .....checkout.models import Checkout, CheckoutDelivery, CheckoutLine
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.exceptions import InsufficientStock, InsufficientStockData
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
@@ -31,6 +36,7 @@ from .....payment.interface import GatewayResponse
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
+from .....shipping.models import ShippingMethod
 from .....tests import race_condition
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
@@ -126,7 +132,7 @@ def test_checkout_complete_with_inactive_channel(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     assert not gift_card.last_used_on
 
@@ -135,7 +141,7 @@ def test_checkout_complete_with_inactive_channel(
     channel.is_active = False
     channel.save()
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -190,7 +196,8 @@ def test_checkout_complete(
     address,
     address_usa,
     customer_user,
-    shipping_method,
+    checkout_delivery,
+    shipping_zone,
     caplog,
 ):
     # given
@@ -199,7 +206,7 @@ def test_checkout_complete(
     checkout = checkout_with_gift_card
     checkout.user = customer_user
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address_usa
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -219,7 +226,8 @@ def test_checkout_complete(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    shipping_price = checkout.shipping_method.channel_listings.get(
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
     ).price
 
@@ -286,7 +294,9 @@ def test_checkout_complete(
 
     assert order.billing_address.id == address_usa.id
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.shipping_tax_rate is not None
     assert order.shipping_tax_class_name == shipping_tax_class.name
     assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
@@ -350,14 +360,14 @@ def test_checkout_complete_with_metadata(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -428,14 +438,14 @@ def test_checkout_complete_with_metadata_updates_existing_keys(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     meta_key = "testKey"
     new_meta_value = "newValue"
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={meta_key: "oldValue"})
     checkout.save()
@@ -491,14 +501,14 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -568,13 +578,13 @@ def test_checkout_complete_by_app(
     permission_impersonate_user,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     mocked_complete_checkout.return_value = (None, True, {})
     checkout = checkout_with_item
     checkout.user = customer_user
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -631,13 +641,13 @@ def test_checkout_complete_by_app_with_missing_permission(
     permission_manage_users,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     mocked_complete_checkout.return_value = (None, True, {})
     checkout = checkout_with_item
     checkout.user = customer_user
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -694,13 +704,13 @@ def test_checkout_complete_gift_card_bought(
     user_api_client,
     checkout_with_gift_card_items,
     address,
-    shipping_method,
+    checkout_delivery,
     payment_txn_captured,
 ):
     # given
     checkout = checkout_with_gift_card_items
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -770,11 +780,11 @@ def test_checkout_complete_with_variant_without_sku(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -828,11 +838,11 @@ def test_checkout_complete_with_variant_without_price(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -872,11 +882,11 @@ def test_checkout_complete_with_line_without_channel_listing(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -957,7 +967,7 @@ def test_checkout_with_voucher_complete(
     voucher_percentage,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     channel = checkout_with_voucher_percentage.channel
@@ -971,7 +981,7 @@ def test_checkout_with_voucher_complete(
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -1035,7 +1045,9 @@ def test_checkout_with_voucher_complete(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -1078,7 +1090,7 @@ def test_checkout_with_order_promotion_complete(
     checkout_with_item_and_order_discount,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item_and_order_discount
@@ -1088,7 +1100,7 @@ def test_checkout_with_order_promotion_complete(
     channel.save()
 
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -1147,7 +1159,9 @@ def test_checkout_with_order_promotion_complete(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -1185,7 +1199,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     voucher_percentage,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
     channel_USD,
 ):
     # given
@@ -1207,7 +1221,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     checkout_line_variant = checkout_line.variant
 
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -1269,7 +1283,9 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -1305,7 +1321,7 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     voucher_percentage,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
     catalogue_promotion_without_rules,
 ):
     # given
@@ -1316,7 +1332,7 @@ def test_checkout_with_voucher_complete_product_on_promotion(
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -1437,7 +1453,9 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -1473,7 +1491,7 @@ def test_checkout_with_voucher_on_specific_product_complete(
     voucher_specific_product_type,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
     channel_USD,
 ):
     # given
@@ -1489,7 +1507,7 @@ def test_checkout_with_voucher_on_specific_product_complete(
 
     checkout = checkout_with_item_and_voucher_specific_products
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -1553,7 +1571,9 @@ def test_checkout_with_voucher_on_specific_product_complete(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -1590,7 +1610,7 @@ def test_checkout_complete_with_voucher_single_use(
     voucher_percentage,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     code = voucher_percentage.codes.first()
@@ -1601,7 +1621,7 @@ def test_checkout_complete_with_voucher_single_use(
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -1665,7 +1685,9 @@ def test_checkout_complete_with_voucher_single_use(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -1697,6 +1719,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card_and_payment(
     gift_card,
     payment_dummy,
     address,
+    checkout_delivery,
     shipping_method,
 ):
     # given
@@ -1708,7 +1731,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card_and_payment(
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -1731,6 +1754,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card_and_payment(
         manager, checkout_info, lines, address
     )
     gift_card_initial_balance = gift_card.initial_balance_amount
+
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
     ).price
@@ -1777,7 +1801,9 @@ def test_checkout_complete_with_voucher_paid_with_gift_card_and_payment(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -1819,6 +1845,7 @@ def test_checkout_complete_with_voucher_paid_by_gift_card(
     voucher_percentage,
     gift_card,
     address,
+    checkout_delivery,
     shipping_method,
 ):
     # given
@@ -1829,7 +1856,7 @@ def test_checkout_complete_with_voucher_paid_by_gift_card(
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.save()
 
@@ -1893,7 +1920,9 @@ def test_checkout_complete_with_voucher_paid_by_gift_card(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
 
     assert (
         order_line.unit_discount_amount
@@ -1928,6 +1957,7 @@ def test_checkout_complete_free_shipping_voucher_and_gift_card(
     gift_card,
     payment_dummy,
     address,
+    checkout_delivery,
     shipping_method,
 ):
     # given
@@ -1947,7 +1977,7 @@ def test_checkout_complete_free_shipping_voucher_and_gift_card(
 
     checkout.discount = shipping_listing.price
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -2014,7 +2044,9 @@ def test_checkout_complete_free_shipping_voucher_and_gift_card(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -2047,12 +2079,12 @@ def test_checkout_complete_product_on_promotion(
     catalogue_promotion_without_rules,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -2172,7 +2204,9 @@ def test_checkout_complete_product_on_promotion(
     assert checkout_line_variant == order_line.variant
     assert order_line.is_price_overridden is False
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -2189,12 +2223,12 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
     catalogue_promotion_without_rules,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -2312,7 +2346,9 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
     assert checkout_line_variant == order_line.variant
 
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -2329,12 +2365,12 @@ def test_checkout_complete_price_override(
     catalogue_promotion_without_rules,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -2402,7 +2438,9 @@ def test_checkout_complete_price_override(
     assert checkout_line_variant == order_line.variant
     assert order_line.is_price_overridden is True
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -2418,12 +2456,12 @@ def test_checkout_complete_product_on_old_sale(
     catalogue_promotion_without_rules,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -2546,7 +2584,9 @@ def test_checkout_complete_product_on_old_sale(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -2578,7 +2618,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     catalogue_promotion_without_rules,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
     channel_USD,
 ):
     # given
@@ -2603,7 +2643,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
 
     checkout = checkout_with_item_and_voucher_specific_products
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -2737,7 +2777,9 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     )
     assert order_line.unit_discount_reason == unit_discount_reason
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -2764,7 +2806,7 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
     voucher_percentage,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     code = voucher_percentage.codes.first()
     mocked_preprocess_order_creation.side_effect = TaxError("tax error!")
@@ -2775,7 +2817,7 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
 
     checkout = checkout_with_voucher_percentage
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -2813,11 +2855,9 @@ def test_checkout_complete_without_inventory_tracking(
     checkout_with_variant_without_inventory_tracking,
     payment_dummy,
     address,
-    shipping_method,
 ):
     checkout = checkout_with_variant_without_inventory_tracking
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -2875,7 +2915,9 @@ def test_checkout_complete_without_inventory_tracking(
     assert checkout_line_variant == order_line.variant
     assert not order_line.allocations.all()
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -2892,11 +2934,11 @@ def test_checkout_complete_checkout_without_lines(
     checkout,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     checkout = checkout
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -2953,13 +2995,13 @@ def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
     gift_card,
     payment_dummy_credit_card,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -3036,14 +3078,14 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     voucher,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     mocked_process_payment.side_effect = error_side_effect
     code = voucher.codes.first()
     expected_voucher_usage_count = code.used
     checkout = checkout_with_voucher
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3103,11 +3145,11 @@ def test_checkout_complete_invalid_id(user_api_client):
 
 
 def test_checkout_complete_no_payment(
-    user_api_client, checkout_with_item, address, shipping_method
+    user_api_client, checkout_with_item, address, checkout_delivery
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
     variables = {
@@ -3133,7 +3175,7 @@ def test_checkout_complete_confirmation_needed(
     checkout_with_item,
     address,
     payment_dummy,
-    shipping_method,
+    checkout_delivery,
     action_required_gateway_response,
 ):
     # given
@@ -3141,7 +3183,7 @@ def test_checkout_complete_confirmation_needed(
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3195,7 +3237,7 @@ def test_checkout_confirm(
     checkout_with_item,
     payment_txn_to_confirm,
     address,
-    shipping_method,
+    checkout_delivery,
     action_required_gateway_response,
 ):
     response = action_required_gateway_response
@@ -3204,7 +3246,7 @@ def test_checkout_confirm(
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3242,7 +3284,11 @@ def test_checkout_confirm(
 
 
 def test_checkout_complete_insufficient_stock(
-    user_api_client, checkout_with_item, address, payment_dummy, shipping_method
+    user_api_client,
+    checkout_with_item,
+    address,
+    payment_dummy,
+    checkout_delivery,
 ):
     checkout = checkout_with_item
     checkout_line = checkout.lines.first()
@@ -3251,7 +3297,7 @@ def test_checkout_complete_insufficient_stock(
     checkout_line.quantity = quantity_available + 1
     checkout_line.save()
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3289,7 +3335,7 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     gateway_refund_mock,
     checkout_with_item,
     address,
-    shipping_method,
+    checkout_delivery,
     payment_dummy,
     user_api_client,
 ):
@@ -3302,7 +3348,7 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     checkout_line.save()
 
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3351,7 +3397,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     gateway_void_mock,
     checkout_with_item,
     address,
-    shipping_method,
+    checkout_delivery,
     payment_txn_preauth,
     user_api_client,
 ):
@@ -3364,7 +3410,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     checkout_line.save()
 
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3414,7 +3460,7 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
     checkout_with_item,
     address,
     payment_dummy,
-    shipping_method,
+    checkout_delivery,
     channel_USD,
 ):
     checkout = checkout_with_item
@@ -3440,7 +3486,7 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
     checkout_line.quantity = 1
     checkout_line.save()
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3478,7 +3524,7 @@ def test_checkout_complete_own_reservation(
     checkout_with_item,
     address,
     payment_dummy,
-    shipping_method,
+    checkout_delivery,
     channel_USD,
 ):
     checkout = checkout_with_item
@@ -3489,7 +3535,7 @@ def test_checkout_complete_own_reservation(
     checkout_line.quantity = quantity_available
     checkout_line.save()
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3551,13 +3597,13 @@ def test_checkout_complete_without_redirect_url(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3600,7 +3646,9 @@ def test_checkout_complete_without_redirect_url(
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
@@ -3622,12 +3670,12 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     payment_dummy,
     user_api_client,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_items
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -3897,7 +3945,7 @@ def test_checkout_complete_0_total_value(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     assert not gift_card.last_used_on
 
@@ -3921,8 +3969,6 @@ def test_checkout_complete_0_total_value(
     checkout_line_variant.cost_price_amount = Decimal(0)
     checkout_line_variant.price_amount = Decimal(0)
     checkout_line_variant.save()
-
-    checkout.refresh_from_db()
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -4325,12 +4371,12 @@ def test_checkout_complete_with_preorder_variant(
     checkout_with_item_and_preorder_item,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item_and_preorder_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -4386,7 +4432,9 @@ def test_checkout_complete_with_preorder_variant(
     for variant_id, quantity in variants_and_quantities.items():
         assert order.lines.get(variant_id=variant_id).quantity == quantity
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.payments.exists()
     assert payment.transactions.count() == 1
 
@@ -4482,12 +4530,12 @@ def test_checkout_complete_variant_channel_listing_does_not_exist(
     checkout_with_items,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_items
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -4546,12 +4594,12 @@ def test_checkout_complete_variant_channel_listing_no_price(
     checkout_with_items,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_items
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -4615,12 +4663,12 @@ def test_checkout_complete_product_channel_listing_does_not_exist(
     checkout_with_items,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_items
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -4684,13 +4732,13 @@ def test_checkout_complete_product_channel_listing_not_available_for_purchase(
     checkout_with_items,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
     available_for_purchase,
 ):
     # given
     checkout = checkout_with_items
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -4753,7 +4801,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
     gift_card,
     payment_dummy_credit_card,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     shipping_address = Address.objects.create(
@@ -4768,7 +4816,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
 
     checkout = checkout_with_item
     checkout.shipping_address = shipping_address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -4815,7 +4863,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
     gift_card,
     payment_dummy_credit_card,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     shipping_address = Address.objects.create(
@@ -4831,7 +4879,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
 
     checkout = checkout_with_item
     checkout.shipping_address = shipping_address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -4878,7 +4926,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_f
     gift_card,
     payment_dummy_credit_card,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     billing_address = Address.objects.create(
@@ -4893,7 +4941,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_f
 
     checkout = checkout_with_item
     checkout.billing_address = billing_address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
     checkout.save()
 
@@ -4939,7 +4987,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fiel
     gift_card,
     payment_dummy_credit_card,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     billing_address = Address.objects.create(
@@ -4955,7 +5003,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fiel
 
     checkout = checkout_with_item
     checkout.billing_address = billing_address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.shipping_address = address
     checkout.save()
 
@@ -5003,7 +5051,7 @@ def test_checkout_complete_with_not_normalized_shipping_address(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     assert not gift_card.last_used_on
@@ -5017,7 +5065,7 @@ def test_checkout_complete_with_not_normalized_shipping_address(
         postal_code="20500",
     )
     checkout.shipping_address = shipping_address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -5066,7 +5114,7 @@ def test_checkout_complete_with_not_normalized_billing_address(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     assert not gift_card.last_used_on
@@ -5080,7 +5128,7 @@ def test_checkout_complete_with_not_normalized_billing_address(
         postal_code="20500",
     )
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = billing_address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -5129,7 +5177,7 @@ def test_checkout_complete_check_reservations_create(
     checkout_with_item,
     address,
     payment_dummy,
-    shipping_method,
+    checkout_delivery,
     action_required_gateway_response,
 ):
     # given
@@ -5137,7 +5185,7 @@ def test_checkout_complete_check_reservations_create(
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save()
 
@@ -5188,14 +5236,14 @@ def test_checkout_complete_reservations_drop(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.tax_exemption = True
     checkout.save()
@@ -5237,13 +5285,13 @@ def test_checkout_complete_saving_addresses_off(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
     customer_user,
 ):
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save_shipping_address = False
     checkout.save_billing_address = False
@@ -5311,14 +5359,14 @@ def test_checkout_complete_saving_addresses_on(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
     customer_user,
     address_usa,
 ):
     # given
     checkout = checkout_with_item
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address_usa
     checkout.save_shipping_address = True
     checkout.save_billing_address = True
@@ -5395,12 +5443,12 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_without_shipping_required
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -5478,12 +5526,12 @@ def test_checkout_complete_payment_payment_deactivated_in_meantime(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_without_shipping_required
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -5540,14 +5588,14 @@ def test_checkout_complete_line_deleted_in_the_meantime(
     gift_card,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
@@ -5603,7 +5651,7 @@ def test_checkout_complete_with_invalid_address(
     checkout_with_item,
     address,
     payment_dummy,
-    shipping_method,
+    checkout_delivery,
     customer_user,
 ):
     """Check if checkout can be completed with invalid address.
@@ -5625,10 +5673,15 @@ def test_checkout_complete_with_invalid_address(
 
     checkout.billing_address = address
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.user = customer_user
     checkout.save(
-        update_fields=["billing_address", "shipping_address", "shipping_method", "user"]
+        update_fields=[
+            "billing_address",
+            "shipping_address",
+            "assigned_delivery",
+            "user",
+        ]
     )
 
     customer_user.addresses.clear()
@@ -5674,7 +5727,7 @@ def test_checkout_complete_log_unknown_discount_reason(
     voucher_specific_product_type,
     payment_dummy,
     address,
-    shipping_method,
+    checkout_delivery,
     caplog,
 ):
     # given
@@ -5682,10 +5735,14 @@ def test_checkout_complete_log_unknown_discount_reason(
 
     checkout = checkout_with_item_and_voucher_specific_products
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.save(
-        update_fields=["shipping_address", "shipping_method", "billing_address"]
+        update_fields=[
+            "shipping_address",
+            "assigned_delivery",
+            "billing_address",
+        ]
     )
 
     manager = get_plugins_manager(allow_replica=False)
@@ -5734,6 +5791,7 @@ def test_checkout_complete_empty_product_translation(
     gift_card,
     payment_dummy,
     address,
+    checkout_delivery,
     shipping_method,
     caplog,
 ):
@@ -5742,10 +5800,14 @@ def test_checkout_complete_empty_product_translation(
 
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address
     checkout.save(
-        update_fields=["shipping_address", "shipping_method", "billing_address"]
+        update_fields=[
+            "shipping_address",
+            "assigned_delivery",
+            "billing_address",
+        ]
     )
 
     checkout_line = checkout.lines.first()
@@ -5756,9 +5818,7 @@ def test_checkout_complete_empty_product_translation(
     checkout_line_product.translations.create(language_code="en")
     checkout_line_variant.translations.create(language_code="en")
 
-    shipping_price = checkout.shipping_method.channel_listings.get(
-        channel=checkout.channel
-    ).price
+    shipping_price = checkout.assigned_delivery.price
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -5817,7 +5877,9 @@ def test_checkout_complete_empty_product_translation(
     assert order_line.translated_variant_name == ""
 
     assert order.shipping_address == address
-    assert order.shipping_method == checkout.shipping_method
+    assert order.shipping_method_id == int(
+        checkout.assigned_delivery.shipping_method_id
+    )
     assert order.shipping_price_gross_amount == shipping_price.amount
     assert order.base_shipping_price_amount == shipping_price.amount
     assert order.undiscounted_base_shipping_price_amount == shipping_price.amount
@@ -5881,8 +5943,17 @@ def test_checkout_complete_with_external_shipping(
     mocked_sync_webhook.return_value = mock_json_response
 
     checkout = checkout_with_item
-    checkout.external_shipping_method_id = graphql_external_method_id
-    checkout.shipping_method_name = external_shipping_name
+
+    checkout.assigned_delivery = CheckoutDelivery.objects.create(
+        checkout=checkout,
+        external_shipping_method_id=graphql_external_method_id,
+        name=external_shipping_name,
+        price_amount="10.00",
+        currency="USD",
+        maximum_delivery_days=7,
+        is_external=True,
+    )
+
     checkout.shipping_address = address
     checkout.billing_address = address
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
@@ -6014,8 +6085,15 @@ def test_checkout_complete_with_external_shipping_private_metadata(
     mocked_sync_webhook.return_value = mock_json_response
 
     checkout = checkout_with_item
-    checkout.external_shipping_method_id = graphql_external_method_id
-    checkout.shipping_method_name = external_shipping_name
+    checkout.assigned_delivery = CheckoutDelivery.objects.create(
+        checkout=checkout,
+        external_shipping_method_id=graphql_external_method_id,
+        name=external_shipping_name,
+        price_amount="10.00",
+        currency="USD",
+        maximum_delivery_days=7,
+        is_external=True,
+    )
     checkout.shipping_address = address
     checkout.billing_address = address
     checkout.save()
@@ -6159,3 +6237,199 @@ def test_checkout_complete_sets_product_type_id_for_all_order_lines(
         assert (
             line.product_type_id == variant_id_to_product_type_id_map[line.variant_id]
         )
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_complete."
+    "get_or_fetch_checkout_deliveries",
+    wraps=get_or_fetch_checkout_deliveries,
+)
+def test_complete_refreshes_shipping_methods_when_stale(
+    mocked_get_or_fetch_checkout_deliveries,
+    user_api_client,
+    checkout_ready_to_complete,
+    payment_dummy,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.delivery_methods_stale_at = timezone.now()
+    checkout.save()
+
+    checkout.gift_cards.all().delete()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, None
+    )
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+    assert mocked_get_or_fetch_checkout_deliveries.called
+
+
+@patch(
+    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    wraps=fetch_shipping_methods_for_checkout,
+)
+def test_complete_do_not_refresh_shipping_methods_when_not_stale(
+    mocked_fetch_shipping_methods_for_checkout,
+    user_api_client,
+    checkout_ready_to_complete,
+    payment_dummy,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.delivery_methods_stale_at = timezone.now() + datetime.timedelta(hours=1)
+    checkout.save()
+
+    checkout.gift_cards.all().delete()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, None
+    )
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+    assert not mocked_fetch_shipping_methods_for_checkout.called
+
+
+@patch(
+    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    wraps=fetch_shipping_methods_for_checkout,
+)
+def test_complete_do_not_refresh_shipping_methods_when_cc_is_used(
+    mocked_fetch_shipping_methods_for_checkout,
+    user_api_client,
+    checkout_with_delivery_method_for_cc,
+    payment_dummy,
+    address,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_cc
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, None
+    )
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+    assert not mocked_fetch_shipping_methods_for_checkout.called
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_complete."
+    "get_or_fetch_checkout_deliveries",
+    wraps=get_or_fetch_checkout_deliveries,
+)
+def test_complete_refreshes_shipping_methods_when_stale_and_invalid(
+    mocked_get_or_fetch_checkout_deliveries,
+    user_api_client,
+    checkout_ready_to_complete,
+    payment_dummy,
+):
+    # given
+
+    checkout = checkout_ready_to_complete
+    checkout.delivery_methods_stale_at = timezone.now()
+    checkout.save()
+    checkout.gift_cards.all().delete()
+
+    # Shipping is not available anymore
+    ShippingMethod.objects.all().delete()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, None
+    )
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    Order.objects.all().delete()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert data["errors"]
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID_SHIPPING_METHOD.name
+
+    assert Order.objects.count() == 0
+    assert mocked_get_or_fetch_checkout_deliveries.called

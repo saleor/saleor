@@ -3,12 +3,14 @@ from unittest.mock import ANY, patch
 
 import pytest
 from django.test import override_settings
+from django.utils import timezone
+from freezegun import freeze_time
 
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.utils import invalidate_checkout
 from .....core.models import EventDelivery
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
-from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ..utils import assert_address_data
@@ -664,8 +666,12 @@ def test_checkout_billing_address_skip_validation_by_app(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_billing_address_triggers_webhooks(
+    mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -710,46 +716,30 @@ def test_checkout_billing_address_triggers_webhooks(
 
     assert wrapped_call_checkout_info_event.called
 
-    # confirm that event delivery was generated for each webhook.
+    # confirm that event delivery was generated for each async webhook.
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+
+    mocked_generate_deferred_payloads.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "event_delivery_ids": [checkout_update_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "checkout.checkout",
+                "object_id": checkout_with_item.pk,
+                "requestor_model_name": "account.user",
+                "requestor_object_id": user_api_client.user.pk,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleorappadditional",
+        bind=True,
     )
 
-    # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 3
-    assert not EventDelivery.objects.exclude(
-        webhook_id=checkout_updated_webhook.id
-    ).exists()
-
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
-    )
-    shipping_methods_delivery = shipping_methods_call.args[0]
-    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-    assert (
-        shipping_methods_delivery.event_type
-        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    )
-    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
-
-    filter_shipping_delivery = filter_shipping_call.args[0]
-    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-    assert (
-        filter_shipping_delivery.event_type
-        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    )
-    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
-
-    tax_delivery = tax_delivery_call.args[0]
-    assert tax_delivery.webhook_id == tax_webhook.id
+    # Deferred payload covers the sync and async actions
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called
 
 
 def test_checkout_billing_address_update_reset_the_save_address_flag_to_default_value(
@@ -860,3 +850,46 @@ def test_checkout_billing_address_update_change_save_address_option_to_true(
     assert_address_data(checkout.billing_address, graphql_address_data)
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is False
+
+
+@freeze_time("2024-05-31 12:00:01")
+def test_checkout_billing_address_do_not_mark_shipping_as_stale(
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+    checkout_delivery,
+    address,
+):
+    # given
+    expected_stale_time = timezone.now() + timezone.timedelta(minutes=10)
+    checkout = checkout_with_item
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = expected_stale_time
+    checkout.save(
+        update_fields=[
+            "assigned_delivery",
+            "shipping_address",
+            "delivery_methods_stale_at",
+        ]
+    )
+
+    query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
+    billing_address = graphql_address_data
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "billingAddress": billing_address,
+    }
+
+    # when
+    new_now = timezone.now() + timezone.timedelta(minutes=1)
+    with freeze_time(new_now):
+        response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.delivery_methods_stale_at == expected_stale_time

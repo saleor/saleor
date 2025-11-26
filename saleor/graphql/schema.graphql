@@ -5297,10 +5297,10 @@ type ShippingMethod implements Node & ObjectWithMetadata @doc(category: "Shippin
   price: Money!
 
   """Maximum order price for this shipping method."""
-  maximumOrderPrice: Money
+  maximumOrderPrice: Money @deprecated
 
   """Minimal order price for this shipping method."""
-  minimumOrderPrice: Money
+  minimumOrderPrice: Money @deprecated
 
   """Describes if this shipping method is active and can be selected."""
   active: Boolean!

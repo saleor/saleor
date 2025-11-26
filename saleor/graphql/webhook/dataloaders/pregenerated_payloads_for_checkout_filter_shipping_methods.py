@@ -3,10 +3,14 @@ from typing import Any
 
 from promise import Promise
 
+from ....checkout.fetch import get_available_built_in_shipping_methods_for_checkout_info
 from ....core.utils.events import get_is_deferred_payload
 from ....webhook.event_types import WebhookEventSyncType
 from ...app.dataloaders.apps import AppsByEventTypeLoader
-from ...checkout.dataloaders.models import CheckoutByTokenLoader
+from ...checkout.dataloaders.checkout_infos import (
+    CheckoutInfoByCheckoutTokenLoader,
+    CheckoutLinesInfoByCheckoutTokenLoader,
+)
 from ...core.dataloaders import DataLoader
 from ..subscription_payload import (
     generate_payload_promise_from_subscription,
@@ -56,49 +60,76 @@ class PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(Data
 
         event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
 
-        def generate_payloads(data):
-            checkouts, apps, request_context, webhooks = data
-            apps_map = {app.id: app for app in apps}
-            promises = []
-            for checkout in checkouts:
-                for webhook in webhooks:
-                    if not webhook.subscription_query:
-                        continue
-                    query_hash = get_subscription_query_hash(webhook.subscription_query)
-                    app_id = webhook.app_id
-                    app = apps_map[app_id]
-                    checkout_token = str(checkout.token)
-                    promise_payload = generate_payload_promise_from_subscription(
-                        event_type=event_type,
-                        subscribable_object=checkout,
-                        subscription_query=webhook.subscription_query,
-                        request=request_context,
-                        app=app,
+        def with_webhooks(webhooks):
+            if not webhooks:
+                return [None for _ in keys]
+
+            def generate_payloads(data):
+                checkout_infos, lines_infos, apps, request_context = data
+                apps_map = {app.id: app for app in apps}
+                promises = []
+                for checkout_info, lines_info in zip(
+                    checkout_infos, lines_infos, strict=False
+                ):
+                    checkout = checkout_info.checkout
+                    checkout_info.lines_info = lines_info
+                    built_in_shipping_methods = (
+                        get_available_built_in_shipping_methods_for_checkout_info(
+                            checkout_info
+                        )
                     )
-                    promises.append(promise_payload)
 
-                    def store_payload(
-                        payload,
-                        checkout_token=checkout_token,
-                        app_id=app_id,
-                        query_hash=query_hash,
-                    ):
-                        if payload:
-                            results[checkout_token][app_id][query_hash] = payload
+                    for webhook in webhooks:
+                        if not webhook.subscription_query:
+                            continue
+                        query_hash = get_subscription_query_hash(
+                            webhook.subscription_query
+                        )
+                        app_id = webhook.app_id
+                        app = apps_map[app_id]
+                        checkout_token = str(checkout.token)
+                        promise_payload = generate_payload_promise_from_subscription(
+                            event_type=event_type,
+                            subscribable_object=(checkout, built_in_shipping_methods),
+                            subscription_query=webhook.subscription_query,
+                            request=request_context,
+                            app=app,
+                        )
+                        promises.append(promise_payload)
 
-                    promise_payload.then(store_payload)
+                        def store_payload(
+                            payload,
+                            checkout_token=checkout_token,
+                            app_id=app_id,
+                            query_hash=query_hash,
+                        ):
+                            if payload:
+                                results[checkout_token][app_id][query_hash] = payload
 
-            def return_payloads(_payloads):
-                return [results[str(checkout.token)] for checkout in checkouts]
+                        promise_payload.then(store_payload)
 
-            return Promise.all(promises).then(return_payloads)
+                def return_payloads(_payloads):
+                    return [
+                        results[str(checkout_info.checkout.token)]
+                        for checkout_info in checkout_infos
+                    ]
 
-        checkouts = CheckoutByTokenLoader(self.context).load_many(keys)
-        apps = AppsByEventTypeLoader(self.context).load(event_type)
-        request_context = PayloadsRequestContextByEventTypeLoader(self.context).load(
-            event_type
-        )
-        webhooks = WebhooksByEventTypeLoader(self.context).load(event_type)
-        return Promise.all([checkouts, apps, request_context, webhooks]).then(
-            generate_payloads
+                return Promise.all(promises).then(return_payloads)
+
+            apps = AppsByEventTypeLoader(self.context).load(event_type)
+            request_context = PayloadsRequestContextByEventTypeLoader(
+                self.context
+            ).load(event_type)
+            lines_infos = CheckoutLinesInfoByCheckoutTokenLoader(
+                self.context
+            ).load_many(keys)
+            checkout_infos = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(
+                keys
+            )
+            return Promise.all(
+                [checkout_infos, lines_infos, apps, request_context]
+            ).then(generate_payloads)
+
+        return (
+            WebhooksByEventTypeLoader(self.context).load(event_type).then(with_webhooks)
         )

@@ -2,13 +2,15 @@ import logging
 from typing import TYPE_CHECKING, Optional
 
 from django_countries import countries
+from prices import Money
 
+from ..checkout.models import Checkout, CheckoutDelivery
 from ..core.db.connection import allow_writer
 from ..plugins.base_plugin import ExcludedShippingMethod
+from ..tax.models import TaxClass
 from .interface import ShippingMethodData
 
 if TYPE_CHECKING:
-    from ..tax.models import TaxClass
     from .models import ShippingMethod, ShippingMethodChannelListing
 
 
@@ -45,7 +47,6 @@ def convert_to_shipping_method_data(
         # TODO: load tax_class with data loader and pass as an argument
         with allow_writer():
             tax_class = shipping_method.tax_class
-
     return ShippingMethodData(
         id=str(shipping_method.id),
         name=shipping_method.name,
@@ -61,6 +62,68 @@ def convert_to_shipping_method_data(
         tax_class=tax_class,
         minimum_order_price=minimum_order_price,
         maximum_order_price=maximum_order_price,
+    )
+
+
+def convert_checkout_delivery_to_shipping_method_data(
+    checkout_delivery: CheckoutDelivery,
+) -> "ShippingMethodData":
+    return ShippingMethodData(
+        id=checkout_delivery.shipping_method_id,
+        name=checkout_delivery.name,
+        description=checkout_delivery.description,
+        maximum_delivery_days=checkout_delivery.maximum_delivery_days,
+        minimum_delivery_days=checkout_delivery.minimum_delivery_days,
+        metadata=checkout_delivery.metadata,
+        private_metadata=checkout_delivery.private_metadata,
+        price=Money(checkout_delivery.price_amount, checkout_delivery.currency),
+        active=all([checkout_delivery.active, checkout_delivery.is_valid]),
+        message=checkout_delivery.message or "",
+        tax_class=TaxClass(
+            id=checkout_delivery.tax_class_id,
+            name=checkout_delivery.tax_class_name or "",
+            metadata=checkout_delivery.tax_class_metadata,
+            private_metadata=checkout_delivery.tax_class_private_metadata,
+        ),
+    )
+
+
+def convert_shipping_method_data_to_checkout_delivery(
+    shipping_method_data: ShippingMethodData, checkout: Checkout
+) -> CheckoutDelivery:
+    tax_class_details = {}
+    if shipping_method_data.tax_class:
+        tax_class_details = {
+            "tax_class_id": shipping_method_data.tax_class.id,
+            "tax_class_name": shipping_method_data.tax_class.name,
+            "tax_class_metadata": shipping_method_data.tax_class.metadata,
+            "tax_class_private_metadata": shipping_method_data.tax_class.private_metadata,
+        }
+    shipping_method_is_external = shipping_method_data.is_external
+    built_in_shipping_method_id = (
+        int(shipping_method_data.id) if not shipping_method_is_external else None
+    )
+    external_shipping_method_id = (
+        shipping_method_data.id if shipping_method_is_external else None
+    )
+
+    return CheckoutDelivery(
+        checkout=checkout,
+        external_shipping_method_id=external_shipping_method_id,
+        built_in_shipping_method_id=built_in_shipping_method_id,
+        name=shipping_method_data.name or "",
+        description=shipping_method_data.description,
+        price_amount=shipping_method_data.price.amount,
+        currency=shipping_method_data.price.currency,
+        maximum_delivery_days=shipping_method_data.maximum_delivery_days,
+        minimum_delivery_days=shipping_method_data.minimum_delivery_days,
+        metadata=shipping_method_data.metadata,
+        private_metadata=shipping_method_data.private_metadata,
+        active=shipping_method_data.active,
+        message=shipping_method_data.message,
+        is_valid=True,
+        is_external=shipping_method_is_external,
+        **tax_class_details,
     )
 
 

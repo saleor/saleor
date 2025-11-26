@@ -72,7 +72,9 @@ def get_excluded_shipping_methods_or_fetch(
     webhooks: QuerySet,
     event_type: str,
     payload: str,
-    subscribable_object: Union["Order", "Checkout"] | None,
+    subscribable_object: (
+        tuple[Union["Order", "Checkout"], list["ShippingMethodData"]] | None
+    ),
     allow_replica: bool,
     requestor: RequestorOrLazyObject | None,
     pregenerated_subscription_payloads: dict | None = None,
@@ -114,7 +116,9 @@ def get_excluded_shipping_data(
     event_type: str,
     previous_value: list[ExcludedShippingMethod],
     payload_fun: Callable[[], str],
-    subscribable_object: Union["Order", "Checkout"] | None,
+    subscribable_object: (
+        tuple[Union["Order", "Checkout"], list["ShippingMethodData"]] | None
+    ),
     allow_replica: bool,
     requestor: RequestorOrLazyObject | None = None,
     pregenerated_subscription_payloads: dict | None = None,

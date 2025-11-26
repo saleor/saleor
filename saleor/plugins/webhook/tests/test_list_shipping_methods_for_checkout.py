@@ -27,7 +27,11 @@ def test_get_shipping_methods_for_checkout_webhook_response_none(
     mocked_webhook.return_value = None
 
     # when
-    response = plugin.get_shipping_methods_for_checkout(checkout, None)
+    response = plugin.get_shipping_methods_for_checkout(
+        checkout,
+        [],
+        None,
+    )
 
     # then
     assert not response
@@ -54,7 +58,7 @@ def test_get_shipping_methods_for_checkout_set_cache(
     plugin = webhook_plugin()
 
     # when
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    plugin.get_shipping_methods_for_checkout(checkout_with_item, [], None)
 
     # then
     assert mocked_webhook.called
@@ -86,7 +90,7 @@ def test_get_shipping_methods_no_webhook_response_sets_short_term_cache(
     plugin = webhook_plugin()
 
     # when
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    plugin.get_shipping_methods_for_checkout(checkout_with_item, [], None)
 
     # then
     assert mocked_webhook.called
@@ -118,7 +122,7 @@ def test_get_shipping_methods_for_checkout_use_cache(
     plugin = webhook_plugin()
 
     # when
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    plugin.get_shipping_methods_for_checkout(checkout_with_item, [], None)
 
     # then
     assert not mocked_webhook.called
@@ -139,7 +143,7 @@ def test_get_shipping_methods_for_checkout_use_cache_for_empty_list(
     plugin = webhook_plugin()
 
     # when
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    plugin.get_shipping_methods_for_checkout(checkout_with_item, [], None)
 
     # then
     assert not mocked_webhook.called
@@ -191,7 +195,7 @@ def test_checkout_change_invalidates_cache_key(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
         shipping_app.id,
     )
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    plugin.get_shipping_methods_for_checkout(checkout_with_item, [], None)
 
     # then
     assert cache_key != new_cache_key
@@ -248,7 +252,7 @@ def test_ignore_selected_fields_on_generating_cache_key(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
         shipping_app.id,
     )
-    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+    plugin.get_shipping_methods_for_checkout(checkout_with_item, [], None)
 
     # then
     assert cache_key == new_cache_key

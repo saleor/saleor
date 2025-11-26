@@ -126,14 +126,12 @@ def test_create_payment_lines_information_checkout_with_flat_rates(
     tax_configuration_flat_rates,
     default_tax_class,
     address,
-    shipping_method,
 ):
     # given
     tax_configuration_flat_rates.prices_entered_with_tax = False
     tax_configuration_flat_rates.save()
 
     checkout_with_items.shipping_address = address
-    checkout_with_items.shipping_method = shipping_method
     checkout_with_items.save()
 
     manager = get_plugins_manager(allow_replica=False)

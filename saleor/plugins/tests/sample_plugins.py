@@ -372,7 +372,10 @@ class PluginSample(BasePlugin):
         return previous_value
 
     def get_shipping_methods_for_checkout(
-        self, checkout: "Checkout", previous_value: Any
+        self,
+        checkout: "Checkout",
+        built_in_shipping_methods: list["ShippingMethodData"],
+        previous_value: Any,
     ) -> list["ShippingMethodData"]:
         different_currency = "EUR"
         assert checkout.currency != different_currency

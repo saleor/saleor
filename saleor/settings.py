@@ -949,6 +949,9 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = datetime.timedelta(
 CHECKOUT_PRICES_TTL = datetime.timedelta(
     seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
 )
+CHECKOUT_DELIVERY_OPTIONS_TTL = datetime.timedelta(
+    seconds=parse(os.environ.get("CHECKOUT_DELIVERY_OPTIONS_TTL", "24 hours"))
+)
 
 CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = datetime.timedelta(
     seconds=parse(os.environ.get("CHECKOUT_TTL_BEFORE_RELEASING_FUNDS", "6 hours"))

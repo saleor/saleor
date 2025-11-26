@@ -82,7 +82,11 @@ if TYPE_CHECKING:
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
+
 logger = logging.getLogger(__name__)
+
+
+PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 
 
 def get_order_country(order: Order) -> str:
@@ -1414,3 +1418,9 @@ def calculate_draft_order_line_price_expiration_date(
         now = timezone.now()
         return now + timedelta(hours=freeze_period)
     return None
+
+
+def get_external_shipping_id(order: "Order"):
+    if not order:
+        return None
+    return order.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)

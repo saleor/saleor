@@ -93,7 +93,10 @@ def exclude_shipping_app_with_subscription(db, permission_manage_checkouts):
         subscription {
             event {
                 ... on CheckoutFilterShippingMethods {
-                __typename
+                    __typename
+                    shippingMethods {
+                        id
+                    }
                 }
             }
         }
