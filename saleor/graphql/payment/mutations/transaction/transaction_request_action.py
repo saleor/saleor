@@ -1,4 +1,3 @@
-import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, cast
 
@@ -14,7 +13,7 @@ from .....giftcard.gateway import (
 )
 from .....order.models import Order
 from .....page.models import Page
-from .....payment import PaymentError, TransactionAction, TransactionEventType
+from .....payment import PaymentError, TransactionAction
 from .....payment.error_codes import TransactionRequestActionErrorCode
 from .....payment.gateway import (
     request_cancelation_action,
@@ -36,7 +35,7 @@ from ....site.dataloaders import get_site_promise
 from ...enums import TransactionActionEnum
 from ...types import TransactionItem
 from ...utils import validate_and_resolve_refund_reason_context
-from .utils import get_transaction_item
+from .utils import create_transaction_event_requested, get_transaction_item
 
 if TYPE_CHECKING:
     from .....account.models import User
@@ -97,16 +96,26 @@ class TransactionRequestAction(BaseMutation):
         reason_reference: Page | None = None,
     ):
         transaction = action_kwargs["transaction"]
+        app_identifier = (
+            GIFT_CARD_PAYMENT_GATEWAY_ID
+            if transaction.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID
+            else None
+        )
 
         if action == TransactionAction.CANCEL:
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
+            request_event = cls.create_transaction_event_requested(
+                transaction,
+                action_value,
+                action,
+                user=user,
+                app=app,
+                app_identifier=app_identifier,
+            )
             if transaction.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-                cancel_gift_card_transaction(transaction, action_value)
+                cancel_gift_card_transaction(transaction, request_event)
             else:
-                request_event = cls.create_transaction_event_requested(
-                    transaction, action_value, action, user=user, app=app
-                )
                 request_cancelation_action(
                     **action_kwargs,
                     cancel_value=action_value,
@@ -125,18 +134,19 @@ class TransactionRequestAction(BaseMutation):
         elif action == TransactionAction.REFUND:
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
+            request_event = cls.create_transaction_event_requested(
+                transaction,
+                action_value,
+                action,
+                user=user,
+                app=app,
+                app_identifier=app_identifier,
+                reason=reason,
+                reason_reference=reason_reference,
+            )
             if transaction.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-                refund_gift_card_transaction(transaction, action_value)
+                refund_gift_card_transaction(transaction, request_event)
             else:
-                request_event = cls.create_transaction_event_requested(
-                    transaction,
-                    action_value,
-                    TransactionAction.REFUND,
-                    user=user,
-                    app=app,
-                    reason=reason,
-                    reason_reference=reason_reference,
-                )
                 request_refund_action(
                     **action_kwargs,
                     refund_value=action_value,
@@ -151,39 +161,19 @@ class TransactionRequestAction(BaseMutation):
         action,
         user=None,
         app=None,
+        app_identifier=None,
         reason=None,
         reason_reference: Page | None = None,
     ):
-        message: str | None = None
-        reason_reference_to_set = None
-
-        if action == TransactionAction.CANCEL:
-            type = TransactionEventType.CANCEL_REQUEST
-        elif action == TransactionAction.CHARGE:
-            type = TransactionEventType.CHARGE_REQUEST
-        elif action == TransactionAction.REFUND:
-            type = TransactionEventType.REFUND_REQUEST
-            message = reason or None
-            reason_reference_to_set = reason_reference or None
-        else:
-            raise ValidationError(
-                {
-                    "actionType": ValidationError(
-                        "Incorrect action.",
-                        code=TransactionRequestActionErrorCode.INVALID.value,
-                    )
-                }
-            )
-        return transaction.events.create(
-            amount_value=action_value,
-            currency=transaction.currency,
-            type=type,
+        return create_transaction_event_requested(
+            transaction,
+            action_value,
+            action,
             user=user,
             app=app,
-            app_identifier=app.identifier if app else None,
-            idempotency_key=str(uuid.uuid4()),
-            message=message,
-            reason_reference=reason_reference_to_set,
+            app_identifier=app_identifier,
+            reason=reason,
+            reason_reference=reason_reference,
         )
 
     @classmethod

@@ -9,6 +9,9 @@ from django.utils import timezone
 
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
+from ..graphql.payment.mutations.transaction.utils import (
+    create_transaction_event_requested,
+)
 from ..order.models import Order
 from ..payment import TransactionAction, TransactionEventType
 from ..payment.interface import (
@@ -163,6 +166,14 @@ def detach_gift_card_from_previous_checkout_transactions(
     )
 
     for transaction_item in transactions_to_cancel_qs:
+        request_event = create_transaction_event_requested(
+            transaction_item,
+            transaction_item.amount_authorized.amount,
+            TransactionAction.CANCEL,
+            app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+            message=f"Gift card (code ending with: {gift_card.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again.",
+        )
+
         response: dict[str, str | Decimal | list | None] = {
             "result": TransactionEventType.CANCEL_SUCCESS.upper(),
             "pspReference": str(uuid4()),
@@ -170,18 +181,8 @@ def detach_gift_card_from_previous_checkout_transactions(
             "actions": [],
         }
 
-        transaction_event = TransactionEvent.objects.create(
-            app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-            transaction=transaction_item,
-            type=TransactionEventType.CANCEL_REQUEST,
-            currency=transaction_item.currency,
-            amount_value=transaction_item.amount_authorized.amount,
-            message=f"Gift card (code ending with: {gift_card.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again.",
-            include_in_calculations=False,
-        )
-
         create_transaction_event_from_request_and_webhook_response(
-            transaction_event,
+            request_event,
             None,
             transaction_webhook_response=response,
         )
@@ -218,13 +219,11 @@ def charge_gift_card_transactions(
                 .select_for_update()
                 .get()
             )
-            transaction_event = TransactionEvent.objects.create(
+            request_event = create_transaction_event_requested(
+                gift_card_transaction,
+                gift_card_transaction.amount_authorized.amount,
+                TransactionAction.CHARGE,
                 app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-                transaction=gift_card_transaction,
-                type=TransactionEventType.CHARGE_REQUEST,
-                currency=gift_card_transaction.currency,
-                amount_value=gift_card_transaction.amount_authorized.amount,
-                include_in_calculations=False,
             )
 
             response = {
@@ -251,23 +250,17 @@ def charge_gift_card_transactions(
                 response["actions"] = [TransactionAction.REFUND.upper()]
 
             create_transaction_event_from_request_and_webhook_response(
-                transaction_event,
+                request_event,
                 None,
                 transaction_webhook_response=response,
             )
 
 
-def cancel_gift_card_transaction(transaction_item: "TransactionItem", amount: Decimal):
-    transaction_event = TransactionEvent.objects.create(
-        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        transaction=transaction_item,
-        type=TransactionEventType.CANCEL_REQUEST,
-        currency=transaction_item.currency,
-        amount_value=amount,
-        include_in_calculations=False,
-    )
-
+def cancel_gift_card_transaction(
+    transaction_item: "TransactionItem", request_event: "TransactionEvent"
+):
     response: dict[str, str | Decimal | list | None]
+    amount = request_event.amount_value
 
     if (
         not transaction_item.checkout
@@ -289,24 +282,16 @@ def cancel_gift_card_transaction(transaction_item: "TransactionItem", amount: De
             response["actions"] = []
 
     create_transaction_event_from_request_and_webhook_response(
-        transaction_event,
+        request_event,
         None,
         transaction_webhook_response=response,
     )
 
 
 def refund_gift_card_transaction(
-    transaction_item: "TransactionItem", amount: Decimal, related_granted_refund=None
+    transaction_item: "TransactionItem", request_event: "TransactionEvent"
 ):
-    transaction_event = TransactionEvent.objects.create(
-        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        transaction=transaction_item,
-        type=TransactionEventType.REFUND_REQUEST,
-        currency=transaction_item.currency,
-        amount_value=amount,
-        related_granted_refund=related_granted_refund,
-        include_in_calculations=False,
-    )
+    amount = request_event.amount_value
 
     response: dict[str, str | Decimal | list | None] = {
         "result": TransactionEventType.REFUND_FAILURE.upper(),
@@ -317,7 +302,7 @@ def refund_gift_card_transaction(
 
     if not transaction_item.gift_card_id:
         create_transaction_event_from_request_and_webhook_response(
-            transaction_event,
+            request_event,
             None,
             transaction_webhook_response=response,
         )
@@ -347,7 +332,7 @@ def refund_gift_card_transaction(
             response["actions"] = []
 
     create_transaction_event_from_request_and_webhook_response(
-        transaction_event,
+        request_event,
         None,
         transaction_webhook_response=response,
     )
