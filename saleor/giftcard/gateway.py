@@ -265,9 +265,7 @@ def charge_gift_card_transactions(
             )
 
 
-def cancel_gift_card_authorization(
-    transaction_item: "TransactionItem", amount: Decimal
-):
+def cancel_gift_card_transaction(transaction_item: "TransactionItem", amount: Decimal):
     transaction_event, _ = TransactionEvent.objects.get_or_create(
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         transaction=transaction_item,
@@ -309,7 +307,7 @@ def cancel_gift_card_authorization(
     )
 
 
-def refund_gift_card_charge(
+def refund_gift_card_transaction(
     transaction_item: "TransactionItem", amount: Decimal, related_granted_refund=None
 ):
     transaction_event, _ = TransactionEvent.objects.get_or_create(

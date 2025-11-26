@@ -9,8 +9,8 @@ from .....app.models import App
 from .....core.prices import quantize_price
 from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....giftcard.gateway import (
-    cancel_gift_card_authorization,
-    refund_gift_card_charge,
+    cancel_gift_card_transaction,
+    refund_gift_card_transaction,
 )
 from .....order.models import Order
 from .....page.models import Page
@@ -102,7 +102,7 @@ class TransactionRequestAction(BaseMutation):
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
             if transaction.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-                cancel_gift_card_authorization(transaction, action_value)
+                cancel_gift_card_transaction(transaction, action_value)
             else:
                 request_event = cls.create_transaction_event_requested(
                     transaction, action_value, action, user=user, app=app
@@ -126,7 +126,7 @@ class TransactionRequestAction(BaseMutation):
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
             if transaction.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-                refund_gift_card_charge(transaction, action_value)
+                refund_gift_card_transaction(transaction, action_value)
             else:
                 request_event = cls.create_transaction_event_requested(
                     transaction,

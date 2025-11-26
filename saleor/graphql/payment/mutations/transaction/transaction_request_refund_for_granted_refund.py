@@ -5,7 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
-from .....giftcard.gateway import refund_gift_card_charge
+from .....giftcard.gateway import refund_gift_card_transaction
 from .....order import OrderGrantedRefundStatus
 from .....order import models as order_models
 from .....order.utils import calculate_order_granted_refund_status
@@ -174,7 +174,7 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
             assigned_granted_refund = granted_refund
 
         if transaction_item.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-            refund_gift_card_charge(
+            refund_gift_card_transaction(
                 transaction_item, action_value, assigned_granted_refund
             )
             if assigned_granted_refund:
