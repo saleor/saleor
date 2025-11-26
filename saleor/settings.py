@@ -945,8 +945,8 @@ CHECKOUT_PRICES_TTL = datetime.timedelta(
     seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
 )
 
-CHECKOUT_SHIPPING_OPTIONS_TTL = datetime.timedelta(
-    seconds=parse(os.environ.get("CHECKOUT_SHIPPING_OPTIONS_TTL", "24 hours"))
+CHECKOUT_DELIVERY_OPTIONS_TTL = datetime.timedelta(
+    seconds=parse(os.environ.get("CHECKOUT_DELIVERY_OPTIONS_TTL", "24 hours"))
 )
 
 CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = datetime.timedelta(

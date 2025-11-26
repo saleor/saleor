@@ -1240,7 +1240,7 @@ def _update_checkout_with_assigned_delivery_method(
 ):
     if shipping_data:
         checkout.delivery_methods_stale_at = (
-            timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+            timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
         )
     else:
         checkout.delivery_methods_stale_at = None

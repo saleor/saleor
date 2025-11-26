@@ -132,7 +132,7 @@ def test_assign_external_shipping_to_checkout_with_cc(
 
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
     assigned_delivery = checkout.assigned_delivery
@@ -174,7 +174,7 @@ def test_assign_external_shipping_to_checkout_without_delivery_method(
     assert checkout.shipping_method_name == app_shipping_name
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
     assigned_delivery = checkout.assigned_delivery
@@ -231,7 +231,7 @@ def test_assign_external_shipping_to_checkout_with_built_in_shipping(
 
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
     assert checkout.assigned_delivery.id == assigned_delivery.id
@@ -290,7 +290,7 @@ def test_assign_external_shipping_to_checkout_with_different_external_shipping(
 
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
     assert checkout.assigned_delivery.id == assigned_delivery.id
@@ -376,7 +376,7 @@ def test_assign_built_in_shipping_to_checkout_without_delivery_method(
     assert checkout.shipping_method_name == shipping_method.name
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
     assigned_delivery = checkout.assigned_delivery
@@ -420,7 +420,7 @@ def test_assign_built_in_shipping_to_checkout_with_cc(
     assert checkout.shipping_address_id is None
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
     assigned_delivery = checkout.assigned_delivery
@@ -472,7 +472,7 @@ def test_assign_built_in_shipping_to_checkout_with_external_shipping_method(
 
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
     assigned_delivery = CheckoutDelivery.objects.get()
@@ -527,7 +527,7 @@ def test_assign_built_in_shipping_to_checkout_with_different_shipping_method(
 
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
     assigned_delivery = CheckoutDelivery.objects.get()
