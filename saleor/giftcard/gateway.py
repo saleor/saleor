@@ -165,7 +165,7 @@ def detach_gift_card_from_previous_checkout_transactions(
     for transaction_item in transactions_to_cancel_qs:
         response: dict[str, str | Decimal | list | None] = {
             "result": TransactionEventType.CANCEL_SUCCESS.upper(),
-            "pspReference": transaction_item.psp_reference,
+            "pspReference": str(uuid4()),
             "amount": transaction_item.amount_authorized.amount,
             "actions": [],
         }
@@ -229,7 +229,7 @@ def charge_gift_card_transactions(
 
             response = {
                 "result": TransactionEventType.CHARGE_FAILURE.upper(),
-                "pspReference": gift_card_transaction.psp_reference,
+                "pspReference": str(uuid4()),
                 "amount": gift_card_transaction.amount_authorized.amount,
             }
 
@@ -275,13 +275,13 @@ def cancel_gift_card_transaction(transaction_item: "TransactionItem", amount: De
     ):
         response = {
             "result": TransactionEventType.CANCEL_FAILURE.upper(),
-            "pspReference": transaction_item.psp_reference,
+            "pspReference": str(uuid4()),
             "amount": amount,
         }
     else:
         response = {
             "result": TransactionEventType.CANCEL_SUCCESS.upper(),
-            "pspReference": transaction_item.psp_reference,
+            "pspReference": str(uuid4()),
             "amount": amount,
         }
 
@@ -322,14 +322,14 @@ def refund_gift_card_transaction(
     except GiftCard.DoesNotExist:
         response = {
             "result": TransactionEventType.REFUND_FAILURE.upper(),
-            "pspReference": transaction_item.psp_reference,
+            "pspReference": str(uuid4()),
             "amount": amount,
             "message": "Gift card could not be found.",
         }
     else:
         response = {
             "result": TransactionEventType.REFUND_SUCCESS.upper(),
-            "pspReference": transaction_item.psp_reference,
+            "pspReference": str(uuid4()),
             "amount": amount,
         }
 
