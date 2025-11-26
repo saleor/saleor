@@ -413,7 +413,7 @@ def _assert_built_in_shipping_method(
     checkout.refresh_from_db()
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
 
@@ -480,7 +480,7 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_built_in_shipping_
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.delivery_methods_stale_at = (
-        timezone.now() - settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        timezone.now() - settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
     checkout.assigned_delivery_id = None
     checkout.save(
@@ -561,7 +561,7 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_built_in_shi
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.delivery_methods_stale_at = (
-        timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
     checkout.save(update_fields=["shipping_address", "delivery_methods_stale_at"])
 
@@ -604,7 +604,7 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_built_in_sh
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.delivery_methods_stale_at = (
-        timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
     checkout.save(update_fields=["shipping_address", "delivery_methods_stale_at"])
 
@@ -819,7 +819,7 @@ def _assert_external_shipping_method(
     checkout.refresh_from_db()
     assert (
         checkout.delivery_methods_stale_at
-        == timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
 

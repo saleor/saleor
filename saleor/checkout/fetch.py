@@ -763,7 +763,7 @@ def fetch_shipping_methods_for_checkout(
         assigned_delivery = checkout.assigned_delivery
 
         checkout.delivery_methods_stale_at = (
-            timezone.now() + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+            timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
         )
         checkout.save(update_fields=["delivery_methods_stale_at"])
 
