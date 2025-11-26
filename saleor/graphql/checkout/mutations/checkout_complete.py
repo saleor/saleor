@@ -186,8 +186,9 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         billing_address = checkout_info.billing_address
 
         if is_shipping_required(lines):
-            # Refresh stale shipping if needed
-            get_or_fetch_checkout_deliveries(checkout_info)
+            if checkout_info.assigned_delivery:
+                # Refresh stale shipping if needed
+                get_or_fetch_checkout_deliveries(checkout_info)
             clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
             if shipping_address:
                 shipping_address_data = shipping_address.as_data()

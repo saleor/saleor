@@ -161,7 +161,7 @@ class OrderCreateFromCheckout(BaseMutation):
         unavailable_variant_pks: list[int],
         manager,
     ):
-        if is_shipping_required(checkout_lines):
+        if is_shipping_required(checkout_lines) and checkout_info.assigned_delivery:
             # Refresh stale shipping if needed
             get_or_fetch_checkout_deliveries(checkout_info)
         validate_checkout(

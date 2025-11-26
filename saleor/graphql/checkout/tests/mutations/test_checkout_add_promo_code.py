@@ -1076,7 +1076,7 @@ def test_checkout_add_promo_code_marks_shipping_methods_as_stale(
     assert checkout.assigned_delivery
     assert (
         checkout.delivery_methods_stale_at
-        == new_time + settings.CHECKOUT_SHIPPING_OPTIONS_TTL
+        == new_time + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
     )
 
 
