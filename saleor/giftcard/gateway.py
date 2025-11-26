@@ -308,24 +308,34 @@ def refund_gift_card_transaction(
         include_in_calculations=False,
     )
 
-    response: dict[str, str | Decimal | list | None]
+    response: dict[str, str | Decimal | list | None] = {
+        "result": TransactionEventType.REFUND_FAILURE.upper(),
+        "pspReference": str(uuid4()),
+        "amount": amount,
+        "message": "Gift card could not be found.",
+    }
+
+    if not transaction_item.gift_card_id:
+        create_transaction_event_from_request_and_webhook_response(
+            transaction_event,
+            None,
+            transaction_webhook_response=response,
+        )
+        return
 
     try:
         with transaction.atomic():
             gift_card = (
-                GiftCard.objects.filter(id=transaction_item.gift_card_id)  # type: ignore[misc]
+                GiftCard.objects.filter(id=transaction_item.gift_card_id)
                 .select_for_update()
                 .get()
             )
             gift_card.current_balance_amount = F("current_balance_amount") + amount
             gift_card.save(update_fields=["current_balance_amount"])
     except GiftCard.DoesNotExist:
-        response = {
-            "result": TransactionEventType.REFUND_FAILURE.upper(),
-            "pspReference": str(uuid4()),
-            "amount": amount,
-            "message": "Gift card could not be found.",
-        }
+        # Gift card must have been just deleted.
+        # Eat the exception, failure response dict is already prepared.
+        pass
     else:
         response = {
             "result": TransactionEventType.REFUND_SUCCESS.upper(),
