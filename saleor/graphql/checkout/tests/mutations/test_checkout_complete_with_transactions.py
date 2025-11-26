@@ -5897,6 +5897,54 @@ def test_complete_do_not_refresh_shipping_methods_when_not_stale(
 
 
 @patch(
+    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    wraps=fetch_shipping_methods_for_checkout,
+)
+def test_complete_do_not_refresh_shipping_methods_when_cc_is_used(
+    mocked_fetch_checkout_deliveries,
+    user_api_client,
+    checkout_with_delivery_method_for_cc,
+    transaction_item_generator,
+    checkout_delivery,
+    address,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_cc
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, None
+    )
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, authorized_value=total.gross.amount
+    )
+
+    update_checkout_payment_statuses(
+        checkout=checkout_info.checkout,
+        checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
+    )
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+    assert not mocked_fetch_checkout_deliveries.called
+
+
+@patch(
     "saleor.graphql.checkout.mutations.checkout_complete."
     "get_or_fetch_checkout_deliveries",
     wraps=get_or_fetch_checkout_deliveries,

@@ -90,9 +90,6 @@ def _trigger_checkout_sync_webhooks(
     webhook_event_map: dict[str, set["Webhook"]],
     address: Optional["Address"] = None,
 ):
-    # FIXME: Maciek, What with this? We need it here, to trigger the webhooks
-    # for events lik fully paid. Without this, while building subscription
-    # we can try to make a request and it will fail.
     get_or_fetch_checkout_deliveries(checkout_info)
     # + timedelta(seconds=10) to confirm that triggered webhooks will still have
     # valid prices. Triggered only when we have active sync tax webhook.
