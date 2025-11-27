@@ -3,7 +3,6 @@ import pytest
 from .....app.models import AppExtension
 from .....app.types import AppExtensionMount
 from ....tests.utils import get_graphql_content
-from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
 
 
 @pytest.mark.count_queries(autouse=False)
@@ -76,11 +75,11 @@ def test_app_extensions(
     "filter",
     [
         {},
-        {"mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name},
-        {"target": AppExtensionTargetEnum.POPUP.name},
+        {"mount": "PRODUCT_OVERVIEW_CREATE"},
+        {"target": "POPUP"},
         {
-            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
-            "target": AppExtensionTargetEnum.POPUP.name,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "target": "POPUP",
         },
     ],
 )
