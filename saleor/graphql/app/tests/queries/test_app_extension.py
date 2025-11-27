@@ -11,8 +11,6 @@ query ($id: ID!){
     appExtension(id: $id){
         label
         url
-        mount
-        target
         mountName
         targetName
         id
@@ -21,19 +19,6 @@ query ($id: ID!){
             code
         }
         settings
-        options {
-          ... on AppExtensionOptionsWidget{
-            widgetTarget {
-              method
-            }
-          }
-          ...on AppExtensionOptionsNewTab {
-            newTabTarget{
-              method
-            }
-          }
-
-        }
     }
 }
 """
