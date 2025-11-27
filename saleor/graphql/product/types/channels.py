@@ -322,7 +322,9 @@ class ProductVariantChannelListing(
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     prior_price = graphene.Field(
         Money,
-        description="Prior price of the variant used for discount calculations."
+        description="Previous price of the variant in channel. Useful for providing "
+        "promotion information required by customer protection laws such as EU Omnibus "
+        "directive.\n\n Warning: This field is not updated automatically. Use Channel Listings mutation to update it manually."
         + ADDED_IN_321,
     )
     margin = PermissionsField(
