@@ -171,13 +171,13 @@ def detach_gift_card_from_previous_checkout_transactions(
             transaction_item.amount_authorized.amount,
             TransactionAction.CANCEL,
             app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-            message=f"Gift card (code ending with: {gift_card.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again.",
         )
 
         response: dict[str, str | Decimal | list | None] = {
             "result": TransactionEventType.CANCEL_SUCCESS.upper(),
             "pspReference": str(uuid4()),
             "amount": transaction_item.amount_authorized.amount,
+            "message": f"Gift card (code ending with: {gift_card.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again.",
             "actions": [],
         }
 
