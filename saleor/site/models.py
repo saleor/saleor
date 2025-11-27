@@ -108,6 +108,7 @@ class SiteSettings(ModelWithMetadata):
     # legacy settings
     use_legacy_update_webhook_emission = models.BooleanField(
         default=True,
+        db_default=True,
         help_text=(
             "When enabled, update webhooks (e.g. `customerUpdated`,"
             "`productVariantUpdated`) are sent even when only metadata changes. "
