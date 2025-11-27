@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from typing import Mapping, any
 from ...account import events as account_events
 from ...celeryconf import app
 from ...core.db.connection import allow_writer
@@ -23,17 +25,25 @@ def send_account_confirmation_email_task(
     )
 
 
+@dataclass
+class ResetPasswordEmail:
+    recipient_email: str
+    payload: dict[str, any]
+    config: dict[str, any]
+    subject: str
+    template: str
+
 @app.task(compression="zlib")
-def send_password_reset_email_task(recipient_email, payload, config, subject, template):
-    user_id = payload.get("user", {}).get("id")
-    email_config = EmailConfig(**config)
+def send_password_reset_email_task(data: ResetPasswordEmail):
+    user_id = data.payload.get("user", {}).get("id")
+    email_config = EmailConfig(**data.config)
 
     send_email(
         config=email_config,
-        recipient_list=[recipient_email],
-        context=payload,
-        subject=subject,
-        template_str=template,
+        recipient_list=[data.recipient_email],
+        context=data.payload,
+        subject=data.subject,
+        template_str=data.template,
     )
     with allow_writer():
         account_events.customer_password_reset_link_sent_event(
