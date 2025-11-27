@@ -3,6 +3,7 @@ from ...order.actions import call_order_event
 from ...webhook.event_types import WebhookEventAsyncType
 from ..core import ResolveInfo
 from ..plugins.dataloaders import get_plugin_manager_promise
+from ..site.dataloaders import get_site_promise
 
 
 def extra_checkout_actions(instance, info: ResolveInfo, **data):
@@ -71,6 +72,10 @@ def extra_transaction_item_actions(instance, info: ResolveInfo, **data):
 
 def extra_user_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
+    site = get_site_promise(info.context).get()
+    use_legacy_webhooks_emission = site.settings.use_legacy_update_webhook_emission
+    if use_legacy_webhooks_emission:
+        manager.customer_updated(instance)
     manager.customer_metadata_updated(instance)
 
 
