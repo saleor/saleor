@@ -27,7 +27,6 @@ class BaseApiClient(Client):
         user = kwargs.pop("user", None)
         app = kwargs.pop("app", None)
         api_path = kwargs.pop("api_path", None)
-        self._user = None
         self.token = None
         self.user = user
         self.app_token = None
