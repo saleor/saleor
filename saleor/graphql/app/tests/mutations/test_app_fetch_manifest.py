@@ -679,8 +679,6 @@ def test_app_fetch_manifest_with_extensions(
     ]
     assert extension["label"] == "Create product with App"
     assert extension["url"] == "http://127.0.0.1:8080/app"
-    assert extension["mount"] == "PRODUCT_OVERVIEW_CREATE"
-    assert extension["target"] == "POPUP"
 
     assert extension["mountName"] == "PRODUCT_OVERVIEW_CREATE"
     assert extension["targetName"] == "POPUP"
@@ -732,7 +730,7 @@ def test_app_fetch_manifest_with_widget_extension_settings(
 
     extension = extensions[0]
     assert extension["label"] == "Product Widget"
-    assert extension["target"] == "WIDGET"
+    assert extension["targetName"] == "WIDGET"
 
     assert extension["settings"] == {"widgetTarget": {"method": "POST"}}
 

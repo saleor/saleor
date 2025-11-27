@@ -75,11 +75,11 @@ def test_app_extensions(
     "filter",
     [
         {},
-        {"mount": "PRODUCT_OVERVIEW_CREATE"},
-        {"target": "POPUP"},
+        {"mountName": ["PRODUCT_OVERVIEW_CREATE"]},
+        {"targetName": "POPUP"},
         {
-            "mount": "PRODUCT_OVERVIEW_CREATE",
-            "target": "POPUP",
+            "mountName": ["PRODUCT_OVERVIEW_CREATE"],
+            "targetName": "POPUP",
         },
     ],
 )

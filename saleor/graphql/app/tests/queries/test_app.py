@@ -338,9 +338,9 @@ def test_app_with_extensions_query(
     app_data = content["data"]["app"]
     extensions_data = app_data["extensions"]
     returned_ids = {e["id"] for e in extensions_data}
-    returned_labels = {e["labelName"] for e in extensions_data}
+    returned_labels = {e["label"] for e in extensions_data}
     returned_mounts = {e["mountName"].lower() for e in extensions_data}
-    returned_targets = {e["target"].lower() for e in extensions_data}
+    returned_targets = {e["targetName"].lower() for e in extensions_data}
     returned_permission_codes = [e["permissions"] for e in extensions_data]
     for app_extension in app_extensions:
         global_id = graphene.Node.to_global_id("AppExtension", app_extension.id)

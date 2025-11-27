@@ -49,15 +49,13 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
     extension_data = content["data"]["appExtension"]
     assert app_extension.label == extension_data["label"]
     assert app_extension.url == extension_data["url"]
-    assert app_extension.mount == extension_data["mount"].lower()
-    assert app_extension.target == extension_data["target"].lower()
+    assert app_extension.mount == extension_data["mountName"].lower()
+    assert app_extension.target == extension_data["targetName"].lower()
 
     assert app_extension.permissions.count() == 1
     assert len(extension_data["permissions"]) == 1
     permission_code = extension_data["permissions"][0]["code"].lower()
     assert app_extension.permissions.first().codename == permission_code
-
-    assert extension_data["options"]["widgetTarget"]["method"] == "POST"
 
     assert extension_data["settings"] is not None
     assert extension_data["settings"]["widgetTarget"]["method"] == "POST"
@@ -89,8 +87,8 @@ def test_app_extension_by_app(app, app_api_client, permission_manage_products):
     extension_data = content["data"]["appExtension"]
     assert app_extension.label == extension_data["label"]
     assert app_extension.url == extension_data["url"]
-    assert app_extension.mount == extension_data["mount"].lower()
-    assert app_extension.target == extension_data["target"].lower()
+    assert app_extension.mount == extension_data["mountName"].lower()
+    assert app_extension.target == extension_data["targetName"].lower()
 
     assert app_extension.permissions.count() == 1
     assert len(extension_data["permissions"]) == 1
