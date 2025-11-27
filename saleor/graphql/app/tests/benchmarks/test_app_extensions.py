@@ -20,8 +20,8 @@ def test_app_extensions(
           node{
             label
             url
-            mount
-            target
+            mountName
+            targetName
             id
             accessToken
             permissions{
@@ -99,9 +99,9 @@ def test_app_extensions_with_filter(
           node{
             label
             url
-            target
+            targetName
             id
-            mount
+            mountName
             accessToken
             permissions{
               code

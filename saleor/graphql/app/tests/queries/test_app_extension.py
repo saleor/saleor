@@ -313,8 +313,8 @@ query ($id: ID!){
     appExtension(id: $id){
         label
         url
-        mount
-        target
+        mountName
+        targetName
         id
         permissions{
             code
@@ -499,7 +499,7 @@ def test_app_extension_with_app_query_by_customer_without_permissions(
         (AppExtensionTarget.NEW_TAB, "GET"),
     ],
 )
-def test_app_extension_type_options(
+def test_app_extension_type_settings(
     target,
     method,
     app,
@@ -527,15 +527,11 @@ def test_app_extension_type_options(
     content = get_graphql_content(response)
     extension_data = content["data"]["appExtension"]
 
-    assert extension_data["target"] == target.upper()
-
     assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
     assert extension_data["targetName"] == app_extension.target.upper()
 
     if target == AppExtensionTarget.NEW_TAB:
-        assert extension_data["options"]["newTabTarget"]["method"] == method
         assert extension_data["settings"]["newTabTarget"]["method"] == method
 
     if target == AppExtensionTarget.WIDGET:
-        assert extension_data["options"]["widgetTarget"]["method"] == method
         assert extension_data["settings"]["widgetTarget"]["method"] == method

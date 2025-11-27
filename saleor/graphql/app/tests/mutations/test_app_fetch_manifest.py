@@ -781,7 +781,7 @@ def test_app_fetch_manifest_with_new_tab_extension_settings(
 
     extension = extensions[0]
     assert extension["label"] == "Order Details"
-    assert extension["target"] == "NEW_TAB"
+    assert extension["targetName"] == "NEW_TAB"
 
     assert extension["settings"] == {"newTabTarget": {"method": "GET"}}
 
