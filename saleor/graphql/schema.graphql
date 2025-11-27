@@ -3025,12 +3025,6 @@ type AppExtension implements Node @doc(category: "Apps") {
   """URL of a view where extension's iframe is placed."""
   url: String!
 
-  """Place where given extension will be mounted."""
-  mount: AppExtensionMountEnum! @deprecated(reason: "Use `mountName` instead.")
-
-  """Type of way how app extension will be opened."""
-  target: AppExtensionTargetEnum! @deprecated(reason: "Use `targetName` instead.")
-
   """
   Name of the extension mount point in the dashboard. Replaces `mount`
   
@@ -3057,114 +3051,9 @@ type AppExtension implements Node @doc(category: "Apps") {
 
   """JWT token used to authenticate by third-party app extension."""
   accessToken: String
-
-  """
-  App extension options.
-  
-  Added in Saleor 3.22.
-  """
-  options: AppExtensionPossibleOptions @deprecated(reason: "Use `settings` field directly.")
-}
-
-"""All places where app extension can be mounted."""
-enum AppExtensionMountEnum @doc(category: "Apps") {
-  CATEGORY_OVERVIEW_CREATE
-  CATEGORY_OVERVIEW_MORE_ACTIONS
-  CATEGORY_DETAILS_MORE_ACTIONS
-  COLLECTION_OVERVIEW_CREATE
-  COLLECTION_OVERVIEW_MORE_ACTIONS
-  COLLECTION_DETAILS_MORE_ACTIONS
-  COLLECTION_DETAILS_WIDGETS
-  GIFT_CARD_OVERVIEW_CREATE
-  GIFT_CARD_OVERVIEW_MORE_ACTIONS
-  GIFT_CARD_DETAILS_MORE_ACTIONS
-  GIFT_CARD_DETAILS_WIDGETS
-  CUSTOMER_OVERVIEW_CREATE
-  CUSTOMER_OVERVIEW_MORE_ACTIONS
-  CUSTOMER_DETAILS_MORE_ACTIONS
-  CUSTOMER_DETAILS_WIDGETS
-  PRODUCT_OVERVIEW_CREATE
-  PRODUCT_OVERVIEW_MORE_ACTIONS
-  PRODUCT_DETAILS_MORE_ACTIONS
-  PRODUCT_DETAILS_WIDGETS
-  NAVIGATION_CATALOG
-  NAVIGATION_ORDERS
-  NAVIGATION_CUSTOMERS
-  NAVIGATION_DISCOUNTS
-  NAVIGATION_TRANSLATIONS
-  NAVIGATION_PAGES
-  ORDER_DETAILS_MORE_ACTIONS
-  ORDER_OVERVIEW_CREATE
-  ORDER_OVERVIEW_MORE_ACTIONS
-  ORDER_DETAILS_WIDGETS
-  DRAFT_ORDER_DETAILS_MORE_ACTIONS
-  DRAFT_ORDER_OVERVIEW_CREATE
-  DRAFT_ORDER_OVERVIEW_MORE_ACTIONS
-  DRAFT_ORDER_DETAILS_WIDGETS
-  DISCOUNT_DETAILS_MORE_ACTIONS
-  DISCOUNT_OVERVIEW_CREATE
-  DISCOUNT_OVERVIEW_MORE_ACTIONS
-  VOUCHER_DETAILS_MORE_ACTIONS
-  VOUCHER_OVERVIEW_CREATE
-  VOUCHER_OVERVIEW_MORE_ACTIONS
-  VOUCHER_DETAILS_WIDGETS
-  PAGE_DETAILS_MORE_ACTIONS
-  PAGE_OVERVIEW_CREATE
-  PAGE_OVERVIEW_MORE_ACTIONS
-  PAGE_TYPE_OVERVIEW_CREATE
-  PAGE_TYPE_OVERVIEW_MORE_ACTIONS
-  PAGE_TYPE_DETAILS_MORE_ACTIONS
-  MENU_OVERVIEW_CREATE
-  MENU_OVERVIEW_MORE_ACTIONS
-  MENU_DETAILS_MORE_ACTIONS
-  TRANSLATIONS_MORE_ACTIONS
-}
-
-"""
-All available ways of opening an app extension.
-
-    POPUP - app's extension will be mounted as a popup window
-    APP_PAGE - redirect to app's page
-"""
-enum AppExtensionTargetEnum @doc(category: "Apps") {
-  POPUP
-  APP_PAGE
-  NEW_TAB
-  WIDGET
 }
 
 scalar JSON
-
-union AppExtensionPossibleOptions = AppExtensionOptionsWidget | AppExtensionOptionsNewTab
-
-"""Represents the options for an app extension."""
-type AppExtensionOptionsWidget @doc(category: "Apps") {
-  """Options for displaying a Widget"""
-  widgetTarget: WidgetTargetOptions @deprecated(reason: "Use `settings` field directly.")
-}
-
-"""Represents the WIDGET target options for an app extension."""
-type WidgetTargetOptions @doc(category: "Apps") {
-  """HTTP method for Widget target (GET or POST)"""
-  method: HttpMethod! @deprecated(reason: "Use `settings` field directly.")
-}
-
-enum HttpMethod {
-  POST
-  GET
-}
-
-"""Represents the options for an app extension."""
-type AppExtensionOptionsNewTab @doc(category: "Apps") {
-  """Options controlling behavior of the NEW_TAB extension target"""
-  newTabTarget: NewTabTargetOptions @deprecated(reason: "Use `settings` field directly.")
-}
-
-"""Represents the NEW_TAB target options for an app extension."""
-type NewTabTargetOptions @doc(category: "Apps") {
-  """HTTP method for New Tab target (GET or POST)"""
-  method: HttpMethod! @deprecated(reason: "Use `settings` field directly.")
-}
 
 """Represents the app's brand data."""
 type AppBrand @doc(category: "Apps") {
@@ -14914,6 +14803,73 @@ input AppExtensionFilterInput @doc(category: "Apps") {
   Added in Saleor 3.22.
   """
   targetName: String
+}
+
+"""All places where app extension can be mounted."""
+enum AppExtensionMountEnum @doc(category: "Apps") {
+  CATEGORY_OVERVIEW_CREATE
+  CATEGORY_OVERVIEW_MORE_ACTIONS
+  CATEGORY_DETAILS_MORE_ACTIONS
+  COLLECTION_OVERVIEW_CREATE
+  COLLECTION_OVERVIEW_MORE_ACTIONS
+  COLLECTION_DETAILS_MORE_ACTIONS
+  COLLECTION_DETAILS_WIDGETS
+  GIFT_CARD_OVERVIEW_CREATE
+  GIFT_CARD_OVERVIEW_MORE_ACTIONS
+  GIFT_CARD_DETAILS_MORE_ACTIONS
+  GIFT_CARD_DETAILS_WIDGETS
+  CUSTOMER_OVERVIEW_CREATE
+  CUSTOMER_OVERVIEW_MORE_ACTIONS
+  CUSTOMER_DETAILS_MORE_ACTIONS
+  CUSTOMER_DETAILS_WIDGETS
+  PRODUCT_OVERVIEW_CREATE
+  PRODUCT_OVERVIEW_MORE_ACTIONS
+  PRODUCT_DETAILS_MORE_ACTIONS
+  PRODUCT_DETAILS_WIDGETS
+  NAVIGATION_CATALOG
+  NAVIGATION_ORDERS
+  NAVIGATION_CUSTOMERS
+  NAVIGATION_DISCOUNTS
+  NAVIGATION_TRANSLATIONS
+  NAVIGATION_PAGES
+  ORDER_DETAILS_MORE_ACTIONS
+  ORDER_OVERVIEW_CREATE
+  ORDER_OVERVIEW_MORE_ACTIONS
+  ORDER_DETAILS_WIDGETS
+  DRAFT_ORDER_DETAILS_MORE_ACTIONS
+  DRAFT_ORDER_OVERVIEW_CREATE
+  DRAFT_ORDER_OVERVIEW_MORE_ACTIONS
+  DRAFT_ORDER_DETAILS_WIDGETS
+  DISCOUNT_DETAILS_MORE_ACTIONS
+  DISCOUNT_OVERVIEW_CREATE
+  DISCOUNT_OVERVIEW_MORE_ACTIONS
+  VOUCHER_DETAILS_MORE_ACTIONS
+  VOUCHER_OVERVIEW_CREATE
+  VOUCHER_OVERVIEW_MORE_ACTIONS
+  VOUCHER_DETAILS_WIDGETS
+  PAGE_DETAILS_MORE_ACTIONS
+  PAGE_OVERVIEW_CREATE
+  PAGE_OVERVIEW_MORE_ACTIONS
+  PAGE_TYPE_OVERVIEW_CREATE
+  PAGE_TYPE_OVERVIEW_MORE_ACTIONS
+  PAGE_TYPE_DETAILS_MORE_ACTIONS
+  MENU_OVERVIEW_CREATE
+  MENU_OVERVIEW_MORE_ACTIONS
+  MENU_DETAILS_MORE_ACTIONS
+  TRANSLATIONS_MORE_ACTIONS
+}
+
+"""
+All available ways of opening an app extension.
+
+    POPUP - app's extension will be mounted as a popup window
+    APP_PAGE - redirect to app's page
+"""
+enum AppExtensionTargetEnum @doc(category: "Apps") {
+  POPUP
+  APP_PAGE
+  NEW_TAB
+  WIDGET
 }
 
 """Represents address validation rules for a country."""
@@ -29956,12 +29912,6 @@ type AppManifestExtension @doc(category: "Apps") {
 
   """URL of a view where extension's iframe is placed."""
   url: String!
-
-  """Place where given extension will be mounted."""
-  mount: AppExtensionMountEnum! @deprecated(reason: "Use `mountName` instead.")
-
-  """Type of way how app extension will be opened."""
-  target: AppExtensionTargetEnum! @deprecated(reason: "Use `targetName` instead.")
 
   """
   Name of the extension mount point in the dashboard. Replaces `mount`
