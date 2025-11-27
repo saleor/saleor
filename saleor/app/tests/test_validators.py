@@ -434,6 +434,7 @@ def test_clean_extension_options_no_options():
     "mount",
     [
         "ORDER_DETAILS_WIDGETS",
+        "ORDER_FULFILLMENTS_WIDGETS",
         "PRODUCT_DETAILS_WIDGETS",
         "VOUCHER_DETAILS_WIDGETS",
         "DRAFT_ORDER_DETAILS_WIDGETS",
