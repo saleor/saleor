@@ -48,6 +48,13 @@ def transaction_initialize_session_with_gift_card_payment_method(
     transaction_session_data: "TransactionSessionData",
     source_object: Checkout | Order,
 ) -> "TransactionSessionResult":
+    """Initialize session for gift card payment method.
+
+    Attach payment method app identifier to the transaction, validate transaction data and gift card.
+
+    Since gift card funds can be authorized to only one checkout at the time this function also detaches
+    gift card from any checkouts it has been previously attached to.
+    """
     attach_app_identifier_to_transaction(transaction_session_data)
     gift_card = None
 
@@ -83,6 +90,7 @@ def transaction_initialize_session_with_gift_card_payment_method(
 def attach_app_identifier_to_transaction(
     transaction_session_data: "TransactionSessionData",
 ):
+    """Attach gift card payment gateway identifier to a transaction."""
     transaction_session_data.transaction.app_identifier = GIFT_CARD_PAYMENT_GATEWAY_ID
     transaction_session_data.transaction.save(update_fields=["app_identifier"])
 
@@ -91,6 +99,7 @@ def validate_transaction_session_data(
     transaction_session_data: "TransactionSessionData",
     source_object: Checkout | Order,
 ):
+    """Validate whether object that the gift card is being attached to is a checkout and validate whether transaction data is correct."""
     if not isinstance(source_object, Checkout):
         raise GiftCardPaymentGatewayException(
             msg=f"Cannot initialize transaction for payment gateway: {GIFT_CARD_PAYMENT_GATEWAY_ID} and object type other than Checkout."
@@ -109,7 +118,7 @@ def validate_transaction_session_data(
 def validate_and_get_gift_card(
     transaction_session_data: "TransactionSessionData",
 ):
-    # Check for existence of an active gift card and validate currency.
+    """Check for the existence of given gift card and lock it for use in a database transaction. Check whether gift card has enough funds to cover transaction amount."""
     try:
         gift_card = (
             GiftCard.objects.active(date=timezone.now().date())
@@ -125,7 +134,6 @@ def validate_and_get_gift_card(
             msg="Gift card code is not valid."
         ) from exc
 
-    # Check whether gift card has enough funds to cover the amount.
     if transaction_session_data.action.amount > gift_card.current_balance_amount:
         raise GiftCardPaymentGatewayException(
             msg=f"Gift card has insufficient amount ({quantize_price(gift_card.current_balance_amount, gift_card.currency)}) "
@@ -139,6 +147,7 @@ def attach_gift_card_to_transaction(
     transaction_session_data: "TransactionSessionData",
     gift_card: GiftCard | None,
 ):
+    """Attach gift card to a transaction."""
     if not gift_card:
         return
 
@@ -149,6 +158,10 @@ def attach_gift_card_to_transaction(
 def detach_gift_card_from_previous_checkout_transactions(
     gift_card: GiftCard | None,
 ):
+    """Find all gift card payment gateway transactions tied to a checkout and perform authorization cancellation for the same amount as authorization was granted.
+
+    The function is used to ensure a single gift card does not authorize funds to more than a single checkout at the time.
+    """
     if not gift_card:
         return
 
@@ -193,6 +206,11 @@ def detach_gift_card_from_previous_checkout_transactions(
 def charge_gift_card_transactions(
     order: "Order",
 ):
+    """Find all gift card payment gateway transactions tied to an order and attempt to charge funds from gift cards.
+
+    If gift card cannot be found or has insufficient funds the charge request fails.
+    """
+
     # Order object may already have prefetched related objects.
     # Prefetched payment transactions cause logic called a few layers beneath to operate on outdated
     # order transactions therfore here the cache is dropped.
@@ -277,6 +295,10 @@ def charge_gift_card_transactions(
 def cancel_gift_card_transaction(
     transaction_item: "TransactionItem", request_event: "TransactionEvent"
 ):
+    """Perform authorization cancellation for the same amount as authorization was granted.
+
+    If checkout no longer exists or CANCEL action is not available for the transaction authorization cancellation fails.
+    """
     response: dict[str, str | Decimal | list | None]
     amount = request_event.amount_value
 
@@ -309,6 +331,10 @@ def cancel_gift_card_transaction(
 def refund_gift_card_transaction(
     transaction_item: "TransactionItem", request_event: "TransactionEvent"
 ):
+    """Refund funds to a gift card which previously were charged from the same gift card.
+
+    If gift card no longer exists refund fails.
+    """
     amount = request_event.amount_value
 
     response: dict[str, str | Decimal | list | None] = {
