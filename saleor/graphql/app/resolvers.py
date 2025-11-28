@@ -81,6 +81,8 @@ def resolve_app_extensions(info):
     )
 
 
+# TODO Check this condition, we should not have to do this stiching, but
+# if old extensions have it, we need to migrate
 def resolve_app_extension_url(root):
     """Return an extension url.
 
@@ -89,7 +91,7 @@ def resolve_app_extension_url(root):
         - target == "POPUP"
         - appUrl is defined
     """
-    target = root.get("target", AppExtensionTarget.POPUP)
+    target = root.get("target", "popup")
     app_url = root["app_url"]
     url = root["url"]
     if url.startswith("/") and app_url and target == AppExtensionTarget.POPUP:
