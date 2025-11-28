@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Final
 
 import graphene
 
@@ -7,16 +8,13 @@ from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import to_enum
 from ..core.utils import str_to_enum
 
-AttributeInputTypeEnum = to_enum(AttributeInputType)
+AttributeInputTypeEnum: Final[graphene.Enum] = to_enum(AttributeInputType)
 AttributeInputTypeEnum.doc_category = DOC_CATEGORY_ATTRIBUTES
 
-AttributeTypeEnum = to_enum(AttributeType)
+AttributeTypeEnum: Final[graphene.Enum] = to_enum(AttributeType)
 AttributeTypeEnum.doc_category = DOC_CATEGORY_ATTRIBUTES
 
-AttributeEntityTypeEnum = to_enum(AttributeEntityType)
-AttributeEntityTypeEnum.doc_category = DOC_CATEGORY_ATTRIBUTES
-
-AttributeEntityTypeEnum = graphene.Enum(
+AttributeEntityTypeEnum: Final[graphene.Enum] = graphene.Enum(
     "AttributeEntityTypeEnum",
     [(str_to_enum(name.upper()), code) for code, name in AttributeEntityType.CHOICES],
 )

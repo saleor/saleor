@@ -1,3 +1,5 @@
+from typing import Final
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -14,7 +16,7 @@ from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ..types import TaxCountryConfiguration
 
-TaxCountryConfigurationUpdateErrorCode = graphene.Enum.from_enum(
+TaxCountryConfigurationUpdateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     error_codes.TaxCountryConfigurationUpdateErrorCode
 )
 TaxCountryConfigurationUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES

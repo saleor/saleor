@@ -1,10 +1,14 @@
+from typing import Final
+
+import graphene
+
 from ...csv import ExportEvents, FileTypes
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import to_enum
 from ..core.types import BaseEnum
 
-ExportEventEnum = to_enum(ExportEvents)
-FileTypeEnum = to_enum(FileTypes)
+ExportEventEnum: Final[graphene.Enum] = to_enum(ExportEvents)
+FileTypeEnum: Final[graphene.Enum] = to_enum(FileTypes)
 
 
 class ExportScope(BaseEnum):

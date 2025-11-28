@@ -1,3 +1,5 @@
+from typing import Final
+
 import graphene
 from django.db import transaction
 
@@ -14,7 +16,9 @@ from ..types import Order, OrderEvent
 from .order_note_common import OrderNoteCommon
 from .utils import call_event_by_order_status
 
-OrderNoteAddErrorCode = graphene.Enum.from_enum(error_codes.OrderNoteAddErrorCode)
+OrderNoteAddErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.OrderNoteAddErrorCode
+)
 OrderNoteAddErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
 
