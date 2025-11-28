@@ -4,13 +4,16 @@ from uuid import uuid4
 
 import pydantic
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, F, OuterRef, Q
 from django.utils import timezone
 
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
+from ..graphql.payment.mutations.transaction.utils import (
+    create_transaction_event_requested,
+)
 from ..order.models import Order
-from ..payment import TransactionEventType
+from ..payment import TransactionAction, TransactionEventType
 from ..payment.interface import (
     TransactionSessionData,
     TransactionSessionResult,
@@ -69,6 +72,7 @@ def transaction_initialize_session_with_gift_card_payment_method(
                 "pspReference": str(uuid4()),
                 "amount": transaction_session_data.action.amount,
                 "message": f"Gift card (ending: {gift_card.display_code}).",
+                "actions": [TransactionAction.CANCEL.upper()],
             },
         )
     finally:
@@ -162,28 +166,23 @@ def detach_gift_card_from_previous_checkout_transactions(
     )
 
     for transaction_item in transactions_to_cancel_qs:
-        response = {
-            "result": TransactionEventType.CANCEL_SUCCESS.upper(),
-            "pspReference": transaction_item.psp_reference,
-            "amount": transaction_item.amount_authorized.amount,
-        }
-
-        transaction_event, _ = TransactionEvent.objects.get_or_create(
+        request_event = create_transaction_event_requested(
+            transaction_item,
+            transaction_item.amount_authorized.amount,
+            TransactionAction.CANCEL,
             app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-            transaction=transaction_item,
-            type=TransactionEventType.CANCEL_REQUEST,
-            currency=transaction_item.currency,
-            amount_value=transaction_item.amount_authorized.amount,
             message=f"Gift card (code ending with: {gift_card.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again.",
-            defaults={
-                "include_in_calculations": False,
-                "currency": transaction_item.currency,
-                "amount_value": transaction_item.amount_authorized.amount,
-            },
         )
 
+        response: dict[str, str | Decimal | list | None] = {
+            "result": TransactionEventType.CANCEL_SUCCESS.upper(),
+            "pspReference": str(uuid4()),
+            "amount": transaction_item.amount_authorized.amount,
+            "actions": [],
+        }
+
         create_transaction_event_from_request_and_webhook_response(
-            transaction_event,
+            request_event,
             None,
             transaction_webhook_response=response,
         )
@@ -220,22 +219,16 @@ def charge_gift_card_transactions(
                 .select_for_update()
                 .get()
             )
-            transaction_event, _ = TransactionEvent.objects.get_or_create(
+            request_event = create_transaction_event_requested(
+                gift_card_transaction,
+                gift_card_transaction.amount_authorized.amount,
+                TransactionAction.CHARGE,
                 app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-                transaction=gift_card_transaction,
-                type=TransactionEventType.CHARGE_REQUEST,
-                currency=gift_card_transaction.currency,
-                amount_value=gift_card_transaction.amount_authorized.amount,
-                defaults={
-                    "include_in_calculations": False,
-                    "currency": gift_card_transaction.currency,
-                    "amount_value": gift_card_transaction.amount_authorized.amount,
-                },
             )
 
             response = {
                 "result": TransactionEventType.CHARGE_FAILURE.upper(),
-                "pspReference": gift_card_transaction.psp_reference,
+                "pspReference": str(uuid4()),
                 "amount": gift_card_transaction.amount_authorized.amount,
             }
 
@@ -254,9 +247,92 @@ def charge_gift_card_transactions(
                 gift_card.save(update_fields=["current_balance_amount"])
                 response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
                 response["message"] = f"Gift card (ending: {gift_card.display_code})."
+                response["actions"] = [TransactionAction.REFUND.upper()]
 
             create_transaction_event_from_request_and_webhook_response(
-                transaction_event,
+                request_event,
                 None,
                 transaction_webhook_response=response,
             )
+
+
+def cancel_gift_card_transaction(
+    transaction_item: "TransactionItem", request_event: "TransactionEvent"
+):
+    response: dict[str, str | Decimal | list | None]
+    amount = request_event.amount_value
+
+    if (
+        not transaction_item.checkout
+        or TransactionAction.CANCEL not in transaction_item.available_actions
+    ):
+        response = {
+            "result": TransactionEventType.CANCEL_FAILURE.upper(),
+            "pspReference": str(uuid4()),
+            "amount": amount,
+        }
+    else:
+        response = {
+            "result": TransactionEventType.CANCEL_SUCCESS.upper(),
+            "pspReference": str(uuid4()),
+            "amount": amount,
+        }
+
+        if amount >= transaction_item.authorized_value:
+            response["actions"] = []
+
+    create_transaction_event_from_request_and_webhook_response(
+        request_event,
+        None,
+        transaction_webhook_response=response,
+    )
+
+
+def refund_gift_card_transaction(
+    transaction_item: "TransactionItem", request_event: "TransactionEvent"
+):
+    amount = request_event.amount_value
+
+    response: dict[str, str | Decimal | list | None] = {
+        "result": TransactionEventType.REFUND_FAILURE.upper(),
+        "pspReference": str(uuid4()),
+        "amount": amount,
+        "message": "Gift card could not be found.",
+    }
+
+    if not transaction_item.gift_card_id:
+        create_transaction_event_from_request_and_webhook_response(
+            request_event,
+            None,
+            transaction_webhook_response=response,
+        )
+        return
+
+    try:
+        with transaction.atomic():
+            gift_card = (
+                GiftCard.objects.filter(id=transaction_item.gift_card_id)
+                .select_for_update()
+                .get()
+            )
+            gift_card.current_balance_amount = F("current_balance_amount") + amount
+            gift_card.save(update_fields=["current_balance_amount"])
+    except GiftCard.DoesNotExist:
+        # Gift card must have been just deleted.
+        # Eat the exception, failure response dict is already prepared.
+        pass
+    else:
+        response = {
+            "result": TransactionEventType.REFUND_SUCCESS.upper(),
+            "pspReference": str(uuid4()),
+            "amount": amount,
+        }
+
+        if amount >= transaction_item.charged_value:
+            response["actions"] = []
+
+    create_transaction_event_from_request_and_webhook_response(
+        request_event,
+        None,
+        transaction_webhook_response=response,
+    )

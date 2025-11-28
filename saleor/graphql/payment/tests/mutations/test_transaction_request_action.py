@@ -5,11 +5,15 @@ import graphene
 import pytest
 
 from .....app.models import App
+from .....checkout import CheckoutAuthorizeStatus
+from .....checkout.payment_utils import update_checkout_payment_statuses
+from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....order import OrderEvents
 from .....page.models import Page, PageType
 from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionEvent, TransactionItem
+from .....tests.e2e.utils import assign_permissions
 from .....webhook.event_types import WebhookEventSyncType
 from ....core.enums import TransactionRequestActionErrorCode
 from ....core.utils import to_global_id_or_none
@@ -2030,3 +2034,334 @@ def test_transaction_request_charge_without_reason_when_refund_reasons_enabled(
     assert request_event.reason_reference is None
 
     assert mocked_payment_action_request.called
+
+
+@pytest.mark.parametrize(
+    (
+        "amount",
+        "expected_cancel_amount",
+        "expected_authorize_status",
+        "expected_available_actions",
+    ),
+    [
+        (None, Decimal(10), CheckoutAuthorizeStatus.NONE, []),
+        (
+            Decimal(1),
+            Decimal(1),
+            CheckoutAuthorizeStatus.PARTIAL,
+            [TransactionAction.CANCEL],
+        ),
+        (Decimal(10), Decimal(10), CheckoutAuthorizeStatus.NONE, []),
+        (Decimal(11), Decimal(10), CheckoutAuthorizeStatus.NONE, []),
+    ],
+)
+def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
+    amount,
+    expected_cancel_amount,
+    expected_authorize_status,
+    expected_available_actions,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    checkout = checkout_with_prices
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        checkout_id=checkout.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=Decimal(10),
+        available_actions=[TransactionAction.CANCEL],
+    )
+    assert transaction.gift_card is not None
+
+    update_checkout_payment_statuses(
+        checkout, checkout.total.gross, checkout_has_lines=True
+    )
+
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CANCEL.name,
+        "amount": amount,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    transaction.refresh_from_db()
+    checkout.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(10) - expected_cancel_amount
+    assert transaction.charged_value == Decimal(0)
+    assert transaction.gift_card is not None
+    assert transaction.available_actions == expected_available_actions
+    assert checkout.authorize_status == expected_authorize_status
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=expected_cancel_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_SUCCESS,
+        amount_value=expected_cancel_amount,
+    )
+
+
+def test_transaction_request_cancelation_fails_when_cancel_action_is_not_available(
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    checkout = checkout_with_prices
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        checkout_id=checkout.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=gift_card_created_by_staff.current_balance_amount,
+        available_actions=[],
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CANCEL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_FAILURE,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )
+
+
+def test_transaction_request_cancelation_for_type_other_than_checkout(
+    order_with_lines,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=gift_card_created_by_staff.current_balance_amount,
+        available_actions=[TransactionAction.CANCEL],
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CANCEL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    transaction.refresh_from_db()
+
+    assert (
+        transaction.authorized_value
+        == gift_card_created_by_staff.current_balance_amount
+    )
+    assert transaction.charged_value == Decimal(0)
+    assert transaction.gift_card is not None
+    assert transaction.available_actions == [TransactionAction.CANCEL]
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.CANCEL_FAILURE,
+        amount_value=gift_card_created_by_staff.current_balance_amount,
+    )
+
+
+@pytest.mark.parametrize(
+    ("amount", "expected_refund_amount", "expected_available_actions"),
+    [
+        (None, Decimal(10), []),
+        (Decimal(1), Decimal(1), [TransactionAction.REFUND]),
+        (Decimal(10), Decimal(10), []),
+        (Decimal(11), Decimal(10), []),
+    ],
+)
+def test_transaction_request_refund_for_order_gift_card_charge(
+    amount,
+    expected_refund_amount,
+    expected_available_actions,
+    order_with_lines,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+
+    gift_card_created_by_staff.current_balance_amount = Decimal(0)
+    gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        charged_value=Decimal(10),
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "amount": amount,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    transaction.refresh_from_db()
+    gift_card_created_by_staff.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(10) - expected_refund_amount
+    assert transaction.refunded_value == expected_refund_amount
+    assert transaction.gift_card is not None
+    assert transaction.available_actions == expected_available_actions
+    assert gift_card_created_by_staff.current_balance_amount == expected_refund_amount
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=expected_refund_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_SUCCESS,
+        amount_value=expected_refund_amount,
+    )
+
+
+def test_transaction_request_refund_for_order_gift_card_charge_when_gift_card_does_not_exist_anymore(
+    order_with_lines,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+    amount = Decimal(10)
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=None,
+        charged_value=amount,
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "amount": amount,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestAction"]["errors"] == []
+
+    transaction.refresh_from_db()
+
+    assert transaction.charged_value == amount
+    assert transaction.refunded_value == Decimal(0)
+    assert transaction.gift_card is None
+    assert transaction.available_actions == [TransactionAction.REFUND]
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_FAILURE,
+        amount_value=amount,
+        message="Gift card could not be found.",
+    )
