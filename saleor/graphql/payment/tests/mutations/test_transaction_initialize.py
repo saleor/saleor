@@ -20,7 +20,11 @@ from .....core.prices import Money, quantize_price
 from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderStatus
 from .....order.models import Order
-from .....payment import TransactionEventType, TransactionItemIdempotencyUniqueError
+from .....payment import (
+    TransactionAction,
+    TransactionEventType,
+    TransactionItemIdempotencyUniqueError,
+)
 from .....payment.interface import (
     PaymentGatewayData,
     TransactionProcessActionData,
@@ -122,6 +126,7 @@ def _assert_fields(
     returned_data=None,
     expected_message=None,
     gift_card=None,
+    available_actions=None,
 ):
     assert not content["data"]["transactionInitialize"]["errors"]
     response_data = content["data"]["transactionInitialize"]
@@ -208,6 +213,9 @@ def _assert_fields(
 
     assert transaction.gift_card == gift_card
     assert transaction.app_identifier == app_identifier
+
+    available_actions = available_actions if available_actions else []
+    assert transaction.available_actions == available_actions
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -3433,6 +3441,7 @@ def test_for_checkout_with_gift_card_payment_gateway(
         authorized_value=Decimal(1),
         gift_card=gift_card_created_by_staff,
         expected_message=f"Gift card (ending: {gift_card_created_by_staff.display_code}).",
+        available_actions=[TransactionAction.CANCEL],
     )
 
 
@@ -3738,6 +3747,7 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         authorized_value=Decimal(1),
         gift_card=gift_card_created_by_staff,
+        available_actions=[TransactionAction.CANCEL],
     )
 
     another_checkout_authorize_transaction.refresh_from_db()
@@ -3857,6 +3867,7 @@ def test_for_checkout_with_gift_card_payment_gateway_initialize_transaction_usin
         authorized_value=Decimal(first_call_amount),
         gift_card=gift_card_created_by_staff,
         expected_message=f"Gift card (ending: {gift_card_created_by_staff.display_code}).",
+        available_actions=[TransactionAction.CANCEL],
     )
     assert checkout.payment_transactions.all().count() == 1
     assert checkout.payment_transactions.first().events.all().count() == 2
@@ -3880,6 +3891,7 @@ def test_for_checkout_with_gift_card_payment_gateway_initialize_transaction_usin
         authorized_value=Decimal(second_call_amount),
         gift_card=gift_card_created_by_staff,
         expected_message=f"Gift card (ending: {gift_card_created_by_staff.display_code}).",
+        available_actions=[TransactionAction.CANCEL],
     )
 
     assert checkout.payment_transactions.all().count() == 2
@@ -3898,6 +3910,7 @@ def test_for_checkout_with_gift_card_payment_gateway_initialize_transaction_usin
         == f"Gift card (code ending with: {gift_card_created_by_staff.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again."
     )
     cancelled_transaction.events.get(type=TransactionEventType.CANCEL_SUCCESS)
+    assert cancelled_transaction.available_actions == []
 
     latest_transaction = checkout.payment_transactions.last()
     assert latest_transaction.authorized_value == Decimal(second_call_amount)
@@ -3905,3 +3918,4 @@ def test_for_checkout_with_gift_card_payment_gateway_initialize_transaction_usin
     assert latest_transaction.events.count() == 2
     latest_transaction.events.get(type=TransactionEventType.AUTHORIZATION_REQUEST)
     latest_transaction.events.get(type=TransactionEventType.AUTHORIZATION_SUCCESS)
+    assert latest_transaction.available_actions == [TransactionAction.CANCEL]
