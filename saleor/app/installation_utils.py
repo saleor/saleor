@@ -269,6 +269,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             url=extension_data.get("url"),
             mount=extension_data.get("mount"),
             target=extension_data.get("target", AppExtensionTarget.POPUP),
+            # This field should be removed in 3.24, ENG-1110
             http_target_method=http_target_method,
             settings=extension_data.get("options"),
         )

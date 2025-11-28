@@ -482,7 +482,7 @@ def test_app_extension_with_app_query_by_customer_without_permissions(
         (AppExtensionTarget.NEW_TAB, "GET"),
     ],
 )
-def test_app_extension_type_settings(
+def test_app_extension_type_settings_from_http_target_method(
     target,
     method,
     app,
@@ -495,6 +495,46 @@ def test_app_extension_type_settings(
         url="https://www.example.com/app-product",
         mount=AppExtensionMount.ORDER_DETAILS_WIDGETS,
         http_target_method=method,
+        target=target,
+    )
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+
+    assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
+    assert extension_data["targetName"] == app_extension.target.upper()
+
+    if target == AppExtensionTarget.NEW_TAB:
+        assert extension_data["settings"]["newTabTarget"]["method"] == method
+
+    if target == AppExtensionTarget.WIDGET:
+        assert extension_data["settings"]["widgetTarget"]["method"] == method
+
+
+def test_app_extension_type_settings_from_native_settings(
+    app,
+    staff_api_client,
+):
+    # given
+    target = "NEW_TAB"
+    method = "GET"
+
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.ORDER_DETAILS_WIDGETS,
+        http_target_method=method,
+        settings={"newTabTarget": {"method": method}},
         target=target,
     )
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
