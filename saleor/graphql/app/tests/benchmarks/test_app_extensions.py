@@ -3,7 +3,6 @@ import pytest
 from .....app.models import AppExtension
 from .....app.types import AppExtensionMount
 from ....tests.utils import get_graphql_content
-from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
 
 
 @pytest.mark.count_queries(autouse=False)
@@ -21,8 +20,8 @@ def test_app_extensions(
           node{
             label
             url
-            mount
-            target
+            mountName
+            targetName
             id
             accessToken
             permissions{
@@ -76,11 +75,11 @@ def test_app_extensions(
     "filter",
     [
         {},
-        {"mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name},
-        {"target": AppExtensionTargetEnum.POPUP.name},
+        {"mountName": ["PRODUCT_OVERVIEW_CREATE"]},
+        {"targetName": "POPUP"},
         {
-            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
-            "target": AppExtensionTargetEnum.POPUP.name,
+            "mountName": ["PRODUCT_OVERVIEW_CREATE"],
+            "targetName": "POPUP",
         },
     ],
 )
@@ -100,9 +99,9 @@ def test_app_extensions_with_filter(
           node{
             label
             url
-            target
+            targetName
             id
-            mount
+            mountName
             accessToken
             permissions{
               code

@@ -12,7 +12,6 @@ from .....app.error_codes import AppErrorCode
 from .....app.models import App
 from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
 
 APP_FETCH_MANIFEST_MUTATION = """
 mutation AppFetchManifest(
@@ -45,8 +44,6 @@ mutation AppFetchManifest(
       extensions{
         label
         url
-        mount
-        target
         mountName
         targetName
         settings
@@ -355,7 +352,7 @@ def test_app_fetch_manifest_missing_extension_fields(
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Create product with App",
             "url": "http://127.0.0.1:9090/app-extension",
-            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
         }
     ]
     del app_manifest["extensions"][0][missing_field]
@@ -399,7 +396,7 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Create product with App",
             "url": "http://127.0.0.1:9090/app-extension",
-            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
         }
     ]
     app_manifest["extensions"][0][incorrect_field] = "INCORRECT_VALUE"
@@ -438,12 +435,12 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
 @pytest.mark.parametrize(
     ("url", "target", "app_url"),
     [
-        ("/app", AppExtensionTargetEnum.APP_PAGE.name, ""),
-        ("/app", AppExtensionTargetEnum.APP_PAGE.name, "https://www.example.com/app"),
-        ("/app", AppExtensionTargetEnum.POPUP.name, "https://www.example.com/app"),
+        ("/app", "APP_PAGE", ""),
+        ("/app", "APP_PAGE", "https://www.example.com/app"),
+        ("/app", "POPUP", "https://www.example.com/app"),
         (
             "https://www.example.com/app/form",
-            AppExtensionTargetEnum.NEW_TAB.name,
+            "NEW_TAB",
             "https://www.example.com/app",
         ),
     ],
@@ -464,7 +461,7 @@ def test_app_fetch_manifest_extensions_correct_url(
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Create product with App",
             "url": url,
-            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
             "target": target,
         }
     ]
@@ -493,13 +490,13 @@ def test_app_fetch_manifest_extensions_correct_url(
 @pytest.mark.parametrize(
     ("url", "target"),
     [
-        ("http:/127.0.0.1:8080/app", AppExtensionTargetEnum.POPUP.name),
-        ("127.0.0.1:8080/app", AppExtensionTargetEnum.POPUP.name),
-        ("", AppExtensionTargetEnum.POPUP.name),
-        ("/app", AppExtensionTargetEnum.POPUP.name),
-        ("www.example.com/app", AppExtensionTargetEnum.POPUP.name),
-        ("https://www.example.com/app", AppExtensionTargetEnum.APP_PAGE.name),
-        ("http://www.example.com/app", AppExtensionTargetEnum.APP_PAGE.name),
+        ("http:/127.0.0.1:8080/app", "POPUP"),
+        ("127.0.0.1:8080/app", "POPUP"),
+        ("", "POPUP"),
+        ("/app", "POPUP"),
+        ("www.example.com/app", "POPUP"),
+        ("https://www.example.com/app", "APP_PAGE"),
+        ("http://www.example.com/app", "APP_PAGE"),
     ],
 )
 def test_app_fetch_manifest_extensions_incorrect_url(
@@ -511,7 +508,7 @@ def test_app_fetch_manifest_extensions_incorrect_url(
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Create product with App",
             "url": url,
-            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
             "target": target,
         }
     ]
@@ -565,7 +562,7 @@ def test_app_fetch_manifest_extensions_permission_out_of_scope(
             "permissions": extension_permissions,
             "label": "Create product with App",
             "url": "http://127.0.0.1:8080/app",
-            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
         }
     ]
 
@@ -606,7 +603,7 @@ def test_app_fetch_manifest_extensions_invalid_permission(
             "permissions": ["incorrect_permission"],
             "label": "Create product with App",
             "url": "http://127.0.0.1:8080/app",
-            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
         }
     ]
 
@@ -648,7 +645,7 @@ def test_app_fetch_manifest_with_extensions(
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Create product with App",
             "url": "http://127.0.0.1:8080/app",
-            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
         }
     ]
 
@@ -682,8 +679,6 @@ def test_app_fetch_manifest_with_extensions(
     ]
     assert extension["label"] == "Create product with App"
     assert extension["url"] == "http://127.0.0.1:8080/app"
-    assert extension["mount"] == AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name
-    assert extension["target"] == AppExtensionTargetEnum.POPUP.name
 
     assert extension["mountName"] == "PRODUCT_OVERVIEW_CREATE"
     assert extension["targetName"] == "POPUP"
@@ -702,8 +697,8 @@ def test_app_fetch_manifest_with_widget_extension_settings(
             "permissions": ["MANAGE_PRODUCTS"],
             "label": "Product Widget",
             "url": "http://127.0.0.1:8080/widget",
-            "mount": AppExtensionMountEnum.PRODUCT_DETAILS_WIDGETS.name,
-            "target": AppExtensionTargetEnum.WIDGET.name,
+            "mount": "PRODUCT_DETAILS_WIDGETS",
+            "target": "WIDGET",
             "options": {"widgetTarget": {"method": "POST"}},
         }
     ]
@@ -735,7 +730,7 @@ def test_app_fetch_manifest_with_widget_extension_settings(
 
     extension = extensions[0]
     assert extension["label"] == "Product Widget"
-    assert extension["target"] == AppExtensionTargetEnum.WIDGET.name
+    assert extension["targetName"] == "WIDGET"
 
     assert extension["settings"] == {"widgetTarget": {"method": "POST"}}
 
@@ -752,8 +747,8 @@ def test_app_fetch_manifest_with_new_tab_extension_settings(
             "permissions": ["MANAGE_ORDERS"],
             "label": "Order Details",
             "url": "https://127.0.0.1:8080/orders",
-            "mount": AppExtensionMountEnum.ORDER_DETAILS_MORE_ACTIONS.name,
-            "target": AppExtensionTargetEnum.NEW_TAB.name,
+            "mount": "ORDER_DETAILS_MORE_ACTIONS",
+            "target": "NEW_TAB",
             "options": {"newTabTarget": {"method": "GET"}},
         }
     ]
@@ -784,7 +779,7 @@ def test_app_fetch_manifest_with_new_tab_extension_settings(
 
     extension = extensions[0]
     assert extension["label"] == "Order Details"
-    assert extension["target"] == AppExtensionTargetEnum.NEW_TAB.name
+    assert extension["targetName"] == "NEW_TAB"
 
     assert extension["settings"] == {"newTabTarget": {"method": "GET"}}
 

@@ -45,8 +45,8 @@ QUERY_APP = """
                 id
                 label
                 url
-                mount
-                target
+                mountName
+                targetName
                 permissions{
                     code
                 }
@@ -339,8 +339,8 @@ def test_app_with_extensions_query(
     extensions_data = app_data["extensions"]
     returned_ids = {e["id"] for e in extensions_data}
     returned_labels = {e["label"] for e in extensions_data}
-    returned_mounts = {e["mount"].lower() for e in extensions_data}
-    returned_targets = {e["target"].lower() for e in extensions_data}
+    returned_mounts = {e["mountName"].lower() for e in extensions_data}
+    returned_targets = {e["targetName"].lower() for e in extensions_data}
     returned_permission_codes = [e["permissions"] for e in extensions_data]
     for app_extension in app_extensions:
         global_id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -420,8 +420,8 @@ QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
                 id
                 label
                 url
-                mount
-                target
+                mountName
+                targetName
                 permissions{
                     code
                 }

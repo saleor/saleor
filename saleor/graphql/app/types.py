@@ -55,8 +55,6 @@ from .dataloaders import (
     app_promise_callback,
 )
 from .enums import (
-    AppExtensionMountEnum,
-    AppExtensionTargetEnum,
     AppTypeEnum,
     CircuitBreakerState,
     CircuitBreakerStateEnum,
@@ -117,18 +115,6 @@ class AppManifestExtension(BaseObjectType):
     url = graphene.String(
         description="URL of a view where extension's iframe is placed.", required=True
     )
-    # TODO Remove in 3.23
-    mount = AppExtensionMountEnum(
-        description="Place where given extension will be mounted.",
-        required=True,
-        deprecation_reason="Use `mountName` instead.",
-    )
-    # TODO Remove in 3.23
-    target = AppExtensionTargetEnum(
-        description="Type of way how app extension will be opened.",
-        required=True,
-        deprecation_reason="Use `targetName` instead.",
-    )
 
     mount_name = graphene.String(
         description="Name of the extension mount point in the dashboard. Replaces `mount`"
@@ -180,68 +166,6 @@ class HttpMethod(BaseEnum):
     GET = AppExtensionHttpMethod.GET
 
 
-# TODO Remove in 3.23
-class NewTabTargetOptions(BaseObjectType):
-    method = graphene.Field(
-        HttpMethod,
-        required=True,
-        description="HTTP method for New Tab target (GET or POST)",
-        deprecation_reason="Use `settings` field directly.",
-    )
-
-    class Meta:
-        description = "Represents the NEW_TAB target options for an app extension."
-        doc_category = DOC_CATEGORY_APPS
-
-
-# TODO Remove in 3.23
-class WidgetTargetOptions(BaseObjectType):
-    method = graphene.Field(
-        HttpMethod,
-        required=True,
-        description="HTTP method for Widget target (GET or POST)",
-        deprecation_reason="Use `settings` field directly.",
-    )
-
-    class Meta:
-        description = "Represents the WIDGET target options for an app extension."
-        doc_category = DOC_CATEGORY_APPS
-
-
-# TODO Remove in 3.23
-class AppExtensionOptionsWidget(BaseObjectType):
-    widget_target = graphene.Field(
-        WidgetTargetOptions,
-        description="Options for displaying a Widget",
-        required=False,
-        deprecation_reason="Use `settings` field directly.",
-    )
-
-    class Meta:
-        description = "Represents the options for an app extension."
-        doc_category = DOC_CATEGORY_APPS
-
-
-# TODO Remove in 3.23
-class AppExtensionOptionsNewTab(BaseObjectType):
-    new_tab_target = graphene.Field(
-        NewTabTargetOptions,
-        description="Options controlling behavior of the NEW_TAB extension target",
-        required=False,
-        deprecation_reason="Use `settings` field directly.",
-    )
-
-    class Meta:
-        description = "Represents the options for an app extension."
-        doc_category = DOC_CATEGORY_APPS
-
-
-# TODO Remove in 3.23
-class AppExtensionPossibleOptions(graphene.Union):
-    class Meta:
-        types = (AppExtensionOptionsWidget, AppExtensionOptionsNewTab)
-
-
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     id = graphene.GlobalID(required=True, description="The ID of the app extension.")
     app = graphene.Field(
@@ -251,11 +175,6 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     )
     access_token = graphene.String(
         description="JWT token used to authenticate by third-party app extension."
-    )
-    options = graphene.Field(
-        AppExtensionPossibleOptions,
-        description="App extension options." + ADDED_IN_322,
-        deprecation_reason="Use `settings` field directly.",
     )
 
     class Meta:
@@ -275,10 +194,6 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
                 )
             )
         )
-
-    @staticmethod
-    def resolve_target(root, _info: ResolveInfo):
-        return root.target
 
     @staticmethod
     def resolve_mount_name(root: models.AppExtension, _info: ResolveInfo):
@@ -327,22 +242,6 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
             return resolve_access_token_for_app_extension(info, root, app)
 
         return AppByIdLoader(info.context).load(root.app_id).then(_resolve_access_token)
-
-    @staticmethod
-    def resolve_options(root: models.AppExtension, _info: ResolveInfo):
-        http_method = root.http_target_method
-
-        if root.target == AppExtensionTarget.WIDGET:
-            return AppExtensionOptionsWidget(
-                widget_target=WidgetTargetOptions(method=http_method),
-            )
-
-        if root.target == AppExtensionTarget.NEW_TAB:
-            return AppExtensionOptionsNewTab(
-                new_tab_target=NewTabTargetOptions(method=http_method),
-            )
-
-        return None
 
     # TODO Return settings directly from the DB
     @staticmethod
