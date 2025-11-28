@@ -13,7 +13,6 @@ from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .types import (
     AppExtensionHttpMethod,
-    AppExtensionMount,
     AppExtensionTarget,
     AppType,
 )
@@ -157,9 +156,8 @@ class AppExtension(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="extensions")
     label = models.CharField(max_length=256)
     url = models.URLField()
-    mount = models.CharField(choices=AppExtensionMount.CHOICES, max_length=256)
+    mount = models.CharField(max_length=256)
     target = models.CharField(
-        choices=AppExtensionTarget.CHOICES,
         max_length=128,
         default=AppExtensionTarget.POPUP,
     )
