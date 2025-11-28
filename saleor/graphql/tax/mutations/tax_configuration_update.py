@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Final
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -18,7 +18,7 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import TaxCalculationStrategy
 from ..types import TaxConfiguration
 
-TaxConfigurationUpdateErrorCode = graphene.Enum.from_enum(
+TaxConfigurationUpdateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     error_codes.TaxConfigurationUpdateErrorCode
 )
 TaxConfigurationUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES
