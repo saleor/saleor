@@ -1615,11 +1615,13 @@ def test_manager_skips_external_shipping_with_different_currency_than_checkout_c
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
     # when
+
     shipping_methods = PluginsManager(
         plugins=plugins
     ).list_shipping_methods_for_checkout(
         checkout=checkout_with_item,
         channel_slug=checkout_with_item.channel.slug,
+        built_in_shipping_methods=[],
     )
 
     # then

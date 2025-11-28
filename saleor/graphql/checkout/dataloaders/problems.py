@@ -3,6 +3,7 @@ from collections.abc import Iterable
 
 from promise import Promise
 
+from ....checkout.models import CheckoutDelivery
 from ....checkout.problems import (
     CHANNEL_SLUG,
     CHECKOUT_LINE_PROBLEM_TYPE,
@@ -22,10 +23,12 @@ from ...product.dataloaders import (
 from ...warehouse.dataloaders import (
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
+from .checkout_delivery import CheckoutDeliveryByIdLoader
 from .checkout_infos import (
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
+from .models import CheckoutByTokenLoader
 
 
 class CheckoutLinesProblemsByCheckoutIdLoader(
@@ -139,19 +142,51 @@ class CheckoutProblemsByCheckoutIdDataloader(
     context_key = "checkout_problems_by_checkout_id"
 
     def batch_load(self, keys):
-        line_problems_dataloader = CheckoutLinesProblemsByCheckoutIdLoader(self.context)
-
-        def _resolve_problems(
-            checkouts_lines_problems: list[dict[str, list[CHECKOUT_LINE_PROBLEM_TYPE]]],
-        ):
-            checkout_problems = defaultdict(list)
-            for checkout_pk, checkout_lines_problems in zip(
-                keys, checkouts_lines_problems, strict=False
+        def _with_assigned_delivery(checkouts):
+            def _resolve_problems(
+                data: tuple[
+                    list[dict[str, list[CHECKOUT_LINE_PROBLEM_TYPE]]],
+                    list[CheckoutDelivery | None],
+                ],
             ):
-                checkout_problems[checkout_pk] = get_checkout_problems(
-                    checkout_lines_problems
-                )
+                checkouts_lines_problems, checkouts_deliveries = data
+                checkout_problems = defaultdict(list)
+                checkout_delivery_map = {
+                    delivery.pk: delivery
+                    for delivery in checkouts_deliveries
+                    if delivery
+                }
+                for checkout_lines_problems, checkout in zip(
+                    checkouts_lines_problems,
+                    checkouts,
+                    strict=False,
+                ):
+                    checkout_problems[checkout.pk] = get_checkout_problems(
+                        checkout,
+                        checkout_delivery_map.get(checkout.assigned_delivery_id),
+                        checkout_lines_problems,
+                    )
 
-            return [checkout_problems.get(key, []) for key in keys]
+                return [checkout_problems.get(key, []) for key in keys]
 
-        return line_problems_dataloader.load_many(keys).then(_resolve_problems)
+            assigned_delivery_ids = [
+                checkout.assigned_delivery_id
+                for checkout in checkouts
+                if checkout.assigned_delivery_id
+            ]
+            checkout_delivery_dataloader = CheckoutDeliveryByIdLoader(self.context)
+            line_problems_dataloader = CheckoutLinesProblemsByCheckoutIdLoader(
+                self.context
+            )
+            return Promise.all(
+                [
+                    line_problems_dataloader.load_many(keys),
+                    checkout_delivery_dataloader.load_many(assigned_delivery_ids),
+                ]
+            ).then(_resolve_problems)
+
+        return (
+            CheckoutByTokenLoader(self.context)
+            .load_many(keys)
+            .then(_with_assigned_delivery)
+        )

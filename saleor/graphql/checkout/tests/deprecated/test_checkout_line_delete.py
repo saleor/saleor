@@ -7,7 +7,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import calculate_checkout_quantity
 from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
-from ...mutations.utils import update_checkout_shipping_method_if_invalid
+from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_LINES_DELETE = """
     mutation checkoutLineDelete($checkoutId: ID, $token: UUID, $lineId: ID!) {
@@ -33,8 +33,8 @@ MUTATION_CHECKOUT_LINES_DELETE = """
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_line_delete_by_id(
     mocked_update_shipping_method, user_api_client, checkout_with_item
@@ -61,13 +61,13 @@ def test_checkout_line_delete_by_id(
     assert calculate_checkout_quantity(lines) == 0
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info.checkout, lines)
 
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_line_delete_by_token(
     mocked_update_shipping_method, user_api_client, checkout_with_item
@@ -93,7 +93,7 @@ def test_checkout_line_delete_by_token(
     assert calculate_checkout_quantity(lines) == 0
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info.checkout, lines)
 
 
 def test_checkout_line_delete_neither_token_and_id_given(
@@ -135,8 +135,8 @@ def test_checkout_line_delete_both_token_and_id_given(
 
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_line_delete."
-    "update_checkout_shipping_method_if_invalid",
-    wraps=update_checkout_shipping_method_if_invalid,
+    "mark_checkout_deliveries_as_stale_if_needed",
+    wraps=mark_checkout_deliveries_as_stale_if_needed,
 )
 def test_checkout_line_delete_by_old_line_id(
     mocked_update_shipping_method, user_api_client, checkout_with_item
@@ -164,4 +164,4 @@ def test_checkout_line_delete_by_old_line_id(
     assert calculate_checkout_quantity(lines) == 0
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info.checkout, lines)

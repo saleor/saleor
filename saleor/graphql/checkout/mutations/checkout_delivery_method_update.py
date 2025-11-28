@@ -9,12 +9,10 @@ from ....checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_or_fetch_checkout_deliveries,
 )
+from ....checkout.models import CheckoutDelivery
 from ....checkout.utils import is_shipping_required
-from ....shipping import interface as shipping_interface
-from ....shipping import models as shipping_models
-from ....shipping.interface import ShippingMethodData
-from ....shipping.utils import convert_to_shipping_method_data
 from ....warehouse import models as warehouse_models
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -27,13 +25,10 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import WebhookEventInfo, from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ...shipping.types import ShippingMethod
-from ...warehouse.types import Warehouse
 from ..types import Checkout
 from .utils import (
     ERROR_DOES_NOT_SHIP,
     assign_delivery_method_to_checkout,
-    clean_delivery_method,
     get_checkout,
 )
 
@@ -83,94 +78,21 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         ]
 
     @classmethod
-    def get_collection_point_as_delivery_method_data(
+    def get_collection_point(
         cls,
         checkout_info: CheckoutInfo,
-        delivery_method_id: str,
-        info: ResolveInfo,
+        internal_delivery_method_id: str,
     ) -> warehouse_models.Warehouse:
-        collection_point = cls.get_node_or_error(
-            info,
-            delivery_method_id,
-            only_type=Warehouse,
-            field="delivery_method_id",
-            qs=warehouse_models.Warehouse.objects.select_related("address"),
+        collection_point = (
+            warehouse_models.Warehouse.objects.select_related("address")
+            .filter(pk=internal_delivery_method_id)
+            .first()
         )
-        return collection_point
-
-    @classmethod
-    def get_built_in_shipping_method_as_delivery_method_data(
-        cls,
-        checkout_info: CheckoutInfo,
-        shipping_method_id: str,
-        info: ResolveInfo,
-    ) -> ShippingMethodData:
-        shipping_method: shipping_models.ShippingMethod = cls.get_node_or_error(
-            info,
-            shipping_method_id,
-            only_type=ShippingMethod,
-            field="delivery_method_id",
-            qs=shipping_models.ShippingMethod.objects.prefetch_related(
-                "postal_code_rules"
-            ),
-        )
-
-        listing = shipping_models.ShippingMethodChannelListing.objects.filter(
-            shipping_method=shipping_method,
-            channel=checkout_info.channel,
-        ).first()
-        if not listing:
-            raise ValidationError(
-                {
-                    "delivery_method_id": ValidationError(
-                        "This shipping method is not applicable in the given channel.",
-                        code=CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.value,
-                    )
-                }
-            )
-        delivery_method = convert_to_shipping_method_data(shipping_method, listing)
-        return delivery_method
-
-    @classmethod
-    def get_external_shipping_method_as_delivery_method_data(
-        cls,
-        checkout_info: CheckoutInfo,
-        shipping_method_id: str,
-        manager: "PluginsManager",
-    ) -> ShippingMethodData:
-        delivery_method = manager.get_shipping_method(
-            checkout=checkout_info.checkout,
-            channel_slug=checkout_info.channel.slug,
-            shipping_method_id=shipping_method_id,
-        )
-
-        if delivery_method is None:
-            raise ValidationError(
-                {
-                    "delivery_method_id": ValidationError(
-                        f"Couldn't resolve to a node: ${shipping_method_id}",
-                        code=CheckoutErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
-        return delivery_method
-
-    @staticmethod
-    def _check_delivery_method(
-        checkout_info,
-        lines,
-        delivery_method_data: ShippingMethodData | warehouse_models.Warehouse,
-    ) -> None:
-        delivery_method = delivery_method_data
-        if isinstance(delivery_method, warehouse_models.Warehouse):
+        if (
+            not collection_point
+            or collection_point not in checkout_info.valid_pick_up_points
+        ):
             error_msg = "This pick up point is not applicable."
-        else:
-            error_msg = "This shipping method is not applicable."
-
-        delivery_method_is_valid = clean_delivery_method(
-            checkout_info=checkout_info, method=delivery_method
-        )
-        if not delivery_method_is_valid:
             raise ValidationError(
                 {
                     "delivery_method_id": ValidationError(
@@ -179,11 +101,12 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                     )
                 }
             )
+        return collection_point
 
     @staticmethod
-    def _resolve_delivery_method_type(id_) -> str | None:
+    def _resolve_delivery_method_type(id_) -> tuple[str | None, str | None]:
         if id_ is None:
-            return None
+            return None, None
 
         possible_types = ("Warehouse", "ShippingMethod", APP_ID_PREFIX)
         type_, id_ = from_global_id_or_error(id_)
@@ -199,7 +122,30 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 }
             )
 
-        return str_type
+        return str_type, id_
+
+    @classmethod
+    def get_checkout_delivery(
+        cls, checkout_info: CheckoutInfo, internal_shipping_method_id: str | None
+    ) -> CheckoutDelivery | None:
+        if internal_shipping_method_id is None:
+            return None
+
+        checkout_deliveries = get_or_fetch_checkout_deliveries(checkout_info)
+        for method in checkout_deliveries:
+            if not method.active:
+                continue
+            if method.shipping_method_id == internal_shipping_method_id:
+                return method
+
+        raise ValidationError(
+            {
+                "delivery_method_id": ValidationError(
+                    "This shipping method is not applicable.",
+                    code=CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.value,
+                )
+            }
+        )
 
     @classmethod
     def get_delivery_method_data(
@@ -209,34 +155,20 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         delivery_method_id: str,
         manager: "PluginsManager",
         info: ResolveInfo,
-    ) -> shipping_interface.ShippingMethodData | warehouse_models.Warehouse | None:
+    ) -> CheckoutDelivery | warehouse_models.Warehouse | None:
         if delivery_method_id is None:
             return None
 
-        delivery_method_data: ShippingMethodData | warehouse_models.Warehouse | None = (
+        delivery_method_data: CheckoutDelivery | warehouse_models.Warehouse | None = (
             None
         )
-        type_name = cls._resolve_delivery_method_type(delivery_method_id)
+        type_name, internal_id = cls._resolve_delivery_method_type(delivery_method_id)
+        if internal_id is None:
+            return None
         if type_name == "Warehouse":
-            delivery_method_data = cls.get_collection_point_as_delivery_method_data(
-                checkout_info, delivery_method_id, info
-            )
-        elif type_name == "ShippingMethod":
-            delivery_method_data = (
-                cls.get_built_in_shipping_method_as_delivery_method_data(
-                    checkout_info, delivery_method_id, info
-                )
-            )
-        elif type_name == APP_ID_PREFIX:
-            delivery_method_data = (
-                cls.get_external_shipping_method_as_delivery_method_data(
-                    checkout_info, delivery_method_id, manager
-                )
-            )
-
-        if delivery_method_data:
-            cls._check_delivery_method(checkout_info, lines_info, delivery_method_data)
-
+            delivery_method_data = cls.get_collection_point(checkout_info, internal_id)
+        else:
+            delivery_method_data = cls.get_checkout_delivery(checkout_info, internal_id)
         return delivery_method_data
 
     @classmethod

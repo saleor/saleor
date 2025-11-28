@@ -758,7 +758,7 @@ class BasePlugin:
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
     get_shipping_methods_for_checkout: Callable[
-        ["Checkout", Any], list["ShippingMethodData"]
+        ["Checkout", list["ShippingMethodData"], Any], list["ShippingMethodData"]
     ]
 
     get_supported_currencies: Callable[[Any], Any]

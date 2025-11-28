@@ -35,7 +35,11 @@ from .core.schedules import (
     initiated_checkout_automatic_completion_schedule,
     initiated_promotion_webhook_schedule,
 )
-from .graphql.executor import patch_executor
+from .graphql.graphql_core import (
+    patch_execution_context,
+    patch_execution_result,
+    patch_executor,
+)
 from .graphql.promise import patch_promise
 from .patch_local import patch_local
 
@@ -945,6 +949,9 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = datetime.timedelta(
 CHECKOUT_PRICES_TTL = datetime.timedelta(
     seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
 )
+CHECKOUT_DELIVERY_OPTIONS_TTL = datetime.timedelta(
+    seconds=parse(os.environ.get("CHECKOUT_DELIVERY_OPTIONS_TTL", "24 hours"))
+)
 
 CHECKOUT_TTL_BEFORE_RELEASING_FUNDS = datetime.timedelta(
     seconds=parse(os.environ.get("CHECKOUT_TTL_BEFORE_RELEASING_FUNDS", "6 hours"))
@@ -1143,3 +1150,11 @@ patch_db()
 # Patch `Local` to remove all references that could result in reference cycles,
 # allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
 patch_local()
+
+# Patch `ExecutionContext` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_execution_context()
+
+# Patch `ExecutionResult` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_execution_result()

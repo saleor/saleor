@@ -120,13 +120,17 @@ def test_checkout_add_payment_without_shipping_method_with_shipping_required(
 
 
 def test_checkout_add_payment_with_shipping_method_and_shipping_required(
-    user_api_client, checkout_with_shipping_required, other_shipping_method, address
+    user_api_client,
+    checkout_with_shipping_required,
+    other_shipping_method,
+    address,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_shipping_required
     checkout.billing_address = address
     checkout.shipping_address = address
-    checkout.shipping_method = other_shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, other_shipping_method)
     checkout.save()
 
     manager = get_plugins_manager(allow_replica=False)

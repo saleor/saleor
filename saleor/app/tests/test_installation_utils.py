@@ -623,45 +623,6 @@ def test_install_app_extension_incorrect_values(
         install_app(app_installation, activate=True)
 
 
-@pytest.mark.parametrize(
-    "incorrect_options",
-    [
-        {"newTabTarget": {"method": "INVALID"}},
-        {"newTabTarget": {}},
-        {"newTabTarget": "invalid"},
-        {"widgetTarget": {"method": "INVALID"}},
-        {"widgetTarget": {}},
-        {"widgetTarget": "invalid"},
-    ],
-)
-def test_install_app_extension_incorrect_options(
-    incorrect_options, app_manifest, app_installation, monkeypatch
-):
-    # given
-    label = "Create product with app"
-    url = "http://127.0.0.1:8080/app-extension"
-    app_manifest["permissions"] = []
-    app_manifest["extensions"] = [
-        {
-            "label": label,
-            "url": url,
-            "mount": "PRODUCT_OVERVIEW_CREATE",
-            "target": "POPUP",
-            "permissions": ["MANAGE_PRODUCTS"],
-            "options": incorrect_options,
-        }
-    ]
-    mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
-
-    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
-    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
-
-    # when & then
-    with pytest.raises(ValidationError):
-        install_app(app_installation, activate=True)
-
-
 def test_install_app_with_extension_post_method(
     app_manifest,
     app_installation,

@@ -4,7 +4,6 @@ from .....app.models import AppExtension
 from .....app.types import AppExtensionMount, AppExtensionTarget
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
 
 QUERY_APP_EXTENSIONS = """
 query ($filter: AppExtensionFilterInput){
@@ -13,26 +12,11 @@ query ($filter: AppExtensionFilterInput){
       node{
         label
         url
-        mount
-        target
         mountName
         targetName
         settings
         id
         accessToken
-        options {
-          ... on AppExtensionOptionsWidget{
-            widgetTarget {
-              method
-            }
-          }
-          ...on AppExtensionOptionsNewTab {
-            newTabTarget{
-              method
-            }
-          }
-
-        }
         permissions{
           code
         }
@@ -73,7 +57,7 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
     extension_data = extensions_data[0]["node"]
     assert app_extension.label == extension_data["label"]
     assert app_extension.url == extension_data["url"]
-    assert app_extension.mount == extension_data["mount"].lower()
+    assert app_extension.mount == extension_data["mountName"].lower()
 
     assert app_extension.permissions.count() == 1
     assert len(extension_data["permissions"]) == 1
@@ -84,7 +68,6 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
     decode_token = jwt_decode(extension_data["accessToken"])
     decode_token["permissions"] = ["MANAGE_PRODUCTS"]
 
-    assert extension_data["options"]["widgetTarget"]["method"] == "POST"
     assert extension_data["mountName"] == "PRODUCT_OVERVIEW_MORE_ACTIONS"
     assert extension_data["targetName"] == "WIDGET"
 
@@ -172,25 +155,25 @@ def test_app_extensions_user_not_staff(
     ("filter", "expected_count"),
     [
         ({}, 4),
-        ({"target": AppExtensionTargetEnum.APP_PAGE.name}, 1),
-        ({"target": AppExtensionTargetEnum.POPUP.name}, 3),
-        ({"mount": [AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name]}, 1),
-        ({"mount": [AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name]}, 2),
+        ({"targetName": "APP_PAGE"}, 1),
+        ({"targetName": "POPUP"}, 3),
+        ({"mountName": ["PRODUCT_OVERVIEW_MORE_ACTIONS"]}, 1),
+        ({"mountName": ["PRODUCT_OVERVIEW_CREATE"]}, 2),
         (
             {
-                "mount": [
-                    AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
-                    AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name,
+                "mountName": [
+                    "PRODUCT_OVERVIEW_CREATE",
+                    "PRODUCT_OVERVIEW_MORE_ACTIONS",
                 ]
             },
             3,
         ),
         (
             {
-                "target": AppExtensionTargetEnum.APP_PAGE.name,
-                "mount": [
-                    AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
-                    AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name,
+                "targetName": "APP_PAGE",
+                "mountName": [
+                    "PRODUCT_OVERVIEW_CREATE",
+                    "PRODUCT_OVERVIEW_MORE_ACTIONS",
                 ],
             },
             1,

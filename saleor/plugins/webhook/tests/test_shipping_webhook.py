@@ -10,6 +10,7 @@ from ....graphql.core.utils import to_global_id_or_none
 from ....graphql.tests.utils import get_graphql_content
 from ....graphql.webhook.utils import get_subscription_query_hash
 from ....order import OrderStatus
+from ....shipping.models import ShippingMethod
 from ....webhook.const import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
@@ -123,7 +124,7 @@ def test_excluded_shipping_methods_for_order(
         payload,
         shipping_webhook,
         False,
-        subscribable_object=order_with_lines,
+        subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -215,7 +216,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         payload,
         shipping_webhook,
         False,
-        subscribable_object=order_with_lines,
+        subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -226,7 +227,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         payload,
         second_shipping_webhook,
         False,
-        subscribable_object=order_with_lines,
+        subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -347,7 +348,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
         payload,
         first_webhook,
         False,
-        subscribable_object=order_with_lines,
+        subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -358,7 +359,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
         payload,
         second_webhook,
         False,
-        subscribable_object=order_with_lines,
+        subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -635,17 +636,20 @@ def test_order_available_shipping_methods(
 @mock.patch(
     "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
 )
-def test_checkout_shipping_methods(
+def test_checkout_deliveries(
     mocked_webhook,
     staff_api_client,
     checkout_ready_to_complete,
     permission_manage_checkouts,
     settings,
+    shipping_method_weight_based,
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "spanish-inquisition"
-    excluded_shipping_method_id = checkout_ready_to_complete.shipping_method.id
+    excluded_shipping_method_id = (
+        checkout_ready_to_complete.assigned_delivery.shipping_method_id
+    )
     mocked_webhook.return_value = [
         ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
     ]
@@ -682,12 +686,15 @@ def test_checkout_available_shipping_methods(
     checkout_ready_to_complete,
     permission_manage_checkouts,
     settings,
+    shipping_method_weight_based,
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "spanish-inquisition"
 
-    excluded_shipping_method_id = checkout_ready_to_complete.shipping_method.id
+    excluded_shipping_method_id = (
+        checkout_ready_to_complete.assigned_delivery.shipping_method_id
+    )
     mocked_webhook.return_value = [
         ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
     ]
@@ -708,7 +715,7 @@ def test_checkout_available_shipping_methods(
 @mock.patch(
     "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
 )
-def test_checkout_shipping_methods_webhook_called_once(
+def test_checkout_deliveries_webhook_called_once(
     mocked_webhook,
     staff_api_client,
     checkout_ready_to_complete,
@@ -725,8 +732,10 @@ def test_checkout_shipping_methods_webhook_called_once(
     content = get_graphql_content(response)
     checkout_data = content["data"]["checkout"]
     # then
-    assert len(checkout_data["availableShippingMethods"]) == 2
-    assert len(checkout_data["shippingMethods"]) == 2
+    expected_count = ShippingMethod.objects.count()
+    assert len(checkout_data["availableShippingMethods"]) == expected_count
+    assert len(checkout_data["shippingMethods"]) == expected_count
+    assert mocked_webhook.called
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -801,7 +810,7 @@ def test_excluded_shipping_methods_for_checkout_webhook_without_pregenerated_pay
         payload,
         shipping_webhook,
         False,
-        subscribable_object=checkout_with_items,
+        subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -889,7 +898,7 @@ def test_excluded_shipping_methods_for_checkout_webhook_with_subscription_base_p
         payload,
         shipping_webhook,
         False,
-        subscribable_object=checkout_with_items,
+        subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -1031,7 +1040,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         payload,
         shipping_webhook,
         False,
-        subscribable_object=checkout_with_items,
+        subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -1042,7 +1051,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         payload,
         second_shipping_webhook,
         False,
-        subscribable_object=checkout_with_items,
+        subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -1163,7 +1172,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
         payload,
         first_webhook,
         False,
-        subscribable_object=checkout_with_items,
+        subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
@@ -1174,7 +1183,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
         payload,
         second_webhook,
         False,
-        subscribable_object=checkout_with_items,
+        subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,

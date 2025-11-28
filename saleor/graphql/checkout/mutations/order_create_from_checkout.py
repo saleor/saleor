@@ -3,7 +3,14 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+    get_or_fetch_checkout_deliveries,
+)
+from ....checkout.utils import is_shipping_required
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.taxes import TaxDataError
 from ....discount.models import NotApplicable
@@ -147,6 +154,24 @@ class OrderCreateFromCheckout(BaseMutation):
         return False
 
     @classmethod
+    def validate_checkout(
+        cls,
+        checkout_info: CheckoutInfo,
+        checkout_lines: list[CheckoutLineInfo],
+        unavailable_variant_pks: list[int],
+        manager,
+    ):
+        if is_shipping_required(checkout_lines) and checkout_info.assigned_delivery:
+            # Refresh stale shipping if needed
+            get_or_fetch_checkout_deliveries(checkout_info)
+        validate_checkout(
+            checkout_info=checkout_info,
+            lines=checkout_lines,
+            unavailable_variant_pks=unavailable_variant_pks,
+            manager=manager,
+        )
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         _root,
@@ -182,11 +207,8 @@ class OrderCreateFromCheckout(BaseMutation):
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
-        validate_checkout(
-            checkout_info=checkout_info,
-            lines=checkout_lines,
-            unavailable_variant_pks=unavailable_variant_pks,
-            manager=manager,
+        cls.validate_checkout(
+            checkout_info, checkout_lines, unavailable_variant_pks, manager
         )
         app = get_app_promise(info.context).get()
         try:

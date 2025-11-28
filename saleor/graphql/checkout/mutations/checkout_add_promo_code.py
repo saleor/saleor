@@ -6,9 +6,11 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
-    update_delivery_method_lists_for_checkout_info,
 )
-from ....checkout.utils import add_promo_code_to_checkout, invalidate_checkout
+from ....checkout.utils import (
+    add_promo_code_to_checkout,
+    invalidate_checkout,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
@@ -20,7 +22,10 @@ from ...core.types import CheckoutError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
-from .utils import get_checkout, update_checkout_shipping_method_if_invalid
+from .utils import (
+    get_checkout,
+    mark_checkout_deliveries_as_stale_if_needed,
+)
 
 
 class CheckoutAddPromoCode(BaseMutation):
@@ -93,10 +98,7 @@ class CheckoutAddPromoCode(BaseMutation):
                 }
             )
 
-        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
-        checkout_info = fetch_checkout_info(
-            checkout, lines, manager, shipping_channel_listings
-        )
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         add_promo_code_to_checkout(
             manager,
@@ -105,18 +107,10 @@ class CheckoutAddPromoCode(BaseMutation):
             promo_code,
         )
 
-        update_delivery_method_lists_for_checkout_info(
-            checkout_info=checkout_info,
-            shipping_method=checkout_info.checkout.shipping_method,
-            collection_point=checkout_info.checkout.collection_point,
-            shipping_address=checkout_info.shipping_address,
-            lines=lines,
-            shipping_channel_listings=shipping_channel_listings,
+        shipping_update_fields = mark_checkout_deliveries_as_stale_if_needed(
+            checkout_info.checkout, lines
         )
 
-        shipping_update_fields = update_checkout_shipping_method_if_invalid(
-            checkout_info, lines
-        )
         invalidate_update_fields = invalidate_checkout(
             checkout_info,
             lines,

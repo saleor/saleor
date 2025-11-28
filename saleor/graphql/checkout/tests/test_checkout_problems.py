@@ -1,6 +1,7 @@
 import datetime
 
 from django.utils import timezone
+from freezegun import freeze_time
 
 from ....product.models import ProductChannelListing, ProductVariantChannelListing
 from ....warehouse.models import Allocation, Reservation
@@ -25,6 +26,18 @@ query checkout($id: ID) {
       ... on CheckoutLineProblemVariantNotAvailable{
         line{
           id
+        }
+      }
+      ... on CheckoutProblemDeliveryMethodStale{
+        __typename
+        delivery {
+            id
+        }
+      }
+      ... on CheckoutProblemDeliveryMethodInvalid{
+        __typename
+        delivery {
+            id
         }
       }
     }
@@ -421,3 +434,108 @@ def test_checkout_problems_when_variant_channel_listing_doesnt_have_price_amount
     assert content["data"]["checkout"]["problems"][0]["line"][
         "id"
     ] == to_global_id_or_none(checkout_line)
+
+
+@freeze_time("2024-05-31 12:00:01")
+def test_checkout_problems_delivery_method_stale(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.save(update_fields=["delivery_methods_stale_at"])
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 1
+    problem = content["data"]["checkout"]["problems"][0]
+    assert problem["__typename"] == "CheckoutProblemDeliveryMethodStale"
+    assert problem["delivery"]["id"] == to_global_id_or_none(checkout.assigned_delivery)
+
+
+@freeze_time("2024-05-31 12:00:01")
+def test_checkout_problems_delivery_method_invalid(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout.assigned_delivery.is_valid = False
+    checkout.assigned_delivery.save(update_fields=["is_valid"])
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 1
+    problem = content["data"]["checkout"]["problems"][0]
+    assert problem["__typename"] == "CheckoutProblemDeliveryMethodInvalid"
+    assert problem["delivery"]["id"] == to_global_id_or_none(checkout.assigned_delivery)
+
+
+@freeze_time("2024-05-31 12:00:01")
+def test_checkout_problems_delivery_method_stale_and_invalid(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout.assigned_delivery.is_valid = False
+    checkout.assigned_delivery.save(
+        update_fields=[
+            "is_valid",
+        ]
+    )
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.save(update_fields=["delivery_methods_stale_at"])
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 2
+    problems = content["data"]["checkout"]["problems"]
+    problem_types = [problem["__typename"] for problem in problems]
+    assert "CheckoutProblemDeliveryMethodStale" in problem_types
+    assert "CheckoutProblemDeliveryMethodInvalid" in problem_types
+
+    assigned_delivery_id = to_global_id_or_none(checkout.assigned_delivery)
+    assert problems[0]["delivery"]["id"] == assigned_delivery_id
+    assert problems[1]["delivery"]["id"] == assigned_delivery_id
+
+
+@freeze_time("2024-05-31 12:00:01")
+def test_checkout_problems_without_delivery_method(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout.assigned_delivery = None
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.save(update_fields=["delivery_methods_stale_at", "assigned_delivery"])
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 0

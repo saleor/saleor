@@ -1,12 +1,12 @@
 import datetime
 from decimal import Decimal
-from unittest import mock
 from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 from django.test import override_settings
 from django.utils import timezone
+from freezegun import freeze_time
 from prices import Money
 
 from .....checkout import base_calculations, calculations
@@ -15,7 +15,6 @@ from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import (
     add_variant_to_checkout,
-    assign_external_shipping_to_checkout,
 )
 from .....core.models import EventDelivery
 from .....discount import DiscountValueType, VoucherType
@@ -25,10 +24,9 @@ from .....product.models import (
     ProductChannelListing,
     ProductVariantChannelListing,
 )
-from .....shipping.interface import ShippingMethodData
 from .....tests import race_condition
 from .....warehouse.models import Stock
-from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -165,70 +163,6 @@ def test_checkout_add_already_applied_voucher_for_entire_order(
     total_price_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     assert total_price_gross_amount == 0
     assert checkout_data["discount"]["amount"] == net.amount
-
-
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-def test_checkout_add_voucher_code_by_token_with_external_shipment(
-    mock_send_request,
-    api_client,
-    checkout_with_item,
-    voucher,
-    shipping_app,
-    address,
-    settings,
-):
-    # given
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    response_method_id = "abcd"
-    shipping_name = "Provider - Economy"
-    shipping_price = Decimal(10)
-    currency = "USD"
-    mock_json_response = [
-        {
-            "id": response_method_id,
-            "name": shipping_name,
-            "amount": shipping_price,
-            "currency": currency,
-            "maximum_delivery_days": "7",
-        }
-    ]
-    mock_send_request.return_value = mock_json_response
-
-    external_shipping_method_id = graphene.Node.to_global_id(
-        "app", f"{shipping_app.id}:{response_method_id}"
-    )
-
-    external_shipping_method = ShippingMethodData(
-        id=external_shipping_method_id,
-        name=shipping_name,
-        price=Money(shipping_price, currency),
-    )
-
-    checkout = checkout_with_item
-    checkout.shipping_address = address
-    assign_external_shipping_to_checkout(checkout, external_shipping_method)
-    checkout.save(
-        update_fields=[
-            "shipping_address",
-            "external_shipping_method_id",
-            "shipping_method_name",
-        ]
-    )
-    checkout.metadata_storage.save(update_fields=["private_metadata"])
-
-    variables = {
-        "id": to_global_id_or_none(checkout_with_item),
-        "promoCode": voucher.code,
-    }
-
-    # when
-    data = _mutate_checkout_add_promo_code(api_client, variables)
-
-    # then
-    assert not data["errors"]
-    assert data["checkout"]["token"] == str(checkout_with_item.token)
-    assert data["checkout"]["voucherCode"] == voucher.code
-    assert data["checkout"]["shippingMethod"]["id"] == external_shipping_method_id
 
 
 def test_checkout_add_voucher_code_with_display_gross_prices(
@@ -1086,27 +1020,36 @@ def test_checkout_add_promo_code_invalid_promo_code(api_client, checkout_with_it
     assert data["errors"][0]["field"] == "promoCode"
 
 
-def test_checkout_add_promo_code_invalidate_shipping_method(
+@freeze_time("2022-01-01 12:00:00")
+def test_checkout_add_promo_code_marks_shipping_methods_as_stale(
     api_client,
     checkout,
     variant_with_many_stocks_different_shipping_zones,
     gift_card_created_by_staff,
     address_usa,
-    shipping_method,
+    checkout_delivery,
+    shipping_zone,
     channel_USD,
     voucher,
+    settings,
 ):
+    # given
     Stock.objects.update(quantity=5)
+    voucher.start_date = timezone.now()
+    voucher.save()
 
     # Free shipping for 50 USD
-    shipping_channel_listing = shipping_method.channel_listings.first()
-    shipping_channel_listing.minimum_order_price = Money(50, "USD")
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_channel_listing = shipping_method.channel_listings.filter(
+        channel_id=checkout.channel_id
+    ).first()
+    shipping_channel_listing.minimum_order_price = Money(150, "USD")
     shipping_channel_listing.price = Money(0, "USD")
     shipping_channel_listing.save()
 
     # Setup checkout with items worth $50
     checkout.shipping_address = address_usa
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
     checkout.billing_address = address_usa
     checkout.save()
 
@@ -1117,15 +1060,24 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     add_variant_to_checkout(checkout_info, variant, 5)
     checkout.save()
 
-    # Apply voucher
     variables = {"id": to_global_id_or_none(checkout), "promoCode": voucher.code}
-    data = _mutate_checkout_add_promo_code(api_client, variables)
+    # when
+    new_time = timezone.now() + datetime.timedelta(hours=1)
+    with freeze_time(new_time):
+        data = _mutate_checkout_add_promo_code(api_client, variables)
 
+    # then
+    checkout.refresh_from_db()
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.pk
     )
     assert data["checkout"]["shippingMethod"] is None
     assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
+    assert checkout.assigned_delivery
+    assert (
+        checkout.delivery_methods_stale_at
+        == new_time + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
+    )
 
 
 def test_checkout_add_promo_code_without_checkout_email(
@@ -1224,12 +1176,14 @@ def test_checkout_add_free_shipping_voucher_do_not_invalidate_shipping_method(
     api_client,
     checkout_with_item,
     voucher_free_shipping,
-    shipping_method,
+    checkout_delivery,
+    shipping_zone,
     address_usa,
 ):
-    checkout_with_item.shipping_method = shipping_method
+    shipping_method = shipping_zone.shipping_methods.first()
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
     checkout_with_item.shipping_address = address_usa
-    checkout_with_item.save(update_fields=["shipping_method", "shipping_address"])
+    checkout_with_item.save(update_fields=["assigned_delivery", "shipping_address"])
 
     channel = checkout_with_item.channel
 
@@ -1267,15 +1221,23 @@ def test_checkout_add_shipping_voucher_do_not_invalidate_shipping_method(
     api_client,
     checkout_with_item,
     voucher_shipping_type,
-    shipping_method,
+    checkout_delivery,
+    shipping_zone,
     address_usa,
 ):
     """Ensure that adding shipping voucher do not invalidate current shipping method."""
-    checkout_with_item.shipping_method = shipping_method
-    checkout_with_item.shipping_address = address_usa
-    checkout_with_item.save(update_fields=["shipping_method", "shipping_address"])
-
+    # set minimal price similar to order subtotal price;
     channel = checkout_with_item.channel
+
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_listing = shipping_method.channel_listings.get(channel=channel)
+    shipping_listing.price = Money(20, "USD")
+    shipping_listing.minimum_order_price = Money(8, "USD")
+    shipping_listing.save(update_fields=["price_amount", "minimum_order_price_amount"])
+
+    checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
+    checkout_with_item.shipping_address = address_usa
+    checkout_with_item.save(update_fields=["assigned_delivery", "shipping_address"])
 
     line = checkout_with_item.lines.first()
     line.quantity = 1
@@ -1284,12 +1246,6 @@ def test_checkout_add_shipping_voucher_do_not_invalidate_shipping_method(
     variant_listing = line.variant.channel_listings.get(channel=channel)
     variant_listing.price = Money(10, "USD")
     variant_listing.save(update_fields=["price_amount"])
-
-    # set minimal price similar to order subtotal price;
-    shipping_listing = shipping_method.channel_listings.get(channel=channel)
-    shipping_listing.price = Money(20, "USD")
-    shipping_listing.minimum_order_price = Money(8, "USD")
-    shipping_listing.save(update_fields=["price_amount", "minimum_order_price_amount"])
 
     # set shipping voucher price so big, that in case the discount will be
     # substracted from subtotal price the shipping method will be not valid anymore
@@ -1366,6 +1322,23 @@ def test_with_active_problems_flow(
     assert not content["data"]["checkoutAddPromoCode"]["errors"]
 
 
+MUTATION_CHECKOUT_ADD_PROMO_CODE_WITH_ONLY_ID = """
+    mutation($id: ID, $promoCode: String!) {
+        checkoutAddPromoCode(
+            id: $id, promoCode: $promoCode) {
+            errors {
+                field
+                message
+                code
+            }
+            checkout {
+                id
+            }
+        }
+    }
+"""
+
+
 @patch(
     "saleor.graphql.checkout.mutations.checkout_add_promo_code.call_checkout_info_event",
     wraps=call_checkout_info_event,
@@ -1374,8 +1347,12 @@ def test_with_active_problems_flow(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_add_voucher_triggers_webhooks(
+    mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -1407,7 +1384,9 @@ def test_checkout_add_voucher_triggers_webhooks(
     checkout_with_item.save()
 
     # when
-    response = api_client.post_graphql(MUTATION_CHECKOUT_ADD_PROMO_CODE, variables)
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_ADD_PROMO_CODE_WITH_ONLY_ID, variables
+    )
 
     # then
     content = get_graphql_content(response)
@@ -1419,42 +1398,25 @@ def test_checkout_add_voucher_triggers_webhooks(
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_generate_deferred_payloads.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "event_delivery_ids": [checkout_update_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "checkout.checkout",
+                "object_id": checkout_with_item.pk,
+                "requestor_model_name": None,
+                "requestor_object_id": None,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleorappadditional",
+        bind=True,
     )
 
-    # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 3
-    assert not EventDelivery.objects.exclude(
-        webhook_id=checkout_updated_webhook.id
-    ).exists()
-
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
-    )
-    shipping_methods_delivery = shipping_methods_call.args[0]
-    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-    assert (
-        shipping_methods_delivery.event_type
-        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    )
-    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
-
-    filter_shipping_delivery = filter_shipping_call.args[0]
-    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-    assert (
-        filter_shipping_delivery.event_type
-        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    )
-    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
-
-    tax_delivery = tax_delivery_call.args[0]
-    assert tax_delivery.webhook_id == tax_webhook.id
+    # Deferred payload covers the sync and async actions
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called
 
 
 def test_add_promo_code_with_price_override_set(
