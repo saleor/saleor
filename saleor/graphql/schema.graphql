@@ -7754,7 +7754,9 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   costPrice: Money
 
   """
-  Prior price of the variant used for discount calculations.
+  Previous price of the variant in channel. Useful for providing promotion information required by customer protection laws such as EU Omnibus directive.
+  
+   Warning: This field is not updated automatically. Use Channel Listings mutation to update it manually.
   
   Added in Saleor 3.21.
   """
