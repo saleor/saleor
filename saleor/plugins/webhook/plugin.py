@@ -3215,16 +3215,18 @@ class WebhookPlugin(BasePlugin):
             apps_identifiers = list(gateways.keys())
 
         webhooks = get_webhooks_for_event(event_type, apps_identifier=apps_identifiers)
-        request = initialize_request(
-            self.requestor, sync_event=True, event_type=event_type
-        )
 
         pregenerated_subscription_payloads: dict[int, dict[str, dict[str, Any]]] = (
             defaultdict(lambda: defaultdict(dict))
         )
 
         promises = []
+        request_map = {}
         for webhook in webhooks:
+            request = initialize_request(
+                self.requestor, sync_event=True, event_type=event_type
+            )
+            request_map[webhook.pk] = request
             if not webhook.subscription_query:
                 continue
 
@@ -3258,6 +3260,11 @@ class WebhookPlugin(BasePlugin):
             promise_payload.then(store_payload)
 
         for webhook in webhooks:
+            request = request_map.get(webhook.pk)
+            if not request:
+                request = initialize_request(
+                    self.requestor, sync_event=True, event_type=event_type
+                )
             self._payment_gateway_initialize_session_for_single_webhook(
                 webhook=webhook,
                 gateways=gateways,
