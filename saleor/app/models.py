@@ -158,7 +158,6 @@ class AppExtension(models.Model):
     label = models.CharField(max_length=256)
     url = models.URLField()
     mount = models.CharField(choices=AppExtensionMount.CHOICES, max_length=256)
-    # TODO Remove choices and store plain value
     target = models.CharField(
         choices=AppExtensionTarget.CHOICES,
         max_length=128,
