@@ -138,10 +138,6 @@ class AppManifestExtension(BaseObjectType):
         doc_category = DOC_CATEGORY_APPS
 
     @staticmethod
-    def resolve_target(root, _info: ResolveInfo):
-        return root.get("target") or AppExtensionTarget.POPUP
-
-    @staticmethod
     def resolve_url(root, _info: ResolveInfo):
         """Return an extension URL."""
         return resolve_app_extension_url(root)
