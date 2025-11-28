@@ -5808,13 +5808,13 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   """Get a single product media by ID."""
   mediaById(
     """ID of a product media."""
-    id: ID
+    id: ID!
   ): ProductMedia
 
   """Get a single product image by ID."""
   imageById(
     """ID of a product image."""
-    id: ID
+    id: ID!
   ): ProductImage @deprecated(reason: "Use the `mediaById` field instead.")
 
   """Get a single variant by SKU or ID."""
