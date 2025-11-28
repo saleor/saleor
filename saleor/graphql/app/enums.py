@@ -1,3 +1,7 @@
+from typing import Final
+
+import graphene
+
 from ...app.types import AppType
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.enums import to_enum
@@ -52,8 +56,10 @@ class CircuitBreakerState:
     ]
 
 
-CircuitBreakerStateEnum = to_enum(CircuitBreakerState, description=breaker_description)
+CircuitBreakerStateEnum: Final[graphene.Enum] = to_enum(
+    CircuitBreakerState, description=breaker_description
+)
 CircuitBreakerStateEnum.doc_category = DOC_CATEGORY_APPS
 
-AppTypeEnum = to_enum(AppType, description=description)
+AppTypeEnum: Final[graphene.Enum] = to_enum(AppType, description=description)
 AppTypeEnum.doc_category = DOC_CATEGORY_APPS
