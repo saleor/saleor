@@ -1,5 +1,3 @@
-from saleor.app.types import AppExtensionTarget
-
 BATCH_SIZE = 100
 
 
@@ -34,12 +32,12 @@ def fill_settings_json(apps, schema_editor):
         app_extensions = chunk
 
         for extension in app_extensions:
-            if extension.target.upper() == AppExtensionTarget.WIDGET.upper():
+            if extension.target.upper() == "WIDGET":
                 extension.settings = {
                     "widgetTarget": {"method": extension.http_target_method}
                 }
 
-            if extension.target.upper() == AppExtensionTarget.NEW_TAB.upper():
+            if extension.target.upper() == "NEW_TAB":
                 extension.settings = {
                     "newTabTarget": {"method": extension.http_target_method}
                 }
