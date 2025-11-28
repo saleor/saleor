@@ -148,12 +148,10 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_target_name(root, _info: ResolveInfo):
-        # Temporary upper(), but TODO return it directly from DB once we migrate DB
         return (root.get("target") or "POPUP").upper()
 
     @staticmethod
     def resolve_mount_name(root, _info: ResolveInfo):
-        # Temporary upper(), but TODO return it directly from DB once we migrate DB
         return root["mount"].upper()
 
     @staticmethod
@@ -195,6 +193,7 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
             )
         )
 
+    @staticmethod
     def resolve_mount_name(root: models.AppExtension, _info: ResolveInfo):
         return root.mount.upper()
 

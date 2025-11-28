@@ -1,6 +1,5 @@
 import django_filters
 import graphene
-from django.db.models import Q
 
 from ...app import models
 from ...app.types import AppType
@@ -23,16 +22,13 @@ def filter_app_type(qs, _, value):
 
 def filter_app_extension_mount_name(qs, _, value):
     if value:
-        q_objects = Q()
-        for v in value:
-            q_objects |= Q(mount__iexact=v)
-        qs = qs.filter(q_objects)
+        qs = qs.filter(mount__in=[v.lower() for v in value])
     return qs
 
 
 def filter_app_extension_target_name(qs, _, value):
     if value:
-        qs = qs.filter(target__iexact=value)
+        qs = qs.filter(target=value.lower())
     return qs
 
 
