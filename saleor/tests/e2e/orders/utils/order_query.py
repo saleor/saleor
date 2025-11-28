@@ -11,6 +11,8 @@ query OrderDetails($id: ID!) {
       active
     }
     paymentStatus
+    authorizeStatus
+    chargeStatus
     isPaid
     payments {
       id
@@ -51,6 +53,12 @@ query OrderDetails($id: ID!) {
     status
     transactions {
       id
+      chargedAmount {
+        amount
+      }
+      authorizedAmount {
+        amount
+      }
     }
     metadata {
       key
