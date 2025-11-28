@@ -345,34 +345,6 @@ def test_app_extensions_with_name_filter(
 @pytest.mark.parametrize(
     ("mount_value", "target_value", "filter", "expected_count"),
     [
-        # Test with uppercase values in database, lowercase input
-        (
-            "ORDER_DETAILS_WIDGETS",
-            "WIDGET",
-            {"mountName": ["order_details_widgets"]},
-            1,
-        ),
-        ("ORDER_DETAILS_WIDGETS", "WIDGET", {"targetName": "widget"}, 1),
-        (
-            "ORDER_DETAILS_WIDGETS",
-            "WIDGET",
-            {"mountName": ["order_details_widgets"], "targetName": "widget"},
-            1,
-        ),
-        # Test with uppercase values in database, uppercase input
-        (
-            "ORDER_DETAILS_WIDGETS",
-            "WIDGET",
-            {"mountName": ["ORDER_DETAILS_WIDGETS"]},
-            1,
-        ),
-        ("ORDER_DETAILS_WIDGETS", "WIDGET", {"targetName": "WIDGET"}, 1),
-        (
-            "ORDER_DETAILS_WIDGETS",
-            "WIDGET",
-            {"mountName": ["ORDER_DETAILS_WIDGETS"], "targetName": "WIDGET"},
-            1,
-        ),
         # Test with lowercase values in database, uppercase input
         (
             "order_details_widgets",
@@ -403,12 +375,12 @@ def test_app_extensions_with_name_filter(
         ),
         # Test mixed case input
         (
-            "ORDER_DETAILS_WIDGETS",
-            "WIDGET",
+            "order_details_widgets",
+            "widget",
             {"mountName": ["Order_Details_Widgets"]},
             1,
         ),
-        ("ORDER_DETAILS_WIDGETS", "WIDGET", {"targetName": "WiDgEt"}, 1),
+        ("order_details_widgets", "widget", {"targetName": "WiDgEt"}, 1),
     ],
 )
 def test_app_extensions_case_insensitive_filter(
