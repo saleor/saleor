@@ -230,7 +230,11 @@ def _clean_extensions(manifest_data, app_permissions, errors):
 
     for extension in extensions:
         if "target" not in extension:
-            extension["target"] = "POPUP"
+            extension["target"] = "popup"
+
+        # Save in lowercase to maintain backwards compatibility with enums, that were used previously
+        extension["target"] = extension["target"].lower()
+        extension["mount"] = extension["mount"].lower()
 
         try:
             _clean_extension_url(extension, manifest_data)
