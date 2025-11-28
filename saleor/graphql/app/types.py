@@ -117,13 +117,13 @@ class AppManifestExtension(BaseObjectType):
     )
 
     mount_name = graphene.String(
-        description="Name of the extension mount point in the dashboard. Replaces `mount`"
+        description="Name of the extension mount point in the dashboard. Replaces `mount`. Value returned in UPPERCASE."
         + ADDED_IN_322,
         required=True,
     )
 
     target_name = graphene.String(
-        description="Name of the extension target in the dashboard. Replaces `target`"
+        description="Name of the extension target in the dashboard. Replaces `target`. Value returned in UPPERCASE."
         + ADDED_IN_322,
         required=True,
     )
@@ -196,12 +196,10 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         )
 
     def resolve_mount_name(root: models.AppExtension, _info: ResolveInfo):
-        # Convert to uppercase due to migration logic (lowercase enum -> uppercase string after migration)
         return root.mount.upper()
 
     @staticmethod
     def resolve_target_name(root: models.AppExtension, _info: ResolveInfo):
-        # Convert to uppercase due to migration logic (lowercase enum -> uppercase string after migration)
         return root.target.upper()
 
     @staticmethod
