@@ -1000,12 +1000,16 @@ class Product(ChannelContextType[models.Product]):
     )
     media_by_id = graphene.Field(
         lambda: ProductMedia,
-        id=graphene.Argument(graphene.ID, description="ID of a product media."),
+        id=graphene.Argument(
+            graphene.ID, description="ID of a product media.", required=True
+        ),
         description="Get a single product media by ID.",
     )
     image_by_id = graphene.Field(
         lambda: ProductImage,
-        id=graphene.Argument(graphene.ID, description="ID of a product image."),
+        id=graphene.Argument(
+            graphene.ID, description="ID of a product image.", required=True
+        ),
         description="Get a single product image by ID.",
         deprecation_reason="Use the `mediaById` field instead.",
     )
