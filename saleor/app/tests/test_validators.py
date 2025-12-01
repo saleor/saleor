@@ -12,7 +12,7 @@ from ..manifest_validations import (
     _clean_required_saleor_version,
     _parse_version,
 )
-from ..types import AppExtensionTarget
+from ..types import DeprecatedAppExtensionTarget
 from ..validators import brand_validator
 
 
@@ -101,7 +101,7 @@ def test_new_tab_relative_url_without_app_url(app_manifest):
 
     extension = {
         "url": "/relative/path",
-        "target": AppExtensionTarget.NEW_TAB,
+        "target": DeprecatedAppExtensionTarget.NEW_TAB,
     }
 
     app_manifest["extensions"] = [extension]

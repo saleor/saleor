@@ -1,7 +1,7 @@
 import pytest
 
 from .....app.models import AppExtension
-from .....app.types import AppExtensionMount
+from .....app.types import DeprecatedAppExtensionMount
 from ....tests.utils import get_graphql_content
 
 
@@ -39,19 +39,19 @@ def test_app_extensions(
                 app=app,
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                mount=DeprecatedAppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
             ),
         ]
     )
@@ -117,19 +117,19 @@ def test_app_extensions_with_filter(
                 app=app,
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                mount=DeprecatedAppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
             ),
         ]
     )

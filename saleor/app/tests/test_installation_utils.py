@@ -26,7 +26,7 @@ from ..installation_utils import (
     validate_app_install_response,
 )
 from ..models import App
-from ..types import AppExtensionMount, AppExtensionTarget
+from ..types import DeprecatedAppExtensionMount, DeprecatedAppExtensionTarget
 
 
 def test_validate_app_install_response():
@@ -304,8 +304,8 @@ def test_install_app_with_extension(
 
     assert app_extension.label == label
     assert app_extension.url == url
-    assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
-    assert app_extension.target == AppExtensionTarget.POPUP
+    assert app_extension.mount == DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE
+    assert app_extension.target == DeprecatedAppExtensionTarget.POPUP
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.http_target_method is None
 
@@ -352,8 +352,8 @@ def test_install_app_with_extension_widget(
 
     assert app_extension.label == label
     assert app_extension.url == url
-    assert app_extension.mount == AppExtensionMount.PRODUCT_DETAILS_WIDGETS
-    assert app_extension.target == AppExtensionTarget.WIDGET
+    assert app_extension.mount == DeprecatedAppExtensionMount.PRODUCT_DETAILS_WIDGETS
+    assert app_extension.target == DeprecatedAppExtensionTarget.WIDGET
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.http_target_method == "POST"
 
@@ -433,7 +433,7 @@ def test_install_app_with_extension_new_tab_target(
     app_extension = app.extensions.get()
     assert app_extension.label == label
     assert app_extension.url == url
-    assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
+    assert app_extension.mount == DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE
     assert app_extension.target == "new_tab"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.http_target_method == "GET"
@@ -585,8 +585,8 @@ def test_install_app_with_extension_post_method(
 
     assert app_extension.label == label
     assert app_extension.url == url
-    assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
-    assert app_extension.target == AppExtensionTarget.NEW_TAB
+    assert app_extension.mount == DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE
+    assert app_extension.target == DeprecatedAppExtensionTarget.NEW_TAB
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.http_target_method == "POST"
 

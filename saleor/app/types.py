@@ -5,7 +5,7 @@ class AppType:
     CHOICES = [(LOCAL, "local"), (THIRDPARTY, "thirdparty")]
 
 
-class AppExtensionMount:
+class DeprecatedAppExtensionMount:
     """All places where app extension can be mounted."""
 
     CATEGORY_OVERVIEW_CREATE = "category_overview_create"
@@ -126,7 +126,7 @@ class AppExtensionMount:
     ]
 
 
-class AppExtensionTarget:
+class DeprecatedAppExtensionTarget:
     """All available ways of opening an app extension.
 
     POPUP - app's extension will be mounted as a popup window
@@ -146,7 +146,7 @@ class AppExtensionTarget:
     ]
 
 
-class AppExtensionHttpMethod:
+class DeprecatedAppExtensionHttpMethod:
     """HTTP methods available for app extensions.
 
     Represents available HTTPS methods for frontend to work with extension (WIDGET and NEW_TAB)

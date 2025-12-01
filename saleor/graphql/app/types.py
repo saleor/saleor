@@ -4,7 +4,7 @@ import datetime
 import graphene
 
 from ...app import models
-from ...app.types import AppExtensionHttpMethod, AppExtensionTarget
+from ...app.types import DeprecatedAppExtensionHttpMethod, DeprecatedAppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
@@ -156,8 +156,8 @@ class AppManifestExtension(BaseObjectType):
 
 
 class HttpMethod(BaseEnum):
-    POST = AppExtensionHttpMethod.POST
-    GET = AppExtensionHttpMethod.GET
+    POST = DeprecatedAppExtensionHttpMethod.POST
+    GET = DeprecatedAppExtensionHttpMethod.GET
 
 
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
@@ -247,14 +247,14 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
         # Fallback if settings not propagated in DB yet
         # Make it case-insensitive due to migration logic - enum will become uppercased in DB
-        if root.target.upper() == AppExtensionTarget.WIDGET.upper():
+        if root.target.upper() == DeprecatedAppExtensionTarget.WIDGET.upper():
             return {
                 "widgetTarget": {
                     "method": http_method,
                 }
             }
 
-        if root.target.upper() == AppExtensionTarget.NEW_TAB.upper():
+        if root.target.upper() == DeprecatedAppExtensionTarget.NEW_TAB.upper():
             return {
                 "newTabTarget": {
                     "method": http_method,
