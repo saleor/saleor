@@ -3829,7 +3829,6 @@ def test_update_product_variant_sku_and_name_changed(
     product_variant_metadata_updated_mock.assert_not_called()
 
 
-@pytest.mark.parametrize("use_legacy_update_webhook_emission", [True, False])
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
 def test_update_product_variant_data_and_metadata_changed_legacy_webhook_off(
@@ -3839,7 +3838,6 @@ def test_update_product_variant_data_and_metadata_changed_legacy_webhook_off(
     product,
     permission_manage_products,
     site_settings,
-    use_legacy_update_webhook_emission,
 ):
     # Given
     site_settings.use_legacy_update_webhook_emission = False
