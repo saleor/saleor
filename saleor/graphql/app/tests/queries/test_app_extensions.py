@@ -1,7 +1,7 @@
 import pytest
 
 from .....app.models import AppExtension
-from .....app.types import AppExtensionMount, AppExtensionTarget
+from .....app.types import DeprecatedAppExtensionMount, DeprecatedAppExtensionTarget
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -33,9 +33,9 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
         http_target_method="POST",
-        target=AppExtensionTarget.WIDGET,
+        target=DeprecatedAppExtensionTarget.WIDGET,
     )
     app_extension.permissions.add(permission_manage_products)
     variables = {}
@@ -82,7 +82,7 @@ def test_app_extensions_app_not_active(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     variables = {}
@@ -109,7 +109,7 @@ def test_app_extensions_app_removed_app(
         app=removed_app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     variables = {}
@@ -136,7 +136,7 @@ def test_app_extensions_user_not_staff(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     variables = {}
@@ -190,27 +190,27 @@ def test_app_extensions_with_filter(
                 app=app,
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
-                target=AppExtensionTarget.APP_PAGE,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+                target=DeprecatedAppExtensionTarget.APP_PAGE,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
-                target=AppExtensionTarget.POPUP,
+                mount=DeprecatedAppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                target=DeprecatedAppExtensionTarget.POPUP,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App4",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
             ),
         ]
     )
@@ -301,27 +301,27 @@ def test_app_extensions_with_name_filter(
                 app=app,
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
-                target=AppExtensionTarget.APP_PAGE,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+                target=DeprecatedAppExtensionTarget.APP_PAGE,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
-                target=AppExtensionTarget.POPUP,
+                mount=DeprecatedAppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                target=DeprecatedAppExtensionTarget.POPUP,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App4",
                 url="https://www.example.com/app-product",
-                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
             ),
         ]
     )

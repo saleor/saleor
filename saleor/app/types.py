@@ -5,7 +5,8 @@ class AppType:
     CHOICES = [(LOCAL, "local"), (THIRDPARTY, "thirdparty")]
 
 
-class AppExtensionMount:
+# Deprecated. Remove this enum - Saleor will use plain strings in tests, and the exact values are managed by the Dashboard
+class DeprecatedAppExtensionMount:
     """All places where app extension can be mounted."""
 
     CATEGORY_OVERVIEW_CREATE = "category_overview_create"
@@ -126,7 +127,8 @@ class AppExtensionMount:
     ]
 
 
-class AppExtensionTarget:
+# Deprecated. Remove this enum - Saleor will use plain strings in tests, and the exact values are managed by the Dashboard
+class DeprecatedAppExtensionTarget:
     """All available ways of opening an app extension.
 
     POPUP - app's extension will be mounted as a popup window
@@ -146,7 +148,8 @@ class AppExtensionTarget:
     ]
 
 
-class AppExtensionHttpMethod:
+# Deprecated. Remove this enum in 3.24, when this field is dropped from AppExtension model
+class DeprecatedAppExtensionHttpMethod:
     """HTTP methods available for app extensions.
 
     Represents available HTTPS methods for frontend to work with extension (WIDGET and NEW_TAB)
@@ -156,3 +159,10 @@ class AppExtensionHttpMethod:
     POST = "POST"
 
     CHOICES = [("GET", "GET"), ("POST", "POST")]
+
+
+# We need special handling for popup - if it declares relative extension URL, resolver will stitch if with app URL
+POPUP_EXTENSION_TARGET = "popup"
+
+# In case of not provided, use the default value as a fallback
+DEFAULT_APP_TARGET = POPUP_EXTENSION_TARGET
