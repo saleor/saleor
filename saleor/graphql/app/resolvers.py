@@ -3,7 +3,7 @@ from urllib.parse import urljoin, urlparse
 from django.db.models import Exists, OuterRef
 
 from ...app import models
-from ...app.types import POPUP_EXTENSION_TARGET
+from ...app.types import DEFAULT_APP_TARGET, POPUP_EXTENSION_TARGET
 from ...core.jwt import (
     create_access_token_for_app,
     create_access_token_for_app_extension,
@@ -89,7 +89,7 @@ def resolve_app_extension_url(root):
         - target == "POPUP"
         - appUrl is defined
     """
-    target = root.get("target", "popup")
+    target = root.get("target", DEFAULT_APP_TARGET)
     app_url = root["app_url"]
     url = root["url"]
     if url.startswith("/") and app_url and target == POPUP_EXTENSION_TARGET:

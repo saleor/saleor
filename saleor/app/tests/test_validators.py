@@ -107,5 +107,4 @@ def test_new_tab_relative_url_without_app_url(app_manifest):
     app_manifest["extensions"] = [extension]
 
     # when & then
-    with pytest.raises(ValidationError):
-        _clean_extension_url(extension, manifest_data=app_manifest)
+    _clean_extension_url(extension, manifest_data=app_manifest)

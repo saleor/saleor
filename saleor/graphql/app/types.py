@@ -4,7 +4,11 @@ import datetime
 import graphene
 
 from ...app import models
-from ...app.types import DeprecatedAppExtensionHttpMethod, DeprecatedAppExtensionTarget
+from ...app.types import (
+    DEFAULT_APP_TARGET,
+    DeprecatedAppExtensionHttpMethod,
+    DeprecatedAppExtensionTarget,
+)
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
@@ -144,7 +148,7 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_target_name(root, _info: ResolveInfo):
-        return (root.get("target") or "POPUP").upper()
+        return (root.get("target") or DEFAULT_APP_TARGET).upper()
 
     @staticmethod
     def resolve_mount_name(root, _info: ResolveInfo):
