@@ -156,3 +156,7 @@ class AppExtensionHttpMethod:
     POST = "POST"
 
     CHOICES = [("GET", "GET"), ("POST", "POST")]
+
+
+# In case of not provided, use the default value as a fallback
+DEFAULT_APP_TARGET = "popup"

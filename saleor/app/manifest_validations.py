@@ -21,6 +21,7 @@ from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .models import App
+from .types import DEFAULT_APP_TARGET
 from .validators import AppURLValidator, brand_validator
 
 logger = logging.getLogger(__name__)
@@ -179,7 +180,7 @@ def _clean_extensions(manifest_data, app_permissions, errors):
 
     for extension in extensions:
         if "target" not in extension:
-            extension["target"] = "popup"
+            extension["target"] = DEFAULT_APP_TARGET
 
         # Save in lowercase to maintain backwards compatibility with enums, that were used previously
         extension["target"] = extension["target"].lower()
