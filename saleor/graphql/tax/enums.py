@@ -1,3 +1,7 @@
+from typing import Final
+
+import graphene
+
 from ...tax import (
     TaxableObjectDiscountType,
 )
@@ -16,7 +20,7 @@ def description(enum):
     return None
 
 
-TaxCalculationStrategy = to_enum(
+TaxCalculationStrategy: Final[graphene.Enum] = to_enum(
     InternalTaxCalculationStrategy,
     description=description,
     type_name="TaxCalculationStrategy",
@@ -24,7 +28,7 @@ TaxCalculationStrategy = to_enum(
 TaxCalculationStrategy.doc_category = DOC_CATEGORY_TAXES
 
 
-TaxableObjectDiscountTypeEnum = to_enum(
+TaxableObjectDiscountTypeEnum: Final[graphene.Enum] = to_enum(
     TaxableObjectDiscountType,
     description="Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.",
 )

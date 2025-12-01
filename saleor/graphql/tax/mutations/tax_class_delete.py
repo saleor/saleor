@@ -1,3 +1,5 @@
+from typing import Final
+
 import graphene
 
 from ....permission.enums import CheckoutPermissions
@@ -7,7 +9,9 @@ from ...core.mutations import ModelDeleteMutation
 from ...core.types import Error
 from ..types import TaxClass
 
-TaxClassDeleteErrorCode = graphene.Enum.from_enum(error_codes.TaxClassDeleteErrorCode)
+TaxClassDeleteErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.TaxClassDeleteErrorCode
+)
 TaxClassDeleteErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 

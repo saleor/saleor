@@ -29388,7 +29388,7 @@ type AttributeBulkUpdateError @doc(category: "Attributes") {
   code: AttributeBulkUpdateErrorCode!
 }
 
-enum AttributeBulkUpdateErrorCode {
+enum AttributeBulkUpdateErrorCode @doc(category: "Attributes") {
   ALREADY_EXISTS
   BLANK
   GRAPHQL_ERROR
