@@ -2876,7 +2876,7 @@ def test_transaction_event_report_update_transaction_private_metadata(
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
     assert event.user is None
-    transaction_item_metadata_updated_mock.assert_not_called()
+    transaction_item_metadata_updated_mock.assert_called_once()
 
 
 def test_transaction_event_report_message_limit_exceeded(
