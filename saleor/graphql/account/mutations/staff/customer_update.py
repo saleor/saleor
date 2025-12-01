@@ -3,8 +3,6 @@ from typing import cast
 import graphene
 from django.db.models import QuerySet
 
-from saleor.graphql.site.dataloaders import get_site_promise
-
 from .....account import events as account_events
 from .....account import models
 from .....account.search import prepare_user_search_document_value
@@ -24,6 +22,7 @@ from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....site.dataloaders import get_site_promise
 from ..base import BaseCustomerCreate, CustomerInput
 from .utils import CUSTOMER_UPDATE_FIELDS
 

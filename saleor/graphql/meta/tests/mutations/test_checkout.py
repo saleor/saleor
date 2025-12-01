@@ -221,11 +221,13 @@ def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
-def test_add_metadata_for_checkout_triggers_checkout_updated_hook(
-    mock_checkout_updated, api_client, checkout
+def test_add_metadata_for_checkout_triggers_checkout_updated_hook_use_legacy_update_webhook_emission_on(
+    mock_checkout_updated, api_client, checkout, site_settings
 ):
     # given
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -235,6 +237,25 @@ def test_add_metadata_for_checkout_triggers_checkout_updated_hook(
     # then
     assert response["data"]["updateMetadata"]["errors"] == []
     mock_checkout_updated.assert_called_once_with(checkout, webhooks=set())
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_add_metadata_for_checkout_triggers_checkout_updated_hook_use_legacy_update_webhook_emission_off(
+    mock_checkout_updated, api_client, checkout, site_settings
+):
+    # given
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, checkout_id, "Checkout"
+    )
+
+    # then
+    assert response["data"]["updateMetadata"]["errors"] == []
+    mock_checkout_updated.assert_not_called()
 
 
 def test_add_private_metadata_for_checkout(
@@ -382,11 +403,14 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     checkout_with_item,
     address,
     shipping_method,
+    site_settings,
 ):
     # given
 
     # Include item so shipping webhooks are emitted
     checkout = checkout_with_item
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
 
     mocked_send_webhook_request_sync.return_value = []
     (

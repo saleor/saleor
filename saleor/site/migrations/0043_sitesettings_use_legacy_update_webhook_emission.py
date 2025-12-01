@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name="use_legacy_update_webhook_emission",
             field=models.BooleanField(
                 db_default=True,
-                default=True,
+                default=False,
                 help_text="When enabled, update webhooks (e.g. `customerUpdated`,`productVariantUpdated`) are sent even when only metadata changes. When disabled, update webhooks are not sent for metadata-only changes; only metadata-specific webhooks (e.g., `customerMetadataUpdated`, `productVariantMetadataUpdated`) are sent.",
             ),
         ),

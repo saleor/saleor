@@ -8,13 +8,16 @@ from ..site.dataloaders import get_site_promise
 
 def extra_checkout_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
-
+    site = get_site_promise(info.context).get()
+    use_legacy_webhooks_emission = site.settings.use_legacy_update_webhook_emission
+    events = [
+        WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED,
+    ]
+    if use_legacy_webhooks_emission:
+        events.append(WebhookEventAsyncType.CHECKOUT_UPDATED)
     call_checkout_events(
         manager=manager,
-        event_names=[
-            WebhookEventAsyncType.CHECKOUT_UPDATED,
-            WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED,
-        ],
+        event_names=events,
         checkout=instance,
     )
 
@@ -50,13 +53,19 @@ def extra_order_actions(instance, info: ResolveInfo, **data):
 
 def extra_product_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
-    manager.product_updated(instance)
+    site = get_site_promise(info.context).get()
+    use_legacy_webhooks_emission = site.settings.use_legacy_update_webhook_emission
+    if use_legacy_webhooks_emission:
+        manager.product_updated(instance)
     manager.product_metadata_updated(instance)
 
 
 def extra_variant_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
-    manager.product_variant_updated(instance)
+    site = get_site_promise(info.context).get()
+    use_legacy_webhooks_emission = site.settings.use_legacy_update_webhook_emission
+    if use_legacy_webhooks_emission:
+        manager.product_variant_updated(instance)
     manager.product_variant_metadata_updated(instance)
 
 

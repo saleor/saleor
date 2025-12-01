@@ -107,7 +107,7 @@ class SiteSettings(ModelWithMetadata):
 
     # legacy settings
     use_legacy_update_webhook_emission = models.BooleanField(
-        default=True,
+        default=False,
         db_default=True,
         help_text=(
             "When enabled, update webhooks (e.g. `customerUpdated`,"
