@@ -5,6 +5,7 @@ class AppType:
     CHOICES = [(LOCAL, "local"), (THIRDPARTY, "thirdparty")]
 
 
+# Deprecated. Remove this enum - Saleor will use plain strings in tests, and the exact values are managed by the Dashboard
 class DeprecatedAppExtensionMount:
     """All places where app extension can be mounted."""
 
@@ -126,6 +127,7 @@ class DeprecatedAppExtensionMount:
     ]
 
 
+# Deprecated. Remove this enum - Saleor will use plain strings in tests, and the exact values are managed by the Dashboard
 class DeprecatedAppExtensionTarget:
     """All available ways of opening an app extension.
 
@@ -146,6 +148,7 @@ class DeprecatedAppExtensionTarget:
     ]
 
 
+# Deprecated. Remove this enum in 3.24, when this field is dropped from AppExtension model
 class DeprecatedAppExtensionHttpMethod:
     """HTTP methods available for app extensions.
 
