@@ -81,8 +81,6 @@ def resolve_app_extensions(info):
     )
 
 
-# TODO Check this condition, we should not have to do this stiching, but
-# if old extensions have it, we need to migrate
 def resolve_app_extension_url(root):
     """Return an extension url.
 
