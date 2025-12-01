@@ -874,3 +874,171 @@ def test_fetch_manifest_app_with_same_identifier_installed_but_marked_to_be_remo
     assert manifest["identifier"] == "saleor.app.avatax"
     assert all_apps.not_removed().count() == 0
     assert all_apps.marked_to_be_removed().count() == 1
+
+
+def test_app_fetch_manifest_extension_without_options(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    app_manifest["extensions"] = [
+        {
+            "permissions": ["MANAGE_PRODUCTS"],
+            "label": "Product Extension",
+            "url": "http://127.0.0.1:8080/extension",
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "target": "POPUP",
+        }
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": "http://localhost:3000/manifest",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+    extensions = manifest["extensions"] if manifest else []
+
+    assert not errors, f"Expected no errors, got: {errors}"
+    assert len(extensions) == 1
+    assert extensions[0]["label"] == "Product Extension"
+    assert extensions[0]["url"] == "http://127.0.0.1:8080/extension"
+
+
+def test_app_fetch_manifest_extension_with_relative_url(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    app_manifest["extensions"] = [
+        {
+            "permissions": [],
+            "label": "Relative URL Extension",
+            "url": "/api/form",
+            "mount": "PRODUCT_DETAILS_WIDGETS",
+            "target": "NEW_TAB",
+        },
+        {
+            "permissions": [],
+            "label": "Root Path Extension",
+            "url": "/",
+            "mount": "PRODUCT_DETAILS_WIDGETS",
+            "target": "APP_PAGE",
+        },
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": "http://localhost:3000/manifest",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+    extensions = manifest["extensions"] if manifest else []
+
+    assert not errors, f"Expected no errors, got: {errors}"
+    assert len(extensions) == 2
+    assert extensions[0]["url"] == "/api/form"
+    assert extensions[1]["url"] == "/"
+
+
+def test_app_fetch_manifest_extension_with_absolute_url(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    app_manifest["extensions"] = [
+        {
+            "permissions": ["MANAGE_PRODUCTS"],
+            "label": "Absolute URL Extension",
+            "url": "https://example.com/extension",
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "target": "POPUP",
+        }
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": "http://localhost:3000/manifest",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+    extensions = manifest["extensions"] if manifest else []
+
+    assert not errors, f"Expected no errors, got: {errors}"
+    assert len(extensions) == 1
+    assert extensions[0]["url"] == "https://example.com/extension"
+
+
+def test_app_fetch_manifest_extension_with_invalid_absolute_url(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    app_manifest["extensions"] = [
+        {
+            "permissions": [],
+            "label": "Invalid URL Extension",
+            "url": "not-a-valid-url",
+            "mount": "PRODUCT_DETAILS_WIDGETS",
+            "target": "POPUP",
+        }
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": "http://localhost:3000/manifest",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "extensions"
+    assert errors[0]["code"] == AppErrorCode.INVALID_URL_FORMAT.name
+    assert "url" in errors[0]["message"].lower()

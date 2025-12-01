@@ -270,7 +270,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             mount=extension_data.get("mount"),
             target=extension_data.get("target", DEFAULT_APP_TARGET),
             http_target_method=http_target_method,
-            settings=extension_data.get("options"),
+            settings=extension_data.get("options", {}),
         )
         extension.permissions.set(extension_data.get("permissions", []))
 

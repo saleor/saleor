@@ -58,7 +58,11 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
 
     if not app_url:
         raise ValidationError("Manifest is invalid, token_target_url is missing")
-    _clean_app_url(extension_url)
+
+    # Only validate absolute URLs (with protocol)
+    # Relative URLs (starting with '/') are allowed when tokenTargetUrl is provided
+    if not extension_url.startswith("/"):
+        _clean_app_url(extension_url)
 
 
 def clean_manifest_url(manifest_url):
