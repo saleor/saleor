@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from ....celeryconf import app
 from ....core.db.connection import allow_writer
 from ...models import AppExtension
@@ -33,18 +35,25 @@ def fill_settings_json():
     for chunk in queryset_in_batches(qs):
         app_extensions = chunk
 
-        for extension in app_extensions:
-            if extension.target.upper() == "WIDGET":
-                extension.settings = {
-                    "widgetTarget": {"method": extension.http_target_method}
-                }
+        with transaction.atomic():
+            dirty_extensions: list[AppExtension] = []
 
-            if extension.target.upper() == "NEW_TAB":
-                extension.settings = {
-                    "newTabTarget": {"method": extension.http_target_method}
-                }
+            for extension in app_extensions:
+                if extension.target.upper() == "WIDGET":
+                    extension.settings = {
+                        "widgetTarget": {"method": extension.http_target_method}
+                    }
 
-        AppExtension.objects.bulk_update(app_extensions, fields=["settings"])
+                    dirty_extensions.append(extension)
+
+                if extension.target.upper() == "NEW_TAB":
+                    extension.settings = {
+                        "newTabTarget": {"method": extension.http_target_method}
+                    }
+
+                    dirty_extensions.append(extension)
+
+            AppExtension.objects.bulk_update(dirty_extensions, fields=["settings"])
 
 
 @app.task
