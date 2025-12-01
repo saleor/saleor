@@ -3752,18 +3752,16 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
 
     another_checkout_authorize_transaction.refresh_from_db()
     assert another_checkout_authorize_transaction.gift_card is None
-    cancel_request_transaction_event = (
+    assert (
         another_checkout_authorize_transaction.events.filter(
             type=TransactionEventType.CANCEL_REQUEST
-        ).get()
-    )
-    assert (
-        cancel_request_transaction_event.message
-        == f"Gift card (code ending with: {gift_card_created_by_staff.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again."
+        ).count()
+        == 1
     )
     assert (
         another_checkout_authorize_transaction.events.filter(
-            type=TransactionEventType.CANCEL_SUCCESS
+            type=TransactionEventType.CANCEL_SUCCESS,
+            message=f"Gift card (code ending with: {gift_card_created_by_staff.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again.",
         ).count()
         == 1
     )
@@ -3903,13 +3901,10 @@ def test_for_checkout_with_gift_card_payment_gateway_initialize_transaction_usin
     cancelled_transaction.events.get(type=TransactionEventType.AUTHORIZATION_REQUEST)
     cancelled_transaction.events.get(type=TransactionEventType.AUTHORIZATION_SUCCESS)
     cancelled_transaction.events.get(type=TransactionEventType.CANCEL_REQUEST)
-    assert (
-        cancelled_transaction.events.get(
-            type=TransactionEventType.CANCEL_REQUEST
-        ).message
-        == f"Gift card (code ending with: {gift_card_created_by_staff.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again."
+    cancelled_transaction.events.get(
+        type=TransactionEventType.CANCEL_SUCCESS,
+        message=f"Gift card (code ending with: {gift_card_created_by_staff.display_code}) has been authorized as payment method in a different checkout or has been authorized in the same checkout again.",
     )
-    cancelled_transaction.events.get(type=TransactionEventType.CANCEL_SUCCESS)
     assert cancelled_transaction.available_actions == []
 
     latest_transaction = checkout.payment_transactions.last()
