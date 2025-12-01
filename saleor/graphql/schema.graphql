@@ -3026,14 +3026,14 @@ type AppExtension implements Node @doc(category: "Apps") {
   url: String!
 
   """
-  Name of the extension mount point in the dashboard. Replaces `mount`
+  Name of the extension mount point in the dashboard. Replaces `mount`. Value returned in UPPERCASE.
   
   Added in Saleor 3.22.
   """
   mountName: String!
 
   """
-  Name of the extension target in the dashboard. Replaces `target`
+  Name of the extension target in the dashboard. Replaces `target`. Value returned in UPPERCASE.
   
   Added in Saleor 3.22.
   """
@@ -29311,7 +29311,7 @@ type AttributeBulkUpdateError @doc(category: "Attributes") {
   code: AttributeBulkUpdateErrorCode!
 }
 
-enum AttributeBulkUpdateErrorCode {
+enum AttributeBulkUpdateErrorCode @doc(category: "Attributes") {
   ALREADY_EXISTS
   BLANK
   GRAPHQL_ERROR
@@ -29843,14 +29843,14 @@ type AppManifestExtension @doc(category: "Apps") {
   url: String!
 
   """
-  Name of the extension mount point in the dashboard. Replaces `mount`
+  Name of the extension mount point in the dashboard. Replaces `mount`. Value returned in UPPERCASE.
   
   Added in Saleor 3.22.
   """
   mountName: String!
 
   """
-  Name of the extension target in the dashboard. Replaces `target`
+  Name of the extension target in the dashboard. Replaces `target`. Value returned in UPPERCASE.
   
   Added in Saleor 3.22.
   """

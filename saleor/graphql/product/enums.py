@@ -1,12 +1,18 @@
+from typing import Final
+
+import graphene
+
 from ...product import ProductMediaTypes, ProductTypeKind
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import to_enum
 from ..core.types import BaseEnum
 
-ProductTypeKindEnum = to_enum(ProductTypeKind)
+ProductTypeKindEnum: Final[graphene.Enum] = to_enum(ProductTypeKind)
 ProductTypeKindEnum.doc_category = DOC_CATEGORY_PRODUCTS
 
-ProductMediaType = to_enum(ProductMediaTypes, type_name="ProductMediaType")
+ProductMediaType: Final[graphene.Enum] = to_enum(
+    ProductMediaTypes, type_name="ProductMediaType"
+)
 ProductMediaType.doc_category = DOC_CATEGORY_PRODUCTS
 
 

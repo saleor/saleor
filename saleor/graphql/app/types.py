@@ -117,13 +117,13 @@ class AppManifestExtension(BaseObjectType):
     )
 
     mount_name = graphene.String(
-        description="Name of the extension mount point in the dashboard. Replaces `mount`"
+        description="Name of the extension mount point in the dashboard. Replaces `mount`. Value returned in UPPERCASE."
         + ADDED_IN_322,
         required=True,
     )
 
     target_name = graphene.String(
-        description="Name of the extension target in the dashboard. Replaces `target`"
+        description="Name of the extension target in the dashboard. Replaces `target`. Value returned in UPPERCASE."
         + ADDED_IN_322,
         required=True,
     )
@@ -148,12 +148,10 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_target_name(root, _info: ResolveInfo):
-        # Temporary upper(), but TODO return it directly from DB once we migrate DB
         return (root.get("target") or "POPUP").upper()
 
     @staticmethod
     def resolve_mount_name(root, _info: ResolveInfo):
-        # Temporary upper(), but TODO return it directly from DB once we migrate DB
         return root["mount"].upper()
 
     @staticmethod
@@ -197,12 +195,10 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
     @staticmethod
     def resolve_mount_name(root: models.AppExtension, _info: ResolveInfo):
-        # Temporary upper(), but TODO return it directly from DB once we migrate DB
         return root.mount.upper()
 
     @staticmethod
     def resolve_target_name(root: models.AppExtension, _info: ResolveInfo):
-        # Temporary upper(), but TODO return it directly from DB once we migrate DB
         return root.target.upper()
 
     @staticmethod
@@ -249,14 +245,20 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         """Return app extension settings as plain JSON with same structure as options."""
         http_method = root.http_target_method
 
-        if root.target == AppExtensionTarget.WIDGET:
+        # New data model contains settings, migration will fill the old ones
+        if root.settings:
+            return root.settings
+
+        # Fallback if settings not propagated in DB yet
+        # Make it case-insensitive due to migration logic - enum will become uppercased in DB
+        if root.target.upper() == AppExtensionTarget.WIDGET.upper():
             return {
                 "widgetTarget": {
                     "method": http_method,
                 }
             }
 
-        if root.target == AppExtensionTarget.NEW_TAB:
+        if root.target.upper() == AppExtensionTarget.NEW_TAB.upper():
             return {
                 "newTabTarget": {
                     "method": http_method,

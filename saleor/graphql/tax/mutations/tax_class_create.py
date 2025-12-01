@@ -1,3 +1,5 @@
+from typing import Final
+
 import graphene
 
 from ....permission.enums import CheckoutPermissions
@@ -8,7 +10,9 @@ from ...core.mutations import DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
 from ..types import TaxClass
 
-TaxClassCreateErrorCode = graphene.Enum.from_enum(error_codes.TaxClassCreateErrorCode)
+TaxClassCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.TaxClassCreateErrorCode
+)
 TaxClassCreateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 

@@ -1,3 +1,5 @@
+from typing import Final
+
 import graphene
 from django_countries.fields import Country
 
@@ -10,7 +12,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import Error
 from ..types import TaxCountryConfiguration
 
-TaxCountryConfigurationDeleteErrorCode = graphene.Enum.from_enum(
+TaxCountryConfigurationDeleteErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     error_codes.TaxCountryConfigurationDeleteErrorCode
 )
 TaxCountryConfigurationDeleteErrorCode.doc_category = DOC_CATEGORY_TAXES
