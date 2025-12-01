@@ -1,5 +1,6 @@
 from ....celeryconf import app
 from ....core.db.connection import allow_writer
+from ...models import AppExtension
 
 BATCH_SIZE = 100
 
@@ -23,11 +24,9 @@ def queryset_in_batches(queryset):
         start_pk = qs_list[-1].pk
 
 
-def fill_settings_json(apps):
-    AppExtension = apps.get_model("app", "AppExtension")
-
+def fill_settings_json():
     # Preserve filled settings, only migrate if empty (fill them)
-    qs = AppExtension.objects.filter(settings__exact={}).only(
+    qs = AppExtension.objects.filter(settings={}).only(
         "target", "http_target_method", "settings"
     )
 
@@ -50,5 +49,5 @@ def fill_settings_json(apps):
 
 @app.task
 @allow_writer()
-def fill_app_extension_settings_task(apps):
-    fill_settings_json(apps)
+def fill_app_extension_settings_task():
+    fill_settings_json()

@@ -8,8 +8,8 @@ from .tasks.saleor3_23 import fill_app_extension_settings_task
 
 
 def fill_app_extension_settings(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        fill_app_extension_settings_task.delay(apps)
+    def on_migrations_complete():
+        fill_app_extension_settings_task.delay()
 
     sender = registry.get_app_config("app")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
