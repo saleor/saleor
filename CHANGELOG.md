@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 
 ### GraphQL API
+- Gift cards support as payment method within Transaction API.
 
 ### Webhooks
 
