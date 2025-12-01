@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from .....payment import PaymentError
 from .....payment.error_codes import PaymentErrorCode
-from .....payment.utils import is_currency_supported
+from .....payment.gateway import get_payment_gateways, is_currency_supported
 from ....channel.utils import validate_channel
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
@@ -85,7 +85,7 @@ class PaymentCheckBalance(BaseMutation):
 
     @classmethod
     def validate_gateway(cls, gateway_id, manager):
-        gateways_id = [gateway.id for gateway in manager.list_payment_gateways()]
+        gateways_id = [gateway.id for gateway in get_payment_gateways(manager=manager)]
 
         if gateway_id not in gateways_id:
             raise ValidationError(

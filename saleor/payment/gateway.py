@@ -5,8 +5,16 @@ from typing import TYPE_CHECKING, Optional, cast
 
 from ..account.models import User
 from ..app.models import App
+from ..checkout.fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+)
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
+from ..giftcard.const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+)
 from ..order.events import (
     event_transaction_cancel_requested,
     event_transaction_charge_requested,
@@ -499,7 +507,7 @@ def list_payment_sources(
 def list_gateways(
     manager: "PluginsManager", channel_slug: str | None = None
 ) -> list["PaymentGateway"]:
-    return manager.list_payment_gateways(channel_slug=channel_slug)
+    return get_payment_gateways(manager=manager, channel_slug=channel_slug)
 
 
 def _fetch_gateway_response(fn, *args, **kwargs):
@@ -580,3 +588,45 @@ def _get_success_transaction(
         is_success=True,
         kind=kind,
     ).last()
+
+
+def get_payment_gateways(
+    manager: "PluginsManager",
+    currency: str | None = None,
+    checkout_info: Optional["CheckoutInfo"] = None,
+    checkout_lines: list["CheckoutLineInfo"] | None = None,
+    channel_slug: str | None = None,
+    active_only: bool = True,
+):
+    """Use PluginsManager to assemble list of payment gateways.
+
+    Additionally, if currency is passed an additional built-in
+    payment gateway dedicated for gift card payments is returned.
+    """
+    gateways = manager.list_payment_gateways(
+        currency=currency,
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines,
+        channel_slug=channel_slug,
+        active_only=active_only,
+    )
+
+    if currency:
+        gateways.extend(
+            [
+                PaymentGateway(
+                    id=GIFT_CARD_PAYMENT_GATEWAY_ID,
+                    name=GIFT_CARD_PAYMENT_GATEWAY_NAME,
+                    currencies=[currency],
+                    config=[],
+                )
+            ]
+        )
+
+    return gateways
+
+
+def is_currency_supported(currency: str, gateway_id: str, manager: "PluginsManager"):
+    """Return true if the given gateway supports given currency."""
+    available_gateways = get_payment_gateways(manager=manager, currency=currency)
+    return any(gateway.id == gateway_id for gateway in available_gateways)

@@ -13,8 +13,15 @@ from ...channel import TransactionFlowStrategy
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_money, zero_taxed_money
+from ...giftcard.const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+)
 from ...graphql.discount.utils import convert_migrated_sale_predicate_to_catalogue_info
 from ...payment import TokenizedPaymentFlow
+from ...payment.gateway import (
+    get_payment_gateways,
+)
 from ...payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
@@ -682,7 +689,7 @@ def test_manager_serve_list_of_payment_gateways(channel_USD):
         "saleor.plugins.tests.sample_plugins.InactivePaymentGateway",
     ]
     manager = PluginsManager(plugins=plugins)
-    assert manager.list_payment_gateways() == [expected_gateway]
+    assert get_payment_gateways(manager=manager) == [expected_gateway]
 
 
 def test_manager_serve_list_all_payment_gateways(channel_USD):
@@ -706,7 +713,7 @@ def test_manager_serve_list_all_payment_gateways(channel_USD):
         "saleor.plugins.tests.sample_plugins.InactivePaymentGateway",
     ]
     manager = PluginsManager(plugins=plugins)
-    assert manager.list_payment_gateways(active_only=False) == expected_gateways
+    assert get_payment_gateways(manager=manager, active_only=False) == expected_gateways
 
 
 def test_manager_serve_list_all_payment_gateways_specified_currency(channel_USD):
@@ -716,7 +723,13 @@ def test_manager_serve_list_all_payment_gateways_specified_currency(channel_USD)
             name=ActiveDummyPaymentGateway.PLUGIN_NAME,
             config=ActiveDummyPaymentGateway.CLIENT_CONFIG,
             currencies=ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
-        )
+        ),
+        PaymentGateway(
+            id=GIFT_CARD_PAYMENT_GATEWAY_ID,
+            name=GIFT_CARD_PAYMENT_GATEWAY_NAME,
+            currencies=["EUR"],
+            config=[],
+        ),
     ]
 
     plugins = [
@@ -726,7 +739,7 @@ def test_manager_serve_list_all_payment_gateways_specified_currency(channel_USD)
     ]
     manager = PluginsManager(plugins=plugins)
     assert (
-        manager.list_payment_gateways(currency="EUR", active_only=False)
+        get_payment_gateways(manager=manager, currency="EUR", active_only=False)
         == expected_gateways
     )
 
@@ -747,6 +760,12 @@ def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways
             config=ActiveDummyPaymentGateway.CLIENT_CONFIG,
             currencies=ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
         ),
+        PaymentGateway(
+            id=GIFT_CARD_PAYMENT_GATEWAY_ID,
+            name=GIFT_CARD_PAYMENT_GATEWAY_NAME,
+            currencies=["USD"],
+            config=[],
+        ),
     ]
 
     plugins = [
@@ -756,7 +775,7 @@ def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways
     ]
     manager = PluginsManager(plugins=plugins)
     assert (
-        manager.list_payment_gateways(currency="USD", active_only=False)
+        get_payment_gateways(manager=manager, currency="USD", active_only=False)
         == expected_gateways
     )
 

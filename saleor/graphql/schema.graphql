@@ -5349,6 +5349,13 @@ type CheckoutSettings {
   Added in Saleor 3.22.
   """
   automaticCompletionCutOffDate: DateTime
+
+  """
+  Default to `true`. Determines whether gift cards can be attached to a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards is deprecated.
+  
+  Added in Saleor 3.23.
+  """
+  allowLegacyGiftCardUse: Boolean!
 }
 
 """Represents the channel-specific payment settings."""
@@ -28798,6 +28805,13 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   Added in Saleor 3.22.
   """
   automaticCompletion: CheckoutAutoCompleteInput
+
+  """
+  Default to `true`. Determines whether gift cards can be attached to a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards is deprecated.
+  
+  Added in Saleor 3.23.
+  """
+  allowLegacyGiftCardUse: Boolean
 }
 
 input CheckoutAutoCompleteInput @doc(category: "Checkout") {

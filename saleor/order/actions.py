@@ -465,6 +465,10 @@ def order_confirmed(
     if send_confirmation_email:
         send_order_confirmed(order, user, app, manager)
 
+    from ..giftcard.gateway import charge_gift_card_transactions
+
+    charge_gift_card_transactions(order)
+
 
 def handle_fully_paid_order(
     manager: "PluginsManager",

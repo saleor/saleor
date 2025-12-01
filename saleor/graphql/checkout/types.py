@@ -18,6 +18,7 @@ from ...graphql.core.context import (
     SyncWebhookControlContext,
     get_database_connection_name,
 )
+from ...payment.gateway import get_payment_gateways
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
@@ -1396,7 +1397,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         @allow_writer_in_context(info.context)
         def get_available_payment_gateways(results):
             checkout_info, lines_info = results
-            return manager.list_payment_gateways(
+            return get_payment_gateways(
+                manager=manager,
                 currency=root.node.currency,
                 checkout_info=checkout_info,
                 checkout_lines=lines_info,

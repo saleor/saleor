@@ -4,10 +4,12 @@ from unittest.mock import patch
 import graphene
 import pytest
 
+from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....order import OrderGrantedRefundStatus
 from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionEvent
+from .....tests.e2e.utils import assign_permissions
 from .....webhook.event_types import WebhookEventSyncType
 from ....core.enums import TransactionRequestRefundForGrantedRefundErrorCode
 from ....core.utils import to_global_id_or_none
@@ -755,3 +757,290 @@ def test_trigger_refund_possible_based_on_status_of_granted_refund(
         type=TransactionEventType.REFUND_REQUEST,
         amount_value=refund_amount,
     )
+
+
+@pytest.mark.parametrize(
+    ("granted_refund_amount", "expected_refund_amount", "expected_available_actions"),
+    [
+        (Decimal(10), Decimal(10), []),
+        (Decimal(1), Decimal(1), [TransactionAction.REFUND]),
+    ],
+)
+def test_transaction_request_refund_for_granted_refund_for_order_gift_card_charge(
+    granted_refund_amount,
+    expected_refund_amount,
+    expected_available_actions,
+    order_with_lines,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+
+    gift_card_created_by_staff.current_balance_amount = Decimal(0)
+    gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        charged_value=Decimal(10),
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=granted_refund_amount,
+        transaction_item=transaction,
+    )
+
+    variables = {
+        "grantedRefundID": to_global_id_or_none(granted_refund),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestRefundForGrantedRefund"]["errors"] == []
+
+    transaction.refresh_from_db()
+    gift_card_created_by_staff.refresh_from_db()
+    granted_refund.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(10) - expected_refund_amount
+    assert transaction.refunded_value == expected_refund_amount
+    assert transaction.gift_card is not None
+    assert transaction.available_actions == expected_available_actions
+    assert gift_card_created_by_staff.current_balance_amount == expected_refund_amount
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=expected_refund_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_SUCCESS,
+        amount_value=expected_refund_amount,
+    )
+
+    assert granted_refund.status == OrderGrantedRefundStatus.SUCCESS
+
+
+@pytest.mark.parametrize(
+    ("granted_refund_amount", "expected_refund_amount", "expected_available_actions"),
+    [
+        (Decimal(10), Decimal(10), []),
+        (Decimal(1), Decimal(1), [TransactionAction.REFUND]),
+    ],
+)
+def test_transaction_request_refund_for_granted_refund_without_transaction_for_order_gift_card_charge(
+    granted_refund_amount,
+    expected_refund_amount,
+    expected_available_actions,
+    order_with_lines,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+
+    gift_card_created_by_staff.current_balance_amount = Decimal(0)
+    gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        charged_value=Decimal(10),
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=granted_refund_amount,
+    )
+
+    variables = {
+        "grantedRefundID": to_global_id_or_none(granted_refund),
+        "token": transaction.token,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND_BY_TOKEN,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestRefundForGrantedRefund"]["errors"] == []
+
+    transaction.refresh_from_db()
+    gift_card_created_by_staff.refresh_from_db()
+    granted_refund.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(10) - expected_refund_amount
+    assert transaction.refunded_value == expected_refund_amount
+    assert transaction.gift_card is not None
+    assert transaction.available_actions == expected_available_actions
+    assert gift_card_created_by_staff.current_balance_amount == expected_refund_amount
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=expected_refund_amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_SUCCESS,
+        amount_value=expected_refund_amount,
+    )
+
+    assert granted_refund.status == OrderGrantedRefundStatus.SUCCESS
+
+
+def test_transaction_request_refund_for_granted_refund_for_order_gift_card_charge_refund_amount_greater_than_transaction_charge_amount(
+    order_with_lines,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+
+    gift_card_created_by_staff.current_balance_amount = Decimal(0)
+    gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        charged_value=Decimal(10),
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=Decimal(20),
+        transaction_item=transaction,
+    )
+    assert granted_refund.status == OrderGrantedRefundStatus.NONE
+
+    variables = {
+        "grantedRefundID": to_global_id_or_none(granted_refund),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    errors = content["data"]["transactionRequestRefundForGrantedRefund"]["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["code"]
+        == TransactionRequestRefundForGrantedRefundErrorCode.AMOUNT_GREATER_THAN_AVAILABLE.name
+    )
+    assert errors[0]["field"] == "grantedRefundId"
+
+    granted_refund.refresh_from_db()
+    assert granted_refund.status == OrderGrantedRefundStatus.NONE
+
+    transaction.refresh_from_db()
+    gift_card_created_by_staff.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(10)
+    assert transaction.refunded_value == Decimal(0)
+    assert transaction.gift_card is not None
+    assert transaction.available_actions == [TransactionAction.REFUND]
+    assert gift_card_created_by_staff.current_balance_amount == Decimal(0)
+
+
+def test_transaction_request_refund_for_granted_refund_for_order_gift_card_charge_when_gift_card_does_not_exist_anymore(
+    order_with_lines,
+    transaction_item_generator,
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    assign_permissions(staff_api_client, [permission_manage_payments])
+
+    order = order_with_lines
+    amount = Decimal(10)
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=None,
+        charged_value=amount,
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=amount,
+        transaction_item=transaction,
+    )
+
+    variables = {
+        "grantedRefundID": to_global_id_or_none(granted_refund),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["transactionRequestRefundForGrantedRefund"]["errors"] == []
+
+    transaction.refresh_from_db()
+    granted_refund.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == amount
+    assert transaction.refunded_value == Decimal(0)
+    assert transaction.gift_card is None
+    assert transaction.available_actions == [TransactionAction.REFUND]
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=amount,
+    )
+
+    TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_FAILURE,
+        amount_value=amount,
+        message="Gift card could not be found.",
+    )
+
+    assert granted_refund.status == OrderGrantedRefundStatus.FAILURE

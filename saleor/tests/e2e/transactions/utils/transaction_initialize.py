@@ -1,5 +1,6 @@
 from unittest import mock
 
+from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....payment.interface import TransactionSessionResult
 from ...utils import get_graphql_content
 
@@ -104,6 +105,32 @@ def transaction_initialize(
     }
 
     response = e2e_api_client.post_graphql(TRANSACTION_INITIALIZE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    assert not content["data"]["transactionInitialize"]["errors"]
+    data = content["data"]["transactionInitialize"]
+
+    return data
+
+
+def transaction_initialize_for_gift_card_payment_gateway(
+    api_client,
+    id,
+    code,
+    amount,
+    action=None,
+):
+    variables = {
+        "action": action,
+        "amount": amount,
+        "id": id,
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": code},
+        },
+    }
+
+    response = api_client.post_graphql(TRANSACTION_INITIALIZE_MUTATION, variables)
     content = get_graphql_content(response)
 
     assert not content["data"]["transactionInitialize"]["errors"]

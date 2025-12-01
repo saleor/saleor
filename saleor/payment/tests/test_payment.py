@@ -17,6 +17,7 @@ from .. import (
     gateway,
 )
 from ..error_codes import PaymentErrorCode
+from ..gateway import is_currency_supported
 from ..interface import GatewayResponse, PaymentMethodInfo, TransactionData
 from ..models import Payment
 from ..utils import (
@@ -26,7 +27,6 @@ from ..utils import (
     create_payment,
     create_payment_information,
     create_transaction,
-    is_currency_supported,
     payment_owned_by_user,
     update_payment,
     validate_gateway_response,
