@@ -1,9 +1,9 @@
 import datetime
-import json
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, NamedTuple, cast
 
+import orjson
 from django.db.models import Model
 from django.db.models.expressions import Exists, OuterRef
 
@@ -186,7 +186,11 @@ def get_attribute_to_values_map_for_variant(
             if attribute.input_type == AttributeInputType.PLAIN_TEXT:
                 attribute_values[attribute_id].append(attr_value.plain_text)
             elif attribute.input_type == AttributeInputType.RICH_TEXT:
-                attribute_values[attribute_id].append(json.dumps(attr_value.rich_text))
+                attribute_values[attribute_id].append(
+                    orjson.dumps(attr_value.rich_text, option=orjson.OPT_UTC_Z).decode(
+                        "utf-8"
+                    )
+                )
             elif attribute.input_type == AttributeInputType.NUMERIC:
                 attribute_values[attribute_id].append(str(attr_value.numeric))
             elif attribute.input_type in [
@@ -206,7 +210,10 @@ def get_values_from_pre_save_bulk_data(
 ) -> dict[int, list[str | None | datetime.datetime]]:
     input_type_to_field_and_action = {
         AttributeInputType.PLAIN_TEXT: ("plain_text", None),
-        AttributeInputType.RICH_TEXT: ("rich_text", json.dumps),
+        AttributeInputType.RICH_TEXT: (
+            "rich_text",
+            lambda x: orjson.dumps(x, option=orjson.OPT_UTC_Z).decode("utf-8"),
+        ),
         AttributeInputType.NUMERIC: ("numeric", str),
         AttributeInputType.DATE: ("date_time", None),
         AttributeInputType.DATE_TIME: ("date_time", None),
