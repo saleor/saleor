@@ -95,7 +95,6 @@ class PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(Data
                             request=request_context,
                             app=app,
                         )
-                        promises.append(promise_payload)
 
                         def store_payload(
                             payload,
@@ -106,7 +105,7 @@ class PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(Data
                             if payload:
                                 results[checkout_token][app_id][query_hash] = payload
 
-                        promise_payload.then(store_payload)
+                        promises.append(promise_payload.then(store_payload))
 
                 def return_payloads(_payloads):
                     return [

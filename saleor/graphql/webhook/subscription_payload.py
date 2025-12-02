@@ -65,6 +65,25 @@ def get_event_payload(event):
     return event
 
 
+def _process_payload_instance_async(
+    payload_instance,
+) -> Promise[dict[str, Any]] | dict[str, Any]:
+    """Process a payload instance to extract data."""
+    ((key, value),) = payload_instance.data.items()
+
+    def process_single_payload(data: dict[str, Any] | None) -> dict[str, Any]:
+        # When a subscription is defined with "event" as its root field,
+        # the data is returned directly. This issue has been resolved for
+        # subscriptions whose root field is not "event".
+        if "event" == key:
+            return data or {}
+        return {"data": {key: data}}
+
+    if isinstance(value, Promise):
+        return value.then(process_single_payload)
+    return process_single_payload(value)
+
+
 def _process_payload_instance(payload_instance):
     """Process a payload instance to extract data."""
     for payload_key in payload_instance.data:
@@ -146,7 +165,9 @@ def generate_payload_promise_from_subscription(
             return None
 
         payload_instance = payload[0]
-        event_payload = _process_payload_instance(payload_instance)
+        event_payload: Promise[dict[str, Any]] | dict[str, Any] = (
+            _process_payload_instance_async(payload_instance)
+        )
 
         def check_errors(event_payload, payload_instance=payload_instance):
             if payload_instance.errors:
