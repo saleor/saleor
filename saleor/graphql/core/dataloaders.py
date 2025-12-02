@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import TypeVar
@@ -14,6 +15,8 @@ from .context import get_database_connection_name
 
 K = TypeVar("K")
 R = TypeVar("R")
+
+logger = logging.getLogger(__name__)
 
 
 class DataLoader[K, R](BaseLoader):
@@ -34,7 +37,15 @@ class DataLoader[K, R](BaseLoader):
         return loader
 
     def __init__(self, context: SaleorContext) -> None:
-        if getattr(self, "context", None) != context:
+        current_context: SaleorContext | None = getattr(self, "context", None)
+        if current_context != context:
+            if current_context is not None:
+                logger.warning(
+                    "Dataloader for key %s is being initialized with "
+                    "a different context. This leads to overwriting the "
+                    "previous context and may cause unexpected behavior.",
+                    self.context_key,
+                )
             self.context = context
             self.database_connection_name = get_database_connection_name(context)
             super().__init__()
