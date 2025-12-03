@@ -15,11 +15,15 @@ from prices import Money
 
 from ...channel.models import Channel
 from ...checkout.fetch import CheckoutLineInfo
+from ...checkout.lock_objects import (
+    checkout_qs_select_for_update,
+)
 from ...checkout.models import Checkout, CheckoutLine
 from ...core.db.connection import allow_writer
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import zero_money
 from ...order.fetch import EditableOrderLineInfo
+from ...order.lock_objects import order_qs_select_for_update
 from ...order.models import Order
 from ...product.models import (
     Product,
@@ -883,10 +887,22 @@ def _handle_order_promotion(
     discount_object_defaults: dict,
     rule_info: VariantPromotionRuleInfo,
 ):
-    discount_object, created = order_or_checkout.discounts.get_or_create(
-        type=DiscountType.ORDER_PROMOTION,
-        defaults=discount_object_defaults,
-    )
+    with transaction.atomic():
+        # As we do not have the unique constraint on order/checkout discount model,
+        # we need to lock the order/checkout to avoid creating duplicate promotion
+        # discounts in concurrent requests
+        if isinstance(order_or_checkout, Checkout):
+            _checkout = (
+                checkout_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
+            )
+        else:
+            _order = (
+                order_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
+            )
+        discount_object, created = order_or_checkout.discounts.get_or_create(
+            type=DiscountType.ORDER_PROMOTION,
+            defaults=discount_object_defaults,
+        )
     discount_amount = discount_object_defaults["amount_value"]
 
     if not created:
@@ -920,6 +936,17 @@ def _handle_gift_reward(
         else OrderLineDiscount
     )
     with transaction.atomic():
+        # As we do not have the unique constraint on checkout and order line for gift
+        # lines, so we need to lock the order/checkout to avoid creating duplicate
+        # gift lines
+        if isinstance(order_or_checkout, Checkout):
+            _checkout = (
+                checkout_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
+            )
+        else:
+            _order = (
+                order_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
+            )
         line = create_gift_line(order_or_checkout, gift_listing)
         (
             line_discount,
