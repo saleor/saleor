@@ -236,7 +236,6 @@ def test_get_taxes_for_checkout_with_sync_subscription(
         subscribable_object=checkout,
         subscription_query=subscription_query,
         request=ANY,  # SaleorContext,
-        app=tax_app,
     )
     mock_request.assert_called_once()
     assert not EventDelivery.objects.exists()
@@ -407,7 +406,6 @@ def test_get_taxes_for_checkout_with_app_identifier(
         subscribable_object=checkout,
         subscription_query=subscription_query,
         request=ANY,  # SaleorContext,
-        app=tax_app,
     )
     mock_request.assert_called_once()
     assert not EventDelivery.objects.exists()
@@ -511,7 +509,6 @@ def test_get_taxes_for_order_with_app_identifier(
         subscribable_object=order,
         subscription_query=subscription_query,
         request=ANY,  # SaleorContext,
-        app=tax_app,
     )
     mock_request.assert_called_once()
     assert not EventDelivery.objects.exists()

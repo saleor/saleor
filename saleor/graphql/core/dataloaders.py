@@ -34,6 +34,17 @@ class DataLoader[K, R](BaseLoader):
         return loader
 
     def __init__(self, context: SaleorContext) -> None:
+        if (
+            hasattr(self, "context")
+            and getattr(self.context, "event_type", None) is not None
+        ):
+            # Compare without app, to make sure that while building payloads
+            # for multiple subscriptions we can reuse existing context
+            # (including dataloaders).
+            # It is workaround for having HttpRequest processed as SaleorContext.
+            if self.context.compare_for_subscriptions(context):
+                return
+
         if getattr(self, "context", None) != context:
             self.context = context
             self.database_connection_name = get_database_connection_name(context)

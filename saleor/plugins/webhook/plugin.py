@@ -149,6 +149,7 @@ if TYPE_CHECKING:
     from ...csv.models import ExportFile
     from ...discount.models import Promotion, PromotionRule, Voucher, VoucherCode
     from ...giftcard.models import GiftCard
+    from ...graphql.core.dataloaders import DataLoader
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
     from ...order.models import Fulfillment, Order
@@ -3091,7 +3092,9 @@ class WebhookPlugin(BasePlugin):
                 "app not found."
             )
 
-        webhook_payload = generate_payment_payload(payment_information)
+        webhook_payload = generate_payment_payload(
+            payment_information,
+        )
         payment = Payment.objects.filter(id=payment_information.payment_id).first()
         if not payment:
             raise PaymentError(
@@ -3215,16 +3218,27 @@ class WebhookPlugin(BasePlugin):
             apps_identifiers = list(gateways.keys())
 
         webhooks = get_webhooks_for_event(event_type, apps_identifier=apps_identifiers)
-        request = initialize_request(
-            self.requestor, sync_event=True, event_type=event_type
-        )
 
         pregenerated_subscription_payloads: dict[int, dict[str, dict[str, Any]]] = (
             defaultdict(lambda: defaultdict(dict))
         )
 
         promises = []
+        dataloaders: dict[str, type[DataLoader]] = {}
+        request_map: dict[int, SaleorContext] = {}
+
         for webhook in webhooks:
+            request = request_map.get(webhook.app_id)
+            if not request:
+                request = initialize_request(
+                    app=webhook.app,
+                    requestor=self.requestor,
+                    sync_event=True,
+                    event_type=event_type,
+                    dataloaders=dataloaders,
+                )
+                request_map[webhook.app_id] = request
+
             if not webhook.subscription_query:
                 continue
 
@@ -3243,7 +3257,6 @@ class WebhookPlugin(BasePlugin):
                 subscribable_object=subscribable_object,
                 subscription_query=webhook.subscription_query,
                 request=request,
-                app=app,
             )
             promises.append(promise_payload)
 
@@ -3258,6 +3271,15 @@ class WebhookPlugin(BasePlugin):
             promise_payload.then(store_payload)
 
         for webhook in webhooks:
+            request = request_map.get(webhook.pk)
+            if not request:
+                request = initialize_request(
+                    app=webhook.app,
+                    requestor=self.requestor,
+                    sync_event=True,
+                    event_type=event_type,
+                    dataloaders=dataloaders,
+                )
             self._payment_gateway_initialize_session_for_single_webhook(
                 webhook=webhook,
                 gateways=gateways,
@@ -3304,14 +3326,16 @@ class WebhookPlugin(BasePlugin):
         if webhook.subscription_query:
             app = webhook.app
             request = initialize_request(
-                self.requestor, sync_event=True, event_type=webhook_event
+                app=app,
+                requestor=self.requestor,
+                sync_event=True,
+                event_type=webhook_event,
             )
             promise_payload = generate_payload_promise_from_subscription(
                 event_type=webhook_event,
                 subscribable_object=transaction_session_data,
                 subscription_query=webhook.subscription_query,
                 request=request,
-                app=app,
             )
             if promise_payload:
                 pregenerated_subscription_payload = promise_payload.get() or {}
@@ -3520,8 +3544,9 @@ class WebhookPlugin(BasePlugin):
             raise TaxDataError(msg)
 
         request_context = initialize_request(
-            self.requestor,
-            event_type in WebhookEventSyncType.ALL,
+            app=app,
+            requestor=self.requestor,
+            sync_event=event_type in WebhookEventSyncType.ALL,
             allow_replica=False,
             event_type=event_type,
         )

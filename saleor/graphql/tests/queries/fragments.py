@@ -557,3 +557,10 @@ fragment TransactionFragment on TransactionItem {
   }
 }
 """
+
+RECIPIENT_APP_DETAILS = """
+  fragment Recipient on App{
+    id
+    name
+  }
+"""

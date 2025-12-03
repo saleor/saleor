@@ -12,25 +12,29 @@ from ....graphql.shop.types import SHOP_ID
 from ....product.models import Product
 
 
-def generate_account_events_payload(customer_user):
+def generate_account_events_payload(customer_user, app):
     payload = {
-        **generate_customer_payload(customer_user),
+        **generate_customer_payload(customer_user, app),
     }
 
     return json.dumps(payload)
 
 
-def generate_account_requested_events_payload(customer_user, channel, new_email=None):
+def generate_account_requested_events_payload(
+    customer_user, channel, app, new_email=None
+):
     payload = {
-        **generate_customer_payload(customer_user),
+        **generate_customer_payload(customer_user, app),
         "token": "token",
         "redirectUrl": "http://www.mirumee.com?token=token",
-        "channel": {
-            "slug": channel.slug,
-            "id": graphene.Node.to_global_id("Channel", channel.id),
-        }
-        if channel
-        else None,
+        "channel": (
+            {
+                "slug": channel.slug,
+                "id": graphene.Node.to_global_id("Channel", channel.id),
+            }
+            if channel
+            else None
+        ),
         "shop": {"domain": {"host": "example.com", "url": "https://example.com/"}},
     }
     if new_email:
@@ -39,40 +43,52 @@ def generate_account_requested_events_payload(customer_user, channel, new_email=
     return json.dumps(payload)
 
 
-def generate_app_payload(app, app_global_id):
+def generate_app_payload(app, app_global_id, recipient_app):
     return json.dumps(
         {
+            "recipient": {
+                "id": graphene.Node.to_global_id("App", recipient_app.pk),
+                "name": recipient_app.name,
+            },
             "app": {
                 "id": app_global_id,
                 "isActive": app.is_active,
                 "name": app.name,
                 "appUrl": app.app_url,
-            }
+            },
         }
     )
 
 
-def generate_attribute_payload(attribute):
+def generate_attribute_payload(attribute, app):
     return json.dumps(
         {
+            "recipient": {
+                "id": graphene.Node.to_global_id("App", app.pk),
+                "name": app.name,
+            },
             "attribute": {
                 "name": attribute.name,
                 "slug": attribute.slug,
                 "type": AttributeTypeEnum.get(attribute.type).name,
                 "inputType": AttributeInputTypeEnum.get(attribute.input_type).name,
-            }
+            },
         }
     )
 
 
-def generate_attribute_value_payload(attribute_value):
+def generate_attribute_value_payload(attribute_value, app):
     return json.dumps(
         {
+            "recipient": {
+                "id": graphene.Node.to_global_id("App", app.pk),
+                "name": app.name,
+            },
             "attributeValue": {
                 "name": attribute_value.name,
                 "slug": attribute_value.slug,
                 "value": attribute_value.value,
-            }
+            },
         }
     )
 
@@ -112,9 +128,17 @@ def generate_fulfillment_lines_payload(fulfillment):
     ]
 
 
-def generate_fulfillment_payload(fulfillment, add_notify_customer_field=False):
+def generate_fulfillment_payload(
+    fulfillment,
+    app,
+    add_notify_customer_field=False,
+):
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.pk)
     payload = {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "fulfillment": {
             "id": fulfillment_id,
             "shippingRefundedAmount": None,
@@ -149,9 +173,13 @@ def generate_address_payload(address):
     }
 
 
-def generate_customer_payload(customer):
+def generate_customer_payload(customer, app):
     addresses = sorted(customer.addresses.all(), key=lambda address: address.pk)
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "user": {
             "email": customer.email,
             "firstName": customer.first_name,
@@ -173,23 +201,27 @@ def generate_customer_payload(customer):
                 if customer.default_billing_address
                 else None
             ),
-        }
+        },
     }
 
 
-def generate_staff_payload(staff_user):
+def generate_staff_payload(staff_user, app):
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "user": {
             "email": staff_user.email,
             "firstName": staff_user.first_name,
             "lastName": staff_user.last_name,
             "isStaff": True,
             "isActive": staff_user.is_active,
-        }
+        },
     }
 
 
-def generate_collection_payload(collection):
+def generate_collection_payload(collection, app):
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
     products = sorted(collection.products.all(), key=lambda product: product.name)
     products_node = [
@@ -202,22 +234,30 @@ def generate_collection_payload(collection):
         for product in products
     ]
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "collection": {
             "id": collection_id,
             "name": collection.name,
             "slug": collection.slug,
             "channel": "main",
             "products": {"edges": products_node},
-        }
+        },
     }
 
 
-def generate_page_payload(page):
+def generate_page_payload(page, app):
     page_id = graphene.Node.to_global_id("Page", page.pk)
     page_type_id = graphene.Node.to_global_id("PageType", page.page_type.pk)
     page_attributes = page.page_type.page_attributes.all()
     attribute_values_1 = page_attributes[0].values.first()
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "page": {
             "id": page_id,
             "title": page.title,
@@ -242,13 +282,17 @@ def generate_page_payload(page):
                 },
                 {"attribute": {"slug": page_attributes[1].slug}, "values": []},
             ],
-        }
+        },
     }
 
 
-def generate_page_type_payload(page_type):
+def generate_page_type_payload(page_type, app):
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "pageType": {
             "id": page_type_id,
             "name": page_type.name,
@@ -256,30 +300,38 @@ def generate_page_type_payload(page_type):
             "attributes": [
                 {"slug": ap.attribute.slug} for ap in page_type.attributepage.all()
             ],
-        }
+        },
     }
 
 
-def generate_permission_group_payload(group):
+def generate_permission_group_payload(group, app):
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "permissionGroup": {
             "name": group.name,
             "permissions": [
                 {"name": permission.name} for permission in group.permissions.all()
             ],
             "users": [{"email": user.email} for user in group.user_set.all()],
-        }
+        },
     }
 
 
-def generate_invoice_payload(invoice):
+def generate_invoice_payload(invoice, app):
     payload = {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "invoice": {
             "id": graphene.Node.to_global_id("Invoice", invoice.pk),
             "status": invoice.status.upper(),
             "number": invoice.number,
             "order": None,
-        }
+        },
     }
     if invoice.order_id:
         order_id = graphene.Node.to_global_id("Order", invoice.order_id)
@@ -293,13 +345,17 @@ def generate_invoice_payload(invoice):
     return payload
 
 
-def generate_category_payload(category):
+def generate_category_payload(category, app):
     tree = category.get_descendants(include_self=True)
     products = sorted(
         Product.objects.all().filter(category__in=tree),
         key=lambda product: product.name,
     )
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "category": {
             "id": graphene.Node.to_global_id("Category", category.id),
             "name": category.name,
@@ -316,11 +372,11 @@ def generate_category_payload(category):
                     for product in products
                 ]
             },
-        }
+        },
     }
 
 
-def generate_shipping_method_payload(shipping_method):
+def generate_shipping_method_payload(shipping_method, app):
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.id
     )
@@ -331,6 +387,10 @@ def generate_shipping_method_payload(shipping_method):
         shipping_method.channel_listings.all(), key=lambda cl: cl.pk
     )
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "shippingMethod": {
             "id": shipping_method_id,
             "name": shipping_method.name,
@@ -345,10 +405,14 @@ def generate_shipping_method_payload(shipping_method):
     }
 
 
-def generate_sale_payload(sale: Promotion):
+def generate_sale_payload(sale: Promotion, app):
     predicate = sale.rules.first().catalogue_predicate
     categories = get_categories_from_predicate(predicate)
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "sale": {
             "id": graphene.Node.to_global_id("Sale", sale.old_sale_id),
             "name": sale.name,
@@ -365,24 +429,32 @@ def generate_sale_payload(sale: Promotion):
                     for category in categories
                 ]
             },
-        }
+        },
     }
 
 
-def generate_promotion_payload(promotion):
+def generate_promotion_payload(promotion, app):
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "promotion": {
             "id": graphene.Node.to_global_id("Promotion", promotion.pk),
             "name": promotion.name,
             "startDate": promotion.start_date.isoformat(),
             "endDate": promotion.end_date.isoformat(),
             "rules": [{"name": rule.name} for rule in promotion.rules.all()],
-        }
+        },
     }
 
 
-def generate_promotion_rule_payload(promotion_rule):
+def generate_promotion_rule_payload(promotion_rule, app):
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "promotionRule": {
             "id": graphene.Node.to_global_id("PromotionRule", promotion_rule.pk),
             "name": promotion_rule.name,
@@ -395,26 +467,34 @@ def generate_promotion_rule_payload(promotion_rule):
                 ),
                 "name": promotion_rule.promotion.name,
             },
-        }
+        },
     }
 
 
-def generate_voucher_payload(voucher, voucher_global_id):
+def generate_voucher_payload(voucher, voucher_global_id, app):
     return json.dumps(
         {
+            "recipient": {
+                "id": graphene.Node.to_global_id("App", app.pk),
+                "name": app.name,
+            },
             "voucher": {
                 "id": voucher_global_id,
                 "name": voucher.name,
                 "code": voucher.code,
                 "usageLimit": voucher.usage_limit,
-            }
+            },
         }
     )
 
 
-def generate_voucher_code_payload(voucher_codes):
+def generate_voucher_code_payload(voucher_codes, app):
     return json.dumps(
         {
+            "recipient": {
+                "id": graphene.Node.to_global_id("App", app.pk),
+                "name": app.name,
+            },
             "voucherCodes": [
                 {
                     "id": graphene.Node.to_global_id("VoucherCode", code.id),
@@ -423,7 +503,7 @@ def generate_voucher_code_payload(voucher_codes):
                     "isActive": code.is_active,
                 }
                 for code in voucher_codes
-            ]
+            ],
         }
     )
 
@@ -465,22 +545,30 @@ def generate_voucher_created_payload_with_meta(
     return json.dumps(data)
 
 
-def generate_gift_card_payload(gift_card, card_global_id):
+def generate_gift_card_payload(gift_card, card_global_id, app):
     return json.dumps(
         {
+            "recipient": {
+                "id": graphene.Node.to_global_id("App", app.pk),
+                "name": app.name,
+            },
             "giftCard": {
                 "id": card_global_id,
                 "isActive": gift_card.is_active,
                 "code": gift_card.code,
                 "createdBy": {"email": gift_card.created_by.email},
-            }
+            },
         }
     )
 
 
-def generate_export_payload(export_file, export_global_id):
+def generate_export_payload(export_file, export_global_id, app):
     return json.dumps(
         {
+            "recipient": {
+                "id": graphene.Node.to_global_id("App", app.pk),
+                "name": app.name,
+            },
             "export": {
                 "id": export_global_id,
                 "createdAt": export_file.created_at.isoformat(),
@@ -488,14 +576,18 @@ def generate_export_payload(export_file, export_global_id):
                 "status": export_file.status.upper(),
                 "url": build_absolute_uri(export_file.content_file.url),
                 "message": export_file.message,
-            }
+            },
         }
     )
 
 
-def generate_menu_payload(menu, menu_global_id):
+def generate_menu_payload(menu, menu_global_id, app):
     menu_items = sorted(menu.items.all(), key=lambda key: key.pk)
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "menu": {
             "id": menu_global_id,
             "name": menu.name,
@@ -507,11 +599,11 @@ def generate_menu_payload(menu, menu_global_id):
                 }
                 for item in menu_items
             ],
-        }
+        },
     }
 
 
-def generate_menu_item_payload(menu_item, menu_item_global_id):
+def generate_menu_item_payload(menu_item, menu_item_global_id, app):
     menu = (
         {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)}
         if menu_item.menu_id
@@ -523,18 +615,26 @@ def generate_menu_item_payload(menu_item, menu_item_global_id):
         else None
     )
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "menuItem": {
             "id": menu_item_global_id,
             "name": menu_item.name,
             "menu": menu,
             "page": page,
-        }
+        },
     }
 
 
-def generate_warehouse_payload(warehouse, warehouse_global_id):
+def generate_warehouse_payload(warehouse, warehouse_global_id, app):
     return json.dumps(
         {
+            "recipient": {
+                "id": graphene.Node.to_global_id("App", app.pk),
+                "name": app.name,
+            },
             "warehouse": {
                 "id": warehouse_global_id,
                 "name": warehouse.name,
@@ -551,20 +651,24 @@ def generate_warehouse_payload(warehouse, warehouse_global_id):
                     ]
                 },
                 "address": {"companyName": warehouse.address.company_name},
-            }
+            },
         }
     )
 
 
-def generate_payment_payload(payment):
+def generate_payment_payload(payment, app):
     total = payment.get_total()
     return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
         "payment": {
             "id": graphene.Node.to_global_id("Payment", payment.pk),
             "total": {"amount": float(total.amount), "currency": total.currency},
             "gateway": payment.gateway,
             "isActive": payment.is_active,
-        }
+        },
     }
 
 
