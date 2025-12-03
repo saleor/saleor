@@ -17,7 +17,7 @@ def clean_duplicated_gift_lines(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("checkout", "0077_checkout_last_price_recalculation"),
+        ("checkout", "0076_checkout_discount_expiration"),
     ]
 
     operations = [
