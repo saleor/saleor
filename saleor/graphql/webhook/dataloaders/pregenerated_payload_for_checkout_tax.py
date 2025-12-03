@@ -18,11 +18,15 @@ from ...checkout.dataloaders.checkout_infos import (
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
+from ...core import SaleorContext
 from ...core.dataloaders import DataLoader
-from ..subscription_payload import generate_payload_promise_from_subscription
+from ...utils import get_user_or_app_from_context
+from ..subscription_payload import (
+    generate_payload_promise_from_subscription,
+    initialize_request,
+)
 from ..utils import get_subscription_query_hash
 from .models import WebhooksByEventTypeLoader
-from .request_context import PayloadsRequestContextByEventTypeLoader
 
 
 class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
@@ -50,7 +54,7 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
         results: dict[str, dict[int, dict[str, dict[str, Any]]]] = defaultdict(
             lambda: defaultdict(dict)
         )
-
+        requestor = get_user_or_app_from_context(self.context)
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
 
         if requested_by_event_type := getattr(self.context, "event_type", None):
@@ -60,11 +64,15 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
             if not get_is_deferred_payload(requested_by_event_type):
                 return [None for _ in keys]
 
+        request_map: dict[int, SaleorContext] = {}
+        dataloaders: dict[str, DataLoader] = {}
+
         @allow_writer_in_context(self.context)
         def generate_payloads(data):
-            checkouts_info, checkout_lines_info, apps, request_context, webhooks = data
+            checkouts_info, checkout_lines_info, apps, webhooks = data
             apps_map = {app.id: app for app in apps}
             promises = []
+
             for checkout_info in checkouts_info:
                 tax_configuration, country_tax_configuration = (
                     get_tax_configuration_for_checkout(
@@ -82,6 +90,7 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
                     tax_app_identifier = get_tax_app_id(
                         tax_configuration, country_tax_configuration
                     )
+
                     for webhook in webhooks:
                         app_id = webhook.app_id
                         app = apps_map[app_id]
@@ -89,21 +98,31 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
                             not tax_app_identifier
                             or app.identifier == tax_app_identifier
                         ):
+                            request_context = request_map.get(app_id)
+                            if not request_context:
+                                request_context = initialize_request(
+                                    app=app,
+                                    requestor=requestor,
+                                    sync_event=True,
+                                    allow_replica=False,
+                                    event_type=event_type,
+                                    dataloaders=dataloaders,
+                                )
+                                request_map[app_id] = request_context
                             query_hash = get_subscription_query_hash(
                                 webhook.subscription_query
                             )
                             checkout = checkout_info.checkout
                             checkout_token = str(checkout.token)
-
                             promise_payload = (
                                 generate_payload_promise_from_subscription(
                                     event_type=event_type,
                                     subscribable_object=checkout,
                                     subscription_query=webhook.subscription_query,
                                     request=request_context,
-                                    app=app,
                                 )
                             )
+                            promises.append(promise_payload)
 
                             def store_payload(
                                 payload,
@@ -126,10 +145,7 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
         checkouts_info = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(keys)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(self.context).load_many(keys)
         apps = AppsByEventTypeLoader(self.context).load(event_type)
-        request_context = PayloadsRequestContextByEventTypeLoader(self.context).load(
-            event_type
-        )
         webhooks = WebhooksByEventTypeLoader(self.context).load(event_type)
-        return Promise.all(
-            [checkouts_info, lines, apps, request_context, webhooks]
-        ).then(generate_payloads)
+        return Promise.all([checkouts_info, lines, apps, webhooks]).then(
+            generate_payloads
+        )
