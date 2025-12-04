@@ -548,14 +548,27 @@ def delete_gift_line(
             lines_info.remove(gift_line_info)  # type: ignore[attr-defined]
 
 
+def _lock_order_or_checkout(
+    order_or_checkout: Union[Checkout, Order],
+):
+    if isinstance(order_or_checkout, Checkout):
+        _checkout = (
+            checkout_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
+        )
+    else:
+        _order = order_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
+
+
 def create_gift_line(
     order_or_checkout: Union[Checkout, Order],
     gift_listing: "ProductVariantChannelListing",
 ):
     defaults = _get_defaults_for_gift_line(order_or_checkout, gift_listing)
-    line, created = order_or_checkout.lines.get_or_create(
-        is_gift=True, defaults=defaults
-    )
+    with transaction.atomic():
+        _lock_order_or_checkout(order_or_checkout)
+        line, created = order_or_checkout.lines.get_or_create(
+            is_gift=True, defaults=defaults
+        )
     if not created:
         fields_to_update = []
         for field, value in defaults.items():
@@ -891,14 +904,7 @@ def _handle_order_promotion(
         # As we do not have the unique constraint on order/checkout discount model,
         # we need to lock the order/checkout to avoid creating duplicate promotion
         # discounts in concurrent requests
-        if isinstance(order_or_checkout, Checkout):
-            _checkout = (
-                checkout_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
-            )
-        else:
-            _order = (
-                order_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
-            )
+        _lock_order_or_checkout(order_or_checkout)
         discount_object, created = order_or_checkout.discounts.get_or_create(
             type=DiscountType.ORDER_PROMOTION,
             defaults=discount_object_defaults,
@@ -939,14 +945,7 @@ def _handle_gift_reward(
         # As we do not have the unique constraint on checkout and order line for gift
         # lines, so we need to lock the order/checkout to avoid creating duplicate
         # gift lines
-        if isinstance(order_or_checkout, Checkout):
-            _checkout = (
-                checkout_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
-            )
-        else:
-            _order = (
-                order_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
-            )
+        _lock_order_or_checkout(order_or_checkout)
         line = create_gift_line(order_or_checkout, gift_listing)
         (
             line_discount,
