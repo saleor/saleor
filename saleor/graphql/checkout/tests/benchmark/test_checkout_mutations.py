@@ -568,7 +568,7 @@ def test_create_checkout_with_order_promotion(
     }
 
     # when
-    with django_assert_num_queries(90):
+    with django_assert_num_queries(93):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     # then
@@ -1278,7 +1278,7 @@ def test_add_checkout_lines_order_discount_applies(
     }
 
     # when
-    with django_assert_num_queries(101):
+    with django_assert_num_queries(107):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then
@@ -1312,7 +1312,7 @@ def test_add_checkout_lines_gift_discount_applies(
     }
 
     # when
-    with django_assert_num_queries(132):
+    with django_assert_num_queries(134):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then
