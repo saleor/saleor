@@ -1,4 +1,3 @@
-import logging
 import threading
 from collections import defaultdict
 from collections.abc import Iterable
@@ -16,9 +15,6 @@ from .context import get_database_connection_name
 
 K = TypeVar("K")
 R = TypeVar("R")
-
-
-logger = logging.getLogger(__name__)
 
 
 class DataLoader[K, R](BaseLoader):
@@ -44,7 +40,7 @@ class DataLoader[K, R](BaseLoader):
         current_thread_id = getattr(self, "thread_id", None)
         if current_thread_id != thread_id:
             if current_thread_id is not None:
-                logger.exception(
+                raise RuntimeError(
                     "Dataloader for key %s is being initialized with "
                     "a different threadID. This leads to overwriting the "
                     "previous context and may cause unexpected behavior.",
