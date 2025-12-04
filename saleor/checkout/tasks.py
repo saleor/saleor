@@ -257,7 +257,11 @@ def automatic_checkout_completion_task(
         )
         return
 
-    if checkout.is_shipping_required() and not checkout_info.shipping_method:
+    if checkout.is_shipping_required() and (
+        not checkout.shipping_method_id
+        and not checkout.external_shipping_method_id
+        and not checkout.collection_point_id
+    ):
         task_logger.info(
             "The automatic checkout completion not triggered, as the checkout %s "
             "has no shipping method set.",

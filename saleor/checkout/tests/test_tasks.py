@@ -601,6 +601,7 @@ def test_automatic_checkout_completion_transaction_flow(
     app,
     caplog,
     django_capture_on_commit_callbacks,
+    warehouse_for_cc,
 ):
     # given
     checkout = checkout_with_prices
@@ -869,7 +870,7 @@ def test_automatic_checkout_completion_missing_lines(
     assert caplog.records[0].levelno == logging.INFO
 
 
-def test_automatic_checkout_completion_missing_shipping_method(
+def test_automatic_checkout_completion_missing_delivery_method(
     checkout_with_prices,
     transaction_item_generator,
     app,
@@ -879,7 +880,8 @@ def test_automatic_checkout_completion_missing_shipping_method(
     # given
     checkout = checkout_with_prices
     checkout.shipping_method = None
-    checkout.save(update_fields=["shipping_method"])
+    checkout.collection_point = None
+    checkout.save(update_fields=["shipping_method", "collection_point"])
     checkout_pk = checkout.pk
 
     # allow catching the log in caplog
