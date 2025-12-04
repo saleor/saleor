@@ -28,17 +28,6 @@ class SaleorContext(HttpRequest):
             self.dataloaders = kwargs.pop("dataloaders")
         super().__init__(*args, **kwargs)
 
-    def compare_for_subscriptions(self, value: object) -> bool:
-        # This is a workaround, to re-use dataloaders while building the payload
-        # for multiple webhook subscriptions in the same request.
-        dict1 = {
-            k: v for k, v in vars(self).items() if k not in ["app", "request_time"]
-        }
-        dict2 = {
-            k: v for k, v in vars(value).items() if k not in ["app", "request_time"]
-        }
-        return dict1 == dict2
-
 
 def disallow_replica_in_context(context: SaleorContext) -> None:
     """Set information in context to use database replicas or not.

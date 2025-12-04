@@ -1,3 +1,5 @@
+import logging
+import threading
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import TypeVar
@@ -16,8 +18,12 @@ K = TypeVar("K")
 R = TypeVar("R")
 
 
+logger = logging.getLogger(__name__)
+
+
 class DataLoader[K, R](BaseLoader):
     context_key: str
+    thread_id: int
     context: SaleorContext
     database_connection_name: str
 
@@ -34,18 +40,17 @@ class DataLoader[K, R](BaseLoader):
         return loader
 
     def __init__(self, context: SaleorContext) -> None:
-        if (
-            hasattr(self, "context")
-            and getattr(self.context, "event_type", None) is not None
-        ):
-            # Compare without app, to make sure that while building payloads
-            # for multiple subscriptions we can reuse existing context
-            # (including dataloaders).
-            # It is workaround for having HttpRequest processed as SaleorContext.
-            if self.context.compare_for_subscriptions(context):
-                return
-
-        if getattr(self, "context", None) != context:
+        thread_id = threading.get_native_id()
+        current_thread_id = getattr(self, "thread_id", None)
+        if current_thread_id != thread_id:
+            if current_thread_id is not None:
+                logger.exception(
+                    "Dataloader for key %s is being initialized with "
+                    "a different threadID. This leads to overwriting the "
+                    "previous context and may cause unexpected behavior.",
+                    self.context_key,
+                )
+            self.thread_id = thread_id
             self.context = context
             self.database_connection_name = get_database_connection_name(context)
             super().__init__()
