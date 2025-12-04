@@ -797,12 +797,14 @@ def test_automatic_checkout_completion_line_without_listing(
     assert caplog.records[0].levelno == logging.INFO
 
 
-def test_automatic_checkout_completion_error_raised(checkout_with_item, app, caplog):
+def test_automatic_checkout_completion_error_raised(
+    checkout_with_item, app, caplog, shipping_method
+):
     # given
     checkout = checkout_with_item
     checkout_pk = checkout.pk
-    checkout.billing_address = None
-    checkout.save(update_fields=["billing_address"])
+    checkout.shipping_method = shipping_method
+    checkout.save(update_fields=["shipping_method"])
 
     # allow catching the log in caplog
     parent_logger = task_logger.parent
@@ -862,6 +864,43 @@ def test_automatic_checkout_completion_missing_lines(
     assert caplog.records[0].message == (
         "The automatic checkout completion not triggered, as the checkout "
         f"{checkout_id} has no lines."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
+
+
+def test_automatic_checkout_completion_missing_shipping_method(
+    checkout_with_prices,
+    transaction_item_generator,
+    app,
+    caplog,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout.shipping_method = None
+    checkout.save(update_fields=["shipping_method"])
+    checkout_pk = checkout.pk
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=checkout.total.gross.amount
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        automatic_checkout_completion_task(checkout.pk)
+
+    # then
+    assert Checkout.objects.filter(pk=checkout_pk).exists()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].message == (
+        "The automatic checkout completion not triggered, as the checkout "
+        f"{checkout_id} has no shipping method set."
     )
     assert caplog.records[0].checkout_id == checkout_id
     assert caplog.records[0].levelno == logging.INFO
@@ -1026,9 +1065,80 @@ def test_trigger_automatic_checkout_completion_task_checkout_too_old(
 
 @mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
 @freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_checkout_not_eligible_due_missing_billing_address(
+    mocked_automatic_checkout_completion,
+    checkout_with_prices,
+    channel_USD,
+    shipping_method,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
+        email="test@email.com",
+        billing_address=None,
+        shipping_method=shipping_method,
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert not mocked_automatic_checkout_completion.called
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_checkout_not_eligible_due_missing_email_or_user(
+    mocked_automatic_checkout_completion,
+    checkout_with_prices,
+    channel_USD,
+    address,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
+        billing_address=address,
+        email=None,
+        user=None,
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert not mocked_automatic_checkout_completion.called
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
 @pytest.mark.parametrize("batch_size", [1, 2, 5])
 def test_trigger_automatic_checkout_completion_task_respects_batch_size(
-    mocked_automatic_checkout_completion, checkouts_list, channel_USD, batch_size
+    mocked_automatic_checkout_completion,
+    checkouts_list,
+    channel_USD,
+    batch_size,
+    shipping_method,
+    address,
 ):
     # given
 
@@ -1043,8 +1153,11 @@ def test_trigger_automatic_checkout_completion_task_respects_batch_size(
 
     Checkout.objects.update(
         authorize_status=CheckoutAuthorizeStatus.FULL,
+        billing_address=address,
+        email="test@email.com",
         channel=channel_USD,
         last_change=timezone.now() - datetime.timedelta(minutes=10),
+        shipping_method=shipping_method,
     )
 
     # when
@@ -1064,6 +1177,8 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
     mocked_automatic_checkout_completion,
     checkouts_list,
     channel_USD,
+    address,
+    shipping_method,
 ):
     # given
     channel_USD.automatically_complete_fully_paid_checkouts = True
@@ -1082,6 +1197,9 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
     never_attempted.authorize_status = CheckoutAuthorizeStatus.FULL
     never_attempted.last_change = timezone.now() - datetime.timedelta(minutes=10)
     never_attempted.last_automatic_completion_attempt = None
+    never_attempted.email = "test@email.com"
+    never_attempted.billing_address = address
+    never_attempted.shipping_method = shipping_method
     never_attempted.channel = channel_USD
 
     attempted_recently.authorize_status = CheckoutAuthorizeStatus.FULL
@@ -1089,6 +1207,9 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
     attempted_recently.last_automatic_completion_attempt = (
         timezone.now() - datetime.timedelta(minutes=2)
     )
+    attempted_recently.email = "test@email.com"
+    attempted_recently.billing_address = address
+    attempted_recently.shipping_method = shipping_method
     attempted_recently.channel = channel_USD
 
     Checkout.objects.bulk_update(
@@ -1098,6 +1219,9 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
             "last_change",
             "last_automatic_completion_attempt",
             "channel",
+            "billing_address",
+            "email",
+            "shipping_method",
         ],
     )
 
@@ -1120,6 +1244,8 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
     checkouts_list,
     channel_USD,
     channel_PLN,
+    address,
+    shipping_method,
 ):
     # given
     channel_USD.automatically_complete_fully_paid_checkouts = True
@@ -1136,20 +1262,36 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
     checkout_usd = checkouts_list[0]
     checkout_usd.channel = channel_USD
     checkout_usd.authorize_status = CheckoutAuthorizeStatus.FULL
+    checkout_usd.shipping_method = shipping_method
+    checkout_usd.billing_address = address
+    checkout_usd.email = "test@email.com"
     checkout_usd.last_change = timezone.now() - datetime.timedelta(minutes=10)
 
     checkout_pln = checkouts_list[1]
     checkout_pln.channel = channel_PLN
     checkout_pln.authorize_status = CheckoutAuthorizeStatus.FULL
+    checkout_pln.shipping_method = shipping_method
+    checkout_pln.billing_address = address
+    checkout_pln.email = "test@email.com"
     checkout_pln.last_change = timezone.now() - datetime.timedelta(minutes=15)
 
     checkout_pln_not_ready = checkouts_list[2]
     checkout_pln_not_ready.channel = channel_PLN
+    checkout_pln_not_ready.shipping_method = shipping_method
+    checkout_pln_not_ready.billing_address = address
+    checkout_pln_not_ready.email = "test@email.com"
     checkout_pln_not_ready.authorize_status = CheckoutAuthorizeStatus.FULL
 
     Checkout.objects.bulk_update(
         [checkout_usd, checkout_pln, checkout_pln_not_ready],
-        ["channel", "authorize_status", "last_change"],
+        [
+            "channel",
+            "authorize_status",
+            "last_change",
+            "shipping_method",
+            "billing_address",
+            "email",
+        ],
     )
 
     # when
@@ -1172,6 +1314,8 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
     mocked_automatic_checkout_completion,
     checkouts_list,
     channel_USD,
+    address,
+    shipping_method,
 ):
     # given
     channel_USD.automatically_complete_fully_paid_checkouts = True
@@ -1192,6 +1336,9 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
     eligible_checkout.authorize_status = CheckoutAuthorizeStatus.FULL
     eligible_checkout.last_change = timezone.now() - datetime.timedelta(minutes=15)
     eligible_checkout.created_at = timezone.now() - datetime.timedelta(days=5)
+    eligible_checkout.email = "test@email.com"
+    eligible_checkout.billing_address = address
+    eligible_checkout.shipping_method = shipping_method
 
     ineligible_checkout_due_to_cut_off = checkouts_list[1]
     ineligible_checkout_due_to_cut_off.channel = channel_USD
@@ -1199,13 +1346,24 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
     ineligible_checkout_due_to_cut_off.last_change = (
         timezone.now() - datetime.timedelta(minutes=15)
     )
+    ineligible_checkout_due_to_cut_off.email = "test@email.com"
+    ineligible_checkout_due_to_cut_off.billing_address = address
+    ineligible_checkout_due_to_cut_off.shipping_method = shipping_method
     ineligible_checkout_due_to_cut_off.created_at = timezone.now() - datetime.timedelta(
         days=15
     )
 
     Checkout.objects.bulk_update(
         [eligible_checkout, ineligible_checkout_due_to_cut_off],
-        ["channel", "authorize_status", "last_change", "created_at"],
+        [
+            "channel",
+            "authorize_status",
+            "last_change",
+            "created_at",
+            "email",
+            "billing_address",
+            "shipping_method",
+        ],
     )
 
     # when
