@@ -649,6 +649,8 @@ def _get_taxes_for_checkout(
     """
     from .utils import log_address_if_validation_skipped_for_checkout
 
+    if pregenerated_subscription_payloads is None:
+        pregenerated_subscription_payloads = {}
     tax_data = None
     try:
         tax_data = manager.get_taxes_for_checkout(

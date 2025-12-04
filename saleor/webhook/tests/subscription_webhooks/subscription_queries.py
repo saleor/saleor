@@ -7,9 +7,13 @@ from ....graphql.webhook.subscription_types import TRANSLATIONS_TYPES_MAP
 
 ACCOUNT_CONFIRMATION_REQUESTED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AccountConfirmationRequested{
           user{
             ...CustomerDetails
@@ -34,9 +38,13 @@ ACCOUNT_CONFIRMATION_REQUESTED = (
 
 ACCOUNT_CONFIRMED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AccountConfirmed{
           user{
             ...CustomerDetails
@@ -50,9 +58,13 @@ ACCOUNT_CONFIRMED = (
 
 ACCOUNT_CHANGE_EMAIL_REQUESTED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AccountChangeEmailRequested{
           user{
             ...CustomerDetails
@@ -79,9 +91,13 @@ ACCOUNT_CHANGE_EMAIL_REQUESTED = (
 
 ACCOUNT_EMAIL_CHANGED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AccountEmailChanged{
           user{
             ...CustomerDetails
@@ -95,9 +111,13 @@ ACCOUNT_EMAIL_CHANGED = (
 
 ACCOUNT_DELETE_REQUESTED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AccountDeleteRequested{
           user{
             ...CustomerDetails
@@ -122,9 +142,13 @@ ACCOUNT_DELETE_REQUESTED = (
 
 ACCOUNT_SET_PASSWORD_REQUESTED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AccountSetPasswordRequested{
           user{
             ...CustomerDetails
@@ -149,9 +173,13 @@ ACCOUNT_SET_PASSWORD_REQUESTED = (
 
 ACCOUNT_DELETED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AccountDeleted{
           user{
             ...CustomerDetails
@@ -165,9 +193,13 @@ ACCOUNT_DELETED = (
 
 ADDRESS_CREATED = (
     fragments.ADDRESS_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AddressCreated{
           address{
             ...AddressDetails
@@ -181,9 +213,13 @@ ADDRESS_CREATED = (
 
 ADDRESS_UPDATED = (
     fragments.ADDRESS_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AddressUpdated{
           address{
             ...AddressDetails
@@ -197,9 +233,13 @@ ADDRESS_UPDATED = (
 
 ADDRESS_DELETED = (
     fragments.ADDRESS_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AddressDeleted{
           address{
             ...AddressDetails
@@ -212,9 +252,13 @@ ADDRESS_DELETED = (
 
 APP_INSTALLED = (
     fragments.APP_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AppInstalled{
           app{
             ...AppDetails
@@ -227,9 +271,13 @@ APP_INSTALLED = (
 
 APP_UPDATED = (
     fragments.APP_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AppUpdated{
           app{
             ...AppDetails
@@ -243,9 +291,13 @@ APP_UPDATED = (
 
 APP_DELETED = (
     fragments.APP_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AppDeleted{
           app{
             ...AppDetails
@@ -259,9 +311,13 @@ APP_DELETED = (
 
 APP_STATUS_CHANGED = (
     fragments.APP_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AppStatusChanged{
           app{
             ...AppDetails
@@ -275,9 +331,13 @@ APP_STATUS_CHANGED = (
 
 ATTRIBUTE_CREATED = (
     fragments.ATTRIBUTE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AttributeCreated{
           attribute{
             ...AttributeDetails
@@ -291,9 +351,13 @@ ATTRIBUTE_CREATED = (
 
 ATTRIBUTE_UPDATED = (
     fragments.ATTRIBUTE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AttributeUpdated{
           attribute{
             ...AttributeDetails
@@ -307,9 +371,13 @@ ATTRIBUTE_UPDATED = (
 
 ATTRIBUTE_DELETED = (
     fragments.ATTRIBUTE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AttributeDeleted{
           attribute{
             ...AttributeDetails
@@ -323,9 +391,13 @@ ATTRIBUTE_DELETED = (
 
 ATTRIBUTE_VALUE_CREATED = (
     fragments.ATTRIBUTE_VALUE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AttributeValueCreated{
           attributeValue{
             ...AttributeValueDetails
@@ -339,9 +411,13 @@ ATTRIBUTE_VALUE_CREATED = (
 
 ATTRIBUTE_VALUE_UPDATED = (
     fragments.ATTRIBUTE_VALUE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AttributeValueUpdated{
           attributeValue{
             ...AttributeValueDetails
@@ -355,9 +431,13 @@ ATTRIBUTE_VALUE_UPDATED = (
 
 ATTRIBUTE_VALUE_DELETED = (
     fragments.ATTRIBUTE_VALUE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on AttributeValueDeleted{
           attributeValue{
             ...AttributeValueDetails
@@ -371,9 +451,13 @@ ATTRIBUTE_VALUE_DELETED = (
 
 GIFT_CARD_CREATED = (
     fragments.GIFT_CARD_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on GiftCardCreated{
           giftCard{
             ...GiftCardDetails
@@ -387,9 +471,13 @@ GIFT_CARD_CREATED = (
 
 GIFT_CARD_UPDATED = (
     fragments.GIFT_CARD_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on GiftCardUpdated{
           giftCard{
             ...GiftCardDetails
@@ -402,9 +490,13 @@ GIFT_CARD_UPDATED = (
 
 GIFT_CARD_DELETED = (
     fragments.GIFT_CARD_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on GiftCardDeleted{
           giftCard{
             ...GiftCardDetails
@@ -418,9 +510,13 @@ GIFT_CARD_DELETED = (
 
 GIFT_CARD_SENT = (
     fragments.GIFT_CARD_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on GiftCardSent {
           giftCard{
             ...GiftCardDetails
@@ -436,9 +532,13 @@ GIFT_CARD_SENT = (
 
 GIFT_CARD_STATUS_CHANGED = (
     fragments.GIFT_CARD_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on GiftCardStatusChanged{
           giftCard{
             ...GiftCardDetails
@@ -451,9 +551,13 @@ GIFT_CARD_STATUS_CHANGED = (
 
 GIFT_CARD_METADATA_UPDATED = (
     fragments.GIFT_CARD_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on GiftCardMetadataUpdated{
           giftCard{
             ...GiftCardDetails
@@ -466,9 +570,13 @@ GIFT_CARD_METADATA_UPDATED = (
 
 GIFT_CARD_EXPORT_COMPLETED = (
     fragments.GIFT_CARD_EXPORT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on GiftCardExportCompleted{
           export{
             ...GiftCardExportDetails
@@ -481,9 +589,13 @@ GIFT_CARD_EXPORT_COMPLETED = (
 
 VOUCHER_CREATED = (
     fragments.VOUCHER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on VoucherCreated{
           voucher{
             ...VoucherDetails
@@ -497,9 +609,13 @@ VOUCHER_CREATED = (
 
 VOUCHER_CREATED_WITH_META = (
     fragments.VOUCHER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         __typename
         issuedAt
         version
@@ -530,9 +646,13 @@ VOUCHER_CREATED_WITH_META = (
 
 VOUCHER_UPDATED = (
     fragments.VOUCHER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on VoucherUpdated{
           voucher{
             ...VoucherDetails
@@ -546,9 +666,13 @@ VOUCHER_UPDATED = (
 
 VOUCHER_DELETED = (
     fragments.VOUCHER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on VoucherDeleted{
           voucher{
             ...VoucherDetails
@@ -562,9 +686,13 @@ VOUCHER_DELETED = (
 
 VOUCHER_CODES_CREATED = (
     fragments.VOUCHER_CODE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on VoucherCodesCreated{
           voucherCodes{
             ...VoucherCodeDetails
@@ -578,9 +706,13 @@ VOUCHER_CODES_CREATED = (
 
 VOUCHER_CODES_DELETED = (
     fragments.VOUCHER_CODE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on VoucherCodesDeleted{
           voucherCodes{
             ...VoucherCodeDetails
@@ -594,9 +726,13 @@ VOUCHER_CODES_DELETED = (
 
 VOUCHER_METADATA_UPDATED = (
     fragments.VOUCHER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on VoucherMetadataUpdated{
           voucher{
             ...VoucherDetails
@@ -610,9 +746,13 @@ VOUCHER_METADATA_UPDATED = (
 
 VOUCHER_CODE_EXPORT_COMPLETED = (
     fragments.VOUCHER_CODE_EXPORT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on VoucherCodeExportCompleted{
           export{
             ...VoucherCodeExportDetails
@@ -689,9 +829,13 @@ CHANNEL_STATUS_CHANGED = """
 
 CATEGORY_CREATED = (
     fragments.CATEGORY_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CategoryCreated{
           category{
             ...CategoryDetails
@@ -704,9 +848,13 @@ CATEGORY_CREATED = (
 
 CATEGORY_UPDATED = (
     fragments.CATEGORY_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CategoryUpdated{
           category{
             ...CategoryDetails
@@ -732,9 +880,13 @@ CATEGORY_DELETED = """
 
 SHIPPING_PRICE_CREATED = (
     fragments.SHIPPING_METHOD_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on ShippingPriceCreated{
           shippingMethod{
             ...ShippingMethodDetails
@@ -751,9 +903,13 @@ SHIPPING_PRICE_CREATED = (
 
 SHIPPING_PRICE_UPDATED_UPDATED = (
     fragments.SHIPPING_METHOD_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on ShippingPriceUpdated{
           shippingMethod{
             ...ShippingMethodDetails
@@ -853,9 +1009,13 @@ SHIPPING_ZONE_METADATA_UPDATED = """
 
 STAFF_CREATED = (
     fragments.STAFF_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on StaffCreated{
           user{
             ...StaffDetails
@@ -868,9 +1028,13 @@ STAFF_CREATED = (
 
 STAFF_UPDATED = (
     fragments.STAFF_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on StaffUpdated{
           user{
             ...StaffDetails
@@ -884,9 +1048,13 @@ STAFF_UPDATED = (
 
 STAFF_DELETED = (
     fragments.STAFF_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on StaffDeleted{
           user{
             ...StaffDetails
@@ -900,9 +1068,13 @@ STAFF_DELETED = (
 
 STAFF_SET_PASSWORD_REQUESTED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on StaffSetPasswordRequested{
           user{
             ...CustomerDetails
@@ -976,9 +1148,13 @@ PRODUCT_METADATA_UPDATED = """
 
 PRODUCT_EXPORT_COMPLETED = (
     fragments.PRODUCT_EXPORT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on ProductExportCompleted{
           export{
             ...ProductExportDetails
@@ -1303,9 +1479,13 @@ DRAFT_ORDER_DELETED = """
 
 SALE_CREATED = (
     fragments.SALE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on SaleCreated{
           sale{
             ...SaleDetails
@@ -1318,9 +1498,13 @@ SALE_CREATED = (
 
 SALE_UPDATED = (
     fragments.SALE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on SaleUpdated{
           sale{
             ...SaleDetails
@@ -1333,9 +1517,13 @@ SALE_UPDATED = (
 
 SALE_DELETED = (
     fragments.SALE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on SaleDeleted{
           sale{
             ...SaleDetails
@@ -1349,9 +1537,13 @@ SALE_DELETED = (
 
 SALE_TOGGLE = (
     fragments.SALE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on SaleToggle{
           sale{
             ...SaleDetails
@@ -1365,9 +1557,13 @@ SALE_TOGGLE = (
 
 PROMOTION_CREATED = (
     fragments.PROMOTION_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PromotionCreated{
           promotion{
             ...PromotionDetails
@@ -1380,9 +1576,13 @@ PROMOTION_CREATED = (
 
 PROMOTION_UPDATED = (
     fragments.PROMOTION_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PromotionUpdated{
           promotion{
             ...PromotionDetails
@@ -1395,9 +1595,13 @@ PROMOTION_UPDATED = (
 
 PROMOTION_DELETED = (
     fragments.PROMOTION_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PromotionDeleted{
           promotion{
             ...PromotionDetails
@@ -1411,9 +1615,13 @@ PROMOTION_DELETED = (
 
 PROMOTION_STARTED = (
     fragments.PROMOTION_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PromotionStarted{
           promotion{
             ...PromotionDetails
@@ -1427,9 +1635,13 @@ PROMOTION_STARTED = (
 
 PROMOTION_ENDED = (
     fragments.PROMOTION_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PromotionEnded{
           promotion{
             ...PromotionDetails
@@ -1443,9 +1655,13 @@ PROMOTION_ENDED = (
 
 PROMOTION_RULE_CREATED = (
     fragments.PROMOTION_RULE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PromotionRuleCreated{
           promotionRule{
             ...PromotionRuleDetails
@@ -1458,9 +1674,13 @@ PROMOTION_RULE_CREATED = (
 
 PROMOTION_RULE_UPDATED = (
     fragments.PROMOTION_RULE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PromotionRuleUpdated{
           promotionRule{
             ...PromotionRuleDetails
@@ -1473,9 +1693,13 @@ PROMOTION_RULE_UPDATED = (
 
 PROMOTION_RULE_DELETED = (
     fragments.PROMOTION_RULE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PromotionRuleDeleted{
           promotionRule{
             ...PromotionRuleDetails
@@ -1490,9 +1714,13 @@ PROMOTION_RULE_DELETED = (
 INVOICE_REQUESTED = (
     fragments.INVOICE_DETAILS
     + fragments.INVOICE_ORDER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on InvoiceRequested{
           invoice{
             ...InvoiceDetails
@@ -1509,9 +1737,13 @@ INVOICE_REQUESTED = (
 INVOICE_DELETED = (
     fragments.INVOICE_DETAILS
     + fragments.INVOICE_ORDER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on InvoiceDeleted{
           invoice{
             ...InvoiceDetails
@@ -1528,9 +1760,13 @@ INVOICE_DELETED = (
 INVOICE_SENT = (
     fragments.INVOICE_DETAILS
     + fragments.INVOICE_ORDER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on InvoiceSent{
           invoice{
             ...InvoiceDetails
@@ -1546,9 +1782,13 @@ INVOICE_SENT = (
 
 FULFILLMENT_CREATED = (
     fragments.FULFILLMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on FulfillmentCreated{
           notifyCustomer
           fulfillment{
@@ -1565,9 +1805,13 @@ FULFILLMENT_CREATED = (
 
 FULFILLMENT_CANCELED = (
     fragments.FULFILLMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on FulfillmentCanceled{
           fulfillment{
             ...FulfillmentDetails
@@ -1584,9 +1828,13 @@ FULFILLMENT_CANCELED = (
 
 FULFILLMENT_APPROVED = (
     fragments.FULFILLMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on FulfillmentApproved{
           notifyCustomer
           fulfillment{
@@ -1604,9 +1852,13 @@ FULFILLMENT_APPROVED = (
 
 FULFILLMENT_METADATA_UPDATED = (
     fragments.FULFILLMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on FulfillmentMetadataUpdated{
           fulfillment{
             ...FulfillmentDetails
@@ -1622,9 +1874,13 @@ FULFILLMENT_METADATA_UPDATED = (
 
 FULFILLMENT_TRACKING_NUMBER_UPDATED = (
     fragments.FULFILLMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on FulfillmentTrackingNumberUpdated{
           fulfillment{
             ...FulfillmentDetails
@@ -1641,9 +1897,13 @@ FULFILLMENT_TRACKING_NUMBER_UPDATED = (
 
 CUSTOMER_CREATED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CustomerCreated{
           user{
             ...CustomerDetails
@@ -1656,9 +1916,13 @@ CUSTOMER_CREATED = (
 
 CUSTOMER_UPDATED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CustomerUpdated{
           user{
             ...CustomerDetails
@@ -1672,9 +1936,13 @@ CUSTOMER_UPDATED = (
 
 CUSTOMER_DELETED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CustomerDeleted{
           user{
             ...CustomerDetails
@@ -1688,9 +1956,13 @@ CUSTOMER_DELETED = (
 
 CUSTOMER_METADATA_UPDATED = (
     fragments.CUSTOMER_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CustomerMetadataUpdated{
           user{
             ...CustomerDetails
@@ -1704,9 +1976,13 @@ CUSTOMER_METADATA_UPDATED = (
 
 COLLECTION_CREATED = (
     fragments.COLLECTION
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CollectionCreated{
           collection(channel: "main"){
             ...CollectionDetails
@@ -1720,9 +1996,13 @@ COLLECTION_CREATED = (
 
 COLLECTION_UPDATED = (
     fragments.COLLECTION
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CollectionUpdated{
           collection(channel: "main"){
             ...CollectionDetails
@@ -1735,9 +2015,13 @@ COLLECTION_UPDATED = (
 
 COLLECTION_DELETED = (
     fragments.COLLECTION
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CollectionDeleted{
           collection(channel: "main"){
             ...CollectionDetails
@@ -1751,9 +2035,13 @@ COLLECTION_DELETED = (
 
 COLLECTION_METADATA_UPDATED = (
     fragments.COLLECTION
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on CollectionMetadataUpdated{
           collection(channel: "main"){
             ...CollectionDetails
@@ -1830,9 +2118,13 @@ CHECKOUT_METADATA_UPDATED = """
 
 PAGE_CREATED = (
     fragments.PAGE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PageCreated{
           page{
             ...PageDetails
@@ -1845,9 +2137,13 @@ PAGE_CREATED = (
 
 PAGE_UPDATED = (
     fragments.PAGE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PageUpdated{
           page{
             ...PageDetails
@@ -1860,9 +2156,13 @@ PAGE_UPDATED = (
 
 PAGE_DELETED = (
     fragments.PAGE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PageDeleted{
           page{
             ...PageDetails
@@ -1876,9 +2176,13 @@ PAGE_DELETED = (
 
 PAGE_TYPE_CREATED = (
     fragments.PAGE_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PageTypeCreated{
           pageType{
             ...PageTypeDetails
@@ -1891,9 +2195,13 @@ PAGE_TYPE_CREATED = (
 
 PAGE_TYPE_UPDATED = (
     fragments.PAGE_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PageTypeUpdated{
           pageType{
             ...PageTypeDetails
@@ -1906,9 +2214,13 @@ PAGE_TYPE_UPDATED = (
 
 PAGE_TYPE_DELETED = (
     fragments.PAGE_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PageTypeDeleted{
           pageType{
             ...PageTypeDetails
@@ -1921,9 +2233,13 @@ PAGE_TYPE_DELETED = (
 
 PERMISSION_GROUP_CREATED = (
     fragments.PERMISSION_GROUP_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PermissionGroupCreated{
           permissionGroup{
             ...PermissionGroupDetails
@@ -1936,9 +2252,13 @@ PERMISSION_GROUP_CREATED = (
 
 PERMISSION_GROUP_UPDATED = (
     fragments.PERMISSION_GROUP_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PermissionGroupUpdated{
           permissionGroup{
             ...PermissionGroupDetails
@@ -1951,9 +2271,13 @@ PERMISSION_GROUP_UPDATED = (
 
 PERMISSION_GROUP_DELETED = (
     fragments.PERMISSION_GROUP_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PermissionGroupDeleted{
           permissionGroup{
             ...PermissionGroupDetails
@@ -2552,9 +2876,13 @@ TEST_VALID_SUBSCRIPTION_QUERY = """
 
 MENU_CREATED = (
     fragments.MENU_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on MenuCreated{
           menu{
             ...MenuDetails
@@ -2568,9 +2896,13 @@ MENU_CREATED = (
 
 MENU_UPDATED = (
     fragments.MENU_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on MenuUpdated{
           menu{
             ...MenuDetails
@@ -2584,9 +2916,13 @@ MENU_UPDATED = (
 
 MENU_DELETED = (
     fragments.MENU_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on MenuDeleted{
           menu{
             ...MenuDetails
@@ -2600,9 +2936,13 @@ MENU_DELETED = (
 
 MENU_ITEM_CREATED = (
     fragments.MENU_ITEM_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on MenuItemCreated{
           menuItem{
             ...MenuItemDetails
@@ -2616,9 +2956,13 @@ MENU_ITEM_CREATED = (
 
 MENU_ITEM_UPDATED = (
     fragments.MENU_ITEM_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on MenuItemUpdated{
           menuItem{
             ...MenuItemDetails
@@ -2632,9 +2976,13 @@ MENU_ITEM_UPDATED = (
 
 MENU_ITEM_DELETED = (
     fragments.MENU_ITEM_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on MenuItemDeleted{
           menuItem{
             ...MenuItemDetails
@@ -2648,9 +2996,13 @@ MENU_ITEM_DELETED = (
 
 WAREHOUSE_CREATED = (
     fragments.WAREHOUSE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on WarehouseCreated{
           warehouse{
             ...WarehouseDetails
@@ -2663,9 +3015,13 @@ WAREHOUSE_CREATED = (
 
 WAREHOUSE_UPDATED = (
     fragments.WAREHOUSE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on WarehouseUpdated{
           warehouse{
             ...WarehouseDetails
@@ -2678,9 +3034,13 @@ WAREHOUSE_UPDATED = (
 
 WAREHOUSE_DELETED = (
     fragments.WAREHOUSE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on WarehouseDeleted{
           warehouse{
             ...WarehouseDetails
@@ -2693,9 +3053,13 @@ WAREHOUSE_DELETED = (
 
 WAREHOUSE_METADATA_UPDATED = (
     fragments.WAREHOUSE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on WarehouseMetadataUpdated{
           warehouse{
             ...WarehouseDetails
@@ -2708,9 +3072,13 @@ WAREHOUSE_METADATA_UPDATED = (
 
 PAYMENT_AUTHORIZE = (
     fragments.PAYMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PaymentAuthorize{
           payment{
             ...PaymentDetails
@@ -2724,9 +3092,13 @@ PAYMENT_AUTHORIZE = (
 
 PAYMENT_CAPTURE = (
     fragments.PAYMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PaymentCaptureEvent{
           payment{
             ...PaymentDetails
@@ -2740,9 +3112,13 @@ PAYMENT_CAPTURE = (
 
 PAYMENT_REFUND = (
     fragments.PAYMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PaymentRefundEvent{
           payment{
             ...PaymentDetails
@@ -2756,9 +3132,13 @@ PAYMENT_REFUND = (
 
 PAYMENT_VOID = (
     fragments.PAYMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PaymentVoidEvent{
           payment{
             ...PaymentDetails
@@ -2772,9 +3152,13 @@ PAYMENT_VOID = (
 
 PAYMENT_CONFIRM = (
     fragments.PAYMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PaymentConfirmEvent{
           payment{
             ...PaymentDetails
@@ -2788,9 +3172,13 @@ PAYMENT_CONFIRM = (
 
 PAYMENT_PROCESS = (
     fragments.PAYMENT_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on PaymentProcessEvent{
           payment{
             ...PaymentDetails
@@ -2962,9 +3350,13 @@ INVALID_MULTIPLE_EVENTS = """
 INVALID_MULTIPLE_EVENTS_WITH_FRAGMENTS = (
     fragments.PRODUCT_VARIANT
     + fragments.CATEGORY_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on ProductUpdated{
           product{
               variants{
@@ -2996,9 +3388,13 @@ INVALID_MULTIPLE_EVENTS_WITH_FRAGMENTS = (
 QUERY_WITH_MULTIPLE_FRAGMENTS = (
     fragments.PRODUCT_VARIANT
     + fragments.CATEGORY_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
+        recipient{
+          ...Recipient
+        }
         ...on ProductUpdated{
           product{
             variants{
