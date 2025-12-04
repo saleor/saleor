@@ -40,11 +40,8 @@ class DataLoader[K, R](BaseLoader):
         current_thread_id = getattr(self, "thread_id", None)
         if current_thread_id != thread_id:
             if current_thread_id is not None:
-                raise RuntimeError(
-                    "Dataloader for key %s is being initialized with "
-                    "a different threadID. This leads to overwriting the "
-                    "previous context and may cause unexpected behavior.",
-                    self.context_key,
+                assert thread_id == current_thread_id, (
+                    "Dataloaders cannot be shared between threads"
                 )
             self.thread_id = thread_id
             self.context = context
