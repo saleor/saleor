@@ -5066,10 +5066,10 @@ def test_checkout_complete_line_deleted_in_the_meantime(
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
 
-    assert data["order"]
-    assert not data["errors"]
-    assert Order.objects.count() == 1
-    assert not Checkout.objects.filter(pk=checkout.pk).exists()
+    assert not data["order"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NO_LINES.name
+    assert data["errors"][0]["field"] == "lines"
 
 
 def test_checkout_complete_with_invalid_address(

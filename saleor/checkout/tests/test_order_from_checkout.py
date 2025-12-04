@@ -3,6 +3,7 @@ from unittest import mock
 from unittest.mock import patch
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.test import override_settings
 from prices import Money, TaxedMoney
 
@@ -24,7 +25,7 @@ from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
 from ...tests import race_condition
-from .. import calculations
+from .. import CheckoutAuthorizeStatus, calculations
 from ..complete_checkout import create_order_from_checkout
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..utils import add_variant_to_checkout, add_voucher_to_checkout
@@ -782,22 +783,23 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
 
 
 def test_note_in_created_order_checkout_line_deleted_in_the_meantime(
-    checkout_with_item, address, app, voucher_percentage
+    checkout_with_items, address, shipping_method, app, voucher_percentage
 ):
     # given
-    checkout_with_item.voucher_code = voucher_percentage.code
-    checkout_with_item.shipping_address = address
-    checkout_with_item.billing_address = address
-    checkout_with_item.tracking_code = "tracking_code"
-    checkout_with_item.redirect_url = "https://www.example.com"
-    checkout_with_item.save()
+    checkout_with_items.voucher_code = voucher_percentage.code
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.tracking_code = "tracking_code"
+    checkout_with_items.redirect_url = "https://www.example.com"
+    checkout_with_items.save()
     manager = get_plugins_manager(allow_replica=False)
 
-    checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
+    checkout_lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, checkout_lines, manager)
 
     def delete_checkout_line(*args, **kwargs):
-        CheckoutLine.objects.get(id=checkout_with_item.lines.first().id).delete()
+        CheckoutLine.objects.get(id=checkout_with_items.lines.first().id).delete()
 
     # when
     with race_condition.RunAfter(
@@ -1041,3 +1043,37 @@ def test_create_order_from_checkout_update_tax_error(
     assert not Order.objects.exists()
     assert "Tax app error for checkout" in caplog.text
     assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
+
+
+def test_created_order_from_checkout_missing_lines(
+    checkout_with_item, address, shipping_method, app, voucher_percentage
+):
+    # given
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.authorize_status = CheckoutAuthorizeStatus.FULL
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.tracking_code = "tracking_code"
+    checkout_with_item.redirect_url = "https://www.example.com"
+    checkout_with_item.save()
+    manager = get_plugins_manager(allow_replica=False)
+
+    checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
+
+    def delete_lines(*args, **kwargs):
+        CheckoutLine.objects.filter(checkout_id=checkout_with_item.pk).delete()
+
+    # when
+    with race_condition.RunAfter(
+        "saleor.checkout.complete_checkout._increase_voucher_code_usage_value",
+        delete_lines,
+    ):
+        with pytest.raises(ValidationError):
+            create_order_from_checkout(
+                checkout_info=checkout_info,
+                manager=manager,
+                user=None,
+                app=app,
+            )
