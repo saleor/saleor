@@ -244,6 +244,15 @@ def automatic_checkout_completion_task(
         )
         return
 
+    if not lines:
+        task_logger.info(
+            "The automatic checkout completion not triggered, as the checkout %s "
+            "has no lines.",
+            checkout_id,
+            extra={"checkout_id": checkout_id},
+        )
+        return
+
     task_logger.info(
         "Automatic checkout completion triggered for checkout: %s.",
         checkout_id,

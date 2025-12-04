@@ -797,8 +797,9 @@ def test_automatic_checkout_completion_line_without_listing(
     assert caplog.records[0].levelno == logging.INFO
 
 
-def test_automatic_checkout_completion_error_raised(checkout, app, caplog):
+def test_automatic_checkout_completion_error_raised(checkout_with_item, app, caplog):
     # given
+    checkout = checkout_with_item
     checkout_pk = checkout.pk
     checkout.billing_address = None
     checkout.save(update_fields=["billing_address"])
@@ -826,6 +827,44 @@ def test_automatic_checkout_completion_error_raised(checkout, app, caplog):
     assert caplog.records[1].checkout_id == checkout_id
     assert caplog.records[1].error
     assert caplog.records[1].levelno == logging.WARNING
+
+
+def test_automatic_checkout_completion_missing_lines(
+    checkout_with_prices,
+    transaction_item_generator,
+    app,
+    caplog,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_pk = checkout.pk
+
+    # delete lines
+    checkout.lines.all().delete()
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=checkout.total.gross.amount
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        automatic_checkout_completion_task(checkout.pk)
+
+    # then
+    assert Checkout.objects.filter(pk=checkout_pk).exists()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].message == (
+        "The automatic checkout completion not triggered, as the checkout "
+        f"{checkout_id} has no lines."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
 
 
 @mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
