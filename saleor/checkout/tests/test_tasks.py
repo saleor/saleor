@@ -1133,6 +1133,38 @@ def test_trigger_automatic_checkout_completion_task_checkout_not_eligible_due_mi
 
 @mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
 @freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_checkout_not_eligible_due_total_0(
+    mocked_automatic_checkout_completion,
+    checkout_with_prices,
+    channel_USD,
+    shipping_method,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
+        total_gross_amount=Decimal("0.00"),
+        total_net_amount=Decimal("0.00"),
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    assert not mocked_automatic_checkout_completion.called
+
+
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.apply_async")
+@freeze_time("2024-05-31 12:00:01")
 @pytest.mark.parametrize("batch_size", [1, 2, 5])
 def test_trigger_automatic_checkout_completion_task_respects_batch_size(
     mocked_automatic_checkout_completion,
@@ -1153,6 +1185,7 @@ def test_trigger_automatic_checkout_completion_task_respects_batch_size(
         ]
     )
 
+    amount = Decimal("10.00")
     Checkout.objects.update(
         authorize_status=CheckoutAuthorizeStatus.FULL,
         billing_address=address,
@@ -1160,6 +1193,8 @@ def test_trigger_automatic_checkout_completion_task_respects_batch_size(
         channel=channel_USD,
         last_change=timezone.now() - datetime.timedelta(minutes=10),
         shipping_method=shipping_method,
+        total_gross_amount=amount,
+        total_net_amount=amount,
     )
 
     # when
@@ -1202,6 +1237,8 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
     never_attempted.email = "test@email.com"
     never_attempted.billing_address = address
     never_attempted.shipping_method = shipping_method
+    never_attempted.total_gross_amount = Decimal("10.00")
+    never_attempted.total_net_amount = Decimal("8.00")
     never_attempted.channel = channel_USD
 
     attempted_recently.authorize_status = CheckoutAuthorizeStatus.FULL
@@ -1212,6 +1249,8 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
     attempted_recently.email = "test@email.com"
     attempted_recently.billing_address = address
     attempted_recently.shipping_method = shipping_method
+    attempted_recently.total_gross_amount = Decimal("10.00")
+    attempted_recently.total_net_amount = Decimal("8.00")
     attempted_recently.channel = channel_USD
 
     Checkout.objects.bulk_update(
@@ -1224,6 +1263,8 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
             "billing_address",
             "email",
             "shipping_method",
+            "total_gross_amount",
+            "total_net_amount",
         ],
     )
 
@@ -1267,6 +1308,8 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
     checkout_usd.shipping_method = shipping_method
     checkout_usd.billing_address = address
     checkout_usd.email = "test@email.com"
+    checkout_usd.total_gross_amount = Decimal("10.00")
+    checkout_usd.total_net_amount = Decimal("8.00")
     checkout_usd.last_change = timezone.now() - datetime.timedelta(minutes=10)
 
     checkout_pln = checkouts_list[1]
@@ -1275,6 +1318,8 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
     checkout_pln.shipping_method = shipping_method
     checkout_pln.billing_address = address
     checkout_pln.email = "test@email.com"
+    checkout_pln.total_gross_amount = Decimal("0.5")
+    checkout_pln.total_net_amount = Decimal("0.5")
     checkout_pln.last_change = timezone.now() - datetime.timedelta(minutes=15)
 
     checkout_pln_not_ready = checkouts_list[2]
@@ -1282,6 +1327,8 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
     checkout_pln_not_ready.shipping_method = shipping_method
     checkout_pln_not_ready.billing_address = address
     checkout_pln_not_ready.email = "test@email.com"
+    checkout_pln_not_ready.total_gross_amount = Decimal("1.00")
+    checkout_pln_not_ready.total_net_amount = Decimal("1.00")
     checkout_pln_not_ready.authorize_status = CheckoutAuthorizeStatus.FULL
 
     Checkout.objects.bulk_update(
@@ -1293,6 +1340,8 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
             "shipping_method",
             "billing_address",
             "email",
+            "total_gross_amount",
+            "total_net_amount",
         ],
     )
 
@@ -1341,6 +1390,8 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
     eligible_checkout.email = "test@email.com"
     eligible_checkout.billing_address = address
     eligible_checkout.shipping_method = shipping_method
+    eligible_checkout.total_gross_amount = Decimal("10.00")
+    eligible_checkout.total_net_amount = Decimal("8.00")
 
     ineligible_checkout_due_to_cut_off = checkouts_list[1]
     ineligible_checkout_due_to_cut_off.channel = channel_USD
@@ -1351,6 +1402,8 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
     ineligible_checkout_due_to_cut_off.email = "test@email.com"
     ineligible_checkout_due_to_cut_off.billing_address = address
     ineligible_checkout_due_to_cut_off.shipping_method = shipping_method
+    ineligible_checkout_due_to_cut_off.total_gross_amount = Decimal("10.00")
+    ineligible_checkout_due_to_cut_off.total_net_amount = Decimal("8.00")
     ineligible_checkout_due_to_cut_off.created_at = timezone.now() - datetime.timedelta(
         days=15
     )
@@ -1365,6 +1418,8 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
             "email",
             "billing_address",
             "shipping_method",
+            "total_gross_amount",
+            "total_net_amount",
         ],
     )
 

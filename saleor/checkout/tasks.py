@@ -177,6 +177,7 @@ def trigger_automatic_checkout_completion_task():
                 Q(last_change__gte=oldest_allowed_checkout)
                 & (Q(email__isnull=False) | Q(user__isnull=False))
                 & Q(billing_address__isnull=False)
+                & Q(total_gross_amount__gt=Decimal("0.0"))
             )
             .filter(lookup)
             # Sort by last attempt time (nulls first - never attempted), then by last_change
