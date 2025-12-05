@@ -366,3 +366,83 @@ def test_automatic_completion_schedule_are_dirty_checkout_in_cut_off_date(
     # then
     assert is_due is True
     assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_automatic_completion_schedule_missing_billing_address(
+    checkout_with_prices, channel_USD
+):
+    # given
+    schedule = checkout_automatic_completion_schedule()
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
+        billing_address=None,
+    )
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_automatic_completion_schedule_missing_user_or_email(
+    checkout_with_prices, channel_USD
+):
+    # given
+    schedule = checkout_automatic_completion_schedule()
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
+        user=None,
+        email=None,
+    )
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_automatic_completion_schedule_zero_total(checkout_with_prices, channel_USD):
+    # given
+    schedule = checkout_automatic_completion_schedule()
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
+        total_gross_amount=0,
+    )
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
