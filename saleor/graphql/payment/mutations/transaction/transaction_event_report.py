@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from .....app.models import App
+from .....checkout.models import Checkout
 from .....core.exceptions import PermissionDenied
 from .....core.prices import quantize_price
 from .....core.tracing import traced_atomic_transaction
@@ -372,7 +373,12 @@ class TransactionEventReport(DeprecatedModelMutation):
         transaction_event = cls.construct_instance(
             transaction_event, transaction_event_data
         )
-        source_object = transaction.order or transaction.checkout
+        try:
+            source_object = transaction.order or transaction.checkout
+        except Checkout.DoesNotExist:
+            # Prevent race condition between TransactionEventReport and checkout completion
+            transaction.refresh_from_db()
+            source_object = transaction.order or transaction.checkout
 
         metadata_collection = cls.create_metadata_from_graphql_input(
             transaction_metadata, error_field_name="metadata"
