@@ -4,7 +4,11 @@ import datetime
 import graphene
 
 from ...app import models
-from ...app.types import AppExtensionHttpMethod, AppExtensionTarget
+from ...app.types import (
+    DEFAULT_APP_TARGET,
+    DeprecatedAppExtensionHttpMethod,
+    DeprecatedAppExtensionTarget,
+)
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
@@ -117,29 +121,25 @@ class AppManifestExtension(BaseObjectType):
     )
 
     mount_name = graphene.String(
-        description="Name of the extension mount point in the dashboard. Replaces `mount`. Value returned in UPPERCASE."
+        description="Name of the extension mount point in the dashboard. Value returned in UPPERCASE."
         + ADDED_IN_322,
         required=True,
     )
 
     target_name = graphene.String(
-        description="Name of the extension target in the dashboard. Replaces `target`. Value returned in UPPERCASE."
+        description="Name of the extension target in the dashboard. Value returned in UPPERCASE."
         + ADDED_IN_322,
         required=True,
     )
 
     settings = graphene.Field(
         JSON,
-        description="App extension settings. Replaces options field." + ADDED_IN_322,
+        description="App extension settings." + ADDED_IN_322,
         required=True,
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_APPS
-
-    @staticmethod
-    def resolve_target(root, _info: ResolveInfo):
-        return root.get("target") or AppExtensionTarget.POPUP
 
     @staticmethod
     def resolve_url(root, _info: ResolveInfo):
@@ -148,7 +148,7 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_target_name(root, _info: ResolveInfo):
-        return (root.get("target") or "POPUP").upper()
+        return (root.get("target") or DEFAULT_APP_TARGET).upper()
 
     @staticmethod
     def resolve_mount_name(root, _info: ResolveInfo):
@@ -160,8 +160,8 @@ class AppManifestExtension(BaseObjectType):
 
 
 class HttpMethod(BaseEnum):
-    POST = AppExtensionHttpMethod.POST
-    GET = AppExtensionHttpMethod.GET
+    POST = DeprecatedAppExtensionHttpMethod.POST
+    GET = DeprecatedAppExtensionHttpMethod.GET
 
 
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
@@ -251,14 +251,14 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
         # Fallback if settings not propagated in DB yet
         # Make it case-insensitive due to migration logic - enum will become uppercased in DB
-        if root.target.upper() == AppExtensionTarget.WIDGET.upper():
+        if root.target.upper() == DeprecatedAppExtensionTarget.WIDGET.upper():
             return {
                 "widgetTarget": {
                     "method": http_method,
                 }
             }
 
-        if root.target.upper() == AppExtensionTarget.NEW_TAB.upper():
+        if root.target.upper() == DeprecatedAppExtensionTarget.NEW_TAB.upper():
             return {
                 "newTabTarget": {
                     "method": http_method,

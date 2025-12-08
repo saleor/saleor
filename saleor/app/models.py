@@ -12,9 +12,9 @@ from ..permission.enums import AppPermission, BasePermissionEnum
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .types import (
-    AppExtensionHttpMethod,
-    AppExtensionTarget,
+    DEFAULT_APP_TARGET,
     AppType,
+    DeprecatedAppExtensionHttpMethod,
 )
 
 
@@ -159,7 +159,7 @@ class AppExtension(models.Model):
     mount = models.CharField(max_length=256)
     target = models.CharField(
         max_length=128,
-        default=AppExtensionTarget.POPUP,
+        default=DEFAULT_APP_TARGET,
     )
     permissions = models.ManyToManyField(
         Permission,
@@ -169,7 +169,7 @@ class AppExtension(models.Model):
     http_target_method = models.CharField(
         blank=False,
         null=True,
-        choices=AppExtensionHttpMethod.CHOICES,
+        choices=DeprecatedAppExtensionHttpMethod.CHOICES,
     )
     settings = models.JSONField(blank=True, default=dict, db_default={})
 

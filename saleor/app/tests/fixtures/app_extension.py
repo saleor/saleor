@@ -1,7 +1,6 @@
 import pytest
 
 from ....app.models import AppExtension
-from ....app.types import AppExtensionMount
 
 
 @pytest.fixture
@@ -10,7 +9,7 @@ def app_with_extensions(app_with_token, permission_manage_products):
         app=app_with_token,
         label="Create product with App",
         url="www.example.com/app-product",
-        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     extensions = AppExtension.objects.bulk_create(
         [
@@ -19,7 +18,7 @@ def app_with_extensions(app_with_token, permission_manage_products):
                 app=app_with_token,
                 label="Update product with App",
                 url="www.example.com/app-product-update",
-                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                mount="product_details_more_actions",
             ),
         ]
     )
@@ -33,7 +32,7 @@ def removed_app_with_extensions(removed_app, permission_manage_products):
         app=removed_app,
         label="Create product with App",
         url="www.example.com/app-product",
-        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     extensions = AppExtension.objects.bulk_create(
         [
@@ -42,7 +41,7 @@ def removed_app_with_extensions(removed_app, permission_manage_products):
                 app=removed_app,
                 label="Update product with App",
                 url="www.example.com/app-product-update",
-                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                mount="product_details_more_actions",
             ),
         ]
     )

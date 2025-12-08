@@ -20,4 +20,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Fix send order confirmation email to staff - #18342 by @Shaokun-X
 
+- Validation on `AppExtension` is now removed. Saleor will accept string values for `mount` and `target` from Manifest during App installation and JSON value for `options` field.
+Validation is now performed on the frontend (Dashboard). This change increases velocity of features related to apps and extensions, now Dashboard is only entity that ensures the contract
+
 ### Deprecations
