@@ -12,6 +12,7 @@ from ..permission.enums import AppPermission, BasePermissionEnum
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .types import (
+    DEFAULT_APP_TARGET,
     AppType,
     DeprecatedAppExtensionHttpMethod,
     DeprecatedAppExtensionMount,
@@ -163,7 +164,7 @@ class AppExtension(models.Model):
     target = models.CharField(
         choices=DeprecatedAppExtensionTarget.CHOICES,
         max_length=128,
-        default=DeprecatedAppExtensionTarget.POPUP,
+        default=DEFAULT_APP_TARGET,
     )
     permissions = models.ManyToManyField(
         Permission,
