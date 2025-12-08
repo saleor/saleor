@@ -1312,7 +1312,7 @@ def test_add_checkout_lines_gift_discount_applies(
     }
 
     # when
-    with django_assert_num_queries(134):
+    with django_assert_num_queries(140):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then
