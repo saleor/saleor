@@ -3600,10 +3600,10 @@ def test_update_product_variant_with_existing_metadata_and_event_when_write_diff
     assert data["id"] == variant_id
 
     # Then
-    # - product_variant_updated should run - metadata value changed
+    # - product_variant_updated should not run - only metadata value changed
     # - product_variant_metadata_updated should  run - metadata value changed
     # no empty event emitted
-    product_variant_updated_webhook_mock.assert_called_once()
+    product_variant_updated_webhook_mock.assert_not_called()
     product_variant_metadata_updated_webhook_mock.assert_called_once()
 
 
