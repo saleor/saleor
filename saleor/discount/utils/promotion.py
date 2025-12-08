@@ -828,7 +828,7 @@ def _handle_gift_reward(
         if line_discount.line_id != line.id:
             line_discount.line = line
             fields_to_update.append("line_id")
-        promotion_rule = cast(PromotionRule, line_discount.promotion_rule)
+        promotion_rule = cast(PromotionRule, line_discount_data.promotion_rule)
         update_promotion_discount(
             promotion_rule,
             rule_info,
