@@ -166,25 +166,27 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
 
         # Save the new instance data
         cls.clean_instance(info, instance)
-        modified_instance_fields, metadata_modified = cls._save(
+        non_metadata_modified_fields, metadata_modified_fields = cls._save(
             info, instance, cleaned_input, instance_tracker
         )
         cls._save_m2m(info, instance, cleaned_input)
 
-        cls.generate_events(info, instance, instance_tracker, modified_instance_fields)
+        cls.generate_events(
+            info, instance, instance_tracker, non_metadata_modified_fields
+        )
 
-        if modified_instance_fields or metadata_modified:
+        if non_metadata_modified_fields or metadata_modified_fields:
             site = get_site_promise(info.context).get()
             use_legacy_webhooks_emission = (
                 site.settings.use_legacy_update_webhook_emission
             )
             manager = get_plugin_manager_promise(info.context).get()
-            if modified_instance_fields or (
-                metadata_modified and use_legacy_webhooks_emission
+            if non_metadata_modified_fields or (
+                metadata_modified_fields and use_legacy_webhooks_emission
             ):
                 cls.call_event(manager.customer_updated, instance)
 
-            if metadata_modified:
+            if metadata_modified_fields:
                 cls.call_event(manager.customer_metadata_updated, instance)
 
         if gift_cards:
@@ -197,30 +199,28 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
     @traced_atomic_transaction()
     def _save(
         cls, info: ResolveInfo, instance, cleaned_input, instance_tracker
-    ) -> tuple[set, bool]:
+    ) -> tuple[set, set]:
         instance = cast(models.User, instance_tracker.instance)
         modified_instance_fields = set(instance_tracker.get_modified_fields())
-        metadata_modified = (
-            "metadata" in modified_instance_fields
-            or "private_metadata" in modified_instance_fields
-        )
+        metadata_modified_fields = {
+            "metadata",
+            "private_metadata",
+        } & modified_instance_fields
 
-        # In case any of default address changed,  treat is as a modification on
-        # customer instance
-        if _changed := cls.save_default_addresses(
+        if changed_fields := cls.save_default_addresses(
             cleaned_input=cleaned_input,
             user_instance=instance,
         ):
-            modified_instance_fields.add("default_address")
+            modified_instance_fields.update(changed_fields)
 
-        modified_instance_fields = set(modified_instance_fields) - {
-            "metadata",
-            "private_metadata",
-        }
-        if modified_instance_fields:
+        non_metadata_modified_fields = (
+            set(modified_instance_fields) - metadata_modified_fields
+        )
+        if non_metadata_modified_fields:
             instance.search_document = prepare_user_search_document_value(instance)
+            modified_instance_fields.add("search_document")
 
-        if modified_instance_fields or metadata_modified:
-            instance.save()
+        if modified_instance_fields:
+            instance.save(update_fields=list(modified_instance_fields))
 
-        return modified_instance_fields, metadata_modified
+        return non_metadata_modified_fields, metadata_modified_fields

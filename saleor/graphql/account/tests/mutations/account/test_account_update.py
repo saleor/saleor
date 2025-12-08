@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ......account.error_codes import AccountErrorCode
 from ......account.models import User
@@ -10,23 +11,11 @@ from .....tests.utils import assert_no_permission, get_graphql_content
 
 ACCOUNT_UPDATE_QUERY = """
     mutation accountUpdate(
-        $billing: AddressInput
-        $shipping: AddressInput
-        $firstName: String,
-        $lastName: String
-        $languageCode: LanguageCodeEnum
-        $metadata: [MetadataInput!]
+        $input: AccountInput!
         $customerId: ID
     ) {
         accountUpdate(
-          input: {
-            defaultBillingAddress: $billing,
-            defaultShippingAddress: $shipping,
-            firstName: $firstName,
-            lastName: $lastName,
-            languageCode: $languageCode,
-            metadata: $metadata,
-          },
+          input: $input,
           customerId: $customerId
         ) {
             errors {
@@ -71,7 +60,7 @@ def test_logged_customer_updates_language_code(user_api_client):
     language_code = "PL"
     user = user_api_client.user
     assert user.language_code != language_code
-    variables = {"languageCode": language_code}
+    variables = {"input": {"languageCode": language_code}}
 
     response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
     content = get_graphql_content(response)
@@ -91,7 +80,7 @@ def test_logged_customer_update_names(user_api_client):
     assert user.first_name != first_name
     assert user.last_name != last_name
 
-    variables = {"firstName": first_name, "lastName": last_name}
+    variables = {"input": {"firstName": first_name, "lastName": last_name}}
     response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["accountUpdate"]
@@ -115,7 +104,12 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
 
     query = ACCOUNT_UPDATE_QUERY
     mutation_name = "accountUpdate"
-    variables = {"billing": graphql_address_data, "shipping": graphql_address_data}
+    variables = {
+        "input": {
+            "defaultBillingAddress": graphql_address_data,
+            "defaultShippingAddress": graphql_address_data,
+        }
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
@@ -150,7 +144,12 @@ def test_logged_customer_update_addresses_invalid_shipping_address(
 
     query = ACCOUNT_UPDATE_QUERY
     mutation_name = "accountUpdate"
-    variables = {"billing": graphql_address_data, "shipping": shipping_address}
+    variables = {
+        "input": {
+            "defaultBillingAddress": graphql_address_data,
+            "defaultShippingAddress": shipping_address,
+        }
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
@@ -169,7 +168,12 @@ def test_logged_customer_update_addresses_invalid_billing_address(
 
     query = ACCOUNT_UPDATE_QUERY
     mutation_name = "accountUpdate"
-    variables = {"billing": billing_address, "shipping": graphql_address_data}
+    variables = {
+        "input": {
+            "defaultBillingAddress": billing_address,
+            "defaultShippingAddress": graphql_address_data,
+        }
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
@@ -182,7 +186,7 @@ def test_logged_customer_update_addresses_invalid_billing_address(
 
 def test_logged_customer_update_anonymous_user(api_client):
     query = ACCOUNT_UPDATE_QUERY
-    response = api_client.post_graphql(query, {})
+    response = api_client.post_graphql(query, {"input": {}})
     assert_no_permission(response)
 
 
@@ -192,7 +196,7 @@ def test_logged_customer_updates_metadata(
 ):
     # given
     metadata = {"key": "test key", "value": "test value"}
-    variables = {"metadata": [metadata]}
+    variables = {"input": {"metadata": [metadata]}}
 
     # when
     response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
@@ -219,7 +223,7 @@ def test_logged_customer_update_names_trigger_gift_card_search_vector_update(
         card.refresh_from_db()
         assert card.search_index_dirty is False
 
-    variables = {"firstName": first_name, "lastName": last_name}
+    variables = {"input": {"firstName": first_name, "lastName": last_name}}
 
     # when
     response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
@@ -242,7 +246,12 @@ def test_logged_customer_update_address_skip_validation(
     address_data = graphql_address_data_skipped_validation
     invalid_postal_code = "invalid_postal_code"
     address_data["postalCode"] = invalid_postal_code
-    variables = {"shipping": address_data, "billing": address_data}
+    variables = {
+        "input": {
+            "defaultShippingAddress": address_data,
+            "defaultBillingAddress": address_data,
+        }
+    }
 
     # when
     response = user_api_client.post_graphql(query, variables)
@@ -261,7 +270,10 @@ def test_account_update_by_app(
     user = customer_user
     user_id = graphene.Node.to_global_id("User", user.pk)
     assert user.default_billing_address.city != new_city
-    variables = {"billing": address_input, "customerId": user_id}
+    variables = {
+        "input": {"defaultBillingAddress": address_input},
+        "customerId": user_id,
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -282,7 +294,10 @@ def test_account_update_by_app_no_permissions(
 ):
     # given
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
-    variables = {"billing": graphql_address_data, "customerId": customer_id}
+    variables = {
+        "input": {"defaultBillingAddress": graphql_address_data},
+        "customerId": customer_id,
+    }
 
     # when
     response = app_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
@@ -296,7 +311,10 @@ def test_account_update_by_user_with_customer_id(
 ):
     # given
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
-    variables = {"billing": graphql_address_data, "customerId": customer_id}
+    variables = {
+        "input": {"defaultBillingAddress": graphql_address_data},
+        "customerId": customer_id,
+    }
 
     # when
     response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
@@ -316,7 +334,10 @@ def test_account_address_create_by_app_invalid_customer_id(
 ):
     # given
     customer_id = graphene.Node.to_global_id("Address", customer_user.pk)
-    variables = {"addressInput": graphql_address_data, "customerId": customer_id}
+    variables = {
+        "input": {"defaultBillingAddress": graphql_address_data},
+        "customerId": customer_id,
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -339,7 +360,7 @@ def test_account_address_create_by_app_no_customer_id(
     app_api_client, graphql_address_data, permission_impersonate_user
 ):
     # given
-    variables = {"billing": graphql_address_data}
+    variables = {"input": {"defaultBillingAddress": graphql_address_data}}
 
     # when
     response = app_api_client.post_graphql(
@@ -371,8 +392,10 @@ def test_account_update_address_by_app_skip_validation(
     invalid_postal_code = "invalid_postal_code"
     address_data["postalCode"] = invalid_postal_code
     variables = {
-        "shipping": address_data,
-        "billing": address_data,
+        "input": {
+            "defaultShippingAddress": address_data,
+            "defaultBillingAddress": address_data,
+        },
         "customerId": customer_id,
     }
 
@@ -406,8 +429,10 @@ def test_account_update_address_by_app_skip_validation_no_permissions(
     invalid_postal_code = "invalid_postal_code"
     address_data["postalCode"] = invalid_postal_code
     variables = {
-        "shipping": address_data,
-        "billing": address_data,
+        "input": {
+            "defaultShippingAddress": address_data,
+            "defaultBillingAddress": address_data,
+        },
         "customerId": customer_id,
     }
 
@@ -416,3 +441,142 @@ def test_account_update_address_by_app_skip_validation_no_permissions(
 
     # then
     assert_no_permission(response)
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@pytest.mark.parametrize("use_legacy_update_webhook_emission", [True, False])
+def test_account_update_sends_customer_updated_webhook(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    user_api_client,
+    site_settings,
+    use_legacy_update_webhook_emission,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = (
+        use_legacy_update_webhook_emission
+    )
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    user = user_api_client.user
+    variables = {"input": {"firstName": "UpdatedName"}}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["accountUpdate"]["errors"]
+    user.refresh_from_db()
+    assert user.first_name == "UpdatedName"
+
+    # Verify customer_updated webhook was sent
+    mocked_customer_updated.assert_called_once_with(user)
+    mocked_customer_metadata_updated.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+def test_account_metadata_update_with_legacy_webhook_on(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    user_api_client,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    user = user_api_client.user
+    key = "test_key"
+    value = "test_value"
+    metadata = [{"key": key, "value": value}]
+    variables = {"input": {"metadata": metadata}}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["accountUpdate"]["errors"]
+    user.refresh_from_db()
+    assert user.metadata[key] == value
+
+    # Verify webhooks
+    mocked_customer_updated.assert_called_once_with(user)
+    mocked_customer_metadata_updated.assert_called_once_with(user)
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+def test_account_metadata_update_with_legacy_webhook_off(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    user_api_client,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    user = user_api_client.user
+    key = "test_key"
+    value = "test_value"
+    metadata = [{"key": key, "value": value}]
+    variables = {"input": {"metadata": metadata}}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["accountUpdate"]["errors"]
+    user.refresh_from_db()
+    assert user.metadata[key] == value
+
+    # Verify webhooks
+    mocked_customer_updated.assert_not_called()
+    mocked_customer_metadata_updated.assert_called_once_with(user)
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@pytest.mark.parametrize("use_legacy_update_webhook_emission", [True, False])
+def test_account_metadata_and_data_update_sends_both_webhooks(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    user_api_client,
+    site_settings,
+    use_legacy_update_webhook_emission,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = (
+        use_legacy_update_webhook_emission
+    )
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    user = user_api_client.user
+    key = "test_key"
+    value = "test_value"
+    metadata = [{"key": key, "value": value}]
+    variables = {
+        "input": {
+            "firstName": "UpdatedName",
+            "metadata": metadata,
+        }
+    }
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["accountUpdate"]["errors"]
+    user.refresh_from_db()
+    assert user.first_name == "UpdatedName"
+    assert user.metadata[key] == value
+
+    # Verify both webhooks were sent
+    mocked_customer_updated.assert_called_once_with(user)
+    mocked_customer_metadata_updated.assert_called_once_with(user)
