@@ -28,9 +28,9 @@ def queryset_in_batches(queryset):
 
 def fill_settings_json():
     # Preserve filled settings, only migrate if empty (fill them)
-    qs = AppExtension.objects.filter(settings={}).only(
-        "target", "http_target_method", "settings"
-    )
+    qs = AppExtension.objects.filter(
+        settings={}, target__in=["widget", "new_tab"]
+    ).only("target", "http_target_method", "settings")
 
     for chunk in queryset_in_batches(qs):
         app_extensions = chunk
