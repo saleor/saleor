@@ -10168,7 +10168,7 @@ type Shop implements ObjectWithMetadata {
   
   Added in Saleor 3.22.
   """
-  useLegacyUpdateWebhookEmission: Boolean
+  useLegacyUpdateWebhookEmission: Boolean @deprecated
 }
 
 """

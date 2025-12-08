@@ -398,6 +398,7 @@ class Shop(graphene.ObjectType):
             "only metadata-specific webhooks (e.g., `customerMetadataUpdated`, "
             "`productVariantMetadataUpdated`) are sent." + ADDED_IN_322
         ),
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
 
     class Meta:
