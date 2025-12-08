@@ -5,7 +5,7 @@ from django.db.models import Exists, F, OuterRef, Q, Sum
 
 from ....celeryconf import app
 from ....discount.models import OrderDiscount, Voucher
-from ...models import Order, OrderLine
+from ...models import Order, OrderLine, OrderStatus
 from ...utils import update_order_authorize_status, update_order_charge_status
 
 # The batch of size 250 takes ~0.2 second and consumes ~20MB memory at peak
@@ -271,6 +271,9 @@ def clean_duplicated_gift_lines_task(created_after=None):
 
     order_data = list(
         Order.objects.filter(
+            status=OrderStatus.DRAFT,
+        )
+        .filter(
             Exists(
                 OrderLine.objects.filter(is_gift=True).filter(order_id=OuterRef("pk"))
             )
