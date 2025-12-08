@@ -104,7 +104,6 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
                                     app=app,
                                 )
                             )
-                            promises.append(promise_payload)
 
                             def store_payload(
                                 payload,
@@ -117,7 +116,7 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
                                         payload
                                     )
 
-                            promise_payload.then(store_payload)
+                            promises.append(promise_payload.then(store_payload))
 
             def return_payloads(_payloads):
                 return [results[str(checkout_token)] for checkout_token in keys]
