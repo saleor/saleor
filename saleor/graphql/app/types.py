@@ -121,20 +121,20 @@ class AppManifestExtension(BaseObjectType):
     )
 
     mount_name = graphene.String(
-        description="Name of the extension mount point in the dashboard. Replaces `mount`. Value returned in UPPERCASE."
+        description="Name of the extension mount point in the dashboard. Value returned in UPPERCASE."
         + ADDED_IN_322,
         required=True,
     )
 
     target_name = graphene.String(
-        description="Name of the extension target in the dashboard. Replaces `target`. Value returned in UPPERCASE."
+        description="Name of the extension target in the dashboard. Value returned in UPPERCASE."
         + ADDED_IN_322,
         required=True,
     )
 
     settings = graphene.Field(
         JSON,
-        description="App extension settings. Replaces options field." + ADDED_IN_322,
+        description="App extension settings." + ADDED_IN_322,
         required=True,
     )
 
