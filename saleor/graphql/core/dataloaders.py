@@ -39,10 +39,10 @@ class DataLoader[K, R](BaseLoader):
         thread_id = threading.get_native_id()
         current_thread_id = getattr(self, "thread_id", None)
         if current_thread_id != thread_id:
-            if current_thread_id is not None:
-                assert thread_id == current_thread_id, (
-                    "Dataloaders cannot be shared between threads"
-                )
+            assert current_thread_id is None, (
+                "Dataloaders cannot be shared between threads"
+            )
+
             self.thread_id = thread_id
             self.context = context
             self.database_connection_name = get_database_connection_name(context)
