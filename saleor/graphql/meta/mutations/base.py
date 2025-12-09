@@ -210,6 +210,10 @@ class BaseMetadataMutation(BaseMutation):
                 )
 
             if not result.errors and has_changed:
+                # Update fields for other models are performed in mutations together
+                # with metadata update to perform one DB query.
+                if isinstance(instance, checkout_models.Checkout):
+                    instance.save(update_fields=["last_change"])
                 cls.perform_model_extra_actions(root, info, type_name, **data)
 
         except ValidationError as e:

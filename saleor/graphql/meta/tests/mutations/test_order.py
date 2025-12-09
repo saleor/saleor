@@ -34,6 +34,7 @@ def test_delete_public_metadata_for_order_by_id(
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["metadata"])
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    old_updated_at = order.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -44,6 +45,8 @@ def test_delete_public_metadata_for_order_by_id(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], order, order_id
     )
+    order.refresh_from_db()
+    assert order.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_order_by_token(
@@ -53,6 +56,7 @@ def test_delete_public_metadata_for_order_by_token(
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["metadata"])
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    old_updated_at = order.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -63,6 +67,8 @@ def test_delete_public_metadata_for_order_by_token(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], order, order_id
     )
+    order.refresh_from_db()
+    assert order.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_draft_order_by_id(
@@ -72,6 +78,7 @@ def test_delete_public_metadata_for_draft_order_by_id(
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     draft_order.save(update_fields=["metadata"])
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    old_updated_at = draft_order.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -82,6 +89,8 @@ def test_delete_public_metadata_for_draft_order_by_id(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], draft_order, draft_order_id
     )
+    draft_order.refresh_from_db()
+    assert draft_order.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_draft_order_by_token(
@@ -91,6 +100,7 @@ def test_delete_public_metadata_for_draft_order_by_token(
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     draft_order.save(update_fields=["metadata"])
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    old_updated_at = draft_order.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -101,6 +111,8 @@ def test_delete_public_metadata_for_draft_order_by_token(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], draft_order, draft_order_id
     )
+    draft_order.refresh_from_db()
+    assert draft_order.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_order_line(
@@ -129,6 +141,7 @@ def test_delete_private_metadata_for_order_by_id(
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     order.save(update_fields=["private_metadata"])
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    old_updated_at = order.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -139,6 +152,8 @@ def test_delete_private_metadata_for_order_by_id(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], order, order_id
     )
+    order.refresh_from_db()
+    assert order.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_order_by_token(
@@ -148,6 +163,7 @@ def test_delete_private_metadata_for_order_by_token(
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     order.save(update_fields=["private_metadata"])
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    old_updated_at = order.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -158,6 +174,8 @@ def test_delete_private_metadata_for_order_by_token(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], order, order_id
     )
+    order.refresh_from_db()
+    assert order.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_draft_order_by_id(
@@ -167,6 +185,7 @@ def test_delete_private_metadata_for_draft_order_by_id(
     draft_order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     draft_order.save(update_fields=["private_metadata"])
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    old_updated_at = draft_order.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -177,6 +196,8 @@ def test_delete_private_metadata_for_draft_order_by_id(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], draft_order, draft_order_id
     )
+    draft_order.refresh_from_db()
+    assert draft_order.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_draft_order_by_token(
@@ -186,6 +207,7 @@ def test_delete_private_metadata_for_draft_order_by_token(
     draft_order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     draft_order.save(update_fields=["private_metadata"])
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    old_updated_at = draft_order.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -196,6 +218,8 @@ def test_delete_private_metadata_for_draft_order_by_token(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], draft_order, draft_order_id
     )
+    draft_order.refresh_from_db()
+    assert draft_order.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_order_line(
@@ -222,6 +246,7 @@ def test_add_public_metadata_for_order_by_id(
 ):
     # given
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    old_updated_at = order.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -232,6 +257,8 @@ def test_add_public_metadata_for_order_by_id(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], order, order_id
     )
+    order.refresh_from_db()
+    assert order.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_order_by_token(
@@ -239,6 +266,7 @@ def test_add_public_metadata_for_order_by_token(
 ):
     # given
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    old_updated_at = order.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -249,6 +277,8 @@ def test_add_public_metadata_for_order_by_token(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], order, order_id
     )
+    order.refresh_from_db()
+    assert order.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_draft_order_by_id(
@@ -256,6 +286,7 @@ def test_add_public_metadata_for_draft_order_by_id(
 ):
     # given
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    old_updated_at = draft_order.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -266,6 +297,8 @@ def test_add_public_metadata_for_draft_order_by_id(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], draft_order, draft_order_id
     )
+    draft_order.refresh_from_db()
+    assert draft_order.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_draft_order_by_token(
@@ -273,6 +306,7 @@ def test_add_public_metadata_for_draft_order_by_token(
 ):
     # given
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    old_updated_at = draft_order.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -283,6 +317,8 @@ def test_add_public_metadata_for_draft_order_by_token(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], draft_order, draft_order_id
     )
+    draft_order.refresh_from_db()
+    assert draft_order.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_order_line(
@@ -333,6 +369,7 @@ def test_add_private_metadata_for_order_by_id(
 ):
     # given
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    old_updated_at = order.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -343,6 +380,8 @@ def test_add_private_metadata_for_order_by_id(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], order, order_id
     )
+    order.refresh_from_db()
+    assert order.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_order_by_token(
@@ -350,6 +389,7 @@ def test_add_private_metadata_for_order_by_token(
 ):
     # given
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    old_updated_at = order.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -360,6 +400,8 @@ def test_add_private_metadata_for_order_by_token(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], order, order_id
     )
+    order.refresh_from_db()
+    assert order.updated_at > old_updated_at
 
 
 def test_update_private_metadata_for_order_line(
@@ -393,6 +435,7 @@ def test_add_private_metadata_for_draft_order_by_id(
 ):
     # given
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    old_updated_at = draft_order.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -403,6 +446,8 @@ def test_add_private_metadata_for_draft_order_by_id(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], draft_order, draft_order_id
     )
+    draft_order.refresh_from_db()
+    assert draft_order.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_draft_order_by_token(
@@ -410,6 +455,7 @@ def test_add_private_metadata_for_draft_order_by_token(
 ):
     # given
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    old_updated_at = draft_order.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -420,6 +466,8 @@ def test_add_private_metadata_for_draft_order_by_token(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], draft_order, draft_order_id
     )
+    draft_order.refresh_from_db()
+    assert draft_order.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_order_line(
