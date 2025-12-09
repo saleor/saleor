@@ -124,6 +124,7 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
             modified_instance_fields.add("search_document")
 
         if modified_instance_fields:
+            modified_instance_fields.add("updated_at")
             instance.save(update_fields=list(modified_instance_fields))
 
         if non_metadata_modified_fields or (

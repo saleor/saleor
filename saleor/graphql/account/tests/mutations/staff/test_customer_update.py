@@ -80,6 +80,7 @@ def test_customer_update(
     assert customer_user.default_shipping_address
     billing_address_pk = customer_user.default_billing_address.pk
     shipping_address_pk = customer_user.default_shipping_address.pk
+    updated_at = customer_user.updated_at
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     first_name = "new_first_name"
@@ -161,6 +162,8 @@ def test_customer_update(
     assert deactivated_event.type == account_events.CustomerEvents.ACCOUNT_DEACTIVATED
     assert deactivated_event.user.pk == staff_user.pk
     assert deactivated_event.parameters == {"account_id": customer_user.id}
+
+    assert customer_user.updated_at > updated_at
 
     customer_user.refresh_from_db()
     assert (

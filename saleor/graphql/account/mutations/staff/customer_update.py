@@ -221,6 +221,7 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             modified_instance_fields.add("search_document")
 
         if modified_instance_fields:
+            modified_instance_fields.add("updated_at")
             instance.save(update_fields=list(modified_instance_fields))
 
         return non_metadata_modified_fields, metadata_modified_fields

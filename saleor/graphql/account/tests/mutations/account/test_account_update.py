@@ -97,6 +97,7 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
     user = user_api_client.user
     new_first_name = graphql_address_data["firstName"]
     metadata = graphql_address_data["metadata"]
+    updated_at = user.updated_at
     assert user.default_billing_address
     assert user.default_shipping_address
     assert user.default_billing_address.first_name != new_first_name
@@ -134,6 +135,8 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
 
     assert user.default_billing_address.validation_skipped is False
     assert user.default_shipping_address.validation_skipped is False
+
+    assert user.updated_at > updated_at
 
 
 def test_logged_customer_update_addresses_invalid_shipping_address(
