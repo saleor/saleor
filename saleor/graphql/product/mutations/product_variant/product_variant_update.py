@@ -278,12 +278,12 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         metadata_modified: bool,
         use_legacy_webhooks_emission: bool,
     ):
-        # Trigger `productVariantUpdated` webhook only if legacy webhook emission is
-        # enabled and changes occurred, or if non-metadata changes were made.
         manager = get_plugin_manager_promise(info.context).get()
         if (
+            # if any variant related field has been changed
             variant_modified
             or attribute_modified
+            # if any metadata has been changed and legacy emission is enabled
             or (metadata_modified and use_legacy_webhooks_emission)
         ):
             cls.call_event(manager.product_variant_updated, instance)

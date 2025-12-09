@@ -113,13 +113,6 @@ class ChannelUpdate(DeprecatedModelMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        """Perform model mutation.
-
-        Depending on the input data, `mutate` either creates a new instance or
-        updates an existing one. If `id` argument is present, it is assumed
-        that this is an "update" mutation. Otherwise, a new instance is
-        created based on the model associated with this mutation.
-        """
         instance_tracker = None
         instance = cls.get_instance(info, **data)
         instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
