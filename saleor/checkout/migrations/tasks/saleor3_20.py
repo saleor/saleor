@@ -5,6 +5,8 @@ from django.db.models import Exists, OuterRef
 
 from ....celeryconf import app
 from ....core.prices import quantize_price
+from ....discount import DiscountType
+from ....discount.models import CheckoutLineDiscount
 from ....product.models import ProductVariantChannelListing
 from ....tax.models import TaxConfiguration
 from ...models import Checkout, CheckoutLine
@@ -14,7 +16,7 @@ from ...models import Checkout, CheckoutLine
 UNDISCOUNTED_UNIT_PRICE_BATCH_SIZE = 500
 
 # Takes about 0.1 second to process
-DUPLICATED_LINES_CHECKOUT_BATCH_SIZE = 200
+DUPLICATED_LINES_CHECKOUT_BATCH_SIZE = 250
 
 
 @app.task
@@ -76,22 +78,25 @@ def propagate_lines_undiscounted_unit_price_task(start_pk=0):
 
 @app.task
 def clean_duplicated_gift_lines_task(created_after=None):
-    extra_filter = {}
+    extra_order_filter = {}
     if created_after:
-        extra_filter["created_at__gt"] = created_after
+        extra_order_filter["created_at__gt"] = created_after
+
+    # fetch gift line discounts to narrow down the filter on checkout lines
+    gift_line_discounts = CheckoutLineDiscount.objects.filter(
+        type=DiscountType.ORDER_PROMOTION, line__isnull=False
+    )
+    gift_lines = CheckoutLine.objects.filter(
+        Exists(gift_line_discounts.filter(line_id=OuterRef("id")))
+    )
 
     checkout_data = list(
-        Checkout.objects.filter(
-            Exists(
-                CheckoutLine.objects.filter(is_gift=True).filter(
-                    checkout_id=OuterRef("pk")
-                )
-            )
-        )
+        Checkout.objects.filter(Exists(gift_lines.filter(checkout_id=OuterRef("pk"))))
         .order_by("created_at")
-        .filter(**extra_filter)
+        .filter(**extra_order_filter)
         .values_list("pk", "created_at")[:DUPLICATED_LINES_CHECKOUT_BATCH_SIZE]
     )
+
     checkout_ids = [data[0] for data in checkout_data]
     if not checkout_ids:
         return
