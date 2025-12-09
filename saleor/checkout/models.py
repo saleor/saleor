@@ -230,6 +230,9 @@ class Checkout(models.Model):
             (CheckoutPermissions.HANDLE_TAXES.codename, "Handle taxes"),
             (CheckoutPermissions.MANAGE_TAXES.codename, "Manage taxes"),
         )
+        indexes = [
+            models.Index(fields=["created_at"], name="idx_checkout_created_at"),
+        ]
 
     def __iter__(self):
         return iter(self.lines.all())
