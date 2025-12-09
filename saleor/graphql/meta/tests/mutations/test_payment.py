@@ -25,6 +25,7 @@ def test_update_private_metadata_for_payment_by_staff(
 ):
     # given
     payment_id = graphene.Node.to_global_id("Payment", payment_with_private_metadata.pk)
+    old_modified_at = payment_with_private_metadata.modified_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -42,6 +43,8 @@ def test_update_private_metadata_for_payment_by_staff(
         payment_id,
         value="NewMetaValue",
     )
+    payment_with_private_metadata.refresh_from_db()
+    assert payment_with_private_metadata.modified_at > old_modified_at
 
 
 def test_update_private_metadata_for_payment_by_app(
@@ -49,6 +52,7 @@ def test_update_private_metadata_for_payment_by_app(
 ):
     # given
     payment_id = graphene.Node.to_global_id("Payment", payment_with_private_metadata.pk)
+    old_modified_at = payment_with_private_metadata.modified_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -66,6 +70,8 @@ def test_update_private_metadata_for_payment_by_app(
         payment_id,
         value="NewMetaValue",
     )
+    payment_with_private_metadata.refresh_from_db()
+    assert payment_with_private_metadata.modified_at > old_modified_at
 
 
 def test_update_private_metadata_for_payment_by_staff_without_permission(
@@ -116,6 +122,7 @@ def test_delete_private_metadata_for_transaction_item(
     transaction_id = graphene.Node.to_global_id(
         "TransactionItem", transaction_item.token
     )
+    old_modified_at = transaction_item.modified_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -128,6 +135,8 @@ def test_delete_private_metadata_for_transaction_item(
         transaction_item,
         transaction_id,
     )
+    transaction_item.refresh_from_db()
+    assert transaction_item.modified_at > old_modified_at
 
 
 def test_update_public_metadata_for_payment_by_logged_user(
@@ -137,6 +146,7 @@ def test_update_public_metadata_for_payment_by_logged_user(
     payment_with_public_metadata.order.user = user_api_client.user
     payment_with_public_metadata.order.save()
     payment_id = graphene.Node.to_global_id("Payment", payment_with_public_metadata.pk)
+    old_modified_at = payment_with_public_metadata.modified_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -150,6 +160,8 @@ def test_update_public_metadata_for_payment_by_logged_user(
         payment_id,
         value="NewMetaValue",
     )
+    payment_with_public_metadata.refresh_from_db()
+    assert payment_with_public_metadata.modified_at > old_modified_at
 
 
 def test_update_public_metadata_for_payment_by_different_logged_user(
@@ -203,6 +215,7 @@ def test_add_private_metadata_for_transaction_item(
     transaction_id = graphene.Node.to_global_id(
         "TransactionItem", transaction_item.token
     )
+    old_modified_at = transaction_item.modified_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -215,3 +228,5 @@ def test_add_private_metadata_for_transaction_item(
         transaction_item,
         transaction_id,
     )
+    transaction_item.refresh_from_db()
+    assert transaction_item.modified_at > old_modified_at
