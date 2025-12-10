@@ -50,6 +50,7 @@ def test_delete_private_metadata_for_category(
     category.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     category.save(update_fields=["private_metadata"])
     category_id = graphene.Node.to_global_id("Category", category.pk)
+    old_updated_at = category.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -60,6 +61,8 @@ def test_delete_private_metadata_for_category(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], category, category_id
     )
+    category.refresh_from_db()
+    assert category.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_collection(
@@ -245,6 +248,7 @@ def test_delete_public_metadata_for_category(
     category.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     category.save(update_fields=["metadata"])
     category_id = graphene.Node.to_global_id("Category", category.pk)
+    old_updated_at = category.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -255,6 +259,8 @@ def test_delete_public_metadata_for_category(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], category, category_id
     )
+    category.refresh_from_db()
+    assert category.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_collection(
@@ -412,6 +418,7 @@ def test_add_public_metadata_for_category(
 ):
     # given
     category_id = graphene.Node.to_global_id("Category", category.pk)
+    old_updated_at = category.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -422,6 +429,8 @@ def test_add_public_metadata_for_category(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], category, category_id
     )
+    category.refresh_from_db()
+    assert category.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_collection(
