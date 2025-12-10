@@ -389,6 +389,19 @@ class Shop(graphene.ObjectType):
         required=True,
     )
 
+    # legacy settings
+    use_legacy_update_webhook_emission = graphene.Boolean(
+        description=(
+            "Use legacy update webhook emission. "
+            "When enabled, update webhooks (e.g. `customerUpdated`,"
+            "`productVariantUpdated`) are sent even when only metadata changes. "
+            "When disabled, update webhooks are not sent for metadata-only changes; "
+            "only metadata-specific webhooks (e.g., `customerMetadataUpdated`, "
+            "`productVariantMetadataUpdated`) are sent." + ADDED_IN_322
+        ),
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
+    )
+
     class Meta:
         description = (
             "Represents a shop resource containing general shop data and configuration."
@@ -661,3 +674,8 @@ class Shop(graphene.ObjectType):
         return ObjectWithMetadata.resolve_private_metafields(
             site.settings, info, keys=keys
         )
+
+    @staticmethod
+    @load_site_callback
+    def resolve_use_legacy_update_webhook_emission(_, _info, site):
+        return site.settings.use_legacy_update_webhook_emission

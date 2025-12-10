@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
@@ -79,6 +80,7 @@ def test_customer_update(
     assert customer_user.default_shipping_address
     billing_address_pk = customer_user.default_billing_address.pk
     shipping_address_pk = customer_user.default_shipping_address.pk
+    updated_at = customer_user.updated_at
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     first_name = "new_first_name"
@@ -161,6 +163,8 @@ def test_customer_update(
     assert deactivated_event.user.pk == staff_user.pk
     assert deactivated_event.parameters == {"account_id": customer_user.id}
 
+    assert customer_user.updated_at > updated_at
+
     customer_user.refresh_from_db()
     assert (
         generate_address_search_document_value(billing_address)
@@ -170,6 +174,184 @@ def test_customer_update(
         generate_address_search_document_value(shipping_address)
         in customer_user.search_document
     )
+    mocked_customer_metadata_updated.assert_called_once_with(customer_user)
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@pytest.mark.parametrize("use_legacy_update_webhook_emission", [True, False])
+def test_customer_data_update_sends_customer_updated_webhook(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    site_settings,
+    use_legacy_update_webhook_emission,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = (
+        use_legacy_update_webhook_emission
+    )
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {
+        "id": user_id,
+        "input": {"firstName": "UpdatedName"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["customerUpdate"]["errors"]
+    customer_user.refresh_from_db()
+    assert customer_user.first_name == "UpdatedName"
+
+    # Verify customer_updated webhook was sent
+    mocked_customer_updated.assert_called_once_with(customer_user)
+    mocked_customer_metadata_updated.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@pytest.mark.parametrize(
+    ("field", "model_field"),
+    [("metadata", "metadata"), ("privateMetadata", "private_metadata")],
+)
+def test_metadata_update_with_changed_legacy_webhook_on(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    site_settings,
+    field,
+    model_field,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    key = "test_key"
+    value = "test_value"
+    metadata = [{"key": key, "value": value}]
+    variables = {
+        "id": user_id,
+        "input": {field: metadata},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["customerUpdate"]["errors"]
+    customer_user.refresh_from_db()
+    assert getattr(customer_user, model_field)[key] == value
+
+    # Verify webhooks
+    mocked_customer_updated.assert_called_once_with(customer_user)
+    mocked_customer_metadata_updated.assert_called_once_with(customer_user)
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@pytest.mark.parametrize(
+    ("field", "model_field"),
+    [("metadata", "metadata"), ("privateMetadata", "private_metadata")],
+)
+def test_metadata_update_with_changed_legacy_webhook_off(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    site_settings,
+    field,
+    model_field,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    key = "test_key"
+    value = "test_value"
+    metadata = [{"key": key, "value": value}]
+    variables = {
+        "id": user_id,
+        "input": {field: metadata},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["customerUpdate"]["errors"]
+    customer_user.refresh_from_db()
+    assert getattr(customer_user, model_field)[key] == value
+
+    # Verify webhooks
+    mocked_customer_updated.assert_not_called()
+    mocked_customer_metadata_updated.assert_called_once_with(customer_user)
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@pytest.mark.parametrize("use_legacy_update_webhook_emission", [True, False])
+def test_metadata_and_customer_data_update_sends_both_webhooks(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    site_settings,
+    use_legacy_update_webhook_emission,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = (
+        use_legacy_update_webhook_emission
+    )
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    key = "test_key"
+    value = "test_value"
+    metadata = [{"key": key, "value": value}]
+    variables = {
+        "id": user_id,
+        "input": {
+            "firstName": "UpdatedName",
+            "metadata": metadata,
+            "privateMetadata": metadata,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["customerUpdate"]["errors"]
+    customer_user.refresh_from_db()
+    assert customer_user.first_name == "UpdatedName"
+    assert customer_user.metadata[key] == value
+
+    # Verify both webhooks were sent
+    mocked_customer_updated.assert_called_once_with(customer_user)
     mocked_customer_metadata_updated.assert_called_once_with(customer_user)
 
 

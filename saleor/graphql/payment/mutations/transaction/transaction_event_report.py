@@ -248,7 +248,7 @@ class TransactionEventReport(DeprecatedModelMutation):
             fields_to_update.append("app")
             fields_to_update.append("app_identifier")
         transaction.save(update_fields=fields_to_update)
-        if metadata:
+        if metadata or private_metadata:
             call_event(manager.transaction_item_metadata_updated, transaction)
 
     @classmethod

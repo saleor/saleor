@@ -1,6 +1,7 @@
 from unittest.mock import ANY, patch
 
 import graphene
+import pytest
 
 from .....account import models
 from .....account.error_codes import CustomerBulkUpdateErrorCode
@@ -971,3 +972,182 @@ def test_customers_bulk_update_skip_address_validation(
     billing_address.refresh_from_db()
     assert billing_address.postal_code == wrong_postal_code
     assert billing_address.validation_skipped is True
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@pytest.mark.parametrize(
+    ("field", "model_field"),
+    [("metadata", "metadata"), ("privateMetadata", "private_metadata")],
+)
+def test_bulk_metadata_update_with_changed_legacy_webhook_on(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    site_settings,
+    field,
+    model_field,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    customer_1 = customer_users[0]
+    customer_2 = customer_users[1]
+    customer_1_id = graphene.Node.to_global_id("User", customer_1.pk)
+    customer_2_id = graphene.Node.to_global_id("User", customer_2.pk)
+
+    key = "test_key"
+    value = "test_value"
+    metadata = [{"key": key, "value": value}]
+    customers_input = [
+        {"id": customer_1_id, "input": {field: metadata}},
+        {"id": customer_2_id, "input": {field: metadata}},
+    ]
+    variables = {"customers": customers_input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_UPDATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["customerBulkUpdate"]["results"][0]["errors"]
+    assert not content["data"]["customerBulkUpdate"]["results"][1]["errors"]
+    assert content["data"]["customerBulkUpdate"]["count"] == 2
+
+    customer_1.refresh_from_db()
+    customer_2.refresh_from_db()
+    assert getattr(customer_1, model_field)[key] == value
+    assert getattr(customer_2, model_field)[key] == value
+
+    # Verify webhooks
+    assert mocked_customer_updated.call_count == 2
+    assert mocked_customer_metadata_updated.call_count == 2
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@pytest.mark.parametrize(
+    ("field", "model_field"),
+    [("metadata", "metadata"), ("privateMetadata", "private_metadata")],
+)
+def test_bulk_metadata_update_with_changed_legacy_webhook_off(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    site_settings,
+    field,
+    model_field,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    customer_1 = customer_users[0]
+    customer_2 = customer_users[1]
+    customer_1_id = graphene.Node.to_global_id("User", customer_1.pk)
+    customer_2_id = graphene.Node.to_global_id("User", customer_2.pk)
+
+    key = "test_key"
+    value = "test_value"
+    metadata = [{"key": key, "value": value}]
+    customers_input = [
+        {"id": customer_1_id, "input": {field: metadata}},
+        {"id": customer_2_id, "input": {field: metadata}},
+    ]
+    variables = {"customers": customers_input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_UPDATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["customerBulkUpdate"]["results"][0]["errors"]
+    assert not content["data"]["customerBulkUpdate"]["results"][1]["errors"]
+    assert content["data"]["customerBulkUpdate"]["count"] == 2
+
+    customer_1.refresh_from_db()
+    customer_2.refresh_from_db()
+    assert getattr(customer_1, model_field)[key] == value
+    assert getattr(customer_2, model_field)[key] == value
+
+    # Verify webhooks
+    mocked_customer_updated.assert_not_called()
+    assert mocked_customer_metadata_updated.call_count == 2
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+@pytest.mark.parametrize("use_legacy_update_webhook_emission", [True, False])
+def test_bulk_metadata_and_customer_data_update_sends_both_webhooks(
+    mocked_customer_metadata_updated,
+    mocked_customer_updated,
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    site_settings,
+    use_legacy_update_webhook_emission,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = (
+        use_legacy_update_webhook_emission
+    )
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    customer_1 = customer_users[0]
+    customer_2 = customer_users[1]
+    customer_1_id = graphene.Node.to_global_id("User", customer_1.pk)
+    customer_2_id = graphene.Node.to_global_id("User", customer_2.pk)
+
+    key = "test_key"
+    value = "test_value"
+    metadata = [{"key": key, "value": value}]
+    customers_input = [
+        {
+            "id": customer_1_id,
+            "input": {
+                "firstName": "UpdatedName1",
+                "metadata": metadata,
+                "privateMetadata": metadata,
+            },
+        },
+        {
+            "id": customer_2_id,
+            "input": {
+                "firstName": "UpdatedName2",
+                "metadata": metadata,
+                "privateMetadata": metadata,
+            },
+        },
+    ]
+    variables = {"customers": customers_input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_UPDATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["customerBulkUpdate"]["results"][0]["errors"]
+    assert not content["data"]["customerBulkUpdate"]["results"][1]["errors"]
+    assert content["data"]["customerBulkUpdate"]["count"] == 2
+
+    customer_1.refresh_from_db()
+    customer_2.refresh_from_db()
+    assert customer_1.first_name == "UpdatedName1"
+    assert customer_2.first_name == "UpdatedName2"
+    assert customer_1.metadata[key] == value
+    assert customer_2.metadata[key] == value
+
+    # Verify both webhooks were sent
+    assert mocked_customer_updated.call_count == 2
+    assert mocked_customer_metadata_updated.call_count == 2

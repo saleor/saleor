@@ -65,7 +65,11 @@ CHANNEL_UPDATE_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_mutation_as_staff_user(
+    channel_updated_mock,
+    channel_metadata_updated_mock,
     permission_manage_channels,
     staff_api_client,
     channel_USD,
@@ -123,10 +127,18 @@ def test_channel_update_mutation_as_staff_user(
     assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
     assert channel_data["orderSettings"]["includeDraftOrderInVoucherUsage"] is True
     assert channel_data["orderSettings"]["allowUnpaidOrders"] is True
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_mutation_as_app(
-    permission_manage_channels, app_api_client, channel_USD
+    channel_updated_mock,
+    channel_metadata_updated_mock,
+    permission_manage_channels,
+    app_api_client,
+    channel_USD,
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -150,6 +162,8 @@ def test_channel_update_mutation_as_app(
     assert channel_data["name"] == channel_USD.name == name
     assert channel_data["slug"] == channel_USD.slug == slug
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
 def test_channel_update_mutation_as_customer(user_api_client, channel_USD):
@@ -233,8 +247,14 @@ def test_channel_update_mutation_with_duplicated_slug(
     assert error["code"] == ChannelErrorCode.UNIQUE.name
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_mutation_only_name(
-    permission_manage_channels, staff_api_client, channel_USD
+    channel_updated_mock,
+    channel_metadata_updated_mock,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -258,10 +278,18 @@ def test_channel_update_mutation_only_name(
     assert channel_data["name"] == channel_USD.name == name
     assert channel_data["slug"] == channel_USD.slug == slug
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_mutation_only_slug(
-    permission_manage_channels, staff_api_client, channel_USD
+    channel_updated_mock,
+    channel_metadata_updated_mock,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -285,10 +313,19 @@ def test_channel_update_mutation_only_slug(
     assert channel_data["name"] == channel_USD.name == name
     assert channel_data["slug"] == channel_USD.slug == slug
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_mutation_add_shipping_zone(
-    permission_manage_channels, staff_api_client, channel_USD, shipping_zone
+    channel_updated_mock,
+    channel_metadata_updated_mock,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    shipping_zone,
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -319,14 +356,20 @@ def test_channel_update_mutation_add_shipping_zone(
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
     actual_shipping_zone = channel_USD.shipping_zones.first()
     assert actual_shipping_zone == shipping_zone
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 @patch(
     "saleor.graphql.channel.mutations.channel_update."
     "drop_invalid_shipping_methods_relations_for_given_channels.delay"
 )
 def test_channel_update_mutation_remove_shipping_zone(
     mocked_drop_invalid_shipping_methods_relations,
+    channel_updated_mock,
+    channel_metadata_updated_mock,
     permission_manage_channels,
     staff_api_client,
     channel_USD,
@@ -391,6 +434,9 @@ def test_channel_update_mutation_remove_shipping_zone(
     # ensure another shipping zone has all warehouses assigned
     for zone in shipping_zones[1:]:
         assert zone.warehouses.count() == len(warehouses)
+
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
 def test_channel_update_mutation_add_and_remove_shipping_zone(
@@ -553,8 +599,15 @@ def test_channel_update_mutation_trigger_webhook(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_mutation_add_warehouse(
-    permission_manage_channels, staff_api_client, channel_USD, warehouse
+    channel_updated_mock,
+    channel_metadata_updated_mock,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    warehouse,
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -585,11 +638,17 @@ def test_channel_update_mutation_add_warehouse(
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
     assert len(channel_data["warehouses"]) == 1
     assert channel_data["warehouses"][0]["slug"] == warehouse.slug
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_mutation_remove_warehouse(
+    channel_updated_mock,
+    channel_metadata_updated_mock,
     permission_manage_channels,
     staff_api_client,
     channel_USD,
@@ -664,8 +723,15 @@ def test_channel_update_mutation_remove_warehouse(
     # without JPY channel
     assert warehouses[1] not in shipping_zones[1].warehouses.all()
 
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
+
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_mutation_add_and_remove_warehouse(
+    channel_updated_mock,
+    channel_metadata_updated_mock,
     permission_manage_channels,
     staff_api_client,
     channel_USD,
@@ -708,6 +774,9 @@ def test_channel_update_mutation_add_and_remove_warehouse(
     assert {
         warehouse_data["slug"] for warehouse_data in channel_data["warehouses"]
     } == {warehouse.slug for warehouse in warehouses[1:] + [warehouse]}
+
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
 def test_channel_update_mutation_duplicated_warehouses(
@@ -817,7 +886,11 @@ def test_channel_update_mutation_negative_expire_orders(
     assert error["code"] == ChannelErrorCode.INVALID.name
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_order_settings_manage_orders(
+    channel_updated_mock,
+    channel_metadata_updated_mock,
     permission_manage_orders,
     staff_api_client,
     channel_USD,
@@ -855,6 +928,8 @@ def test_channel_update_order_settings_manage_orders(
         is False
     )
     assert channel_data["orderSettings"]["allowUnpaidOrders"] is False
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
 def test_channel_update_order_settings_empty_order_settings(
@@ -1310,9 +1385,15 @@ CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 @freeze_time("2022-05-12 12:00:00")
 def test_channel_update_channel_settings(
-    permission_manage_channels, staff_api_client, channel_USD
+    channel_updated_mock,
+    channel_metadata_updated_mock,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -1363,10 +1444,16 @@ def test_channel_update_channel_settings(
     )
     assert channel_USD.automatic_completion_delay == default_delay
     assert channel_USD.automatic_completion_cut_off_date == timezone.now()
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
 @freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_set_automatic_checkout_completion(
+    channel_updated_mock,
+    channel_metadata_updated_mock,
     permission_manage_channels,
     staff_api_client,
     channel_USD,
@@ -1408,6 +1495,9 @@ def test_channel_update_set_automatic_checkout_completion(
     assert channel_USD.automatically_complete_fully_paid_checkouts is True
     assert channel_USD.automatic_completion_delay == delay
     assert channel_USD.automatic_completion_cut_off_date == timezone.now()
+
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
 def test_channel_update_set_automatic_checkout_completion_change_to_false(
@@ -2019,7 +2109,11 @@ CHANNEL_UPDATE_MUTATION_WITH_PAYMENT_SETTINGS = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_default_transaction_flow_strategy(
+    channel_updated_mock,
+    channel_metadata_updated_mock,
     permission_manage_channels,
     staff_api_client,
     channel_USD,
@@ -2058,9 +2152,15 @@ def test_channel_update_default_transaction_flow_strategy(
         channel_USD.default_transaction_flow_strategy
         == TransactionFlowStrategyEnum.AUTHORIZATION.value
     )
+    channel_updated_mock.assert_called_once()
+    channel_metadata_updated_mock.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
 def test_channel_update_checkout_release_settings(
+    channel_updated_mock,
+    channel_metadata_updated_mock,
     permission_manage_channels,
     staff_api_client,
     channel_USD,
@@ -2108,6 +2208,8 @@ def test_channel_update_checkout_release_settings(
         hours=ttl_before_releasing_funds
     )
     assert channel_USD.checkout_release_funds_cut_off_date == date
+    channel_metadata_updated_mock.assert_not_called()
+    channel_updated_mock.assert_called_once()
 
 
 def test_channel_create_set_incorect_checkout_ttl_before_releasing_funds(
@@ -2270,3 +2372,45 @@ def test_channel_update_allow_legacy_gift_card_use(
         == allow_legacy_gift_card_use
     )
     assert channel_USD.allow_legacy_gift_card_use == allow_legacy_gift_card_use
+
+
+@pytest.mark.parametrize("meta_field", ["metadata", "privateMetadata"])
+@patch("saleor.plugins.manager.PluginsManager.channel_updated")
+@patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
+def test_channel_update_with_legacy_webhook_emission_off(
+    channel_metadata_updated_mock,
+    channel_updated_mock,
+    meta_field,
+    staff_api_client,
+    channel_USD,
+    permission_manage_channels,
+    site_settings,
+):
+    # Given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    metadata_key = "key"
+    metadata_value = "value"
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {meta_field: [{"key": metadata_key, "value": metadata_value}]},
+    }
+
+    # When
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=[permission_manage_channels],
+    )
+    channel_USD.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["channelUpdate"]
+
+    # Then
+    assert not data["errors"]
+
+    channel_updated_mock.assert_not_called()
+    channel_metadata_updated_mock.assert_called_once()

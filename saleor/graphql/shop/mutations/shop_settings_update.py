@@ -7,7 +7,7 @@ from ....permission.enums import SitePermissions
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.enums import WeightUnitsEnum
 from ...core.mutations import BaseMutation
@@ -111,6 +111,19 @@ class ShopSettingsInput(graphene.InputObjectType):
             f"Charge taxes on shipping. {DEPRECATED_IN_3X_INPUT} To enable taxes for "
             "a shipping method, assign a tax class to the shipping method with "
             "`shippingPriceCreate` or `shippingPriceUpdate` mutations."
+        ),
+    )
+    # legacy settings
+    use_legacy_update_webhook_emission = graphene.Boolean(
+        description=(
+            "Use legacy update webhook emission. "
+            "When enabled, update webhooks (e.g. `customerUpdated`,"
+            "`productVariantUpdated`) are sent even when only metadata changes. "
+            "When disabled, update webhooks are not sent for metadata-only changes; "
+            "only metadata-specific webhooks (e.g., `customerMetadataUpdated`, "
+            "`productVariantMetadataUpdated`) are sent."
+            + ADDED_IN_322
+            + DEPRECATED_IN_3X_INPUT
         ),
     )
 
