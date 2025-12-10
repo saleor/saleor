@@ -1295,6 +1295,7 @@ CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
                     automaticallyCompleteFullyPaidCheckouts
                     automaticCompletionDelay
                     automaticCompletionCutOffDate
+                    allowLegacyGiftCardUse
                 }
             }
             errors{
@@ -2233,3 +2234,39 @@ def test_channel_update_set_use_legacy_line_discount_propagation(
         == expected_result
     )
     assert channel_USD.use_legacy_line_discount_propagation_for_order == expected_result
+
+
+@pytest.mark.parametrize("allow_legacy_gift_card_use", [True, False])
+def test_channel_update_allow_legacy_gift_card_use(
+    allow_legacy_gift_card_use,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "checkoutSettings": {"allowLegacyGiftCardUse": allow_legacy_gift_card_use},
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert (
+        channel_data["checkoutSettings"]["allowLegacyGiftCardUse"]
+        == allow_legacy_gift_card_use
+    )
+    assert channel_USD.allow_legacy_gift_card_use == allow_legacy_gift_card_use

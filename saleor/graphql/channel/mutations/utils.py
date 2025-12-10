@@ -114,6 +114,11 @@ def clean_input_checkout_settings(
 ):
     clean_automatic_completion(checkout_settings, cleaned_input)
 
+    if "allow_legacy_gift_card_use" in checkout_settings:
+        cleaned_input["allow_legacy_gift_card_use"] = checkout_settings[
+            "allow_legacy_gift_card_use"
+        ]
+
     # Handle legacy fields
     if "use_legacy_error_flow" in checkout_settings:
         cleaned_input["use_legacy_error_flow_for_checkout"] = checkout_settings[
