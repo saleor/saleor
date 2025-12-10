@@ -3564,11 +3564,11 @@ def test_update_product_variant_with_existing_metadata_and_event_when_write_diff
     staff_api_client,
     product,
     permission_manage_products,
+    site_settings,
 ):
     # Given
     # - Metadata in variant is already existing
     # - mutation writes the same metadata key but different value
-
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -3579,6 +3579,9 @@ def test_update_product_variant_with_existing_metadata_and_event_when_write_diff
     variant.metadata = {metadata_key: metadata_value}
     variant.private_metadata = {metadata_key: metadata_value}
     variant.save()
+
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
 
     # When
     # - Metadata is updated with the same values
