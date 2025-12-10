@@ -1,9 +1,11 @@
+import warnings
+
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
 from django.db.models import F, JSONField, Value
 from django.utils import timezone
 
-from ....checkout.models import Checkout
+from ....checkout.models import Checkout, CheckoutMetadata
 from ....checkout.utils import get_or_create_checkout_metadata
 from ....core.db.expressions import PostgresJsonConcatenate
 from ....core.error_codes import MetadataErrorCode
@@ -16,20 +18,60 @@ def get_valid_metadata_instance(instance) -> ModelWithMetadata:
     return instance
 
 
+# Mapping of types to their respective field responsible for tracking updates
+# In case there is no such field, set value as None
 TYPE_UPDATED_FIELD = {
-    "Checkout": "last_change",
-    "Order": "updated_at",
-    "Product": "updated_at",
-    "ProductVariant": "updated_at",
-    "TransactionItem": "modified_at",
+    "Address": None,
     "User": "updated_at",
+    "App": None,
+    "Attribute": None,
+    "Channel": None,
+    "Checkout": "last_change",
+    "CheckoutLine": None,
+    "Voucher": None,
     "Promotion": "updated_at",
+    "GiftCard": None,
+    "Invoice": None,
+    "Menu": None,
+    "MenuItem": None,
+    "Order": "updated_at",
+    "OrderLine": None,
+    "Fulfillment": None,
+    "Page": None,
+    "PageType": None,
+    "TransactionItem": "modified_at",
     "Payment": "modified_at",
+    "Category": "updated_at",
+    "Product": "updated_at",
+    "ProductType": None,
+    "ProductVariant": "updated_at",
+    "DigitalContent": None,
+    "Collection": None,
+    "ShippingMethod": None,
+    "ShippingZone": None,
+    "SiteSettings": None,
+    "TaxClass": None,
+    "TaxConfiguration": None,
+    "Warehouse": None,
 }
 
 
+def get_updated_field_name(instance) -> str | None:
+    # checkout update are handled in BaseMetaMutations
+    if isinstance(instance, CheckoutMetadata):
+        return None
+    if instance.__class__.__name__ not in TYPE_UPDATED_FIELD:
+        warnings.warn(
+            f"Updated field for type {instance.__class__.__name__} is not defined in TYPE_UPDATED_FIELD. "
+            "Please add an entry to the dictionary.",
+            UserWarning,
+            stacklevel=2,
+        )
+    return TYPE_UPDATED_FIELD.get(instance.__class__.__name__)
+
+
 def save_instance(instance, metadata_fields: list):
-    updated_field = TYPE_UPDATED_FIELD.get(instance.__class__.__name__)
+    updated_field = get_updated_field_name(instance)
     if updated_field:
         metadata_fields.append(updated_field)
 
@@ -43,7 +85,7 @@ def save_instance(instance, metadata_fields: list):
 
 
 def get_extra_update_field(instance):
-    updated_field = TYPE_UPDATED_FIELD.get(instance.__class__.__name__)
+    updated_field = get_updated_field_name(instance)
     if updated_field:
         return {updated_field: timezone.now()}
     return {}
