@@ -1,4 +1,4 @@
-from copy import copy
+from typing import cast
 
 import graphene
 from django.db.models import QuerySet
@@ -7,6 +7,7 @@ from .....account import events as account_events
 from .....account import models
 from .....account.search import prepare_user_search_document_value
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.update_mutation_manager import InstanceTracker
 from .....giftcard.search import mark_gift_cards_search_index_as_dirty
 from .....giftcard.utils import assign_user_gift_cards, get_user_gift_cards
 from .....order.utils import match_orders_with_new_user
@@ -21,7 +22,9 @@ from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....site.dataloaders import get_site_promise
 from ..base import BaseCustomerCreate, CustomerInput
+from .utils import CUSTOMER_UPDATE_FIELDS
 
 
 class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
@@ -57,60 +60,74 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             ),
         ]
 
+    FIELDS_TO_TRACK = list(CUSTOMER_UPDATE_FIELDS)
+
     @classmethod
     def generate_events(
-        cls, info: ResolveInfo, old_instance: models.User, new_instance: models.User
+        cls,
+        info: ResolveInfo,
+        instance: models.User,
+        instance_tracker: InstanceTracker,
+        modified_instance_fields: set,
     ):
         # Retrieve the event base data
         staff_user = info.context.user
         app = get_app_promise(info.context).get()
-        new_email = new_instance.email
-        new_fullname = new_instance.get_full_name()
 
         # Compare the data
-        has_new_name = old_instance.get_full_name() != new_fullname
-        has_new_email = old_instance.email != new_email
-        was_activated = not old_instance.is_active and new_instance.is_active
-        was_deactivated = old_instance.is_active and not new_instance.is_active
-        being_confirmed = not old_instance.is_confirmed and new_instance.is_confirmed
+        previous_active = instance_tracker.initial_instance_values.get("is_active")
+        previous_confirmed = instance_tracker.initial_instance_values.get(
+            "is_confirmed"
+        )
+        was_activated = not previous_active and instance.is_active
+        was_deactivated = previous_active and not instance.is_active
+        being_confirmed = not previous_confirmed and instance.is_confirmed
 
-        if has_new_email or being_confirmed:
-            assign_user_gift_cards(new_instance)
-            match_orders_with_new_user(new_instance)
+        if "email" in modified_instance_fields or being_confirmed:
+            assign_user_gift_cards(instance)
+            match_orders_with_new_user(instance)
 
         # Generate the events accordingly
-        if has_new_email:
+        if "email" in modified_instance_fields:
             account_events.assigned_email_to_a_customer_event(
-                staff_user=staff_user, app=app, new_email=new_email
+                staff_user=staff_user, app=app, new_email=instance.email
             )
-        if has_new_name:
+        if (
+            "first_name" in modified_instance_fields
+            or "last_name" in modified_instance_fields
+        ):
             account_events.assigned_name_to_a_customer_event(
-                staff_user=staff_user, app=app, new_name=new_fullname
+                staff_user=staff_user, app=app, new_name=instance.get_full_name()
             )
         if was_activated:
             account_events.customer_account_activated_event(
                 staff_user=info.context.user,
                 app=app,
-                account_id=old_instance.id,
+                account_id=instance.id,
             )
         if was_deactivated:
             account_events.customer_account_deactivated_event(
                 staff_user=info.context.user,
                 app=app,
-                account_id=old_instance.id,
+                account_id=instance.id,
             )
 
     @classmethod
     def update_gift_card_search_vector(
         cls,
-        old_instance: models.User,
-        new_instance: models.User,
+        instance: models.User,
+        instance_tracker: InstanceTracker,
         gift_cards: QuerySet,
     ):
-        new_email = new_instance.email
-        new_fullname = new_instance.get_full_name()
-        has_new_name = old_instance.get_full_name() != new_fullname
-        has_new_email = old_instance.email != new_email
+        has_new_name = (
+            instance_tracker.initial_instance_values.get("first_name")
+            != instance.first_name
+            or instance_tracker.initial_instance_values.get("last_name")
+            != instance.last_name
+        )
+        has_new_email = (
+            instance_tracker.initial_instance_values.get("email") != instance.email
+        )
         if has_new_email or has_new_name:
             mark_gift_cards_search_index_as_dirty(gift_cards)
 
@@ -122,11 +139,14 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         """
 
         # Retrieve the data
-        original_instance = cls.get_instance(info, **data)
+        instance = cls.get_instance(info, **data)
+        instance = cast(models.User, instance)
+        instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
         data = data.get("input")
+        gift_cards = get_user_gift_cards(instance)
 
         # Clean the input and generate a new instance from the new data
-        cleaned_input = cls.clean_input(info, original_instance, data)
+        cleaned_input = cls.clean_input(info, instance, data)
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
             "private_metadata", None
@@ -139,42 +159,69 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             private_metadata_list, error_field_name="private_metadata"
         )
 
-        new_instance = cls.construct_instance(copy(original_instance), cleaned_input)
+        instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(
-            new_instance, metadata_collection, private_metadata_collection
+            instance, metadata_collection, private_metadata_collection
         )
 
         # Save the new instance data
-        cls.clean_instance(info, new_instance)
-        cls.save(info, new_instance, cleaned_input)
-        cls._save_m2m(info, new_instance, cleaned_input)
+        cls.clean_instance(info, instance)
+        non_metadata_modified_fields, metadata_modified_fields = cls._save(
+            info, instance, cleaned_input, instance_tracker
+        )
+        cls._save_m2m(info, instance, cleaned_input)
 
-        # Generate events by comparing the instances
-        cls.generate_events(info, original_instance, new_instance)
+        cls.generate_events(
+            info, instance, instance_tracker, non_metadata_modified_fields
+        )
 
-        if metadata_list:
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.call_event(manager.customer_metadata_updated, new_instance)
-
-        if gift_cards := get_user_gift_cards(new_instance):
-            cls.update_gift_card_search_vector(
-                original_instance, new_instance, gift_cards
+        if non_metadata_modified_fields or metadata_modified_fields:
+            site = get_site_promise(info.context).get()
+            use_legacy_webhooks_emission = (
+                site.settings.use_legacy_update_webhook_emission
             )
+            manager = get_plugin_manager_promise(info.context).get()
+            if non_metadata_modified_fields or (
+                metadata_modified_fields and use_legacy_webhooks_emission
+            ):
+                cls.call_event(manager.customer_updated, instance)
+
+            if metadata_modified_fields:
+                cls.call_event(manager.customer_metadata_updated, instance)
+
+        if gift_cards:
+            cls.update_gift_card_search_vector(instance, instance_tracker, gift_cards)
 
         # Return the response
-        return cls.success_response(new_instance)
+        return cls.success_response(instance)
 
     @classmethod
     @traced_atomic_transaction()
-    def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
-        manager = get_plugin_manager_promise(info.context).get()
+    def _save(
+        cls, info: ResolveInfo, instance, cleaned_input, instance_tracker
+    ) -> tuple[set, set]:
+        instance = cast(models.User, instance_tracker.instance)
+        modified_instance_fields = set(instance_tracker.get_modified_fields())
+        metadata_modified_fields = {
+            "metadata",
+            "private_metadata",
+        } & modified_instance_fields
 
-        cls.save_default_addresses(
+        if changed_fields := cls.save_default_addresses(
             cleaned_input=cleaned_input,
             user_instance=instance,
+        ):
+            modified_instance_fields.update(changed_fields)
+
+        non_metadata_modified_fields = (
+            set(modified_instance_fields) - metadata_modified_fields
         )
+        if non_metadata_modified_fields:
+            instance.search_document = prepare_user_search_document_value(instance)
+            modified_instance_fields.add("search_document")
 
-        instance.search_document = prepare_user_search_document_value(instance)
-        instance.save()
+        if modified_instance_fields:
+            modified_instance_fields.add("updated_at")
+            instance.save(update_fields=list(modified_instance_fields))
 
-        cls.call_event(manager.customer_updated, instance)
+        return non_metadata_modified_fields, metadata_modified_fields

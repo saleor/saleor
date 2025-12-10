@@ -10162,6 +10162,13 @@ type Shop implements ObjectWithMetadata {
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean! @deprecated(reason: "Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
+
+  """
+  Use legacy update webhook emission. When enabled, update webhooks (e.g. `customerUpdated`,`productVariantUpdated`) are sent even when only metadata changes. When disabled, update webhooks are not sent for metadata-only changes; only metadata-specific webhooks (e.g., `customerMetadataUpdated`, `productVariantMetadataUpdated`) are sent.
+  
+  Added in Saleor 3.22.
+  """
+  useLegacyUpdateWebhookEmission: Boolean @deprecated
 }
 
 """
@@ -20751,6 +20758,13 @@ input ShopSettingsInput {
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean @deprecated(reason: "To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.")
+
+  """
+  Use legacy update webhook emission. When enabled, update webhooks (e.g. `customerUpdated`,`productVariantUpdated`) are sent even when only metadata changes. When disabled, update webhooks are not sent for metadata-only changes; only metadata-specific webhooks (e.g., `customerMetadataUpdated`, `productVariantMetadataUpdated`) are sent.
+  
+  Added in Saleor 3.22.
+  """
+  useLegacyUpdateWebhookEmission: Boolean @deprecated
 }
 
 """

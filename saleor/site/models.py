@@ -105,6 +105,19 @@ class SiteSettings(ModelWithMetadata):
     include_taxes_in_prices = models.BooleanField(default=True)
     display_gross_prices = models.BooleanField(default=True)
 
+    # legacy settings
+    use_legacy_update_webhook_emission = models.BooleanField(
+        default=False,
+        db_default=True,
+        help_text=(
+            "When enabled, update webhooks (e.g. `customerUpdated`,"
+            "`productVariantUpdated`) are sent even when only metadata changes. "
+            "When disabled, update webhooks are not sent for metadata-only changes; "
+            "only metadata-specific webhooks (e.g., `customerMetadataUpdated`, "
+            "`productVariantMetadataUpdated`) are sent."
+        ),
+    )
+
     class Meta:
         permissions = (
             (SitePermissions.MANAGE_SETTINGS.codename, "Manage settings."),
