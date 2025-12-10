@@ -799,13 +799,13 @@ def test_automatic_checkout_completion_line_without_listing(
 
 
 def test_automatic_checkout_completion_error_raised(
-    checkout_with_item, app, caplog, shipping_method
+    checkout_with_item, app, caplog, checkout_delivery
 ):
     # given
     checkout = checkout_with_item
     checkout_pk = checkout.pk
-    checkout.shipping_method = shipping_method
-    checkout.save(update_fields=["shipping_method"])
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.save(update_fields=["assigned_delivery"])
 
     # allow catching the log in caplog
     parent_logger = task_logger.parent
@@ -881,7 +881,10 @@ def test_automatic_checkout_completion_missing_delivery_method(
     checkout = checkout_with_prices
     checkout.shipping_method = None
     checkout.collection_point = None
-    checkout.save(update_fields=["shipping_method", "collection_point"])
+    checkout.assigned_delivery = None
+    checkout.save(
+        update_fields=["shipping_method", "collection_point", "assigned_delivery"]
+    )
     checkout_pk = checkout.pk
 
     # allow catching the log in caplog
@@ -1215,7 +1218,7 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
     checkouts_list,
     channel_USD,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     channel_USD.automatically_complete_fully_paid_checkouts = True
@@ -1231,16 +1234,17 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
     never_attempted = checkouts_list[0]
     attempted_recently = checkouts_list[1]
 
+    never_attempted.channel = channel_USD
     never_attempted.authorize_status = CheckoutAuthorizeStatus.FULL
     never_attempted.last_change = timezone.now() - datetime.timedelta(minutes=10)
     never_attempted.last_automatic_completion_attempt = None
     never_attempted.email = "test@email.com"
     never_attempted.billing_address = address
-    never_attempted.shipping_method = shipping_method
+    never_attempted.assigned_delivery = checkout_delivery(never_attempted)
     never_attempted.total_gross_amount = Decimal("10.00")
     never_attempted.total_net_amount = Decimal("8.00")
-    never_attempted.channel = channel_USD
 
+    attempted_recently.channel = channel_USD
     attempted_recently.authorize_status = CheckoutAuthorizeStatus.FULL
     attempted_recently.last_change = timezone.now() - datetime.timedelta(minutes=10)
     attempted_recently.last_automatic_completion_attempt = (
@@ -1248,10 +1252,9 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
     )
     attempted_recently.email = "test@email.com"
     attempted_recently.billing_address = address
-    attempted_recently.shipping_method = shipping_method
+    attempted_recently.assigned_delivery = checkout_delivery(attempted_recently)
     attempted_recently.total_gross_amount = Decimal("10.00")
     attempted_recently.total_net_amount = Decimal("8.00")
-    attempted_recently.channel = channel_USD
 
     Checkout.objects.bulk_update(
         [never_attempted, attempted_recently],
@@ -1262,7 +1265,7 @@ def test_trigger_automatic_checkout_completion_task_prioritizes_never_attempted(
             "channel",
             "billing_address",
             "email",
-            "shipping_method",
+            "assigned_delivery",
             "total_gross_amount",
             "total_net_amount",
         ],
@@ -1288,7 +1291,8 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
     channel_USD,
     channel_PLN,
     address,
-    shipping_method,
+    checkout_delivery,
+    shipping_method_channel_PLN,
 ):
     # given
     channel_USD.automatically_complete_fully_paid_checkouts = True
@@ -1305,7 +1309,7 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
     checkout_usd = checkouts_list[0]
     checkout_usd.channel = channel_USD
     checkout_usd.authorize_status = CheckoutAuthorizeStatus.FULL
-    checkout_usd.shipping_method = shipping_method
+    checkout_usd.assigned_delivery = checkout_delivery(checkout_usd)
     checkout_usd.billing_address = address
     checkout_usd.email = "test@email.com"
     checkout_usd.total_gross_amount = Decimal("10.00")
@@ -1315,7 +1319,9 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
     checkout_pln = checkouts_list[1]
     checkout_pln.channel = channel_PLN
     checkout_pln.authorize_status = CheckoutAuthorizeStatus.FULL
-    checkout_pln.shipping_method = shipping_method
+    checkout_pln.assigned_delivery = checkout_delivery(
+        checkout_pln, shipping_method_channel_PLN
+    )
     checkout_pln.billing_address = address
     checkout_pln.email = "test@email.com"
     checkout_pln.total_gross_amount = Decimal("0.5")
@@ -1324,7 +1330,9 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
 
     checkout_pln_not_ready = checkouts_list[2]
     checkout_pln_not_ready.channel = channel_PLN
-    checkout_pln_not_ready.shipping_method = shipping_method
+    checkout_pln_not_ready.assigned_delivery = checkout_delivery(
+        checkout_pln_not_ready, shipping_method_channel_PLN
+    )
     checkout_pln_not_ready.billing_address = address
     checkout_pln_not_ready.email = "test@email.com"
     checkout_pln_not_ready.total_gross_amount = Decimal("1.00")
@@ -1337,7 +1345,7 @@ def test_trigger_automatic_checkout_completion_task_multiple_channels(
             "channel",
             "authorize_status",
             "last_change",
-            "shipping_method",
+            "assigned_delivery",
             "billing_address",
             "email",
             "total_gross_amount",
@@ -1366,7 +1374,7 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
     checkouts_list,
     channel_USD,
     address,
-    shipping_method,
+    checkout_delivery,
 ):
     # given
     channel_USD.automatically_complete_fully_paid_checkouts = True
@@ -1389,7 +1397,7 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
     eligible_checkout.created_at = timezone.now() - datetime.timedelta(days=5)
     eligible_checkout.email = "test@email.com"
     eligible_checkout.billing_address = address
-    eligible_checkout.shipping_method = shipping_method
+    eligible_checkout.assigned_delivery = checkout_delivery(eligible_checkout)
     eligible_checkout.total_gross_amount = Decimal("10.00")
     eligible_checkout.total_net_amount = Decimal("8.00")
 
@@ -1401,7 +1409,9 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
     )
     ineligible_checkout_due_to_cut_off.email = "test@email.com"
     ineligible_checkout_due_to_cut_off.billing_address = address
-    ineligible_checkout_due_to_cut_off.shipping_method = shipping_method
+    ineligible_checkout_due_to_cut_off.assigned_delivery = checkout_delivery(
+        ineligible_checkout_due_to_cut_off
+    )
     ineligible_checkout_due_to_cut_off.total_gross_amount = Decimal("10.00")
     ineligible_checkout_due_to_cut_off.total_net_amount = Decimal("8.00")
     ineligible_checkout_due_to_cut_off.created_at = timezone.now() - datetime.timedelta(
@@ -1417,7 +1427,7 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
             "created_at",
             "email",
             "billing_address",
-            "shipping_method",
+            "assigned_delivery",
             "total_gross_amount",
             "total_net_amount",
         ],

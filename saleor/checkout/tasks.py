@@ -262,6 +262,7 @@ def automatic_checkout_completion_task(
         not checkout.shipping_method_id
         and not checkout.external_shipping_method_id
         and not checkout.collection_point_id
+        and not checkout.assigned_delivery_id
     ):
         task_logger.info(
             "The automatic checkout completion not triggered, as the checkout %s "
