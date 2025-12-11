@@ -176,6 +176,12 @@ class TransactionItem(ModelWithMetadata):
     )
     payment_method_name = models.CharField(max_length=256, blank=True, null=True)
 
+    gift_card = models.ForeignKey(
+        "giftcard.GiftCard",
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
     class Meta:
         ordering = ("pk",)
         indexes = [

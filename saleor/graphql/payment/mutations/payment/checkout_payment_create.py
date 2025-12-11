@@ -16,8 +16,9 @@ from .....core.utils import get_client_ip
 from .....core.utils.url import validate_storefront_url
 from .....payment import StorePaymentMethod
 from .....payment.error_codes import PaymentErrorCode
+from .....payment.gateway import is_currency_supported
 from .....payment.models import TransactionItem
-from .....payment.utils import create_payment, is_currency_supported
+from .....payment.utils import create_payment
 from ....account.i18n import I18nMixin
 from ....checkout.mutations.utils import get_checkout
 from ....checkout.types import Checkout

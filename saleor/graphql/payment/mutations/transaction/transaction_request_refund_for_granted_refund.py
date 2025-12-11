@@ -1,13 +1,14 @@
-import uuid
 from typing import TYPE_CHECKING, cast
 
 import graphene
 from django.core.exceptions import ValidationError
 
+from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
+from .....giftcard.gateway import refund_gift_card_transaction
 from .....order import OrderGrantedRefundStatus
 from .....order import models as order_models
 from .....order.utils import calculate_order_granted_refund_status
-from .....payment import PaymentError, TransactionEventType
+from .....payment import PaymentError, TransactionAction
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionRequestActionErrorCode
 from .....payment.gateway import request_refund_action
@@ -22,7 +23,7 @@ from ....core.types import common as common_types
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionItem
-from .utils import get_transaction_item
+from .utils import create_transaction_event_requested, get_transaction_item
 
 if TYPE_CHECKING:
     pass
@@ -171,31 +172,41 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
             # granted refund.
             assigned_granted_refund = granted_refund
 
-        request_event = transaction_item.events.create(
-            amount_value=action_value,
-            currency=transaction_item.currency,
-            type=TransactionEventType.REFUND_REQUEST,
-            idempotency_key=str(uuid.uuid4()),
+        app_identifier = (
+            GIFT_CARD_PAYMENT_GATEWAY_ID
+            if transaction_item.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID
+            else None
+        )
+        request_event = create_transaction_event_requested(
+            transaction_item,
+            action_value,
+            TransactionAction.REFUND,
+            app_identifier=app_identifier,
             related_granted_refund=assigned_granted_refund,
         )
 
-        try:
-            request_refund_action(
-                transaction=transaction_item,
-                manager=manager,
-                refund_value=action_value,
-                request_event=request_event,
-                channel_slug=channel_slug,
-                user=info.context.user,
-                app=app,
-                granted_refund=granted_refund,
-            )
-        except PaymentError as e:
-            error_enum = TransactionRequestActionErrorCode
-            code = error_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
-            raise ValidationError(str(e), code=code) from e
-        finally:
+        if transaction_item.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+            refund_gift_card_transaction(transaction_item, request_event)
             if assigned_granted_refund:
                 calculate_order_granted_refund_status(assigned_granted_refund)
+        else:
+            try:
+                request_refund_action(
+                    transaction=transaction_item,
+                    manager=manager,
+                    refund_value=action_value,
+                    request_event=request_event,
+                    channel_slug=channel_slug,
+                    user=info.context.user,
+                    app=app,
+                    granted_refund=granted_refund,
+                )
+            except PaymentError as e:
+                error_enum = TransactionRequestActionErrorCode
+                code = error_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
+                raise ValidationError(str(e), code=code) from e
+            finally:
+                if assigned_granted_refund:
+                    calculate_order_granted_refund_status(assigned_granted_refund)
 
         return cls(transaction=transaction_item)
