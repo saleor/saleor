@@ -18,7 +18,7 @@ from ....product.models import (
     VariantChannelListingPromotionRule,
 )
 from ....tests import race_condition
-from ... import DiscountType, RewardType, RewardValueType
+from ... import DiscountType, DiscountValueType, RewardType, RewardValueType
 from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils.checkout import (
     create_checkout_discount_objects_for_order_promotions,
@@ -2123,6 +2123,47 @@ def test_create_discount_objects_for_order_promotions_race_condition(
     discounts = list(checkout_info.checkout.discounts.all())
     assert len(discounts) == 1
     assert discounts[0].amount_value == reward_value
+
+
+def test_create_discount_objects_for_order_promotions_missing_rule_on_discount_object(
+    checkout_info,
+    checkout_lines_info,
+    gift_promotion_rule,
+):
+    # given
+    rule = gift_promotion_rule
+    checkout = checkout_info.checkout
+    channel = checkout_info.channel
+
+    gift_promotion_rule.channels.add(channel)
+    variant = gift_promotion_rule.gifts.first()
+    gift_promotion_rule.gifts.exclude(pk=variant.pk).delete()
+    gift_line = checkout.lines.create(
+        checkout=checkout,
+        variant=variant,
+        quantity=1,
+        is_gift=True,
+        undiscounted_unit_price_amount=10,
+    )
+    # create a discount object without promotion rule set
+    line_discount = CheckoutLineDiscount.objects.create(
+        promotion_rule=None,
+        line=gift_line,
+        type=DiscountType.ORDER_PROMOTION,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal(5),
+        amount_value=Decimal(5),
+        currency=channel.currency_code,
+    )
+
+    # when
+    create_checkout_discount_objects_for_order_promotions(
+        checkout_info, checkout_lines_info
+    )
+
+    # then
+    line_discount.refresh_from_db()
+    assert line_discount.promotion_rule_id == rule.id
 
 
 def test_create_or_update_order_discount_race_condition(
