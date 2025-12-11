@@ -13,22 +13,24 @@ from ..subscription_payload import (
 )
 
 
-def test_initialize_request():
+def test_initialize_request(app):
     # when
-    request = initialize_request()
+    request = initialize_request(app=app)
 
     # then
     assert request.dataloaders == {}
     assert request.request_time is not None
 
 
-def test_initialize_request_pass_params():
+def test_initialize_request_pass_params(app):
     # given
     dataloaders = {"test": "test"}
     request_time = timezone.now()
 
     # when
-    request = initialize_request(dataloaders=dataloaders, request_time=request_time)
+    request = initialize_request(
+        app=app, dataloaders=dataloaders, request_time=request_time
+    )
 
     # then
     assert request.dataloaders is dataloaders
@@ -122,10 +124,7 @@ def test_generate_pre_save_payloads(webhook_app, variant):
     assert pre_save_payloads[key]
 
 
-def test_generate_payload_from_subscription(
-    checkout,
-    subscription_webhook,
-):
+def test_generate_payload_from_subscription(checkout, subscription_webhook, app):
     # given
     query = """
     subscription {
@@ -147,7 +146,7 @@ def test_generate_payload_from_subscription(
         WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
     app = webhook.app
-    request = initialize_request()
+    request = initialize_request(app=app)
     checkout_global_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -156,7 +155,6 @@ def test_generate_payload_from_subscription(
         subscribable_object=checkout,
         subscription_query=webhook.subscription_query,
         request=request,
-        app=app,
     )
 
     # then
@@ -171,7 +169,7 @@ def test_generate_payload_from_subscription_missing_permissions(
     webhook = subscription_gift_card_created_webhook
     app = webhook.app
     app.permissions.remove(permission_manage_gift_card)
-    request = initialize_request(requestor=app, sync_event=False)
+    request = initialize_request(app=app, requestor=app, sync_event=False)
 
     # when
     payload = generate_payload_from_subscription(
@@ -179,7 +177,6 @@ def test_generate_payload_from_subscription_missing_permissions(
         subscribable_object=gift_card,
         subscription_query=webhook.subscription_query,
         request=request,
-        app=app,
     )
 
     # then
@@ -219,7 +216,7 @@ def test_generate_payload_from_subscription_circular_call(
         WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
     app = webhook.app
-    request = initialize_request(requestor=app, sync_event=True)
+    request = initialize_request(app=app, requestor=app, sync_event=True)
 
     # when
     payload = generate_payload_from_subscription(
@@ -227,7 +224,6 @@ def test_generate_payload_from_subscription_circular_call(
         subscribable_object=checkout,
         subscription_query=webhook.subscription_query,
         request=request,
-        app=app,
     )
     # then
     error_code = "CircularSubscriptionSyncEvent"
@@ -268,7 +264,7 @@ def test_generate_payload_from_subscription_unable_to_build_payload(
         WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
     app = webhook.app
-    request = initialize_request(requestor=app, sync_event=True)
+    request = initialize_request(app=app, requestor=app, sync_event=True)
 
     # when
     payload = generate_payload_from_subscription(
@@ -276,7 +272,6 @@ def test_generate_payload_from_subscription_unable_to_build_payload(
         subscribable_object=checkout,
         subscription_query=webhook.subscription_query,
         request=request,
-        app=app,
     )
     # then
     assert payload is None
@@ -307,7 +302,7 @@ def test_generate_payload_promise_from_subscription(
         WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
     app = webhook.app
-    request = initialize_request()
+    request = initialize_request(app=app)
     checkout_global_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -316,7 +311,6 @@ def test_generate_payload_promise_from_subscription(
         subscribable_object=checkout,
         subscription_query=webhook.subscription_query,
         request=request,
-        app=app,
     )
 
     # then
@@ -332,7 +326,7 @@ def test_generate_payload_promise_from_subscription_missing_permissions(
     webhook = subscription_gift_card_created_webhook
     app = webhook.app
     app.permissions.remove(permission_manage_gift_card)
-    request = initialize_request(requestor=app, sync_event=False)
+    request = initialize_request(app=app, requestor=app, sync_event=False)
 
     # when
     payload = generate_payload_promise_from_subscription(
@@ -340,7 +334,6 @@ def test_generate_payload_promise_from_subscription_missing_permissions(
         subscribable_object=gift_card,
         subscription_query=webhook.subscription_query,
         request=request,
-        app=app,
     )
 
     # then
@@ -381,7 +374,7 @@ def test_generate_payload_promise_from_subscription_circular_call(
         WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
     app = webhook.app
-    request = initialize_request(requestor=app, sync_event=True)
+    request = initialize_request(app=app, requestor=app, sync_event=True)
 
     # when
     payload = generate_payload_promise_from_subscription(
@@ -389,7 +382,6 @@ def test_generate_payload_promise_from_subscription_circular_call(
         subscribable_object=checkout,
         subscription_query=webhook.subscription_query,
         request=request,
-        app=app,
     )
     # then
     payload = payload.get()
@@ -431,7 +423,7 @@ def test_generate_payload_promise_from_subscription_unable_to_build_payload(
         WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
     app = webhook.app
-    request = initialize_request(requestor=app, sync_event=True)
+    request = initialize_request(app=app, requestor=app, sync_event=True)
 
     # when
     payload = generate_payload_promise_from_subscription(
@@ -439,7 +431,6 @@ def test_generate_payload_promise_from_subscription_unable_to_build_payload(
         subscribable_object=checkout,
         subscription_query=webhook.subscription_query,
         request=request,
-        app=app,
     )
     # then
     payload = payload.get()
