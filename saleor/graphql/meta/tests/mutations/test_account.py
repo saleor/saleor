@@ -174,6 +174,7 @@ def test_delete_private_metadata_for_customer_as_staff(
     customer_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     customer_user.save(update_fields=["private_metadata"])
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    old_updated_at = customer_user.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -184,6 +185,8 @@ def test_delete_private_metadata_for_customer_as_staff(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], customer_user, customer_id
     )
+    customer_user.refresh_from_db()
+    assert customer_user.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_customer_as_app(
@@ -193,6 +196,7 @@ def test_delete_private_metadata_for_customer_as_app(
     customer_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     customer_user.save(update_fields=["private_metadata"])
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    old_updated_at = customer_user.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -203,6 +207,8 @@ def test_delete_private_metadata_for_customer_as_app(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], customer_user, customer_id
     )
+    customer_user.refresh_from_db()
+    assert customer_user.updated_at > old_updated_at
 
 
 def test_delete_multiple_private_metadata_for_customer_as_app(
@@ -234,6 +240,7 @@ def test_delete_private_metadata_for_other_staff_as_staff(
     admin_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     admin_user.save(update_fields=["private_metadata"])
     admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+    old_updated_at = admin_user.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -244,6 +251,8 @@ def test_delete_private_metadata_for_other_staff_as_staff(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], admin_user, admin_id
     )
+    admin_user.refresh_from_db()
+    assert admin_user.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_staff_as_app_no_permission(
@@ -426,6 +435,7 @@ def test_delete_public_metadata_for_customer_as_staff(
     customer_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     customer_user.save(update_fields=["metadata"])
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    old_updated_at = customer_user.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -436,6 +446,8 @@ def test_delete_public_metadata_for_customer_as_staff(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], customer_user, customer_id
     )
+    customer_user.refresh_from_db()
+    assert customer_user.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_customer_as_app(
@@ -445,6 +457,7 @@ def test_delete_public_metadata_for_customer_as_app(
     customer_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     customer_user.save(update_fields=["metadata"])
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    old_updated_at = customer_user.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -455,6 +468,8 @@ def test_delete_public_metadata_for_customer_as_app(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], customer_user, customer_id
     )
+    customer_user.refresh_from_db()
+    assert customer_user.updated_at > old_updated_at
 
 
 def test_delete_multiple_public_metadata_for_customer_as_app(
@@ -486,6 +501,7 @@ def test_delete_public_metadata_for_other_staff_as_staff(
     admin_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     admin_user.save(update_fields=["metadata"])
     admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+    old_updated_at = admin_user.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -496,6 +512,8 @@ def test_delete_public_metadata_for_other_staff_as_staff(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], admin_user, admin_id
     )
+    admin_user.refresh_from_db()
+    assert admin_user.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_staff_as_app_no_permission(
@@ -527,6 +545,7 @@ def test_delete_public_metadata_for_myself_as_customer(user_api_client):
     customer.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     customer.save(update_fields=["metadata"])
     customer_id = graphene.Node.to_global_id("User", customer.pk)
+    old_updated_at = customer.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -537,6 +556,8 @@ def test_delete_public_metadata_for_myself_as_customer(user_api_client):
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], customer, customer_id
     )
+    customer.refresh_from_db()
+    assert customer.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_myself_as_staff(staff_api_client):
@@ -545,6 +566,7 @@ def test_delete_public_metadata_for_myself_as_staff(staff_api_client):
     staff.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     staff.save(update_fields=["metadata"])
     staff_id = graphene.Node.to_global_id("User", staff.pk)
+    old_updated_at = staff.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -555,6 +577,8 @@ def test_delete_public_metadata_for_myself_as_staff(staff_api_client):
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], staff, staff_id
     )
+    staff.refresh_from_db()
+    assert staff.updated_at > old_updated_at
 
 
 @patch("saleor.plugins.manager.PluginsManager.customer_updated")
@@ -1039,6 +1063,7 @@ def test_add_public_metadata_for_customer_as_staff(
 ):
     # given
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    old_updated_at = customer_user.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -1049,6 +1074,8 @@ def test_add_public_metadata_for_customer_as_staff(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], customer_user, customer_id
     )
+    customer_user.refresh_from_db()
+    assert customer_user.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_customer_as_app(
@@ -1056,6 +1083,7 @@ def test_add_public_metadata_for_customer_as_app(
 ):
     # given
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    old_updated_at = customer_user.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -1066,6 +1094,8 @@ def test_add_public_metadata_for_customer_as_app(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], customer_user, customer_id
     )
+    customer_user.refresh_from_db()
+    assert customer_user.updated_at > old_updated_at
 
 
 def test_change_metadata_for_non_existing_user(app_api_client, customer_user):
@@ -1108,6 +1138,7 @@ def test_add_public_metadata_for_other_staff_as_staff(
     # given
     assert admin_user.pk != staff_api_client.user.pk
     admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+    old_updated_at = admin_user.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -1118,6 +1149,8 @@ def test_add_public_metadata_for_other_staff_as_staff(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], admin_user, admin_id
     )
+    admin_user.refresh_from_db()
+    assert admin_user.updated_at > old_updated_at
 
 
 @pytest.mark.parametrize(
@@ -1154,6 +1187,7 @@ def test_add_public_metadata_for_myself_as_customer(user_api_client):
     # given
     customer = user_api_client.user
     customer_id = graphene.Node.to_global_id("User", customer.pk)
+    old_updated_at = customer.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -1164,12 +1198,15 @@ def test_add_public_metadata_for_myself_as_customer(user_api_client):
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], customer, customer_id
     )
+    customer.refresh_from_db()
+    assert customer.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_myself_as_staff(staff_api_client):
     # given
     staff = staff_api_client.user
     staff_id = graphene.Node.to_global_id("User", staff.pk)
+    old_updated_at = staff.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -1180,6 +1217,8 @@ def test_add_public_metadata_for_myself_as_staff(staff_api_client):
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], staff, staff_id
     )
+    staff.refresh_from_db()
+    assert staff.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_customer_as_staff(
@@ -1187,6 +1226,7 @@ def test_add_private_metadata_for_customer_as_staff(
 ):
     # given
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    old_updated_at = customer_user.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -1197,6 +1237,8 @@ def test_add_private_metadata_for_customer_as_staff(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], customer_user, customer_id
     )
+    customer_user.refresh_from_db()
+    assert customer_user.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_customer_as_app(
