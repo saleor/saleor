@@ -218,11 +218,14 @@ class checkout_automatic_completion_schedule(TimeBaseSchedule):
                 "last_change__gte": oldest_allowed_checkout,
                 "channel_id": channel.pk,
                 "last_change__lt": threshold_time,
+                "total_gross_amount__gt": 0,
+                "billing_address__isnull": False,
             }
             if cut_off_date := channel.automatic_completion_cut_off_date:
                 filter_kwargs["created_at__gte"] = cut_off_date
             if (
                 Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+                .filter(Q(email__isnull=False) | Q(user__isnull=False))
                 .filter(
                     **filter_kwargs,
                 )

@@ -1611,6 +1611,15 @@ def create_order_from_checkout(
         checkout_info = fetch_checkout_info(
             checkout, checkout_lines, manager, voucher=voucher, voucher_code=code
         )
+        if not checkout_lines:
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Cannot complete checkout without lines.",
+                        code=CheckoutErrorCode.NO_LINES.value,
+                    )
+                }
+            )
         assign_checkout_user(user, checkout_info)
 
         try:
