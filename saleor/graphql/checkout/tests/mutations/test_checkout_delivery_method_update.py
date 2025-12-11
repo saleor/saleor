@@ -5,6 +5,7 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 
 from .....account.models import Address
 from .....checkout.actions import call_checkout_info_event
@@ -1278,6 +1279,22 @@ def test_checkout_delivery_method_update_from_cc_to_all_warehouses_disabled_cc(
     assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
 
 
+MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID = """
+    mutation checkoutDeliveryMethodUpdate($id: ID, $deliveryMethodId: ID) {
+      checkoutDeliveryMethodUpdate(id: $id, deliveryMethodId: $deliveryMethodId) {
+        checkout {
+          id
+        }
+        errors {
+          field
+          message
+          code
+        }
+      }
+    }
+"""
+
+
 @patch(
     "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
     wraps=call_checkout_info_event,
@@ -1286,8 +1303,12 @@ def test_checkout_delivery_method_update_from_cc_to_all_warehouses_disabled_cc(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_delivery_method_update_triggers_webhooks(
+    mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -1310,13 +1331,13 @@ def test_checkout_delivery_method_update_triggers_webhooks(
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
-    query = MUTATION_UPDATE_DELIVERY_METHOD
 
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
     # when
     response = api_client.post_graphql(
-        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+        MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
+        {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
     )
 
     # then
@@ -1329,20 +1350,32 @@ def test_checkout_delivery_method_update_triggers_webhooks(
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+
+    mocked_generate_deferred_payloads.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "event_delivery_ids": [checkout_update_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "checkout.checkout",
+                "object_id": checkout.pk,
+                "requestor_model_name": None,
+                "requestor_object_id": None,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleorappadditional",
+        bind=True,
+    )
+    assert (
+        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
+            "payload_requested_at"
+        ]
+        <= timezone.now()
     )
 
-    # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 4
-    assert not EventDelivery.objects.exclude(
-        webhook_id=checkout_updated_webhook.id
-    ).exists()
+    # Deferred payload covers the async actions
+    assert not mocked_send_webhook_request_async.called
 
     sync_deliveries = {
         call.args[0].event_type: call.args[0]
@@ -1361,9 +1394,7 @@ def test_checkout_delivery_method_update_triggers_webhooks(
     ]
     assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
 
-    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
-    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
-    assert tax_delivery.webhook_id == tax_webhook.id
+    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES not in sync_deliveries
 
 
 @patch(
@@ -1374,8 +1405,12 @@ def test_checkout_delivery_method_update_triggers_webhooks(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_delivery_method_update_cc_triggers_webhooks(
+    mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -1406,12 +1441,12 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
         product_variant=checkout.lines.first().variant,
         quantity=1,
     )
+    method_id = graphene.Node.to_global_id("Warehouse", warehouse_cc_all.id)
 
     # when
-    query = MUTATION_UPDATE_DELIVERY_METHOD
-    method_id = graphene.Node.to_global_id("Warehouse", warehouse_cc_all.id)
     response = api_client.post_graphql(
-        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+        MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
+        {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
     )
 
     # then
@@ -1423,45 +1458,33 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+
+    mocked_generate_deferred_payloads.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "event_delivery_ids": [checkout_update_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "checkout.checkout",
+                "object_id": checkout.pk,
+                "requestor_model_name": None,
+                "requestor_object_id": None,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleorappadditional",
+        bind=True,
+    )
+    assert (
+        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
+            "payload_requested_at"
+        ]
+        <= timezone.now()
     )
 
-    # Shipping sync webhooks are called twice - first call before saving the changes in
-    # the checkout instance, second when generating the payload. In the second call
-    # checkout instance has different data and cache cannot be used.
-    assert mocked_send_webhook_request_sync.call_count == 3
-
-    # confirm each sync webhook was called without saving event delivery
-    assert not EventDelivery.objects.exclude(
-        webhook_id=checkout_updated_webhook.id
-    ).exists()
-
-    sync_deliveries = {
-        call.args[0].event_type: call.args[0]
-        for call in mocked_send_webhook_request_sync.mock_calls
-    }
-
-    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
-    shipping_methods_delivery = sync_deliveries[
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    ]
-    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-
-    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
-    filter_shipping_delivery = sync_deliveries[
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    ]
-    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-
-    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
-    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
-    assert tax_delivery.webhook_id == tax_webhook.id
+    # Deferred payload covers the sync and async actions
+    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhook_request_sync.called
 
 
 @patch(
@@ -1472,13 +1495,12 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
-@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
-    "clean_delivery_method"
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
-    mock_clean_delivery,
+    mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -1496,8 +1518,6 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
 
     checkout = checkout_with_item_for_cc
-    query = MUTATION_UPDATE_DELIVERY_METHOD
-    mock_clean_delivery.return_value = True
 
     response_method_id = "abcd"
     mock_json_response = [
@@ -1520,8 +1540,10 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     )
 
     # when
+
     response = api_client.post_graphql(
-        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+        MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
+        {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
     )
 
     # then
@@ -1530,46 +1552,54 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
 
     assert wrapped_call_checkout_info_event.called
 
-    # confirm that event delivery was generated for each async webhook.
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+
+    mocked_generate_deferred_payloads.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "event_delivery_ids": [checkout_update_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "checkout.checkout",
+                "object_id": checkout.pk,
+                "requestor_model_name": None,
+                "requestor_object_id": None,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        MessageGroupId="example.com:saleorappadditional",
+        bind=True,
+    )
+    assert (
+        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
+            "payload_requested_at"
+        ]
+        <= timezone.now()
     )
 
-    # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 3
-    assert not EventDelivery.objects.exclude(
-        webhook_id=checkout_updated_webhook.id
-    ).exists()
+    # Deferred payload covers the async actions
+    assert not mocked_send_webhook_request_async.called
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
-    )
-    shipping_methods_delivery = shipping_methods_call.args[0]
+    sync_deliveries = {
+        call.args[0].event_type: call.args[0]
+        for call in mocked_send_webhook_request_sync.mock_calls
+    }
+
+    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
+    shipping_methods_delivery = sync_deliveries[
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    ]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-    assert (
-        shipping_methods_delivery.event_type
-        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    )
-    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
+    filter_shipping_delivery = sync_deliveries[
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    ]
     assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-    assert (
-        filter_shipping_delivery.event_type
-        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    )
-    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    tax_delivery = tax_delivery_call.args[0]
-    assert tax_delivery.webhook_id == tax_webhook.id
+    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES not in sync_deliveries
 
 
 @mock.patch(
