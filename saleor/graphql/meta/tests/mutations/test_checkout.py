@@ -33,6 +33,7 @@ def test_delete_public_metadata_for_checkout(api_client, checkout):
     checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.metadata_storage.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    old_last_change = checkout.last_change
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -45,6 +46,8 @@ def test_delete_public_metadata_for_checkout(api_client, checkout):
         checkout.metadata_storage,
         checkout_id,
     )
+    checkout.refresh_from_db()
+    assert checkout.last_change > old_last_change
 
 
 def test_delete_public_metadata_for_checkout_by_token(api_client, checkout):
@@ -52,6 +55,7 @@ def test_delete_public_metadata_for_checkout_by_token(api_client, checkout):
     checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.metadata_storage.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    old_last_change = checkout.last_change
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -64,6 +68,8 @@ def test_delete_public_metadata_for_checkout_by_token(api_client, checkout):
         checkout.metadata_storage,
         checkout_id,
     )
+    checkout.refresh_from_db()
+    assert checkout.last_change > old_last_change
 
 
 def test_delete_public_metadata_for_checkout_line(api_client, checkout_line):
@@ -92,6 +98,7 @@ def test_delete_private_metadata_for_checkout(
     )
     checkout.metadata_storage.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    old_last_change = checkout.last_change
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -104,6 +111,8 @@ def test_delete_private_metadata_for_checkout(
         checkout.metadata_storage,
         checkout_id,
     )
+    checkout.refresh_from_db()
+    assert checkout.last_change > old_last_change
 
 
 def test_delete_private_metadata_for_checkout_by_token(
@@ -115,6 +124,7 @@ def test_delete_private_metadata_for_checkout_by_token(
     )
     checkout.metadata_storage.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    old_last_change = checkout.last_change
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -127,6 +137,8 @@ def test_delete_private_metadata_for_checkout_by_token(
         checkout.metadata_storage,
         checkout_id,
     )
+    checkout.refresh_from_db()
+    assert checkout.last_change > old_last_change
 
 
 def test_delete_private_metadata_for_checkout_line(
@@ -153,6 +165,7 @@ def test_delete_private_metadata_for_checkout_line(
 def test_add_public_metadata_for_checkout(api_client, checkout):
     # given
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    old_last_change = checkout.last_change
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -165,6 +178,8 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
         checkout.metadata_storage,
         checkout_id,
     )
+    checkout.refresh_from_db()
+    assert checkout.last_change > old_last_change
 
 
 def test_add_public_metadata_for_checkout_no_checkout_metadata_storage(
@@ -206,6 +221,7 @@ def test_add_public_metadata_for_checkout_line(api_client, checkout_line):
 def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
     # given
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    old_last_change = checkout.last_change
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -218,6 +234,8 @@ def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
         checkout.metadata_storage,
         checkout_id,
     )
+    checkout.refresh_from_db()
+    assert checkout.last_change > old_last_change
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -242,6 +260,7 @@ def test_add_private_metadata_for_checkout(
 ):
     # given
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    old_last_change = checkout.last_change
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -254,6 +273,8 @@ def test_add_private_metadata_for_checkout(
         checkout.metadata_storage,
         checkout_id,
     )
+    checkout.refresh_from_db()
+    assert checkout.last_change > old_last_change
 
 
 def test_add_private_metadata_for_checkout_no_checkout_metadata_storage(
@@ -302,6 +323,7 @@ def test_add_private_metadata_for_checkout_by_token(
 ):
     # given
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    old_last_change = checkout.last_change
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -314,6 +336,8 @@ def test_add_private_metadata_for_checkout_by_token(
         checkout.metadata_storage,
         checkout_id,
     )
+    checkout.refresh_from_db()
+    assert checkout.last_change > old_last_change
 
 
 def test_update_private_metadata_for_checkout_line(
