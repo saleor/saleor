@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("checkout", "0077_clean_duplicated_gift_lines"),
+        ("checkout", "0078_clean_duplicated_gift_lines"),
         ("checkout", "0081_merge_20251107_1134"),
     ]
 
