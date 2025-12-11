@@ -50,6 +50,7 @@ def test_delete_private_metadata_for_category(
     category.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     category.save(update_fields=["private_metadata"])
     category_id = graphene.Node.to_global_id("Category", category.pk)
+    old_updated_at = category.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -60,6 +61,8 @@ def test_delete_private_metadata_for_category(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], category, category_id
     )
+    category.refresh_from_db()
+    assert category.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_collection(
@@ -136,6 +139,7 @@ def test_delete_private_metadata_for_product(
     product.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     product.save(update_fields=["private_metadata"])
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    old_updated_at = product.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -147,6 +151,8 @@ def test_delete_private_metadata_for_product(
         response["data"]["deletePrivateMetadata"]["item"], product, product_id
     )
     updated_webhook_mock.assert_called_once_with(product)
+    product.refresh_from_db()
+    assert product.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_product_type(
@@ -178,6 +184,7 @@ def test_delete_private_metadata_for_product_variant(
     variant.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     variant.save(update_fields=["private_metadata"])
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    old_updated_at = variant.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -188,6 +195,8 @@ def test_delete_private_metadata_for_product_variant(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], variant, variant_id
     )
+    variant.refresh_from_db()
+    assert variant.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_product_media(
@@ -239,6 +248,7 @@ def test_delete_public_metadata_for_category(
     category.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     category.save(update_fields=["metadata"])
     category_id = graphene.Node.to_global_id("Category", category.pk)
+    old_updated_at = category.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -249,6 +259,8 @@ def test_delete_public_metadata_for_category(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], category, category_id
     )
+    category.refresh_from_db()
+    assert category.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_collection(
@@ -303,6 +315,7 @@ def test_delete_public_metadata_for_product(
     product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     product.save(update_fields=["metadata"])
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    old_updated_at = product.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -314,6 +327,8 @@ def test_delete_public_metadata_for_product(
         response["data"]["deleteMetadata"]["item"], product, product_id
     )
     updated_webhook_mock.assert_called_once_with(product)
+    product.refresh_from_db()
+    assert product.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_product_type(
@@ -345,6 +360,7 @@ def test_delete_public_metadata_for_product_variant(
     variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     variant.save(update_fields=["metadata"])
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    old_updated_at = variant.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -355,6 +371,8 @@ def test_delete_public_metadata_for_product_variant(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], variant, variant_id
     )
+    variant.refresh_from_db()
+    assert variant.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_product_media(
@@ -400,6 +418,7 @@ def test_add_public_metadata_for_category(
 ):
     # given
     category_id = graphene.Node.to_global_id("Category", category.pk)
+    old_updated_at = category.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -410,6 +429,8 @@ def test_add_public_metadata_for_category(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], category, category_id
     )
+    category.refresh_from_db()
+    assert category.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_collection(
@@ -457,6 +478,7 @@ def test_add_public_metadata_for_product(
 ):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    old_updated_at = product.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -468,6 +490,8 @@ def test_add_public_metadata_for_product(
         response["data"]["updateMetadata"]["item"], product, product_id
     )
     updated_webhook_mock.assert_called_once_with(product)
+    product.refresh_from_db()
+    assert product.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_product_type(
@@ -495,6 +519,7 @@ def test_add_public_metadata_for_product_variant(
 ):
     # given
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    old_updated_at = variant.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -508,6 +533,8 @@ def test_add_public_metadata_for_product_variant(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], variant, variant_id
     )
+    variant.refresh_from_db()
+    assert variant.updated_at > old_updated_at
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -516,6 +543,7 @@ def test_add_private_metadata_for_product(
 ):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    old_updated_at = product.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -527,6 +555,8 @@ def test_add_private_metadata_for_product(
         response["data"]["updatePrivateMetadata"]["item"], product, product_id
     )
     updated_webhook_mock.assert_called_once_with(product)
+    product.refresh_from_db()
+    assert product.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_product_type(
@@ -554,6 +584,7 @@ def test_add_private_metadata_for_product_variant(
 ):
     # given
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    old_updated_at = variant.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -567,6 +598,8 @@ def test_add_private_metadata_for_product_variant(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], variant, variant_id
     )
+    variant.refresh_from_db()
+    assert variant.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_product_media(
