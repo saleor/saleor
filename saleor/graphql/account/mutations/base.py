@@ -344,24 +344,24 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
-        if cleaned_input.get("metadata"):
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.call_event(manager.customer_metadata_updated, instance)
-
         if cleaned_input.get("first_name") or cleaned_input.get("last_name"):
             if user_gift_cards := get_user_gift_cards(instance):
                 mark_gift_cards_search_index_as_dirty(user_gift_cards)
 
     @classmethod
-    def save_default_addresses(cls, *, cleaned_input: dict, user_instance: models.User):
+    def save_default_addresses(
+        cls, *, cleaned_input: dict, user_instance: models.User
+    ) -> set[str]:
         default_shipping_address: models.Address | None = cleaned_input.get(
             SHIPPING_ADDRESS_FIELD
         )
+        changed_fields = set()
 
         if default_shipping_address:
             default_shipping_address.save()
             user_instance.addresses.add(default_shipping_address)
             user_instance.default_shipping_address = default_shipping_address
+            changed_fields.add("default_shipping_address")
 
         default_billing_address: models.Address | None = cleaned_input.get(
             BILLING_ADDRESS_FIELD
@@ -371,6 +371,9 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
             default_billing_address.save()
             user_instance.addresses.add(default_billing_address)
             user_instance.default_billing_address = default_billing_address
+            changed_fields.add("default_billing_address")
+
+        return changed_fields
 
 
 class UserDeleteMixin:

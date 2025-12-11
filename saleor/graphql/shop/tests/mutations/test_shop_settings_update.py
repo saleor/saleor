@@ -23,6 +23,7 @@ SHOP_SETTINGS_UPDATE_MUTATION = """
                 reserveStockDurationAuthenticatedUser
                 limitQuantityPerCheckout
                 allowLoginWithoutConfirmation
+                useLegacyUpdateWebhookEmission
             }
             errors {
                 field
@@ -85,6 +86,7 @@ def test_shop_settings_mutation(
             "fulfillmentAllowUnpaid": False,
             "enableAccountConfirmationByEmail": False,
             "allowLoginWithoutConfirmation": True,
+            "useLegacyUpdateWebhookEmission": False,
         }
     }
 
@@ -103,12 +105,14 @@ def test_shop_settings_mutation(
     assert data["fulfillmentAllowUnpaid"] is False
     assert data["enableAccountConfirmationByEmail"] is False
     assert data["allowLoginWithoutConfirmation"] is True
+    assert data["useLegacyUpdateWebhookEmission"] is False
 
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices
     assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
     assert site_settings.enable_account_confirmation_by_email is False
     assert site_settings.allow_login_without_confirmation is True
+    assert site_settings.use_legacy_update_webhook_emission is False
 
 
 def test_shop_reservation_settings_mutation(

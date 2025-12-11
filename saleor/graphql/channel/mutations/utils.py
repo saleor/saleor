@@ -7,6 +7,34 @@ from django.utils import timezone
 from ....channel.models import Channel
 from ...core.enums import ChannelErrorCode
 
+CHANNEL_UPDATE_FIELDS = [
+    "name",
+    "slug",
+    "default_country",
+    "is_active",
+    "allocation_strategy",
+    "automatically_confirm_all_new_orders",
+    "automatically_fulfill_non_shippable_gift_card",
+    "expire_orders_after",
+    "delete_expired_orders_after",
+    "order_mark_as_paid_strategy",
+    "allow_unpaid_orders",
+    "include_draft_order_in_voucher_usage",
+    "draft_order_line_price_freeze_period",
+    "use_legacy_line_discount_propagation_for_order",
+    "use_legacy_error_flow_for_checkout",
+    "automatically_complete_fully_paid_checkouts",
+    "automatic_completion_delay",
+    "automatic_completion_cut_off_date",
+    "default_transaction_flow_strategy",
+    "release_funds_for_expired_checkouts",
+    "checkout_ttl_before_releasing_funds",
+    "checkout_release_funds_cut_off_date",
+    "allow_legacy_gift_card_use",
+    "metadata",
+    "private_metadata",
+]
+
 DELETE_EXPIRED_ORDERS_MAX_DAYS = 120
 
 
