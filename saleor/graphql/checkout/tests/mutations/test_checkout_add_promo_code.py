@@ -1384,9 +1384,11 @@ def test_checkout_add_voucher_triggers_webhooks(
     checkout_with_item.save()
 
     # when
-    response = api_client.post_graphql(
-        MUTATION_CHECKOUT_ADD_PROMO_CODE_WITH_ONLY_ID, variables
-    )
+    freezed_time = timezone.now()
+    with freeze_time(freezed_time):
+        response = api_client.post_graphql(
+            MUTATION_CHECKOUT_ADD_PROMO_CODE_WITH_ONLY_ID, variables
+        )
 
     # then
     content = get_graphql_content(response)
@@ -1410,6 +1412,7 @@ def test_checkout_add_voucher_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": freezed_time,
         },
         bind=True,
     )

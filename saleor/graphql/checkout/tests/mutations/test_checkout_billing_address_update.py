@@ -708,7 +708,9 @@ def test_checkout_billing_address_triggers_webhooks(
     }
 
     # when
-    response = user_api_client.post_graphql(query, variables)
+    freezed_time = timezone.now()
+    with freeze_time(freezed_time):
+        response = user_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -733,6 +735,7 @@ def test_checkout_billing_address_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": freezed_time,
         },
         bind=True,
     )

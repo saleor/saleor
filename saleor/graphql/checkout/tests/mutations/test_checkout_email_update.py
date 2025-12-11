@@ -203,7 +203,11 @@ def test_checkout_email_update_triggers_webhooks(
     variables = {"id": to_global_id_or_none(checkout), "email": email}
 
     # when
-    response = user_api_client.post_graphql(CHECKOUT_EMAIL_UPDATE_MUTATION, variables)
+    freezed_time = timezone.now()
+    with freeze_time(freezed_time):
+        response = user_api_client.post_graphql(
+            CHECKOUT_EMAIL_UPDATE_MUTATION, variables
+        )
 
     # then
     content = get_graphql_content(response)
@@ -228,6 +232,7 @@ def test_checkout_email_update_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": freezed_time,
         },
         bind=True,
     )
