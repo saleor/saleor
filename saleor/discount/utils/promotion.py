@@ -15,13 +15,19 @@ from prices import Money
 
 from ...channel.models import Channel
 from ...checkout.fetch import CheckoutLineInfo
-from ...checkout.lock_objects import checkout_lines_qs_select_for_update
+from ...checkout.lock_objects import (
+    checkout_lines_qs_select_for_update,
+    checkout_qs_select_for_update,
+)
 from ...checkout.models import Checkout, CheckoutLine
 from ...core.db.connection import allow_writer
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import zero_money
 from ...order.fetch import EditableOrderLineInfo
-from ...order.lock_objects import order_lines_qs_select_for_update
+from ...order.lock_objects import (
+    order_lines_qs_select_for_update,
+    order_qs_select_for_update,
+)
 from ...order.models import Order
 from ...product.models import (
     Product,
@@ -429,6 +435,17 @@ def delete_gift_line(
             lines_info.remove(gift_line_info)  # type: ignore[arg-type]
 
 
+def _lock_order_or_checkout(
+    order_or_checkout: Checkout | Order,
+):
+    if isinstance(order_or_checkout, Checkout):
+        _checkout = (
+            checkout_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
+        )
+    else:
+        _order = order_qs_select_for_update().filter(pk=order_or_checkout.pk).first()
+
+
 def create_gift_line(
     order_or_checkout: Checkout | Order,
     gift_listing: "ProductVariantChannelListing",
@@ -437,9 +454,11 @@ def create_gift_line(
     defaults = _get_defaults_for_gift_line(
         order_or_checkout, gift_listing, line_discount_data
     )
-    line, created = order_or_checkout.lines.get_or_create(
-        is_gift=True, defaults=defaults
-    )
+    with transaction.atomic():
+        _lock_order_or_checkout(order_or_checkout)
+        line, created = order_or_checkout.lines.get_or_create(
+            is_gift=True, defaults=defaults
+        )
     if not created:
         fields_to_update = []
         for field, value in defaults.items():
@@ -776,12 +795,18 @@ def _handle_order_promotion(
     line_discount_data: DiscountInfo,
     rule_info: VariantPromotionRuleInfo,
 ):
-    discount_object, created = order_or_checkout.discounts.get_or_create(
-        type=DiscountType.ORDER_PROMOTION,
-        defaults=asdict(line_discount_data),
-    )
+    with transaction.atomic():
+        # As we do not have the unique constraint on order/checkout discount model,
+        # we need to lock the order/checkout to avoid creating duplicate promotion
+        # discounts in concurrent requests
+        _lock_order_or_checkout(order_or_checkout)
+        discount_object, created = order_or_checkout.discounts.get_or_create(
+            type=DiscountType.ORDER_PROMOTION,
+            defaults=asdict(line_discount_data),
+        )
     discount_amount = line_discount_data.amount_value
     promotion_rule = cast(PromotionRule, line_discount_data.promotion_rule)
+
     if not created:
         fields_to_update: list[str] = []
         update_promotion_discount(
@@ -813,6 +838,10 @@ def _handle_gift_reward(
         else OrderLineDiscount
     )
     with transaction.atomic():
+        # As we do not have the unique constraint on checkout and order line for gift
+        # lines, so we need to lock the order/checkout to avoid creating duplicate
+        # gift lines
+        _lock_order_or_checkout(order_or_checkout)
         line = create_gift_line(order_or_checkout, gift_listing, line_discount_data)
         (
             line_discount,
