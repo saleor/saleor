@@ -1,6 +1,5 @@
-from django.apps import apps as registry
 from django.db import transaction
-from django.db.models.signals import post_migrate
+from django.utils import timezone
 
 from ....celeryconf import app
 from ....core.db.connection import allow_writer
@@ -18,6 +17,8 @@ def fill_settings_json():
     affected_items = []
 
     with transaction.atomic():
+        qs.select_for_update()
+
         app_extensions = list(qs)
         dirty_extensions: list[AppExtension] = []
 
@@ -47,12 +48,7 @@ def fill_settings_json():
 @app.task
 @allow_writer()
 def fill_app_extension_settings_task():
+    start = timezone.now()
     fill_settings_json()
 
-
-def fill_app_extension_settings_migration(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        fill_app_extension_settings_task.delay()
-
-    sender = registry.get_app_config("app")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+    print(timezone.now() - start)
