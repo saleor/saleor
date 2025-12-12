@@ -14,15 +14,11 @@ def fill_app_extension_settings_task():
         settings={}, target__in=["widget", "new_tab"]
     ).only("target", "http_target_method", "settings")[:BATCH_SIZE]
 
-    affected_items = []
-
     with transaction.atomic():
         locked_qs = qs.select_for_update()
 
         app_extensions = list(locked_qs)
         dirty_extensions: list[AppExtension] = []
-
-        affected_items = app_extensions
 
         for extension in app_extensions:
             if extension.target.upper() == "WIDGET":
@@ -41,5 +37,5 @@ def fill_app_extension_settings_task():
 
         AppExtension.objects.bulk_update(dirty_extensions, fields=["settings"])
 
-    if affected_items:
+    if app_extensions:
         fill_app_extension_settings_task.delay()
