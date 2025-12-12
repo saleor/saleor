@@ -44,6 +44,7 @@ TYPE_UPDATED_FIELD = {
     "Category": "updated_at",
     "Product": "updated_at",
     "ProductType": None,
+    "ProductMedia": None,
     "ProductVariant": "updated_at",
     "DigitalContent": None,
     "Collection": None,
