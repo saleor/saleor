@@ -4,6 +4,8 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
+from freezegun import freeze_time
 
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
@@ -388,10 +390,12 @@ def test_checkout_lines_delete_triggers_webhooks(
     checkout_with_items.save()
 
     # when
-    response = api_client.post_graphql(
-        MUTATION_CHECKOUT_LINES_DELETE,
-        variables,
-    )
+    freezed_time = timezone.now()
+    with freeze_time(freezed_time):
+        response = api_client.post_graphql(
+            MUTATION_CHECKOUT_LINES_DELETE,
+            variables,
+        )
 
     # then
     content = get_graphql_content(response)
@@ -415,6 +419,7 @@ def test_checkout_lines_delete_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": freezed_time,
         },
         bind=True,
     )

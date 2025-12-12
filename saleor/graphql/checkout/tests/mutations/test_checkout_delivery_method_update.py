@@ -5,6 +5,8 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
+from freezegun import freeze_time
 
 from .....account.models import Address
 from .....checkout.actions import call_checkout_info_event
@@ -940,10 +942,12 @@ def test_checkout_delivery_method_update_triggers_webhooks(
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
     # when
-    response = api_client.post_graphql(
-        MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
-        {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
-    )
+    freezed_time = timezone.now()
+    with freeze_time(freezed_time):
+        response = api_client.post_graphql(
+            MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
+            {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
+        )
 
     # then
     content = get_graphql_content(response)
@@ -968,6 +972,7 @@ def test_checkout_delivery_method_update_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": freezed_time,
         },
         bind=True,
     )
@@ -1042,10 +1047,12 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
     method_id = graphene.Node.to_global_id("Warehouse", warehouse_cc_all.id)
 
     # when
-    response = api_client.post_graphql(
-        MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
-        {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
-    )
+    freezed_time = timezone.now()
+    with freeze_time(freezed_time):
+        response = api_client.post_graphql(
+            MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
+            {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
+        )
 
     # then
     content = get_graphql_content(response)
@@ -1069,6 +1076,7 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": freezed_time,
         },
         bind=True,
     )
@@ -1131,10 +1139,12 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     )
 
     # when
-    response = api_client.post_graphql(
-        MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
-        {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
-    )
+    freezed_time = timezone.now()
+    with freeze_time(freezed_time):
+        response = api_client.post_graphql(
+            MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
+            {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
+        )
 
     # then
     content = get_graphql_content(response)
@@ -1158,6 +1168,7 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": freezed_time,
         },
         bind=True,
     )

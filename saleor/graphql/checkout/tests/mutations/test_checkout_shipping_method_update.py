@@ -625,13 +625,15 @@ def test_checkout_shipping_method_update_triggers_webhooks(
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
     # when
-    response = api_client.post_graphql(
-        MUTATION_UPDATE_SHIPPING_METHOD_WITH_ONLY_ID,
-        {
-            "id": to_global_id_or_none(checkout_with_items),
-            "shippingMethodId": method_id,
-        },
-    )
+    freezed_time = timezone.now()
+    with freeze_time(freezed_time):
+        response = api_client.post_graphql(
+            MUTATION_UPDATE_SHIPPING_METHOD_WITH_ONLY_ID,
+            {
+                "id": to_global_id_or_none(checkout_with_items),
+                "shippingMethodId": method_id,
+            },
+        )
 
     # then
     content = get_graphql_content(response)
@@ -656,6 +658,7 @@ def test_checkout_shipping_method_update_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": freezed_time,
         },
         bind=True,
     )
@@ -721,16 +724,20 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
     checkout_with_items.save(update_fields=["shipping_address", "assigned_delivery"])
 
     # when
-    response = api_client.post_graphql(
-        MUTATION_UPDATE_SHIPPING_METHOD_WITH_ONLY_ID,
-        {
-            "id": to_global_id_or_none(checkout_with_items),
-            "shippingMethodId": None,
-        },
-    )
+    freezed_time = timezone.now()
+    with freeze_time(freezed_time):
+        response = api_client.post_graphql(
+            MUTATION_UPDATE_SHIPPING_METHOD_WITH_ONLY_ID,
+            {
+                "id": to_global_id_or_none(checkout_with_items),
+                "shippingMethodId": None,
+            },
+        )
 
     # then
+
     content = get_graphql_content(response)
+
     assert not content["data"]["checkoutShippingMethodUpdate"]["errors"]
 
     assert wrapped_call_checkout_info_event.called
@@ -752,6 +759,7 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": freezed_time,
         },
         bind=True,
     )
