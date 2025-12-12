@@ -1,8 +1,7 @@
-from saleor.app.models import App, AppExtension
-
-from .saleor3_23 import (
-    fill_settings_json,
+from saleor.app.migrations.tasks.saleor3_23 import (
+    fill_app_extension_settings_task,
 )
+from saleor.app.models import App, AppExtension
 
 
 def test_skip_settings_if_filled():
@@ -21,7 +20,7 @@ def test_skip_settings_if_filled():
 
     # when
     # Run migration
-    fill_settings_json()
+    fill_app_extension_settings_task()
 
     # then
     extension.refresh_from_db()
@@ -46,7 +45,7 @@ def test_fill_settings_json_for_new_tab_target():
     )
 
     # when
-    fill_settings_json()
+    fill_app_extension_settings_task()
 
     # then
     extension.refresh_from_db()
@@ -71,7 +70,7 @@ def test_fill_settings_json_skips_non_widget_non_new_tab_targets():
 
     # when
     # Run migration
-    fill_settings_json()
+    fill_app_extension_settings_task()
 
     # then
     extension.refresh_from_db()

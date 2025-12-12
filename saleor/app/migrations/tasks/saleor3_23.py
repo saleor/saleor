@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.utils import timezone
 
 from ....celeryconf import app
 from ....core.db.connection import allow_writer
@@ -8,8 +7,9 @@ from ...models import AppExtension
 BATCH_SIZE = 100
 
 
-def fill_settings_json():
-    # Preserve filled settings, only migrate if empty (fill them)
+@app.task
+@allow_writer()
+def fill_app_extension_settings_task():
     qs = AppExtension.objects.filter(
         settings={}, target__in=["widget", "new_tab"]
     ).only("target", "http_target_method", "settings")[:BATCH_SIZE]
@@ -17,9 +17,9 @@ def fill_settings_json():
     affected_items = []
 
     with transaction.atomic():
-        qs.select_for_update()
+        locked_qs = qs.select_for_update()
 
-        app_extensions = list(qs)
+        app_extensions = list(locked_qs)
         dirty_extensions: list[AppExtension] = []
 
         affected_items = app_extensions
@@ -43,12 +43,3 @@ def fill_settings_json():
 
     if affected_items:
         fill_app_extension_settings_task.delay()
-
-
-@app.task
-@allow_writer()
-def fill_app_extension_settings_task():
-    start = timezone.now()
-    fill_settings_json()
-
-    print(timezone.now() - start)
