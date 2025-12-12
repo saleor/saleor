@@ -325,7 +325,8 @@ class Checkout(models.Model):
             BTreeIndex(
                 fields=["last_automatic_completion_attempt"],
                 name="automaticcompletionattempt_idx",
-            )
+            ),
+            models.Index(fields=["created_at"], name="idx_checkout_created_at"),
         ]
 
     def __iter__(self):
