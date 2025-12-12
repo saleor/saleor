@@ -15,8 +15,6 @@ from .types import (
     DEFAULT_APP_TARGET,
     AppType,
     DeprecatedAppExtensionHttpMethod,
-    DeprecatedAppExtensionMount,
-    DeprecatedAppExtensionTarget,
 )
 
 
@@ -158,11 +156,8 @@ class AppExtension(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="extensions")
     label = models.CharField(max_length=256)
     url = models.URLField()
-    mount = models.CharField(
-        choices=DeprecatedAppExtensionMount.CHOICES, max_length=256
-    )
+    mount = models.CharField(max_length=256)
     target = models.CharField(
-        choices=DeprecatedAppExtensionTarget.CHOICES,
         max_length=128,
         default=DEFAULT_APP_TARGET,
     )
