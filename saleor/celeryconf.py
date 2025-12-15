@@ -42,5 +42,12 @@ app.autodiscover_tasks(
     ],
     related_name="saleor3_22",
 )
+app.autodiscover_tasks(
+    packages=[
+        "saleor.checkout.migrations.tasks",
+        "saleor.order.migrations.tasks",
+    ],
+    related_name="saleor3_20",
+)
 app.autodiscover_tasks(lambda: discover_plugins_modules(settings.PLUGINS))
 app.autodiscover_tasks(related_name="search_tasks")
