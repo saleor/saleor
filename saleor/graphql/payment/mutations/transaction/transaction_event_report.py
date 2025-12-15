@@ -410,6 +410,7 @@ class TransactionEventReport(DeprecatedModelMutation):
                 error_msg = (
                     "The transaction with provided `pspReference` and "
                     "`type` already exists with different amount."
+                    f"Existing value: {existing_event.amount}, New value: {transaction_event.amount}"
                 )
                 error_field = "pspReference"
             elif existing_event:
