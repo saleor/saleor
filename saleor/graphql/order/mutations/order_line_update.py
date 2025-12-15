@@ -108,7 +108,7 @@ class OrderLineUpdate(
                 ) from e
             invalidate_order_prices(order)
             recalculate_order_weight(order)
-            order.save(update_fields=["should_refresh_prices", "weight"])
+            order.save(update_fields=["should_refresh_prices", "weight", "updated_at"])
 
             call_event_by_order_status(order, manager)
 
