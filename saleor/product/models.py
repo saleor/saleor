@@ -165,8 +165,7 @@ class ProductType(ModelWithMetadata):
         return self.name
 
     def __repr__(self) -> str:
-        class_ = type(self)
-        return f"<{class_.__module__}.{class_.__name__}(pk={self.pk!r}, name={self.name!r})>"
+        return f"<ProductType: pk={self.pk!r}, name={self.name!r}>"
 
 
 class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
@@ -247,8 +246,7 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
         return iter(getattr(self, "__variants"))
 
     def __repr__(self) -> str:
-        class_ = type(self)
-        return f"<{class_.__module__}.{class_.__name__}(pk={self.pk!r}, name={self.name!r})>"
+        return f"<Product: pk={self.pk!r}, name={self.name!r}>"
 
     def __str__(self) -> str:
         return self.name

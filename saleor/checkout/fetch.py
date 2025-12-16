@@ -59,10 +59,10 @@ class CheckoutLineInfo(LineInfo):
     product: "Product"
     product_type: "ProductType"
     discounts: list["CheckoutLineDiscount"]
-    rules_info: list["VariantPromotionRuleInfo"]
-    channel_listing: Optional["ProductVariantChannelListing"]
+    rules_info: list["VariantPromotionRuleInfo"] = field(repr=False)
+    channel_listing: Optional["ProductVariantChannelListing"] = field(repr=False)
 
-    tax_class: Optional["TaxClass"] = None
+    tax_class: Optional["TaxClass"] = field(default=None, repr=False)
 
     @cached_property
     def variant_discounted_price(self) -> Money:
