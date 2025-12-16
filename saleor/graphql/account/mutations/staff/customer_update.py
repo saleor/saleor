@@ -120,37 +120,41 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
 
         It overrides the `perform_mutation` base method of ModelMutation.
         """
+        data = cls._prepare_queryset(**data)
 
-        # Retrieve the data
-        original_instance = cls.get_instance(info, **data)
-        data = data.get("input")
+        with traced_atomic_transaction():
+            # Retrieve the data
+            original_instance = cls.get_instance(info, **data)
+            data = data.get("input")
 
-        # Clean the input and generate a new instance from the new data
-        cleaned_input = cls.clean_input(info, original_instance, data)
-        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
-        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
-            "private_metadata", None
-        )
+            # Clean the input and generate a new instance from the new data
+            cleaned_input = cls.clean_input(info, original_instance, data)
+            metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+            private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+                "private_metadata", None
+            )
 
-        metadata_collection = cls.create_metadata_from_graphql_input(
-            metadata_list, error_field_name="metadata"
-        )
-        private_metadata_collection = cls.create_metadata_from_graphql_input(
-            private_metadata_list, error_field_name="private_metadata"
-        )
+            metadata_collection = cls.create_metadata_from_graphql_input(
+                metadata_list, error_field_name="metadata"
+            )
+            private_metadata_collection = cls.create_metadata_from_graphql_input(
+                private_metadata_list, error_field_name="private_metadata"
+            )
 
-        new_instance = cls.construct_instance(copy(original_instance), cleaned_input)
-        cls.validate_and_update_metadata(
-            new_instance, metadata_collection, private_metadata_collection
-        )
+            new_instance = cls.construct_instance(
+                copy(original_instance), cleaned_input
+            )
+            cls.validate_and_update_metadata(
+                new_instance, metadata_collection, private_metadata_collection
+            )
 
-        # Save the new instance data
-        cls.clean_instance(info, new_instance)
-        cls.save(info, new_instance, cleaned_input)
-        cls._save_m2m(info, new_instance, cleaned_input)
+            # Save the new instance data
+            cls.clean_instance(info, new_instance)
+            cls.save(info, new_instance, cleaned_input)
+            cls._save_m2m(info, new_instance, cleaned_input)
 
-        # Generate events by comparing the instances
-        cls.generate_events(info, original_instance, new_instance)
+            # Generate events by comparing the instances
+            cls.generate_events(info, original_instance, new_instance)
 
         if metadata_list:
             manager = get_plugin_manager_promise(info.context).get()
@@ -165,7 +169,6 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         return cls.success_response(new_instance)
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         manager = get_plugin_manager_promise(info.context).get()
 
@@ -175,6 +178,19 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         )
 
         instance.search_document = prepare_user_search_document_value(instance)
-        instance.save()
+        update_fields = list(cleaned_input.keys()) + ["search_document"]
+        instance.save(update_fields=update_fields)
 
         cls.call_event(manager.customer_updated, instance)
+
+    @classmethod
+    def _prepare_queryset(cls, **data):
+        """Configure queryset to lock selected object for an update."""
+        qs = data.pop("qs", None)
+        if qs is None:
+            qs = cls._meta.model.objects.all()
+
+        qs = qs.select_for_update()
+        data["qs"] = qs
+
+        return data
