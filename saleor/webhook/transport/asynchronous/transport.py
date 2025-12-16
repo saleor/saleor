@@ -7,11 +7,13 @@ from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
-from celery import group
+from celery import Task, group
+from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
-from django.db import transaction
+from django.db import connections, transaction
+from django.utils import timezone
 from opentelemetry.trace import StatusCode
 
 from ....celeryconf import app
@@ -405,6 +407,10 @@ def trigger_webhooks_async_for_multiple_objects(
                 )
             )
 
+    # Timestamp that will be passed to deferred task, to make sure that replica is
+    # up to date enough to generate payload.
+    payload_requested_at = timezone.now()
+
     for _, deferred_deliveries in deferred_deliveries_per_object.items():
         if not deferred_deliveries:
             continue
@@ -424,6 +430,7 @@ def trigger_webhooks_async_for_multiple_objects(
                 "deferred_payload_data": asdict(deferred_payload_data),
                 "send_webhook_queue": queue,
                 "telemetry_context": get_task_context().to_dict(),
+                "payload_requested_at": payload_requested_at,
             },
             bind=True,
         )
@@ -488,7 +495,66 @@ def trigger_webhooks_async(
     )
 
 
-@app.task(bind=True)
+def get_replication_replay_time() -> datetime.datetime | None:
+    """Get the time of last transaction replay on the read replica."""
+
+    with connections[settings.DATABASE_CONNECTION_REPLICA_NAME].cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT pg_last_xact_replay_timestamp();
+        """
+        )
+        replay_datetime = cursor.fetchone()[0]
+    return replay_datetime
+
+
+def is_replica_ready_for_payload_generation(
+    celery_task: Task,
+    payload_requested_at: datetime.datetime | None,
+    event_delivery_ids: list[int],
+    retry_backoff: int,
+):
+    """Check if the read replica is caught up enough to generate payload.
+
+    If up to date, allow the payload generation to proceed.
+    If not, retry the task until the replica is caught up.
+    In case of max retries exceeded, mark the deliveries as failed.
+    """
+    current_replication_time = get_replication_replay_time()
+
+    if (
+        current_replication_time and payload_requested_at
+    ) and current_replication_time < payload_requested_at:
+        logger.warning(
+            "Postponing deferred payload generation until replica is caught up. "
+            "Replication timestamp: %s, payload requested at: %s. Current attempt: %d/%d",
+            current_replication_time,
+            payload_requested_at,
+            celery_task.request.retries,
+            celery_task.max_retries,
+            extra={
+                "event_delivery_ids": event_delivery_ids,
+            },
+        )
+        try:
+            countdown = retry_backoff * (2**celery_task.request.retries)
+            raise celery_task.retry(countdown=countdown)
+        except MaxRetriesExceededError:
+            logger.error(
+                "Max retries exceeded for deferred payload generation. "
+                "Using replication timestamp: %s, payload requested at: %s.",
+                current_replication_time,
+                payload_requested_at,
+                extra={
+                    "event_delivery_ids": event_delivery_ids,
+                },
+            )
+
+
+@app.task(
+    bind=True,
+    max_retries=15,
+)
 @allow_writer()
 @task_with_telemetry_context
 def generate_deferred_payloads(
@@ -498,9 +564,33 @@ def generate_deferred_payloads(
     send_webhook_queue: str | None = None,
     *,
     telemetry_context: TelemetryTaskContext,
+    payload_requested_at: datetime.datetime | None = None,
+):
+    retry_backoff = 1
+    is_replica_ready_for_payload_generation(
+        self, payload_requested_at, event_delivery_ids, retry_backoff
+    )
+    _generate_deferred_payloads(
+        event_delivery_ids=event_delivery_ids,
+        deferred_payload_data=deferred_payload_data,
+        send_webhook_queue=send_webhook_queue,
+        telemetry_context=telemetry_context,
+        database_connection_name=settings.DATABASE_CONNECTION_REPLICA_NAME,
+    )
+
+
+def _generate_deferred_payloads(
+    event_delivery_ids: list,
+    deferred_payload_data: dict,
+    send_webhook_queue: str | None,
+    telemetry_context: TelemetryTaskContext,
+    database_connection_name: str,
 ):
     deliveries = list(
-        get_multiple_deliveries_for_webhooks(event_delivery_ids)[0].values()
+        get_multiple_deliveries_for_webhooks(
+            event_delivery_ids,
+            database_connection_name=database_connection_name,
+        )[0].values()
     )
     args_obj = DeferredPayloadData(**deferred_payload_data)
     requestor = None
@@ -509,11 +599,16 @@ def generate_deferred_payloads(
         RequestorModelName.USER,
     ):
         model = apps.get_model(args_obj.requestor_model_name)
-        requestor = model.objects.filter(pk=args_obj.requestor_object_id).first()
+        requestor = (
+            model.objects.using(database_connection_name)
+            .filter(pk=args_obj.requestor_object_id)
+            .first()
+        )
 
     subscribable_object = (
         apps.get_model(args_obj.model_name)
-        .objects.filter(pk=args_obj.object_id)
+        .objects.using(database_connection_name)
+        .filter(pk=args_obj.object_id)
         .first()
     )
     if not subscribable_object:

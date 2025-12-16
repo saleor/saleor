@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
@@ -415,8 +416,15 @@ def test_checkout_lines_delete_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": ANY,
         },
         bind=True,
+    )
+    assert (
+        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
+            "payload_requested_at"
+        ]
+        <= timezone.now()
     )
 
     # Deferred payload covers the sync and async actions

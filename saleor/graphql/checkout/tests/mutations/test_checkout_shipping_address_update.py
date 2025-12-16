@@ -1198,8 +1198,15 @@ def test_checkout_shipping_address_update_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": ANY,
         },
         bind=True,
+    )
+    assert (
+        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
+            "payload_requested_at"
+        ]
+        <= timezone.now()
     )
 
     # Deferred payload covers the sync and async actions

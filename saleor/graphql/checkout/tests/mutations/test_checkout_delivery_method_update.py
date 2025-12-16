@@ -5,6 +5,7 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 
 from .....account.models import Address
 from .....checkout.actions import call_checkout_info_event
@@ -968,8 +969,15 @@ def test_checkout_delivery_method_update_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": ANY,
         },
         bind=True,
+    )
+    assert (
+        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
+            "payload_requested_at"
+        ]
+        <= timezone.now()
     )
 
     # Deferred payload covers the async actions
@@ -1069,8 +1077,15 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": ANY,
         },
         bind=True,
+    )
+    assert (
+        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
+            "payload_requested_at"
+        ]
+        <= timezone.now()
     )
 
     # Deferred payload covers the sync and async actions
@@ -1131,6 +1146,7 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     )
 
     # when
+
     response = api_client.post_graphql(
         MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID,
         {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
@@ -1158,8 +1174,15 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
+            "payload_requested_at": ANY,
         },
         bind=True,
+    )
+    assert (
+        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
+            "payload_requested_at"
+        ]
+        <= timezone.now()
     )
 
     # Deferred payload covers the async actions
