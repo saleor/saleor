@@ -44,7 +44,6 @@ def test_process_additional_action(
         currency=dummy_payment_data.currency,
         transaction_id="ref-id",
         error=None,
-        raw_response=expected_message,
         psp_reference="ref-id",
         payment_method_info=PaymentMethodInfo(),
         legacy_adyen_plugin_result_code=expected_message.get("resultCode"),
@@ -351,7 +350,6 @@ def test_confirm_payment(payment_adyen_for_order, adyen_plugin):
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
-        raw_response={},
     )
 
     action_transaction = create_transaction(
@@ -382,7 +380,7 @@ def test_confirm_payment_pending_order(payment_adyen_for_checkout, adyen_plugin)
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
-        raw_response={"pspReference": "882595494831959A", "resultCode": "Pending"},
+        legacy_adyen_plugin_result_code="pending",
     )
     action_transaction = create_transaction(
         payment=payment_adyen_for_checkout,
@@ -412,7 +410,6 @@ def test_confirm_already_processed_payment(payment_adyen_for_order, adyen_plugin
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
-        raw_response={},
     )
     create_transaction(
         payment=payment_adyen_for_order,
@@ -451,7 +448,6 @@ def test_confirm_payment_with_adyen_auto_capture(payment_adyen_for_order, adyen_
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
-        raw_response={},
     )
 
     auth_transaction = create_transaction(
@@ -519,7 +515,6 @@ def test_refund_payment(payment_adyen_for_order, order_with_lines, adyen_plugin)
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
-        raw_response={},
     )
 
     create_transaction(
@@ -554,7 +549,6 @@ def test_void_payment(
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
-        raw_response={},
     )
 
     create_transaction(
@@ -589,7 +583,6 @@ def test_capture_payment(
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
-        raw_response={},
     )
 
     create_transaction(
