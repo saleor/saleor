@@ -137,8 +137,6 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
 
         It overrides the `perform_mutation` base method of ModelMutation.
         """
-        data = cls._prepare_queryset(**data)
-
         with traced_atomic_transaction():
             # Retrieve the data
             instance = cls.get_instance(info, **data)
@@ -228,13 +226,15 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         return non_metadata_modified_fields, metadata_modified_fields
 
     @classmethod
-    def _prepare_queryset(cls, **data):
-        """Configure queryset to lock selected object for an update."""
-        qs = data.pop("qs", None)
-        if qs is None:
-            qs = cls._meta.model.objects.all()
+    def get_instance(cls, info, **data):
+        """Retrieve an instance from the supplied global id.
 
-        qs = qs.select_for_update()
-        data["qs"] = qs
+        Ensure that `User` object will be locked in order to prevent simultaneous updates
+        mutually overwriting each other's changes.
+        """
+        object_id = cls.get_object_id(**data)
+        qs = models.User.objects.all().select_for_update()
 
-        return data
+        if object_id:
+            return cls.get_node_or_error(info, object_id, only_type=User, qs=qs)
+        return None
