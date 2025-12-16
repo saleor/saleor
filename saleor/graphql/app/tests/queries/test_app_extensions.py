@@ -203,13 +203,13 @@ def test_app_extensions_with_filter(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                mount="popup",
+                mount="product_overview_create",
             ),
             AppExtension(
                 app=app,
                 label="Create product with App4",
                 url="https://www.example.com/app-product",
-                mount="popup",
+                mount="product_overview_create",
             ),
         ]
     )
