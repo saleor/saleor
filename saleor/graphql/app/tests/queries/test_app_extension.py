@@ -5,7 +5,6 @@ from .....app.models import App, AppExtension
 from .....app.types import (
     AppType,
     DeprecatedAppExtensionMount,
-    DeprecatedAppExtensionTarget,
 )
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -36,7 +35,7 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
         url="https://www.example.com/app-product",
         mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
         http_target_method="POST",
-        target=DeprecatedAppExtensionTarget.WIDGET,
+        target="widget",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -480,10 +479,10 @@ def test_app_extension_with_app_query_by_customer_without_permissions(
 @pytest.mark.parametrize(
     ("target", "method"),
     [
-        (DeprecatedAppExtensionTarget.WIDGET, "POST"),
-        (DeprecatedAppExtensionTarget.WIDGET, "GET"),
-        (DeprecatedAppExtensionTarget.NEW_TAB, "POST"),
-        (DeprecatedAppExtensionTarget.NEW_TAB, "GET"),
+        ("widget", "POST"),
+        ("widget", "GET"),
+        ("new_tab", "POST"),
+        ("new_tab", "GET"),
     ],
 )
 def test_app_extension_type_settings_from_http_target_method(
@@ -517,10 +516,10 @@ def test_app_extension_type_settings_from_http_target_method(
     assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
     assert extension_data["targetName"] == app_extension.target.upper()
 
-    if target == DeprecatedAppExtensionTarget.NEW_TAB:
+    if target == "new_tab":
         assert extension_data["settings"]["newTabTarget"]["method"] == method
 
-    if target == DeprecatedAppExtensionTarget.WIDGET:
+    if target == "widget":
         assert extension_data["settings"]["widgetTarget"]["method"] == method
 
 
@@ -557,8 +556,8 @@ def test_app_extension_type_settings_from_native_settings(
     assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
     assert extension_data["targetName"] == app_extension.target.upper()
 
-    if target == DeprecatedAppExtensionTarget.NEW_TAB:
+    if target == "new_tab":
         assert extension_data["settings"]["newTabTarget"]["method"] == method
 
-    if target == DeprecatedAppExtensionTarget.WIDGET:
+    if target == "widget":
         assert extension_data["settings"]["widgetTarget"]["method"] == method

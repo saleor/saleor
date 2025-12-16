@@ -127,27 +127,6 @@ class DeprecatedAppExtensionMount:
     ]
 
 
-# Deprecated. Remove this enum - Saleor will use plain strings in tests, and the exact values are managed by the Dashboard
-class DeprecatedAppExtensionTarget:
-    """All available ways of opening an app extension.
-
-    POPUP - app's extension will be mounted as a popup window
-    APP_PAGE - redirect to app's page
-    """
-
-    POPUP = "popup"
-    APP_PAGE = "app_page"
-    NEW_TAB = "new_tab"
-    WIDGET = "widget"
-
-    CHOICES = [
-        (POPUP, "popup"),
-        (APP_PAGE, "app_page"),
-        (NEW_TAB, "new_tab"),
-        (WIDGET, "widget"),
-    ]
-
-
 # Deprecated. Remove this enum in 3.24, when this field is dropped from AppExtension model
 class DeprecatedAppExtensionHttpMethod:
     """HTTP methods available for app extensions.

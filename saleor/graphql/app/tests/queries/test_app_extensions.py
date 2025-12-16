@@ -1,7 +1,7 @@
 import pytest
 
 from .....app.models import AppExtension
-from .....app.types import DeprecatedAppExtensionMount, DeprecatedAppExtensionTarget
+from .....app.types import DeprecatedAppExtensionMount
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -35,7 +35,7 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
         url="https://www.example.com/app-product",
         mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
         http_target_method="POST",
-        target=DeprecatedAppExtensionTarget.WIDGET,
+        target="widget",
     )
     app_extension.permissions.add(permission_manage_products)
     variables = {}
@@ -191,26 +191,26 @@ def test_app_extensions_with_filter(
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
                 mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
-                target=DeprecatedAppExtensionTarget.APP_PAGE,
+                target="app_page",
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
                 mount=DeprecatedAppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
-                target=DeprecatedAppExtensionTarget.POPUP,
+                target="popup",
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount="popup",
             ),
             AppExtension(
                 app=app,
                 label="Create product with App4",
                 url="https://www.example.com/app-product",
-                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount="popup",
             ),
         ]
     )
@@ -302,14 +302,14 @@ def test_app_extensions_with_name_filter(
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
                 mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
-                target=DeprecatedAppExtensionTarget.APP_PAGE,
+                target="app_page",
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
                 mount=DeprecatedAppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
-                target=DeprecatedAppExtensionTarget.POPUP,
+                target="popup",
             ),
             AppExtension(
                 app=app,

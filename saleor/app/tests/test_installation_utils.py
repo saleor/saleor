@@ -26,7 +26,7 @@ from ..installation_utils import (
     validate_app_install_response,
 )
 from ..models import App
-from ..types import DeprecatedAppExtensionMount, DeprecatedAppExtensionTarget
+from ..types import DeprecatedAppExtensionMount
 
 
 def test_validate_app_install_response():
@@ -305,7 +305,7 @@ def test_install_app_with_extension(
     assert app_extension.label == label
     assert app_extension.url == url
     assert app_extension.mount == DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE
-    assert app_extension.target == DeprecatedAppExtensionTarget.POPUP
+    assert app_extension.target == "popup"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.http_target_method is None
 
@@ -353,7 +353,7 @@ def test_install_app_with_extension_widget(
     assert app_extension.label == label
     assert app_extension.url == url
     assert app_extension.mount == DeprecatedAppExtensionMount.PRODUCT_DETAILS_WIDGETS
-    assert app_extension.target == DeprecatedAppExtensionTarget.WIDGET
+    assert app_extension.target == "widget"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.http_target_method == "POST"
 
@@ -586,7 +586,7 @@ def test_install_app_with_extension_post_method(
     assert app_extension.label == label
     assert app_extension.url == url
     assert app_extension.mount == DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE
-    assert app_extension.target == DeprecatedAppExtensionTarget.NEW_TAB
+    assert app_extension.target == "new_tab"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.http_target_method == "POST"
 
