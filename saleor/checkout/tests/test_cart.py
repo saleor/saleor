@@ -264,7 +264,8 @@ def test_checkout_line_repr(product, checkout_with_single_item):
     variant = product.variants.get()
     line = checkout_with_single_item.lines.first()
     assert (
-        repr(line) == f"CheckoutLine(variant={variant!r}, quantity={line.quantity!r})"
+        repr(line)
+        == f"<CheckoutLine: variant={variant!r}, quantity={line.quantity!r}, total=0.000 USD>"
     )
 
 
