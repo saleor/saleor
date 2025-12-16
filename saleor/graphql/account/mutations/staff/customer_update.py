@@ -142,11 +142,11 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             instance = cls.get_instance(info, **data)
             instance = cast(models.User, instance)
             instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
-            data = data.get("input")
+            input_data = data.get("input")
             gift_cards = get_user_gift_cards(instance)
 
             # Clean the input and generate a new instance from the new data
-            cleaned_input = cls.clean_input(info, instance, data)
+            cleaned_input = cls.clean_input(info, instance, input_data)
             metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
             private_metadata_list: list[MetadataInput] = cleaned_input.pop(
                 "private_metadata", None
