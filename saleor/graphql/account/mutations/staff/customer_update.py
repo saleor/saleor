@@ -137,43 +137,45 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
 
         It overrides the `perform_mutation` base method of ModelMutation.
         """
+        data = cls._prepare_queryset(**data)
 
-        # Retrieve the data
-        instance = cls.get_instance(info, **data)
-        instance = cast(models.User, instance)
-        instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
-        data = data.get("input")
-        gift_cards = get_user_gift_cards(instance)
+        with traced_atomic_transaction():
+            # Retrieve the data
+            instance = cls.get_instance(info, **data)
+            instance = cast(models.User, instance)
+            instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
+            data = data.get("input")
+            gift_cards = get_user_gift_cards(instance)
 
-        # Clean the input and generate a new instance from the new data
-        cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
-        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
-            "private_metadata", None
-        )
+            # Clean the input and generate a new instance from the new data
+            cleaned_input = cls.clean_input(info, instance, data)
+            metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+            private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+                "private_metadata", None
+            )
 
-        metadata_collection = cls.create_metadata_from_graphql_input(
-            metadata_list, error_field_name="metadata"
-        )
-        private_metadata_collection = cls.create_metadata_from_graphql_input(
-            private_metadata_list, error_field_name="private_metadata"
-        )
+            metadata_collection = cls.create_metadata_from_graphql_input(
+                metadata_list, error_field_name="metadata"
+            )
+            private_metadata_collection = cls.create_metadata_from_graphql_input(
+                private_metadata_list, error_field_name="private_metadata"
+            )
 
-        instance = cls.construct_instance(instance, cleaned_input)
-        cls.validate_and_update_metadata(
-            instance, metadata_collection, private_metadata_collection
-        )
+            instance = cls.construct_instance(instance, cleaned_input)
+            cls.validate_and_update_metadata(
+                instance, metadata_collection, private_metadata_collection
+            )
 
-        # Save the new instance data
-        cls.clean_instance(info, instance)
-        non_metadata_modified_fields, metadata_modified_fields = cls._save(
-            info, instance, cleaned_input, instance_tracker
-        )
-        cls._save_m2m(info, instance, cleaned_input)
+            # Save the new instance data
+            cls.clean_instance(info, instance)
+            non_metadata_modified_fields, metadata_modified_fields = cls._save(
+                info, instance, cleaned_input, instance_tracker
+            )
+            cls._save_m2m(info, instance, cleaned_input)
 
-        cls.generate_events(
-            info, instance, instance_tracker, non_metadata_modified_fields
-        )
+            cls.generate_events(
+                info, instance, instance_tracker, non_metadata_modified_fields
+            )
 
         if non_metadata_modified_fields or metadata_modified_fields:
             site = get_site_promise(info.context).get()
@@ -196,7 +198,6 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         return cls.success_response(instance)
 
     @classmethod
-    @traced_atomic_transaction()
     def _save(
         cls, info: ResolveInfo, instance, cleaned_input, instance_tracker
     ) -> tuple[set, set]:
@@ -225,3 +226,15 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             instance.save(update_fields=list(modified_instance_fields))
 
         return non_metadata_modified_fields, metadata_modified_fields
+
+    @classmethod
+    def _prepare_queryset(cls, **data):
+        """Configure queryset to lock selected object for an update."""
+        qs = data.pop("qs", None)
+        if qs is None:
+            qs = cls._meta.model.objects.all()
+
+        qs = qs.select_for_update()
+        data["qs"] = qs
+
+        return data
