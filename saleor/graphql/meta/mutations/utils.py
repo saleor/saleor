@@ -138,7 +138,6 @@ def delete_metadata_keys(instance, keys: list[str]):
         raise ValidationError(
             {"metadata": ValidationError(msg, code=MetadataErrorCode.NOT_FOUND.value)}
         )
-    instance.refresh_from_db(fields=["metadata"])
 
 
 def delete_private_metadata_keys(instance, keys: list[str]):
@@ -167,4 +166,3 @@ def delete_private_metadata_keys(instance, keys: list[str]):
                 )
             }
         )
-    instance.refresh_from_db(fields=["private_metadata"])

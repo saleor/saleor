@@ -38,5 +38,7 @@ class DeleteMetadata(BaseMetadataMutation):
         instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
         if instance:
             meta_instance = get_valid_metadata_instance(instance)
+            for key in keys:
+                meta_instance.delete_value_from_metadata(key)
             delete_metadata_keys(meta_instance, keys)
         return cls.success_response(instance)
