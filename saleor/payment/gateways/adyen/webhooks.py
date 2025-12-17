@@ -151,7 +151,6 @@ def create_new_transaction(notification, payment, kind):
         amount=amount,
         currency=currency,
         error="",
-        raw_response=notification,
         psp_reference=transaction_id,
         legacy_adyen_plugin_payment_method=notification.get("paymentMethod", "")
         .strip()
@@ -1171,7 +1170,6 @@ def handle_api_response(
         currency=payment_data.currency,
         transaction_id=response.message.get("pspReference", ""),
         error=error_message,
-        raw_response=response.message,
         action_required_data=response.message.get("action"),
         psp_reference=response.message.get("pspReference", ""),
         legacy_adyen_plugin_payment_method=response.message.get("paymentMethod", "")
