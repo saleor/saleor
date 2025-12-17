@@ -7,6 +7,7 @@ from ....account.models import User
 from ....checkout import AddressType
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils import metadata_manager
 from ....order import OrderStatus, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
@@ -25,6 +26,7 @@ from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...meta.inputs import MetadataInput, MetadataInputDescription
+from ...meta.mutations.utils import update_metadata, update_private_metadata
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .utils import save_addresses
@@ -109,7 +111,30 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         )
 
     @classmethod
-    def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields):
+    def update_meta_fields(
+        cls,
+        instance,
+        metadata_collection: metadata_manager.MetadataItemCollection,
+        private_metadata_collection: metadata_manager.MetadataItemCollection,
+    ):
+        if metadata_collection is not None:
+            items = {data.key: data.value for data in metadata_collection.items}
+            update_metadata(instance, items)
+
+        if private_metadata_collection is not None:
+            items = {data.key: data.value for data in private_metadata_collection.items}
+            update_private_metadata(instance, items)
+
+    @classmethod
+    def _save(
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        changed_fields,
+        metadata_collection,
+        private_metadata_collection,
+    ):
         update_fields = changed_fields
         with traced_atomic_transaction():
             address_fields = save_addresses(instance, cleaned_input)
@@ -120,12 +145,19 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
                 invalidate_order_prices(instance)
                 update_fields.append("should_refresh_prices")
 
+            cls.update_meta_fields(
+                instance, metadata_collection, private_metadata_collection
+            )
             if update_fields:
                 instance.search_vector = FlatConcatSearchVector(
                     *prepare_order_search_vector_value(instance)
                 )
                 update_fields.extend(["updated_at", "search_vector"])
 
+                # metadata already updated in update_meta_fields
+                update_fields = list(
+                    set(update_fields) - {"metadata", "private_metadata"}
+                )
                 instance.save(update_fields=update_fields)
                 call_order_event(
                     manager,
@@ -203,5 +235,12 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
             old_instance_data,
             new_instance_data,
         )
-        cls._save(info, instance, cleaned_input, changed_fields)
+        cls._save(
+            info,
+            instance,
+            cleaned_input,
+            changed_fields,
+            metadata_collection,
+            private_metadata_collection,
+        )
         return OrderUpdate(order=SyncWebhookControlContext(instance))
