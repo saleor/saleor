@@ -123,10 +123,10 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
         with traced_atomic_transaction():
             # Retrieve the data
             original_instance = cls.get_instance(info, **data)
-            data = data.get("input")
+            input_data = data.get("input")
 
             # Clean the input and generate a new instance from the new data
-            cleaned_input = cls.clean_input(info, original_instance, data)
+            cleaned_input = cls.clean_input(info, original_instance, input_data)
             metadata_list = cleaned_input.pop("metadata", None)
             private_metadata_list = cleaned_input.pop("private_metadata", None)
 
