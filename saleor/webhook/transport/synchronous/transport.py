@@ -59,6 +59,8 @@ from ..utils import (
 )
 
 if TYPE_CHECKING:
+    from ....graphql.core.context import SaleorContext
+    from ....graphql.core.dataloaders import DataLoader
     from ....webhook.models import Webhook
 
 R = TypeVar("R")
@@ -290,8 +292,9 @@ def create_delivery_for_subscription_sync_event(
 
     if not request:
         request = initialize_request(
-            requestor,
-            event_type in WebhookEventSyncType.ALL,
+            app=webhook.app,
+            requestor=requestor,
+            sync_event=event_type in WebhookEventSyncType.ALL,
             event_type=event_type,
             allow_replica=allow_replica,
         )
@@ -301,7 +304,6 @@ def create_delivery_for_subscription_sync_event(
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
             request=request,
-            app=webhook.app,
         )
     else:
         data = pregenerated_payload
@@ -395,13 +397,21 @@ def trigger_taxes_all_webhooks_sync(
     webhooks = get_webhooks_for_event(event_type)
     request_context = None
     event_payload = None
+
+    dataloaders: dict[str, type[DataLoader]] = {}
+    request_map: dict[int, SaleorContext] = {}
+    is_sync_event = event_type in WebhookEventSyncType.ALL
+
     for webhook in webhooks:
         if webhook.subscription_query:
-            if request_context is None:
+            request_context = request_map.get(webhook.app_id)
+            if not request_context:
                 request_context = initialize_request(
-                    requestor,
-                    event_type in WebhookEventSyncType.ALL,
+                    app=webhook.app,
+                    requestor=requestor,
+                    sync_event=is_sync_event,
                     event_type=event_type,
+                    dataloaders=dataloaders,
                 )
 
             pregenerated_payload = get_pregenerated_subscription_payload(

@@ -1,4 +1,5 @@
 import datetime
+import json
 from decimal import Decimal
 from unittest import mock
 
@@ -7,10 +8,12 @@ from django.test import override_settings
 
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....core import EventDeliveryStatus
 from .....payment.interface import PaymentGatewayData
 from .....payment.models import TransactionItem
 from .....plugins.manager import get_plugins_manager
 from .....webhook.event_types import WebhookEventSyncType
+from .....webhook.transport.utils import WebhookResponse
 from ....core.enums import PaymentGatewayConfigErrorCode, TransactionInitializeErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -1106,3 +1109,117 @@ def test_for_order_with_tax_app(
     for call in mocked_send_webhook_request_sync.mock_calls:
         delivery = call.args[0]
         assert delivery.payload.get_payload()
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_using_http")
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_with_mutiple_payment_gateways_have_different_recipments(
+    mock_send_webhook_using_http,
+    webhook_app,
+    payment_gateway_initialize_session_app,
+    checkout,
+    permission_manage_payments,
+    user_api_client,
+):
+    # given
+    assert payment_gateway_initialize_session_app.id != webhook_app.id
+
+    mock_response = mock.MagicMock(spec=WebhookResponse)
+    mock_response.response_status_code = 200
+    mock_response.status = EventDeliveryStatus.SUCCESS
+    mock_response.content = "{}"
+    mock_response.duration = 2.0
+    mock_response.response_headers = {}
+    mock_response.request_headers = {}
+    mock_send_webhook_using_http.return_value = mock_response
+
+    subscription_query = """
+    subscription {
+      event{
+        recipient {
+          id
+          identifier
+        }
+        ...on PaymentGatewayInitializeSession{
+          data
+          amount
+          sourceObject{
+            __typename
+            ... on Checkout{
+              email
+              id
+              channel{
+                id
+                slug
+              }
+            }
+            ... on Order{
+              id
+            }
+          }
+        }
+      }
+    }
+    """
+
+    second_subscription_query = """
+    subscription {
+      event{
+        recipient {
+          id
+          identifier
+        }
+        ...on PaymentGatewayInitializeSession{
+          data
+          amount
+          sourceObject{
+            __typename
+            ... on Checkout{
+              email
+              id
+              channel{
+                id
+                slug
+              }
+            }
+            ... on Order{
+              id
+            }
+          }
+        }
+      }
+    }
+    """
+    # Set up first app
+    webhook_initialize_session = payment_gateway_initialize_session_app.webhooks.first()
+    webhook_initialize_session.subscription_query = subscription_query
+    webhook_initialize_session.save(update_fields=["subscription_query"])
+
+    # Set up second app
+    webhook_app.identifier = "app.identifier"
+    webhook_app.save()
+    webhook_app.permissions.add(permission_manage_payments)
+    webhook_app.permissions.add(permission_manage_payments)
+    webhook = webhook_app.webhooks.create(
+        target_url="http://localhost:8001/endpoint/",
+        name="Webhook",
+        app=webhook_app,
+        subscription_query=second_subscription_query,
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+    }
+
+    # when
+    user_api_client.post_graphql(PAYMENT_GATEWAY_INITIALIZE, variables)
+
+    # then
+    assert mock_send_webhook_using_http.call_count == 2
+    first_message = mock_send_webhook_using_http.mock_calls[0].args[1]
+    second_message = mock_send_webhook_using_http.mock_calls[1].args[1]
+
+    assert json.loads(first_message) != json.loads(second_message)

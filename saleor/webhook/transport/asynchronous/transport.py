@@ -28,7 +28,6 @@ from ....core.telemetry import (
 from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.url import sanitize_url_for_logging
-from ....graphql.core.dataloaders import DataLoader
 from ....graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
     generate_payload_promise_from_subscription,
@@ -62,6 +61,8 @@ from ..utils import (
 )
 
 if TYPE_CHECKING:
+    from ....graphql.core.context import SaleorContext
+    from ....graphql.core.dataloaders import DataLoader
     from ....webhook.models import Webhook
 
 
@@ -117,28 +118,33 @@ def create_deliveries_for_multiple_subscription_objects(
     event_deliveries = []
     event_deliveries_for_bulk_update = []
 
+    is_sync_event = event_type in WebhookEventSyncType.ALL
+    dataloaders: dict[str, type[DataLoader]] = {}
+    request_map: dict[int, SaleorContext] = {}
+
     for subscribable_object in subscribable_objects:
         # Dataloaders are shared between calls to generate_payload_from_subscription to
         # reuse their cache. This avoids unnecessary DB queries when different webhooks
         # need to resolve the same data.
-        dataloaders: dict[str, type[DataLoader]] = {}
-
-        request = initialize_request(
-            requestor,
-            event_type in WebhookEventSyncType.ALL,
-            event_type=event_type,
-            allow_replica=allow_replica,
-            request_time=request_time,
-            dataloaders=dataloaders,
-        )
-
         for webhook in webhooks:
+            request = request_map.get(webhook.app_id)
+            if not request:
+                request = initialize_request(
+                    app=webhook.app,
+                    requestor=requestor,
+                    sync_event=is_sync_event,
+                    event_type=event_type,
+                    allow_replica=allow_replica,
+                    request_time=request_time,
+                    dataloaders=dataloaders,
+                )
+                request_map[webhook.app_id] = request
+
             data = generate_payload_from_subscription(
                 event_type=event_type,
                 subscribable_object=subscribable_object,
                 subscription_query=webhook.subscription_query,
                 request=request,
-                app=webhook.app,
             )
 
             if not data:
@@ -621,25 +627,31 @@ def _generate_deferred_payloads(
     event_payloads_data = []
     event_deliveries_for_bulk_update = []
 
+    dataloaders: dict[str, type[DataLoader]] = {}
+    request_map: dict[int, SaleorContext] = {}
+
     for delivery in deliveries:
         event_type = delivery.event_type
         webhook = delivery.webhook
         if not webhook.subscription_query:
             continue
-
-        request = initialize_request(
-            requestor,
-            event_type in WebhookEventSyncType.ALL,
-            event_type=event_type,
-            allow_replica=True,
-            request_time=args_obj.request_time,
-        )
+        request = request_map.get(webhook.app_id)
+        if not request:
+            request = initialize_request(
+                app=webhook.app,
+                requestor=requestor,
+                sync_event=event_type in WebhookEventSyncType.ALL,
+                event_type=event_type,
+                allow_replica=True,
+                request_time=args_obj.request_time,
+                dataloaders=dataloaders,
+            )
+            request_map[webhook.app_id] = request
         data_promise = generate_payload_promise_from_subscription(
             event_type=event_type,
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
             request=request,
-            app=webhook.app,
         )
 
         if data_promise:
