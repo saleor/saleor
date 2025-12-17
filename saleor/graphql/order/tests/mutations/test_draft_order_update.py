@@ -18,10 +18,11 @@ from .....order import OrderStatus
 from .....order.actions import call_order_event
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
-from .....order.models import OrderEvent
+from .....order.models import Order, OrderEvent
 from .....order.utils import update_discount_for_order_line
 from .....payment.model_helpers import get_subtotal
 from .....shipping.models import ShippingMethod
+from .....tests import race_condition
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import snake_to_camel_case
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -2820,9 +2821,8 @@ def test_draft_order_update_with_metadata(
     # given
     order = draft_order
     order.channel = channel_PLN
-    order.metadata = []
-    order.private_metadata = []
-
+    order.metadata = {}
+    order.private_metadata = {}
     order.save(update_fields=["channel", "private_metadata", "metadata"])
 
     query = DRAFT_ORDER_UPDATE_MUTATION
@@ -3614,3 +3614,120 @@ def test_draft_order_update_same_shipping_method_no_shipping_price_set(
     order.refresh_from_db()
     assert order.undiscounted_base_shipping_price_amount != 0
     call_event_mock.assert_called()
+
+
+def test_draft_order_update_metadata_key_updated_in_meantime(
+    staff_api_client, permission_group_manage_orders, draft_order
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    key_1 = "public_key"
+    key_2 = "another_public_key"
+    value_1 = "public_value"
+    value_2 = "another_public_value"
+    new_value = "updated_value"
+
+    draft_order.metadata = {key_1: value_1, key_2: value_2}
+    draft_order.private_metadata = {key_1: value_2, key_2: value_1}
+    draft_order.save(update_fields=["metadata", "private_metadata"])
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    value_changed_in_meantime = "value_changed_in_meantime"
+
+    def update_metadata(*args, **kwargs):
+        order_to_update = Order.objects.get(pk=draft_order.pk)
+        order_to_update.store_value_in_metadata({key_2: value_changed_in_meantime})
+        order_to_update.store_value_in_private_metadata(
+            {key_1: value_changed_in_meantime}
+        )
+        order_to_update.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "id": draft_order_id,
+        "input": {
+            "metadata": [{"key": key_1, "value": new_value}],
+            "privateMetadata": [{"key": key_2, "value": new_value}],
+        },
+    }
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.draft_order_update.update_meta_fields",
+        update_metadata,
+    ):
+        response = staff_api_client.post_graphql(DRAFT_ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    order_data = data["order"]
+    assert order_data
+
+    draft_order.refresh_from_db()
+    resolve_metadata = {item["key"]: item["value"] for item in order_data["metadata"]}
+    assert (
+        resolve_metadata
+        == {key_1: new_value, key_2: value_changed_in_meantime}
+        == draft_order.metadata
+    )
+    resolve_private_metadata = {
+        item["key"]: item["value"] for item in order_data["privateMetadata"]
+    }
+    assert (
+        resolve_private_metadata
+        == {
+            key_2: new_value,
+            key_1: value_changed_in_meantime,
+        }
+        == draft_order.private_metadata
+    )
+
+
+def test_draft_order_update_metadata_key_deleted_in_meantime(
+    staff_api_client, permission_group_manage_orders, draft_order
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    key_1 = "public_key"
+    key_2 = "another_public_key"
+    value_1 = "public_value"
+    value_2 = "another_public_value"
+    new_value = "updated_value"
+
+    draft_order.metadata = {key_1: value_1, key_2: value_2}
+    draft_order.private_metadata = {key_1: value_2, key_2: value_1}
+    draft_order.save(update_fields=["metadata", "private_metadata"])
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    def delete_metadata(*args, **kwargs):
+        order_to_update = Order.objects.get(pk=draft_order.pk)
+        order_to_update.delete_value_from_metadata(key_2)
+        order_to_update.delete_value_from_private_metadata(key_1)
+        order_to_update.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "id": draft_order_id,
+        "input": {
+            "metadata": [{"key": key_1, "value": new_value}],
+            "privateMetadata": [{"key": key_2, "value": new_value}],
+        },
+    }
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.draft_order_update.update_meta_fields",
+        delete_metadata,
+    ):
+        response = staff_api_client.post_graphql(DRAFT_ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    order_data = data["order"]
+    assert order_data["metadata"] == [{"key": key_1, "value": new_value}]
+    assert order_data["privateMetadata"] == [{"key": key_2, "value": new_value}]
+
+    draft_order.refresh_from_db()
+    assert draft_order.metadata == {key_1: new_value}
+    assert draft_order.private_metadata == {key_2: new_value}
