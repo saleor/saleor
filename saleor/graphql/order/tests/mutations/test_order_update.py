@@ -7,7 +7,9 @@ from .....core.models import EventDelivery
 from .....order import OrderStatus
 from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
+from .....order.models import Order
 from .....product.models import ProductVariant
+from .....tests import race_condition
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import snake_to_camel_case
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -1046,3 +1048,119 @@ def test_order_update_address_not_set(
     assert order.shipping_address
     assert order.billing_address
     call_event_mock.assert_called()
+
+
+def test_update_public_metadata_another_key_deleted_in_meantime(
+    staff_api_client, order, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    key_1 = "public_key"
+    key_2 = "another_public_key"
+    value_1 = "public_value"
+    value_2 = "another_public_value"
+    new_value = "updated_value"
+
+    order.metadata = {key_1: value_1, key_2: value_2}
+    order.private_metadata = {key_1: value_2, key_2: value_1}
+    order.save(update_fields=["metadata", "private_metadata"])
+
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    def delete_metadata(*args, **kwargs):
+        order_to_update = Order.objects.get(pk=order.pk)
+        order_to_update.delete_value_from_metadata(key_2)
+        order_to_update.delete_value_from_private_metadata(key_1)
+        order_to_update.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "metadata": [{"key": key_1, "value": new_value}],
+            "privateMetadata": [{"key": key_2, "value": new_value}],
+        },
+    }
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.order_update.save_addresses",
+        delete_metadata,
+    ):
+        response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orderUpdate"]["order"]
+    assert order_data
+    assert not content["data"]["orderUpdate"]["errors"]
+    assert order_data["metadata"] == [{"key": key_1, "value": new_value}]
+    assert order_data["privateMetadata"] == [{"key": key_2, "value": new_value}]
+
+    order.refresh_from_db()
+
+    assert order.metadata == {key_1: new_value}
+    assert order.private_metadata == {key_2: new_value}
+
+
+def test_update_public_metadata_another_key_updated_in_meantime(
+    staff_api_client, order, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    key_1 = "public_key"
+    key_2 = "another_public_key"
+    value_1 = "public_value"
+    value_2 = "another_public_value"
+    new_value = "updated_value"
+    value_changed_in_meantime = "value_changed_in_meantime"
+
+    order.metadata = {key_1: value_1, key_2: value_2}
+    order.private_metadata = {key_1: value_2, key_2: value_1}
+    order.save(update_fields=["metadata", "private_metadata"])
+
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    def update_metadata(*args, **kwargs):
+        order_to_update = Order.objects.get(pk=order.pk)
+        order_to_update.store_value_in_metadata({key_2: value_changed_in_meantime})
+        order_to_update.store_value_in_private_metadata(
+            {key_1: value_changed_in_meantime}
+        )
+        order_to_update.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "metadata": [{"key": key_1, "value": new_value}],
+            "privateMetadata": [{"key": key_2, "value": new_value}],
+        },
+    }
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.order_update.save_addresses",
+        update_metadata,
+    ):
+        response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orderUpdate"]["order"]
+    assert order_data
+    assert not content["data"]["orderUpdate"]["errors"]
+    order.refresh_from_db()
+    resolve_metadata = {item["key"]: item["value"] for item in order_data["metadata"]}
+    assert (
+        resolve_metadata
+        == {key_1: new_value, key_2: value_changed_in_meantime}
+        == order.metadata
+    )
+    resolve_private_metadata = {
+        item["key"]: item["value"] for item in order_data["privateMetadata"]
+    }
+    assert (
+        resolve_private_metadata
+        == {
+            key_2: new_value,
+            key_1: value_changed_in_meantime,
+        }
+        == order.private_metadata
+    )
