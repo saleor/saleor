@@ -5,6 +5,7 @@ from django.db.models import QuerySet
 
 from .....account import events as account_events
 from .....account import models
+from .....core.tracing import traced_atomic_transaction
 from .....giftcard.search import mark_gift_cards_search_index_as_dirty
 from .....giftcard.utils import assign_user_gift_cards, get_user_gift_cards
 from .....order.utils import match_orders_with_new_user
@@ -119,28 +120,30 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
 
         It overrides the `perform_mutation` base method of ModelMutation.
         """
+        with traced_atomic_transaction():
+            # Retrieve the data
+            original_instance = cls.get_instance(info, **data)
+            input_data = data.get("input")
 
-        # Retrieve the data
-        original_instance = cls.get_instance(info, **data)
-        data = data.get("input")
+            # Clean the input and generate a new instance from the new data
+            cleaned_input = cls.clean_input(info, original_instance, input_data)
+            metadata_list = cleaned_input.pop("metadata", None)
+            private_metadata_list = cleaned_input.pop("private_metadata", None)
 
-        # Clean the input and generate a new instance from the new data
-        cleaned_input = cls.clean_input(info, original_instance, data)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+            new_instance = cls.construct_instance(
+                copy(original_instance), cleaned_input
+            )
+            cls.validate_and_update_metadata(
+                new_instance, metadata_list, private_metadata_list
+            )
 
-        new_instance = cls.construct_instance(copy(original_instance), cleaned_input)
-        cls.validate_and_update_metadata(
-            new_instance, metadata_list, private_metadata_list
-        )
+            # Save the new instance data
+            cls.clean_instance(info, new_instance)
+            cls.save(info, new_instance, cleaned_input)
+            cls._save_m2m(info, new_instance, cleaned_input)
 
-        # Save the new instance data
-        cls.clean_instance(info, new_instance)
-        cls.save(info, new_instance, cleaned_input)
-        cls._save_m2m(info, new_instance, cleaned_input)
-
-        # Generate events by comparing the instances
-        cls.generate_events(info, original_instance, new_instance)
+            # Generate events by comparing the instances
+            cls.generate_events(info, original_instance, new_instance)
 
         if metadata_list:
             manager = get_plugin_manager_promise(info.context).get()
@@ -153,3 +156,17 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
 
         # Return the response
         return cls.success_response(new_instance)
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        """Retrieve an instance from the supplied global id.
+
+        Ensure that `User` object will be locked in order to prevent simultaneous updates
+        mutually overwriting each other's changes.
+        """
+        object_id = cls.get_object_id(**data)
+        qs = models.User.objects.all().select_for_update()
+
+        if object_id:
+            return cls.get_node_or_error(info, object_id, only_type=User, qs=qs)
+        return None
