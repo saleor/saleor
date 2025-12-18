@@ -3,7 +3,6 @@ from dataclasses import asdict
 import graphene
 from celery.exceptions import Retry
 from django.db.models import Exists, OuterRef
-from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
 from ....app.models import App
@@ -112,8 +111,10 @@ class WebhookTrigger(BaseMutation):
 
     @classmethod
     def validate_permissions(cls, info, event_type):
-        if permission := (
-            WebhookEventAsyncType.PERMISSIONS.get(event_type) if event_type else None
+        if (
+            permission := WebhookEventAsyncType.PERMISSIONS.get(event_type)
+            if event_type
+            else None
         ):
             codename = permission.value.split(".")[1]
             user_permissions = [
@@ -181,7 +182,6 @@ class WebhookTrigger(BaseMutation):
                         "event_delivery_ids": [delivery.pk],
                         "deferred_payload_data": asdict(deferred_payload_data),
                         "telemetry_context": get_task_context().to_dict(),
-                        "payload_requested_at": timezone.now(),
                     },
                     bind=True,
                 )
