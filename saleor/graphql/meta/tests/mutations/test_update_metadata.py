@@ -179,6 +179,32 @@ def test_update_public_metadata_for_item(api_client, checkout):
     )
 
 
+def test_update_public_metadata_for_item_with_empty_value(
+    staff_api_client, order, permission_manage_orders
+):
+    # given
+    order.metadata = None
+    order.save(update_fields=["metadata"])
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_orders,
+        order.id,
+        "Order",
+        value="NewMetaValue",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        order,
+        order_id,
+        value="NewMetaValue",
+    )
+
+
 @pytest.mark.django_db(transaction=True)
 def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkout):
     # given
@@ -251,7 +277,7 @@ def test_update_public_metadata_for_item_without_meta(
 
 
 @pytest.mark.django_db(transaction=True)
-def test_update_public_metadata_race_condition(api_client, checkout):
+def test_update_public_metadata_key_updated_in_meantime(api_client, checkout):
     # given
     checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.metadata_storage.save(update_fields=["metadata"])

@@ -121,7 +121,12 @@ def update_private_metadata(instance, items):
 
 
 def delete_metadata_keys(instance, keys: list[str]):
-    """Atomically delete metadata keys using PostgreSQL's JSONB operations."""
+    """Atomically delete metadata keys at the database level.
+
+    Performs an atomic operation to remove the specified keys from the
+    metadata JSONB field, preventing race conditions that could occur
+    with read-modify-write patterns.
+    """
     extra_update_fields = get_extra_update_field(instance)
 
     with allow_writer():
@@ -144,7 +149,12 @@ def delete_metadata_keys(instance, keys: list[str]):
 
 
 def delete_private_metadata_keys(instance, keys: list[str]):
-    """Atomically delete private metadata keys using PostgreSQL's JSONB operations."""
+    """Atomically delete private metadata keys at the database level.
+
+    Performs an atomic operation to remove the specified keys from the
+    metadata JSONB field, preventing race conditions that could occur
+    with read-modify-write patterns.
+    """
     extra_update_fields = get_extra_update_field(instance)
 
     with allow_writer():

@@ -184,8 +184,14 @@ class BaseMetadataMutation(BaseMutation):
 
         if instance:
             metadata_instance = get_valid_metadata_instance(instance)
-            old_metadata = dict(metadata_instance.metadata)
-            old_private_metadata = dict(metadata_instance.private_metadata)
+            old_metadata = (
+                dict(metadata_instance.metadata) if metadata_instance.metadata else {}
+            )
+            old_private_metadata = (
+                dict(metadata_instance.private_metadata)
+                if metadata_instance.private_metadata
+                else {}
+            )
         else:
             old_metadata = {}
             old_private_metadata = {}
