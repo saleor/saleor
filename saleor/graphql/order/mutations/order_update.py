@@ -7,7 +7,6 @@ from ....account.models import User
 from ....checkout import AddressType
 from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils import metadata_manager
 from ....order import OrderStatus, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
@@ -26,10 +25,9 @@ from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...meta.inputs import MetadataInput, MetadataInputDescription
-from ...meta.mutations.utils import update_metadata, update_private_metadata
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
-from .utils import save_addresses
+from .utils import save_addresses, update_meta_fields
 
 
 class OrderUpdateInput(BaseInputObjectType):
@@ -111,21 +109,6 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         )
 
     @classmethod
-    def update_meta_fields(
-        cls,
-        instance,
-        metadata_collection: metadata_manager.MetadataItemCollection,
-        private_metadata_collection: metadata_manager.MetadataItemCollection,
-    ):
-        if metadata_collection is not None:
-            items = {data.key: data.value for data in metadata_collection.items}
-            update_metadata(instance, items)
-
-        if private_metadata_collection is not None:
-            items = {data.key: data.value for data in private_metadata_collection.items}
-            update_private_metadata(instance, items)
-
-    @classmethod
     def _save(
         cls,
         info: ResolveInfo,
@@ -145,7 +128,7 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
                 invalidate_order_prices(instance)
                 update_fields.append("should_refresh_prices")
 
-            cls.update_meta_fields(
+            update_meta_fields(
                 instance, metadata_collection, private_metadata_collection
             )
             if update_fields:

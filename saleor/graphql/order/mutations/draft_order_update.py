@@ -40,6 +40,7 @@ from .utils import (
     SHIPPING_METHOD_UPDATE_FIELDS,
     ShippingMethodUpdateMixin,
     save_addresses,
+    update_meta_fields,
 )
 
 
@@ -212,6 +213,8 @@ class DraftOrderUpdate(
         old_voucher,
         old_voucher_code,
         changed_fields,
+        metadata_collection,
+        private_metadata_collection,
     ):
         updated_fields = changed_fields
         manager = get_plugin_manager_promise(info.context).get()
@@ -243,6 +246,10 @@ class DraftOrderUpdate(
                     old_voucher,
                     old_voucher_code,
                 )
+
+            update_meta_fields(
+                instance, metadata_collection, private_metadata_collection
+            )
 
             # In case nothing change, do not update perform post-process actions;
             # do not call the `DRAFT_ORDER_UPDATED` event.
@@ -351,7 +358,14 @@ class DraftOrderUpdate(
             new_instance_data,
         )
         cls._save(
-            info, instance, cleaned_input, old_voucher, old_voucher_code, changed_fields
+            info,
+            instance,
+            cleaned_input,
+            old_voucher,
+            old_voucher_code,
+            changed_fields,
+            metadata_collection,
+            private_metadata_collection,
         )
         cls._save_m2m(info, instance, cleaned_input)
 
