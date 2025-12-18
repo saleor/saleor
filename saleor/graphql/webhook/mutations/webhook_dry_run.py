@@ -1,3 +1,5 @@
+from typing import cast
+
 import graphene
 from graphene.utils.str_converters import to_camel_case
 
@@ -7,12 +9,16 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookDryRunErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import SaleorContext
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import WebhookDryRunError
 from ...core.utils import from_global_id_or_error, raise_validation_error
-from ..subscription_payload import generate_payload_from_subscription
+from ...utils import get_user_or_app_from_context
+from ..subscription_payload import (
+    generate_payload_from_subscription,
+)
 from ..subscription_query import SubscriptionQuery
 from ..subscription_types import WEBHOOK_TYPES_MAP
 
@@ -78,10 +84,8 @@ class WebhookDryRun(BaseMutation):
 
     @classmethod
     def validate_permissions(cls, info, event_type):
-        if (
-            permission := WebhookEventAsyncType.PERMISSIONS.get(event_type)
-            if event_type
-            else None
+        if permission := (
+            WebhookEventAsyncType.PERMISSIONS.get(event_type) if event_type else None
         ):
             codename = permission.value.split(".")[1]
             user_permissions = [
@@ -122,6 +126,12 @@ class WebhookDryRun(BaseMutation):
         payload = None
         if all([event_type, object, query]):
             request = info.context
+            request = cast(SaleorContext, request)
+            request.requestor = get_user_or_app_from_context(info.context)
+
+            event_type = cast(str, event_type)
+            query = cast(str, query)
+
             if event_type in [
                 WebhookEventAsyncType.VOUCHER_CODES_CREATED,
                 WebhookEventAsyncType.VOUCHER_CODES_DELETED,
@@ -129,6 +139,9 @@ class WebhookDryRun(BaseMutation):
                 object = [object]
 
             payload = generate_payload_from_subscription(
-                event_type, object, query, request
+                event_type,
+                object,
+                query,
+                request,
             )
         return WebhookDryRun(payload=payload)
