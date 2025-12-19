@@ -187,7 +187,6 @@ class WebhookTrigger(BaseMutation):
                         "event_delivery_ids": [delivery.pk],
                         "deferred_payload_data": asdict(deferred_payload_data),
                         "telemetry_context": get_task_context().to_dict(),
-                        "payload_requested_at": delivery.created_at,
                     },
                     MessageGroupId=message_group_id,
                 )
