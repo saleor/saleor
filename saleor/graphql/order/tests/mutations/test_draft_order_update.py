@@ -2815,15 +2815,25 @@ def test_draft_order_update_no_billing_address_save_addresses_raising_error(
     assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name
 
 
-def test_draft_order_update_with_metadata(
-    app_api_client, permission_manage_orders, draft_order, channel_PLN
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+def test_draft_order_update_with_metadata_legacy_webhook_emission_on(
+    order_updated_webhook_mock,
+    app_api_client,
+    permission_manage_orders,
+    draft_order,
+    channel_PLN,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
     order = draft_order
     order.channel = channel_PLN
     order.metadata = {}
     order.private_metadata = {}
     order.save(update_fields=["channel", "private_metadata", "metadata"])
+    updated_at_before = order.updated_at
 
     query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -2875,6 +2885,86 @@ def test_draft_order_update_with_metadata(
 
     assert private_metadata_result_list[0]["key"] == private_metadata_key
     assert private_metadata_result_list[0]["value"] == private_metadata_value
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+
+    order.refresh_from_db()
+    assert order.updated_at > updated_at_before
+
+
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+def test_draft_order_update_with_metadata_legacy_webhook_emission_off(
+    order_updated_webhook_mock,
+    app_api_client,
+    permission_manage_orders,
+    draft_order,
+    channel_PLN,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    order = draft_order
+    order.channel = channel_PLN
+    order.metadata = {}
+    order.private_metadata = {}
+    order.save(update_fields=["channel", "private_metadata", "metadata"])
+    updated_at_before = order.updated_at
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    public_metadata_key = "public metadata key"
+    public_metadata_value = "public metadata value"
+    private_metadata_key = "private metadata key"
+    private_metadata_value = "private metadata value"
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "metadata": [
+                {
+                    "key": public_metadata_key,
+                    "value": public_metadata_value,
+                }
+            ],
+            "privateMetadata": [
+                {
+                    "key": private_metadata_key,
+                    "value": private_metadata_value,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+
+    assert not data["errors"]
+
+    metadata_result_list: list[dict[str, str]] = data["order"]["metadata"]
+    private_metadata_result_list: list[dict[str, str]] = data["order"][
+        "privateMetadata"
+    ]
+
+    assert len(metadata_result_list) == 1
+    assert len(private_metadata_result_list) == 1
+
+    assert metadata_result_list[0]["key"] == public_metadata_key
+    assert metadata_result_list[0]["value"] == public_metadata_value
+
+    assert private_metadata_result_list[0]["key"] == private_metadata_key
+    assert private_metadata_result_list[0]["value"] == private_metadata_value
+    order_updated_webhook_mock.assert_not_called()
+
+    order.refresh_from_db()
+    assert order.updated_at > updated_at_before
 
 
 def test_draft_order_update_with_voucher_specific_product_and_manual_line_discount(
@@ -3411,6 +3501,9 @@ def test_draft_order_update_emit_events(
     input_fields = [
         snake_to_camel_case(key) for key in DraftOrderInput._meta.fields.keys()
     ]
+    # metadata fields are tested separately, updated atomically in `update_meta_fields`
+    input_fields.remove("metadata")
+    input_fields.remove("privateMetadata")
 
     # `discount` field is unused and deprecated
     input_fields.remove("discount")
@@ -3436,8 +3529,6 @@ def test_draft_order_update_emit_events(
         "customerNote": order.customer_note + "_new",
         "redirectUrl": "https://www.example.com",
         "externalReference": order.external_reference + "_new",
-        "metadata": [{"key": key, "value": "new_value"}],
-        "privateMetadata": [{"key": "new_key", "value": value}],
         "languageCode": "PL",
     }
     assert set(input_fields) == set(input.keys())

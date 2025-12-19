@@ -286,7 +286,7 @@ class DraftOrderUpdate(
                 order_modified_fields.add("should_refresh_prices")
 
             # Save instance
-            cls._save_order_instance(instance, order_modified_fields)
+            cls._save_order_instance(instance, list(order_modified_fields))
 
             return bool(order_modified_fields), metadata_modified
 
