@@ -510,13 +510,9 @@ def trigger_webhooks_async(
     )
 
 
-def get_last_event_delivery_time() -> datetime.datetime | None:
+def get_last_event_delivery_time(db_connection) -> datetime.datetime | None:
     """Get the time of the last event delivery object present on the replica side."""
-    event_delivery = (
-        EventDelivery.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .order_by("-id")
-        .first()
-    )
+    event_delivery = EventDelivery.objects.using(db_connection).order_by("-id").first()
     if event_delivery:
         return event_delivery.created_at
     return None
@@ -527,6 +523,7 @@ def is_replica_ready_for_payload_generation(
     payload_requested_at: datetime.datetime | None,
     event_delivery_ids: list[int],
     retry_backoff: int,
+    db_connection: str,
 ):
     """Check if the read replica is caught up enough to generate payload.
 
@@ -534,7 +531,7 @@ def is_replica_ready_for_payload_generation(
     If not, retry the task until the replica is caught up.
     In case of max retries exceeded, mark the deliveries as failed.
     """
-    current_last_event_delivery_time = get_last_event_delivery_time()
+    current_last_event_delivery_time = get_last_event_delivery_time(db_connection)
 
     if (
         current_last_event_delivery_time and payload_requested_at
@@ -589,17 +586,28 @@ def generate_deferred_payloads(
     telemetry_context: TelemetryTaskContext,
     payload_requested_at: datetime.datetime | None = None,
 ):
-    retry_backoff = 1
-    is_replica_ready_for_payload_generation(
-        self, payload_requested_at, event_delivery_ids, retry_backoff
-    )
-    _generate_deferred_payloads(
-        event_delivery_ids=event_delivery_ids,
-        deferred_payload_data=deferred_payload_data,
-        send_webhook_queue=send_webhook_queue,
-        telemetry_context=telemetry_context,
-        database_connection_name=settings.DATABASE_CONNECTION_REPLICA_NAME,
-    )
+    # Set up transaction to ensure that we always use the same
+    # replica while checking the lag and generating the payloads.
+    with transaction.atomic(
+        using=settings.DATABASE_CONNECTION_REPLICA_NAME, savepoint=False
+    ):
+        db_connection_name = settings.DATABASE_CONNECTION_REPLICA_NAME
+        retry_backoff = 1
+
+        is_replica_ready_for_payload_generation(
+            self,
+            payload_requested_at,
+            event_delivery_ids,
+            retry_backoff,
+            db_connection_name,
+        )
+        _generate_deferred_payloads(
+            event_delivery_ids=event_delivery_ids,
+            deferred_payload_data=deferred_payload_data,
+            send_webhook_queue=send_webhook_queue,
+            telemetry_context=telemetry_context,
+            database_connection_name=db_connection_name,
+        )
 
 
 def _generate_deferred_payloads(
