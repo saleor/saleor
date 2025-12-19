@@ -373,12 +373,6 @@ class TransactionEventReport(DeprecatedModelMutation):
         transaction_event = cls.construct_instance(
             transaction_event, transaction_event_data
         )
-        try:
-            source_object = transaction.order or transaction.checkout
-        except Checkout.DoesNotExist:
-            # Prevent race condition between TransactionEventReport and checkout completion
-            transaction.refresh_from_db()
-            source_object = transaction.order or transaction.checkout
 
         metadata_collection = cls.create_metadata_from_graphql_input(
             transaction_metadata, error_field_name="metadata"
@@ -483,6 +477,16 @@ class TransactionEventReport(DeprecatedModelMutation):
                 transaction.save(update_fields=updated_fields)
 
         app_identifier = app_identifier or transaction.app_identifier
+
+        source_object = Checkout.objects.filter(pk=transaction.checkout_id).first()
+        if not source_object:
+            # Prevent race condition between TransactionEventReport and checkout completion
+            source_object = order_models.Order.objects.filter(
+                pk__in=payment_models.TransactionItem.objects.filter(
+                    pk=transaction.pk
+                ).values_list("order_id", flat=True)
+            ).first()
+
         if app_identifier and source_object:
             invalidate_cache_for_stored_payment_methods_if_needed(
                 transaction_event, source_object, app_identifier
