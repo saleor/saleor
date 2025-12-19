@@ -17,6 +17,7 @@ from ....utils import get_webhooks_for_event
 from ..transport import (
     DeferredPayloadData,
     generate_deferred_payloads,
+    get_last_event_delivery_time,
     trigger_webhooks_async,
 )
 
@@ -129,15 +130,31 @@ def test_generate_deferred_payload(
     assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
 
 
+def test_get_last_event_delivery_time_returns_lastest_timestamp(webhook):
+    # given
+    first_delivery = EventDelivery.objects.create(
+        event_type="order_created", status=EventDeliveryStatus.PENDING, webhook=webhook
+    )
+
+    second_delivery = EventDelivery.objects.create(
+        event_type="order_created",
+        status=EventDeliveryStatus.PENDING,
+        webhook=webhook,
+    )
+    assert first_delivery.created_at < second_delivery.created_at
+
+    # when
+    last_event_delivery_time = get_last_event_delivery_time()
+
+    # then
+    assert last_event_delivery_time == second_delivery.created_at
+
+
 @freeze_time("2024-01-01 12:00:00")
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport._generate_deferred_payloads"
 )
-@mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.get_replication_replay_time"
-)
 def test_generate_deferred_payload_waits_for_replica_to_sync(
-    mocked_get_replication_replay_time,
     mocked_generate_deferred_payloads,
     checkout_with_item,
     setup_checkout_webhooks,
@@ -166,17 +183,14 @@ def test_generate_deferred_payload_waits_for_replica_to_sync(
     delivery.save()
 
     delivery_created_at = delivery.created_at
-    # Simulate that last transaction time on replica is before delivery creation time
-    mocked_get_replication_replay_time.return_value = (
-        delivery_created_at - datetime.timedelta(seconds=2)
-    )
 
     # when
     with pytest.raises(Retry):
         generate_deferred_payloads(
             event_delivery_ids=[delivery.pk],
             deferred_payload_data=asdict(deferred_payload_data),
-            payload_requested_at=delivery_created_at,
+            # Simulate case when replica has events with older timestamps than payload request time
+            payload_requested_at=delivery_created_at + datetime.timedelta(seconds=1),
         )
 
     # then
@@ -188,10 +202,10 @@ def test_generate_deferred_payload_waits_for_replica_to_sync(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.get_replication_replay_time"
+    "saleor.webhook.transport.asynchronous.transport.get_last_event_delivery_time"
 )
-def test_generate_deferred_payload_covers_null_as_last_replication_time(
-    mocked_get_replication_replay_time,
+def test_generate_deferred_payload_covers_null_as_last_event_delivery_time(
+    mocked_get_last_event_delivery_time,
     mocked_send_webhook_request_async,
     checkout_with_item,
     setup_checkout_webhooks,
@@ -219,7 +233,7 @@ def test_generate_deferred_payload_covers_null_as_last_replication_time(
     )
     delivery.save()
 
-    mocked_get_replication_replay_time.return_value = None
+    mocked_get_last_event_delivery_time.return_value = None
 
     # when
     generate_deferred_payloads(
