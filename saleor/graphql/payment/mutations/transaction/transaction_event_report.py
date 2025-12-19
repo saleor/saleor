@@ -478,7 +478,9 @@ class TransactionEventReport(DeprecatedModelMutation):
 
         app_identifier = app_identifier or transaction.app_identifier
 
-        source_object = Checkout.objects.filter(pk=transaction.checkout_id).first()
+        source_object: Checkout | order_models.Order | None = None
+        if transaction.checkout_id:
+            source_object = Checkout.objects.filter(pk=transaction.checkout_id).first()
         if not source_object:
             # Prevent race condition between TransactionEventReport and checkout completion
             source_object = order_models.Order.objects.filter(
