@@ -130,7 +130,7 @@ def test_generate_deferred_payload(
     assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
 
 
-def test_get_last_event_delivery_time_returns_lastest_timestamp(webhook):
+def test_get_last_event_delivery_time_returns_lastest_timestamp(webhook, settings):
     # given
     first_delivery = EventDelivery.objects.create(
         event_type="order_created", status=EventDeliveryStatus.PENDING, webhook=webhook
@@ -144,7 +144,9 @@ def test_get_last_event_delivery_time_returns_lastest_timestamp(webhook):
     assert first_delivery.created_at < second_delivery.created_at
 
     # when
-    last_event_delivery_time = get_last_event_delivery_time()
+    last_event_delivery_time = get_last_event_delivery_time(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    )
 
     # then
     assert last_event_delivery_time == second_delivery.created_at
