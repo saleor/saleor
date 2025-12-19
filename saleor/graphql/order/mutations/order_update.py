@@ -27,7 +27,7 @@ from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
-from .utils import save_addresses
+from .utils import save_addresses, update_meta_fields
 
 
 class OrderUpdateInput(BaseInputObjectType):
@@ -109,7 +109,15 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         )
 
     @classmethod
-    def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields):
+    def _save(
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        changed_fields,
+        metadata_collection,
+        private_metadata_collection,
+    ):
         update_fields = changed_fields
         with traced_atomic_transaction():
             address_fields = save_addresses(instance, cleaned_input)
@@ -120,12 +128,19 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
                 invalidate_order_prices(instance)
                 update_fields.append("should_refresh_prices")
 
+            update_meta_fields(
+                instance, metadata_collection, private_metadata_collection
+            )
             if update_fields:
                 instance.search_vector = FlatConcatSearchVector(
                     *prepare_order_search_vector_value(instance)
                 )
                 update_fields.extend(["updated_at", "search_vector"])
 
+                # metadata already updated in update_meta_fields
+                update_fields = list(
+                    set(update_fields) - {"metadata", "private_metadata"}
+                )
                 instance.save(update_fields=update_fields)
                 call_order_event(
                     manager,
@@ -203,5 +218,12 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
             old_instance_data,
             new_instance_data,
         )
-        cls._save(info, instance, cleaned_input, changed_fields)
+        cls._save(
+            info,
+            instance,
+            cleaned_input,
+            changed_fields,
+            metadata_collection,
+            private_metadata_collection,
+        )
         return OrderUpdate(order=SyncWebhookControlContext(instance))
