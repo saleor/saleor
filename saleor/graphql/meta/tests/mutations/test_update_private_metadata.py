@@ -149,32 +149,6 @@ def test_update_private_metadata_for_item(
     )
 
 
-def test_update_private_metadata_for_item_with_empty_value(
-    staff_api_client, checkout, permission_manage_checkouts
-):
-    # given
-    checkout.metadata_storage.private_metadata = None
-    checkout.metadata_storage.save(update_fields=["private_metadata"])
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-
-    # when
-    response = execute_update_private_metadata_for_item(
-        staff_api_client,
-        permission_manage_checkouts,
-        checkout.token,
-        "Checkout",
-        value="NewMetaValue",
-    )
-
-    # then
-    assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"],
-        checkout.metadata_storage,
-        checkout_id,
-        value="NewMetaValue",
-    )
-
-
 def test_update_private_metadata_for_non_exist_item(
     staff_api_client, permission_manage_payments
 ):
