@@ -7,13 +7,12 @@ from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
-from celery import Task, group
+from celery import group
 from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
-from django.utils import timezone
 from opentelemetry.trace import StatusCode
 
 from ....celeryconf import app
@@ -413,14 +412,6 @@ def trigger_webhooks_async_for_multiple_objects(
         if not deferred_deliveries:
             continue
 
-        # Timestamp that will be passed to deferred task, to make sure that replica is
-        # up to date enough to generate payload.
-
-        payload_requested_at = max(
-            [delivery.created_at for delivery, _ in deferred_deliveries],
-            default=timezone.now(),
-        )
-
         event_delivery_ids = [delivery.pk for delivery, _ in deferred_deliveries]
 
         # Deferred payload data is the same for all deliveries for a given subscribable
@@ -438,7 +429,6 @@ def trigger_webhooks_async_for_multiple_objects(
                 "deferred_payload_data": asdict(deferred_payload_data),
                 "send_webhook_queue": queue,
                 "telemetry_context": get_task_context().to_dict(),
-                "payload_requested_at": payload_requested_at,
             },
             MessageGroupId=message_group_id,
         )
@@ -504,65 +494,19 @@ def trigger_webhooks_async(
     )
 
 
-def get_last_event_delivery_time(db_connection) -> datetime.datetime | None:
-    """Get the time of the last event delivery object present on the replica side."""
-    event_delivery = EventDelivery.objects.using(db_connection).order_by("-id").first()
-    if event_delivery:
-        return event_delivery.created_at
-    return None
-
-
-def is_replica_ready_for_payload_generation(
-    celery_task: Task,
-    payload_requested_at: datetime.datetime | None,
+def confirm_event_delivery_availability(
     event_delivery_ids: list[int],
-    retry_backoff: int,
-    db_connection: str,
-):
-    """Check if the read replica is caught up enough to generate payload.
+    db_connection_name: str,
+) -> tuple[set[int], set[int]]:
+    """Confirm which event deliveries are available on the given DB connection."""
+    available_delivery_pks = set(
+        EventDelivery.objects.using(db_connection_name)
+        .filter(pk__in=event_delivery_ids)
+        .values_list("pk", flat=True)
+    )
 
-    If up to date, allow the payload generation to proceed.
-    If not, retry the task until the replica is caught up.
-    In case of max retries exceeded, mark the deliveries as failed.
-    """
-    current_last_event_delivery_time = get_last_event_delivery_time(db_connection)
-
-    if (
-        current_last_event_delivery_time and payload_requested_at
-    ) and current_last_event_delivery_time < payload_requested_at:
-        logger.warning(
-            "Postponing deferred payload generation until replica is caught up. "
-            "Replica has last event delivery created at: %s, payload requested at: %s (diff %s sec). "
-            "Current attempt: %d/%d",
-            current_last_event_delivery_time,
-            payload_requested_at,
-            (payload_requested_at - current_last_event_delivery_time).total_seconds(),
-            celery_task.request.retries,
-            celery_task.max_retries,
-            extra={
-                "event_delivery_ids": event_delivery_ids,
-            },
-        )
-        try:
-            countdown = retry_backoff * (2**celery_task.request.retries)
-            task_properties = celery_task.request.properties or {}
-            message_group_id = task_properties.get("MessageGroupId")
-            raise celery_task.retry(
-                countdown=countdown,
-                # Set delay when using SQS transport
-                DelaySeconds=countdown,
-                MessageGroupId=message_group_id,
-            )
-        except MaxRetriesExceededError:
-            logger.error(
-                "Max retries exceeded for deferred payload generation. "
-                "Using replica with last event delivery created at: %s, payload requested at: %s.",
-                current_last_event_delivery_time,
-                payload_requested_at,
-                extra={
-                    "event_delivery_ids": event_delivery_ids,
-                },
-            )
+    missing_delivery_pks = set(event_delivery_ids) - available_delivery_pks
+    return available_delivery_pks, missing_delivery_pks
 
 
 @app.task(
@@ -578,25 +522,64 @@ def generate_deferred_payloads(
     send_webhook_queue: str | None = None,
     *,
     telemetry_context: TelemetryTaskContext,
-    payload_requested_at: datetime.datetime | None = None,
 ):
+    if not event_delivery_ids:
+        logger.warning(
+            "No event delivery IDs provided for deferred payload generation task."
+        )
+        return
+
+    task_properties = self.request.properties or {}
+    message_group_id = task_properties.get("MessageGroupId")
+    if message_group_id is None:
+        domain = get_domain()
+        message_group_id = get_sqs_message_group_id(domain, app=None)
+
     # Set up transaction to ensure that we always use the same
     # replica while checking the lag and generating the payloads.
     with transaction.atomic(
         using=settings.DATABASE_CONNECTION_REPLICA_NAME, savepoint=False
     ):
         db_connection_name = settings.DATABASE_CONNECTION_REPLICA_NAME
-        retry_backoff = 1
-
-        is_replica_ready_for_payload_generation(
-            self,
-            payload_requested_at,
-            event_delivery_ids,
-            retry_backoff,
-            db_connection_name,
+        available_delivery_pks, missing_delivery_pks = (
+            confirm_event_delivery_availability(event_delivery_ids, db_connection_name)
         )
+
+        if not available_delivery_pks:
+            # If all deliveries are missing, we queue a retry to wait for replica
+            try:
+                retry_backoff = 1
+                countdown = retry_backoff * (2**self.request.retries)
+                raise self.retry(
+                    countdown=countdown,
+                    # Set delay when using SQS transport
+                    DelaySeconds=countdown,
+                    MessageGroupId=message_group_id,
+                )
+            except MaxRetriesExceededError:
+                logger.error(
+                    "Max retries exceeded for deferred payload generation. "
+                    "Event deliveries not found on replica: %s.",
+                    missing_delivery_pks,
+                    extra={
+                        "event_delivery_ids": event_delivery_ids,
+                    },
+                )
+            return
+
+        if missing_delivery_pks:
+            # Process missing deliveries separately.
+            request_kwargs = self.request.kwargs
+            generate_deferred_payloads.apply_async(
+                kwargs={
+                    **request_kwargs,
+                    "event_delivery_ids": list(missing_delivery_pks),
+                },
+                MessageGroupId=message_group_id,
+            )
+
         _generate_deferred_payloads(
-            event_delivery_ids=event_delivery_ids,
+            event_delivery_ids=available_delivery_pks,
             deferred_payload_data=deferred_payload_data,
             send_webhook_queue=send_webhook_queue,
             telemetry_context=telemetry_context,
@@ -605,7 +588,7 @@ def generate_deferred_payloads(
 
 
 def _generate_deferred_payloads(
-    event_delivery_ids: list,
+    event_delivery_ids: set[int],
     deferred_payload_data: dict,
     send_webhook_queue: str | None,
     telemetry_context: TelemetryTaskContext,

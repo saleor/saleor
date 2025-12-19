@@ -6,18 +6,17 @@ from unittest import mock
 
 import pytest
 from celery.exceptions import Retry
-from freezegun import freeze_time
 
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
+from .....core.telemetry import get_task_context
 from ....event_types import WebhookEventAsyncType
 from ....utils import get_webhooks_for_event
 from ..transport import (
     DeferredPayloadData,
     generate_deferred_payloads,
-    get_last_event_delivery_time,
     trigger_webhooks_async,
 )
 
@@ -130,29 +129,6 @@ def test_generate_deferred_payload(
     assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
 
 
-def test_get_last_event_delivery_time_returns_lastest_timestamp(webhook, settings):
-    # given
-    first_delivery = EventDelivery.objects.create(
-        event_type="order_created", status=EventDeliveryStatus.PENDING, webhook=webhook
-    )
-
-    second_delivery = EventDelivery.objects.create(
-        event_type="order_created",
-        status=EventDeliveryStatus.PENDING,
-        webhook=webhook,
-    )
-    assert first_delivery.created_at < second_delivery.created_at
-
-    # when
-    last_event_delivery_time = get_last_event_delivery_time(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    )
-
-    # then
-    assert last_event_delivery_time == second_delivery.created_at
-
-
-@freeze_time("2024-01-01 12:00:00")
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport._generate_deferred_payloads"
 )
@@ -177,42 +153,37 @@ def test_generate_deferred_payload_waits_for_replica_to_sync(
         requestor_object_id=staff_user.pk,
         request_time=deferred_request_time,
     )
-    delivery = EventDelivery(
-        event_type=event_type,
-        webhook=checkout_updated_webhook,
-        status=EventDeliveryStatus.PENDING,
-    )
-    delivery.save()
 
-    delivery_created_at = delivery.created_at
+    assert not EventDelivery.objects.exists()
+
+    delivery_events_not_yet_present_on_replica = [1, 2, 3]
 
     # when
     with pytest.raises(Retry):
         generate_deferred_payloads(
-            event_delivery_ids=[delivery.pk],
+            event_delivery_ids=delivery_events_not_yet_present_on_replica,
             deferred_payload_data=asdict(deferred_payload_data),
-            # Simulate case when replica has events with older timestamps than payload request time
-            payload_requested_at=delivery_created_at + datetime.timedelta(seconds=1),
+            telemetry_context=get_task_context().to_dict(),
         )
 
     # then
     assert not mocked_generate_deferred_payloads.called
 
 
-@freeze_time("2024-01-01 12:00:00")
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
 )
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.get_last_event_delivery_time"
+    "saleor.webhook.transport.asynchronous.transport._generate_deferred_payloads"
 )
-def test_generate_deferred_payload_covers_null_as_last_event_delivery_time(
-    mocked_get_last_event_delivery_time,
-    mocked_send_webhook_request_async,
+def test_generate_deferred_payload_triggers_for_existing_deliveries(
+    mocked__generate_deferred_payloads,
+    mocked_generate_deferred_payloads_apply_async,
     checkout_with_item,
     setup_checkout_webhooks,
     staff_user,
     fetch_kwargs,
+    settings,
 ):
     # given
     checkout = checkout_with_item
@@ -235,32 +206,38 @@ def test_generate_deferred_payload_covers_null_as_last_event_delivery_time(
     )
     delivery.save()
 
-    mocked_get_last_event_delivery_time.return_value = None
+    assert not EventDelivery.objects.exclude(pk=delivery.pk).exists()
+
+    non_existing_delivery_id = 2
+    delivery_events_partially_present_on_replica = [
+        delivery.pk,
+        non_existing_delivery_id,
+    ]
+    telemetry_context = get_task_context()
 
     # when
     generate_deferred_payloads(
-        event_delivery_ids=[delivery.pk],
+        event_delivery_ids=delivery_events_partially_present_on_replica,
         deferred_payload_data=asdict(deferred_payload_data),
-        payload_requested_at=delivery.created_at,
+        telemetry_context=telemetry_context.to_dict(),
     )
 
     # then
-    checkout.refresh_from_db()
-    delivery.refresh_from_db()
-    assert delivery.payload
-
-    data = delivery.payload.get_payload()
-    data = json.loads(data)
-
-    assert data["issuingPrincipal"]["email"] == staff_user.email
-    assert data["issuedAt"] == deferred_request_time.isoformat()
-    assert (
-        data["checkout"]["totalPrice"]["gross"]["amount"] == checkout.total_gross_amount
+    mocked_generate_deferred_payloads_apply_async.assert_called_once_with(
+        kwargs={
+            "event_delivery_ids": [non_existing_delivery_id],
+            "deferred_payload_data": asdict(deferred_payload_data),
+            "telemetry_context": telemetry_context.to_dict(),
+        },
+        MessageGroupId="example.com",
     )
-
-    assert mocked_send_webhook_request_async.call_count == 1
-    call_kwargs = mocked_send_webhook_request_async.call_args.kwargs
-    assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
+    mocked__generate_deferred_payloads.assert_called_once_with(
+        event_delivery_ids={delivery.pk},
+        deferred_payload_data=asdict(deferred_payload_data),
+        send_webhook_queue=None,
+        telemetry_context=mock.ANY,
+        database_connection_name=settings.DATABASE_CONNECTION_REPLICA_NAME,
+    )
 
 
 def test_generate_deferred_payload_model_pk_does_not_exist(

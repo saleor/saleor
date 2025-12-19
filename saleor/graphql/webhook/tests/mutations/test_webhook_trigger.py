@@ -402,7 +402,6 @@ def test_webhook_trigger_for_deferred_payload(
     assert (
         generate_payload_kwargs["deferred_payload_data"]["request_time"] == frozen_date
     )
-    assert generate_payload_kwargs["payload_requested_at"] == frozen_date
 
     assert mocked_send_webhook_request_async.called
     send_webhook_kwargs = mocked_send_webhook_request_async.call_args.kwargs["kwargs"]

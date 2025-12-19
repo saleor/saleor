@@ -656,15 +656,8 @@ def test_checkout_shipping_method_update_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
-            "payload_requested_at": ANY,
         },
         MessageGroupId="example.com",
-    )
-    assert (
-        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
-            "payload_requested_at"
-        ]
-        <= timezone.now()
     )
 
     # Deferred payload covers the async actions
@@ -761,15 +754,8 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
-            "payload_requested_at": ANY,
         },
         MessageGroupId="example.com",
-    )
-    assert (
-        mocked_generate_deferred_payloads.call_args.kwargs["kwargs"][
-            "payload_requested_at"
-        ]
-        <= timezone.now()
     )
 
     # Deferred payload covers the sync and async actions
