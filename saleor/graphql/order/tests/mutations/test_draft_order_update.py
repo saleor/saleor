@@ -3477,7 +3477,7 @@ def test_draft_order_update_emit_events(
     order.draft_save_billing_address = True
     order.draft_save_shipping_address = True
     order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
+    order.voucher_code = "OLD_CODE"
     order.customer_note = "some note"
     order.redirect_url = "http://localhost:8000/redirect"
     order.external_reference = "some_reference_string"
@@ -3520,12 +3520,12 @@ def test_draft_order_update_emit_events(
     assert graphql_address_data["lastName"] != order.billing_address.last_name
 
     input = {
+        "voucherCode": voucher.codes.last().code,
         "billingAddress": graphql_address_data,
         "shippingAddress": graphql_address_data,
         "shippingMethod": new_shipping_method_id,
         "user": user_id,
         "userEmail": "new_" + order.user_email,
-        "voucherCode": voucher.codes.last().code,
         "customerNote": order.customer_note + "_new",
         "redirectUrl": "https://www.example.com",
         "externalReference": order.external_reference + "_new",
