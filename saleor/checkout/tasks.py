@@ -173,7 +173,12 @@ def trigger_automatic_checkout_completion_task():
 
         checkouts = (
             Checkout.objects.filter(authorize_status=CheckoutAuthorizeStatus.FULL)
-            .filter(last_change__gte=oldest_allowed_checkout)
+            .filter(
+                Q(last_change__gte=oldest_allowed_checkout)
+                & (Q(email__isnull=False) | Q(user__isnull=False))
+                & Q(billing_address__isnull=False)
+                & Q(total_gross_amount__gt=Decimal("0.0"))
+            )
             .filter(lookup)
             # Sort by last attempt time (nulls first - never attempted), then by last_change
             .order_by(
@@ -241,6 +246,29 @@ def automatic_checkout_completion_task(
                 "checkout_id": checkout_id,
                 "variant_ids": not_available_variants_ids,
             },
+        )
+        return
+
+    if not lines:
+        task_logger.info(
+            "The automatic checkout completion not triggered, as the checkout %s "
+            "has no lines.",
+            checkout_id,
+            extra={"checkout_id": checkout_id},
+        )
+        return
+
+    if checkout.is_shipping_required() and (
+        not checkout.shipping_method_id
+        and not checkout.external_shipping_method_id
+        and not checkout.collection_point_id
+        and not checkout.assigned_delivery_id
+    ):
+        task_logger.info(
+            "The automatic checkout completion not triggered, as the checkout %s "
+            "has no shipping method set.",
+            checkout_id,
+            extra={"checkout_id": checkout_id},
         )
         return
 

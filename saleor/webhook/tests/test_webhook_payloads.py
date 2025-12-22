@@ -1239,7 +1239,9 @@ def test_generate_list_gateways_payload(checkout):
     assert data["currency"] == currency
 
 
-def test_generate_payment_payload(dummy_webhook_app_payment_data, order_line):
+def test_generate_payment_payload(
+    dummy_webhook_app_payment_data, order_line, payment_app
+):
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
 

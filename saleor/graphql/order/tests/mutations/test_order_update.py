@@ -7,7 +7,9 @@ from .....core.models import EventDelivery
 from .....order import OrderStatus
 from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
+from .....order.models import Order
 from .....product.models import ProductVariant
+from .....tests import race_condition
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import snake_to_camel_case
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -619,19 +621,23 @@ def test_order_update_triggers_webhooks(
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-def test_order_update_only_metadata(
+def test_order_update_only_metadata_legacy_webhook_emission_on(
     order_updated_webhook_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    graphql_address_data,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order_with_lines.metadata = {}
     order_with_lines.private_metadata = {}
     order.save()
+    updated_at_before = order.updated_at
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -652,24 +658,77 @@ def test_order_update_only_metadata(
     order.refresh_from_db()
 
     assert order.metadata == {"meta key": "meta value"}
+    assert order.updated_at > updated_at_before
 
     order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_metadata_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-def test_order_update_only_private_metadata(
+def test_order_update_only_metadata_legacy_webhook_emission_off(
     order_updated_webhook_mock,
+    order_metadata_updated_webhook_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    graphql_address_data,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order_with_lines.metadata = {}
     order_with_lines.private_metadata = {}
     order.save()
+    updated_at_before = order.updated_at
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "metadata": [{"key": "meta key", "value": "meta value"}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+
+    order.refresh_from_db()
+
+    assert order.metadata == {"meta key": "meta value"}
+    assert order.updated_at > updated_at_before
+
+    order_updated_webhook_mock.assert_not_called()
+    order_metadata_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_update_only_private_metadata_legacy_webhook_emission_on(
+    order_updated_webhook_mock,
+    order_metadata_updated_webhook_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order_with_lines.metadata = {}
+    order_with_lines.private_metadata = {}
+    order.save()
+    updated_at_before = order.updated_at
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -690,24 +749,78 @@ def test_order_update_only_private_metadata(
     order.refresh_from_db()
 
     assert order.private_metadata == {"meta key": "meta value"}
+    assert order.updated_at > updated_at_before
 
     order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+    order_metadata_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_metadata_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-def test_order_update_public_and_private_metadata(
+def test_order_update_only_private_metadata_legacy_webhook_emission_off(
     order_updated_webhook_mock,
+    order_metadata_updated_webhook_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    graphql_address_data,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order_with_lines.metadata = {}
     order_with_lines.private_metadata = {}
     order.save()
+    updated_at_before = order.updated_at
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "privateMetadata": [{"key": "meta key", "value": "meta value"}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+
+    order.refresh_from_db()
+
+    assert order.private_metadata == {"meta key": "meta value"}
+    assert order.updated_at > updated_at_before
+
+    order_updated_webhook_mock.assert_not_called()
+    order_metadata_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_update_public_and_private_metadata_legacy_webhook_emission_on(
+    order_updated_webhook_mock,
+    order_metadata_updated_webhook_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order_with_lines.metadata = {}
+    order_with_lines.private_metadata = {}
+    order.save()
+    updated_at_before = order.updated_at
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -730,13 +843,65 @@ def test_order_update_public_and_private_metadata(
 
     assert order.metadata == {"meta key": "meta value"}
     assert order.private_metadata == {"meta key": "meta value"}
+    assert order.updated_at > updated_at_before
 
     order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+    order_metadata_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_metadata_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_update_public_and_private_metadata_legacy_webhook_emission_off(
+    order_updated_webhook_mock,
+    order_metadata_updated_webhook_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order_with_lines.metadata = {}
+    order_with_lines.private_metadata = {}
+    order.save()
+    updated_at_before = order.updated_at
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "privateMetadata": [{"key": "meta key", "value": "meta value"}],
+            "metadata": [{"key": "meta key", "value": "meta value"}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+
+    order.refresh_from_db()
+
+    assert order.metadata == {"meta key": "meta value"}
+    assert order.private_metadata == {"meta key": "meta value"}
+    assert order.updated_at > updated_at_before
+
+    order_updated_webhook_mock.assert_not_called()
+    order_metadata_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_metadata_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_update_invalid_metadata(
     order_updated_webhook_mock,
+    order_metadata_updated_webhook_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
@@ -748,6 +913,7 @@ def test_order_update_invalid_metadata(
     order_with_lines.metadata = {}
     order_with_lines.private_metadata = {}
     order.save()
+    updated_at_before = order.updated_at
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -771,6 +937,10 @@ def test_order_update_invalid_metadata(
 
     order.refresh_from_db()
     assert order.metadata == {}
+    assert order.updated_at == updated_at_before
+
+    order_updated_webhook_mock.assert_not_called()
+    order_metadata_updated_webhook_mock.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -969,6 +1139,9 @@ def test_order_update_emit_events(
     input_fields = [
         snake_to_camel_case(key) for key in OrderUpdateInput._meta.fields.keys()
     ]
+    # metadata fields are tested separately, updated atomically in `update_meta_fields`
+    input_fields.remove("metadata")
+    input_fields.remove("privateMetadata")
 
     assert graphql_address_data["lastName"] != order.shipping_address.last_name
     assert graphql_address_data["lastName"] != order.billing_address.last_name
@@ -978,8 +1151,6 @@ def test_order_update_emit_events(
         "shippingAddress": graphql_address_data,
         "userEmail": "new_" + order.user_email,
         "externalReference": order.external_reference + "_new",
-        "metadata": [{"key": meta_key, "value": "new_value"}],
-        "privateMetadata": [{"key": meta_key, "value": "new_value"}],
         "languageCode": "PL",
     }
     assert set(input_fields) == set(input.keys())
@@ -1046,3 +1217,119 @@ def test_order_update_address_not_set(
     assert order.shipping_address
     assert order.billing_address
     call_event_mock.assert_called()
+
+
+def test_update_public_metadata_another_key_deleted_in_meantime(
+    staff_api_client, order, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    key_1 = "public_key"
+    key_2 = "another_public_key"
+    value_1 = "public_value"
+    value_2 = "another_public_value"
+    new_value = "updated_value"
+
+    order.metadata = {key_1: value_1, key_2: value_2}
+    order.private_metadata = {key_1: value_2, key_2: value_1}
+    order.save(update_fields=["metadata", "private_metadata"])
+
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    def delete_metadata(*args, **kwargs):
+        order_to_update = Order.objects.get(pk=order.pk)
+        order_to_update.delete_value_from_metadata(key_2)
+        order_to_update.delete_value_from_private_metadata(key_1)
+        order_to_update.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "metadata": [{"key": key_1, "value": new_value}],
+            "privateMetadata": [{"key": key_2, "value": new_value}],
+        },
+    }
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.order_update.update_meta_fields",
+        delete_metadata,
+    ):
+        response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orderUpdate"]["order"]
+    assert order_data
+    assert not content["data"]["orderUpdate"]["errors"]
+    assert order_data["metadata"] == [{"key": key_1, "value": new_value}]
+    assert order_data["privateMetadata"] == [{"key": key_2, "value": new_value}]
+
+    order.refresh_from_db()
+
+    assert order.metadata == {key_1: new_value}
+    assert order.private_metadata == {key_2: new_value}
+
+
+def test_update_public_metadata_another_key_updated_in_meantime(
+    staff_api_client, order, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    key_1 = "public_key"
+    key_2 = "another_public_key"
+    value_1 = "public_value"
+    value_2 = "another_public_value"
+    new_value = "updated_value"
+    value_changed_in_meantime = "value_changed_in_meantime"
+
+    order.metadata = {key_1: value_1, key_2: value_2}
+    order.private_metadata = {key_1: value_2, key_2: value_1}
+    order.save(update_fields=["metadata", "private_metadata"])
+
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    def update_metadata(*args, **kwargs):
+        order_to_update = Order.objects.get(pk=order.pk)
+        order_to_update.store_value_in_metadata({key_2: value_changed_in_meantime})
+        order_to_update.store_value_in_private_metadata(
+            {key_1: value_changed_in_meantime}
+        )
+        order_to_update.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "metadata": [{"key": key_1, "value": new_value}],
+            "privateMetadata": [{"key": key_2, "value": new_value}],
+        },
+    }
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.order_update.update_meta_fields",
+        update_metadata,
+    ):
+        response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orderUpdate"]["order"]
+    assert order_data
+    assert not content["data"]["orderUpdate"]["errors"]
+    order.refresh_from_db()
+    resolve_metadata = {item["key"]: item["value"] for item in order_data["metadata"]}
+    assert (
+        resolve_metadata
+        == {key_1: new_value, key_2: value_changed_in_meantime}
+        == order.metadata
+    )
+    resolve_private_metadata = {
+        item["key"]: item["value"] for item in order_data["privateMetadata"]
+    }
+    assert (
+        resolve_private_metadata
+        == {
+            key_2: new_value,
+            key_1: value_changed_in_meantime,
+        }
+        == order.private_metadata
+    )

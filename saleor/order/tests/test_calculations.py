@@ -26,9 +26,11 @@ from ...plugins.tests.sample_plugins import PluginSample
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
 from ...tax.utils import get_tax_calculation_strategy_for_order
+from ...tests import race_condition
 from .. import OrderStatus, calculations
 from ..calculations import logger
 from ..interface import OrderTaxedPricesData
+from ..models import Order
 
 
 @pytest.fixture
@@ -1859,3 +1861,104 @@ def test_fetch_order_prices_flat_rates_with_weighted_shipping_tax(
 
     assert order.shipping_tax_rate == expected_tax_rate
     assert order.shipping_tax_rate != shipping_rate / 100
+
+
+def test_fetch_order_prices_if_expired_order_removed_before_save(
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    currency = order.currency
+    order.should_refresh_prices = True
+    order.save(update_fields=["should_refresh_prices"])
+    lines = list(order.lines.all())
+
+    manager = get_plugins_manager(allow_replica=False)
+    fetch_kwargs = {
+        "order": order,
+        "manager": manager,
+        "lines": lines,
+        "force_update": True,
+    }
+
+    # when
+    def delete_order(*args, **kwargs):
+        # Simulate order deletion during price calculation
+        Order.objects.filter(pk=order.pk).delete()
+
+    with race_condition.RunAfter(
+        "saleor.order.calculations.calculate_taxes", delete_order
+    ):
+        result_order, result_lines = calculations.fetch_order_prices_if_expired(
+            **fetch_kwargs
+        )
+
+    # then
+    # Check if order was deleted
+    with pytest.raises(Order.DoesNotExist):
+        order.refresh_from_db()
+
+    # Check if prices are recalculated and returned in objects
+    # The function should still return valid price data even if save was skipped
+    assert result_order.total is not None
+    assert result_order.total > zero_taxed_money(currency)
+
+    assert result_lines is not None
+    for result_line in result_lines:
+        assert result_line.total_price is not None
+        assert result_line.total_price > zero_taxed_money(currency)
+
+
+def test_fetch_order_prices_if_expired_order_updated_during_price_recalculation(
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    currency = order.currency
+    order.should_refresh_prices = True
+    order.save(update_fields=["should_refresh_prices", "updated_at"])
+
+    updated_at_before_recalculation = order.updated_at
+    lines = list(order.lines.all())
+
+    manager = get_plugins_manager(allow_replica=False)
+    fetch_kwargs = {
+        "order": order,
+        "manager": manager,
+        "lines": lines,
+        "force_update": True,
+    }
+    expected_note = "Updated by another process"
+
+    # when
+    def modify_order(*args, **kwargs):
+        order_to_modify = Order.objects.get(pk=order.pk)
+        order_to_modify.customer_note = expected_note
+        order_to_modify.save(update_fields=["customer_note", "updated_at"])
+
+    with race_condition.RunAfter(
+        "saleor.order.calculations.calculate_taxes", modify_order
+    ):
+        result_order, result_lines = calculations.fetch_order_prices_if_expired(
+            **fetch_kwargs
+        )
+
+    # then
+    # Check if prices are recalculated and returned in objects
+    assert result_order.total is not None
+    assert result_order.total > zero_taxed_money(currency)
+
+    assert result_lines is not None
+    for result_line in result_lines:
+        assert result_line.total_price is not None
+        assert result_line.total_price > zero_taxed_money(currency)
+
+    # The result_lines should have original quantities since they were passed in before modification
+    for line, result_line in zip(lines, result_lines, strict=True):
+        assert result_line.quantity == line.quantity
+
+    # Check if database contains updated order by other requests
+    order.refresh_from_db()
+    assert order.should_refresh_prices is True
+    assert order.updated_at > updated_at_before_recalculation
+    assert order.customer_note == expected_note

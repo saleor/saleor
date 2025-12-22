@@ -472,8 +472,6 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
             error=error_message,
-            # @deprecated
-            raw_response=result.message,
             action_required_data=action,
             payment_method_info=payment_method_info,
             psp_reference=psp_reference,
@@ -556,8 +554,6 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
             error=result.message.get("refusalReason"),
-            # @deprecated
-            raw_response=result.message,
             psp_reference=result.message.get("pspReference", ""),
             payment_method_info=payment_method_info,
             legacy_adyen_plugin_payment_method=self._normalize_response_field(
@@ -619,10 +615,6 @@ class AdyenGatewayPlugin(BasePlugin):
         result_code_temporary_field = transaction.legacy_adyen_plugin_result_code
         payment_method_temporary_field = transaction.legacy_adyen_plugin_payment_method
 
-        if (not result_code_temporary_field) and (not payment_method_temporary_field):
-            # Track legacy reads, so we keep grace period in case of enqueued messages
-            logger.warning("Reading deprecated raw_response from Adyen plugin.")
-
         if result_code_temporary_field:
             result_code = result_code_temporary_field
         else:
@@ -676,8 +668,6 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=token,
             error=None,
-            # @deprecated
-            raw_response={},
             transaction_already_processed=bool(transaction_already_processed),
             psp_reference=token,
         )
@@ -745,8 +735,6 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=currency,
             transaction_id=result.message.get("pspReference", ""),
             error="",
-            # @deprecated
-            raw_response=result.message,
             psp_reference=result.message.get("pspReference", ""),
             legacy_adyen_plugin_payment_method=self._normalize_response_field(
                 result.message.get("paymentMethod", "")
@@ -782,8 +770,6 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
             error="",
-            # @deprecated
-            raw_response=result.message,
             payment_method_info=payment_method_info,
             psp_reference=result.message.get("pspReference", ""),
             legacy_adyen_plugin_payment_method=self._normalize_response_field(
@@ -820,8 +806,6 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
             error="",
-            # @deprecated
-            raw_response=result.message,
             psp_reference=result.message.get("pspReference", ""),
             legacy_adyen_plugin_payment_method=self._normalize_response_field(
                 result.message.get("paymentMethod", "")

@@ -34,6 +34,7 @@ from ...core.types import OrderError
 from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.utils import get_shipping_model_by_object_id
+from ...site.dataloaders import get_site_promise
 from ..types import Order
 from . import draft_order_cleaner
 from .draft_order_create import DraftOrderInput
@@ -41,6 +42,7 @@ from .utils import (
     DRAFT_ORDER_UPDATE_FIELDS,
     SHIPPING_METHOD_UPDATE_FIELDS,
     ShippingMethodUpdateMixin,
+    update_meta_fields,
 )
 
 
@@ -242,8 +244,9 @@ class DraftOrderUpdate(
     def _save(
         cls,
         instance_tracker: InstanceTracker,
-        cleaned_input: dict,
-    ) -> bool:
+        metadata_collection,
+        private_metadata_collection,
+    ) -> tuple[bool, bool]:
         instance = cast(models.Order, instance_tracker.instance)
         with traced_atomic_transaction():
             modified_foreign_fields = instance_tracker.get_foreign_modified_fields()
@@ -259,22 +262,33 @@ class DraftOrderUpdate(
                     modified_foreign_fields["billing_address"],
                 )
 
+            update_meta_fields(
+                instance, metadata_collection, private_metadata_collection
+            )
             modified_instance_fields = instance_tracker.get_modified_fields()
             modified_instance_fields.extend(modified_foreign_fields)
-            if not modified_instance_fields:
-                return False
+            metadata_modified = (
+                "metadata" in modified_instance_fields
+                or "private_metadata" in modified_instance_fields
+            )
+            order_modified_fields = set(modified_instance_fields) - {
+                "metadata",
+                "private_metadata",
+            }
+            if not order_modified_fields:
+                return bool(order_modified_fields), metadata_modified
 
             # Post-process the results
             update_order_search_vector(instance, save=False)
-            modified_instance_fields.extend(["search_vector"])
-            if cls.should_invalidate_prices(modified_instance_fields):
+            order_modified_fields.add("search_vector")
+            if cls.should_invalidate_prices(order_modified_fields):
                 invalidate_order_prices(instance)
-                modified_instance_fields.extend(["should_refresh_prices"])
+                order_modified_fields.add("should_refresh_prices")
 
             # Save instance
-            cls._save_order_instance(instance, modified_instance_fields)
+            cls._save_order_instance(instance, list(order_modified_fields))
 
-            return True
+            return bool(order_modified_fields), metadata_modified
 
     @classmethod
     def _save_order_instance(cls, instance, modified_instance_fields):
@@ -289,12 +303,20 @@ class DraftOrderUpdate(
             address_instance.save(update_fields=modified_fields)
 
     @classmethod
-    def _post_save_action(cls, instance, manager):
-        call_order_event(
-            manager,
-            WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
-            instance,
-        )
+    def _post_save_action(
+        cls,
+        instance,
+        manager,
+        order_modified,
+        metadata_modified,
+        use_legacy_webhooks_emission,
+    ):
+        if order_modified or (metadata_modified and use_legacy_webhooks_emission):
+            call_order_event(
+                manager,
+                WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
+                instance,
+            )
 
     @classmethod
     def handle_order_voucher(
@@ -365,6 +387,7 @@ class DraftOrderUpdate(
         cls.validate_and_update_metadata(
             instance, metadata_collection, private_metadata_collection
         )
+        return metadata_collection, private_metadata_collection
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -387,7 +410,9 @@ class DraftOrderUpdate(
         data = data["input"]
         cleaned_input = cls.clean_input(info, instance, data)
 
-        cls.handle_metadata(instance, cleaned_input)
+        metadata_collection, private_metadata_collection = cls.handle_metadata(
+            instance, cleaned_input
+        )
 
         # update instance with data from input
         instance = cls.construct_instance(instance, cleaned_input)
@@ -398,8 +423,20 @@ class DraftOrderUpdate(
         cls.handle_shipping(cleaned_input, instance, manager)
         cls.handle_order_voucher(cleaned_input, instance, old_voucher, old_voucher_code)
 
-        order_modified = cls._save(instance_tracker, cleaned_input)
-        if order_modified:
-            cls._post_save_action(instance, manager)
+        order_modified, metadata_modified = cls._save(
+            instance_tracker, metadata_collection, private_metadata_collection
+        )
+        if order_modified or metadata_modified:
+            site = get_site_promise(info.context).get()
+            use_legacy_webhooks_emission = (
+                site.settings.use_legacy_update_webhook_emission
+            )
+            cls._post_save_action(
+                instance,
+                manager,
+                order_modified,
+                metadata_modified,
+                use_legacy_webhooks_emission,
+            )
 
         return DraftOrderUpdate(order=SyncWebhookControlContext(node=instance))

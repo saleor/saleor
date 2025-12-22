@@ -46,6 +46,7 @@ def test_delete_public_metadata_for_sale(
     promotion.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     promotion.save(update_fields=["metadata"])
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+    old_updated_at = promotion.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -57,6 +58,7 @@ def test_delete_public_metadata_for_sale(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], promotion, sale_id
     )
+    assert promotion.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_voucher(
@@ -86,6 +88,7 @@ def test_delete_private_metadata_for_sale(
     promotion.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     promotion.save(update_fields=["private_metadata"])
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+    old_updated_at = promotion.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -97,6 +100,7 @@ def test_delete_private_metadata_for_sale(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], promotion, sale_id
     )
+    assert promotion.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_voucher(
@@ -122,6 +126,7 @@ def test_add_private_metadata_for_sale(
     # given
     promotion = promotion_converted_from_sale
     sale_id = graphene.Node.to_global_id("Sale", promotion.old_sale_id)
+    old_updated_at = promotion.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -133,6 +138,7 @@ def test_add_private_metadata_for_sale(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], promotion, sale_id
     )
+    assert promotion.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_voucher(
@@ -157,6 +163,7 @@ def test_add_public_metadata_for_promotion(
 ):
     # given
     promotion_id = graphene.Node.to_global_id("Promotion", catalogue_promotion.pk)
+    old_updated_at = catalogue_promotion.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -167,6 +174,8 @@ def test_add_public_metadata_for_promotion(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], catalogue_promotion, promotion_id
     )
+    catalogue_promotion.refresh_from_db()
+    assert catalogue_promotion.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_promotion(
@@ -177,6 +186,7 @@ def test_delete_public_metadata_for_promotion(
     promotion.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     promotion.save(update_fields=["metadata"])
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
+    old_updated_at = promotion.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -187,6 +197,8 @@ def test_delete_public_metadata_for_promotion(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], promotion, promotion_id
     )
+    promotion.refresh_from_db()
+    assert promotion.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_promotion(
@@ -195,6 +207,7 @@ def test_add_private_metadata_for_promotion(
     # given
     promotion = catalogue_promotion
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
+    old_updated_at = promotion.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -205,6 +218,8 @@ def test_add_private_metadata_for_promotion(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], promotion, promotion_id
     )
+    promotion.refresh_from_db()
+    assert promotion.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_promotion(
@@ -215,6 +230,7 @@ def test_delete_private_metadata_for_promotion(
     promotion.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     promotion.save(update_fields=["private_metadata"])
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
+    old_updated_at = promotion.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -225,3 +241,5 @@ def test_delete_private_metadata_for_promotion(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], promotion, promotion_id
     )
+    promotion.refresh_from_db()
+    assert promotion.updated_at > old_updated_at

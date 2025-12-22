@@ -9,6 +9,7 @@ from ...app.utils import get_active_tax_apps
 from ...channel import models as channel_models
 from ...core.models import ModelWithMetadata
 from ...core.utils import build_absolute_uri, get_domain, is_ssl_enabled
+from ...payment.gateway import get_payment_gateways
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AppPermission, SitePermissions, get_permissions
 from ...site import models as site_models
@@ -388,6 +389,19 @@ class Shop(graphene.ObjectType):
         required=True,
     )
 
+    # legacy settings
+    use_legacy_update_webhook_emission = graphene.Boolean(
+        description=(
+            "Use legacy update webhook emission. "
+            "When enabled, update webhooks (e.g. `customerUpdated`,"
+            "`productVariantUpdated`) are sent even when only metadata changes. "
+            "When disabled, update webhooks are not sent for metadata-only changes; "
+            "only metadata-specific webhooks (e.g., `customerMetadataUpdated`, "
+            "`productVariantMetadataUpdated`) are sent." + ADDED_IN_322
+        ),
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
+    )
+
     class Meta:
         description = (
             "Represents a shop resource containing general shop data and configuration."
@@ -416,7 +430,11 @@ class Shop(graphene.ObjectType):
     def resolve_available_payment_gateways(
         _, _info, manager, currency: str | None = None, channel: str | None = None
     ):
-        return manager.list_payment_gateways(currency=currency, channel_slug=channel)
+        return get_payment_gateways(
+            manager=manager,
+            currency=currency,
+            channel_slug=channel,
+        )
 
     @staticmethod
     @traced_resolver
@@ -656,3 +674,8 @@ class Shop(graphene.ObjectType):
         return ObjectWithMetadata.resolve_private_metafields(
             site.settings, info, keys=keys
         )
+
+    @staticmethod
+    @load_site_callback
+    def resolve_use_legacy_update_webhook_emission(_, _info, site):
+        return site.settings.use_legacy_update_webhook_emission

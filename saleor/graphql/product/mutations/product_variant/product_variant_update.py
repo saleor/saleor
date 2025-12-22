@@ -26,6 +26,7 @@ from ....core.utils import ext_ref_to_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....site.dataloaders import get_site_promise
 from ...types import ProductVariant
 from ...utils import clean_variant_sku
 from ..utils import PRODUCT_VARIANT_UPDATE_FIELDS
@@ -232,7 +233,11 @@ class ProductVariantUpdate(DeprecatedModelMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            return bool(modified_instance_fields), metadata_modified, attribute_modified
+            # variant modified if any field except metadata changed
+            variant_modified = bool(
+                set(modified_instance_fields) - {"metadata", "private_metadata"}
+            )
+            return variant_modified, metadata_modified, attribute_modified
 
     @classmethod
     def _save_attributes(cls, instance, cleaned_input) -> bool:
@@ -271,19 +276,26 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         variant_modified: bool,
         attribute_modified: bool,
         metadata_modified: bool,
+        use_legacy_webhooks_emission: bool,
     ):
-        if variant_modified or attribute_modified or metadata_modified:
-            manager = get_plugin_manager_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
+        if (
+            # if any variant related field has been changed
+            variant_modified
+            or attribute_modified
+            # if any metadata has been changed and legacy emission is enabled
+            or (metadata_modified and use_legacy_webhooks_emission)
+        ):
             cls.call_event(manager.product_variant_updated, instance)
-
-            if metadata_modified:
-                cls.call_event(manager.product_variant_metadata_updated, instance)
 
             channel_ids = models.ProductChannelListing.objects.filter(
                 product_id=instance.product_id
             ).values_list("channel_id", flat=True)
             # This will recalculate discounted prices for products.
             cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
+
+        if metadata_modified:
+            cls.call_event(manager.product_variant_metadata_updated, instance)
 
     @classmethod
     def handle_metadata(cls, instance, cleaned_input):
@@ -339,6 +351,8 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
 
+        site = get_site_promise(info.context).get()
+        use_legacy_webhooks_emission = site.settings.use_legacy_update_webhook_emission
         variant_modified, metadata_modified, attribute_modified = cls._save(
             instance_tracker, cleaned_input
         )
@@ -349,6 +363,7 @@ class ProductVariantUpdate(DeprecatedModelMutation):
             variant_modified,
             attribute_modified,
             metadata_modified,
+            use_legacy_webhooks_emission,
         )
 
         return cls.success_response(instance)

@@ -8,9 +8,16 @@ from ...channel import MarkAsPaidStrategy
 from ...core.models import EventDelivery
 from ...core.utils.events import call_event_including_protected_events
 from ...giftcard import GiftCardEvents
+from ...giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.fetch import OrderLineInfo, fetch_order_info
-from ...payment import ChargeStatus, PaymentError, TransactionEventType, TransactionKind
+from ...payment import (
+    ChargeStatus,
+    PaymentError,
+    TransactionAction,
+    TransactionEventType,
+    TransactionKind,
+)
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
@@ -3857,3 +3864,181 @@ def test_order_confirmed_triggers_webhooks(
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
     assert wrapped_call_order_event.called
+
+
+def test_order_confirmed_charges_funds_authorized_from_gift_card(
+    order_with_lines,
+    django_capture_on_commit_callbacks,
+    customer_user,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+):
+    # given
+    order = order_with_lines
+    manager = get_plugins_manager(False)
+
+    gift_card_created_by_staff.current_balance_amount = Decimal(100)
+    gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=order.total_gross_amount,
+        available_actions=[TransactionAction.CANCEL],
+    )
+
+    assert transaction.authorized_value == order.total_gross_amount
+    assert transaction.charged_value == Decimal(0)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        order_confirmed(order, user=customer_user, app=None, manager=manager)
+
+    # then
+    transaction.refresh_from_db()
+    gift_card_created_by_staff.refresh_from_db()
+    order.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == order.total_gross_amount
+    assert transaction.available_actions == [TransactionAction.REFUND]
+    assert (
+        gift_card_created_by_staff.current_balance_amount
+        == Decimal(100) - order.total_gross_amount
+    )
+
+    transaction.events.get(type=TransactionEventType.CHARGE_REQUEST)
+    charge_success_event = transaction.events.get(
+        type=TransactionEventType.CHARGE_SUCCESS
+    )
+    assert charge_success_event.message == "Gift card (ending: taff)."
+
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
+    assert order.charge_status == OrderChargeStatus.FULL
+    assert order.total_authorized_amount == Decimal(0)
+    assert order.total_charged_amount == order.total_gross_amount
+
+
+def test_order_confirmed_checks_gift_card_funds_amount_when_charging_funds_authorized_from_gift_card(
+    order_with_lines,
+    django_capture_on_commit_callbacks,
+    customer_user,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+):
+    # given
+    order = order_with_lines
+    manager = get_plugins_manager(False)
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=Decimal(10),
+        available_actions=[TransactionAction.CANCEL],
+    )
+
+    assert transaction.authorized_value == Decimal(10)
+    assert transaction.charged_value == Decimal(0)
+
+    gift_card_created_by_staff.current_balance_amount = Decimal(5)
+    gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        order_confirmed(order, user=customer_user, app=None, manager=manager)
+
+    # then
+    transaction.refresh_from_db()
+    gift_card_created_by_staff.refresh_from_db()
+    order.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(10)
+    assert transaction.charged_value == Decimal(0)
+    assert transaction.available_actions == [TransactionAction.CANCEL]
+    assert gift_card_created_by_staff.current_balance_amount == Decimal(5)
+
+    transaction.events.get(type=TransactionEventType.CHARGE_REQUEST)
+    charge_success_event = transaction.events.get(
+        type=TransactionEventType.CHARGE_FAILURE
+    )
+    assert (
+        charge_success_event.message
+        == "Gift card has insufficient amount (5.00) to cover requested amount (10.00)."
+    )
+
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert order.charge_status == OrderChargeStatus.NONE
+    assert order.total_authorized_amount == Decimal(10)
+    assert order.total_charged_amount == Decimal(0)
+
+
+def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_once(
+    order_with_lines,
+    django_capture_on_commit_callbacks,
+    customer_user,
+    gift_card_created_by_staff,
+    transaction_item_generator,
+):
+    # given
+    order = order_with_lines
+    manager = get_plugins_manager(False)
+
+    transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        order_id=order.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=Decimal(10),
+        available_actions=[TransactionAction.CANCEL],
+    )
+
+    with django_capture_on_commit_callbacks(execute=True):
+        order_confirmed(order, user=customer_user, app=None, manager=manager)
+
+    transaction.refresh_from_db()
+    gift_card_created_by_staff.refresh_from_db()
+    order.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(10)
+    assert transaction.available_actions == [TransactionAction.REFUND]
+    assert gift_card_created_by_staff.current_balance_amount == Decimal(0)
+
+    assert (
+        transaction.events.filter(type=TransactionEventType.CHARGE_REQUEST).count() == 1
+    )
+    assert (
+        transaction.events.filter(type=TransactionEventType.CHARGE_SUCCESS).count() == 1
+    )
+
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert order.charge_status == OrderChargeStatus.PARTIAL
+    assert order.total_authorized_amount == Decimal(0)
+    assert order.total_charged_amount == Decimal(10)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        order_confirmed(order, user=customer_user, app=None, manager=manager)
+
+    # then
+    transaction.refresh_from_db()
+    gift_card_created_by_staff.refresh_from_db()
+    order.refresh_from_db()
+
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(10)
+    assert transaction.available_actions == [TransactionAction.REFUND]
+    assert gift_card_created_by_staff.current_balance_amount == Decimal(0)
+
+    assert (
+        transaction.events.filter(type=TransactionEventType.CHARGE_REQUEST).count() == 1
+    )
+    assert (
+        transaction.events.filter(type=TransactionEventType.CHARGE_SUCCESS).count() == 1
+    )
+
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert order.charge_status == OrderChargeStatus.PARTIAL
+    assert order.total_authorized_amount == Decimal(0)
+    assert order.total_charged_amount == Decimal(10)

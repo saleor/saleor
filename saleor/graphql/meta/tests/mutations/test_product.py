@@ -50,6 +50,7 @@ def test_delete_private_metadata_for_category(
     category.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     category.save(update_fields=["private_metadata"])
     category_id = graphene.Node.to_global_id("Category", category.pk)
+    old_updated_at = category.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -60,6 +61,8 @@ def test_delete_private_metadata_for_category(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], category, category_id
     )
+    category.refresh_from_db()
+    assert category.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_collection(
@@ -128,7 +131,7 @@ def test_delete_public_metadata_for_product_media(
     )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
 def test_delete_private_metadata_for_product(
     updated_webhook_mock, staff_api_client, permission_manage_products, product
 ):
@@ -136,6 +139,7 @@ def test_delete_private_metadata_for_product(
     product.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     product.save(update_fields=["private_metadata"])
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    old_updated_at = product.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -147,6 +151,8 @@ def test_delete_private_metadata_for_product(
         response["data"]["deletePrivateMetadata"]["item"], product, product_id
     )
     updated_webhook_mock.assert_called_once_with(product)
+    product.refresh_from_db()
+    assert product.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_product_type(
@@ -178,6 +184,7 @@ def test_delete_private_metadata_for_product_variant(
     variant.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     variant.save(update_fields=["private_metadata"])
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    old_updated_at = variant.updated_at
 
     # when
     response = execute_clear_private_metadata_for_item(
@@ -188,6 +195,8 @@ def test_delete_private_metadata_for_product_variant(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], variant, variant_id
     )
+    variant.refresh_from_db()
+    assert variant.updated_at > old_updated_at
 
 
 def test_delete_private_metadata_for_product_media(
@@ -239,6 +248,7 @@ def test_delete_public_metadata_for_category(
     category.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     category.save(update_fields=["metadata"])
     category_id = graphene.Node.to_global_id("Category", category.pk)
+    old_updated_at = category.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -249,6 +259,8 @@ def test_delete_public_metadata_for_category(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], category, category_id
     )
+    category.refresh_from_db()
+    assert category.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_collection(
@@ -295,7 +307,7 @@ def test_delete_public_metadata_for_digital_content(
     )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
 def test_delete_public_metadata_for_product(
     updated_webhook_mock, staff_api_client, permission_manage_products, product
 ):
@@ -303,6 +315,7 @@ def test_delete_public_metadata_for_product(
     product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     product.save(update_fields=["metadata"])
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    old_updated_at = product.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -314,6 +327,8 @@ def test_delete_public_metadata_for_product(
         response["data"]["deleteMetadata"]["item"], product, product_id
     )
     updated_webhook_mock.assert_called_once_with(product)
+    product.refresh_from_db()
+    assert product.updated_at > old_updated_at
 
 
 def test_delete_public_metadata_for_product_type(
@@ -345,6 +360,7 @@ def test_delete_public_metadata_for_product_variant(
     variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     variant.save(update_fields=["metadata"])
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    old_updated_at = variant.updated_at
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -355,6 +371,8 @@ def test_delete_public_metadata_for_product_variant(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], variant, variant_id
     )
+    variant.refresh_from_db()
+    assert variant.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_product_media(
@@ -400,6 +418,7 @@ def test_add_public_metadata_for_category(
 ):
     # given
     category_id = graphene.Node.to_global_id("Category", category.pk)
+    old_updated_at = category.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -410,6 +429,8 @@ def test_add_public_metadata_for_category(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], category, category_id
     )
+    category.refresh_from_db()
+    assert category.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_collection(
@@ -451,12 +472,13 @@ def test_add_public_metadata_for_digital_content(
     )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
 def test_add_public_metadata_for_product(
     updated_webhook_mock, staff_api_client, permission_manage_products, product
 ):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    old_updated_at = product.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -468,6 +490,8 @@ def test_add_public_metadata_for_product(
         response["data"]["updateMetadata"]["item"], product, product_id
     )
     updated_webhook_mock.assert_called_once_with(product)
+    product.refresh_from_db()
+    assert product.updated_at > old_updated_at
 
 
 def test_add_public_metadata_for_product_type(
@@ -495,6 +519,7 @@ def test_add_public_metadata_for_product_variant(
 ):
     # given
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    old_updated_at = variant.updated_at
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -508,14 +533,17 @@ def test_add_public_metadata_for_product_variant(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], variant, variant_id
     )
+    variant.refresh_from_db()
+    assert variant.updated_at > old_updated_at
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
 def test_add_private_metadata_for_product(
     updated_webhook_mock, staff_api_client, permission_manage_products, product
 ):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    old_updated_at = product.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -527,6 +555,8 @@ def test_add_private_metadata_for_product(
         response["data"]["updatePrivateMetadata"]["item"], product, product_id
     )
     updated_webhook_mock.assert_called_once_with(product)
+    product.refresh_from_db()
+    assert product.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_product_type(
@@ -554,6 +584,7 @@ def test_add_private_metadata_for_product_variant(
 ):
     # given
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    old_updated_at = variant.updated_at
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -567,6 +598,8 @@ def test_add_private_metadata_for_product_variant(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], variant, variant_id
     )
+    variant.refresh_from_db()
+    assert variant.updated_at > old_updated_at
 
 
 def test_add_private_metadata_for_product_media(
@@ -585,3 +618,407 @@ def test_add_private_metadata_for_product_media(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], media, media_id
     )
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
+def test_update_metadata_for_product_with_use_legacy_update_webhook_emission_on(
+    mocked_product_metadata_updated,
+    mocked_product_updated,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        product_id,
+        "Product",
+        value="UpdatedValue",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        product,
+        product_id,
+        value="UpdatedValue",
+    )
+    mocked_product_metadata_updated.assert_called_once_with(product)
+    mocked_product_updated.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
+def test_update_metadata_for_product_with_use_legacy_update_webhook_emission_off(
+    mocked_product_metadata_updated,
+    mocked_product_updated,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        product_id,
+        "Product",
+        value="UpdatedValue",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        product,
+        product_id,
+        value="UpdatedValue",
+    )
+    mocked_product_metadata_updated.assert_called_once_with(product)
+    mocked_product_updated.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
+def test_update_private_metadata_for_product_use_legacy_update_webhook_emission_off(
+    mocked_product_metadata_updated,
+    mocked_product_updated,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        product_id,
+        "Product",
+        value="UpdatedPrivateValue",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        product,
+        product_id,
+        value="UpdatedPrivateValue",
+    )
+    mocked_product_metadata_updated.assert_called_once_with(product)
+    mocked_product_updated.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
+def test_update_private_metadata_for_product_use_legacy_update_webhook_emission_on(
+    mocked_product_metadata_updated,
+    mocked_product_updated,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        product_id,
+        "Product",
+        value="UpdatedPrivateValue",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        product,
+        product_id,
+        value="UpdatedPrivateValue",
+    )
+    mocked_product_metadata_updated.assert_called_once_with(product)
+    mocked_product_updated.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
+def test_delete_metadata_for_product_use_legacy_update_webhook_emission_on(
+    mocked_product_metadata_updated,
+    mocked_product_updated,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    product.save(update_fields=["metadata"])
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, product_id, "Product"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], product, product_id
+    )
+    mocked_product_metadata_updated.assert_called_once_with(product)
+    mocked_product_updated.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
+def test_delete_metadata_for_product_use_legacy_update_webhook_emission_off(
+    mocked_product_metadata_updated,
+    mocked_product_updated,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    product.save(update_fields=["metadata"])
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, product_id, "Product"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], product, product_id
+    )
+    mocked_product_metadata_updated.assert_called_once_with(product)
+    mocked_product_updated.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_update_metadata_for_product_variant_with_use_legacy_update_webhook_emission_on(
+    mocked_variant_metadata_updated,
+    mocked_variant_updated,
+    staff_api_client,
+    permission_manage_products,
+    variant,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        variant_id,
+        "ProductVariant",
+        value="UpdatedValue",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        variant,
+        variant_id,
+        value="UpdatedValue",
+    )
+    mocked_variant_metadata_updated.assert_called_once_with(variant)
+    mocked_variant_updated.assert_called_once_with(variant)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_update_metadata_for_product_variant_with_use_legacy_update_webhook_emission_off(
+    mocked_variant_metadata_updated,
+    mocked_variant_updated,
+    staff_api_client,
+    permission_manage_products,
+    variant,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        variant_id,
+        "ProductVariant",
+        value="UpdatedValue",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        variant,
+        variant_id,
+        value="UpdatedValue",
+    )
+    mocked_variant_metadata_updated.assert_called_once_with(variant)
+    mocked_variant_updated.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_update_private_metadata_for_product_variant_use_legacy_update_webhook_emission_off(
+    mocked_variant_metadata_updated,
+    mocked_variant_updated,
+    staff_api_client,
+    permission_manage_products,
+    variant,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        variant_id,
+        "ProductVariant",
+        value="UpdatedPrivateValue",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        variant,
+        variant_id,
+        value="UpdatedPrivateValue",
+    )
+    mocked_variant_metadata_updated.assert_called_once_with(variant)
+    mocked_variant_updated.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_update_private_metadata_for_product_variant_use_legacy_update_webhook_emission_on(
+    mocked_variant_metadata_updated,
+    mocked_variant_updated,
+    staff_api_client,
+    permission_manage_products,
+    variant,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        variant_id,
+        "ProductVariant",
+        value="UpdatedPrivateValue",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        variant,
+        variant_id,
+        value="UpdatedPrivateValue",
+    )
+    mocked_variant_metadata_updated.assert_called_once_with(variant)
+    mocked_variant_updated.assert_called_once_with(variant)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_delete_metadata_for_product_variant_use_legacy_update_webhook_emission_on(
+    mocked_variant_metadata_updated,
+    mocked_variant_updated,
+    staff_api_client,
+    permission_manage_products,
+    variant,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    variant.save(update_fields=["metadata"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, variant_id, "ProductVariant"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], variant, variant_id
+    )
+    mocked_variant_metadata_updated.assert_called_once_with(variant)
+    mocked_variant_updated.assert_called_once_with(variant)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_delete_metadata_for_product_variant_use_legacy_update_webhook_emission_off(
+    mocked_variant_metadata_updated,
+    mocked_variant_updated,
+    staff_api_client,
+    permission_manage_products,
+    variant,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    variant.save(update_fields=["metadata"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, variant_id, "ProductVariant"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], variant, variant_id
+    )
+    mocked_variant_metadata_updated.assert_called_once_with(variant)
+    mocked_variant_updated.assert_not_called()

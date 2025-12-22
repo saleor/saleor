@@ -15,10 +15,12 @@ from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
+from ....site.dataloaders import get_site_promise
 from ...mixins import AppImpersonateMixin
 from ...types import AddressInput, User
 from ..base import BaseCustomerCreate
 from .base import AccountBaseInput
+from .utils import ACCOUNT_UPDATE_FIELDS
 
 
 class AccountInput(AccountBaseInput):
@@ -86,6 +88,7 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
                 description="Optionally called when customer's metadata was updated.",
             ),
         ]
+        instance_tracker_fields = list(ACCOUNT_UPDATE_FIELDS)
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
@@ -104,11 +107,30 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
         cleaned_input,
         instance_tracker=None,
     ):
+        modified_instance_fields = set(instance_tracker.get_modified_fields())
+        site = get_site_promise(info.context).get()
+        use_legacy_webhooks_emission = site.settings.use_legacy_update_webhook_emission
+        meta_modified_fields = {"metadata"} & modified_instance_fields
         manager = get_plugin_manager_promise(info.context).get()
 
-        cls.save_default_addresses(cleaned_input=cleaned_input, user_instance=instance)
+        if changed_fields := cls.save_default_addresses(
+            cleaned_input=cleaned_input, user_instance=instance
+        ):
+            modified_instance_fields.update(changed_fields)
 
-        instance.search_document = prepare_user_search_document_value(instance)
-        instance.save()
+        non_metadata_modified_fields = modified_instance_fields - meta_modified_fields
+        if non_metadata_modified_fields:
+            instance.search_document = prepare_user_search_document_value(instance)
+            modified_instance_fields.add("search_document")
 
-        cls.call_event(manager.customer_updated, instance)
+        if modified_instance_fields:
+            modified_instance_fields.add("updated_at")
+            instance.save(update_fields=list(modified_instance_fields))
+
+        if non_metadata_modified_fields or (
+            use_legacy_webhooks_emission and meta_modified_fields
+        ):
+            cls.call_event(manager.customer_updated, instance)
+
+        if meta_modified_fields:
+            cls.call_event(manager.customer_metadata_updated, instance)

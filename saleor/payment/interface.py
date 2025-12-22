@@ -316,7 +316,7 @@ class GatewayResponse:
     error: str | None
     customer_id: str | None = None
     payment_method_info: PaymentMethodInfo | None = None
-    # @deprecated
+    # @deprecated instead of storing entire response, pick only needed fields
     raw_response: dict[str, str] | None = None
     action_required_data: JSONType | None = None
     # Some gateway can process transaction asynchronously. This value define if we

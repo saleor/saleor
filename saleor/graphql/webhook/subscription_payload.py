@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def initialize_request(
+    app: App | None,
     requestor=None,
     sync_event=False,
     allow_replica=False,
@@ -53,6 +54,7 @@ def initialize_request(
     request.requestor = requestor
     request.request_time = request_time or timezone.now()
     request.allow_replica = allow_replica
+    request.app = app
 
     return request
 
@@ -102,7 +104,6 @@ def generate_payload_promise_from_subscription(
     subscribable_object,
     subscription_query: str,
     request: SaleorContext,
-    app: App | None = None,
 ) -> Promise[dict[str, Any] | None]:
     """Generate webhook payload from subscription query.
 
@@ -113,10 +114,8 @@ def generate_payload_promise_from_subscription(
     subscribable_object: is an object which have a dedicated own type in Subscription
     definition.
     subscription_query: query used to prepare a payload via graphql engine.
-    request: A dummy request used to share context between apps in order to use
-    dataloaders benefits.
-    app: the owner of the given payload. Required in case when webhook contains
-    protected fields.
+    request: A dummy request used to provide context such as .dataloaders between apps
+    in order to use dataloaders benefits. The request is app specific.
     return: A payload ready to send via webhook. None if the function was not able to
     generate a payload
     """
@@ -130,8 +129,8 @@ def generate_payload_promise_from_subscription(
         schema,
         ast,
     )
-    app_id = app.pk if app else None
-    request.app = app
+    app_id = request.app.pk if request.app else None
+
     results_promise = document.execute(
         allow_subscriptions=True,
         root=(event_type, subscribable_object),
@@ -192,7 +191,6 @@ def generate_payload_from_subscription(
     subscribable_object,
     subscription_query: str,
     request: SaleorContext,
-    app: App | None = None,
 ) -> dict[str, Any] | None:
     """Generate webhook payload from subscription query.
 
@@ -203,10 +201,8 @@ def generate_payload_from_subscription(
     subscribable_object: is an object which have a dedicated own type in Subscription
     definition.
     subscription_query: query used to prepare a payload via graphql engine.
-    request: A dummy request used to share context between apps in order to use
-    dataloaders benefits.
-    app: the owner of the given payload. Required in case when webhook contains
-    protected fields.
+    request: A dummy request used to provide context such as .dataloaders between apps
+    in order to use dataloaders benefits. The request is app specific.
     return: A payload ready to send via webhook. None if the function was not able to
     generate a payload
     """
@@ -219,8 +215,7 @@ def generate_payload_from_subscription(
         schema,
         ast,
     )
-    app_id = app.pk if app else None
-    request.app = app
+    app_id = request.app.pk if request.app else None
     results = document.execute(
         allow_subscriptions=True,
         root=(event_type, subscribable_object),
@@ -280,16 +275,22 @@ def generate_pre_save_payloads(
     # need to resolve the same data.
     dataloaders: dict[str, type[DataLoader]] = {}
 
-    request = initialize_request(
-        requestor=requestor,
-        sync_event=False,
-        allow_replica=True,
-        event_type=event_type,
-        request_time=request_time,
-        dataloaders=dataloaders,
-    )
+    request_map: dict[int, SaleorContext] = {}
 
     for webhook in webhooks:
+        request = request_map.get(webhook.app_id)
+        if not request:
+            request = initialize_request(
+                app=webhook.app,
+                requestor=requestor,
+                sync_event=False,
+                allow_replica=True,
+                event_type=event_type,
+                request_time=request_time,
+                dataloaders=dataloaders,
+            )
+            request_map[webhook.app_id] = request
+
         if not webhook.subscription_query:
             continue
 
@@ -299,7 +300,6 @@ def generate_pre_save_payloads(
                 subscribable_object=instance,
                 subscription_query=webhook.subscription_query,
                 request=request,
-                app=webhook.app,
             )
             key = get_pre_save_payload_key(webhook, instance)
             pre_save_payloads[key] = instance_payload

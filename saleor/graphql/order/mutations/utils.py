@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import zero_money, zero_taxed_money
+from ....core.utils import metadata_manager
 from ....discount import VoucherType
 from ....discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ....discount.utils.manual_discount import apply_discount_to_value
@@ -21,6 +22,7 @@ from ....shipping.interface import ShippingMethodData
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
+from ...meta.mutations.utils import update_metadata, update_private_metadata
 from ..utils import get_shipping_method_availability_error
 
 DRAFT_ORDER_UPDATE_FIELDS = {
@@ -309,3 +311,17 @@ def save_addresses(instance: models.Order, cleaned_input: dict) -> list[str]:
         instance.billing_address = billing_address
         update_fields.append("billing_address")
     return update_fields
+
+
+def update_meta_fields(
+    instance,
+    metadata_collection: metadata_manager.MetadataItemCollection,
+    private_metadata_collection: metadata_manager.MetadataItemCollection,
+):
+    if metadata_collection is not None:
+        items = {data.key: data.value for data in metadata_collection.items}
+        update_metadata(instance, items)
+
+    if private_metadata_collection is not None:
+        items = {data.key: data.value for data in private_metadata_collection.items}
+        update_private_metadata(instance, items)

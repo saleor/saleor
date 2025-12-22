@@ -325,7 +325,8 @@ class Checkout(models.Model):
             BTreeIndex(
                 fields=["last_automatic_completion_attempt"],
                 name="automaticcompletionattempt_idx",
-            )
+            ),
+            models.Index(fields=["created_at"], name="idx_checkout_created_at"),
         ]
 
     def __iter__(self):
@@ -508,7 +509,7 @@ class CheckoutLine(ModelWithMetadata):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        return f"CheckoutLine(variant={self.variant!r}, quantity={self.quantity!r})"
+        return f"<CheckoutLine: variant={self.variant!r}, quantity={self.quantity!r}, total={self.total_price_gross_amount} {self.currency}>"
 
     def __getstate__(self):
         return self.variant, self.quantity

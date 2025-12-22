@@ -9,6 +9,7 @@ from .....channel.models import Channel
 from .....checkout import models as checkout_models
 from .....checkout.utils import activate_payments, cancel_active_payments
 from .....core.exceptions import PermissionDenied
+from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from .....payment import TransactionItemIdempotencyUniqueError
 from .....payment.interface import PaymentGatewayData
 from .....payment.utils import handle_transaction_initialize_session
@@ -95,7 +96,16 @@ class TransactionInitialize(TransactionSessionBase):
         error_type_class = common_types.TransactionInitializeError
 
     @classmethod
-    def clean_action(cls, info, action: str | None, channel: "Channel"):
+    def clean_action(
+        cls,
+        info,
+        action: str | None,
+        channel: "Channel",
+        payment_gateway: PaymentGatewayData,
+    ) -> str:
+        if payment_gateway.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+            return TransactionFlowStrategyEnum.AUTHORIZATION.value
+
         if not action:
             return channel.default_transaction_flow_strategy
         app = get_app_promise(info.context).get()
@@ -104,7 +114,12 @@ class TransactionInitialize(TransactionSessionBase):
         return action
 
     @classmethod
-    def clean_app_from_payment_gateway(cls, payment_gateway: PaymentGatewayData) -> App:
+    def clean_app_from_payment_gateway(
+        cls, payment_gateway: PaymentGatewayData
+    ) -> App | None:
+        if payment_gateway.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
+            return None
+
         app = App.objects.filter(
             identifier=payment_gateway.app_identifier,
             removed_at__isnull=True,
@@ -164,7 +179,9 @@ class TransactionInitialize(TransactionSessionBase):
             cls.validate_checkout(source_object)
 
         idempotency_key = cls.clean_idempotency_key(idempotency_key)
-        action = cls.clean_action(info, action, source_object.channel)
+        action = cls.clean_action(
+            info, action, source_object.channel, payment_gateway_data
+        )
         customer_ip_address = clean_customer_ip_address(
             info,
             customer_ip_address,
