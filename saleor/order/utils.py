@@ -137,7 +137,7 @@ def invalidate_order_prices(order: Order, *, save: bool = False) -> None:
     order.should_refresh_prices = True
 
     if save:
-        order.save(update_fields=["should_refresh_prices"])
+        order.save(update_fields=["should_refresh_prices", "updated_at"])
 
 
 def recalculate_order_weight(order: Order, *, save: bool = False):
