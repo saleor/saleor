@@ -47,6 +47,7 @@ from .fetch import (
     reattach_apply_once_per_order_voucher_info,
 )
 from .interface import OrderTaxedPricesData
+from .lock_objects import order_qs_select_for_update
 from .models import Order, OrderLine
 from .utils import (
     calculate_draft_order_line_price_expiration_date,
@@ -111,38 +112,51 @@ def fetch_order_prices_if_expired(
     )
 
     order.should_refresh_prices = False
-    with transaction.atomic(savepoint=False):
-        with allow_writer():
-            order.save(
-                update_fields=[
-                    "subtotal_net_amount",
-                    "subtotal_gross_amount",
-                    "total_net_amount",
-                    "total_gross_amount",
-                    "undiscounted_total_net_amount",
-                    "undiscounted_total_gross_amount",
-                    "shipping_price_net_amount",
-                    "shipping_price_gross_amount",
-                    "base_shipping_price_amount",
-                    "shipping_tax_rate",
-                    "should_refresh_prices",
-                    "tax_error",
-                ]
-            )
-            order.lines.bulk_update(
-                lines,
-                [
-                    "unit_price_net_amount",
-                    "unit_price_gross_amount",
-                    "undiscounted_unit_price_net_amount",
-                    "undiscounted_unit_price_gross_amount",
-                    "total_price_net_amount",
-                    "total_price_gross_amount",
-                    "undiscounted_total_price_net_amount",
-                    "undiscounted_total_price_gross_amount",
-                    "tax_rate",
-                ],
-            )
+    with allow_writer():
+        with transaction.atomic(savepoint=False):
+            try:
+                locked_order = (
+                    order_qs_select_for_update().only("updated_at").get(id=order.id)
+                )
+            except Order.DoesNotExist:
+                # Order was removed. Return data without saving.
+                return order, lines
+
+            # Check whether the order has been modified during the recalculation process by another process.
+            # If so, we should skip saving. The same applies if the order has been removed. This is important
+            # to avoid overwriting changes made by the other requests. Skipping the save function does not affect
+            # the query response because it returns the adjusted order and line info objects.
+            if locked_order.updated_at == order.updated_at:
+                order.save(
+                    update_fields=[
+                        "subtotal_net_amount",
+                        "subtotal_gross_amount",
+                        "total_net_amount",
+                        "total_gross_amount",
+                        "undiscounted_total_net_amount",
+                        "undiscounted_total_gross_amount",
+                        "shipping_price_net_amount",
+                        "shipping_price_gross_amount",
+                        "base_shipping_price_amount",
+                        "shipping_tax_rate",
+                        "should_refresh_prices",
+                        "tax_error",
+                    ]
+                )
+                order.lines.bulk_update(
+                    lines,
+                    [
+                        "unit_price_net_amount",
+                        "unit_price_gross_amount",
+                        "undiscounted_unit_price_net_amount",
+                        "undiscounted_unit_price_gross_amount",
+                        "total_price_net_amount",
+                        "total_price_gross_amount",
+                        "undiscounted_total_price_net_amount",
+                        "undiscounted_total_price_gross_amount",
+                        "tax_rate",
+                    ],
+                )
 
         return order, lines
 
