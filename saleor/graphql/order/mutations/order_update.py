@@ -28,8 +28,9 @@ from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..types import Order
-from .utils import ORDER_UPDATE_FIELDS
+from .utils import ORDER_UPDATE_FIELDS, update_meta_fields
 
 
 class OrderUpdateInput(BaseInputObjectType):
@@ -113,7 +114,12 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         )
 
     @classmethod
-    def _save(cls, instance_tracker: InstanceTracker) -> bool:
+    def _save(
+        cls,
+        instance_tracker: InstanceTracker,
+        metadata_collection,
+        private_metadata_collection,
+    ) -> tuple[bool, bool]:
         instance = cast(models.Order, instance_tracker.instance)
         with traced_atomic_transaction():
             modified_foreign_fields = instance_tracker.get_foreign_modified_fields()
@@ -128,25 +134,35 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
                     instance.billing_address,
                     modified_foreign_fields["billing_address"],
                 )
-
+            update_meta_fields(
+                instance, metadata_collection, private_metadata_collection
+            )
             modified_instance_fields = instance_tracker.get_modified_fields()
             modified_instance_fields.extend(modified_foreign_fields)
-            if not modified_instance_fields:
-                return False
+            metadata_modified = (
+                "metadata" in modified_instance_fields
+                or "private_metadata" in modified_instance_fields
+            )
+            order_modified_fields = set(modified_instance_fields) - {
+                "metadata",
+                "private_metadata",
+            }
+            if not order_modified_fields:
+                return bool(order_modified_fields), metadata_modified
 
             update_order_search_vector(instance, save=False)
-            modified_instance_fields.extend(["search_vector"])
+            order_modified_fields.add("search_vector")
             if cls.should_invalidate_prices(modified_instance_fields):
                 invalidate_order_prices(instance)
-                modified_instance_fields.extend(["should_refresh_prices"])
+                order_modified_fields.add("should_refresh_prices")
 
-            cls._save_order_instance(instance, modified_instance_fields)
+            cls._save_order_instance(instance, order_modified_fields)
 
-            return True
+            return bool(order_modified_fields), metadata_modified
 
     @classmethod
-    def _save_order_instance(cls, instance, modified_instance_fields):
-        update_fields = ["updated_at"] + modified_instance_fields
+    def _save_order_instance(cls, instance, order_modified_fields):
+        update_fields = ["updated_at"] + list(order_modified_fields)
         instance.save(update_fields=update_fields)
 
     @classmethod
@@ -157,13 +173,28 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
             address_instance.save(update_fields=modified_fields)
 
     @classmethod
-    def _post_save_action(cls, info, instance):
+    def _post_save_action(
+        cls,
+        info,
+        instance,
+        order_modified: bool,
+        metadata_modified: bool,
+        use_legacy_webhooks_emission: bool,
+    ):
         manager = get_plugin_manager_promise(info.context).get()
-        call_order_event(
-            manager,
-            WebhookEventAsyncType.ORDER_UPDATED,
-            instance,
-        )
+        if order_modified or (metadata_modified and use_legacy_webhooks_emission):
+            call_order_event(
+                manager,
+                WebhookEventAsyncType.ORDER_UPDATED,
+                instance,
+            )
+
+        if metadata_modified:
+            call_order_event(
+                manager,
+                WebhookEventAsyncType.ORDER_METADATA_UPDATED,
+                instance,
+            )
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -219,6 +250,7 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         cls.validate_and_update_metadata(
             instance, metadata_collection, private_metadata_collection
         )
+        return metadata_collection, private_metadata_collection
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -239,14 +271,28 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
 
-        cls.handle_metadata(instance, cleaned_input)
+        metadata_collection, private_metadata_collection = cls.handle_metadata(
+            instance, cleaned_input
+        )
 
         instance = cls.construct_instance(instance, cleaned_input)
 
         cls.clean_instance(info, instance)
 
-        order_modified = cls._save(instance_tracker)
-        if order_modified:
-            cls._post_save_action(info, instance)
+        order_modified, metadata_modified = cls._save(
+            instance_tracker, metadata_collection, private_metadata_collection
+        )
+        if order_modified or metadata_modified:
+            site = get_site_promise(info.context).get()
+            use_legacy_webhooks_emission = (
+                site.settings.use_legacy_update_webhook_emission
+            )
+            cls._post_save_action(
+                info,
+                instance,
+                order_modified,
+                metadata_modified,
+                use_legacy_webhooks_emission,
+            )
 
         return OrderUpdate(order=SyncWebhookControlContext(instance))
