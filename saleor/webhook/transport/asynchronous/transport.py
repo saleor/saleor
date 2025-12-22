@@ -558,8 +558,6 @@ def generate_deferred_payloads(
                 countdown = retry_backoff * (2**self.request.retries)
                 raise self.retry(
                     countdown=countdown,
-                    # Set delay when using SQS transport
-                    DelaySeconds=countdown,
                     MessageGroupId=message_group_id,
                 )
             except MaxRetriesExceededError:
