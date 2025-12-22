@@ -4,7 +4,7 @@ from ...core import ResolveInfo
 from ...core.types import MetadataError, NonNullList
 from ..permissions import PRIVATE_META_PERMISSION_MAP
 from .base import BaseMetadataMutation
-from .utils import get_valid_metadata_instance, save_instance
+from .utils import delete_private_metadata_keys, get_valid_metadata_instance
 
 
 class DeletePrivateMetadata(BaseMetadataMutation):
@@ -36,7 +36,5 @@ class DeletePrivateMetadata(BaseMetadataMutation):
 
         if instance:
             meta_instance = get_valid_metadata_instance(instance)
-            for key in keys:
-                meta_instance.delete_value_from_private_metadata(key)
-            save_instance(meta_instance, ["private_metadata"])
+            delete_private_metadata_keys(meta_instance, keys)
         return cls.success_response(instance)

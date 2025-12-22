@@ -1,12 +1,13 @@
 import warnings
 
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError
-from django.db.models import F, JSONField, Value
+from django.db.models import F, Func, JSONField, TextField, Value
 from django.utils import timezone
 
 from ....checkout.models import Checkout, CheckoutMetadata
 from ....checkout.utils import get_or_create_checkout_metadata
+from ....core.db.connection import allow_writer
 from ....core.db.expressions import PostgresJsonConcatenate
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
@@ -71,20 +72,6 @@ def get_updated_field_name(instance) -> str | None:
     return TYPE_UPDATED_FIELD.get(instance.__class__.__name__)
 
 
-def save_instance(instance, metadata_fields: list):
-    updated_field = get_updated_field_name(instance)
-    if updated_field:
-        metadata_fields.append(updated_field)
-
-    try:
-        instance.save(update_fields=metadata_fields)
-    except DatabaseError as e:
-        msg = "Cannot update metadata for instance. Updating not existing object."
-        raise ValidationError(
-            {"metadata": ValidationError(msg, code=MetadataErrorCode.NOT_FOUND.value)}
-        ) from e
-
-
 def get_extra_update_field(instance):
     updated_field = get_updated_field_name(instance)
     if updated_field:
@@ -106,6 +93,7 @@ def update_metadata(instance, items):
         raise ValidationError(
             {"metadata": ValidationError(msg, code=MetadataErrorCode.NOT_FOUND.value)}
         )
+    instance.refresh_from_db(fields=["metadata"])
 
 
 def update_private_metadata(instance, items):
@@ -127,3 +115,66 @@ def update_private_metadata(instance, items):
                 )
             }
         )
+    instance.refresh_from_db(fields=["private_metadata"])
+
+
+def delete_metadata_keys(instance, keys: list[str]):
+    """Atomically delete metadata keys at the database level.
+
+    Performs an atomic operation to remove the specified keys from the
+    metadata JSONB field, preventing race conditions that could occur
+    with read-modify-write patterns.
+    """
+    extra_update_fields = get_extra_update_field(instance)
+
+    with allow_writer():
+        updated = instance._meta.model.objects.filter(pk=instance.pk).update(
+            metadata=Func(
+                F("metadata"),
+                Value(keys, output_field=ArrayField(TextField())),
+                function="-",
+                template="%(expressions)s",
+                arg_joiner=" - ",
+            ),
+            **extra_update_fields,
+        )
+    if not updated:
+        msg = "Cannot delete metadata for instance. Updating not existing object."
+        raise ValidationError(
+            {"metadata": ValidationError(msg, code=MetadataErrorCode.NOT_FOUND.value)}
+        )
+    instance.refresh_from_db(fields=["metadata"])
+
+
+def delete_private_metadata_keys(instance, keys: list[str]):
+    """Atomically delete private metadata keys at the database level.
+
+    Performs an atomic operation to remove the specified keys from the
+    metadata JSONB field, preventing race conditions that could occur
+    with read-modify-write patterns.
+    """
+    extra_update_fields = get_extra_update_field(instance)
+
+    with allow_writer():
+        updated = instance._meta.model.objects.filter(pk=instance.pk).update(
+            private_metadata=Func(
+                F("private_metadata"),
+                Value(keys, output_field=ArrayField(TextField())),
+                function="-",
+                template="%(expressions)s",
+                arg_joiner=" - ",
+            ),
+            **extra_update_fields,
+        )
+    if not updated:
+        msg = (
+            "Cannot delete private metadata for instance. Updating not existing object."
+        )
+        raise ValidationError(
+            {
+                "private_metadata": ValidationError(
+                    msg, code=MetadataErrorCode.NOT_FOUND.value
+                )
+            }
+        )
+    instance.refresh_from_db(fields=["private_metadata"])
