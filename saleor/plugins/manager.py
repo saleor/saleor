@@ -2875,24 +2875,6 @@ class PluginsManager(PaymentInterface):
             plugin, "external_verify", default_value, data, request
         )
 
-    def excluded_shipping_methods_for_order(
-        self,
-        order: "Order",
-        available_shipping_methods: list["ShippingMethodData"],
-    ) -> list[ExcludedShippingMethod]:
-        default_value: list[ExcludedShippingMethod] = []
-
-        if not available_shipping_methods:
-            return default_value
-
-        return self.__run_method_on_plugins(
-            "excluded_shipping_methods_for_order",
-            default_value,
-            order,
-            available_shipping_methods,
-            channel_slug=order.channel.slug,
-        )
-
     def excluded_shipping_methods_for_checkout(
         self,
         checkout: "Checkout",
