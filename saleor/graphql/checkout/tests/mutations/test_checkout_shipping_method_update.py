@@ -657,7 +657,7 @@ def test_checkout_shipping_method_update_triggers_webhooks(
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the async actions
@@ -730,7 +730,9 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
     )
 
     # then
+
     content = get_graphql_content(response)
+
     assert not content["data"]["checkoutShippingMethodUpdate"]["errors"]
 
     assert wrapped_call_checkout_info_event.called
@@ -753,7 +755,7 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions

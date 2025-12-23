@@ -1436,7 +1436,7 @@ def test_checkout_add_voucher_triggers_webhooks(
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions
