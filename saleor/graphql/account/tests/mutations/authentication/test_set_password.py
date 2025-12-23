@@ -4,6 +4,7 @@ from freezegun import freeze_time
 
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
+from ......account.models import User
 from ......core.tokens import token_generator
 from .....core.utils import str_to_enum
 from .....tests.utils import get_graphql_content
@@ -32,7 +33,10 @@ SET_PASSWORD_MUTATION = """
 
 
 @freeze_time("2018-05-31 12:00:01")
-def test_set_password(user_api_client, customer_user):
+def test_set_password(user_api_client):
+    customer_user = User.objects.create_user(
+        email="testSetPassword1@example.com", password="old-password"
+    )
     token = token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
@@ -56,11 +60,14 @@ def test_set_password(user_api_client, customer_user):
     "saleor.graphql.account.mutations.authentication.set_password.match_orders_with_new_user"
 )
 def test_set_password_confirm_user_and_match_orders(
-    match_orders_with_new_user_mock, user_api_client, customer_user
+    match_orders_with_new_user_mock, user_api_client
 ):
     # given
-    customer_user.is_confirmed = False
-    customer_user.save(update_fields=["is_confirmed"])
+    customer_user = User.objects.create_user(
+        email="testSetPassword2@example.com",
+        password="old-password",
+        is_confirmed=False,
+    )
 
     token = token_generator.make_token(customer_user)
     password = "spanish-inquisition"
