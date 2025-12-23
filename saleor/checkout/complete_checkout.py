@@ -1652,6 +1652,17 @@ def create_order_from_checkout(
             if delete_checkout:
                 delete_checkouts([checkout_info.checkout.pk])
                 checkout_info.checkout.pk = None
+            else:
+                checkout = checkout_info.checkout
+                update_fields = []
+                if checkout.shipping_address:
+                    checkout.shipping_address = checkout.shipping_address.get_copy()
+                    update_fields.append("shipping_address")
+                if checkout.billing_address:
+                    checkout.billing_address = checkout.billing_address.get_copy()
+                    update_fields.append("billing_address")
+                if update_fields:
+                    checkout.save(update_fields=update_fields)
             return order
         except InsufficientStock:
             _complete_checkout_fail_handler(

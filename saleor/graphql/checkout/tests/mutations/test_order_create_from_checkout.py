@@ -3254,9 +3254,9 @@ def test_order_from_checkout_builtin_shipping_method_metadata_denormalization(
             variables,
             permissions=[permission_handle_checkouts],
         )
-    content = get_graphql_content(response)
 
     # then
+    content = get_graphql_content(response)
     data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
     order = Order.objects.first()
@@ -3277,3 +3277,99 @@ def test_order_from_checkout_builtin_shipping_method_metadata_denormalization(
     # Ensure shipping method metadata in DB was cleared after denormalization
     shipping_method.refresh_from_db()
     assert shipping_method.metadata == {}
+
+
+MUTATION_ORDER_CREATE_FROM_CHECKOUT_WITH_REMOVE_CHECKOUT_FLAG = """
+mutation orderCreateFromCheckout(
+        $id: ID!, $removeCheckout: Boolean
+    ){
+    orderCreateFromCheckout(
+            id: $id, removeCheckout: $removeCheckout
+        ){
+        order{
+            id
+            status
+            token
+            original
+            origin
+            total {
+                currency
+                net {
+                    amount
+                }
+                gross {
+                    amount
+                }
+            }
+            shippingAddress {
+                id
+            }
+            billingAddress {
+                id
+            }
+            deliveryMethod {
+                ... on ShippingMethod {
+                    id
+                    name
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+        }
+        errors{
+            field
+            message
+            code
+            variants
+        }
+    }
+}
+"""
+
+
+def test_order_from_checkout_do_not_remove_checkout(
+    app_api_client,
+    permission_handle_checkouts,
+    checkout_with_item,
+    address,
+    shipping_method,
+    checkout_delivery,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.billing_address = address
+    checkout.save(
+        update_fields=["assigned_delivery", "shipping_address", "billing_address"]
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "removeCheckout": False,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT_WITH_REMOVE_CHECKOUT_FLAG,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    # Ensure the checkout still exists
+    assert Checkout.objects.filter(pk=checkout.pk).exists()
+
+    order = Order.objects.first()
+    checkout.refresh_from_db()
+    assert order
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert order.shipping_address.id != checkout.shipping_address.id
+    assert order.billing_address.id != checkout.billing_address.id
