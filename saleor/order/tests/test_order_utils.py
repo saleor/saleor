@@ -18,6 +18,7 @@ from .. import OrderGrantedRefundStatus, OrderStatus
 from ..events import OrderEvents
 from ..fetch import OrderLineInfo
 from ..models import Order, OrderEvent
+from ..shipping_context import get_valid_shipping_methods_for_order
 from ..utils import (
     add_gift_cards_to_order,
     add_variant_to_order,
@@ -25,7 +26,6 @@ from ..utils import (
     change_order_line_quantity,
     get_order_country,
     get_total_order_discount_excluding_shipping,
-    get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
     order_info_for_logs,
     store_user_addresses_from_draft_order,

@@ -69,9 +69,9 @@ from .notifications import (
     send_order_refunded_confirmation,
     send_payment_confirmation,
 )
+from .shipping_context import get_valid_shipping_methods_for_order
 from .utils import (
     clean_order_line_quantities,
-    get_valid_shipping_methods_for_order,
     order_line_needs_automatic_fulfillment,
     restock_fulfillment_lines,
     update_order_authorize_data,
@@ -178,12 +178,14 @@ def _trigger_order_sync_webhooks(
         shipping_listings = ShippingMethodChannelListing.objects.filter(
             channel_id=order.channel_id
         )
+        # FIXME: Calling .get() as we need to have all webhooks on Promise
+        # to be able to use them here
         get_valid_shipping_methods_for_order(
             order,
             shipping_listings,
-            manager,
+            manager.requestor_getter,
             database_connection_name=database_connection_name,
-        )
+        ).get()
 
 
 def _get_extra_for_order_logger(order: "Order") -> dict:

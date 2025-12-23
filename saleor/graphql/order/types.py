@@ -4,7 +4,6 @@ from uuid import UUID
 
 import graphene
 import prices
-from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
@@ -29,11 +28,13 @@ from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoade
 from ...order import OrderOrigin, OrderStatus, calculations, models
 from ...order.calculations import fetch_order_prices_if_expired
 from ...order.models import FulfillmentStatus
-from ...order.utils import (
+from ...order.shipping_context import (
     get_external_shipping_id,
-    get_order_country,
     get_valid_collection_points_for_order,
     get_valid_shipping_methods_for_order,
+)
+from ...order.utils import (
+    get_order_country,
 )
 from ...payment import ChargeStatus, TransactionKind
 from ...payment.dataloaders import PaymentsByOrderIdLoader
@@ -2496,26 +2497,24 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         if order.status == OrderStatus.DRAFT:
 
             @allow_writer_in_context(info.context)
-            def _validate_draft_order(data):
-                lines, manager = data
+            def _validate_draft_order(lines):
                 country = get_order_country(order)
                 database_connection_name = get_database_connection_name(info.context)
-                try:
+                return (
                     validate_draft_order(
                         order=order,
                         lines=lines,
                         country=country,
-                        manager=manager,
+                        requestor=get_user_or_app_from_context(info.context),
                         database_connection_name=database_connection_name,
                         allow_sync_webhooks=root.allow_sync_webhooks,
                     )
-                except ValidationError:
-                    return False
-                return True
+                    .catch(lambda _: False)
+                    .then(lambda _: True)
+                )
 
-            lines = OrderLinesByOrderIdLoader(info.context).load(order.id)
-            manager = get_plugin_manager_promise(info.context)
-            return Promise.all([lines, manager]).then(_validate_draft_order)
+            lines_dataloader = OrderLinesByOrderIdLoader(info.context).load(order.id)
+            return lines_dataloader.then(_validate_draft_order)
         return True
 
     @staticmethod
@@ -2674,8 +2673,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     ):
         order = root.node
 
-        def with_channel(data):
-            channel, manager = data
+        def with_channel(channel):
             database_connection_name = get_database_connection_name(info.context)
 
             @allow_writer_in_context(info.context)
@@ -2683,7 +2681,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 return get_valid_shipping_methods_for_order(
                     order,
                     channel_listings,
-                    manager,
+                    requestor=get_user_or_app_from_context(info.context),
                     database_connection_name=database_connection_name,
                     allow_sync_webhooks=root.allow_sync_webhooks,
                 )
@@ -2694,10 +2692,8 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 .then(with_listings)
             )
 
-        channel = ChannelByIdLoader(info.context).load(order.channel_id)
-        manager = get_plugin_manager_promise(info.context)
-
-        return Promise.all([channel, manager]).then(with_channel)
+        channel_loader = ChannelByIdLoader(info.context).load(order.channel_id)
+        return channel_loader.then(with_channel)
 
     @classmethod
     @traced_resolver
@@ -2792,26 +2788,24 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         if order.status == OrderStatus.DRAFT:
 
             @allow_writer_in_context(info.context)
-            def _validate_order(data):
-                lines, manager = data
+            def _validate_order(lines):
                 country = get_order_country(order)
                 database_connection_name = get_database_connection_name(info.context)
-                try:
+                return (
                     validate_draft_order(
                         order=order,
                         lines=lines,
                         country=country,
-                        manager=manager,
+                        requestor=get_user_or_app_from_context(info.context),
                         database_connection_name=database_connection_name,
                         allow_sync_webhooks=root.allow_sync_webhooks,
                     )
-                except ValidationError as e:
-                    return validation_error_to_error_type(e, OrderError)
-                return []
+                    .catch(lambda e: validation_error_to_error_type(e, OrderError))
+                    .then(lambda _: [])
+                )
 
-            lines = OrderLinesByOrderIdLoader(info.context).load(order.id)
-            manager = get_plugin_manager_promise(info.context)
-            return Promise.all([lines, manager]).then(_validate_order)
+            lines_dataloader = OrderLinesByOrderIdLoader(info.context).load(order.id)
+            return lines_dataloader.then(_validate_order)
 
         return []
 

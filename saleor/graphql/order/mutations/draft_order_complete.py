@@ -126,7 +126,9 @@ class DraftOrderComplete(BaseMutation):
         cls.validate_order(order)
 
         country = get_order_country(order)
-        validate_draft_order(order, order.lines.all(), country, manager)
+
+        # FIXME: Maciek
+        validate_draft_order(order, order.lines.all(), country, manager).get()
         with traced_atomic_transaction():
             update_fields = [
                 "status",
