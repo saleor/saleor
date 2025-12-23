@@ -3049,3 +3049,96 @@ def test_order_from_checkout_with_external_shipping_private_metadata(
     assert (
         data["order"]["deliveryMethod"]["privateMetadata"] == expected_private_metadata
     )
+
+
+MUTATION_ORDER_CREATE_FROM_CHECKOUT_WITH_REMOVE_CHECKOUT_FLAG = """
+mutation orderCreateFromCheckout(
+        $id: ID!, $removeCheckout: Boolean
+    ){
+    orderCreateFromCheckout(
+            id: $id, removeCheckout: $removeCheckout
+        ){
+        order{
+            id
+            status
+            token
+            original
+            origin
+            total {
+                currency
+                net {
+                    amount
+                }
+                gross {
+                    amount
+                }
+            }
+            shippingAddress {
+                id
+            }
+            billingAddress {
+                id
+            }
+            deliveryMethod {
+                ... on ShippingMethod {
+                    id
+                    name
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+        }
+        errors{
+            field
+            message
+            code
+            variants
+        }
+    }
+}
+"""
+
+
+def test_order_from_checkout_do_not_remove_checkout(
+    app_api_client,
+    permission_handle_checkouts,
+    checkout_with_item,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "removeCheckout": False,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT_WITH_REMOVE_CHECKOUT_FLAG,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    # Ensure the checkout still exists
+    assert Checkout.objects.filter(pk=checkout.pk).exists()
+
+    order = Order.objects.first()
+    checkout.refresh_from_db()
+    assert order
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert order.shipping_address.id != checkout.shipping_address.id
+    assert order.billing_address.id != checkout.billing_address.id
