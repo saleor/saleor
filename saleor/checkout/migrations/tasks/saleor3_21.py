@@ -4,35 +4,34 @@ from ....account.models import Address
 from ....celeryconf import app
 from ....checkout.models import Checkout
 from ....core.db.connection import allow_writer
-from ....order import OrderOrigin
 from ....order.models import Order
 
 # Takes about 0.5 second to process
 BATCH_SIZE = 250
 
 
+BILLING_FIELD = "billing_address"
+SHIPPING_FIELD = "shipping_address"
+
+
 @app.task
 @allow_writer()
-def fix_shared_address_instances_task():
-    """Fix shared address instances between checkouts and orders."""
-    orders = Order.objects.filter(origin=OrderOrigin.CHECKOUT)
+def fix_shared_address_instances_task(field=BILLING_FIELD):
+    """Fix shared address instances between checkouts and orders.
 
-    # first process billing addresses
-    field = "billing_address"
+    First process billing addresses, then shipping addresses.
+    """
+    filter = {
+        f"{field}_id__isnull": False,
+    }
     checkouts = Checkout.objects.filter(
-        Exists(orders.filter(billing_address_id=OuterRef("billing_address_id"))),
-        billing_address_id__isnull=False,
+        Exists(Order.objects.filter(**{f"{field}_id": OuterRef(f"{field}_id")})),
+        **filter,
     )[:BATCH_SIZE]
 
     if not checkouts:
-        # then process shipping addresses if all billing addresses are done
-        checkouts = Checkout.objects.filter(
-            Exists(orders.filter(shipping_address_id=OuterRef("shipping_address_id"))),
-            shipping_address_id__isnull=False,
-        )[:BATCH_SIZE]
-        field = "shipping_address"
-
-    if not checkouts:
+        if field == BILLING_FIELD:
+            fix_shared_address_instances_task.delay(field=SHIPPING_FIELD)
         return
 
     checkout_instances = []
@@ -48,4 +47,4 @@ def fix_shared_address_instances_task():
         setattr(checkout, field, address)
     Checkout.objects.bulk_update(checkout_instances, [field])
 
-    fix_shared_address_instances_task.delay()
+    fix_shared_address_instances_task.delay(field=field)
