@@ -235,7 +235,70 @@ class checkout_automatic_completion_schedule(TimeBaseSchedule):
         return False
 
 
+class page_search_update_schedule(TimeBaseSchedule):
+    def __init__(self, initial_timedelta=60, nowfun=None, app=None):
+        # initial_timedelta defaults to 60 seconds, as referencing settings.py variables
+        # would require rebuilding the schedule. settings depends on this class instance,
+        # leading to a circular import if accessed directly.
+        import_path = "saleor.core.schedules.initiated_page_search_update_schedule"
+        super().__init__(import_path, initial_timedelta, nowfun, app)
+
+    def are_dirty(self) -> bool:
+        from django.conf import settings
+
+        from ..page.models import Page
+
+        return (
+            Page.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(search_index_dirty=True)
+            .exists()
+        )
+
+
+class product_search_update_schedule(TimeBaseSchedule):
+    def __init__(self, initial_timedelta=60, nowfun=None, app=None):
+        # initial_timedelta defaults to 60 seconds, as referencing settings.py variables
+        # would require rebuilding the schedule. settings depends on this class instance,
+        # leading to a circular import if accessed directly.
+        import_path = "saleor.core.schedules.initiated_product_search_update_schedule"
+        super().__init__(import_path, initial_timedelta, nowfun, app)
+
+    def are_dirty(self) -> bool:
+        from django.conf import settings
+
+        from ..product.models import Product
+
+        return (
+            Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(search_index_dirty=True)
+            .exists()
+        )
+
+
+class gift_card_search_update_schedule(TimeBaseSchedule):
+    def __init__(self, initial_timedelta=60, nowfun=None, app=None):
+        # initial_timedelta defaults to 60 seconds, as referencing settings.py variables
+        # would require rebuilding the schedule. settings depends on this class instance,
+        # leading to a circular import if accessed directly.
+        import_path = "saleor.core.schedules.initiated_gift_card_search_update_schedule"
+        super().__init__(import_path, initial_timedelta, nowfun, app)
+
+    def are_dirty(self) -> bool:
+        from django.conf import settings
+
+        from ..giftcard.models import GiftCard
+
+        return (
+            GiftCard.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(search_index_dirty=True)
+            .exists()
+        )
+
+
 initiated_promotion_webhook_schedule = promotion_webhook_schedule()
 initiated_checkout_automatic_completion_schedule = (
     checkout_automatic_completion_schedule()
 )
+initiated_gift_card_search_update_schedule = gift_card_search_update_schedule()
+initiated_page_search_update_schedule = page_search_update_schedule()
+initiated_product_search_update_schedule = product_search_update_schedule()

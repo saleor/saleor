@@ -33,6 +33,9 @@ from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.rlimit import validate_and_set_rlimit
 from .core.schedules import (
     initiated_checkout_automatic_completion_schedule,
+    initiated_gift_card_search_update_schedule,
+    initiated_page_search_update_schedule,
+    initiated_product_search_update_schedule,
     initiated_promotion_webhook_schedule,
 )
 from .graphql.graphql_core import (
@@ -703,18 +706,21 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update-products-search-vectors": {
         "task": "saleor.product.tasks.update_products_search_vector_task",
-        "schedule": datetime.timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
-        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+        # Scheduled task that runs every 60 seconds to check for products
+        # requiring a search index rebuild.
+        "schedule": initiated_product_search_update_schedule,
     },
     "update-gift-cards-search-vectors": {
         "task": "saleor.giftcard.tasks.update_gift_cards_search_vector_task",
-        "schedule": datetime.timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
-        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+        # Scheduled task that runs every 60 seconds to check for gift cards
+        # requiring a search index rebuild.
+        "schedule": initiated_gift_card_search_update_schedule,
     },
     "update-pages-search-vectors": {
         "task": "saleor.page.tasks.update_pages_search_vector_task",
-        "schedule": datetime.timedelta(seconds=BEAT_UPDATE_SEARCH_SEC),
-        "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+        # Scheduled task that runs every 60 seconds to check for pages
+        # requiring a search index rebuild.
+        "schedule": initiated_page_search_update_schedule,
     },
     "expire-orders": {
         "task": "saleor.order.tasks.expire_orders_task",
