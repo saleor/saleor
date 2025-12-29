@@ -62,6 +62,21 @@ def generate_address_search_document_value(address: "Address"):
     return ("\n".join(fields_values) + "\n").lower()
 
 
+def generate_user_search_vector_value(user: "User") -> list[NoValidationSearchVector]:
+    search_vectors = [
+        NoValidationSearchVector(
+            Value(user.email),
+            Value(user.first_name),
+            Value(user.last_name),
+            config="simple",
+            weight="A",
+        ),
+    ]
+    for address in user.addresses.all():
+        search_vectors.extend(generate_address_search_vector_value(address, weight="B"))
+    return search_vectors
+
+
 def generate_address_search_vector_value(
     address: "Address", weight: str = "A"
 ) -> list[NoValidationSearchVector]:
