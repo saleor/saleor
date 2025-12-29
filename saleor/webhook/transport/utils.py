@@ -430,9 +430,12 @@ def get_deliveries_for_app(
 
 def get_multiple_deliveries_for_webhooks(
     event_delivery_ids,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[dict[int, "EventDelivery"], set[int]]:
-    deliveries = EventDelivery.objects.select_related("payload", "webhook__app").filter(
-        id__in=event_delivery_ids
+    deliveries = (
+        EventDelivery.objects.using(database_connection_name)
+        .select_related("payload", "webhook__app")
+        .filter(id__in=event_delivery_ids)
     )
 
     active_deliveries = {}
