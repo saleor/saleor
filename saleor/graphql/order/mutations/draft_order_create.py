@@ -412,9 +412,13 @@ class DraftOrderCreate(
                 if method is None:
                     ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
                 else:
+                    # FIXME: Maciek
                     ShippingMethodUpdateMixin.process_shipping_method(
-                        instance, method, manager, update_shipping_discount=False
-                    )
+                        instance,
+                        method,
+                        requestor=app or info.context.user,
+                        update_shipping_discount=False,
+                    ).get()
 
             if "voucher" in cleaned_input:
                 cls.handle_order_voucher(

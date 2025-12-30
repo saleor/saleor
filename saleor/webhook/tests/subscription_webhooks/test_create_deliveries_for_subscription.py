@@ -11,7 +11,7 @@ from ....channel.models import Channel
 from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
-from ....order.utils import get_all_shipping_methods_for_order
+from ....order.shipping_context import get_all_shipping_methods_for_order
 from ....product.models import Category
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import (

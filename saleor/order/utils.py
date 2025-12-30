@@ -46,12 +46,6 @@ from ..giftcard.search import mark_gift_cards_search_index_as_dirty
 from ..payment import TransactionEventType
 from ..payment.model_helpers import get_total_authorized
 from ..product.utils.digital_products import get_default_digital_content_settings
-from ..shipping.interface import ShippingMethodData
-from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
-from ..shipping.utils import (
-    convert_to_shipping_method_data,
-    initialize_shipping_method_active_status,
-)
 from ..tax.utils import get_display_gross_prices, get_tax_class_kwargs_for_order_line
 from ..warehouse.management import (
     decrease_allocations,
@@ -59,7 +53,6 @@ from ..warehouse.management import (
     increase_allocations,
     increase_stock,
 )
-from ..warehouse.models import Warehouse
 from . import (
     ORDER_EDITABLE_STATUS,
     FulfillmentStatus,
@@ -84,9 +77,6 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-
-
-PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 
 
 def get_order_country(order: Order) -> str:
@@ -693,92 +683,8 @@ def sum_order_totals(qs, currency_code):
     )
 
 
-def get_all_shipping_methods_for_order(
-    order: Order,
-    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-) -> list[ShippingMethodData]:
-    if not order.is_shipping_required(
-        database_connection_name=database_connection_name
-    ):
-        return []
-
-    shipping_address = order.shipping_address
-    if not shipping_address:
-        return []
-
-    all_methods = []
-
-    shipping_methods = (
-        ShippingMethod.objects.using(database_connection_name)
-        .applicable_shipping_methods_for_instance(
-            order,
-            channel_id=order.channel_id,
-            price=order.subtotal.gross,
-            shipping_address=shipping_address,
-            country_code=shipping_address.country.code,
-            database_connection_name=database_connection_name,
-        )
-        .prefetch_related("channel_listings")
-    )
-
-    listing_map = {
-        listing.shipping_method_id: listing for listing in shipping_channel_listings
-    }
-
-    for method in shipping_methods:
-        listing = listing_map.get(method.id)
-        if listing:
-            shipping_method_data = convert_to_shipping_method_data(method, listing)
-            all_methods.append(shipping_method_data)
-    return all_methods
-
-
-def get_valid_shipping_methods_for_order(
-    order: Order,
-    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
-    manager: "PluginsManager",
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    allow_sync_webhooks: bool = True,
-) -> list[ShippingMethodData]:
-    """Return a list of shipping methods according to Saleor's own business logic."""
-    valid_methods = get_all_shipping_methods_for_order(
-        order, shipping_channel_listings, database_connection_name
-    )
-    if not valid_methods:
-        return []
-
-    if order.status in ORDER_EDITABLE_STATUS and allow_sync_webhooks:
-        excluded_methods = manager.excluded_shipping_methods_for_order(
-            order, valid_methods
-        )
-        initialize_shipping_method_active_status(valid_methods, excluded_methods)
-
-    return valid_methods
-
-
-def is_shipping_required(lines: Iterable["OrderLine"]):
-    return any(line.is_shipping_required for line in lines)
-
-
 def get_total_quantity(lines: Iterable["OrderLine"]):
     return sum([line.quantity for line in lines])
-
-
-def get_valid_collection_points_for_order(
-    lines: Iterable["OrderLine"],
-    channel_id: int,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    if not is_shipping_required(lines):
-        return []
-
-    line_ids = [line.id for line in lines]
-    qs = OrderLine.objects.using(database_connection_name).filter(id__in=line_ids)
-
-    return Warehouse.objects.using(
-        database_connection_name
-    ).applicable_for_click_and_collect(qs, channel_id)
 
 
 def get_discounted_lines(lines, voucher):
@@ -1418,9 +1324,3 @@ def calculate_draft_order_line_price_expiration_date(
         now = timezone.now()
         return now + timedelta(hours=freeze_period)
     return None
-
-
-def get_external_shipping_id(order: "Order"):
-    if not order:
-        return None
-    return order.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)

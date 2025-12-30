@@ -323,6 +323,8 @@ def generate_order_payload(
             "created": lambda f: f.created_at,
         },
     )
+    shipping_tax_rate = order.shipping_tax_rate or Decimal(0)
+    shipping_tax_rate = shipping_tax_rate.quantize(Decimal("0.0001"))
 
     extra_dict_data = {
         "id": graphene.Node.to_global_id("Order", order.id),
@@ -342,6 +344,7 @@ def generate_order_payload(
         "shipping_method": _generate_shipping_method_payload(
             order.shipping_method, order.channel
         ),
+        "shipping_tax_rate": shipping_tax_rate,
     }
     if with_meta:
         extra_dict_data["meta"] = generate_meta(
