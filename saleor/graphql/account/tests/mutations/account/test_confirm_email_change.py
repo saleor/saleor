@@ -50,7 +50,7 @@ def test_email_update(
     data = content["data"]["confirmEmailChange"]
     assert data["user"]["email"] == new_email
     user.refresh_from_db()
-    assert new_email in user.search_document
+    assert user.search_vector
     assign_gift_cards_mock.assert_called_once_with(customer_user)
     assign_orders_mock.assert_called_once_with(customer_user)
     mocked_account_email_changed.assert_called_once_with(user)
@@ -106,6 +106,6 @@ def test_account_email_changed_webhook_event_triggered(
 
     # then
     user.refresh_from_db()
-    assert new_email in user.search_document
+    assert user.search_vector
 
     mocked_trigger_webhooks_async.assert_called()

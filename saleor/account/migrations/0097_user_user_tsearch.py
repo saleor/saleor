@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("account", "0096_user_search_index_dirty_user_search_vector"),
-        ("permission", "0002_alter_permission_content_type"),
     ]
 
     operations = [
