@@ -555,12 +555,13 @@ def create_fake_user(user_password, save=True, generate_id=False):
     user = User(
         **user_params,
     )
-    update_user_search_vector(user, save=False)
 
     if save:
         user.set_password(user_password)
         user.save()
         user.addresses.add(address)
+
+    update_user_search_vector(user)
     return user
 
 

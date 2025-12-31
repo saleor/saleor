@@ -37,7 +37,10 @@ def update_user_search_vector(
 
 
 def generate_user_search_vector_value(
-    user: "User", attach_addresses_data: bool = True
+    user: "User",
+    *,
+    attach_addresses_data: bool = True,
+    already_prefetched: bool = False,
 ) -> list[NoValidationSearchVector]:
     search_vectors = [
         NoValidationSearchVector(
@@ -49,10 +52,11 @@ def generate_user_search_vector_value(
         ),
     ]
     if attach_addresses_data:
-        prefetch_related_objects(
-            [user],
-            "addresses",
-        )
+        if not already_prefetched:
+            prefetch_related_objects(
+                [user],
+                "addresses",
+            )
         for address in user.addresses.all():
             search_vectors.extend(
                 generate_address_search_vector_value(address, weight="B")
