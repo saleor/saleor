@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import transaction
 
 from ..account.models import User
-from ..account.search import prepare_user_search_document_value
+from ..account.search import generate_user_search_vector_value
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..order.models import Order
@@ -43,7 +43,7 @@ def set_user_search_document_values(updated_count: int = 0) -> None:
 
     with allow_writer():
         updated_count += set_search_document_values(
-            users, prepare_user_search_document_value
+            users, generate_user_search_vector_value
         )
 
     task_logger.info("Updated %d users", updated_count)

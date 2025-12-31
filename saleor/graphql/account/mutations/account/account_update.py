@@ -3,7 +3,7 @@ from typing import cast
 import graphene
 
 from .....account import models
-from .....account.search import prepare_user_search_document_value
+from .....account.search import update_user_search_vector
 from .....core.tracing import traced_atomic_transaction
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
@@ -120,8 +120,8 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
 
         non_metadata_modified_fields = modified_instance_fields - meta_modified_fields
         if non_metadata_modified_fields:
-            instance.search_document = prepare_user_search_document_value(instance)
-            modified_instance_fields.add("search_document")
+            update_user_search_vector(instance, save=False)
+            modified_instance_fields.add("search_vector")
 
         if modified_instance_fields:
             modified_instance_fields.add("updated_at")

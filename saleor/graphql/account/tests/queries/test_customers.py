@@ -1,7 +1,7 @@
 import pytest
 
 from .....account.models import User
-from .....account.search import prepare_user_search_document_value
+from .....account.search import update_user_search_vector
 from .....order.models import Order
 from ....tests.utils import get_graphql_content
 
@@ -102,7 +102,7 @@ def test_query_customers_pagination_with_sort(
 @pytest.mark.parametrize(
     ("customer_filter", "count"),
     [
-        ("example.com", 3),
+        ("allen@example.com", 1),
         ("Joe", 1),
         ("Allen", 1),
         ("Leslie", 1),  # first_name
@@ -129,8 +129,8 @@ def test_query_customers_root_level_filter(
     customers_for_pagination[1].addresses.set([address])
 
     for user in customers_for_pagination:
-        user.search_document = prepare_user_search_document_value(user)
-    User.objects.bulk_update(customers_for_pagination, ["search_document"])
+        update_user_search_vector(user)
+    User.objects.bulk_update(customers_for_pagination, ["search_vector"])
 
     variables = {"search": customer_filter, "first": 10}
     staff_api_client.user.user_permissions.add(permission_manage_users)

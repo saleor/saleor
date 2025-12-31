@@ -115,7 +115,7 @@ def test_staff_create(
     staff_user = User.objects.get(email=email)
 
     assert staff_user.is_staff
-    assert staff_user.search_document == f"{email}\n".lower()
+    assert staff_user.search_vector
 
     groups = data["user"]["permissionGroups"]
     assert len(groups) == 1

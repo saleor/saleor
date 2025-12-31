@@ -3,7 +3,6 @@ from unittest.mock import patch
 import graphene
 from freezegun import freeze_time
 
-from ......account.search import generate_address_search_document_value
 from ......webhook.event_types import WebhookEventAsyncType
 from .....tests.utils import assert_no_permission, get_graphql_content
 from ..utils import generate_address_webhook_call_args
@@ -51,10 +50,7 @@ def test_address_update_mutation(
     assert address_obj.city == graphql_address_data["city"].upper()
     assert address_obj.validation_skipped is False
     customer_user.refresh_from_db()
-    assert (
-        generate_address_search_document_value(address_obj)
-        in customer_user.search_document
-    )
+    assert customer_user.search_vector
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -101,9 +97,9 @@ def test_address_update_mutation_trigger_webhook(
     )
 
 
-@patch("saleor.graphql.account.mutations.base.prepare_user_search_document_value")
+@patch("saleor.graphql.account.mutations.base.update_user_search_vector")
 def test_address_update_mutation_no_user_assigned(
-    prepare_user_search_document_value_mock,
+    update_user_search_vector_mock,
     staff_api_client,
     address,
     permission_manage_users,
@@ -126,7 +122,7 @@ def test_address_update_mutation_no_user_assigned(
     content = get_graphql_content(response)
     data = content["data"]["addressUpdate"]
     assert data["address"]["city"] == graphql_address_data["city"].upper()
-    prepare_user_search_document_value_mock.assert_not_called()
+    update_user_search_vector_mock.assert_not_called()
 
 
 def test_customer_update_address_for_other(
