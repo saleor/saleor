@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("account", "0096_user_search_index_dirty_user_search_vector"),
+        ("account", "0096_user_search_vector"),
     ]
 
     operations = [

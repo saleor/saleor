@@ -193,7 +193,6 @@ class User(
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
     search_vector = SearchVectorField(blank=True, null=True)
-    search_index_dirty = models.BooleanField(default=True, db_default=True)
     # deprecated field - should be removed in 3.23
     search_document = models.TextField(blank=True, default="")
     uuid = models.UUIDField(default=uuid4, unique=True)
