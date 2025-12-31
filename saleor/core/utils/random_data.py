@@ -560,8 +560,10 @@ def create_fake_user(user_password, save=True, generate_id=False):
         user.set_password(user_password)
         user.save()
         user.addresses.add(address)
+        update_user_search_vector(user)
+    else:
+        update_user_search_vector(user, attach_addresses_data=False, save=False)
 
-    update_user_search_vector(user)
     return user
 
 
