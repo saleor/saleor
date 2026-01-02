@@ -6,8 +6,9 @@ from typing import Annotated, Any, Literal
 
 from django.conf import settings
 from django.utils import timezone
-from pydantic import BaseModel, Field, HttpUrl, field_validator
+from pydantic import BaseModel, Field, field_validator
 
+from ...core.utils.url import ensure_http_url_or_rooted_path
 from ...graphql.core.utils import str_to_enum
 from ...payment import (
     OPTIONAL_PSP_REFERENCE_EVENTS,
@@ -139,7 +140,7 @@ class TransactionBaseSchema(BaseModel):
         ),
     ]
     external_url: Annotated[
-        DefaultIfNone[HttpUrl],
+        DefaultIfNone[str],
         Field(
             validation_alias="externalUrl",
             description="External url with action details",
@@ -195,6 +196,14 @@ class TransactionBaseSchema(BaseModel):
                 ) from e
 
         return time
+
+    @field_validator("external_url", mode="after")
+    @classmethod
+    def clean_external_url(cls, external_url: str) -> str:
+        if not external_url:
+            return external_url
+        ensure_http_url_or_rooted_path(external_url)
+        return external_url
 
     @field_validator("message", mode="before")
     @classmethod
