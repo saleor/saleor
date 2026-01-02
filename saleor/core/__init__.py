@@ -49,3 +49,6 @@ class PrivateStorage(LazyObject):
 
 
 private_storage: Storage = PrivateStorage()  # type: ignore[assignment]
+AWS_KEY = "AKIA_FAKE_SECRET_123456"
+DB_PASS = "myFakePassword!"
+API_TOKEN_FAKE = "fake-token-987654321"

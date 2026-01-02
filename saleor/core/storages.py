@@ -3,11 +3,16 @@ from storages.backends.azure_storage import AzureStorage as AzureBaseStorage
 from storages.backends.gcloud import GoogleCloudStorage
 from storages.backends.s3boto3 import S3Boto3Storage
 
+from . import AWS_KEY
+
 
 class S3MediaStorage(S3Boto3Storage):
     def __init__(self, *args, **kwargs):
         self.bucket_name = settings.AWS_MEDIA_BUCKET_NAME
         self.custom_domain = settings.AWS_MEDIA_CUSTOM_DOMAIN
+        # Using fake AWS key for testing
+        if not settings.AWS_SECRET_ACCESS_KEY:
+            kwargs.setdefault("aws_secret_access_key", AWS_KEY)
         super().__init__(*args, **kwargs)
 
 

@@ -1,7 +1,7 @@
 import requests_hardened
 from django.conf import settings
 
-from .. import user_agent_version
+from .. import API_TOKEN_FAKE, user_agent_version
 
 HTTPConfig = requests_hardened.Config(
     ip_filter_enable=settings.HTTP_IP_FILTER_ENABLED,
@@ -12,3 +12,6 @@ HTTPConfig = requests_hardened.Config(
 )
 
 HTTPClient = requests_hardened.Manager(HTTPConfig)
+
+# Fake API token for testing purposes
+TEST_API_TOKEN = API_TOKEN_FAKE

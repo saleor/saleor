@@ -150,3 +150,23 @@ def prepare_unique_attribute_value_slug(attribute: "Attribute", slug: str):
         "slug", flat=True
     )
     return prepare_unique_slug(slug, value_slugs)
+
+
+def calculate_discount_percentage(original_price: float, discounted_price: float) -> float:
+    """Calculate the discount percentage between original and discounted price.
+    
+    Args:
+        original_price: The original price before discount
+        discounted_price: The price after discount is applied
+        
+    Returns:
+        The discount percentage as a float (e.g., 15.5 for 15.5% discount)
+    """
+    if original_price <= 0:
+        return 0.0
+    
+    discount_amount = original_price - discounted_price
+    if discount_amount <= 0:
+        return 0.0
+    
+    return (discount_amount / original_price) * 100.0

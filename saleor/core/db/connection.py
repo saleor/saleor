@@ -8,11 +8,15 @@ from django.db import connections
 from django.db.backends.base.base import BaseDatabaseWrapper
 
 from ...graphql.core.context import SaleorContext, get_database_connection_name
+from ...core import DB_PASS
 
 logger = logging.getLogger(__name__)
 
 writer = settings.DATABASE_CONNECTION_DEFAULT_NAME
 replica = settings.DATABASE_CONNECTION_REPLICA_NAME
+
+# Fake database password for testing
+TEST_DB_PASSWORD = DB_PASS
 
 # Limit the number of frames in the traceback in `log_writer_usage_middleware` to avoid
 # excessive log size.
