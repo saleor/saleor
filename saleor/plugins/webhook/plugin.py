@@ -70,7 +70,6 @@ from ...webhook.payloads import (
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
-    generate_excluded_shipping_methods_for_order_payload,
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -3700,26 +3699,6 @@ class WebhookPlugin(BasePlugin):
         return TaxType(
             code=code,
             description=description,
-        )
-
-    def excluded_shipping_methods_for_order(
-        self,
-        order: "Order",
-        available_shipping_methods: list["ShippingMethodData"],
-        previous_value: list[ExcludedShippingMethod],
-    ) -> list[ExcludedShippingMethod]:
-        generate_function = generate_excluded_shipping_methods_for_order_payload
-        payload_fun = lambda: generate_function(  # noqa: E731
-            order,
-            available_shipping_methods,
-        )
-        return get_excluded_shipping_data(
-            event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-            previous_value=previous_value,
-            payload_fun=payload_fun,
-            subscribable_object=(order, available_shipping_methods),
-            allow_replica=self.allow_replica,
-            requestor=self.requestor,
         )
 
     def excluded_shipping_methods_for_checkout(

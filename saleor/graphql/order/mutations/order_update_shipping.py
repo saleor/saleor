@@ -17,6 +17,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
+from ...utils import get_user_or_app_from_context
 from ..types import Order
 from .utils import (
     SHIPPING_METHOD_UPDATE_FIELDS,
@@ -139,8 +140,12 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             ),
         )
         manager = get_plugin_manager_promise(info.context).get()
+        # FIXME: Maciek. We need to fully drop .get() usage
         ShippingMethodUpdateMixin.process_shipping_method(
-            order, method, manager, update_shipping_discount=True
+            order,
+            method,
+            requestor=get_user_or_app_from_context(info.context),
+            update_shipping_discount=True,
         )
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results
