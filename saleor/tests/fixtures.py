@@ -125,6 +125,20 @@ def get_test_metrics_data(initialize_test_telemetry):
     meter._meter.metric_reader.get_metrics_data()
 
 
+@pytest.fixture(autouse=True)
+def clear_telemetry_data(initialize_test_telemetry):
+    """Clear telemetry data after each test.
+
+    Tests may execute code that produces metrics and/or traces. In our test suite
+    in-memory metric reader and in-memory span exporter are used. If they're not flushed
+    regularly we may end up with substantial amount of data stored in memory for no
+    reason.
+    """
+    yield
+    meter._meter.metric_reader.get_metrics_data()
+    tracer._tracer.span_exporter.clear()
+
+
 @pytest.fixture
 def capture_queries(pytestconfig):
     cfg = pytestconfig
