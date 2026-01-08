@@ -608,7 +608,6 @@ def test_external_obtain_access_tokens_with_saleor_staff(
 @patch("saleor.plugins.openid_connect.plugin.send_user_event")
 @patch("saleor.plugins.openid_connect.utils.cache.set")
 @patch("saleor.plugins.openid_connect.utils.cache.get")
-@pytest.mark.vcr
 def test_external_obtain_access_tokens_with_staff_user_domain_but_no_scope(
     mocked_cache_get,
     mocked_cache_set,
@@ -619,6 +618,7 @@ def test_external_obtain_access_tokens_with_staff_user_domain_but_no_scope(
     id_token,
     id_payload,
 ):
+    # given
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
     mocked_jwt_validator.get.side_effect = id_payload.get
@@ -648,10 +648,13 @@ def test_external_obtain_access_tokens_with_staff_user_domain_but_no_scope(
     redirect_uri = "http://localhost:3000/used-logged-in"
     state = signing.dumps({"redirectUri": redirect_uri})
     code = "oauth-code"
+
+    # when
     tokens = plugin.external_obtain_access_tokens(
         {"state": state, "code": code}, rf.request(), previous_value=None
     )
 
+    # then
     mocked_fetch_token.assert_called_once_with(
         "https://saleor.io/oauth/token",
         code=code,
