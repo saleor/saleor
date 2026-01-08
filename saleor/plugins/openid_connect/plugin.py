@@ -317,7 +317,7 @@ class OpenIDConnectPlugin(BasePlugin):
         user_permissions = []
         is_staff_user_email = self.is_staff_user_email(user)
         if self.config.use_scope_permissions or is_staff_user_email:
-            scope = token_data.get("scope")
+            scope = token_data.get("scope", [])
             user_permissions = self._use_scope_permissions(user, scope)
 
             is_staff_in_scope = SALEOR_STAFF_PERMISSION in scope
