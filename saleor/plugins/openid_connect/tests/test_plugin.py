@@ -43,6 +43,17 @@ def test_get_oauth_session_dont_add_refresh_scope_when_disabled(openid_plugin):
     assert "offline_access" not in session.scope
 
 
+def test_get_oauth_session_dont_add_refresh_scope_when_enabled_and_configured_with_aws_cognito(
+    openid_plugin,
+):
+    plugin = openid_plugin(
+        enable_refresh_token=True,
+        json_web_key_set_url="https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_abcdefghi/.well-known/jwks.json",
+    )
+    session = plugin._get_oauth_session()
+    assert "offline_access" not in session.scope
+
+
 def test_external_authentication_url_returns_redirect_url(openid_plugin, settings, rf):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     authorize_path = "/authorize"
