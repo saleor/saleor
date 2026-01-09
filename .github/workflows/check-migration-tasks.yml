@@ -7,6 +7,8 @@ on:
 jobs:
   check-migration-tasks:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip celery check') }}
     steps:
       - name: Checkout
