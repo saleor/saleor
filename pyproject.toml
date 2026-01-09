@@ -292,4 +292,4 @@ target-version = "py312"
     known-first-party = [ "saleor" ]
 
 [tool.poetry]
-version = "3.22.24"
+version = "3.22.25"
