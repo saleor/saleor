@@ -1,7 +1,6 @@
 import pytest
 
 from .....app.models import AppExtension
-from .....app.types import DeprecatedAppExtensionMount
 from ....tests.utils import get_graphql_content
 
 
@@ -39,19 +38,19 @@ def test_app_extensions(
                 app=app,
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
-                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+                mount="product_overview_more_actions",
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
-                mount=DeprecatedAppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                mount="product_details_more_actions",
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount="product_overview_create",
             ),
         ]
     )
@@ -117,19 +116,19 @@ def test_app_extensions_with_filter(
                 app=app,
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
-                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+                mount="product_overview_more_actions",
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
-                mount=DeprecatedAppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                mount="product_details_more_actions",
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+                mount="product_overview_create",
             ),
         ]
     )
