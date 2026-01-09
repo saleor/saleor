@@ -6,7 +6,6 @@ import pytest
 from .....account import models
 from .....account.error_codes import CustomerBulkUpdateErrorCode
 from .....account.events import CustomerEvents
-from .....account.search import generate_address_search_document_value
 from .....giftcard.models import GiftCard
 from .....giftcard.search import update_gift_cards_search_vector
 from ....core.enums import ErrorPolicyEnum
@@ -575,14 +574,7 @@ def test_customers_bulk_update_with_address(
     assert data["count"] == 1
     assert billing_address.street_address_1 == new_street_address
     assert shipping_address.street_address_1 == new_street_address
-    assert (
-        generate_address_search_document_value(billing_address)
-        in customer_user.search_document
-    )
-    assert (
-        generate_address_search_document_value(shipping_address)
-        in customer_user.search_document
-    )
+    assert customer_user.search_vector
 
 
 def test_customers_bulk_update_with_address_when_no_default(

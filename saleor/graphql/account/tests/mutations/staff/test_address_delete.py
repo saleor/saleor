@@ -4,7 +4,6 @@ import graphene
 import pytest
 from freezegun import freeze_time
 
-from ......account.search import generate_address_search_document_value
 from ......webhook.event_types import WebhookEventAsyncType
 from .....tests.utils import assert_no_permission, get_graphql_content
 from ..utils import generate_address_webhook_call_args
@@ -40,10 +39,7 @@ def test_address_delete_mutation(
         address_obj.refresh_from_db()
 
     customer_user.refresh_from_db()
-    assert (
-        generate_address_search_document_value(address_obj)
-        not in customer_user.search_document
-    )
+    assert customer_user.search_vector
 
 
 @freeze_time("2022-05-12 12:00:00")

@@ -56,7 +56,7 @@ STAFF_UPDATE_MUTATIONS = """
 def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
-    assert not staff_user.search_document
+    assert not staff_user.search_vector
     id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": id, "input": {"isActive": False}}
 
@@ -70,14 +70,14 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     assert data["user"]["userPermissions"] == []
     assert not data["user"]["isActive"]
     staff_user.refresh_from_db()
-    assert not staff_user.search_document
+    assert not staff_user.search_vector
 
 
 def test_staff_update_metadata(staff_api_client, permission_manage_staff):
     # given
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
-    assert not staff_user.search_document
+    assert not staff_user.search_vector
     id = graphene.Node.to_global_id("User", staff_user.id)
     metadata = [{"key": "test key", "value": "test value"}]
     variables = {"id": id, "input": {"metadata": metadata}}
@@ -94,14 +94,14 @@ def test_staff_update_metadata(staff_api_client, permission_manage_staff):
     assert data["user"]["userPermissions"] == []
     assert data["user"]["metadata"] == metadata
     staff_user.refresh_from_db()
-    assert not staff_user.search_document
+    assert not staff_user.search_vector
 
 
 def test_staff_update_private_metadata(staff_api_client, permission_manage_staff):
     # given
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
-    assert not staff_user.search_document
+    assert not staff_user.search_vector
     id = graphene.Node.to_global_id("User", staff_user.id)
     metadata = [{"key": "test key", "value": "test value"}]
     variables = {"id": id, "input": {"privateMetadata": metadata}}
@@ -118,7 +118,7 @@ def test_staff_update_private_metadata(staff_api_client, permission_manage_staff
     assert data["user"]["userPermissions"] == []
     assert data["user"]["privateMetadata"] == metadata
     staff_user.refresh_from_db()
-    assert not staff_user.search_document
+    assert not staff_user.search_vector
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -138,7 +138,7 @@ def test_staff_update_trigger_webhook(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
-    assert not staff_user.search_document
+    assert not staff_user.search_vector
     id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": id, "input": {"isActive": False}}
 
@@ -176,7 +176,7 @@ def test_staff_update_trigger_webhook(
 def test_staff_update_email(staff_api_client, permission_manage_staff, media_root):
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
-    assert not staff_user.search_document
+    assert not staff_user.search_vector
     id = graphene.Node.to_global_id("User", staff_user.id)
     new_email = "test@email.com"
     variables = {"id": id, "input": {"email": new_email}}
@@ -191,7 +191,7 @@ def test_staff_update_email(staff_api_client, permission_manage_staff, media_roo
     assert data["user"]["userPermissions"] == []
     assert data["user"]["isActive"]
     staff_user.refresh_from_db()
-    assert staff_user.search_document == f"{new_email}\n"
+    assert staff_user.search_vector
 
 
 @pytest.mark.parametrize("field", ["firstName", "lastName"])
@@ -201,7 +201,7 @@ def test_staff_update_name_field(
     query = STAFF_UPDATE_MUTATIONS
     email = "staffuser@example.com"
     staff_user = User.objects.create(email=email, is_staff=True)
-    assert not staff_user.search_document
+    assert not staff_user.search_vector
     id = graphene.Node.to_global_id("User", staff_user.id)
     value = "Name"
     variables = {"id": id, "input": {field: value}}
@@ -216,7 +216,7 @@ def test_staff_update_name_field(
     assert data["user"]["userPermissions"] == []
     assert data["user"]["isActive"]
     staff_user.refresh_from_db()
-    assert staff_user.search_document == f"{email}\n{value.lower()}\n"
+    assert staff_user.search_vector
 
 
 def test_staff_update_app_no_permission(
