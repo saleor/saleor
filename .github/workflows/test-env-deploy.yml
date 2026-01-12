@@ -87,7 +87,15 @@ jobs:
           echo "StatusCode: ${{ fromJSON(steps.lambda.outputs.response).StatusCode }}"
           echo "ExecutedVersion: ${{ fromJSON(steps.lambda.outputs.response).ExecutedVersion }}"
           echo "Payload: ${{ fromJSON(steps.lambda.outputs.response).Payload }}"
-          echo "LogResult: ${{ fromJSON(steps.lambda.outputs.response).LogResult }}"
+
+          # We need to base64‑decode the log result
+          LOG_RESULT_BASE64='${{ fromJSON(steps.lambda.outputs.response).LogResult }}'
+          echo "##################"
+          echo "LogResult - start"
+          echo "$LOG_RESULT_BASE64" | base64 --decode || true
+          echo "LogResult - end"
+          echo "##################"
+
           echo "FunctionError: ${{ fromJSON(steps.lambda.outputs.response).FunctionError }}"
 
       - name: Update deployment status
