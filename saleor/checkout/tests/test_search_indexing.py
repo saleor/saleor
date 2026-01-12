@@ -6,17 +6,18 @@ from ...payment.models import Payment, TransactionEvent, TransactionItem
 from ...plugins.manager import get_plugins_manager
 from ..fetch import fetch_checkout_info
 from ..models import Checkout, CheckoutMetadata
-from ..search import (
-    CheckoutData,
-    CheckoutLineData,
-    TransactionData,
-    _load_checkout_data,
+from ..search.indexing import (
     generate_checkout_lines_search_vector_value,
     generate_checkout_payments_search_vector_value,
     generate_checkout_transactions_search_vector_value,
     prepare_checkout_search_vector_value,
     search_checkouts,
     update_checkouts_search_vector,
+)
+from ..search.loaders import (
+    CheckoutData,
+    CheckoutLineData,
+    TransactionData,
 )
 from ..utils import add_variant_to_checkout
 
@@ -736,86 +737,3 @@ def test_search_checkouts_returns_ranked_results(checkout, checkout_with_item):
     results_list = list(result)
     assert len(results_list) == 1
     assert results_list[0] == checkout
-
-
-def test_load_checkout_data(checkout_with_item, customer_user, address, address_usa):
-    # given
-    checkout_with_item.user = customer_user
-    checkout_with_item.billing_address = address
-    checkout_with_item.shipping_address = address_usa
-    checkout_with_item.save()
-
-    Payment.objects.create(
-        gateway="mirumee.payments.dummy",
-        is_active=True,
-        checkout=checkout_with_item,
-        total=Decimal("10.00"),
-        currency="USD",
-    )
-
-    TransactionItem.objects.create(
-        name="Credit card",
-        psp_reference="PSP-123",
-        available_actions=["refund"],
-        currency="USD",
-        checkout_id=checkout_with_item.pk,
-        charged_value=Decimal(10),
-    )
-
-    # when
-    result = _load_checkout_data([checkout_with_item])
-
-    # then
-    assert checkout_with_item.pk in result
-    checkout_data = result[checkout_with_item.pk]
-    assert checkout_data.user == customer_user
-    assert checkout_data.billing_address == address
-    assert checkout_data.shipping_address == address_usa
-    assert len(checkout_data.payments) == 1
-    assert len(checkout_data.lines) >= 1
-    assert len(checkout_data.transactions) == 1
-
-
-def test_load_checkout_data_empty_list():
-    # given
-    checkouts = []
-
-    # when
-    result = _load_checkout_data(checkouts)
-
-    # then
-    assert result == {}
-
-
-def test_load_checkout_data_with_no_relations(checkout):
-    # given
-    checkout.user = None
-    checkout.billing_address = None
-    checkout.shipping_address = None
-    checkout.save()
-
-    # when
-    result = _load_checkout_data([checkout])
-
-    # then
-    assert checkout.pk in result
-    checkout_data = result[checkout.pk]
-    assert checkout_data.user is None
-    assert checkout_data.billing_address is None
-    assert checkout_data.shipping_address is None
-    assert checkout_data.payments == []
-    assert checkout_data.lines == []
-    assert checkout_data.transactions == []
-
-
-def test_load_checkout_data_multiple_checkouts(checkout_with_item, checkout_JPY):
-    # given
-    checkouts = [checkout_with_item, checkout_JPY]
-
-    # when
-    result = _load_checkout_data(checkouts)
-
-    # then
-    assert len(result) == 2
-    assert checkout_with_item.pk in result
-    assert checkout_JPY.pk in result
