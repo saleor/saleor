@@ -225,7 +225,16 @@ class OpenIDConnectPlugin(BasePlugin):
             permissions.append(SALEOR_STAFF_PERMISSION)
             scope_permissions = " ".join(permissions)
             scope += f" {scope_permissions}"
-        if self.config.enable_refresh_token:
+        if self.config.enable_refresh_token and (
+            self.config.json_web_key_set_url
+            and "cognito-idp." not in self.config.json_web_key_set_url
+        ):
+            # AWS Cognito does not support this scope, refresh tokens are issued out of
+            # the box.
+            # Cognito detection method is rather crude, according to the documentation
+            # JWKS (which is required for the correct configuration of the plugin) is placed under following address:
+            # https://cognito-idp.<Region>.amazonaws.com/<userPoolId>/.well-known/jwks.json.
+
             scope += " offline_access"
         return OAuth2Client(
             client_id=self.config.client_id,
@@ -308,7 +317,7 @@ class OpenIDConnectPlugin(BasePlugin):
         user_permissions = []
         is_staff_user_email = self.is_staff_user_email(user)
         if self.config.use_scope_permissions or is_staff_user_email:
-            scope = token_data.get("scope")
+            scope = token_data.get("scope", [])
             user_permissions = self._use_scope_permissions(user, scope)
 
             is_staff_in_scope = SALEOR_STAFF_PERMISSION in scope
