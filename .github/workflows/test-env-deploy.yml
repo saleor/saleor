@@ -83,20 +83,31 @@ jobs:
           LogType: Tail
 
       - name: Print lambda outputs
+        if: ${{ steps.lambda.conclusion != 'skipped' }}
         run: |
+          # If there is no response (e.g. invoke step failed before calling Lambda), bail out gracefully
+          if [ -z "${{ steps.lambda.outputs.response }}" ]; then
+            echo "No lambda response available (invoke step may have failed before receiving output)."
+            exit 0
+          fi
+
           echo "StatusCode: ${{ fromJSON(steps.lambda.outputs.response).StatusCode }}"
-          echo "ExecutedVersion: ${{ fromJSON(steps.lambda.outputs.response).ExecutedVersion }}"
-          echo "Payload: ${{ fromJSON(steps.lambda.outputs.response).Payload }}"
+          echo "##################"
 
           # We need to base64‑decode the log result
           LOG_RESULT_BASE64='${{ fromJSON(steps.lambda.outputs.response).LogResult }}'
-          echo "##################"
           echo "LogResult - start"
           echo "$LOG_RESULT_BASE64" | base64 --decode || true
           echo "LogResult - end"
           echo "##################"
 
-          echo "FunctionError: ${{ fromJSON(steps.lambda.outputs.response).FunctionError }}"
+          echo "Payload (JSON returned by the function invocation, or error object):"
+          echo "${{ fromJSON(steps.lambda.outputs.response).Payload }}"
+          echo "##################"
+
+          echo "FunctionError (If present, indicates that an error has occured, with more information in Payload):"
+          echo "${{ fromJSON(steps.lambda.outputs.response).FunctionError }}"
+          echo "##################"
 
       - name: Update deployment status
         uses: bobheadxi/deployments@648679e8e4915b27893bd7dbc35cb504dc915bc8 # v1.5.0
