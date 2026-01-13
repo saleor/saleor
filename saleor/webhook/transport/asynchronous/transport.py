@@ -475,12 +475,12 @@ def send_webhooks_async_in_batches(deliveries: list[EventDelivery]):
     telemetry_context = get_task_context().to_dict()
 
     apps_id = {delivery.webhook.app_id for delivery in deliveries}
-    app_lock_uuids = {
-        mutex.app_id: mutex.lock_uuid
+    app_lock_ids = {
+        mutex.app_id: mutex.lock_id
         for mutex in AppWebhookMutex.objects.filter(app_id__in=apps_id)
     }
     for app_id in apps_id:
-        lock_uuid = app_lock_uuids.get(app_id)
+        lock_id = app_lock_ids.get(app_id)
         send_webhooks_async_for_app.apply_async(
             kwargs={
                 "app_id": app_id,
@@ -488,7 +488,7 @@ def send_webhooks_async_in_batches(deliveries: list[EventDelivery]):
             },
             queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
             MessageGroupId=domain,
-            MessageDeduplicationId=f"{app_id}:{lock_uuid}",
+            MessageDeduplicationId=f"{app_id}:{lock_id}",
             bind=True,
         )
 
@@ -819,8 +819,8 @@ def send_webhooks_async_for_app(
         self.request.id, app_id, telemetry_context
     )
 
-    with refresh_webhook_lock(app_id) as new_lock_uuid:
-        if new_lock_uuid and processed:
+    with refresh_webhook_lock(app_id) as new_lock_id:
+        if processed:
             send_webhooks_async_for_app.apply_async(
                 kwargs={
                     "app_id": app_id,
@@ -828,7 +828,7 @@ def send_webhooks_async_for_app(
                 },
                 queue=self.queue,
                 MessageGroupId=get_domain(),
-                MessageDeduplicationId=f"{app_id}:{new_lock_uuid}",
+                MessageDeduplicationId=f"{app_id}:{new_lock_id}",
                 bind=True,
             )
 

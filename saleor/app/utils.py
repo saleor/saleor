@@ -1,8 +1,8 @@
 import logging
-import uuid
 from contextlib import contextmanager
 
-from django.db import DatabaseError, transaction
+from django.db import transaction
+from django.utils import timezone
 
 from ..webhook.event_types import WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_event
@@ -29,18 +29,14 @@ def get_active_tax_apps(identifiers: list[str] | None = None):
 
 @contextmanager
 def refresh_webhook_lock(app_id: int):
-    """Generate a new lock UUID next batch of app webhooks."""
-    try:
-        with transaction.atomic():
-            mutex, _created = AppWebhookMutex.objects.select_for_update(
-                nowait=True, of=(["self"])
-            ).get_or_create(app_id=app_id)
+    """Generate a new lock id for the next batch of app webhooks."""
+    with transaction.atomic():
+        mutex, _created = AppWebhookMutex.objects.select_for_update(
+            of=(["self"])
+        ).get_or_create(app_id=app_id)
 
-            if not _created:
-                mutex.lock_uuid = uuid.uuid4()
-                mutex.save(update_fields=["lock_uuid"])
+        if not _created:
+            mutex.acquired_at = timezone.now()
+            mutex.save(update_fields=["acquired_at"])
 
-            yield mutex.lock_uuid
-    except DatabaseError:
-        logger.warning("Couldn't acquire the webhook lock. App ID: %s", app_id)
-        yield None
+        yield mutex.lock_id

@@ -34,14 +34,14 @@ def test_send_webhooks_async_for_app(
     mock_send_webhook_using_scheme_method.return_value = WebhookResponse(
         content="", status=EventDeliveryStatus.SUCCESS
     )
-    lock_uuid = app_webhook_mutex.lock_uuid
+    lock_id = app_webhook_mutex.lock_id
 
     # when
     send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
     app_webhook_mutex.refresh_from_db()
 
     # then
-    assert app_webhook_mutex.lock_uuid != lock_uuid
+    assert app_webhook_mutex.lock_id != lock_id
     mock_send_webhook_using_scheme_method.assert_called_once()
     mock_record_async_webhooks_count.assert_called_once()
     mock_record_first_delivery_attempt_delay.assert_called_once()
@@ -53,7 +53,7 @@ def test_send_webhooks_async_for_app(
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
-        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
+        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_id}",
         bind=True,
     )
 
@@ -139,7 +139,7 @@ def test_send_webhooks_async_for_app_no_payload(
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
-        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
+        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_id}",
         bind=True,
     )
 
@@ -184,7 +184,7 @@ def test_send_webhooks_async_for_app_failed_status(
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
-        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
+        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_id}",
         bind=True,
     )
 
@@ -233,7 +233,7 @@ def test_send_multiple_webhooks_async_for_app(
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
-        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
+        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_id}",
         bind=True,
     )
 
@@ -294,7 +294,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
         },
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
-        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
+        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_id}",
         bind=True,
     )
 
@@ -374,6 +374,6 @@ def test_send_webhooks_async_for_app_last_retry_failed(
         kwargs={"app_id": app.id, "telemetry_context": ANY},
         queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="example.com",
-        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_uuid}",
+        MessageDeduplicationId=f"{app.id}:{app_webhook_mutex.lock_id}",
         bind=True,
     )
