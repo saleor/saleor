@@ -315,10 +315,12 @@ def automatic_checkout_completion_task(
     expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC,
 )
 def update_checkout_search_vector_task():
+    # process the oldest modified checkouts first to prevent repeated updates
+    # in case of high update frequency
     checkouts = list(
-        Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
-            search_index_dirty=True
-        )[:UPDATE_SEARCH_BATCH_SIZE]
+        Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(search_index_dirty=True)
+        .order_by("last_change")[:UPDATE_SEARCH_BATCH_SIZE]
     )
     if not checkouts:
         return
