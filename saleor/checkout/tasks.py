@@ -23,6 +23,7 @@ from ..webhook.transport.utils import get_sqs_message_group_id
 from .complete_checkout import complete_checkout
 from .fetch import fetch_checkout_info, fetch_checkout_lines
 from .models import Checkout, CheckoutLine
+from .search.indexing import update_checkouts_search_vector
 from .utils import delete_checkouts
 
 task_logger: logging.Logger = get_task_logger(__name__)
@@ -30,6 +31,8 @@ task_logger: logging.Logger = get_task_logger(__name__)
 # Checkout complete might take even 3 seconds. The task is scheduled to run
 # every 1 minute, so to avoid overlapping executions, the limit is set to 20.
 AUTOMATIC_COMPLETION_BATCH_SIZE = 20
+
+UPDATE_SEARCH_BATCH_SIZE = 100
 
 
 @app.task
@@ -305,3 +308,19 @@ def automatic_checkout_completion_task(
             checkout_id,
             extra={"checkout_id": checkout_id},
         )
+
+
+@app.task(
+    queue=settings.UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME,
+    expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC,
+)
+def update_checkout_search_vector_task():
+    checkouts = list(
+        Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+            search_index_dirty=True
+        )[:UPDATE_SEARCH_BATCH_SIZE]
+    )
+    if not checkouts:
+        return
+
+    update_checkouts_search_vector(checkouts)
