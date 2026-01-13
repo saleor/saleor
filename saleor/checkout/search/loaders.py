@@ -48,20 +48,8 @@ def load_checkout_data(checkouts: list["Checkout"]) -> dict[UUID, CheckoutData]:
     context = SaleorContext()
     checkout_ids = [checkout.pk for checkout in checkouts]
 
-    # Level 1: Direct relations and Lists
-    users = (
-        UserByUserIdLoader(context)
-        .load_many([c.user_id for c in checkouts if c.user_id])
-        .get()
-    )
-    user_map = {user.id: user for user in users if user}
-
-    address_ids = {c.billing_address_id for c in checkouts if c.billing_address_id}
-    address_ids.update(
-        {c.shipping_address_id for c in checkouts if c.shipping_address_id}
-    )
-    addresses = AddressByIdLoader(context).load_many(list(address_ids)).get()
-    address_map = {addr.id: addr for addr in addresses if addr}
+    user_map = _load_users(context, checkouts)
+    address_map = _load_addresses(context, checkouts)
 
     payments_list = PaymentsByCheckoutTokenLoader(context).load_many(checkout_ids).get()
     lines_list = (
@@ -71,57 +59,25 @@ def load_checkout_data(checkouts: list["Checkout"]) -> dict[UUID, CheckoutData]:
         TransactionItemsByCheckoutIDLoader(context).load_many(checkout_ids).get()
     )
 
-    # Prepare for Level 2 (Nested in Lines and Transactions)
     all_lines = [line for lines in lines_list for line in lines]
-    variant_ids = [line.variant_id for line in all_lines if line.variant_id]
+    variant_map, product_map = _load_variants_and_products(context, all_lines)
 
-    variants = ProductVariantByIdLoader(context).load_many(variant_ids).get()
-    variant_map = {v.id: v for v in variants if v}
-
-    product_ids = [v.product_id for v in variants if v]
-    products = ProductByIdLoader(context).load_many(product_ids).get()
-    product_map = {p.id: p for p in products if p}
-
-    # Transaction Events
     all_transactions = [t for txs in transactions_list for t in txs]
-    transaction_ids = [t.id for t in all_transactions]
-    transaction_events_list = (
-        TransactionEventByTransactionIdLoader(context).load_many(transaction_ids).get()
-    )
-    transaction_events_map = dict(
-        zip(transaction_ids, transaction_events_list, strict=False)
-    )
+    transaction_events_map = _load_transaction_events(context, all_transactions)
 
-    # Assemble Result
-    result = {}
-
-    # Pre-map lists to checkout_id
     payments_by_checkout = dict(zip(checkout_ids, payments_list, strict=False))
     lines_by_checkout = dict(zip(checkout_ids, lines_list, strict=False))
     transactions_by_checkout = dict(zip(checkout_ids, transactions_list, strict=False))
 
+    result = {}
     for checkout in checkouts:
         c_lines = lines_by_checkout.get(checkout.pk, [])
-        line_data_list = []
-        for line in c_lines:
-            variant = variant_map.get(line.variant_id)
-            product = product_map.get(variant.product_id) if variant else None
-
-            line_data_list.append(
-                CheckoutLineData(
-                    line=line,
-                    variant=variant,
-                    product=product,
-                )
-            )
+        line_data_list = _build_checkout_line_data(c_lines, variant_map, product_map)
 
         c_transactions = transactions_by_checkout.get(checkout.pk, [])
-        transaction_data_list = []
-        for transaction_item in c_transactions:
-            events = transaction_events_map.get(transaction_item.id, [])
-            transaction_data_list.append(
-                TransactionData(transaction=transaction_item, events=events)
-            )
+        transaction_data_list = _build_transaction_data(
+            c_transactions, transaction_events_map
+        )
 
         result[checkout.pk] = CheckoutData(
             user=user_map.get(checkout.user_id) if checkout.user_id else None,
@@ -137,3 +93,83 @@ def load_checkout_data(checkouts: list["Checkout"]) -> dict[UUID, CheckoutData]:
         )
 
     return result
+
+
+def _load_users(
+    context: SaleorContext, checkouts: list["Checkout"]
+) -> dict[int, "User"]:
+    """Load users for checkouts."""
+    users = (
+        UserByUserIdLoader(context)
+        .load_many([c.user_id for c in checkouts if c.user_id])
+        .get()
+    )
+    return {user.id: user for user in users if user}
+
+
+def _load_addresses(
+    context: SaleorContext, checkouts: list["Checkout"]
+) -> dict[int, "Address"]:
+    """Load billing and shipping addresses for checkouts."""
+    address_ids = {c.billing_address_id for c in checkouts if c.billing_address_id}
+    address_ids.update(
+        {c.shipping_address_id for c in checkouts if c.shipping_address_id}
+    )
+    addresses = AddressByIdLoader(context).load_many(list(address_ids)).get()
+    return {addr.id: addr for addr in addresses if addr}
+
+
+def _load_variants_and_products(
+    context: SaleorContext, lines: list["CheckoutLine"]
+) -> tuple[dict[int, "ProductVariant"], dict[int, "Product"]]:
+    """Load variants and products for checkout lines."""
+    variant_ids = [line.variant_id for line in lines if line.variant_id]
+    variants = ProductVariantByIdLoader(context).load_many(variant_ids).get()
+    variant_map = {v.id: v for v in variants if v}
+
+    product_ids = [v.product_id for v in variants if v]
+    products = ProductByIdLoader(context).load_many(product_ids).get()
+    product_map = {p.id: p for p in products if p}
+
+    return variant_map, product_map
+
+
+def _load_transaction_events(
+    context: SaleorContext, transactions: list["TransactionItem"]
+) -> dict[int, list["TransactionEvent"]]:
+    """Load transaction events for transactions."""
+    transaction_ids = [t.id for t in transactions]
+    transaction_events_list = (
+        TransactionEventByTransactionIdLoader(context).load_many(transaction_ids).get()
+    )
+    return dict(zip(transaction_ids, transaction_events_list, strict=False))
+
+
+def _build_checkout_line_data(
+    lines: list["CheckoutLine"],
+    variant_map: dict[int, "ProductVariant"],
+    product_map: dict[int, "Product"],
+) -> list[CheckoutLineData]:
+    """Build CheckoutLineData objects from lines and related data."""
+    line_data_list = []
+    for line in lines:
+        variant = variant_map.get(line.variant_id)
+        product = product_map.get(variant.product_id) if variant else None
+        line_data_list.append(
+            CheckoutLineData(line=line, variant=variant, product=product)
+        )
+    return line_data_list
+
+
+def _build_transaction_data(
+    transactions: list["TransactionItem"],
+    transaction_events_map: dict[int, list["TransactionEvent"]],
+) -> list[TransactionData]:
+    """Build TransactionData objects from transactions and events."""
+    transaction_data_list = []
+    for transaction_item in transactions:
+        events = transaction_events_map.get(transaction_item.id, [])
+        transaction_data_list.append(
+            TransactionData(transaction=transaction_item, events=events)
+        )
+    return transaction_data_list
