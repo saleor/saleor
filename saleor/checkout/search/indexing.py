@@ -9,6 +9,8 @@ from ...account.search import generate_address_search_vector_value
 from ...core.context import with_promise_context
 from ...core.db.connection import allow_writer
 from ...core.postgres import FlatConcatSearchVector, NoValidationSearchVector
+from ..lock_objects import checkout_qs_select_for_update
+from ..models import Checkout
 from .loaders import CheckoutData, CheckoutLineData, TransactionData, load_checkout_data
 
 if TYPE_CHECKING:
@@ -36,11 +38,16 @@ def update_checkouts_search_vector(checkouts: list["Checkout"]):
         checkout.search_vector = FlatConcatSearchVector(
             *prepare_checkout_search_vector_value(checkout, data)
         )
+        checkout.search_index_dirty = False
 
     with transaction.atomic():
-        from ..models import Checkout
+        _locked_checkouts = (
+            checkout_qs_select_for_update()
+            .filter(pk__in=[checkout.pk for checkout in checkouts])
+            .values_list("pk", flat=True)
+        )
 
-        Checkout.objects.bulk_update(checkouts, ["search_vector", "last_change"])
+        Checkout.objects.bulk_update(checkouts, ["search_vector", "search_index_dirty"])
 
 
 def prepare_checkout_search_vector_value(

@@ -103,6 +103,7 @@ def test_update_checkouts_search_vector(checkout_with_item):
     # then
     checkout.refresh_from_db()
     assert checkout.search_vector
+    assert checkout.search_index_dirty is False
 
 
 def test_update_checkouts_search_vector_multiple_checkouts(
@@ -119,7 +120,9 @@ def test_update_checkouts_search_vector_multiple_checkouts(
     checkout_with_item.refresh_from_db()
     checkout.refresh_from_db()
     assert checkout_with_item.search_vector
+    assert checkout_with_item.search_index_dirty is False
     assert checkout.search_vector
+    assert checkout.search_index_dirty is False
 
 
 def test_update_checkouts_search_vector_empty_list(db):
