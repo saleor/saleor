@@ -32,7 +32,8 @@ task_logger: logging.Logger = get_task_logger(__name__)
 # every 1 minute, so to avoid overlapping executions, the limit is set to 20.
 AUTOMATIC_COMPLETION_BATCH_SIZE = 20
 
-UPDATE_SEARCH_BATCH_SIZE = 100
+# Results in update time ~0.3s
+UPDATE_SEARCH_BATCH_SIZE = 50
 
 
 @app.task
@@ -316,7 +317,7 @@ def automatic_checkout_completion_task(
 )
 def update_checkout_search_vector_task():
     # process the oldest modified checkouts first to prevent repeated updates
-    # in case of high update frequency
+    # in case of high update frequency of the checkout instance
     checkouts = list(
         Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(search_index_dirty=True)
