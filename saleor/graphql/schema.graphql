@@ -5894,13 +5894,13 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   ): [ReferenceType!]
 
   """Name of an attribute displayed in the interface."""
-  name: String
+  name: String!
 
   """Internal representation of an attribute name."""
-  slug: String
+  slug: String!
 
   """The attribute type."""
-  type: AttributeTypeEnum
+  type: AttributeTypeEnum!
 
   """The unit of attribute values."""
   unit: MeasurementUnitsEnum
