@@ -4,6 +4,7 @@ import pytest
 
 from ...payment.models import Payment, TransactionEvent, TransactionItem
 from ...plugins.manager import get_plugins_manager
+from ...tests import race_condition
 from ..fetch import fetch_checkout_info
 from ..models import Checkout, CheckoutMetadata
 from ..search.indexing import (
@@ -740,3 +741,28 @@ def test_search_checkouts_returns_ranked_results(checkout, checkout_with_item):
     results_list = list(result)
     assert len(results_list) == 1
     assert results_list[0] == checkout
+
+
+def test_update_checkouts_search_vector_handles_deleted_checkout(
+    checkout_with_item, checkout_JPY
+):
+    # given
+    assert not checkout_with_item.search_vector
+    assert not checkout_JPY.search_vector
+
+    checkouts = [checkout_with_item, checkout_JPY]
+
+    def delete_checkout(*args, **kwargs):
+        Checkout.objects.filter(pk=checkout_JPY.pk).delete()
+
+    # when
+    with race_condition.RunAfter(
+        "saleor.checkout.search.indexing.load_checkout_data", delete_checkout
+    ):
+        update_checkouts_search_vector(checkouts)
+
+    # then
+    checkout_with_item.refresh_from_db()
+    assert checkout_with_item.search_vector
+    assert checkout_with_item.search_index_dirty is False
+    assert not Checkout.objects.filter(pk=checkout_JPY.pk).exists()
