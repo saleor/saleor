@@ -38,7 +38,7 @@ def test_load_checkout_data(checkout_with_item, customer_user, address, address_
     assert checkout_data.billing_address == address
     assert checkout_data.shipping_address == address_usa
     assert len(checkout_data.payments) == 1
-    assert len(checkout_data.lines) >= 1
+    assert len(checkout_data.lines) == checkout_with_item.lines.count()
     assert len(checkout_data.transactions) == 1
 
 

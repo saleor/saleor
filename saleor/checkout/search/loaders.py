@@ -1,3 +1,4 @@
+from itertools import chain
 from typing import TYPE_CHECKING, NamedTuple
 from uuid import UUID
 
@@ -59,10 +60,10 @@ def load_checkout_data(checkouts: list["Checkout"]) -> dict[UUID, CheckoutData]:
         TransactionItemsByCheckoutIDLoader(context).load_many(checkout_ids).get()
     )
 
-    all_lines = [line for lines in lines_list for line in lines]
+    all_lines = list(chain.from_iterable(lines_list))
     variant_map, product_map = _load_variants_and_products(context, all_lines)
 
-    all_transactions = [t for txs in transactions_list for t in txs]
+    all_transactions = list(chain.from_iterable(transactions_list))
     transaction_events_map = _load_transaction_events(context, all_transactions)
 
     payments_by_checkout = dict(zip(checkout_ids, payments_list, strict=False))

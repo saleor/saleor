@@ -8,6 +8,7 @@ from ...tests import race_condition
 from ..fetch import fetch_checkout_info
 from ..models import Checkout, CheckoutMetadata
 from ..search.indexing import (
+    MAX_INDEXED_TRANSACTIONS,
     generate_checkout_lines_search_vector_value,
     generate_checkout_payments_search_vector_value,
     generate_checkout_transactions_search_vector_value,
@@ -561,7 +562,7 @@ def test_generate_checkout_transactions_search_vector_value_respects_max_limit(
 ):
     # given
     transactions_data = []
-    for i in range(150):
+    for i in range(MAX_INDEXED_TRANSACTIONS + 50):
         transaction = TransactionItem(
             name="Credit card",
             psp_reference=f"PSP-TRANS-{i}",
@@ -582,15 +583,15 @@ def test_generate_checkout_transactions_search_vector_value_respects_max_limit(
 
     # then
     # Should respect MAX_INDEXED_TRANSACTIONS (100) - 100 IDs + 100 psp_references = 200
-    assert len(result) == 200
+    assert len(result) == MAX_INDEXED_TRANSACTIONS * 2
 
 
-def test_search_checkouts_with_value(checkout):
+def test_search_checkouts_with_value(checkout, checkout_JPY):
     # given
     checkout.email = "search@example.com"
     checkout.save(update_fields=["email"])
-    update_checkouts_search_vector([checkout])
-    qs = Checkout.objects.filter(pk=checkout.pk)
+    update_checkouts_search_vector([checkout, checkout_JPY])
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, "search@example.com")
@@ -600,21 +601,21 @@ def test_search_checkouts_with_value(checkout):
     assert result.first() == checkout
 
 
-def test_search_checkouts_without_value(checkout):
+def test_search_checkouts_without_value(checkout, checkout_JPY):
     # given
-    qs = Checkout.objects.filter(pk=checkout.pk)
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, None)
 
     # then
-    assert result.count() == 1
+    assert result.count() == Checkout.objects.count()
 
 
-def test_search_checkouts_by_token(checkout):
+def test_search_checkouts_by_token(checkout, checkout_JPY):
     # given
-    update_checkouts_search_vector([checkout])
-    qs = Checkout.objects.filter(pk=checkout.pk)
+    update_checkouts_search_vector([checkout, checkout_JPY])
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, str(checkout.token))
@@ -624,86 +625,96 @@ def test_search_checkouts_by_token(checkout):
     assert result.first() == checkout
 
 
-def test_search_checkouts_by_user_email(checkout, customer_user):
+def test_search_checkouts_by_user_email(checkout, checkout_JPY, customer_user):
     # given
     checkout.user = customer_user
-    checkout.save()
-    update_checkouts_search_vector([checkout])
-    qs = Checkout.objects.filter(pk=checkout.pk)
+    checkout.save(update_fields=["user"])
+
+    checkout_JPY.user = customer_user
+    checkout_JPY.save(update_fields=["user"])
+
+    update_checkouts_search_vector([checkout, checkout_JPY])
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, customer_user.email)
 
     # then
-    assert result.count() == 1
-    assert result.first() == checkout
+    assert result.count() == 2
 
 
-def test_search_checkouts_by_user_name(checkout, customer_user):
+def test_search_checkouts_by_user_name(checkout, checkout_JPY, customer_user):
     # given
     checkout.user = customer_user
-    checkout.save()
-    update_checkouts_search_vector([checkout])
-    qs = Checkout.objects.filter(pk=checkout.pk)
+    checkout.save(update_fields=["user"])
+
+    checkout_JPY.user = None
+    checkout_JPY.save(update_fields=["user"])
+    update_checkouts_search_vector([checkout, checkout_JPY])
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, customer_user.first_name)
 
     # then
     assert result.count() == 1
+    assert result.first() == checkout
 
 
-def test_search_checkouts_by_product_name(checkout_with_item, product):
+def test_search_checkouts_by_product_name(checkout_with_item, checkout_JPY, product):
     # given
-    update_checkouts_search_vector([checkout_with_item])
-    qs = Checkout.objects.filter(pk=checkout_with_item.pk)
+    update_checkouts_search_vector([checkout_with_item, checkout_JPY])
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, product.name)
 
     # then
     assert result.count() == 1
+    assert result.first() == checkout_with_item
 
 
-def test_search_checkouts_by_sku(checkout_with_item):
+def test_search_checkouts_by_sku(checkout_with_item, checkout_JPY):
     # given
     sku = "UNIQUE-SKU-999"
     line = checkout_with_item.lines.first()
     variant = line.variant
     variant.sku = sku
-    variant.save()
-    update_checkouts_search_vector([checkout_with_item])
-    qs = Checkout.objects.filter(pk=checkout_with_item.pk)
+    variant.save(update_fields=["sku"])
+    update_checkouts_search_vector([checkout_with_item, checkout_JPY])
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, sku)
 
     # then
     assert result.count() == 1
+    assert result.first() == checkout_with_item
 
 
-def test_search_checkouts_by_payment_psp_reference(checkout):
+def test_search_checkouts_by_payment_psp_reference(checkout, checkout_JPY):
     # given
     psp_reference = "UNIQUE-PSP-REF-789"
     Payment.objects.create(
         gateway="mirumee.payments.dummy",
         is_active=True,
-        checkout=checkout,
+        checkout=checkout_JPY,
         total=Decimal("10.00"),
         currency="USD",
         psp_reference=psp_reference,
     )
-    update_checkouts_search_vector([checkout])
-    qs = Checkout.objects.filter(pk=checkout.pk)
+    update_checkouts_search_vector([checkout, checkout_JPY])
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, psp_reference)
 
     # then
     assert result.count() == 1
+    assert result.first() == checkout_JPY
 
 
-def test_search_checkouts_by_transaction_psp_reference(checkout):
+def test_search_checkouts_by_transaction_psp_reference(checkout, checkout_JPY):
     # given
     psp_reference = "UNIQUE-TRANS-PSP-456"
     TransactionItem.objects.create(
@@ -711,20 +722,21 @@ def test_search_checkouts_by_transaction_psp_reference(checkout):
         psp_reference=psp_reference,
         available_actions=["refund"],
         currency="USD",
-        checkout_id=checkout.pk,
+        checkout_id=checkout_JPY.pk,
         charged_value=Decimal(10),
     )
-    update_checkouts_search_vector([checkout])
-    qs = Checkout.objects.filter(pk=checkout.pk)
+    update_checkouts_search_vector([checkout, checkout_JPY])
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, psp_reference)
 
     # then
     assert result.count() == 1
+    assert result.first() == checkout_JPY
 
 
-def test_search_checkouts_returns_ranked_results(checkout, checkout_with_item):
+def test_search_checkouts_by_partial_email(checkout, checkout_with_item):
     # given
     checkout.email = "test@example.com"
     checkout.save(update_fields=["email"])
@@ -732,7 +744,7 @@ def test_search_checkouts_returns_ranked_results(checkout, checkout_with_item):
     checkout_with_item.save(update_fields=["email"])
 
     update_checkouts_search_vector([checkout, checkout_with_item])
-    qs = Checkout.objects.filter(pk__in=[checkout.pk, checkout_with_item.pk])
+    qs = Checkout.objects.all()
 
     # when
     result = search_checkouts(qs, "test")
