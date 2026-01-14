@@ -13,6 +13,7 @@ services:
       - cache
     volumes:
       - ..:/app
+      - saleor-pre-commit-cache:/root/.cache/pre-commit/
 
   dashboard:
     image: ghcr.io/saleor/saleor-dashboard:3.20.5
@@ -50,4 +51,6 @@ volumes:
   saleor-db:
     driver: local
   saleor-cache:
+    driver: local
+  saleor-pre-commit-cache:
     driver: local
