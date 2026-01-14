@@ -1,10 +1,18 @@
 from unittest.mock import ANY, MagicMock, patch
 
+import pytest
+
+from saleor.app.models import AppWebhookMutex
 from saleor.core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
 from saleor.webhook.transport.asynchronous.transport import (
     WebhookResponse,
     send_webhooks_async_for_app,
 )
+
+
+@pytest.fixture
+def app_webhook_mutex(app):
+    return AppWebhookMutex.objects.create(app=app)
 
 
 @patch(
