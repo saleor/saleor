@@ -56,7 +56,7 @@ jobs:
           LogType: Tail
 
       - name: Print lambda outputs
-        if: ${{ steps.lambda.conclusion != 'skipped' }}
+        if: ${{ always() && steps.lambda.conclusion != 'skipped' }}
         env:
           INVOCATION_STATUS_CODE: ${{ fromJSON(steps.lambda.outputs.response).StatusCode }}
           LOG_RESULT_BASE64: ${{ fromJSON(steps.lambda.outputs.response).LogResult }}
