@@ -104,6 +104,8 @@ def test_checkout_lines_update(
     line = checkout.lines.first()
     variant = line.variant
     assert line.quantity == 3
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
     previous_last_change = checkout.last_change
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -133,6 +135,9 @@ def test_checkout_lines_update(
     )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    # search index should not be marked as dirty as the mutation
+    # do not allow changing anything that is used for searching
+    assert checkout.search_index_dirty is False
 
 
 @pytest.mark.parametrize(
