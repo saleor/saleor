@@ -8,6 +8,8 @@ from ...tests import race_condition
 from ..fetch import fetch_checkout_info
 from ..models import Checkout, CheckoutMetadata
 from ..search.indexing import (
+    MAX_INDEXED_LINES,
+    MAX_INDEXED_PAYMENTS,
     MAX_INDEXED_TRANSACTIONS,
     generate_checkout_lines_search_vector_value,
     generate_checkout_payments_search_vector_value,
@@ -311,7 +313,7 @@ def test_generate_checkout_payments_search_vector_value(checkout):
 def test_generate_checkout_payments_search_vector_value_respects_max_limit(checkout):
     # given
     payments = []
-    for i in range(150):
+    for i in range(MAX_INDEXED_PAYMENTS + 50):
         payments.append(
             Payment(
                 gateway="mirumee.payments.dummy",
@@ -328,7 +330,7 @@ def test_generate_checkout_payments_search_vector_value_respects_max_limit(check
     result = generate_checkout_payments_search_vector_value(payments)
 
     # then
-    assert len(result) == 100
+    assert len(result) == MAX_INDEXED_PAYMENTS
 
 
 def test_generate_checkout_lines_search_vector_value_empty():
@@ -360,7 +362,7 @@ def test_generate_checkout_lines_search_vector_value(checkout_with_item, product
     result = generate_checkout_lines_search_vector_value([line_data])
 
     # then
-    assert len(result) >= 1
+    assert result
     search_vector_values = _extract_search_vector_values(result)
     assert sku in search_vector_values
     assert product.name in search_vector_values
@@ -403,7 +405,7 @@ def test_generate_checkout_lines_search_vector_value_without_sku(
     result = generate_checkout_lines_search_vector_value([line_data])
 
     # then
-    assert len(result) >= 1
+    assert len(result) == 1
     search_vector_values = _extract_search_vector_values(result)
     assert product.name in search_vector_values
     # Variant name may be empty, only check if it's not empty
@@ -416,8 +418,15 @@ def test_generate_checkout_lines_search_vector_value_respects_max_limit(
 ):
     # given
     variant = product.variants.first()
+    variant.name = "variant name"
+    variant.sku = "variant-sku-001"
+    variant.save(update_fields=["name", "sku"])
+
+    product.name = "product name"
+    product.save(update_fields=["name"])
+
     lines_data = []
-    for _ in range(150):
+    for _ in range(MAX_INDEXED_LINES + 50):
         line_data = CheckoutLineData(
             line=checkout.lines.first(),  # Use actual line instead of None
             variant=variant,
@@ -431,7 +440,7 @@ def test_generate_checkout_lines_search_vector_value_respects_max_limit(
     # then
     # Should respect MAX_INDEXED_LINES (100)
     # Each line can have up to 3 vectors (SKU, product name, variant name)
-    assert len(result) <= 300
+    assert len(result) == MAX_INDEXED_LINES * 3
 
 
 def test_generate_checkout_transactions_search_vector_value_empty():
