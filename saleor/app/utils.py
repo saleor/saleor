@@ -28,8 +28,8 @@ def get_active_tax_apps(identifiers: list[str] | None = None):
 
 
 @contextmanager
-def refresh_webhook_lock(app_id: int):
-    """Generate a new lock id for the next batch of app webhooks."""
+def refresh_webhook_mutex(app_id: int):
+    """Get mutex object and refresh acquisition date."""
     with transaction.atomic():
         mutex, _created = AppWebhookMutex.objects.select_for_update(
             of=(["self"])
@@ -39,4 +39,4 @@ def refresh_webhook_lock(app_id: int):
             mutex.acquired_at = timezone.now()
             mutex.save(update_fields=["acquired_at"])
 
-        yield mutex.lock_id
+        yield mutex

@@ -16,7 +16,7 @@ from django.db import transaction
 from opentelemetry.trace import StatusCode
 
 from ....app.models import AppWebhookMutex
-from ....app.utils import refresh_webhook_lock
+from ....app.utils import refresh_webhook_mutex
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
@@ -819,7 +819,11 @@ def send_webhooks_async_for_app(
         self.request.id, app_id, telemetry_context
     )
 
-    with refresh_webhook_lock(app_id) as new_lock_id:
+    with refresh_webhook_mutex(app_id) as mutex:
+        # Mutex lock_id (acquisition timestamp) is needed
+        # for message deduplication in AWS SQS FIFO queues
+        # It must be updated after each successful acquisition to allow
+        # next iterations within 5-minute deduplication interval
         if processed:
             send_webhooks_async_for_app.apply_async(
                 kwargs={
@@ -828,7 +832,7 @@ def send_webhooks_async_for_app(
                 },
                 queue=self.queue,
                 MessageGroupId=get_domain(),
-                MessageDeduplicationId=f"{app_id}:{new_lock_id}",
+                MessageDeduplicationId=f"{app_id}:{mutex.lock_id}",
                 bind=True,
             )
 
