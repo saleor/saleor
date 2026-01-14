@@ -10,7 +10,7 @@ from saleor.webhook.transport.asynchronous.transport import (
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
-@patch("saleor.webhook.transport.asynchronous.transport.record_async_webhooks_count")
+@patch("saleor.webhook.transport.asynchronous.transport.record_external_request")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.record_first_delivery_attempt_delay"
 )
@@ -22,7 +22,7 @@ def test_send_webhooks_async_for_app(
     mock_send_webhooks_async_for_app_apply_async,
     mock_webhooks_otel_trace,
     mock_record_first_delivery_attempt_delay,
-    mock_record_async_webhooks_count,
+    mock_record_external_request,
     mock_send_webhook_using_scheme_method,
     settings,
     app,
@@ -43,7 +43,7 @@ def test_send_webhooks_async_for_app(
     # then
     assert app_webhook_mutex.lock_id != lock_id
     mock_send_webhook_using_scheme_method.assert_called_once()
-    mock_record_async_webhooks_count.assert_called_once()
+    mock_record_external_request.assert_called_once()
     mock_record_first_delivery_attempt_delay.assert_called_once()
     mock_webhooks_otel_trace.assert_called_once()
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
@@ -192,7 +192,7 @@ def test_send_webhooks_async_for_app_failed_status(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
-@patch("saleor.webhook.transport.asynchronous.transport.record_async_webhooks_count")
+@patch("saleor.webhook.transport.asynchronous.transport.record_external_request")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.record_first_delivery_attempt_delay"
 )
@@ -204,7 +204,7 @@ def test_send_multiple_webhooks_async_for_app(
     mock_send_webhooks_async_for_app_apply_async,
     mock_webhooks_otel_trace,
     mock_record_first_delivery_attempt_delay,
-    mock_record_async_webhooks_count,
+    mock_record_external_request,
     mock_send_webhook_using_scheme_method,
     settings,
     app,
@@ -223,7 +223,7 @@ def test_send_multiple_webhooks_async_for_app(
 
     # then
     assert mock_send_webhook_using_scheme_method.call_count == 3
-    assert mock_record_async_webhooks_count.call_count == 3
+    assert mock_record_external_request.call_count == 3
     assert mock_record_first_delivery_attempt_delay.call_count == 3
     assert mock_webhooks_otel_trace.call_count == 3
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
@@ -244,7 +244,7 @@ def test_send_multiple_webhooks_async_for_app(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
-@patch("saleor.webhook.transport.asynchronous.transport.record_async_webhooks_count")
+@patch("saleor.webhook.transport.asynchronous.transport.record_external_request")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.record_first_delivery_attempt_delay"
 )
@@ -256,7 +256,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
     mock_send_webhooks_async_for_app_apply_async,
     mock_webhooks_otel_trace,
     mock_record_first_delivery_attempt_delay,
-    mock_record_async_webhooks_count,
+    mock_record_external_request,
     mock_send_webhook_using_scheme_method,
     settings,
     app,
@@ -282,7 +282,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
     # then
     # execute only first two attempts (stop on failure during second attempt)
     assert mock_send_webhook_using_scheme_method.call_count == 2
-    assert mock_record_async_webhooks_count.call_count == 2
+    assert mock_record_external_request.call_count == 2
     assert mock_record_first_delivery_attempt_delay.call_count == 2
     assert mock_webhooks_otel_trace.call_count == 2
 
@@ -319,7 +319,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
     # then
     # record all four webhooks calls
     assert mock_send_webhook_using_scheme_method.call_count == 4
-    assert mock_record_async_webhooks_count.call_count == 4
+    assert mock_record_external_request.call_count == 4
     assert mock_webhooks_otel_trace.call_count == 4
 
     # measure only first attempt delay
