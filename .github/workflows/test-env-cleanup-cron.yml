@@ -66,13 +66,14 @@ jobs:
       - name: Print lambda outputs
         if: ${{ always() && steps.lambda.conclusion != 'skipped' }}
         env:
+          RESPONSE: ${{ steps.lambda.outputs.response }}
           INVOCATION_STATUS_CODE: ${{ fromJSON(steps.lambda.outputs.response).StatusCode }}
           LOG_RESULT_BASE64: ${{ fromJSON(steps.lambda.outputs.response).LogResult }}
           FUNCTION_ERROR: ${{ fromJSON(steps.lambda.outputs.response).FunctionError }}
           PAYLOAD: ${{ fromJSON(steps.lambda.outputs.response).Payload }}
         run: |
           # If there is no response (e.g. invoke step failed before calling Lambda), bail out gracefully
-          if [ -z "${{ steps.lambda.outputs.response }}" ]; then
+          if [ -z "${RESPONSE}" ]; then
             echo "No lambda response available (invoke step may have failed before receiving output)."
             exit 0
           fi
