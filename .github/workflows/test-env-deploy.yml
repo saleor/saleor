@@ -84,6 +84,11 @@ jobs:
 
       - name: Print lambda outputs
         if: ${{ steps.lambda.conclusion != 'skipped' }}
+        env:
+          INVOCATION_STATUS_CODE: ${{ fromJSON(steps.lambda.outputs.response).StatusCode }}
+          LOG_RESULT_BASE64: ${{ fromJSON(steps.lambda.outputs.response).LogResult }}
+          FUNCTION_ERROR: ${{ fromJSON(steps.lambda.outputs.response).FunctionError }}
+          PAYLOAD: ${{ fromJSON(steps.lambda.outputs.response).Payload }}
         run: |
           # If there is no response (e.g. invoke step failed before calling Lambda), bail out gracefully
           if [ -z "${{ steps.lambda.outputs.response }}" ]; then
@@ -91,23 +96,18 @@ jobs:
             exit 0
           fi
 
-          INVOCATION_STATUS_CODE='${{ fromJSON(steps.lambda.outputs.response).StatusCode }}'
           echo "Invocation HTTP Status Code:"
           echo "${INVOCATION_STATUS_CODE:-null}"
           echo "--------"
 
-          # We need to base64‑decode the log result
-          LOG_RESULT_BASE64='${{ fromJSON(steps.lambda.outputs.response).LogResult }}'
           echo "Lambda runtime logs:"
           echo "$LOG_RESULT_BASE64" | base64 --decode || true
           echo "--------"
 
-          FUNCTION_ERROR='${{ fromJSON(steps.lambda.outputs.response).FunctionError }}'
           echo "FunctionError (If present, indicates that an error has occurred, with more information in Payload):"
           echo "${FUNCTION_ERROR:-null}"
           echo "--------"
 
-          PAYLOAD='${{ fromJSON(steps.lambda.outputs.response).Payload }}'
           echo "Payload (JSON returned by the function invocation, or error object):"
           echo "${PAYLOAD:-null}"
           echo "--------"
