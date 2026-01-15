@@ -293,9 +293,9 @@ class Attribute(ChannelContextType[models.Attribute]):
         ),
     )
 
-    name = graphene.String(description=AttributeDescriptions.NAME)
-    slug = graphene.String(description=AttributeDescriptions.SLUG)
-    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
+    name = graphene.String(description=AttributeDescriptions.NAME, required=True)
+    slug = graphene.String(description=AttributeDescriptions.SLUG, required=True)
+    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE, required=True)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
     choices = FilterConnectionField(
         AttributeValueCountableConnection,

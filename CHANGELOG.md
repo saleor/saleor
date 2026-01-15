@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 - Gift cards support as payment method within Transaction API (read more in the [docs](https://docs.saleor.io/developer/gift-cards#using-gift-cards-in-checkout)).
+- `Attribute` fields `name`, `slug` and `type` are now non-nullable in schema.
 
 ### Webhooks
 
