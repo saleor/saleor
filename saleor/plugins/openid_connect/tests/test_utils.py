@@ -14,6 +14,7 @@ from requests import Response
 from requests_hardened import HTTPSession
 
 from ....account.models import Group, User
+from ....account.search import update_user_search_vector
 from ....core.jwt import (
     JWT_REFRESH_TYPE,
     PERMISSIONS_FIELD,
@@ -1014,13 +1015,16 @@ def test_update_user_details_user_with_new_email_in_db(
     mock_match_orders_with_new_user.assert_not_called()
 
 
+@patch(
+    "saleor.plugins.openid_connect.utils.update_user_search_vector",
+    wraps=update_user_search_vector,
+)
 def test_update_user_details_update_user_first_name(
+    update_user_search_vector_mock,
     customer_user,
 ):
     # given
-    expected_search_document = "test@example.com\ntest user_first_name\nwade\n"
     assert customer_user.first_name != "test user_first_name"
-    assert customer_user.search_document != expected_search_document
 
     # when
     updated = _update_user_details(
@@ -1036,17 +1040,21 @@ def test_update_user_details_update_user_first_name(
     # then
     customer_user.refresh_from_db()
     assert customer_user.first_name == "test user_first_name"
-    assert customer_user.search_document == expected_search_document
+    assert customer_user.search_vector
     assert updated is True
+    update_user_search_vector_mock.assert_called_once()
 
 
+@patch(
+    "saleor.plugins.openid_connect.utils.update_user_search_vector",
+    wraps=update_user_search_vector,
+)
 def test_update_user_details_update_user_last_name(
+    update_user_search_vector_mock,
     customer_user,
 ):
     # given
-    expected_search_document = "test@example.com\nleslie\ntest user_last_name\n"
     assert customer_user.last_name != "test user_last_name"
-    assert customer_user.search_document != expected_search_document
 
     # when
     updated = _update_user_details(
@@ -1062,18 +1070,24 @@ def test_update_user_details_update_user_last_name(
     # then
     customer_user.refresh_from_db()
     assert customer_user.last_name == "test user_last_name"
-    assert customer_user.search_document == expected_search_document
+    assert customer_user.search_vector
     assert updated is True
+    update_user_search_vector_mock.assert_called_once()
 
 
+@patch(
+    "saleor.plugins.openid_connect.utils.update_user_search_vector",
+    wraps=update_user_search_vector,
+)
 def test_update_user_details_nothing_changed(
+    update_user_search_vector_mock,
     customer_user,
 ):
     # given
     last_login = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(minutes=14)
     customer_user.last_login = last_login
-    customer_user.search_document = "abc"
-    customer_user.save(update_fields=["search_document", "last_login"])
+    update_user_search_vector(customer_user, save=False)
+    customer_user.save(update_fields=["search_vector", "last_login"])
 
     first_name = customer_user.first_name
 
@@ -1092,3 +1106,4 @@ def test_update_user_details_nothing_changed(
     customer_user.refresh_from_db()
     assert customer_user.first_name == first_name
     assert updated is False
+    update_user_search_vector_mock.assert_not_called()

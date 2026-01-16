@@ -85,10 +85,7 @@ def finish_creating_user(user_pk, redirect_url, channel_slug, context_data):
         return
 
     user = User.objects.get(pk=user_pk)
-    user.search_document = search.prepare_user_search_document_value(
-        user, attach_addresses_data=False
-    )
-    user.save(update_fields=["search_document"])
+    search.update_user_search_vector(user)
 
     context_data["allow_replica"] = True
     context = RequestorAwareContext.from_context_data(context_data)

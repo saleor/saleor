@@ -815,7 +815,7 @@ def test_external_obtain_access_tokens_user_created(
     # then
     assert User.objects.count() == user_count + 1
     user = tokens.user
-    assert user.search_document
+    assert user.search_vector
     mocked_fetch_token.assert_called_once_with(
         "https://saleor.io/oauth/token",
         code=code,

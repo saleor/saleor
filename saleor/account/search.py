@@ -1,36 +1,56 @@
 from typing import TYPE_CHECKING
 
-from django.db.models import Q, Value, prefetch_related_objects
+from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.db.models import F, Q, QuerySet, Value, prefetch_related_objects
 
-from ..core.postgres import NoValidationSearchVector
+from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 
 if TYPE_CHECKING:
     from .models import Address, User
 
-
-USER_SEARCH_FIELDS = ["email", "first_name", "last_name"]
-ADDRESS_SEARCH_FIELDS = [
+USER_SEARCH_FIELDS = [
+    "email",
     "first_name",
     "last_name",
-    "street_address_1",
-    "street_address_2",
-    "city",
-    "postal_code",
-    "country",
-    "phone",
 ]
 
 
-def prepare_user_search_document_value(
-    user: "User", *, already_prefetched=False, attach_addresses_data=True
-):
-    """Prepare `search_document` user value - attach all field used in searching.
+def update_user_search_vector(
+    user: "User", *, attach_addresses_data: bool = True, save: bool = True
+) -> None:
+    """Update the user's search vector for full-text search.
 
-    Parameter `attach_addresses_data` should be set to False only when user
-    is created and no address has been attached or user addresses are cleared.
+    Args:
+        user: The user instance to update.
+        attach_addresses_data: If True, includes address data in the search vector.
+            Set to False when creating a user without addresses or clearing addresses.
+        save: If True, saves the user instance to the database immediately.
+
     """
-    search_document = generate_user_fields_search_document_value(user)
+    user.search_vector = FlatConcatSearchVector(
+        *generate_user_search_vector_value(
+            user, attach_addresses_data=attach_addresses_data
+        )
+    )
+    if save:
+        user.save(update_fields=["search_vector", "updated_at"])
 
+
+def generate_user_search_vector_value(
+    user: "User",
+    *,
+    attach_addresses_data: bool = True,
+    already_prefetched: bool = False,
+) -> list[NoValidationSearchVector]:
+    search_vectors = [
+        NoValidationSearchVector(
+            Value(user.email),
+            Value(user.first_name),
+            Value(user.last_name),
+            config="simple",
+            weight="A",
+        ),
+    ]
     if attach_addresses_data:
         if not already_prefetched:
             prefetch_related_objects(
@@ -38,28 +58,10 @@ def prepare_user_search_document_value(
                 "addresses",
             )
         for address in user.addresses.all():
-            search_document += generate_address_search_document_value(address)
-
-    return search_document.lower()
-
-
-def generate_user_fields_search_document_value(user: "User"):
-    value = "\n".join(
-        [getattr(user, field) for field in USER_SEARCH_FIELDS if getattr(user, field)]
-    )
-    if value:
-        value += "\n"
-    return value.lower()
-
-
-def generate_address_search_document_value(address: "Address"):
-    fields_values = [
-        str(getattr(address, field))
-        if field != "country"
-        else address.country.name + "\n" + address.country.code
-        for field in ADDRESS_SEARCH_FIELDS
-    ]
-    return ("\n".join(fields_values) + "\n").lower()
+            search_vectors.extend(
+                generate_address_search_vector_value(address, weight="B")
+            )
+    return search_vectors
 
 
 def generate_address_search_vector_value(
@@ -121,10 +123,11 @@ def generate_address_search_vector_value(
     return search_vectors
 
 
-def search_users(qs, value):
+def search_users(qs: "QuerySet[User]", value) -> "QuerySet[User]":
     if value:
-        lookup = Q()
-        for val in value.split():
-            lookup &= Q(search_document__ilike=val.lower())
-        qs = qs.filter(lookup)
+        query = SearchQuery(value, search_type="websearch", config="simple")
+        lookup = Q(search_vector=query)
+        qs = qs.filter(lookup).annotate(
+            search_rank=SearchRank(F("search_vector"), query)
+        )
     return qs

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import transaction
 
 from ..account.models import User
-from ..account.search import prepare_user_search_document_value
+from ..account.search import generate_user_search_vector_value
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..order.models import Order
@@ -20,6 +20,7 @@ from .postgres import FlatConcatSearchVector
 task_logger = get_task_logger(__name__)
 
 ORDER_BATCH_SIZE = 100
+USER_BATCH_SIZE = 100
 
 BATCH_SIZE = 500
 # Based on local testing, 500 should be a good balance between performance
@@ -32,9 +33,9 @@ BATCH_SIZE = 500
 def set_user_search_document_values(updated_count: int = 0) -> None:
     users = list(
         User.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(search_document="")
+        .filter(search_vector__isnull=True)
         .prefetch_related("addresses")
-        .order_by("-id")[:BATCH_SIZE]
+        .order_by("-id")[:USER_BATCH_SIZE]
     )
 
     if not users:
@@ -42,13 +43,13 @@ def set_user_search_document_values(updated_count: int = 0) -> None:
         return
 
     with allow_writer():
-        updated_count += set_search_document_values(
-            users, prepare_user_search_document_value
+        updated_count += set_search_vector_values(
+            users, generate_user_search_vector_value
         )
 
     task_logger.info("Updated %d users", updated_count)
 
-    if len(users) < BATCH_SIZE:
+    if len(users) < USER_BATCH_SIZE:
         task_logger.info("Setting user search document values finished.")
         return
 
@@ -146,19 +147,6 @@ def set_product_search_document_values(updated_count: int = 0) -> None:
     del products
 
     set_product_search_document_values.delay(updated_count)
-
-
-def set_search_document_values(instances: list, prepare_search_document_func):
-    if not instances:
-        return 0
-    Model = instances[0]._meta.model
-    for instance in instances:
-        instance.search_document = prepare_search_document_func(
-            instance, already_prefetched=True
-        )
-    Model.objects.bulk_update(instances, ["search_document"])
-
-    return len(instances)
 
 
 def set_search_vector_values(

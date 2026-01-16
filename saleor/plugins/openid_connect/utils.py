@@ -17,7 +17,7 @@ from django.utils import timezone
 from jwt import PyJWTError
 
 from ...account.models import Group, User
-from ...account.search import prepare_user_search_document_value
+from ...account.search import update_user_search_vector
 from ...account.utils import get_user_groups_permissions, send_user_event
 from ...core.http_client import HTTPClient
 from ...core.jwt import (
@@ -487,7 +487,7 @@ def _update_user_details(
             return False
         user.email = user_email
         match_orders_with_new_user(user)
-        fields_to_save.update({"email", "search_document"})
+        fields_to_save.update({"email", "search_vector"})
 
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
@@ -505,17 +505,15 @@ def _update_user_details(
 
     if user.first_name != user_first_name:
         user.first_name = user_first_name
-        fields_to_save.update({"first_name", "search_document"})
+        fields_to_save.update({"first_name", "search_vector"})
 
     if user.last_name != user_last_name:
         user.last_name = user_last_name
-        fields_to_save.update({"last_name", "search_document"})
+        fields_to_save.update({"last_name", "search_vector"})
 
-    if not user.search_document or "search_document" in fields_to_save:
-        user.search_document = prepare_user_search_document_value(
-            user, attach_addresses_data=False
-        )
-        fields_to_save.add("search_document")
+    if not user.search_vector or "search_vector" in fields_to_save:
+        update_user_search_vector(user, save=False)
+        fields_to_save.add("search_vector")
 
     if not user.is_confirmed:
         user.is_confirmed = True
