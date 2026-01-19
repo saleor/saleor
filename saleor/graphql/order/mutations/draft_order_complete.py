@@ -86,6 +86,12 @@ class DraftOrderComplete(BaseMutation):
         return order
 
     @classmethod
+    def handle_order_voucher(cls, order, channel):
+        if order.voucher:
+            cls.setup_voucher_customer(order, channel)
+            cls.deactivate_single_use_voucher_codes(order)
+
+    @classmethod
     def setup_voucher_customer(cls, order, channel):
         if (
             order.voucher
@@ -98,6 +104,17 @@ class DraftOrderComplete(BaseMutation):
                 add_voucher_usage_by_customer(
                     code, get_customer_email_for_voucher_usage(order)
                 )
+
+    @classmethod
+    def deactivate_single_use_voucher_codes(cls, order):
+        # In case the `include_draft_order_in_voucher_usage` flag is set to True,
+        # the voucher is not deactivated during assigning it to the draft order.
+        # So we need to deactivate it when the draft order is completed.
+        if order.voucher.single_use and order.voucher_code:
+            code = VoucherCode.objects.filter(code=order.voucher_code).first()
+            if code and code.is_active:
+                code.is_active = False
+                code.save(update_fields=["is_active"])
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -164,7 +181,7 @@ class DraftOrderComplete(BaseMutation):
             update_order_display_gross_prices(order)
             order.save(update_fields=update_fields)
 
-            cls.setup_voucher_customer(order, channel)
+            cls.handle_order_voucher(order, channel)
             order_lines_info = []
             lines = order.lines.all()
             for line in lines:
