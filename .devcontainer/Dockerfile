@@ -24,3 +24,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project --no-editable
+
+# Removes the default 'mypy' installed by the base image as it clashes with the
+# version in uv.lock
+RUN pipx uninstall mypy
