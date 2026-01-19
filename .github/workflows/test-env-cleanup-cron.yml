@@ -21,27 +21,24 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
           aws-region: ${{ vars.AWS_TESTENVS_REGION }}
 
-      - name: Get branches from open PRs with "test deployment" label
-        id: get-branches
+      - name: Get branches from open PRs with "test deployment" label and slugify
+        id: get-branches-and-slugify
         uses: actions/github-script@v8
         with:
           script: |
-            // Get all open PRs - pagination is needed or otherwise we would retrieve only first 30
+            // 1. Get all open PRs - pagination is needed or otherwise we would retrieve only first 30
             const pulls = await github.paginate(github.rest.pulls.list, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open'
             });
 
-            // Select PRs with "test deployment" label and extract their source branches
+            // 2. Select PRs with "test deployment" label and extract their source branches
             const branches = pulls
               .filter(pr => pr.labels.some(label => label.name === 'test deployment'))
               .map(pr => pr.head.ref);
 
-            // Deduplicate (in case there are multiple PRs with the same source branch) and then slugify the branch names
-            // using the same logic as https://github.com/marketplace/actions/github-slug-action#overview (this GHA is used
-            // to slugify branch names in the https://github.com/saleor/saleor/actions/workflows/test-env-deploy.yml workflow,
-            // which this workflow cleans up after).
+            // 3. Deduplicate (in case there are multiple PRs with the same source branch) and then slugify the branch names
             return [...new Set(branches)].map(ref =>
               ref.toLowerCase()
                 .replace(/[^a-z0-9._]/g, '-')    // replace any character except [0-9, a-z, .,_] with dash
@@ -51,6 +48,7 @@ jobs:
             );
 
       - name: Invoke test-env-manager lambda
+        id: lambda
         uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -61,6 +59,37 @@ jobs:
           Payload: >-
             {
               "action": "daily-cleanup",
-              "labels_to_preserve": ${{ steps.get-branches.outputs.result }}
+              "labels_to_preserve": ${{ steps.get-branches-and-slugify.outputs.result }}
             }
           LogType: Tail
+
+      - name: Print lambda outputs
+        if: ${{ always() && steps.lambda.conclusion != 'skipped' }}
+        env:
+          RESPONSE: ${{ steps.lambda.outputs.response }}
+          INVOCATION_STATUS_CODE: ${{ fromJSON(steps.lambda.outputs.response).StatusCode }}
+          LOG_RESULT_BASE64: ${{ fromJSON(steps.lambda.outputs.response).LogResult }}
+          FUNCTION_ERROR: ${{ fromJSON(steps.lambda.outputs.response).FunctionError }}
+          PAYLOAD: ${{ fromJSON(steps.lambda.outputs.response).Payload }}
+        run: |
+          # If there is no response (e.g. invoke step failed before calling Lambda), bail out gracefully
+          if [ -z "${RESPONSE}" ]; then
+            echo "No lambda response available (invoke step may have failed before receiving output)."
+            exit 0
+          fi
+
+          echo "Invocation HTTP Status Code:"
+          echo "${INVOCATION_STATUS_CODE:-null}"
+          echo "--------"
+
+          echo "Lambda runtime logs:"
+          echo "$LOG_RESULT_BASE64" | base64 --decode || true
+          echo "--------"
+
+          echo "FunctionError (If present, indicates that an error has occurred, with more information in Payload):"
+          echo "${FUNCTION_ERROR:-null}"
+          echo "--------"
+
+          echo "Payload (JSON returned by the function invocation, or error object):"
+          echo "${PAYLOAD:-null}"
+          echo "--------"
