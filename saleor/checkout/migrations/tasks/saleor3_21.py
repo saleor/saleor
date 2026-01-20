@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import Exists, OuterRef
 
 from ....account.models import Address
@@ -14,7 +15,7 @@ BILLING_FIELD = "billing_address"
 SHIPPING_FIELD = "shipping_address"
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def fix_shared_address_instances_task(field=BILLING_FIELD):
     """Fix shared address instances between checkouts and orders.

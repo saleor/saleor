@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import Exists, OuterRef
 
 from ....celeryconf import app
@@ -9,7 +10,7 @@ from ...models import Checkout, CheckoutLine
 DUPLICATED_LINES_CHECKOUT_BATCH_SIZE = 250
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def clean_duplicated_gift_lines_task(created_after=None):
     extra_order_filter = {}
     if created_after:

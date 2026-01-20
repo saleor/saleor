@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from django.db.models import F, FloatField
 from django.db.models.functions import Cast
@@ -11,7 +12,7 @@ from ...models.base import AttributeValue
 BATCH_SIZE = 500
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def fulfill_attribute_value_numeric_field(attribute_value_pk=0):
     value_ids = list(

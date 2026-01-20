@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 
 from ....celeryconf import app
@@ -7,7 +8,7 @@ from ...models import AppExtension
 BATCH_SIZE = 100
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def fill_app_extension_settings_task():
     qs = AppExtension.objects.filter(
