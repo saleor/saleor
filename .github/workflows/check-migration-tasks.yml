@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
 
+permissions: {}
+
 jobs:
   check-migration-tasks:
     runs-on: ubuntu-latest
@@ -18,15 +20,14 @@ jobs:
 
       - name: Check for new tasks and celery config updates
         shell: bash
+        env:
+          BASE_COMMIT_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          # Fetch the base branch to ensure we can diff against it
-          git fetch origin ${{ github.base_ref }}
-
           # List files added (A) in the PR relative to the base branch
-          ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD)
+          ADDED_FILES=$(git diff --name-only --diff-filter=A "$BASE_COMMIT_SHA"...HEAD)
 
           # List all changed files (A, M, R, etc) to check if celeryconf was touched
-          ALL_CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          ALL_CHANGED_FILES=$(git diff --name-only "$BASE_COMMIT_SHA"...HEAD)
 
           # Check if any new python file was added in a *migrations/tasks/ directory
           NEW_TASKS=$(echo "$ADDED_FILES" | grep -E "saleor/.*/migrations/tasks/.*\.py$" || true)
