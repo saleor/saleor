@@ -22,6 +22,8 @@ class ProductErrorCode(Enum):
     PRODUCT_NOT_ASSIGNED_TO_CHANNEL = "product_not_assigned_to_channel"
     UNSUPPORTED_MEDIA_PROVIDER = "unsupported_media_provider"
     PREORDER_VARIANT_CANNOT_BE_DEACTIVATED = "preorder_variant_cannot_be_deactivated"
+    INVALID_FILE_TYPE = "invalid_file_type"
+    UNSUPPORTED_MIME_TYPE = "unsupported_mime_type"
 
 
 class CollectionErrorCode(Enum):
