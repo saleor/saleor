@@ -135,7 +135,7 @@ class Command(BaseCommand):
 
         # Makes django use the default color for stderr, otherwise everything is red
         # despite we don't log an error
-        self.stderr.style_func = None # type: ignore[assignment] # None is allowed
+        self.stderr.style_func = None  # type: ignore[assignment] # None is allowed
         self.differ = difflib.Differ()
 
         for [model_cls, field] in MODELS:
