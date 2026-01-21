@@ -131,6 +131,8 @@ package-mode = false
   opentelemetry-api = "^1.32.1"
   opentelemetry-sdk = "^1.32.1"
   opentelemetry-semantic-conventions = "^0.53b1"
+  nh3 = "^0.3.2"
+  idna = "^3.11"
 
     [tool.poetry.dependencies.kombu]
     extras = [ "sqs" ]
