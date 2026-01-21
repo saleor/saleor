@@ -1,7 +1,11 @@
+import logging
 import mimetypes
 import os
 
+import magic
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from PIL import Image, UnidentifiedImageError
 
 from ....core.http_client import HTTPClient
@@ -10,6 +14,79 @@ from ....thumbnail.utils import ProcessedImage
 from ..utils import add_hash_to_file_name
 
 Image.init()
+
+logger = logging.getLogger(__name__)
+
+
+def validate_upload_file(
+    file_data: UploadedFile, error_class, error_field_name: str
+) -> None:
+    """Validate uploaded file. Validate the mime type and file extension.
+
+    Raises ValidationError if file is invalid.
+    """
+    # Detect actual mime type from file content using magic bytes
+    # (not from content_type attribute which can be more easily spoofed)
+    mime_type = detect_mime_type(file_data)
+
+    if mime_type not in settings.ALLOWED_MIME_TYPES:
+        logger.info(
+            "Upload for file type %s was blocked due to not being a permitted file "
+            "type. Hint: this behavior can be modified via the "
+            "`UPLOAD_ADDITIONAL_ALLOWED_MIME_TYPES` environment variable.",
+            mime_type,
+        )
+        raise ValidationError(
+            {
+                error_field_name: ValidationError(
+                    "File type not permitted. Contact your administrator or support "
+                    f"team to enable support for `{mime_type}` file type.",
+                    code=error_class.UNSUPPORTED_MIME_TYPE.value,
+                )
+            }
+        )
+
+    # Validate file extension matches content type
+    file_name = file_data.name or ""
+    file_ext = os.path.splitext(file_name)[1].lower()
+
+    if file_ext:
+        expected_extensions = settings.ALLOWED_MIME_TYPES.get(mime_type, [])
+        if file_ext not in expected_extensions:
+            logger.info(
+                "Upload for file was blocked due to file extension '%s' not matching "
+                "content type '%s'. Expected one of: %s.",
+                file_ext,
+                mime_type,
+                ", ".join(expected_extensions),
+            )
+            raise ValidationError(
+                {
+                    error_field_name: ValidationError(
+                        f"File extension '{file_ext}' does not match content type "
+                        f"'{mime_type}'. "
+                        f"Expected one of: {', '.join(expected_extensions)}.",
+                        code=error_class.INVALID_FILE_TYPE.value,
+                    )
+                }
+            )
+    if not file_ext:
+        raise ValidationError(
+            {
+                error_field_name: ValidationError(
+                    "Lack of file extension.",
+                    code=error_class.INVALID_FILE_TYPE.value,
+                )
+            }
+        )
+
+
+def detect_mime_type(file_data) -> str:
+    """Detect MIME type from file content using magic bytes."""
+    file_data.seek(0)
+    mime_type = magic.from_buffer(file_data.read(2048), mime=True)
+    file_data.seek(0)
+    return mime_type
 
 
 def is_image_mimetype(mimetype: str) -> bool:

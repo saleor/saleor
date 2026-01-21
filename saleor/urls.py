@@ -4,7 +4,7 @@ from django.contrib.staticfiles.views import serve
 from django.urls import include, re_path
 from django.views.decorators.csrf import csrf_exempt
 
-from .core.views import jwks
+from .core.views import jwks, serve_media_view
 from .graphql.api import backend, schema
 from .graphql.views import GraphQLView
 from .plugins.views import (
@@ -70,7 +70,9 @@ if settings.DEBUG:
             re_path(r"^__debug__/", include(debug_toolbar.urls))  # type: ignore
         ]
 
-    urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
+    urlpatterns += static(
+        "/media/", view=serve_media_view, document_root=settings.MEDIA_ROOT
+    ) + [
         re_path(r"^static/(?P<path>.*)$", serve),
         re_path(r"^$", views.home, name="home"),
     ]

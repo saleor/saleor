@@ -14,6 +14,7 @@ from ...core.descriptions import ADDED_IN_38
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, ProductError, Upload
+from ...core.validators.file import validate_upload_file
 from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
@@ -133,6 +134,10 @@ class DigitalContentCreate(BaseMutation):
         clean_input = cls.clean_input(info, input, variant)
 
         content_data = info.context.FILES.get(clean_input["content_file"])
+
+        if content_data:
+            validate_upload_file(content_data, ProductErrorCode, "content_file")
+
         digital_content = models.DigitalContent(content_file=content_data)
         digital_content.use_default_settings = clean_input.get(
             "use_default_settings", False

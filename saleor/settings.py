@@ -1,4 +1,5 @@
 import ast
+import json
 import logging
 import os
 import os.path
@@ -1036,7 +1037,6 @@ TOKEN_GENERATOR_CLASS = "django.contrib.auth.tokens.PasswordResetTokenGenerator"
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
 
-
 # Maximum depth for EditorJS nested lists. This value shouldn't be set too high to
 # prevent abuses. It's not recommended to increase it further than 10, if strictly
 # necessary (not recommended), it could be increase up to 100.
@@ -1046,6 +1046,47 @@ warnings.filterwarnings("ignore", category=CacheKeyWarning)
 EDITOR_JS_LISTS_MAX_DEPTH: int = int(os.environ.get("EDITOR_JS_LISTS_MAX_DEPTH", 10))
 
 HTML_CLEANER_PREFS: HtmlCleanerSettings = HtmlCleanerSettings.parse()
+
+# File upload settings
+# Allowed mime types for file uploads (safe, non-executable formats)
+# Dict structure: {<mime-type>: [<extensions>]}
+ALLOWED_MIME_TYPES = {
+    "image/avif": [".avif"],
+    "image/bmp": [".bmp"],
+    "image/gif": [".gif"],
+    "image/jpeg": [".jpg", ".jpeg", ".jpe", ".jfif"],
+    "image/png": [".png"],
+    "image/tiff": [".tiff", ".tif"],
+    "image/webp": [".webp"],
+    # Documents
+    "application/msword": [".doc"],
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+        ".docx"
+    ],
+    "application/vnd.ms-excel": [".xls"],
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+    "application/vnd.ms-powerpoint": [".ppt"],
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": [
+        ".pptx"
+    ],
+    # Videos
+    "video/mp4": [".mp4"],
+    "video/webm": [".webm"],
+    "video/ogg": [".ogv", ".ogg"],
+    "video/quicktime": [".mov"],
+    # Audio
+    "audio/mpeg": [".mp3", ".mpeg"],
+    "audio/mp4": [".m4a"],
+    "audio/webm": [".weba"],
+    "audio/ogg": [".oga", ".ogg"],
+    "audio/wav": [".wav"],
+    # Text (plain only)
+    "text/plain": [".txt"],
+    "text/csv": [".csv"],
+}
+ALLOWED_MIME_TYPES.update(
+    json.loads(os.environ.get("UPLOAD_ADDITIONAL_ALLOWED_MIME_TYPES", "{}"))
+)
 
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
