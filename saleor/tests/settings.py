@@ -103,3 +103,6 @@ ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = "order_events_queue"
 
 PRIVATE_FILE_STORAGE = "saleor.tests.storages.PrivateFileSystemStorage"
 PRIVATE_MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "private-media")  # noqa: F405
+
+# New default in Saleor v3.23.0
+HTML_CLEANER_PREFS.link_rel = "noopener noreferrer"  # noqa: F405 # HTML_CLEANER_PREFS exists

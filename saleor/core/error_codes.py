@@ -28,6 +28,8 @@ class TranslationErrorCode(Enum):
 
 class UploadErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
+    INVALID_FILE_TYPE = "invalid_file_type"
+    UNSUPPORTED_MIME_TYPE = "unsupported_mime_type"
 
 
 class CoreErrorCode(Enum):

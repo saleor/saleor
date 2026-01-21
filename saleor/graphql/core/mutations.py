@@ -22,7 +22,7 @@ from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
 from ...core.db.connection import allow_writer
-from ...core.error_codes import MetadataErrorCode
+from ...core.error_codes import MetadataErrorCode, UploadErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
 from ...permission.auth_filters import AuthorizationFilters
@@ -59,6 +59,7 @@ from .utils import (
     snake_to_camel_case,
 )
 from .utils.error_codes import get_error_code_from_error
+from .validators.file import validate_upload_file
 
 MISSING_NODE_ERROR_MESSAGE_PREFIX = "Couldn't resolve to a node:"
 
@@ -1164,6 +1165,8 @@ class FileUpload(BaseMutation):
         file_data: UploadedFile = cast(UploadedFile, info.context.FILES[file])
         if not file_data.file:
             raise ValidationError("Received an empty file.")
+
+        validate_upload_file(file_data, UploadErrorCode, "file")
 
         # add unique text fragment to the file name to prevent file overriding
         file_name, format = os.path.splitext(file_data.name or "")
