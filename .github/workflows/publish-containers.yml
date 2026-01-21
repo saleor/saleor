@@ -122,7 +122,7 @@ jobs:
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
       - name: Download digests
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: ${{ runner.temp }}/digests
           pattern: digests-*
