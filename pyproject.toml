@@ -85,6 +85,8 @@ dependencies = [
     "django-storages[google]~=1.11",
     "python-magic>=0.4.27,<0.5 ; sys_platform != 'win32'",
     "python-magic-bin>=0.4.14,<0.5 ; sys_platform == 'win32'",
+    "nh3>=0.2.20",
+    "idna>=3.10",
 ]
 
 [project.urls]

@@ -609,9 +609,10 @@ def description_json():
                 "key": "",
                 "data": {
                     "text": "E-commerce for the PWA era",
+                    "level": 2,
                 },
                 "text": "E-commerce for the PWA era",
-                "type": "header-two",
+                "type": "header",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -695,9 +696,10 @@ def other_description_json():
                     "text": (
                         "A GRAPHQL-FIRST <b>ECOMMERCE</b> PLATFORM FOR PERFECTIONISTS"
                     ),
+                    "level": 2,
                 },
                 "text": "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS",
-                "type": "header-two",
+                "type": "header",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
