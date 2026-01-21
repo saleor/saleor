@@ -1,13 +1,12 @@
-import json
 from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
 
+from ....app.tasks import install_app_task
 from ....app.validators import AppURLValidator
-from ....core import JobStatus
-from ...installation_utils import fetch_manifest, install_app
+from ...installation_utils import fetch_manifest
 from ...models import AppInstallation
 from .utils import clean_permissions
 
@@ -33,7 +32,7 @@ class Command(BaseCommand):
                 f"Incorrect format of manifest-url: {manifest_url}"
             ) from e
 
-    def handle(self, *args: Any, **options: Any) -> str | None:
+    def handle(self, *args: Any, **options: Any):
         activate = options["activate"]
         manifest_url = options["manifest-url"]
 
@@ -48,13 +47,4 @@ class Command(BaseCommand):
         if permissions:
             app_job.permissions.set(permissions)
 
-        try:
-            app, token = install_app(app_job, activate)
-            app.is_installed = True
-            app.save(update_fields=["is_installed"])
-            app_job.delete()
-        except Exception as e:
-            app_job.status = JobStatus.FAILED
-            app_job.save(update_fields=["status"])
-            raise e
-        return json.dumps({"auth_token": token})
+        install_app_task(app_job.id, activate=activate)
