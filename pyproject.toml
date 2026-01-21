@@ -83,7 +83,9 @@ dependencies = [
   "kombu[sqs]>=4.6.11,<6.0.0",
   "django-storages[google]~=1.11",
   "python-magic>=0.4.27,<0.5 ; sys_platform != 'win32'",
-  "python-magic-bin>=0.4.14,<0.5 ; sys_platform == 'win32'"
+  "python-magic-bin>=0.4.14,<0.5 ; sys_platform == 'win32'",
+  "nh3>=0.3.2",
+  "idna>=3.10",
 ]
 
   [[project.authors]]
