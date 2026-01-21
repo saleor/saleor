@@ -105,3 +105,6 @@ BREAKER_BOARD_ENABLED = False
 TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = True
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.tests.TestTracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.tests.TestMeter"
+
+# New default in Saleor v3.23.0
+HTML_CLEANER_PREFS.link_rel = "noopener noreferrer"  # noqa: F405 # HTML_CLEANER_PREFS exists

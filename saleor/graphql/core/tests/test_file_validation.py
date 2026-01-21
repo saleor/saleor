@@ -6,13 +6,16 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
+from ....core.error_codes import UploadErrorCode
 from ....product.error_codes import ProductErrorCode
 from ..validators.file import (
     clean_image_file,
+    detect_mime_type,
     is_image_mimetype,
     is_image_url,
     is_supported_image_mimetype,
     is_valid_image_content_type,
+    validate_upload_file,
 )
 
 
@@ -294,3 +297,141 @@ def test_is_image_url(url, is_valid):
 
     # then
     assert result is is_valid
+
+
+@pytest.mark.parametrize(
+    ("filename", "mime_type"),
+    [
+        ("test.jpg", "image/jpeg"),
+        ("test.jpeg", "image/jpeg"),
+        ("test.JPG", "image/jpeg"),  # case insensitive
+        ("test.png", "image/png"),
+        ("test.gif", "image/gif"),
+        ("test.webp", "image/webp"),
+        ("file.txt", "text/plain"),
+        ("data.csv", "text/csv"),
+        ("video.mp4", "video/mp4"),
+        ("video.webm", "video/webm"),
+        ("audio.mp3", "audio/mpeg"),
+        ("audio.m4a", "audio/mp4"),
+    ],
+)
+@patch("saleor.graphql.core.validators.file.magic.from_buffer")
+def test_validate_upload_file_valid_files(from_buffer_mock, filename, mime_type):
+    # given
+    from_buffer_mock.return_value = mime_type
+    file_data = SimpleUploadedFile(filename, b"content", content_type=mime_type)
+
+    # when & then
+    validate_upload_file(file_data, UploadErrorCode, "file")
+
+
+@pytest.mark.parametrize(
+    ("filename", "detected_mime_type"),
+    [
+        # Unsupported mime types
+        ("test.html", "text/html"),
+        ("test.svg", "image/svg+xml"),
+        ("archive.zip", "application/zip"),
+        ("archive.rar", "application/x-rar-compressed"),
+        ("test.js", "application/javascript"),
+        ("test.xml", "application/xml"),
+        ("archive.tar.gz", "application/gzip"),
+    ],
+)
+@patch("saleor.graphql.core.validators.file.magic.from_buffer")
+def test_validate_upload_file_unsupported_mime_type(
+    from_buffer_mock, filename, detected_mime_type
+):
+    # given
+    from_buffer_mock.return_value = detected_mime_type
+    file_data = SimpleUploadedFile(filename, b"content", content_type="image/jpeg")
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        validate_upload_file(file_data, UploadErrorCode, "file")
+
+    # then
+    assert exc.value.args[0]["file"].code == UploadErrorCode.UNSUPPORTED_MIME_TYPE.value
+
+
+@pytest.mark.parametrize(
+    ("filename", "detected_mime_type"),
+    [
+        # Extension mismatch - actual content doesn't match extension
+        ("test.png", "image/jpeg"),
+        ("test.jpg", "image/png"),
+        ("test.pdf", "image/jpeg"),
+        # Missing extension
+        ("test", "image/jpeg"),
+        ("data", "text/csv"),
+    ],
+)
+@patch("saleor.graphql.core.validators.file.magic.from_buffer")
+def test_validate_upload_file_invalid_file_type(
+    from_buffer_mock, filename, detected_mime_type
+):
+    # given
+    from_buffer_mock.return_value = detected_mime_type
+    file_data = SimpleUploadedFile(filename, b"content", content_type="image/jpeg")
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        validate_upload_file(file_data, UploadErrorCode, "file")
+
+    # then
+    assert exc.value.args[0]["file"].code == UploadErrorCode.INVALID_FILE_TYPE.value
+
+
+@patch("saleor.graphql.core.validators.file.magic.from_buffer")
+def test_validate_upload_file_detects_spoofed_content_type(from_buffer_mock):
+    """Test that actual file content is checked, not content_type header.
+
+    This verifies the security fix: an attacker cannot upload malicious HTML
+    by setting content_type header to image/jpeg if the actual file is HTML.
+    """
+    # given - attacker tries to upload HTML with fake image content_type header
+    from_buffer_mock.return_value = "text/html"  # actual content is HTML
+    file_data = SimpleUploadedFile(
+        "malicious.html",
+        b"<html><script>alert('XSS')</script></html>",
+        content_type="image/jpeg",  # spoofed content type
+    )
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        validate_upload_file(file_data, UploadErrorCode, "file")
+
+    # then - should be rejected based on actual content, not header
+    assert exc.value.args[0]["file"].code == UploadErrorCode.UNSUPPORTED_MIME_TYPE.value
+
+
+@patch("saleor.graphql.core.validators.file.magic.from_buffer")
+def test_detect_mime_type_success(from_buffer_mock):
+    # given
+    from_buffer_mock.return_value = "image/jpeg"
+    file_data = SimpleUploadedFile("test.jpg", b"content", content_type="image/jpeg")
+
+    # when
+    mime_type = detect_mime_type(file_data)
+
+    # then
+    assert mime_type == "image/jpeg"
+    from_buffer_mock.assert_called_once()
+
+
+@patch("saleor.graphql.core.validators.file.magic.from_buffer")
+def test_detect_mime_type_reads_file_content(from_buffer_mock):
+    # given
+    from_buffer_mock.return_value = "image/png"
+    file_data = SimpleUploadedFile(
+        "test.jpg", b"PNG_CONTENT", content_type="image/jpeg"
+    )
+
+    # when
+    mime_type = detect_mime_type(file_data)
+
+    # then
+    assert mime_type == "image/png"
+    # Verify magic was called with actual file content, not headers
+    from_buffer_mock.assert_called_once_with(b"PNG_CONTENT", mime=True)

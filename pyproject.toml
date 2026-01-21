@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "saleor"
-version = "3.22.5"
+version = "3.22.27"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 requires-python = ">=3.12,<3.13"
 readme = "README.md"
@@ -83,7 +83,9 @@ dependencies = [
   "kombu[sqs]>=4.6.11,<6.0.0",
   "django-storages[google]~=1.11",
   "python-magic>=0.4.27,<0.5 ; sys_platform != 'win32'",
-  "python-magic-bin>=0.4.14,<0.5 ; sys_platform == 'win32'"
+  "python-magic-bin>=0.4.14,<0.5 ; sys_platform == 'win32'",
+  "nh3>=0.3.2",
+  "idna>=3.10",
 ]
 
   [[project.authors]]
@@ -292,4 +294,4 @@ target-version = "py312"
     known-first-party = [ "saleor" ]
 
 [tool.poetry]
-version = "3.22.26"
+version = "3.22.27"
