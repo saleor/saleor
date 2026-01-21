@@ -21350,6 +21350,8 @@ enum ProductErrorCode @doc(category: "Products") {
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
   PREORDER_VARIANT_CANNOT_BE_DEACTIVATED
+  INVALID_FILE_TYPE
+  UNSUPPORTED_MIME_TYPE
 }
 
 input ProductAttributeAssignInput @doc(category: "Products") {
@@ -28083,6 +28085,8 @@ type UploadError {
 
 enum UploadErrorCode {
   GRAPHQL_ERROR
+  INVALID_FILE_TYPE
+  UNSUPPORTED_MIME_TYPE
 }
 
 """
