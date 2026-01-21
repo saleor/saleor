@@ -28,6 +28,7 @@ from sentry_sdk.scrubber import DEFAULT_DENYLIST, DEFAULT_PII_DENYLIST, EventScr
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .account.i18n_rules_override import i18n_rules_override
+from .core.cleaners.html import HtmlCleanerSettings
 from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.rlimit import validate_and_set_rlimit
@@ -1139,6 +1140,16 @@ TELEMETRY_SLOW_GRAPHQL_OPERATION_THRESHOLD = float(
 # Additional hash suffix, allowing to invalidate cached schema. In production usually we want this to be empty.
 # For development envs, where schema may change often, it may be convenient to set it to e.g. commit hash value.
 GRAPHQL_CACHE_SUFFIX = os.environ.get("GRAPHQL_CACHE_SUFFIX", "")
+
+# Maximum depth for EditorJS nested lists. This value shouldn't be set too high to
+# prevent abuses. It's not recommended to increase it further than 10, if strictly
+# necessary (not recommended), it could be increase up to 100.
+#
+# HINT: in the frontend configuration, set `maxLevel` to the same value to improve
+#       user-experience on the client-side (https://github.com/editor-js/list/blob/f8cde313224499ed5bcf3e93864fc11c45fe7efb/README.md#config-params)
+EDITOR_JS_LISTS_MAX_DEPTH = int(os.environ.get("EDITOR_JS_LISTS_MAX_DEPTH", 10))
+
+HTML_CLEANER_PREFS = HtmlCleanerSettings.parse()
 
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
