@@ -53,7 +53,7 @@ help = "Run tests with db reuse to speed up testing time"
 
 [tool.poetry]
 name = "saleor"
-version = "3.21.42"
+version = "3.21.43"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
@@ -131,6 +131,8 @@ package-mode = false
   opentelemetry-api = "^1.32.1"
   opentelemetry-sdk = "^1.32.1"
   opentelemetry-semantic-conventions = "^0.53b1"
+  nh3 = "^0.3.2"
+  idna = "^3.11"
 
     [tool.poetry.dependencies.kombu]
     extras = [ "sqs" ]
