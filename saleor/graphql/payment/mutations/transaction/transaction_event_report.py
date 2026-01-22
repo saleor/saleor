@@ -481,6 +481,9 @@ class TransactionEventReport(DeprecatedModelMutation):
         source_object: Checkout | order_models.Order | None = None
         if transaction.checkout_id:
             source_object = Checkout.objects.filter(pk=transaction.checkout_id).first()
+            if source_object:
+                source_object.search_index_dirty = True
+                source_object.safe_update(update_fields=["search_index_dirty"])
         if not source_object:
             # Prevent race condition between TransactionEventReport and checkout completion
             source_object = order_models.Order.objects.filter(

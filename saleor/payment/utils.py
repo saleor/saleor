@@ -1910,6 +1910,9 @@ def handle_transaction_initialize_session(
             source_object,
             app.identifier,  # type: ignore[union-attr]
         )
+    if isinstance(source_object, Checkout):
+        source_object.search_index_dirty = True
+        source_object.safe_update(update_fields=["search_index_dirty"])
     data_to_return = response_data.get("data") if response_data else None
     return created_event.transaction, created_event, data_to_return
 
@@ -1949,6 +1952,9 @@ def handle_transaction_process_session(
     invalidate_cache_for_stored_payment_methods_if_needed(
         created_event, source_object, app.identifier
     )
+    if isinstance(source_object, Checkout):
+        source_object.search_index_dirty = True
+        source_object.safe_update(update_fields=["search_index_dirty"])
     data_to_return = response_data.get("data") if response_data else None
     return created_event, data_to_return
 
