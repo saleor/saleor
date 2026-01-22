@@ -33,6 +33,7 @@ from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.rlimit import validate_and_set_rlimit
 from .core.schedules import (
     initiated_checkout_automatic_completion_schedule,
+    initiated_checkout_search_update_schedule,
     initiated_gift_card_search_update_schedule,
     initiated_page_search_update_schedule,
     initiated_product_search_update_schedule,
@@ -721,6 +722,12 @@ CELERY_BEAT_SCHEDULE = {
         # Scheduled task that runs every 60 seconds to check for pages
         # requiring a search index rebuild.
         "schedule": initiated_page_search_update_schedule,
+    },
+    "update-checkout-search-vectors": {
+        "task": "saleor.checkout.tasks.update_checkout_search_vector_task",
+        # Scheduled task that runs every 60 seconds to check for checkouts
+        # requiring a search index rebuild.
+        "schedule": initiated_checkout_search_update_schedule,
     },
     "expire-orders": {
         "task": "saleor.order.tasks.expire_orders_task",
