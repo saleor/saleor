@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from django.db.models.expressions import Exists, OuterRef, Q
 
@@ -11,7 +12,7 @@ from ...models import Checkout
 BATCH_SIZE = 2000
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def update_transaction_modified_at_in_checkouts():
     checkouts_without_modified_at = Checkout.objects.filter(
@@ -42,7 +43,7 @@ def update_transaction_modified_at_in_checkouts():
         update_transaction_modified_at_in_checkouts.delay()
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def update_checkout_refundable():
     with_transactions = TransactionItem.objects.filter(

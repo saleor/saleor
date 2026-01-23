@@ -978,6 +978,11 @@ AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME = os.environ.get(
     "AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME", None
 )
 
+# Queue name for Celery data migration tasks
+DATA_MIGRATIONS_TASKS_QUEUE_NAME = os.environ.get(
+    "DATA_MIGRATIONS_TASKS_QUEUE_NAME", None
+)
+
 # Lock time for request password reset mutation per user (seconds)
 RESET_PASSWORD_LOCK_TIME = parse(
     os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")

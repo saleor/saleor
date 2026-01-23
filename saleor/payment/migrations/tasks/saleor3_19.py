@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef
 
@@ -10,7 +11,7 @@ from ...models import Payment
 PAYMENT_BATCH_SIZE = 3000
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def fix_invalid_atobarai_payments_task():
     """Fix the invalid payemnts for atobarai gateway.
