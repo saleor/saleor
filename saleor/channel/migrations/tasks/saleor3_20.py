@@ -8,7 +8,7 @@ from ...models import Channel
 BATCH_SIZE = 5000
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def migrate_env_variable_setting_to_channels():
     turn_on = int(settings.TRANSACTION_BATCH_FOR_RELEASING_FUNDS) > 0
     channels = Channel.objects.order_by("pk").filter(

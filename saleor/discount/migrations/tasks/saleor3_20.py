@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import OuterRef, Subquery
 
 from ....celeryconf import app
@@ -7,7 +8,7 @@ from ...models import OrderDiscount
 BATCH_SIZE = 5000
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def set_discount_currency_task(start_id=0):
     ids = list(
         OrderDiscount.objects.filter(currency="")

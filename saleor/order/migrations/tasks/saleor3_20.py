@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, F, OuterRef, Q, Sum
 
@@ -18,7 +19,7 @@ ORDER_SET_SUBTOTAL_PRICE_FOR_ORDER_FROM_BULK = 100
 DUPLICATED_LINES_ORDER_BATCH_SIZE = 200
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def set_udniscounted_base_shipping_price_on_orders_task():
     qs = Order.objects.filter(undiscounted_base_shipping_price_amount__isnull=True)
     order_ids = list(
@@ -197,7 +198,7 @@ def _set_subtotal_for_orders_created_from_bulk(order_ids: list[str]):
         )
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def set_udniscounted_base_shipping_price_on_draft_orders_task():
     qs = Order.objects.filter(
         undiscounted_base_shipping_price_amount=0,
@@ -213,7 +214,7 @@ def set_udniscounted_base_shipping_price_on_draft_orders_task():
         set_udniscounted_base_shipping_price_on_draft_orders_task.delay()
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def set_order_subtotal_for_orders_created_from_bulk():
     order_lines_qs = OrderLine.objects.filter(total_price_gross_amount__gt=0).values(
         "order_id"
@@ -231,7 +232,7 @@ def set_order_subtotal_for_orders_created_from_bulk():
         set_order_subtotal_for_orders_created_from_bulk.delay()
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def fix_negative_total_net_for_orders_using_gift_cards_task(start_pk=0):
     # No memory usage tests were conducted here.
     # It's assumed that loading 500 identifiers to memory is not straining the memory
@@ -263,7 +264,7 @@ def fix_negative_total_net_for_orders_using_gift_cards_task(start_pk=0):
         )
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def clean_duplicated_gift_lines_task(created_after=None):
     extra_filter = {}
     if created_after:
