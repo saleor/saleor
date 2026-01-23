@@ -2047,10 +2047,14 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 user, address = data
 
             requester = get_user_or_app_from_context(info.context)
-            if order.use_old_id is False or is_owner_or_has_one_of_perms(
+
+            if order.use_old_id is False:
+                return address
+            if user and is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return address
+
             return obfuscate_address(address)
 
         if not order.billing_address_id:
@@ -2078,7 +2082,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             else:
                 user, address = data
             requester = get_user_or_app_from_context(info.context)
-            if order.use_old_id is False or is_owner_or_has_one_of_perms(
+            if order.use_old_id is False:
+                return address
+            if user and is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return address
@@ -2530,10 +2536,13 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             elif user:
                 email_to_return = user.email
 
-            if order.use_old_id is False or is_owner_or_has_one_of_perms(
+            if order.use_old_id is False:
+                return email_to_return
+            if user and is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return email_to_return
+
             return obfuscate_email(email_to_return)
 
         if not order.user_id:
@@ -2714,11 +2723,14 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     def resolve_invoices(root: SyncWebhookControlContext[models.Order], info):
         order = root.node
         requester = get_user_or_app_from_context(info.context)
-        if order.use_old_id is True:
+        if order.use_old_id is False:
+            return InvoicesByOrderIdLoader(info.context).load(order.id)
+        if order.user_id:
             check_is_owner_or_has_one_of_perms(
                 requester, order.user, OrderPermissions.MANAGE_ORDERS
             )
-        return InvoicesByOrderIdLoader(info.context).load(order.id)
+            return InvoicesByOrderIdLoader(info.context).load(order.id)
+        return []
 
     @staticmethod
     def resolve_is_shipping_required(
