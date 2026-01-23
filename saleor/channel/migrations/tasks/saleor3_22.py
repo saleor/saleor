@@ -1,9 +1,11 @@
+from django.conf import settings
+
 from ....celeryconf import app
 from ....core.db.connection import allow_writer
 from ...models import Channel
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def set_automatic_completion_delay_task():
     Channel.objects.filter(
