@@ -990,7 +990,7 @@ executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type:
 patch_executor()
 
 # Default queue into which messages will be pushed.
-CELERY_TASK_DEFAULT_QUEUE = os.environ.get("CELERY_TASK_DEFAULT_QUEUE", "saleor")
+CELERY_TASK_DEFAULT_QUEUE = os.environ.get("CELERY_TASK_DEFAULT_QUEUE", "celery")
 
 # Optional queue names for Celery tasks.
 # Set None to route to the default queue, or a string value to use a separate one
