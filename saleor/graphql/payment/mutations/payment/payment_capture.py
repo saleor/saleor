@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from .....payment import PaymentError, gateway
 from .....payment.error_codes import PaymentErrorCode
+from .....payment.utils import mark_checkout_search_index_dirty
 from .....permission.enums import OrderPermissions
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
@@ -50,4 +51,6 @@ class PaymentCapture(BaseMutation):
             raise ValidationError(
                 str(e), code=PaymentErrorCode.PAYMENT_ERROR.value
             ) from e
+        if payment.checkout_id:
+            mark_checkout_search_index_dirty(payment.checkout)
         return PaymentCapture(payment=payment)
