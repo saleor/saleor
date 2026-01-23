@@ -23,6 +23,12 @@ class Command(BaseCommand):
             dest="activate",
             help="Activates the app after installation",
         )
+        parser.add_argument(
+            "--quiet",
+            action="store_true",
+            dest="quiet",
+            help="Hide auth token output after installation",
+        )
 
     def validate_manifest_url(self, manifest_url: str):
         url_validator = AppURLValidator()
@@ -33,6 +39,7 @@ class Command(BaseCommand):
 
     def handle(self, *args: Any, **options: Any) -> Optional[str]:
         activate = options["activate"]
+        quiet = options["quiet"]
         manifest_url = options["manifest-url"]
 
         self.validate_manifest_url(manifest_url)
@@ -53,4 +60,5 @@ class Command(BaseCommand):
             app_job.status = JobStatus.FAILED
             app_job.save(update_fields=["status"])
             raise e
-        return json.dumps({"auth_token": token})
+
+        return json.dumps({"auth_token": token}) if not quiet else None
