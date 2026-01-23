@@ -1399,6 +1399,9 @@ def process_order_or_checkout_with_transaction(
                 transaction_amounts_for_checkout_updated_without_price_recalculation(
                     transaction, locked_checkout, manager, user, app
                 )
+                checkout = cast(Checkout, transaction.checkout)
+                checkout.search_index_dirty = True
+                checkout.save(update_fields=["search_index_dirty"])
             else:
                 checkout_deleted = True
                 # If the checkout was deleted, we still want to update the order associated with the transaction.
@@ -1647,12 +1650,21 @@ def create_transaction_event_from_request_and_webhook_response(
         transaction_amounts_for_checkout_updated(
             transaction_item, manager, app=app, user=None
         )
+        # for transaction event only psp reference is indexed
+        if psp_reference:
+            checkout = cast(Checkout, transaction_item.checkout)
+            mark_checkout_search_index_dirty(checkout)
     source_object = transaction_item.checkout or transaction_item.order
     if event and source_object and app:
         invalidate_cache_for_stored_payment_methods_if_needed(
             event, source_object, app.identifier
         )
     return event
+
+
+def mark_checkout_search_index_dirty(checkout: Checkout):
+    checkout.search_index_dirty = True
+    checkout.safe_update(update_fields=["search_index_dirty"])
 
 
 def _prepare_manual_event(
@@ -1911,6 +1923,7 @@ def handle_transaction_initialize_session(
             app.identifier,  # type: ignore[union-attr]
         )
     if isinstance(source_object, Checkout):
+        # new transaction created, so we need to mark the checkout search index as dirty
         source_object.search_index_dirty = True
         source_object.safe_update(update_fields=["search_index_dirty"])
     data_to_return = response_data.get("data") if response_data else None
