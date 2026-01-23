@@ -1709,7 +1709,9 @@ class Order(ModelObjectType[models.Order]):
                 user, address = data
 
             requester = get_user_or_app_from_context(info.context)
-            if root.use_old_id is False or is_owner_or_has_one_of_perms(
+            if root.use_old_id is False:
+                return address
+            elif user and is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return address
@@ -1738,7 +1740,9 @@ class Order(ModelObjectType[models.Order]):
             else:
                 user, address = data
             requester = get_user_or_app_from_context(info.context)
-            if root.use_old_id is False or is_owner_or_has_one_of_perms(
+            if root.use_old_id is False:
+                return address
+            elif user and is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return address
@@ -2094,7 +2098,9 @@ class Order(ModelObjectType[models.Order]):
     def resolve_user_email(root: models.Order, info):
         def _resolve_user_email(user):
             requester = get_user_or_app_from_context(info.context)
-            if root.use_old_id is False or is_owner_or_has_one_of_perms(
+            if root.use_old_id is False:
+                return user.email if user else root.user_email
+            elif user and is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return user.email if user else root.user_email
@@ -2249,11 +2255,14 @@ class Order(ModelObjectType[models.Order]):
     @staticmethod
     def resolve_invoices(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
-        if root.use_old_id is True:
+        if root.use_old_id is False:
+            return InvoicesByOrderIdLoader(info.context).load(root.id)
+        elif root.user_id:
             check_is_owner_or_has_one_of_perms(
                 requester, root.user, OrderPermissions.MANAGE_ORDERS
             )
-        return InvoicesByOrderIdLoader(info.context).load(root.id)
+            return InvoicesByOrderIdLoader(info.context).load(root.id)
+        return []
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, info):
