@@ -216,6 +216,7 @@ class CheckoutLinesAdd(BaseMutation):
         checkout_id=None,
         token=None,
         id=None,
+        lines_update=False,
     ):
         app = get_app_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
@@ -255,12 +256,11 @@ class CheckoutLinesAdd(BaseMutation):
         invalidate_update_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.search_index_dirty = True
-        checkout.save(
-            update_fields=shipping_update_fields
-            + invalidate_update_fields
-            + ["search_index_dirty"]
-        )
+        update_fields = shipping_update_fields + invalidate_update_fields
+        if lines_update is False:
+            checkout.search_index_dirty = True
+            update_fields.append("search_index_dirty")
+        checkout.save(update_fields=update_fields)
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
