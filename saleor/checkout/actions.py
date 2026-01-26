@@ -204,6 +204,7 @@ def update_last_transaction_modified_at_for_checkout(
 
 def transaction_amounts_for_checkout_updated(
     transaction: TransactionItem,
+    checkout: Checkout,
     manager: "PluginsManager",
     user: Optional["User"],
     app: Optional["App"],
