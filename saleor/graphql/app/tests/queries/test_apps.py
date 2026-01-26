@@ -249,7 +249,7 @@ def test_apps_query_pending_installation(staff_api_client, app):
 
 
 QUERY_APPS_FOR_FEDERATION = """
-    query GetAppInFederation($representations: [_Any]) {
+    query GetAppInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
             __typename
             ... on App {

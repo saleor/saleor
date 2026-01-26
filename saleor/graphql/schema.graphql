@@ -1662,7 +1662,7 @@ type Query {
     """External ID of the user."""
     externalReference: String
   ): User @doc(category: "Users")
-  _entities(representations: [_Any]): [_Entity]
+  _entities(representations: [_Any!]!): [_Entity]
   _service: _Service
 }
 

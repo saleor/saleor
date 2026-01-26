@@ -4,7 +4,13 @@ from typing import Any
 import graphene
 from django.conf import settings
 from graphene.utils.str_converters import to_snake_case
-from graphql import GraphQLArgument, GraphQLError, GraphQLField, GraphQLList
+from graphql import (
+    GraphQLArgument,
+    GraphQLError,
+    GraphQLField,
+    GraphQLList,
+    GraphQLNonNull,
+)
 
 from ...schema_printer import print_schema
 from .. import ResolveInfo
@@ -62,8 +68,12 @@ def build_federated_schema(
     query_type.fields["_entities"] = GraphQLField(
         GraphQLList(entity_type),
         args={
-            "representations": GraphQLArgument(
-                GraphQLList(schema.get_type("_Any")),
+            "representations": (
+                GraphQLArgument(
+                    GraphQLNonNull(
+                        GraphQLList(GraphQLNonNull(schema.get_type("_Any")))
+                    ),
+                )
             ),
         },
         resolver=resolve_entities,
@@ -108,25 +118,35 @@ def resolve_entities(_, info: ResolveInfo, *, representations):
         )
 
     resolvers = {}
-    for representation in representations:
-        if representation["__typename"] not in resolvers:
-            try:
-                model = federated_entities[representation["__typename"]]
-                resolvers[representation["__typename"]] = getattr(
-                    model,
-                    "_{}__resolve_references".format(representation["__typename"]),
-                )
-            except AttributeError:
-                pass
-
     batches = defaultdict(list)
     for representation in representations:
-        model = federated_entities[representation["__typename"]]
-        model_arguments = representation.copy()
-        typename = model_arguments.pop("__typename")
-        model_arguments = {to_snake_case(k): v for k, v in model_arguments.items()}
-        model_instance = model(**model_arguments)
-        batches[typename].append(model_instance)
+        typename = representation.get("__typename")
+
+        # Validate ``__typename``
+        if typename is None:
+            raise GraphQLError("Missing required field: __typename")
+        if isinstance(typename, str) is False:
+            raise GraphQLError("Invalid type for __typename: must be a string")
+        if not (model := federated_entities.get(typename)):
+            raise GraphQLError("Invalid value or unsupported model for __typename")
+
+        if typename not in resolvers:
+            resolver_ref = f"_{typename}__resolve_references"
+            if hasattr(model, resolver_ref) is True:
+                resolvers[typename] = getattr(model, f"_{typename}__resolve_references")
+
+        attrs = {}
+        for field_name, value in representation.items():
+            if field_name == "__typename":
+                continue
+
+            field_name = to_snake_case(field_name)
+            if field_name not in model._meta.fields:
+                raise GraphQLError(f"Unknown field for {typename}: {field_name}")
+
+            attrs[field_name] = value
+
+        batches[typename].append(model(**attrs))
 
     entities = []
     for typename, batch in batches.items():

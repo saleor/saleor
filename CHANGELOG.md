@@ -9,7 +9,14 @@ All notable, unreleased changes to this project will be documented in this file.
     - Shipping method metadata is now copied to dedicated order fields (`shipping_method_metadata` and `shipping_method_private_metadata`) during checkout-to-order conversion. This ensures that order metadata remains consistent even if the original shipping method is modified or deleted. As a result, updates made to a shipping method's metadata after order creation will no longer be reflected in the order's `shippingMethod.metadata` field.
     - Shipping method metadata is now also denormalized during draft order finalization, ensuring consistent behavior across all order creation flows.
 - Fields `options`, `mount` and `target` are removed from `AppExtension` and `AppManifestExtension` types. Use `mountName`, `targetName` and `settings`
+- Improved error handling in Federation - #18718 by @NyanKiyoshi
 
+  The type for GraphQL field `representations` in `{ _entities(representations: [_Any!]!) { ... } }` was changed.
+
+  Before: `[_Any]`
+  After: `[_Any!]!`
+
+  Make sure to adapt your GraphQL queries if you use the `_entities` query.
 
 ### GraphQL API
 - Gift cards support as payment method within Transaction API (read more in the [docs](https://docs.saleor.io/developer/gift-cards#using-gift-cards-in-checkout)).
