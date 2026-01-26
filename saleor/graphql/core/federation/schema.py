@@ -120,6 +120,11 @@ def resolve_entities(_, info: ResolveInfo, *, representations):
     resolvers = {}
     batches = defaultdict(list)
     for representation in representations:
+        if isinstance(representation, dict) is False:
+            raise GraphQLError(
+                "Invalid type for 'representation' field: must be an object"
+            )
+
         typename = representation.get("__typename")
 
         # Validate ``__typename``

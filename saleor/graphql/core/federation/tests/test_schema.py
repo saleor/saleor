@@ -1,6 +1,7 @@
 from typing import Any
-import pytest
+
 import graphene
+import pytest
 
 from saleor.graphql.order.types import Order
 
@@ -86,6 +87,12 @@ query Federation {
             VALID_QUERY,
             {"representations": [{"__typename": 1234}]},
             "Invalid type for __typename: must be a string",
+        ),
+        (
+            "Error when representations is incorrect type",
+            VALID_QUERY,
+            {"representations": [1]},
+            "Invalid type for 'representation' field: must be an object",
         ),
     ],
 )
