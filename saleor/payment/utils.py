@@ -1272,21 +1272,19 @@ def _get_parsed_transaction_data_for_action_webhook(
     return transaction_request_response, None
 
 
-def update_order_with_transaction_details(transaction: TransactionItem):
-    if transaction.order_id:
-        order = cast(Order, transaction.order)
-        update_order_search_vector(order, save=False)
-        updates_amounts_for_order(order, save=False)
-        order.save(
-            update_fields=[
-                "total_charged_amount",
-                "charge_status",
-                "updated_at",
-                "total_authorized_amount",
-                "authorize_status",
-                "search_vector",
-            ]
-        )
+def update_order_with_transaction_details(order: Order):
+    update_order_search_vector(order, save=False)
+    updates_amounts_for_order(order, save=False)
+    order.save(
+        update_fields=[
+            "total_charged_amount",
+            "charge_status",
+            "updated_at",
+            "total_authorized_amount",
+            "authorize_status",
+            "search_vector",
+        ]
+    )
 
 
 def update_transaction_item_with_payment_method_details(
@@ -1633,7 +1631,7 @@ def create_transaction_event_from_request_and_webhook_response(
         from ..order.actions import order_transaction_updated
 
         order_info = fetch_order_info(source_object)
-        update_order_with_transaction_details(transaction_item)
+        update_order_with_transaction_details(source_object)
         order_transaction_updated(
             order_info=order_info,
             transaction_item=transaction_item,
@@ -1658,14 +1656,14 @@ def create_transaction_event_from_request_and_webhook_response(
 
 
 def get_source_object(
-    transaction: TransactionItem,
+    transaction_item: TransactionItem,
 ) -> Checkout | Order | None:
     source_object: Checkout | Order | None = None
-    if transaction.checkout_id:
-        source_object = Checkout.objects.filter(pk=transaction.checkout_id).first()
+    if transaction_item.checkout_id:
+        source_object = Checkout.objects.filter(pk=transaction_item.checkout_id).first()
     if not source_object:
         source_object = Order.objects.filter(
-            pk__in=TransactionItem.objects.filter(pk=transaction.pk).values_list(
+            pk__in=TransactionItem.objects.filter(pk=transaction_item.pk).values_list(
                 "order_id", flat=True
             )
         ).first()

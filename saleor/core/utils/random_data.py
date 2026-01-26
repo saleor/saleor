@@ -750,7 +750,7 @@ def create_transaction_with_events(
     if events_to_create:
         TransactionEvent.objects.bulk_create(events_to_create)
         recalculate_transaction_amounts(transaction=transaction_item)
-        update_order_with_transaction_details(transaction_item)
+        update_order_with_transaction_details(order)
 
     return transaction_item
 
