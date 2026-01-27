@@ -1,6 +1,12 @@
 name: Publish
 
 on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Ref to publish from'
+        required: true
+        type: string
   workflow_call:
     inputs:
       ref:
