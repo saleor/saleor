@@ -1608,7 +1608,6 @@ def test_draft_order_create_with_inactive_channel(
     product_without_shipping,
     shipping_method,
     variant,
-    voucher,
     channel_USD,
     graphql_address_data,
 ):
@@ -1636,7 +1635,6 @@ def test_draft_order_create_with_inactive_channel(
     ]
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
-    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
         "input": {
@@ -1644,7 +1642,6 @@ def test_draft_order_create_with_inactive_channel(
             "lines": variant_list,
             "shippingAddress": shipping_address,
             "shippingMethod": shipping_id,
-            "voucher": voucher_id,
             "customerNote": customer_note,
             "channelId": channel_id,
         }
@@ -1654,7 +1651,6 @@ def test_draft_order_create_with_inactive_channel(
     assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
-    assert data["voucher"]["code"] == voucher.code
     assert data["customerNote"] == customer_note
 
     order = Order.objects.first()
@@ -1939,7 +1935,7 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["errors"][0]
-    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert error["code"] == OrderErrorCode.INVALID_VOUCHER.name
     assert error["field"] == "voucher"
 
 
@@ -4111,3 +4107,245 @@ def test_draft_order_create_create_with_language_code(
     order = Order.objects.get(id=order_pk)
 
     assert order.language_code == "pl"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_create_with_expired_voucher(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = (
+        include_draft_order_in_voucher_usage
+    )
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher end date to the past
+    voucher.end_date = timezone.now() - timedelta(days=1)
+    voucher.save(update_fields=["end_date"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert errors[0]["field"] == "voucher"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_create_with_expired_voucher_code(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = (
+        include_draft_order_in_voucher_usage
+    )
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher end date to the past
+    voucher.end_date = timezone.now() - timedelta(days=1)
+    voucher.save(update_fields=["end_date"])
+
+    code = voucher.codes.first()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucherCode": code.code,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert errors[0]["field"] == "voucherCode"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_create_with_inactive_voucher(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = (
+        include_draft_order_in_voucher_usage
+    )
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher code to inactive
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert errors[0]["field"] == "voucher"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_create_with_inactive_voucher_code(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    channel_USD.include_draft_order_in_voucher_usage = (
+        include_draft_order_in_voucher_usage
+    )
+    channel_USD.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher code to inactive
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_qty = 2
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": variant_qty},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucherCode": code.code,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert errors[0]["field"] == "voucherCode"

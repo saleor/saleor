@@ -148,11 +148,14 @@ def release_voucher_code_usage(
 def get_voucher_code_instance(
     voucher_code: str,
     channel_slug: str,
+    validate_usage_limit=True,
 ):
     """Return a voucher code instance if it's valid or raise an error."""
     if (
         Voucher.objects.active_in_channel(
-            date=timezone.now(), channel_slug=channel_slug
+            date=timezone.now(),
+            channel_slug=channel_slug,
+            validate_usage_limit=validate_usage_limit,
         )
         .filter(
             Exists(
@@ -171,13 +174,15 @@ def get_voucher_code_instance(
     return code_instance
 
 
-def get_active_voucher_code(voucher, channel_slug):
+def get_active_voucher_code(voucher, channel_slug, validate_usage_limit=True):
     """Return an active VoucherCode instance.
 
     This method along with `Voucher.code` should be removed in Saleor 4.0.
     """
 
-    voucher_queryset = Voucher.objects.active_in_channel(timezone.now(), channel_slug)
+    voucher_queryset = Voucher.objects.active_in_channel(
+        timezone.now(), channel_slug, validate_usage_limit
+    )
     if not voucher_queryset.filter(pk=voucher.pk).exists():
         raise InvalidPromoCode()
     voucher_code = VoucherCode.objects.filter(voucher=voucher, is_active=True).first()
