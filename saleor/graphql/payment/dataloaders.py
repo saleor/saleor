@@ -53,5 +53,5 @@ class PaymentsByCheckoutTokenLoader(DataLoader[str, list["Payment"]]):
         )
         payment_map = defaultdict(list)
         for payment in payments:
-            payment_map[payment.checkout_id].append(payment)
-        return [payment_map.get(checkout_id, []) for checkout_id in keys]
+            payment_map[str(payment.checkout_id)].append(payment)
+        return [payment_map[str(checkout_id)] for checkout_id in keys]

@@ -141,6 +141,13 @@ def generate_checkout_payments_search_vector_value(
     """Generate search vectors for checkout payments."""
     payment_vectors = []
     for payment in payments[:MAX_INDEXED_PAYMENTS]:
+        payment_vectors.append(
+            NoValidationSearchVector(
+                Value(graphene.Node.to_global_id("Payment", payment.id)),
+                config="simple",
+                weight="D",
+            )
+        )
         if payment.psp_reference:
             payment_vectors.append(
                 NoValidationSearchVector(
