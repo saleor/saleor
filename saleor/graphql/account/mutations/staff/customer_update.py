@@ -5,7 +5,7 @@ from django.db.models import QuerySet
 
 from .....account import events as account_events
 from .....account import models
-from .....account.search import prepare_user_search_document_value
+from .....account.search import update_user_search_vector
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.update_mutation_manager import InstanceTracker
 from .....giftcard.search import mark_gift_cards_search_index_as_dirty
@@ -216,8 +216,8 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             set(modified_instance_fields) - metadata_modified_fields
         )
         if non_metadata_modified_fields:
-            instance.search_document = prepare_user_search_document_value(instance)
-            modified_instance_fields.add("search_document")
+            update_user_search_vector(instance, save=False)
+            modified_instance_fields.add("search_vector")
 
         if modified_instance_fields:
             modified_instance_fields.add("updated_at")

@@ -70,7 +70,7 @@ def test_logged_customer_updates_language_code(user_api_client):
     assert data["user"]["languageCode"] == language_code
     user.refresh_from_db()
     assert user.language_code == language_code.lower()
-    assert user.search_document
+    assert user.search_vector
 
 
 def test_logged_customer_update_names(user_api_client):
@@ -128,7 +128,7 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
 
     assert user.default_billing_address.first_name == new_first_name
     assert user.default_shipping_address.first_name == new_first_name
-    assert user.search_document
+    assert user.search_vector
 
     assert user.default_billing_address.metadata == {"public": "public_value"}
     assert user.default_shipping_address.metadata == {"public": "public_value"}

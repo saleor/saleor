@@ -43,6 +43,17 @@ def test_get_oauth_session_dont_add_refresh_scope_when_disabled(openid_plugin):
     assert "offline_access" not in session.scope
 
 
+def test_get_oauth_session_dont_add_refresh_scope_when_enabled_and_configured_with_aws_cognito(
+    openid_plugin,
+):
+    plugin = openid_plugin(
+        enable_refresh_token=True,
+        json_web_key_set_url="https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_abcdefghi/.well-known/jwks.json",
+    )
+    session = plugin._get_oauth_session()
+    assert "offline_access" not in session.scope
+
+
 def test_external_authentication_url_returns_redirect_url(openid_plugin, settings, rf):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     authorize_path = "/authorize"
@@ -597,6 +608,90 @@ def test_external_obtain_access_tokens_with_saleor_staff(
 @patch("saleor.plugins.openid_connect.plugin.send_user_event")
 @patch("saleor.plugins.openid_connect.utils.cache.set")
 @patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_external_obtain_access_tokens_with_staff_user_domain_but_no_scope(
+    mocked_cache_get,
+    mocked_cache_set,
+    mock_send_user_event,
+    openid_plugin,
+    monkeypatch,
+    rf,
+    id_token,
+    id_payload,
+):
+    # given
+    mocked_jwt_validator = MagicMock()
+    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        Mock(return_value=mocked_jwt_validator),
+    )
+    plugin = openid_plugin(
+        use_oauth_scope_permissions=True, staff_user_domains="example.com"
+    )
+    oauth_payload = {
+        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
+        "refresh_token": "refresh",
+        "id_token": id_token,
+        "expires_in": 86400,
+        "token_type": "Bearer",
+        "expires_at": 1600851112,
+    }
+    mocked_fetch_token = Mock(return_value=oauth_payload)
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.client.OAuth2Client.fetch_token",
+        mocked_fetch_token,
+    )
+    redirect_uri = "http://localhost:3000/used-logged-in"
+    state = signing.dumps({"redirectUri": redirect_uri})
+    code = "oauth-code"
+
+    # when
+    tokens = plugin.external_obtain_access_tokens(
+        {"state": state, "code": code}, rf.request(), previous_value=None
+    )
+
+    # then
+    mocked_fetch_token.assert_called_once_with(
+        "https://saleor.io/oauth/token",
+        code=code,
+        redirect_uri=redirect_uri,
+    )
+
+    claims = get_parsed_id_token(
+        oauth_payload,
+        plugin.config.json_web_key_set_url,
+    )
+    user, _, _ = get_or_create_user_from_payload(
+        claims,
+        "https://saleor.io/oauth",
+    )
+    user.refresh_from_db()
+
+    assert user.is_staff is True
+
+    expected_tokens = create_tokens_from_oauth_payload(
+        oauth_payload, user, claims, permissions=[], owner=plugin.PLUGIN_ID
+    )
+
+    decoded_access_token = jwt_decode(tokens.token)
+    assert decoded_access_token["permissions"] == []
+    assert decoded_access_token["is_staff"] is True
+
+    assert tokens.token == expected_tokens["token"]
+    decoded_refresh_token = jwt_decode(tokens.refresh_token)
+    assert tokens.csrf_token == decoded_refresh_token["csrf_token"]
+    assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
+    mock_send_user_event.assert_called_once_with(user, True, True)
+
+
+@freeze_time("2019-03-18 12:00:00")
+@patch("saleor.plugins.openid_connect.plugin.send_user_event")
+@patch("saleor.plugins.openid_connect.utils.cache.set")
+@patch("saleor.plugins.openid_connect.utils.cache.get")
 @pytest.mark.vcr
 def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     mocked_cache_get,
@@ -720,7 +815,7 @@ def test_external_obtain_access_tokens_user_created(
     # then
     assert User.objects.count() == user_count + 1
     user = tokens.user
-    assert user.search_document
+    assert user.search_vector
     mocked_fetch_token.assert_called_once_with(
         "https://saleor.io/oauth/token",
         code=code,

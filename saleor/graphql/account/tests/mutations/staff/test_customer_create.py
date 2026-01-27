@@ -5,10 +5,6 @@ from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
 from ......account.models import Address, User
 from ......account.notifications import get_default_user_payload
-from ......account.search import (
-    generate_address_search_document_value,
-    generate_user_fields_search_document_value,
-)
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
@@ -166,10 +162,7 @@ def test_customer_create(
     assert data["user"]["defaultBillingAddress"]["metadata"] == metadata
 
     new_user = User.objects.get(email=email)
-    assert (
-        generate_user_fields_search_document_value(new_user) in new_user.search_document
-    )
-    assert generate_address_search_document_value(address) in new_user.search_document
+    assert new_user.search_vector
     params = urlencode({"email": new_user.email, "token": "token"})
     password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -289,10 +282,7 @@ def test_customer_create_as_app(
     assert data["user"]["defaultBillingAddress"]["metadata"] == metadata
 
     new_user = User.objects.get(email=email)
-    assert (
-        generate_user_fields_search_document_value(new_user) in new_user.search_document
-    )
-    assert generate_address_search_document_value(address) in new_user.search_document
+    assert new_user.search_vector
     params = urlencode({"email": new_user.email, "token": "token"})
     password_set_url = prepare_url(params, redirect_url)
     expected_payload = {

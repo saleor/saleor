@@ -8,7 +8,6 @@ from freezegun import freeze_time
 from ......account import events as account_events
 from ......account.models import User
 from ......account.notifications import get_default_user_payload
-from ......account.search import generate_user_fields_search_document_value
 from ......account.tasks import finish_creating_user
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
@@ -160,9 +159,7 @@ def test_customer_register(
     assert new_user.language_code == "pl"
     assert new_user.first_name == variables["input"]["firstName"]
     assert new_user.last_name == variables["input"]["lastName"]
-    assert new_user.search_document == generate_user_fields_search_document_value(
-        new_user
-    )
+    assert new_user.search_vector
     assert not data["errors"]
     assert mocked_notify.call_count == 1
     call_args = mocked_notify.call_args_list[0]
@@ -242,9 +239,7 @@ def test_customer_register_twice(
     assert new_user.language_code == "pl"
     assert new_user.first_name == variables["input"]["firstName"]
     assert new_user.last_name == variables["input"]["lastName"]
-    assert new_user.search_document == generate_user_fields_search_document_value(
-        new_user
-    )
+    assert new_user.search_vector
     assert not data["errors"]
     assert mocked_notify.call_count == 1
     call_args = mocked_notify.call_args_list[0]

@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from ....account import events as account_events
 from ....account import models
 from ....account.error_codes import AccountErrorCode
-from ....account.search import prepare_user_search_document_value
+from ....account.search import update_user_search_vector
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.utils import metadata_manager
@@ -103,8 +103,7 @@ class BaseAddressUpdate(DeprecatedModelMutation, I18nMixin):
 
         user = address.user_addresses.first()
         if user:
-            user.search_document = prepare_user_search_document_value(user)
-            user.save(update_fields=["search_document", "updated_at"])
+            update_user_search_vector(user)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.address_updated, address)
 
@@ -162,8 +161,7 @@ class BaseAddressDelete(ModelDeleteMutation):
             # an error.
             user.refresh_from_db()
 
-            user.search_document = prepare_user_search_document_value(user)
-            user.save(update_fields=["search_document", "updated_at"])
+            update_user_search_vector(user)
 
         response = cls.success_response(instance)
 

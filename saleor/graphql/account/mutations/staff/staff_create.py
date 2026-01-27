@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from .....account import models
 from .....account.error_codes import AccountErrorCode
 from .....account.notifications import send_set_password_notification
-from .....account.search import USER_SEARCH_FIELDS, prepare_user_search_document_value
+from .....account.search import USER_SEARCH_FIELDS, update_user_search_vector
 from .....core.exceptions import PermissionDenied
 from .....core.tokens import token_generator
 from .....core.tracing import traced_atomic_transaction
@@ -170,9 +170,7 @@ class StaffCreate(DeprecatedModelMutation):
         redirect_url=None,
     ):
         if any(field in cleaned_input for field in USER_SEARCH_FIELDS):
-            user.search_document = prepare_user_search_document_value(
-                user, attach_addresses_data=False
-            )
+            update_user_search_vector(user, attach_addresses_data=False, save=False)
         user.save()
         redirect_url = cleaned_input.get("redirect_url")
         if redirect_url and send_notification:

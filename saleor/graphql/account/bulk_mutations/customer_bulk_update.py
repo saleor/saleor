@@ -8,7 +8,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ....account import models
 from ....account.events import CustomerEvents
-from ....account.search import prepare_user_search_document_value
+from ....account.search import update_user_search_vector
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import metadata_manager
@@ -563,15 +563,15 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 customer.default_billing_address = customer.default_billing_address
                 customer.default_shipping_address = customer.default_shipping_address
 
-            search_document = prepare_user_search_document_value(customer)
-            customer.search_document = search_document
+            update_user_search_vector(customer, save=False)
 
         models.User.objects.bulk_update(
             customers_to_update,
             fields=[
                 "default_shipping_address",
                 "default_billing_address",
-                "search_document",
+                "search_vector",
+                "updated_at",
             ],
         )
 

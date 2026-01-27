@@ -1,0 +1,26 @@
+rules:
+  - id: celery-migration-task-missing-dedicated-queue
+    message: |
+      Data migration tasks must be routed to the dedicated celery queue.
+      Fix: add queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME to the @app.task decorator.
+      Example: @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME, ...)
+    metadata:
+      category: correctness
+      technology:
+        - celery
+    languages:
+      - python
+    severity: ERROR
+    paths:
+      include:
+        - "**/migrations/tasks/*.py"
+    patterns:
+      - pattern-either:
+        - pattern: |
+            @$CELERY.task(...)
+            def $FUNC(...):
+              ...
+      - pattern-not: |
+          @$CELERY.task(..., queue=django.conf.settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME, ...)
+          def $FUNC(...):
+            ...

@@ -16,7 +16,21 @@ jobs:
       contents: read
       deployments: write
     steps:
-      - uses: rlespinasse/github-slug-action@c33ff65466c58d57e4d796f88bb1ae0ff26ee453 # v5.2.0
+      - name: Generate GITHUB_HEAD_REF_SLUG_URL
+        id: slugify-branch-name
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string # by default results are JSON-encoded
+          script: |
+            // 1. Get the PRs' base branch name
+            const ref = context.payload.pull_request.head.ref
+
+            // 2. Slugify:
+            return slug = ref.toLowerCase()  // convert all letters to lowercase
+              .replace(/[^a-z0-9._]/g, '-')  // replace any character except [0-9, a-z, .,_] with dash
+              .replace(/^-+/, '')            // remove leading dash
+              .slice(0, 63)                  // trim length down (limit is up to 64 characters)
+              .replace(/-+$/, '');           // remove trailing dash
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
@@ -25,6 +39,7 @@ jobs:
           aws-region: ${{ vars.AWS_TESTENVS_REGION }}
 
       - name: Invoke deployment lambda
+        id: lambda
         uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -35,14 +50,45 @@ jobs:
           Payload: >-
             {
               "action": "${{ github.event.action }}",
-              "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
-              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_TESTENVS_REGION }}.amazonaws.com/saleor-testenvs:${{ env.GITHUB_HEAD_REF_SLUG_URL }}"
+              "label": "${{ steps.slugify-branch-name.outputs.result }}",
+              "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_TESTENVS_REGION }}.amazonaws.com/saleor-testenvs:${{ steps.slugify-branch-name.outputs.result }}"
             }
           LogType: Tail
+
+      - name: Print lambda outputs
+        if: ${{ always() && steps.lambda.conclusion != 'skipped' }}
+        env:
+          RESPONSE: ${{ steps.lambda.outputs.response }}
+          INVOCATION_STATUS_CODE: ${{ fromJSON(steps.lambda.outputs.response).StatusCode }}
+          LOG_RESULT_BASE64: ${{ fromJSON(steps.lambda.outputs.response).LogResult }}
+          FUNCTION_ERROR: ${{ fromJSON(steps.lambda.outputs.response).FunctionError }}
+          PAYLOAD: ${{ fromJSON(steps.lambda.outputs.response).Payload }}
+        run: |
+          # If there is no response (e.g. invoke step failed before calling Lambda), bail out gracefully
+          if [ -z "${RESPONSE}" ]; then
+            echo "No lambda response available (invoke step may have failed before receiving output)."
+            exit 0
+          fi
+
+          echo "Invocation HTTP Status Code:"
+          echo "${INVOCATION_STATUS_CODE:-null}"
+          echo "--------"
+
+          echo "Lambda runtime logs:"
+          echo "$LOG_RESULT_BASE64" | base64 --decode || true
+          echo "--------"
+
+          echo "FunctionError (If present, indicates that an error has occurred, with more information in Payload):"
+          echo "${FUNCTION_ERROR:-null}"
+          echo "--------"
+
+          echo "Payload (JSON returned by the function invocation, or error object):"
+          echo "${PAYLOAD:-null}"
+          echo "--------"
 
       - name: Mark deployment as deactivated
         uses: bobheadxi/deployments@648679e8e4915b27893bd7dbc35cb504dc915bc8 # v1.5.0
         with:
           step: deactivate-env
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ env.GITHUB_HEAD_REF_SLUG_URL }}
+          env: ${{ steps.slugify-branch-name.outputs.result }}

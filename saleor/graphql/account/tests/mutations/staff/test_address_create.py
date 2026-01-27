@@ -66,8 +66,7 @@ def test_create_address_mutation(
     assert data["user"]["id"] == user_id
 
     customer_user.refresh_from_db()
-    for field in ["city", "country"]:
-        assert variables["address"][field].lower() in customer_user.search_document
+    assert customer_user.search_vector
 
 
 @freeze_time("2022-05-12 12:00:00")
