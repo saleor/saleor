@@ -114,9 +114,11 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 recalculate_discount=False,
                 save=False,
             )
+            checkout.search_index_dirty = True
             checkout.save(
                 update_fields=change_address_updated_fields
                 + invalidate_prices_updated_fields
+                + ["search_index_dirty"]
             )
 
         call_checkout_info_event(

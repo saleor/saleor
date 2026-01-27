@@ -25,6 +25,7 @@ from .....payment.utils import (
     authorization_success_already_exists,
     create_failed_transaction_event,
     get_already_existing_event,
+    get_source_object,
     get_transaction_event_amount,
     invalidate_cache_for_stored_payment_methods_if_needed,
     process_order_or_checkout_with_transaction,
@@ -478,16 +479,9 @@ class TransactionEventReport(DeprecatedModelMutation):
 
         app_identifier = app_identifier or transaction.app_identifier
 
-        source_object: Checkout | order_models.Order | None = None
-        if transaction.checkout_id:
-            source_object = Checkout.objects.filter(pk=transaction.checkout_id).first()
-        if not source_object:
-            # Prevent race condition between TransactionEventReport and checkout completion
-            source_object = order_models.Order.objects.filter(
-                pk__in=payment_models.TransactionItem.objects.filter(
-                    pk=transaction.pk
-                ).values_list("order_id", flat=True)
-            ).first()
+        source_object: Checkout | order_models.Order | None = get_source_object(
+            transaction
+        )
 
         if app_identifier and source_object:
             invalidate_cache_for_stored_payment_methods_if_needed(

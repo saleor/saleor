@@ -37,7 +37,8 @@ def test_checkout_customer_attach(
 ):
     checkout = checkout_with_item
     checkout.email = "old@email.com"
-    checkout.save()
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty", "email"])
     assert checkout.user is None
     previous_last_change = checkout.last_change
 
@@ -57,6 +58,7 @@ def test_checkout_customer_attach(
     assert checkout.user == customer_user2
     assert checkout.email == customer_user2.email
     assert checkout.last_change != previous_last_change
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(

@@ -58,6 +58,9 @@ def test_checkout_lines_delete(
     checkout_with_items,
 ):
     checkout = checkout_with_items
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
+
     checkout_lines_count = checkout.lines.count()
     previous_last_change = checkout.last_change
     line = checkout.lines.first()
@@ -86,6 +89,7 @@ def test_checkout_lines_delete(
     )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(

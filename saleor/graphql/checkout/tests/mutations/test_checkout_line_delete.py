@@ -72,6 +72,8 @@ def test_checkout_line_delete(
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     assert line.quantity == 3
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
 
@@ -96,6 +98,7 @@ def test_checkout_line_delete(
     )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(

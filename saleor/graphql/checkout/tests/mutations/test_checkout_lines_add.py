@@ -113,6 +113,8 @@ def test_checkout_lines_add(
     assert calculate_checkout_quantity(lines) == 3
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     previous_last_change = checkout.last_change
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -143,6 +145,7 @@ def test_checkout_lines_add(
     )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(

@@ -49,6 +49,8 @@ def test_checkout_billing_address_update_by_id(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
     billing_address = graphql_address_data
@@ -65,6 +67,7 @@ def test_checkout_billing_address_update_by_id(
     checkout.refresh_from_db()
     assert_address_data(checkout.billing_address, billing_address)
     assert checkout.save_billing_address is True
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
@@ -150,6 +153,8 @@ def test_checkout_billing_address_update_by_id_without_street_address_2(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
 
@@ -169,6 +174,7 @@ def test_checkout_billing_address_update_by_id_without_street_address_2(
     checkout.refresh_from_db()
     assert_address_data(checkout.billing_address, billing_address)
     assert checkout.save_billing_address is True
+    assert checkout.search_index_dirty is True
 
 
 @mock.patch(
@@ -184,6 +190,8 @@ def test_checkout_billing_address_update(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
     previous_last_change = checkout.last_change
 
     query = """
@@ -217,6 +225,7 @@ def test_checkout_billing_address_update(
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
     assert checkout.save_billing_address is True
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
