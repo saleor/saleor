@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import graphene
 import pytest
 
 from ...payment.models import Payment, TransactionEvent, TransactionItem
@@ -304,10 +305,16 @@ def test_generate_checkout_payments_search_vector_value(checkout):
     result = generate_checkout_payments_search_vector_value(payments)
 
     # then
-    assert len(result) == 2
+    assert len(result) == 4
     search_vector_values = _extract_search_vector_values(result)
     assert psp_ref_1 in search_vector_values
+    assert (
+        str(graphene.Node.to_global_id("Payment", payment1.id)) in search_vector_values
+    )
     assert psp_ref_2 in search_vector_values
+    assert (
+        str(graphene.Node.to_global_id("Payment", payment2.id)) in search_vector_values
+    )
 
 
 def test_generate_checkout_payments_search_vector_value_respects_max_limit(checkout):
@@ -330,7 +337,7 @@ def test_generate_checkout_payments_search_vector_value_respects_max_limit(check
     result = generate_checkout_payments_search_vector_value(payments)
 
     # then
-    assert len(result) == MAX_INDEXED_PAYMENTS
+    assert len(result) == MAX_INDEXED_PAYMENTS * 2  # IDs + psp_references
 
 
 def test_generate_checkout_lines_search_vector_value_empty():
