@@ -79,13 +79,12 @@ jobs:
       id-token: write # needed for AWS/ECR login (not used, but required permission)
       packages: write # needed for GHCR
     with:
-      checkout-ref: "" # allows to automatically determine what to run based on the event
+      checkout-ref: "" # will automatically determine what to run based on the event
 
       enable-ghcr: true
       oci-full-repository: ghcr.io/${{ needs.prepare-variables.outputs.image_name }}
       tags: ${{ needs.prepare-variables.outputs.tags }}
       labels: ${{ needs.prepare-variables.outputs.labels }}
-      target: ""
 
       amd64-runner-image: ubuntu-24.04
       arm64-runner-image: ubuntu-24.04-arm
