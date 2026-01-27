@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from ...search_tasks import (
+    set_checkout_search_vector_values,
     set_order_search_document_values,
     set_product_search_document_values,
     set_user_search_document_values,
@@ -22,3 +23,7 @@ class Command(BaseCommand):
         # Update users
         self.stdout.write("Updating users")
         set_user_search_document_values.delay()
+
+        # Update checkouts
+        self.stdout.write("Updating checkouts")
+        set_checkout_search_vector_values.delay()
