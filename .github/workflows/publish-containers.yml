@@ -74,7 +74,8 @@ jobs:
     uses: saleor/saleor-internal-actions/.github/workflows/build-push-image-multi-platform.yaml@92c29aa0e4545de579b892b2ef9f2d6366c29c11 # v1.5.2
     permissions:
       contents: read
-      packages: write
+      id-token: write # needed for AWS/ECR login (not used, but required permission)
+      packages: write # needed for GHCR
     with:
       checkout-ref: "" # allows to automatically determine what to run based on the event
 
