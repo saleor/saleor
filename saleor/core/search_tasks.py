@@ -7,6 +7,8 @@ from django.db import transaction
 from ..account.models import User
 from ..account.search import generate_user_search_vector_value
 from ..celeryconf import app
+from ..checkout.models import Checkout
+from ..checkout.search.indexing import update_checkouts_search_vector
 from ..core.db.connection import allow_writer
 from ..order.models import Order
 from ..order.search import prepare_order_search_vector_value
@@ -21,6 +23,8 @@ task_logger = get_task_logger(__name__)
 
 ORDER_BATCH_SIZE = 100
 USER_BATCH_SIZE = 100
+# Results in update time ~0.3s
+CHECKOUT_BATCH_SIZE = 100
 
 BATCH_SIZE = 500
 # Based on local testing, 500 should be a good balance between performance
@@ -29,7 +33,7 @@ BATCH_SIZE = 500
 # and execution time of a single SQL statement.
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def set_user_search_document_values(updated_count: int = 0) -> None:
     users = list(
         User.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
@@ -58,7 +62,34 @@ def set_user_search_document_values(updated_count: int = 0) -> None:
     set_user_search_document_values.delay(updated_count)
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+def set_checkout_search_vector_values(updated_count: int = 0) -> None:
+    """Update search vector values for checkouts with dirty search index."""
+    checkouts = list(
+        Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(search_index_dirty=True)
+        .order_by("last_change")[:CHECKOUT_BATCH_SIZE]
+    )
+
+    if not checkouts:
+        task_logger.info("No checkouts to update.")
+        return
+
+    update_checkouts_search_vector(checkouts)
+    updated_count += len(checkouts)
+
+    task_logger.info("Updated %d checkouts", updated_count)
+
+    if len(checkouts) < CHECKOUT_BATCH_SIZE:
+        task_logger.info("Setting checkout search vector values finished.")
+        return
+
+    del checkouts
+
+    set_checkout_search_vector_values.delay(updated_count)
+
+
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def set_order_search_document_values(
     update_all: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_REPLICA_NAME,
@@ -119,7 +150,7 @@ def set_order_search_document_values(
     )
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def set_product_search_document_values(updated_count: int = 0) -> None:
     products = list(
         Product.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
