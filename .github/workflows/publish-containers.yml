@@ -73,7 +73,7 @@ jobs:
       id-token: write # needed for AWS/ECR login (not used, but required permission)
       packages: write # needed for GHCR
     with:
-      checkout-ref: "" # will automatically determine what to run based on the event
+      checkout-ref: ${{ inputs.ref }}
 
       enable-ghcr: true
       oci-full-repository: ghcr.io/${{ needs.prepare-variables.outputs.image_name }}
