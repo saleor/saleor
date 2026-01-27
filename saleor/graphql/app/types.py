@@ -4,6 +4,7 @@ import datetime
 import graphene
 
 from ...app import models
+from ...app.models import AppProblemType
 from ...app.types import (
     DEFAULT_APP_TARGET,
     DeprecatedAppExtensionHttpMethod,
@@ -53,6 +54,7 @@ from ..webhook.types import Webhook
 from .dataloaders import (
     AppByIdLoader,
     AppExtensionByAppIdLoader,
+    AppProblemsByAppIdLoader,
     AppTokensByAppIdLoader,
     ThumbnailByAppIdSizeAndFormatLoader,
     ThumbnailByAppInstallationIdSizeAndFormatLoader,
@@ -535,6 +537,42 @@ class AppToken(BaseObjectType):
         return root.token_last_4
 
 
+class AppProblemCircuitBreaker(BaseObjectType):
+    message = graphene.String(required=True)
+    created_at = DateTime(required=True)
+
+    class Meta:
+        description = "Problem indicating the app's circuit breaker has tripped."
+        doc_category = DOC_CATEGORY_APPS
+
+
+class AppProblemCustom(BaseObjectType):
+    message = graphene.String(required=True)
+    created_at = DateTime(required=True)
+    aggregate = graphene.String(
+        required=False,
+        description="Grouping key for this problem. Used to clear related problems.",
+    )
+
+    class Meta:
+        description = "Custom problem set by the app on itself."
+        doc_category = DOC_CATEGORY_APPS
+
+
+class AppProblem(graphene.Union):
+    class Meta:
+        types = (AppProblemCircuitBreaker, AppProblemCustom)
+        description = "Represents a problem associated with an app."
+
+    @classmethod
+    def resolve_type(cls, instance, info):
+        if instance.type == AppProblemType.CIRCUIT_BREAKER:
+            return AppProblemCircuitBreaker
+        if instance.type == AppProblemType.CUSTOM:
+            return AppProblemCustom
+        return super().resolve_type(instance, info)
+
+
 @federated_entity("id")
 class App(ModelObjectType[models.App]):
     id = graphene.GlobalID(required=True, description="The ID of the app.")
@@ -596,6 +634,11 @@ class App(ModelObjectType[models.App]):
         description="App's dashboard extensions.",
         required=True,
     )
+    problems = NonNullList(
+        AppProblem,
+        description="List of problems associated with this app.",
+        required=True,
+    )
     brand = graphene.Field(AppBrand, description="App's brand data.")
     breaker_state = CircuitBreakerStateEnum(
         description="Circuit breaker state, if open, sync webhooks operation is disrupted."
@@ -642,6 +685,10 @@ class App(ModelObjectType[models.App]):
     @staticmethod
     def resolve_extensions(root: models.App, info: ResolveInfo):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_problems(root: models.App, info: ResolveInfo):
+        return AppProblemsByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
     def __resolve_references(roots: list["App"], info: ResolveInfo):

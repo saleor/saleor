@@ -1,0 +1,52 @@
+import django.db.models.deletion
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ("app", "0037_app_extensions_loosen_mount"),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name="AppProblem",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("message", models.TextField()),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("circuit_breaker", "Circuit breaker"),
+                            ("custom", "Custom"),
+                        ],
+                        max_length=64,
+                    ),
+                ),
+                (
+                    "aggregate",
+                    models.CharField(blank=True, default="", max_length=256),
+                ),
+                (
+                    "app",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="problems",
+                        to="app.app",
+                    ),
+                ),
+            ],
+            options={
+                "ordering": ("-created_at",),
+            },
+        ),
+    ]

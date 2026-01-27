@@ -2872,6 +2872,9 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """App's dashboard extensions."""
   extensions: [AppExtension!]!
 
+  """List of problems associated with this app."""
+  problems: [AppProblem!]!
+
   """App's brand data."""
   brand: AppBrand
 
@@ -3054,6 +3057,24 @@ type AppExtension implements Node @doc(category: "Apps") {
 }
 
 scalar JSON
+
+"""Represents a problem associated with an app."""
+union AppProblem = AppProblemCircuitBreaker | AppProblemCustom
+
+"""Problem indicating the app's circuit breaker has tripped."""
+type AppProblemCircuitBreaker @doc(category: "Apps") {
+  message: String!
+  createdAt: DateTime!
+}
+
+"""Custom problem set by the app on itself."""
+type AppProblemCustom @doc(category: "Apps") {
+  message: String!
+  createdAt: DateTime!
+
+  """Grouping key for this problem. Used to clear related problems."""
+  aggregate: String
+}
 
 """Represents the app's brand data."""
 type AppBrand @doc(category: "Apps") {
@@ -19112,6 +19133,26 @@ type Mutation {
   ): AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: [])
 
   """
+  Add a custom problem to the calling app. 
+  
+  Requires one of the following permissions: AUTHENTICATED_APP.
+  """
+  appProblemCreate(
+    """Fields required to create an app problem."""
+    input: AppProblemCreateInput!
+  ): AppProblemCreate @doc(category: "Apps")
+
+  """
+  Clear custom problems from the calling app. 
+  
+  Requires one of the following permissions: AUTHENTICATED_APP.
+  """
+  appProblemClear(
+    """If provided, only clears custom problems with this aggregate value."""
+    aggregate: String
+  ): AppProblemClear @doc(category: "Apps")
+
+  """
   Re-enable sync webhooks for provided app. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends.
   
   Added in Saleor 3.21. 
@@ -29969,6 +30010,38 @@ type AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_S
   appErrors: [AppError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [AppError!]!
   app: App
+}
+
+"""
+Add a custom problem to the calling app. 
+
+Requires one of the following permissions: AUTHENTICATED_APP.
+"""
+type AppProblemCreate @doc(category: "Apps") {
+  """The app with the new problem."""
+  app: App
+  appErrors: [AppError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [AppError!]!
+}
+
+input AppProblemCreateInput {
+  """The problem message to display."""
+  message: String!
+
+  """Grouping key for this problem. Used to clear related problems."""
+  aggregate: String
+}
+
+"""
+Clear custom problems from the calling app. 
+
+Requires one of the following permissions: AUTHENTICATED_APP.
+"""
+type AppProblemClear @doc(category: "Apps") {
+  """The app whose problems were cleared."""
+  app: App
+  appErrors: [AppError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [AppError!]!
 }
 
 """

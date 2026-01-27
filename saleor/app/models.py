@@ -174,6 +174,26 @@ class AppExtension(models.Model):
     settings = models.JSONField(blank=True, default=dict, db_default={})
 
 
+class AppProblemType:
+    CIRCUIT_BREAKER = "circuit_breaker"
+    CUSTOM = "custom"
+    CHOICES = [
+        (CIRCUIT_BREAKER, "Circuit breaker"),
+        (CUSTOM, "Custom"),
+    ]
+
+
+class AppProblem(models.Model):
+    app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="problems")
+    created_at = models.DateTimeField(auto_now_add=True)
+    message = models.TextField()
+    type = models.CharField(max_length=64, choices=AppProblemType.CHOICES)
+    aggregate = models.CharField(max_length=256, blank=True, default="")
+
+    class Meta:
+        ordering = ("-created_at",)
+
+
 class AppInstallation(Job):
     uuid = models.UUIDField(unique=True, default=uuid4)
     app_name = models.CharField(max_length=60)
