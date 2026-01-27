@@ -85,7 +85,7 @@ jobs:
 
   notify:
     if: ${{ failure() }}
-    needs: build-push
+    needs: [prepare-variables, build-push]
     runs-on: ubuntu-24.04
 
     permissions:
