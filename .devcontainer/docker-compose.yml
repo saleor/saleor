@@ -8,6 +8,8 @@ services:
     env_file:
       - common.env
       - backend.env
+    ports:
+      - 8000:8000
     depends_on:
       - db
       - cache
@@ -23,7 +25,7 @@ services:
   db:
     image: library/postgres:15-alpine
     ports:
-      - 5432:5432
+      - 5435:5432
     restart: unless-stopped
     volumes:
       - saleor-db:/var/lib/postgresql/data
