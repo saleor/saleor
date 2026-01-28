@@ -1,5 +1,5 @@
 from ...shipping.models import ShippingMethod, ShippingMethodType
-from ..shipping_context import (
+from ..delivery_context import (
     get_all_shipping_methods_for_order,
     get_valid_shipping_methods_for_order,
 )

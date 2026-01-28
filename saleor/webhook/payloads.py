@@ -323,6 +323,8 @@ def generate_order_payload(
             "created": lambda f: f.created_at,
         },
     )
+    shipping_tax_rate = order.shipping_tax_rate or Decimal(0)
+    shipping_tax_rate = shipping_tax_rate.quantize(Decimal("0.0001"))
 
     extra_dict_data = {
         "id": graphene.Node.to_global_id("Order", order.id),
@@ -342,6 +344,7 @@ def generate_order_payload(
         "shipping_method": _generate_shipping_method_payload(
             order.shipping_method, order.channel
         ),
+        "shipping_tax_rate": shipping_tax_rate,
     }
     if with_meta:
         extra_dict_data["meta"] = generate_meta(
@@ -1242,7 +1245,7 @@ def generate_translation_payload(
     return json.dumps(translation_data)
 
 
-def _generate_payload_for_shipping_method(method: ShippingMethodData):
+def generate_payload_for_shipping_method(method: ShippingMethodData):
     payload = {
         "id": method.graphql_id,
         "price": method.price.amount,
@@ -1258,23 +1261,6 @@ def _generate_payload_for_shipping_method(method: ShippingMethodData):
 
 @allow_writer()
 @traced_payload_generator
-def generate_excluded_shipping_methods_for_order_payload(
-    order: "Order",
-    available_shipping_methods: list[ShippingMethodData],
-):
-    order_data = json.loads(generate_order_payload(order))[0]
-    payload = {
-        "order": order_data,
-        "shipping_methods": [
-            _generate_payload_for_shipping_method(shipping_method)
-            for shipping_method in available_shipping_methods
-        ],
-    }
-    return json.dumps(payload, cls=CustomJsonEncoder)
-
-
-@allow_writer()
-@traced_payload_generator
 def generate_excluded_shipping_methods_for_checkout_payload(
     checkout: "Checkout",
     available_shipping_methods: list[ShippingMethodData],
@@ -1283,7 +1269,7 @@ def generate_excluded_shipping_methods_for_checkout_payload(
     payload = {
         "checkout": checkout_data,
         "shipping_methods": [
-            _generate_payload_for_shipping_method(shipping_method)
+            generate_payload_for_shipping_method(shipping_method)
             for shipping_method in available_shipping_methods
         ],
     }
