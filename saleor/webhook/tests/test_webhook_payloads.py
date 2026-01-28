@@ -43,7 +43,6 @@ from ..payloads import (
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
-    generate_excluded_shipping_methods_for_order_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -2545,37 +2544,6 @@ def test_generate_checkout_payload(
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
         "warehouse_address": ANY,
     }
-
-
-@patch("saleor.order.calculations.fetch_order_prices_if_expired")
-def test_generate_excluded_shipping_methods_for_order(mocked_fetch, order):
-    shipping_method = ShippingMethodData(
-        id="123",
-        price=Money(Decimal("10.59"), "USD"),
-        name="shipping",
-        maximum_order_weight=Weight(kg=10),
-        minimum_order_weight=Weight(g=1),
-        maximum_delivery_days=10,
-        minimum_delivery_days=2,
-    )
-    response = json.loads(
-        generate_excluded_shipping_methods_for_order_payload(order, [shipping_method])
-    )
-
-    assert "order" in response
-    assert response["shipping_methods"] == [
-        {
-            "id": graphene.Node.to_global_id("ShippingMethod", "123"),
-            "price": "10.59",
-            "currency": "USD",
-            "name": "shipping",
-            "maximum_order_weight": "10.0:kg",
-            "minimum_order_weight": "1.0:g",
-            "maximum_delivery_days": 10,
-            "minimum_delivery_days": 2,
-        }
-    ]
-    mocked_fetch.assert_not_called()
 
 
 def test_generate_excluded_shipping_methods_for_checkout(checkout):
