@@ -1,5 +1,6 @@
 import logging
 from decimal import Decimal
+from typing import cast
 from uuid import UUID
 
 import graphene
@@ -28,12 +29,14 @@ from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
 from ...order import OrderOrigin, OrderStatus, calculations, models
 from ...order.calculations import fetch_order_prices_if_expired
-from ...order.models import FulfillmentStatus
-from ...order.utils import (
+from ...order.delivery_context import (
     get_external_shipping_id,
-    get_order_country,
     get_valid_collection_points_for_order,
     get_valid_shipping_methods_for_order,
+)
+from ...order.models import FulfillmentStatus
+from ...order.utils import (
+    get_order_country,
 )
 from ...payment import ChargeStatus, TransactionKind
 from ...payment.dataloaders import PaymentsByOrderIdLoader
@@ -1982,6 +1985,8 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     @staticmethod
     @traced_resolver
     def resolve_discount(root: SyncWebhookControlContext[models.Order], info):
+        order = root.node
+
         def return_voucher_discount(discounts) -> Money | None:
             if not discounts:
                 return None
@@ -1992,15 +1997,24 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                     )
             return None
 
-        return (
-            OrderDiscountsByOrderIDLoader(info.context)
-            .load(root.node.id)
-            .then(return_voucher_discount)
-        )
+        def with_manager(manager):
+            with allow_writer_in_context(info.context):
+                fetch_order_prices_if_expired(
+                    order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+            return (
+                OrderDiscountsByOrderIDLoader(info.context)
+                .load(order.id)
+                .then(return_voucher_discount)
+            )
+
+        return get_plugin_manager_promise(info.context).then(with_manager)
 
     @staticmethod
     @traced_resolver
     def resolve_discount_name(root: SyncWebhookControlContext[models.Order], info):
+        order = root.node
+
         def return_voucher_name(discounts) -> Money | None:
             if not discounts:
                 return None
@@ -2009,17 +2023,26 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                     return discount.name
             return None
 
-        return (
-            OrderDiscountsByOrderIDLoader(info.context)
-            .load(root.node.id)
-            .then(return_voucher_name)
-        )
+        def with_manager(manager):
+            with allow_writer_in_context(info.context):
+                fetch_order_prices_if_expired(
+                    order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+            return (
+                OrderDiscountsByOrderIDLoader(info.context)
+                .load(order.id)
+                .then(return_voucher_name)
+            )
+
+        return get_plugin_manager_promise(info.context).then(with_manager)
 
     @staticmethod
     @traced_resolver
     def resolve_translated_discount_name(
         root: SyncWebhookControlContext[models.Order], info
     ):
+        order = root.node
+
         def return_voucher_translated_name(discounts) -> Money | None:
             if not discounts:
                 return None
@@ -2028,11 +2051,18 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                     return discount.translated_name
             return None
 
-        return (
-            OrderDiscountsByOrderIDLoader(info.context)
-            .load(root.node.id)
-            .then(return_voucher_translated_name)
-        )
+        def with_manager(manager):
+            with allow_writer_in_context(info.context):
+                fetch_order_prices_if_expired(
+                    order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+            return (
+                OrderDiscountsByOrderIDLoader(info.context)
+                .load(order.id)
+                .then(return_voucher_translated_name)
+            )
+
+        return get_plugin_manager_promise(info.context).then(with_manager)
 
     @staticmethod
     @traced_resolver
@@ -2114,6 +2144,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         def _resolve_undiscounted_shipping_price(data):
             lines, manager = data
             database_connection_name = get_database_connection_name(info.context)
+
             return calculations.order_undiscounted_shipping(
                 order,
                 manager,
@@ -2502,26 +2533,24 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         if order.status == OrderStatus.DRAFT:
 
             @allow_writer_in_context(info.context)
-            def _validate_draft_order(data):
-                lines, manager = data
+            def _validate_draft_order(lines):
                 country = get_order_country(order)
                 database_connection_name = get_database_connection_name(info.context)
-                try:
+                return (
                     validate_draft_order(
                         order=order,
                         lines=lines,
                         country=country,
-                        manager=manager,
+                        requestor=get_user_or_app_from_context(info.context),
                         database_connection_name=database_connection_name,
                         allow_sync_webhooks=root.allow_sync_webhooks,
                     )
-                except ValidationError:
-                    return False
-                return True
+                    .then(lambda _: True)
+                    .catch(lambda _: False)
+                )
 
-            lines = OrderLinesByOrderIdLoader(info.context).load(order.id)
-            manager = get_plugin_manager_promise(info.context)
-            return Promise.all([lines, manager]).then(_validate_draft_order)
+            lines_dataloader = OrderLinesByOrderIdLoader(info.context).load(order.id)
+            return lines_dataloader.then(_validate_draft_order)
         return True
 
     @staticmethod
@@ -2683,8 +2712,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     ):
         order = root.node
 
-        def with_channel(data):
-            channel, manager = data
+        def with_channel(channel):
             database_connection_name = get_database_connection_name(info.context)
 
             @allow_writer_in_context(info.context)
@@ -2692,7 +2720,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 return get_valid_shipping_methods_for_order(
                     order,
                     channel_listings,
-                    manager,
+                    requestor=get_user_or_app_from_context(info.context),
                     database_connection_name=database_connection_name,
                     allow_sync_webhooks=root.allow_sync_webhooks,
                 )
@@ -2703,10 +2731,8 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 .then(with_listings)
             )
 
-        channel = ChannelByIdLoader(info.context).load(order.channel_id)
-        manager = get_plugin_manager_promise(info.context)
-
-        return Promise.all([channel, manager]).then(with_channel)
+        channel_loader = ChannelByIdLoader(info.context).load(order.channel_id)
+        return channel_loader.then(with_channel)
 
     @classmethod
     @traced_resolver
@@ -2804,26 +2830,28 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         if order.status == OrderStatus.DRAFT:
 
             @allow_writer_in_context(info.context)
-            def _validate_order(data):
-                lines, manager = data
+            def _validate_order(lines):
                 country = get_order_country(order)
                 database_connection_name = get_database_connection_name(info.context)
-                try:
+                return (
                     validate_draft_order(
                         order=order,
                         lines=lines,
                         country=country,
-                        manager=manager,
+                        requestor=get_user_or_app_from_context(info.context),
                         database_connection_name=database_connection_name,
                         allow_sync_webhooks=root.allow_sync_webhooks,
                     )
-                except ValidationError as e:
-                    return validation_error_to_error_type(e, OrderError)
-                return []
+                    .then(lambda _: [])
+                    .catch(
+                        lambda e: validation_error_to_error_type(
+                            cast(ValidationError, e), OrderError
+                        )
+                    )
+                )
 
-            lines = OrderLinesByOrderIdLoader(info.context).load(order.id)
-            manager = get_plugin_manager_promise(info.context)
-            return Promise.all([lines, manager]).then(_validate_order)
+            lines_dataloader = OrderLinesByOrderIdLoader(info.context).load(order.id)
+            return lines_dataloader.then(_validate_order)
 
         return []
 

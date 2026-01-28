@@ -1,8 +1,9 @@
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, Union
 
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from promise import Promise
 
 from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import zero_money, zero_taxed_money
@@ -16,7 +17,6 @@ from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
 from ....payment import PaymentError
 from ....payment import models as payment_models
-from ....plugins.manager import PluginsManager
 from ....product import models as product_models
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -24,6 +24,10 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ...meta.mutations.utils import update_metadata, update_private_metadata
 from ..utils import get_shipping_method_availability_error
+
+if TYPE_CHECKING:
+    from ....account.models import User
+    from ....app.models import App
 
 DRAFT_ORDER_UPDATE_FIELDS = {
     "base_shipping_price_amount",
@@ -193,40 +197,59 @@ class ShippingMethodUpdateMixin:
         cls,
         order: models.Order,
         method: ShippingMethod,
-        manager: "PluginsManager",
+        requestor: Union["App", "User", None],
         update_shipping_discount: bool,
-    ):
+    ) -> Promise[None]:
         shipping_channel_listing = cls.validate_shipping_channel_listing(method, order)
+
+        promised_clean_shipping = Promise.resolve(None)
         if order.status != OrderStatus.DRAFT:
             shipping_method_data = convert_to_shipping_method_data(
                 method,
                 shipping_channel_listing,
             )
-            clean_order_update_shipping(order, shipping_method_data, manager)
-        cls.update_shipping_method(order, method)
-        cls.assign_shipping_price(order, shipping_channel_listing)
-        # for new instance the shipping discount is created later
-        if update_shipping_discount:
-            cls.update_shipping_discount(order)
+            promised_clean_shipping = clean_order_update_shipping(
+                order, shipping_method_data, requestor
+            )
+
+        def update_shipping(_):
+            cls.update_shipping_method(order, method)
+            cls.assign_shipping_price(order, shipping_channel_listing)
+            # for new instance the shipping discount is created later
+            if update_shipping_discount:
+                cls.update_shipping_discount(order)
+
+        return promised_clean_shipping.then(update_shipping)
 
 
 def clean_order_update_shipping(
-    order, method: ShippingMethodData, manager: "PluginsManager"
-):
-    if not order.shipping_address:
-        raise ValidationError(
-            {
-                "order": ValidationError(
-                    "Cannot choose a shipping method for an order without "
-                    "the shipping address.",
-                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value,
-                )
-            }
+    order,
+    method: ShippingMethodData,
+    requestor: Union["App", "User", None],
+) -> Promise[None]:
+    def check_shipping(_):
+        if not order.shipping_address_id:
+            raise ValidationError(
+                {
+                    "order": ValidationError(
+                        "Cannot choose a shipping method for an order without "
+                        "the shipping address.",
+                        code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value,
+                    )
+                }
+            )
+
+        promised_availability_error = get_shipping_method_availability_error(
+            order, method, requestor
         )
 
-    error = get_shipping_method_availability_error(order, method, manager)
-    if error:
-        raise ValidationError({"shipping_method": error})
+        def handle_availability_error(error):
+            if error:
+                raise ValidationError({"shipping_method": error})
+
+        return promised_availability_error.then(handle_availability_error)
+
+    return Promise.resolve(None).then(check_shipping)
 
 
 def call_event_by_order_status(order, manager):

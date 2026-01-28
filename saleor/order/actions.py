@@ -53,6 +53,7 @@ from . import (
     utils,
 )
 from .calculations import fetch_order_prices_if_expired
+from .delivery_context import get_valid_shipping_methods_for_order
 from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
@@ -71,7 +72,6 @@ from .notifications import (
 )
 from .utils import (
     clean_order_line_quantities,
-    get_valid_shipping_methods_for_order,
     order_line_needs_automatic_fulfillment,
     restock_fulfillment_lines,
     update_order_authorize_data,
@@ -178,12 +178,15 @@ def _trigger_order_sync_webhooks(
         shipping_listings = ShippingMethodChannelListing.objects.filter(
             channel_id=order.channel_id
         )
+        # FIXME: Calling .get() as we need to have all webhooks on Promise
+        # to be able to use them here. We can drop this after migrating
+        # fetch_order_prices_if_expired to use Promise as well.
         get_valid_shipping_methods_for_order(
             order,
             shipping_listings,
-            manager,
+            manager.requestor_getter,
             database_connection_name=database_connection_name,
-        )
+        ).get()
 
 
 def _get_extra_for_order_logger(order: "Order") -> dict:

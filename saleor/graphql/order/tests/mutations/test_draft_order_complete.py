@@ -878,8 +878,8 @@ def test_draft_order_complete_builtin_shipping_method_metadata_denormalization(
         shipping_method.metadata = {}
         shipping_method.save()
 
-    with race_condition.RunAfter(
-        "saleor.graphql.order.mutations.draft_order_complete.get_app_promise",
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.draft_order_complete.OrderInfo",
         clear_shipping_metadata,
     ):
         response = staff_api_client.post_graphql(

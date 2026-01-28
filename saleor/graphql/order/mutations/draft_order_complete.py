@@ -1,5 +1,3 @@
-from typing import cast
-
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -121,7 +119,7 @@ class DraftOrderComplete(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
         user = info.context.user
-        user = cast(User, user)
+        app = get_app_promise(info.context).get()
 
         manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(
@@ -143,7 +141,9 @@ class DraftOrderComplete(BaseMutation):
         cls.validate_order(order)
 
         country = get_order_country(order)
-        validate_draft_order(order, order.lines.all(), country, manager)
+        validate_draft_order(
+            order, order.lines.all(), country, requestor=app or user
+        ).get()
         with traced_atomic_transaction():
             update_fields = [
                 "status",
@@ -237,7 +237,7 @@ class DraftOrderComplete(BaseMutation):
                 payment=order.get_last_payment(),
                 lines_data=order_lines_info,
             )
-            app = get_app_promise(info.context).get()
+
             transaction.on_commit(
                 lambda: store_user_addresses_from_draft_order(
                     order=order,

@@ -35,6 +35,7 @@ from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.utils import get_shipping_model_by_object_id
 from ...site.dataloaders import get_site_promise
+from ...utils import get_user_or_app_from_context
 from ..types import Order
 from . import draft_order_cleaner
 from .draft_order_create import DraftOrderInput
@@ -359,7 +360,7 @@ class DraftOrderUpdate(
             release_voucher_code_usage(voucher_code, old_voucher, user_email=None)
 
     @classmethod
-    def handle_shipping(cls, cleaned_input, instance: models.Order, manager):
+    def handle_shipping(cls, cleaned_input, instance: models.Order, info):
         if "shipping_method" not in cleaned_input:
             return
 
@@ -368,8 +369,11 @@ class DraftOrderUpdate(
             ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
         else:
             ShippingMethodUpdateMixin.process_shipping_method(
-                instance, method, manager, update_shipping_discount=True
-            )
+                instance,
+                method,
+                requestor=get_user_or_app_from_context(info.context),
+                update_shipping_discount=True,
+            ).get()
 
     @classmethod
     def handle_metadata(cls, instance: models.Order, cleaned_input):
@@ -420,7 +424,7 @@ class DraftOrderUpdate(
         cls.clean_instance(info, instance)
 
         manager = get_plugin_manager_promise(info.context).get()
-        cls.handle_shipping(cleaned_input, instance, manager)
+        cls.handle_shipping(cleaned_input, instance, info)
         cls.handle_order_voucher(cleaned_input, instance, old_voucher, old_voucher_code)
 
         order_modified, metadata_modified = cls._save(

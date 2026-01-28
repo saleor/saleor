@@ -65,7 +65,7 @@ def fetch_order_prices_if_expired(
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     allow_sync_webhooks: bool = True,
-) -> tuple[Order, Iterable[OrderLine] | None]:
+) -> tuple[Order, Iterable[OrderLine]]:
     """Fetch order prices with taxes.
 
     First applies order level discounts, then calculates taxes.
@@ -74,15 +74,14 @@ def fetch_order_prices_if_expired(
     or if order.should_refresh_prices is True.
     """
     if order.status not in ORDER_EDITABLE_STATUS:
-        return order, lines
+        return order, lines or []
 
     expired_line_ids = get_expired_line_ids(order, lines)
     if not force_update and not order.should_refresh_prices and not expired_line_ids:
-        return order, lines
-
+        return order, lines or []
     tax_strategy = get_tax_calculation_strategy_for_order(order)
     if tax_strategy == TaxCalculationStrategy.TAX_APP and not allow_sync_webhooks:
-        return order, lines
+        return order, lines or []
 
     if expired_line_ids:
         # handle line base price expiration
