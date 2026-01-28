@@ -314,7 +314,7 @@ def test_query_page_types_for_federation(api_client, page_type):
         ],
     }
     query = """
-      query GetPageTypeInFederation($representations: [_Any]) {
+      query GetPageTypeInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on PageType {
