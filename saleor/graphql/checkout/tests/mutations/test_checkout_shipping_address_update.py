@@ -1364,3 +1364,39 @@ def test_checkout_shipping_address_update_when_switching_from_cc(
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.shipping_address
+
+
+def test_checkout_shipping_address_update_with_kosovo_address(
+    user_api_client,
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+
+    shipping_address = {
+        "firstName": "John",
+        "lastName": "Doe",
+        "streetAddress1": "Rr. Nënë Tereza",
+        "city": "Pristina",
+        "postalCode": "10000",
+        "country": "XK",
+    }
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": shipping_address,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.shipping_address
+    assert checkout.shipping_address.country.code == shipping_address["country"]
+    assert checkout.shipping_address.city == shipping_address["city"].upper()
+    assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
