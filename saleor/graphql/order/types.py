@@ -22,7 +22,9 @@ from ...graphql.core.context import (
     get_database_connection_name,
 )
 from ...graphql.core.federation.entities import federated_entity
-from ...graphql.core.federation.resolvers import resolve_federation_references
+from ...graphql.core.federation.resolvers import (
+    resolve_federation_references,
+)
 from ...graphql.order.resolvers import resolve_orders
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader

@@ -162,7 +162,7 @@ def test_page_types_for_federation_query_count(
     )
 
     query = """
-        query GetAppInFederation($representations: [_Any]) {
+        query GetAppInFederation($representations: [_Any!]!) {
             _entities(representations: $representations) {
                 __typename
                 ... on PageType {

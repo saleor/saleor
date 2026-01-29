@@ -254,7 +254,7 @@ def test_query_collection_for_federation(api_client, published_collection, chann
         ],
     }
     query = """
-      query GetCollectionInFederation($representations: [_Any]) {
+      query GetCollectionInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on Collection {

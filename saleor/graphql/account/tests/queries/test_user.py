@@ -1055,7 +1055,7 @@ def test_user_with_cancelled_fulfillments(
 
 
 USER_FEDERATION_QUERY = """
-  query GetUserInFederation($representations: [_Any]) {
+  query GetUserInFederation($representations: [_Any!]!) {
     _entities(representations: $representations) {
       __typename
       ... on User {

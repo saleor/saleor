@@ -659,7 +659,7 @@ def test_fetch_variant_without_sku_anonymous(api_client, product, variant, chann
 
 
 QUERY_PRODUCT_VARIANT_IN_FEDERATION = """
-query GetProductVariantInFederation($representations: [_Any]) {
+query GetProductVariantInFederation($representations: [_Any!]!) {
   _entities(representations: $representations) {
     __typename
     ... on ProductVariant {

@@ -92,7 +92,7 @@ def test_address_query_with_invalid_object_type(
 
 
 ADDRESS_FEDERATION_QUERY = """
-  query GetUserInFederation($representations: [_Any]) {
+  query GetUserInFederation($representations: [_Any!]!) {
     _entities(representations: $representations) {
       __typename
       ... on Address {

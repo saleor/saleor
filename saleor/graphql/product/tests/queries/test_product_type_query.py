@@ -579,7 +579,7 @@ def test_query_product_type_for_federation(api_client, product, channel_USD):
         ],
     }
     query = """
-      query GetProductTypeInFederation($representations: [_Any]) {
+      query GetProductTypeInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on ProductType {

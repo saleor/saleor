@@ -377,7 +377,7 @@ def test_users_for_federation_query_count(
     count_queries,
 ):
     query = """
-        query GetUserInFederation($representations: [_Any]) {
+        query GetUserInFederation($representations: [_Any!]!) {
             _entities(representations: $representations) {
                 __typename
                 ... on User {
@@ -460,7 +460,7 @@ def test_addresses_for_federation_query_count(
     customer_user2.addresses.add(address2)
 
     query = """
-        query GetAddressInFederation($representations: [_Any]) {
+        query GetAddressInFederation($representations: [_Any!]!) {
             _entities(representations: $representations) {
                 __typename
                 ... on Address {
