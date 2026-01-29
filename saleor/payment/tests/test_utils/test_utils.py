@@ -318,6 +318,77 @@ def test_create_transaction_event_from_request_and_webhook_response_with_psp_ref
     assert TransactionEvent.objects.count() == 1
 
 
+def test_create_transaction_event_with_psp_reference_checkout_search_index_dirty_updated(
+    transaction_item_generator,
+    checkout,
+    app,
+):
+    # given
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+    expected_psp_reference = "psp:122:222"
+    response_data = {"pspReference": expected_psp_reference}
+
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    request_event.refresh_from_db()
+    assert request_event.psp_reference == expected_psp_reference
+    assert request_event.include_in_calculations is True
+    assert TransactionEvent.objects.count() == 1
+    checkout.refresh_from_db()
+    assert checkout.search_index_dirty is True
+
+
+def test_create_transaction_event_with_missing_psp_reference_checkout_search_index_dirty_not_updated(
+    transaction_item_generator,
+    checkout,
+    app,
+):
+    # given
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    amount = Decimal(11.00)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
+
+    response_data = {
+        "amount": amount,
+        "result": TransactionEventType.CHARGE_FAILURE.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    request_event.refresh_from_db()
+    assert request_event.psp_reference is None
+    assert request_event.include_in_calculations is False
+    assert TransactionEvent.objects.count() == 2
+    checkout.refresh_from_db()
+    assert checkout.search_index_dirty is False
+
+
 @pytest.mark.parametrize(
     ("event_type", "result_event_type"),
     [

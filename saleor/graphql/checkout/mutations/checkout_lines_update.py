@@ -230,6 +230,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             checkout_id=checkout_id,
             token=token,
             id=id,
+            lines_update=True,
         )
 
     @classmethod

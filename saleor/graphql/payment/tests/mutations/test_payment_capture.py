@@ -225,3 +225,36 @@ def test_payment_capture_gateway_dummy_credit_card_error(
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.CAPTURE
     assert not txn.is_success
+
+
+def test_payment_capture_marks_checkout_search_index_dirty(
+    staff_api_client,
+    permission_group_manage_orders,
+    payment_txn_preauth,
+    checkout_with_item,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    payment = payment_txn_preauth
+    payment.checkout = checkout_with_item
+    payment.order = None
+    payment.save(update_fields=["checkout", "order"])
+
+    checkout_with_item.search_index_dirty = False
+    checkout_with_item.save(update_fields=["search_index_dirty"])
+
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    variables = {"paymentId": payment_id, "amount": str(payment.total)}
+
+    # when
+    response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["paymentCapture"]
+    assert not data["errors"]
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    checkout_with_item.refresh_from_db()
+    assert checkout_with_item.search_index_dirty is True

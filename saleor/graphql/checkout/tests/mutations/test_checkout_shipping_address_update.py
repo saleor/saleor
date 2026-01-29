@@ -115,6 +115,8 @@ def test_checkout_shipping_address_with_metadata_update(
     checkout = checkout_with_item
     assert checkout.shipping_address is None
     previous_last_change = checkout.last_change
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     shipping_address = graphql_address_data
     variables = {
@@ -139,6 +141,7 @@ def test_checkout_shipping_address_with_metadata_update(
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
     assert checkout.save_shipping_address is True
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
@@ -175,6 +178,9 @@ def test_checkout_shipping_address_when_variant_without_listing(
         channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
     ).delete()
 
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
+
     assert checkout.shipping_address is None
     previous_last_change = checkout.last_change
 
@@ -204,6 +210,7 @@ def test_checkout_shipping_address_when_variant_without_listing(
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
     assert checkout.save_shipping_address is True
+    assert checkout.search_index_dirty is True
 
 
 @mock.patch(
@@ -255,6 +262,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     assert checkout.country == shipping_address["country"]
     assert checkout.last_change != previous_last_change
     assert checkout.save_shipping_address is True
+    assert checkout.search_index_dirty is True
 
 
 @mock.patch(

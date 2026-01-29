@@ -39,7 +39,8 @@ def test_anonymous_checkout_email_update(user_api_client, checkout_with_item):
     checkout = checkout_with_item
     assert checkout.user is None
     checkout.email = None
-    checkout.save(update_fields=["email"])
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["email", "search_index_dirty"])
     previous_last_change = checkout.last_change
 
     email = "test@example.com"
@@ -56,6 +57,7 @@ def test_anonymous_checkout_email_update(user_api_client, checkout_with_item):
     checkout.refresh_from_db()
     assert checkout.email == email
     assert checkout.last_change != previous_last_change
+    assert checkout.search_index_dirty is True
 
 
 def test_authenticated_checkout_email_update(user_api_client, checkout_with_item):
@@ -64,7 +66,8 @@ def test_authenticated_checkout_email_update(user_api_client, checkout_with_item
     checkout = checkout_with_item
     checkout.user = user_api_client.user
     assert checkout.email != expected_email
-    checkout.save(update_fields=["email"])
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["email", "search_index_dirty"])
     previous_last_change = checkout.last_change
 
     variables = {"id": to_global_id_or_none(checkout), "email": expected_email}
@@ -81,6 +84,7 @@ def test_authenticated_checkout_email_update(user_api_client, checkout_with_item
     checkout.refresh_from_db()
     assert checkout.email == expected_email
     assert checkout.last_change != previous_last_change
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
