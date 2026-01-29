@@ -4,6 +4,7 @@ from ....app.models import AppProblem, AppProblemSeverity, AppProblemType
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
@@ -34,7 +35,7 @@ class AppProblemCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Add a custom problem to the calling app."
+        description = "Add a custom problem to the calling app." + ADDED_IN_322
         doc_category = DOC_CATEGORY_APPS
         permissions = (AuthorizationFilters.AUTHENTICATED_APP,)
         error_type_class = AppError

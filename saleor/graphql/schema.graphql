@@ -2872,7 +2872,11 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """App's dashboard extensions."""
   extensions: [AppExtension!]!
 
-  """List of problems associated with this app."""
+  """
+  List of problems associated with this app.
+  
+  Added in Saleor 3.22.
+  """
   problems: [AppProblem!]!
 
   """App's brand data."""
@@ -19152,7 +19156,9 @@ type Mutation {
   ): AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: [])
 
   """
-  Add a custom problem to the calling app. 
+  Add a custom problem to the calling app.
+  
+  Added in Saleor 3.22. 
   
   Requires one of the following permissions: AUTHENTICATED_APP.
   """
@@ -19162,7 +19168,9 @@ type Mutation {
   ): AppProblemCreate @doc(category: "Apps")
 
   """
-  Clear custom problems from the calling app. 
+  Clear custom problems from the calling app.
+  
+  Added in Saleor 3.22. 
   
   Requires one of the following permissions: AUTHENTICATED_APP.
   """
@@ -30032,7 +30040,9 @@ type AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_S
 }
 
 """
-Add a custom problem to the calling app. 
+Add a custom problem to the calling app.
+
+Added in Saleor 3.22. 
 
 Requires one of the following permissions: AUTHENTICATED_APP.
 """
@@ -30055,7 +30065,9 @@ input AppProblemCreateInput {
 }
 
 """
-Clear custom problems from the calling app. 
+Clear custom problems from the calling app.
+
+Added in Saleor 3.22. 
 
 Requires one of the following permissions: AUTHENTICATED_APP.
 """

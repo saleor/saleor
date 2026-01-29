@@ -645,7 +645,7 @@ class App(ModelObjectType[models.App]):
     )
     problems = NonNullList(
         AppProblem,
-        description="List of problems associated with this app.",
+        description="List of problems associated with this app." + ADDED_IN_322,
         required=True,
     )
     brand = graphene.Field(AppBrand, description="App's brand data.")
