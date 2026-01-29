@@ -1,12 +1,13 @@
 import graphene
 
-from ....app.models import AppProblem, AppProblemType
+from ....app.models import AppProblem, AppProblemSeverity, AppProblemType
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
+from ..enums import AppProblemSeverityEnum
 from ..types import App
 
 
@@ -17,6 +18,10 @@ class AppProblemCreateInput(graphene.InputObjectType):
     aggregate = graphene.String(
         required=False,
         description="Grouping key for this problem. Used to clear related problems.",
+    )
+    severity = AppProblemSeverityEnum(
+        required=False,
+        description="Severity of the problem. Defaults to ERROR.",
     )
 
 
@@ -41,10 +46,12 @@ class AppProblemCreate(BaseMutation):
         if not app:
             raise PermissionDenied(permissions=[AuthorizationFilters.AUTHENTICATED_APP])
         input_data = data["input"]
+        severity = input_data.get("severity", AppProblemSeverity.ERROR)
         AppProblem.objects.create(
             app=app,
             type=AppProblemType.CUSTOM,
             message=input_data["message"],
             aggregate=input_data.get("aggregate", ""),
+            severity=severity,
         )
         return AppProblemCreate(app=app)

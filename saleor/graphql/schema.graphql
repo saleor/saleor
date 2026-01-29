@@ -3065,6 +3065,22 @@ union AppProblem = AppProblemCircuitBreaker | AppProblemCustom
 type AppProblemCircuitBreaker @doc(category: "Apps") {
   message: String!
   createdAt: DateTime!
+
+  """Severity of the problem."""
+  severity: AppProblemSeverityEnum!
+}
+
+"""Enum determining the severity of an app problem."""
+enum AppProblemSeverityEnum @doc(category: "Apps") {
+  """
+  A non-critical issue that does not prevent the app from functioning. Set by App.
+  """
+  WARNING
+
+  """
+  A critical issue that may prevent the app from functioning correctly. Set by App.
+  """
+  ERROR
 }
 
 """Custom problem set by the app on itself."""
@@ -3074,6 +3090,9 @@ type AppProblemCustom @doc(category: "Apps") {
 
   """Grouping key for this problem. Used to clear related problems."""
   aggregate: String
+
+  """Severity of the problem."""
+  severity: AppProblemSeverityEnum!
 }
 
 """Represents the app's brand data."""
@@ -30030,6 +30049,9 @@ input AppProblemCreateInput {
 
   """Grouping key for this problem. Used to clear related problems."""
   aggregate: String
+
+  """Severity of the problem. Defaults to ERROR."""
+  severity: AppProblemSeverityEnum
 }
 
 """

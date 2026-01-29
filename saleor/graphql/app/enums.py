@@ -2,6 +2,7 @@ from typing import Final
 
 import graphene
 
+from ...app.models import AppProblemSeverity
 from ...app.types import AppType
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.enums import to_enum
@@ -63,3 +64,19 @@ CircuitBreakerStateEnum.doc_category = DOC_CATEGORY_APPS
 
 AppTypeEnum: Final[graphene.Enum] = to_enum(AppType, description=description)
 AppTypeEnum.doc_category = DOC_CATEGORY_APPS
+
+
+def severity_description(enum):
+    if enum is None:
+        return "Enum determining the severity of an app problem."
+    if enum == AppProblemSeverityEnum.WARNING:
+        return "A non-critical issue that does not prevent the app from functioning. Set by App."
+    if enum == AppProblemSeverityEnum.ERROR:
+        return "A critical issue that may prevent the app from functioning correctly. Set by App."
+    return None
+
+
+AppProblemSeverityEnum: Final[graphene.Enum] = to_enum(
+    AppProblemSeverity, description=severity_description
+)
+AppProblemSeverityEnum.doc_category = DOC_CATEGORY_APPS

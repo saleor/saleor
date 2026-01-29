@@ -1,6 +1,6 @@
 import graphene
 
-from .....app.models import AppProblem, AppProblemType
+from .....app.models import AppProblem, AppProblemSeverity, AppProblemType
 from ....tests.utils import get_graphql_content
 
 QUERY_APP_PROBLEMS = """
@@ -11,11 +11,13 @@ QUERY_APP_PROBLEMS = """
                 ... on AppProblemCircuitBreaker {
                     message
                     createdAt
+                    severity
                 }
                 ... on AppProblemCustom {
                     message
                     createdAt
                     aggregate
+                    severity
                 }
             }
         }
@@ -104,6 +106,53 @@ def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
     # Most recent first
     assert problems[0]["message"] == "Second"
     assert problems[1]["message"] == "First"
+
+
+def test_app_problems_returns_severity(app_api_client, app):
+    # given
+    AppProblem.objects.create(
+        app=app,
+        type=AppProblemType.CUSTOM,
+        message="Warning issue",
+        severity=AppProblemSeverity.WARNING,
+    )
+    AppProblem.objects.create(
+        app=app,
+        type=AppProblemType.CUSTOM,
+        message="Error issue",
+        severity=AppProblemSeverity.ERROR,
+    )
+    variables = {"id": graphene.Node.to_global_id("App", app.id)}
+
+    # when
+    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    content = get_graphql_content(response)
+
+    # then
+    problems = content["data"]["app"]["problems"]
+    assert len(problems) == 2
+    severities = {p["message"]: p["severity"] for p in problems}
+    assert severities["Warning issue"] == "WARNING"
+    assert severities["Error issue"] == "ERROR"
+
+
+def test_app_problems_default_severity_is_error(app_api_client, app):
+    # given
+    AppProblem.objects.create(
+        app=app,
+        type=AppProblemType.CUSTOM,
+        message="Default severity",
+    )
+    variables = {"id": graphene.Node.to_global_id("App", app.id)}
+
+    # when
+    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    content = get_graphql_content(response)
+
+    # then
+    problems = content["data"]["app"]["problems"]
+    assert len(problems) == 1
+    assert problems[0]["severity"] == "ERROR"
 
 
 def test_app_problems_cascade_delete(app, db):

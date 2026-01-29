@@ -61,6 +61,7 @@ from .dataloaders import (
     app_promise_callback,
 )
 from .enums import (
+    AppProblemSeverityEnum,
     AppTypeEnum,
     CircuitBreakerState,
     CircuitBreakerStateEnum,
@@ -540,6 +541,10 @@ class AppToken(BaseObjectType):
 class AppProblemCircuitBreaker(BaseObjectType):
     message = graphene.String(required=True)
     created_at = DateTime(required=True)
+    severity = AppProblemSeverityEnum(
+        required=True,
+        description="Severity of the problem.",
+    )
 
     class Meta:
         description = "Problem indicating the app's circuit breaker has tripped."
@@ -552,6 +557,10 @@ class AppProblemCustom(BaseObjectType):
     aggregate = graphene.String(
         required=False,
         description="Grouping key for this problem. Used to clear related problems.",
+    )
+    severity = AppProblemSeverityEnum(
+        required=True,
+        description="Severity of the problem.",
     )
 
     class Meta:

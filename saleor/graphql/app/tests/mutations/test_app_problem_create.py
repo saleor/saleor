@@ -1,4 +1,4 @@
-from .....app.models import AppProblem, AppProblemType
+from .....app.models import AppProblem, AppProblemSeverity, AppProblemType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_PROBLEM_CREATE_MUTATION = """
@@ -10,6 +10,7 @@ APP_PROBLEM_CREATE_MUTATION = """
                     ... on AppProblemCustom {
                         message
                         aggregate
+                        severity
                     }
                 }
             }
@@ -38,10 +39,12 @@ def test_app_problem_create(app_api_client, app):
     assert len(problems) == 1
     assert problems[0]["message"] == "Something went wrong"
     assert problems[0]["aggregate"] == ""
+    assert problems[0]["severity"] == "ERROR"
 
     db_problem = AppProblem.objects.get(app=app)
     assert db_problem.type == AppProblemType.CUSTOM
     assert db_problem.message == "Something went wrong"
+    assert db_problem.severity == AppProblemSeverity.ERROR
 
 
 def test_app_problem_create_with_aggregate(app_api_client, app):
@@ -62,6 +65,45 @@ def test_app_problem_create_with_aggregate(app_api_client, app):
 
     db_problem = AppProblem.objects.get(app=app)
     assert db_problem.aggregate == "webhook-123"
+
+
+def test_app_problem_create_with_warning_severity(app_api_client, app):
+    # given
+    variables = {"input": {"message": "Degraded performance", "severity": "WARNING"}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    problems = data["app"]["problems"]
+    assert len(problems) == 1
+    assert problems[0]["message"] == "Degraded performance"
+    assert problems[0]["severity"] == "WARNING"
+
+    db_problem = AppProblem.objects.get(app=app)
+    assert db_problem.severity == AppProblemSeverity.WARNING
+
+
+def test_app_problem_create_with_error_severity(app_api_client, app):
+    # given
+    variables = {"input": {"message": "Fatal failure", "severity": "ERROR"}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    problems = data["app"]["problems"]
+    assert len(problems) == 1
+    assert problems[0]["severity"] == "ERROR"
+
+    db_problem = AppProblem.objects.get(app=app)
+    assert db_problem.severity == AppProblemSeverity.ERROR
 
 
 def test_app_problem_create_by_staff_user_fails(
