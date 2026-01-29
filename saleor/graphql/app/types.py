@@ -549,6 +549,10 @@ class AppProblemCustom(BaseObjectType):
         required=True,
         description="Severity of the problem.",
     )
+    key = graphene.String(
+        required=False,
+        description="Deduplication key for this problem.",
+    )
 
     class Meta:
         description = "Custom problem set by the app on itself."

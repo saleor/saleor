@@ -204,9 +204,17 @@ class AppProblem(models.Model):
         choices=AppProblemSeverity.CHOICES,
         default=AppProblemSeverity.ERROR,
     )
+    key = models.CharField(max_length=256, blank=True, null=True, default=None)
 
     class Meta:
         ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["app", "key"],
+                name="unique_app_problem_key",
+                condition=models.Q(key__isnull=False),
+            ),
+        ]
 
 
 class AppInstallation(Job):

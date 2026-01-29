@@ -11,6 +11,7 @@ APP_PROBLEM_CREATE_MUTATION = """
                         message
                         aggregate
                         severity
+                        key
                     }
                 }
             }
@@ -163,3 +164,116 @@ def test_app_problem_create_fails_when_limit_reached(app_api_client, app):
     assert data["errors"][0]["code"] == "INVALID"
     assert data["app"] is None
     assert AppProblem.objects.filter(app=app).count() == AppProblem.MAX_PROBLEMS_PER_APP
+
+
+def test_app_problem_create_with_key(app_api_client, app):
+    # given
+    variables = {"input": {"message": "Keyed problem", "key": "my-key"}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    problems = data["app"]["problems"]
+    assert len(problems) == 1
+    assert problems[0]["message"] == "Keyed problem"
+    assert problems[0]["key"] == "my-key"
+
+    db_problem = AppProblem.objects.get(app=app)
+    assert db_problem.key == "my-key"
+
+
+def test_app_problem_create_skips_duplicate_key(app_api_client, app):
+    # given
+    AppProblem.objects.create(
+        app=app,
+        type=AppProblemType.CUSTOM,
+        message="Original",
+        key="dup-key",
+    )
+    variables = {"input": {"message": "Duplicate", "key": "dup-key"}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    assert AppProblem.objects.filter(app=app).count() == 1
+    assert AppProblem.objects.get(app=app).message == "Original"
+
+
+def test_app_problem_create_force_overwrites_existing(app_api_client, app):
+    # given
+    original = AppProblem.objects.create(
+        app=app,
+        type=AppProblemType.CUSTOM,
+        message="Original",
+        severity=AppProblemSeverity.WARNING,
+        key="overwrite-key",
+    )
+    original_created_at = original.created_at
+    variables = {
+        "input": {
+            "message": "Updated",
+            "severity": "ERROR",
+            "key": "overwrite-key",
+            "force": True,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    assert AppProblem.objects.filter(app=app).count() == 1
+
+    updated = AppProblem.objects.get(app=app)
+    assert updated.pk == original.pk
+    assert updated.message == "Updated"
+    assert updated.severity == AppProblemSeverity.ERROR
+    assert updated.created_at > original_created_at
+
+
+def test_app_problem_create_different_keys_both_created(app_api_client, app):
+    # given
+    AppProblem.objects.create(
+        app=app,
+        type=AppProblemType.CUSTOM,
+        message="First",
+        key="key-x",
+    )
+    variables = {"input": {"message": "Second", "key": "key-y"}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    assert AppProblem.objects.filter(app=app).count() == 2
+    assert AppProblem.objects.filter(app=app, key="key-x").exists()
+    assert AppProblem.objects.filter(app=app, key="key-y").exists()
+
+
+def test_app_problem_create_no_key_allows_duplicates(app_api_client, app):
+    # given
+    variables = {"input": {"message": "No key problem"}}
+    app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    assert AppProblem.objects.filter(app=app).count() == 2

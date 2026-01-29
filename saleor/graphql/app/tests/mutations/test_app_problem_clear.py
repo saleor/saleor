@@ -2,14 +2,15 @@ from .....app.models import AppProblem, AppProblemType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_PROBLEM_CLEAR_MUTATION = """
-    mutation AppProblemClear($aggregate: String) {
-        appProblemClear(aggregate: $aggregate) {
+    mutation AppProblemClear($aggregate: String, $key: String) {
+        appProblemClear(aggregate: $aggregate, key: $key) {
             app {
                 id
                 problems {
                     ... on AppProblemCustom {
                         message
                         aggregate
+                        key
                     }
                 }
             }
@@ -73,3 +74,41 @@ def test_app_problem_clear_by_staff_user_fails(
 
     # then
     assert_no_permission(response)
+
+
+def test_app_problem_clear_by_key(app_api_client, app):
+    # given
+    AppProblem.objects.create(
+        app=app, type=AppProblemType.CUSTOM, message="Keyed", key="my-key"
+    )
+    AppProblem.objects.create(
+        app=app, type=AppProblemType.CUSTOM, message="Other", key="other-key"
+    )
+    AppProblem.objects.create(app=app, type=AppProblemType.CUSTOM, message="No key")
+    variables = {"key": "my-key"}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CLEAR_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemClear"]
+    assert not data["errors"]
+    remaining = AppProblem.objects.filter(app=app)
+    assert remaining.count() == 2
+    assert not remaining.filter(key="my-key").exists()
+
+
+def test_app_problem_clear_aggregate_and_key_fails(app_api_client, app):
+    # given
+    variables = {"aggregate": "group-a", "key": "my-key"}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CLEAR_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemClear"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "key"

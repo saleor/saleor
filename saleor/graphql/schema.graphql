@@ -3075,6 +3075,9 @@ type AppProblemCustom @doc(category: "Apps") {
 
   """Severity of the problem."""
   severity: AppProblemSeverityEnum!
+
+  """Deduplication key for this problem."""
+  key: String
 }
 
 """Enum determining the severity of an app problem."""
@@ -19168,6 +19171,9 @@ type Mutation {
   appProblemClear(
     """If provided, only clears custom problems with this aggregate value."""
     aggregate: String
+
+    """If provided, only clears custom problems with this key."""
+    key: String
   ): AppProblemClear @doc(category: "Apps")
 
   """
@@ -30053,6 +30059,16 @@ input AppProblemCreateInput {
 
   """Severity of the problem. Defaults to ERROR."""
   severity: AppProblemSeverityEnum
+
+  """
+  Optional deduplication key. If a problem with this key already exists, creation is skipped unless `force` is true.
+  """
+  key: String
+
+  """
+  If true and a problem with the same `key` exists, overwrite it with new message, severity, and timestamp. Defaults to false.
+  """
+  force: Boolean
 }
 
 """

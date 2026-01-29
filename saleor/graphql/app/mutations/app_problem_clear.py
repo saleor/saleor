@@ -1,5 +1,7 @@
 import graphene
+from django.core.exceptions import ValidationError
 
+from ....app.error_codes import AppErrorCode
 from ....app.models import AppProblem, AppProblemType
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
@@ -21,6 +23,10 @@ class AppProblemClear(BaseMutation):
                 "If provided, only clears custom problems with this aggregate value."
             ),
         )
+        key = graphene.String(
+            required=False,
+            description="If provided, only clears custom problems with this key.",
+        )
 
     class Meta:
         description = "Clear custom problems from the calling app." + ADDED_IN_322
@@ -34,9 +40,23 @@ class AppProblemClear(BaseMutation):
         app = info.context.app
         if not app:
             raise PermissionDenied(permissions=[AuthorizationFilters.AUTHENTICATED_APP])
-        qs = AppProblem.objects.filter(app=app, type=AppProblemType.CUSTOM)
+
         aggregate = data.get("aggregate")
+        key = data.get("key")
+        if aggregate is not None and key is not None:
+            raise ValidationError(
+                {
+                    "key": ValidationError(
+                        "Cannot specify both 'aggregate' and 'key'.",
+                        code=AppErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+        qs = AppProblem.objects.filter(app=app, type=AppProblemType.CUSTOM)
         if aggregate is not None:
             qs = qs.filter(aggregate=aggregate)
+        if key is not None:
+            qs = qs.filter(key=key)
         qs.delete()
         return AppProblemClear(app=app)
