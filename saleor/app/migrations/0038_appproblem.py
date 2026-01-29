@@ -28,7 +28,6 @@ class Migration(migrations.Migration):
                     "type",
                     models.CharField(
                         choices=[
-                            ("circuit_breaker", "Circuit breaker"),
                             ("custom", "Custom"),
                         ],
                         max_length=64,

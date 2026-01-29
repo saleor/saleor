@@ -538,19 +538,6 @@ class AppToken(BaseObjectType):
         return root.token_last_4
 
 
-class AppProblemCircuitBreaker(BaseObjectType):
-    message = graphene.String(required=True)
-    created_at = DateTime(required=True)
-    severity = AppProblemSeverityEnum(
-        required=True,
-        description="Severity of the problem.",
-    )
-
-    class Meta:
-        description = "Problem indicating the app's circuit breaker has tripped."
-        doc_category = DOC_CATEGORY_APPS
-
-
 class AppProblemCustom(BaseObjectType):
     message = graphene.String(required=True)
     created_at = DateTime(required=True)
@@ -570,13 +557,11 @@ class AppProblemCustom(BaseObjectType):
 
 class AppProblem(graphene.Union):
     class Meta:
-        types = (AppProblemCircuitBreaker, AppProblemCustom)
+        types = (AppProblemCustom,)
         description = "Represents a problem associated with an app."
 
     @classmethod
     def resolve_type(cls, instance, info):
-        if instance.type == AppProblemType.CIRCUIT_BREAKER:
-            return AppProblemCircuitBreaker
         if instance.type == AppProblemType.CUSTOM:
             return AppProblemCustom
         return super().resolve_type(instance, info)

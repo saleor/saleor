@@ -3063,12 +3063,15 @@ type AppExtension implements Node @doc(category: "Apps") {
 scalar JSON
 
 """Represents a problem associated with an app."""
-union AppProblem = AppProblemCircuitBreaker | AppProblemCustom
+union AppProblem = AppProblemCustom
 
-"""Problem indicating the app's circuit breaker has tripped."""
-type AppProblemCircuitBreaker @doc(category: "Apps") {
+"""Custom problem set by the app on itself."""
+type AppProblemCustom @doc(category: "Apps") {
   message: String!
   createdAt: DateTime!
+
+  """Grouping key for this problem. Used to clear related problems."""
+  aggregate: String
 
   """Severity of the problem."""
   severity: AppProblemSeverityEnum!
@@ -3085,18 +3088,6 @@ enum AppProblemSeverityEnum @doc(category: "Apps") {
   A critical issue that may prevent the app from functioning correctly. Set by App.
   """
   ERROR
-}
-
-"""Custom problem set by the app on itself."""
-type AppProblemCustom @doc(category: "Apps") {
-  message: String!
-  createdAt: DateTime!
-
-  """Grouping key for this problem. Used to clear related problems."""
-  aggregate: String
-
-  """Severity of the problem."""
-  severity: AppProblemSeverityEnum!
 }
 
 """Represents the app's brand data."""

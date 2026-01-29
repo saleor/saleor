@@ -11,9 +11,6 @@ APP_PROBLEM_CLEAR_MUTATION = """
                         message
                         aggregate
                     }
-                    ... on AppProblemCircuitBreaker {
-                        message
-                    }
                 }
             }
             errors {
@@ -63,27 +60,6 @@ def test_app_problem_clear_by_aggregate(app_api_client, app):
     remaining = AppProblem.objects.filter(app=app)
     assert remaining.count() == 1
     assert remaining.first().aggregate == "group-b"
-
-
-def test_app_problem_clear_does_not_remove_circuit_breaker(app_api_client, app):
-    # given
-    AppProblem.objects.create(
-        app=app, type=AppProblemType.CUSTOM, message="Custom problem"
-    )
-    AppProblem.objects.create(
-        app=app, type=AppProblemType.CIRCUIT_BREAKER, message="Breaker tripped"
-    )
-
-    # when
-    response = app_api_client.post_graphql(APP_PROBLEM_CLEAR_MUTATION)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemClear"]
-    assert not data["errors"]
-    remaining = AppProblem.objects.filter(app=app)
-    assert remaining.count() == 1
-    assert remaining.first().type == AppProblemType.CIRCUIT_BREAKER
 
 
 def test_app_problem_clear_by_staff_user_fails(

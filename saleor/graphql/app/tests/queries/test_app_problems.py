@@ -8,11 +8,6 @@ QUERY_APP_PROBLEMS = """
         app(id: $id) {
             id
             problems {
-                ... on AppProblemCircuitBreaker {
-                    message
-                    createdAt
-                    severity
-                }
                 ... on AppProblemCustom {
                     message
                     createdAt
@@ -40,12 +35,8 @@ def test_app_problems_empty(app_api_client, app):
 
 def test_app_problems_returns_problems(app_api_client, app):
     # given
-    AppProblem.objects.create(
-        app=app, type=AppProblemType.CUSTOM, message="Custom issue"
-    )
-    AppProblem.objects.create(
-        app=app, type=AppProblemType.CIRCUIT_BREAKER, message="Breaker tripped"
-    )
+    AppProblem.objects.create(app=app, type="custom", message="Custom issue 1")
+    AppProblem.objects.create(app=app, type="custom", message="Custom issue 2")
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -61,14 +52,9 @@ def test_app_problems_union_resolution(app_api_client, app):
     # given
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.CUSTOM,
+        type="custom",
         message="Custom issue",
         aggregate="my-group",
-    )
-    AppProblem.objects.create(
-        app=app,
-        type=AppProblemType.CIRCUIT_BREAKER,
-        message="Breaker tripped",
     )
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
@@ -78,16 +64,9 @@ def test_app_problems_union_resolution(app_api_client, app):
 
     # then
     problems = content["data"]["app"]["problems"]
-    # Find each type
-    custom_problems = [p for p in problems if "aggregate" in p]
-    breaker_problems = [p for p in problems if "aggregate" not in p]
-
-    assert len(custom_problems) == 1
-    assert custom_problems[0]["message"] == "Custom issue"
-    assert custom_problems[0]["aggregate"] == "my-group"
-
-    assert len(breaker_problems) == 1
-    assert breaker_problems[0]["message"] == "Breaker tripped"
+    assert len(problems) == 1
+    assert problems[0]["message"] == "Custom issue"
+    assert problems[0]["aggregate"] == "my-group"
 
 
 def test_app_problems_ordered_by_created_at_desc(app_api_client, app):

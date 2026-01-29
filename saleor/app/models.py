@@ -175,10 +175,8 @@ class AppExtension(models.Model):
 
 
 class AppProblemType:
-    CIRCUIT_BREAKER = "circuit_breaker"
     CUSTOM = "custom"
     CHOICES = [
-        (CIRCUIT_BREAKER, "Circuit breaker"),
         (CUSTOM, "Custom"),
     ]
 
