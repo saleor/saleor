@@ -137,3 +137,29 @@ def test_app_problem_create_multiple(app_api_client, app):
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
     assert AppProblem.objects.filter(app=app).count() == 2
+
+
+def test_app_problem_create_fails_when_limit_reached(app_api_client, app):
+    # given
+    AppProblem.objects.bulk_create(
+        [
+            AppProblem(
+                app=app,
+                type=AppProblemType.CUSTOM,
+                message=f"Problem {i}",
+            )
+            for i in range(AppProblem.MAX_PROBLEMS_PER_APP)
+        ]
+    )
+    variables = {"input": {"message": "One too many"}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["app"] is None
+    assert AppProblem.objects.filter(app=app).count() == AppProblem.MAX_PROBLEMS_PER_APP

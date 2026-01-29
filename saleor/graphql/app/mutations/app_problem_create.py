@@ -1,5 +1,7 @@
 import graphene
+from django.core.exceptions import ValidationError
 
+from ....app.error_codes import AppErrorCode
 from ....app.models import AppProblem, AppProblemSeverity, AppProblemType
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
@@ -46,6 +48,17 @@ class AppProblemCreate(BaseMutation):
         app = info.context.app
         if not app:
             raise PermissionDenied(permissions=[AuthorizationFilters.AUTHENTICATED_APP])
+        current_count = AppProblem.objects.filter(app=app).count()
+        if current_count >= AppProblem.MAX_PROBLEMS_PER_APP:
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        f"App has reached the maximum number of problems "
+                        f"({AppProblem.MAX_PROBLEMS_PER_APP}).",
+                        code=AppErrorCode.INVALID.value,
+                    )
+                }
+            )
         input_data = data["input"]
         severity = input_data.get("severity", AppProblemSeverity.ERROR)
         AppProblem.objects.create(

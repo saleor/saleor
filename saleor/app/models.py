@@ -193,6 +193,9 @@ class AppProblemSeverity:
 
 
 class AppProblem(models.Model):
+    # Keep low value on purpose, to avoid abusing API and slowing-down during clearing
+    MAX_PROBLEMS_PER_APP = 50
+
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="problems")
     created_at = models.DateTimeField(auto_now_add=True)
     message = models.TextField()
