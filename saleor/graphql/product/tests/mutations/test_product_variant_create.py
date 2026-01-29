@@ -2720,8 +2720,8 @@ def test_variant_create_product_with_variant_attributes_variant_flag_false(
     content = get_graphql_content(response)
 
     errors = content["data"]["productVariantCreate"]["errors"]
-    assert errors
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    # hasVariants has no more effects on variant attributes
+    assert not errors
 
 
 def test_create_product_variant_with_non_unique_external_reference(

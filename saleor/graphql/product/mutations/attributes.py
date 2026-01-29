@@ -284,17 +284,6 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
 
         # Resolve all the passed IDs to ints
         product_attrs_data, variant_attrs_data = cls.get_operations(info, operations)
-        variant_attrs_pks = [pk for pk, _, __ in variant_attrs_data]
-
-        if variant_attrs_pks and not product_type.has_variants:
-            raise ValidationError(
-                {
-                    "operations": ValidationError(
-                        "Variants are disabled in this product type.",
-                        code=ProductErrorCode.ATTRIBUTE_VARIANTS_DISABLED.value,
-                    )
-                }
-            )
 
         # Ensure the attribute are assignable
         cls.clean_operations(product_type, product_attrs_data, variant_attrs_data)

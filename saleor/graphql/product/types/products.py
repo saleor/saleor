@@ -1736,7 +1736,12 @@ class ProductType(ModelObjectType[models.ProductType]):
     name = graphene.String(required=True, description="Name of the product type.")
     slug = graphene.String(required=True, description="Slug of the product type.")
     has_variants = graphene.Boolean(
-        required=True, description="Whether the product type has variants."
+        required=True,
+        description="Whether the product type has variants.",
+        deprecation_reason=(
+            "This is a leftover from the past Simple/Configurable product distinction. "
+            "Products can have multiple variants regardless of this setting. "
+        ),
     )
     is_shipping_required = graphene.Boolean(
         required=True, description="Whether shipping is required for this product type."

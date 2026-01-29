@@ -2,6 +2,8 @@ import django_filters
 import graphene
 from django.db.models import Q
 
+from saleor.graphql.warehouse.types import DEPRECATED_IN_3X_INPUT
+
 from ....product.models import ProductType
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
@@ -45,7 +47,13 @@ class ProductTypeFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="filter_product_type_searchable")
 
     configurable = EnumFilter(
-        input_class=ProductTypeConfigurable, method=filter_product_type_configurable
+        input_class=ProductTypeConfigurable,
+        method=filter_product_type_configurable,
+        help_text=(
+            f"{DEPRECATED_IN_3X_INPUT} The field has no effect on the API behavior. "
+            "This is a leftover from the past Simple/Configurable product distinction. "
+            "Products can have multiple variants regardless of this setting. "
+        ),
     )
 
     product_type = EnumFilter(input_class=ProductTypeEnum, method=filter_product_type)

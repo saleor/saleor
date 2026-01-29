@@ -312,53 +312,28 @@ class ProductVariantBulkCreate(BaseMutation):
                         )
                     )
                 attributes_errors_count += 1
-
-            if product_type.has_variants:
-                try:
-                    cleaned_attributes = AttributeAssignmentMixin.clean_input(
-                        attributes_input, variant_attributes
-                    )
-                    cleaned_input["attributes"] = cleaned_attributes
-                except ValidationError as exc:
-                    for error in exc.error_list:
-                        attributes = (
-                            error.params.get("attributes") if error.params else None
-                        )
-                        index_error_map[variant_index].append(
-                            ProductVariantBulkError(
-                                field="attributes",
-                                path="attributes",
-                                message=error.message,
-                                code=error.code,
-                                attributes=attributes,
-                            )
-                        )
-                    if errors is not None:
-                        exc.params = {"index": variant_index}
-                        errors["attributes"].append(exc)
-                    attributes_errors_count += 1
-            else:
-                message = "Cannot assign attributes for product type without variants"
-                index_error_map[variant_index].append(
-                    ProductVariantBulkError(
-                        field="attributes",
-                        path="attributes",
-                        message=message,
-                        code=ProductVariantBulkErrorCode.INVALID.value,
-                        attributes=invalid_attributes,
-                    )
+            try:
+                cleaned_attributes = AttributeAssignmentMixin.clean_input(
+                    attributes_input, variant_attributes
                 )
-                if errors is not None:
-                    errors["attributes"].append(
-                        ValidationError(
-                            message,
-                            code=ProductVariantBulkErrorCode.INVALID.value,
-                            params={
-                                "attributes": invalid_attributes,
-                                "index": variant_index,
-                            },
+                cleaned_input["attributes"] = cleaned_attributes
+            except ValidationError as exc:
+                for error in exc.error_list:
+                    attributes = (
+                        error.params.get("attributes") if error.params else None
+                    )
+                    index_error_map[variant_index].append(
+                        ProductVariantBulkError(
+                            field="attributes",
+                            path="attributes",
+                            message=error.message,
+                            code=error.code,
+                            attributes=attributes,
                         )
                     )
+                if errors is not None:
+                    exc.params = {"index": variant_index}
+                    errors["attributes"].append(exc)
                 attributes_errors_count += 1
         return attributes_errors_count
 
