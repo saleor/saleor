@@ -1,9 +1,11 @@
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from prices import TaxedMoney
 
 from .....core.models import EventDelivery
@@ -223,7 +225,7 @@ def test_draft_order_update_voucher_not_available(
     content = get_graphql_content(response)
     error = content["data"]["draftOrderUpdate"]["errors"][0]
 
-    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert error["code"] == OrderErrorCode.INVALID_VOUCHER.name
     assert error["field"] == "voucher"
 
 
@@ -3822,3 +3824,173 @@ def test_draft_order_update_metadata_key_deleted_in_meantime(
     draft_order.refresh_from_db()
     assert draft_order.metadata == {key_1: new_value}
     assert draft_order.private_metadata == {key_2: new_value}
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_update_with_expired_voucher(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = include_draft_order_in_voucher_usage
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher end date to the past
+    voucher.end_date = timezone.now() - timedelta(days=1)
+    voucher.save(update_fields=["end_date"])
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": voucher_id,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert errors[0]["field"] == "voucher"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_update_with_expired_voucher_code(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = include_draft_order_in_voucher_usage
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher end date to the past
+    voucher.end_date = timezone.now() - timedelta(days=1)
+    voucher.save(update_fields=["end_date"])
+
+    code = voucher.codes.first()
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": code.code,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert errors[0]["field"] == "voucherCode"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_update_with_inactive_voucher(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = include_draft_order_in_voucher_usage
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher code to inactive
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": voucher_id,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert errors[0]["field"] == "voucher"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_update_with_inactive_voucher_code(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = include_draft_order_in_voucher_usage
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher code to inactive
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": code.code,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert errors[0]["field"] == "voucherCode"

@@ -50,7 +50,7 @@ class NotApplicable(ValueError):
 
 
 class VoucherQueryset(models.QuerySet["Voucher"]):
-    def active(self, date):
+    def active(self, date, validate_usage_limit=True):
         subquery = (
             VoucherCode.objects.filter(voucher_id=OuterRef("pk"))
             .order_by()
@@ -58,13 +58,16 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
             .annotate(total_used=Sum("used"))
             .values("total_used")
         )
-        return self.filter(
-            Q(usage_limit__isnull=True) | Q(usage_limit__gt=Subquery(subquery)),
-            Q(end_date__isnull=True) | Q(end_date__gte=date),
-            start_date__lte=date,
+        lookup = (Q(end_date__isnull=True) | Q(end_date__gte=date)) & Q(
+            start_date__lte=date
         )
+        if validate_usage_limit:
+            lookup &= Q(usage_limit__isnull=True) | Q(
+                usage_limit__gt=Subquery(subquery)
+            )
+        return self.filter(lookup)
 
-    def active_in_channel(self, date, channel_slug: str):
+    def active_in_channel(self, date, channel_slug: str, validate_usage_limit=True):
         channels = Channel.objects.filter(
             slug=str(channel_slug), is_active=True
         ).values("id")
@@ -72,7 +75,7 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
             Exists(channels.filter(pk=OuterRef("channel_id"))),
         ).values("id")
 
-        return self.active(date).filter(
+        return self.active(date, validate_usage_limit).filter(
             Exists(channel_listings.filter(voucher_id=OuterRef("pk")))
         )
 
