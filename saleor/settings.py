@@ -489,13 +489,7 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 COUNTRIES_OVERRIDE = {
     "EU": "European Union",
-    "XK": {
-        "name": "Kosovo",
-        "alpha3": "XXK",
-        "ioc_code": "KOS",
-        "numeric": "383",
-        "numeric_padded": "0383",
-    },
+    "XK": "Kosovo",
 }
 
 MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
