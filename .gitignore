@@ -5,6 +5,7 @@
 !.github
 !.gitignore
 !.vscode
+!.python-version
 *.log
 *.pot
 *.pyc
