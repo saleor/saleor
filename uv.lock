@@ -1850,15 +1850,6 @@ wheels = [
 ]
 
 [[package]]
-name = "posuto"
-version = "2025.9.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4f/c9/e4402bd121c4af54c07511bb84341b87a26f937b8da43fb9e4bdb230c0bd/posuto-2025.9.0.tar.gz", hash = "sha256:b0498da5626b7d47755f05eb6dc19cfc78198d324333eedb2f1d0b60427e57ef", size = 8531672, upload-time = "2025-08-31T09:22:30.089Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/74/24/b8e701003eab3790aa56d0ca91150aacd11a7f3a855f28fbc790d7fda00b/posuto-2025.9.0-py3-none-any.whl", hash = "sha256:01e8f914b9583ae40fc0bf790a59f1156f3869f8634a9aeee1be3527c2b46c0a", size = 7307332, upload-time = "2025-08-31T09:22:28.318Z" },
-]
-
-[[package]]
 name = "pre-commit"
 version = "4.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2597,7 +2588,6 @@ dependencies = [
     { name = "phonenumberslite", marker = "platform_python_implementation != 'PyPy'" },
     { name = "pillow", marker = "platform_python_implementation != 'PyPy'" },
     { name = "pillow-avif-plugin", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "posuto", marker = "platform_python_implementation != 'PyPy'" },
     { name = "prices", marker = "platform_python_implementation != 'PyPy'" },
     { name = "promise", marker = "platform_python_implementation != 'PyPy'" },
     { name = "psycopg", extra = ["binary"], marker = "platform_python_implementation != 'PyPy'" },
@@ -2713,7 +2703,6 @@ requires-dist = [
     { name = "phonenumberslite", specifier = ">=9.0.7,<10" },
     { name = "pillow", specifier = ">=11.1.0,<12" },
     { name = "pillow-avif-plugin", specifier = ">=1.5.2,<2" },
-    { name = "posuto", specifier = ">=2025.1.0,<2026" },
     { name = "prices", specifier = "~=1.0" },
     { name = "promise", specifier = "~=2.3" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.9,<4" },
