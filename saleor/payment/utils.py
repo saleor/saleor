@@ -504,8 +504,6 @@ def create_transaction(
         customer_id=gateway_response.customer_id,
         gateway_response=gateway_response.raw_response or {},
         action_required_data=gateway_response.action_required_data or {},
-        legacy_adyen_plugin_result_code=gateway_response.legacy_adyen_plugin_result_code,
-        legacy_adyen_plugin_payment_method=gateway_response.legacy_adyen_plugin_payment_method,
     )
     return txn
 

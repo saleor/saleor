@@ -9,12 +9,6 @@ supported-markers = [
 ]
 
 [[package]]
-name = "adyen"
-version = "4.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/12/eb/6833b24e8c6f55b855ded1ec131712bef62982a2461e6f184ddd9438bf3e/Adyen-4.0.0.tar.gz", hash = "sha256:f44007fd542d7634bee69f29572442bf9102043141a7d5822ac98539ac5e4d5b", size = 12656, upload-time = "2020-11-26T11:42:44.023Z" }
-
-[[package]]
 name = "amqp"
 version = "5.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2547,7 +2541,6 @@ name = "saleor"
 version = "3.23.0a0"
 source = { virtual = "." }
 dependencies = [
-    { name = "adyen", marker = "platform_python_implementation != 'PyPy'" },
     { name = "asgiref", marker = "platform_python_implementation != 'PyPy'" },
     { name = "authlib", marker = "platform_python_implementation != 'PyPy'" },
     { name = "authorizenet", marker = "platform_python_implementation != 'PyPy'" },
@@ -2663,7 +2656,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "adyen", specifier = ">=4.0.0,<5" },
     { name = "asgiref", specifier = ">=3.7.2,<4" },
     { name = "authlib", specifier = ">=1.6.4,<2" },
     { name = "authorizenet", specifier = ">=1.1.5,<2" },
