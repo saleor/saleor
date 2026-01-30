@@ -175,9 +175,9 @@ class AppExtension(models.Model):
 
 
 class AppProblemType:
-    CUSTOM = "custom"
+    OWN = "own"
     CHOICES = [
-        (CUSTOM, "Custom"),
+        (OWN, "Own"),
     ]
 
 

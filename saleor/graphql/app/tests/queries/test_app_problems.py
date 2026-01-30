@@ -8,7 +8,7 @@ QUERY_APP_PROBLEMS = """
         app(id: $id) {
             id
             problems {
-                ... on AppProblemCustom {
+                ... on AppProblemOwn {
                     message
                     createdAt
                     aggregate
@@ -71,8 +71,8 @@ def test_app_problems_union_resolution(app_api_client, app):
 
 def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
     # given
-    AppProblem.objects.create(app=app, type=AppProblemType.CUSTOM, message="First")
-    AppProblem.objects.create(app=app, type=AppProblemType.CUSTOM, message="Second")
+    AppProblem.objects.create(app=app, type=AppProblemType.OWN, message="First")
+    AppProblem.objects.create(app=app, type=AppProblemType.OWN, message="Second")
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -91,13 +91,13 @@ def test_app_problems_returns_severity(app_api_client, app):
     # given
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.CUSTOM,
+        type=AppProblemType.OWN,
         message="Warning issue",
         severity=AppProblemSeverity.WARNING,
     )
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.CUSTOM,
+        type=AppProblemType.OWN,
         message="Error issue",
         severity=AppProblemSeverity.ERROR,
     )
@@ -119,7 +119,7 @@ def test_app_problems_default_severity_is_error(app_api_client, app):
     # given
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.CUSTOM,
+        type=AppProblemType.OWN,
         message="Default severity",
     )
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
@@ -136,9 +136,7 @@ def test_app_problems_default_severity_is_error(app_api_client, app):
 
 def test_app_problems_cascade_delete(app, db):
     # given
-    AppProblem.objects.create(
-        app=app, type=AppProblemType.CUSTOM, message="To be deleted"
-    )
+    AppProblem.objects.create(app=app, type=AppProblemType.OWN, message="To be deleted")
     assert AppProblem.objects.count() == 1
 
     # when

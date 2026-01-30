@@ -7,7 +7,7 @@ APP_PROBLEM_CREATE_MUTATION = """
             app {
                 id
                 problems {
-                    ... on AppProblemCustom {
+                    ... on AppProblemOwn {
                         message
                         aggregate
                         severity
@@ -43,7 +43,7 @@ def test_app_problem_create(app_api_client, app):
     assert problems[0]["severity"] == "ERROR"
 
     db_problem = AppProblem.objects.get(app=app)
-    assert db_problem.type == AppProblemType.CUSTOM
+    assert db_problem.type == AppProblemType.OWN
     assert db_problem.message == "Something went wrong"
     assert db_problem.severity == AppProblemSeverity.ERROR
 
@@ -125,7 +125,7 @@ def test_app_problem_create_multiple(app_api_client, app):
     # given
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.CUSTOM,
+        type=AppProblemType.OWN,
         message="Existing problem",
     )
     variables = {"input": {"message": "New problem"}}
@@ -146,7 +146,7 @@ def test_app_problem_create_fails_when_limit_reached(app_api_client, app):
         [
             AppProblem(
                 app=app,
-                type=AppProblemType.CUSTOM,
+                type=AppProblemType.OWN,
                 message=f"Problem {i}",
             )
             for i in range(AppProblem.MAX_PROBLEMS_PER_APP)
@@ -190,7 +190,7 @@ def test_app_problem_create_skips_duplicate_key(app_api_client, app):
     # given
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.CUSTOM,
+        type=AppProblemType.OWN,
         message="Original",
         key="dup-key",
     )
@@ -211,7 +211,7 @@ def test_app_problem_create_force_overwrites_existing(app_api_client, app):
     # given
     original = AppProblem.objects.create(
         app=app,
-        type=AppProblemType.CUSTOM,
+        type=AppProblemType.OWN,
         message="Original",
         severity=AppProblemSeverity.WARNING,
         key="overwrite-key",
@@ -246,7 +246,7 @@ def test_app_problem_create_different_keys_both_created(app_api_client, app):
     # given
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.CUSTOM,
+        type=AppProblemType.OWN,
         message="First",
         key="key-x",
     )

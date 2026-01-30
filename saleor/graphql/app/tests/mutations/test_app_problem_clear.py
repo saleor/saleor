@@ -7,7 +7,7 @@ APP_PROBLEM_CLEAR_MUTATION = """
             app {
                 id
                 problems {
-                    ... on AppProblemCustom {
+                    ... on AppProblemOwn {
                         message
                         aggregate
                         key
@@ -26,9 +26,9 @@ APP_PROBLEM_CLEAR_MUTATION = """
 
 def test_app_problem_clear_all_custom(app_api_client, app):
     # given
-    AppProblem.objects.create(app=app, type=AppProblemType.CUSTOM, message="Problem 1")
+    AppProblem.objects.create(app=app, type=AppProblemType.OWN, message="Problem 1")
     AppProblem.objects.create(
-        app=app, type=AppProblemType.CUSTOM, message="Problem 2", aggregate="group-a"
+        app=app, type=AppProblemType.OWN, message="Problem 2", aggregate="group-a"
     )
 
     # when
@@ -44,10 +44,10 @@ def test_app_problem_clear_all_custom(app_api_client, app):
 def test_app_problem_clear_by_aggregate(app_api_client, app):
     # given
     AppProblem.objects.create(
-        app=app, type=AppProblemType.CUSTOM, message="Problem 1", aggregate="group-a"
+        app=app, type=AppProblemType.OWN, message="Problem 1", aggregate="group-a"
     )
     AppProblem.objects.create(
-        app=app, type=AppProblemType.CUSTOM, message="Problem 2", aggregate="group-b"
+        app=app, type=AppProblemType.OWN, message="Problem 2", aggregate="group-b"
     )
     variables = {"aggregate": "group-a"}
 
@@ -79,12 +79,12 @@ def test_app_problem_clear_by_staff_user_fails(
 def test_app_problem_clear_by_key(app_api_client, app):
     # given
     AppProblem.objects.create(
-        app=app, type=AppProblemType.CUSTOM, message="Keyed", key="my-key"
+        app=app, type=AppProblemType.OWN, message="Keyed", key="my-key"
     )
     AppProblem.objects.create(
-        app=app, type=AppProblemType.CUSTOM, message="Other", key="other-key"
+        app=app, type=AppProblemType.OWN, message="Other", key="other-key"
     )
-    AppProblem.objects.create(app=app, type=AppProblemType.CUSTOM, message="No key")
+    AppProblem.objects.create(app=app, type=AppProblemType.OWN, message="No key")
     variables = {"key": "my-key"}
 
     # when

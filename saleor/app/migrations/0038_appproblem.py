@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ("message", models.TextField()),
                 (
                     "type",
-                    models.CharField(choices=[("custom", "Custom")], max_length=64),
+                    models.CharField(choices=[("own", "Own")], max_length=64),
                 ),
                 ("aggregate", models.CharField(blank=True, default="", max_length=256)),
                 (

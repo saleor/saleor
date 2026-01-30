@@ -14,22 +14,25 @@ from ..types import App
 
 
 class AppProblemClear(BaseMutation):
-    app = graphene.Field(App, description="The app whose problems were cleared.")
+    app = graphene.Field(
+        App,
+        description="The app whose problems were cleared. Only OWN type of problems can be clear with this mutation.",
+    )
 
     class Arguments:
         aggregate = graphene.String(
             required=False,
             description=(
-                "If provided, only clears custom problems with this aggregate value."
+                "If provided, only clears own problems with this aggregate value."
             ),
         )
         key = graphene.String(
             required=False,
-            description="If provided, only clears custom problems with this key.",
+            description="If provided, only clears own problems with this key.",
         )
 
     class Meta:
-        description = "Clear custom problems from the calling app." + ADDED_IN_322
+        description = "Clear problems from the calling app." + ADDED_IN_322
         doc_category = DOC_CATEGORY_APPS
         permissions = (AuthorizationFilters.AUTHENTICATED_APP,)
         error_type_class = AppError
@@ -53,7 +56,7 @@ class AppProblemClear(BaseMutation):
                 }
             )
 
-        qs = AppProblem.objects.filter(app=app, type=AppProblemType.CUSTOM)
+        qs = AppProblem.objects.filter(app=app, type=AppProblemType.OWN)
         if aggregate is not None:
             qs = qs.filter(aggregate=aggregate)
         if key is not None:

@@ -52,7 +52,10 @@ class AppProblemCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Add a custom problem to the calling app." + ADDED_IN_322
+        description = (
+            "Add a problem to the calling app. OWN problem type will be created"
+            + ADDED_IN_322
+        )
         doc_category = DOC_CATEGORY_APPS
         permissions = (AuthorizationFilters.AUTHENTICATED_APP,)
         error_type_class = AppError
@@ -94,7 +97,7 @@ class AppProblemCreate(BaseMutation):
             )
         AppProblem.objects.create(
             app=app,
-            type=AppProblemType.CUSTOM,
+            type=AppProblemType.OWN,
             message=input_data["message"],
             aggregate=input_data.get("aggregate", ""),
             severity=severity,

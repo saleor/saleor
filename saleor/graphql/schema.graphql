@@ -3063,10 +3063,10 @@ type AppExtension implements Node @doc(category: "Apps") {
 scalar JSON
 
 """Represents a problem associated with an app."""
-union AppProblem = AppProblemCustom
+union AppProblem = AppProblemOwn
 
-"""Custom problem set by the app on itself."""
-type AppProblemCustom @doc(category: "Apps") {
+"""Problem set by the app on itself."""
+type AppProblemOwn @doc(category: "Apps") {
   message: String!
   createdAt: DateTime!
 
@@ -19150,7 +19150,7 @@ type Mutation {
   ): AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: [])
 
   """
-  Add a custom problem to the calling app.
+  Add a problem to the calling app. OWN problem type will be created
   
   Added in Saleor 3.22. 
   
@@ -19162,17 +19162,17 @@ type Mutation {
   ): AppProblemCreate @doc(category: "Apps")
 
   """
-  Clear custom problems from the calling app.
+  Clear problems from the calling app.
   
   Added in Saleor 3.22. 
   
   Requires one of the following permissions: AUTHENTICATED_APP.
   """
   appProblemClear(
-    """If provided, only clears custom problems with this aggregate value."""
+    """If provided, only clears own problems with this aggregate value."""
     aggregate: String
 
-    """If provided, only clears custom problems with this key."""
+    """If provided, only clears own problems with this key."""
     key: String
   ): AppProblemClear @doc(category: "Apps")
 
@@ -30037,7 +30037,7 @@ type AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_S
 }
 
 """
-Add a custom problem to the calling app.
+Add a problem to the calling app. OWN problem type will be created
 
 Added in Saleor 3.22. 
 
@@ -30072,14 +30072,16 @@ input AppProblemCreateInput {
 }
 
 """
-Clear custom problems from the calling app.
+Clear problems from the calling app.
 
 Added in Saleor 3.22. 
 
 Requires one of the following permissions: AUTHENTICATED_APP.
 """
 type AppProblemClear @doc(category: "Apps") {
-  """The app whose problems were cleared."""
+  """
+  The app whose problems were cleared. Only OWN type of problems can be clear with this mutation.
+  """
   app: App
   appErrors: [AppError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [AppError!]!

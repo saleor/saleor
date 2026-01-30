@@ -538,7 +538,7 @@ class AppToken(BaseObjectType):
         return root.token_last_4
 
 
-class AppProblemCustom(BaseObjectType):
+class AppProblemOwn(BaseObjectType):
     message = graphene.String(required=True)
     created_at = DateTime(required=True)
     aggregate = graphene.String(
@@ -555,19 +555,19 @@ class AppProblemCustom(BaseObjectType):
     )
 
     class Meta:
-        description = "Custom problem set by the app on itself."
+        description = "Problem set by the app on itself."
         doc_category = DOC_CATEGORY_APPS
 
 
 class AppProblem(graphene.Union):
     class Meta:
-        types = (AppProblemCustom,)
+        types = (AppProblemOwn,)
         description = "Represents a problem associated with an app."
 
     @classmethod
     def resolve_type(cls, instance, info):
-        if instance.type == AppProblemType.CUSTOM:
-            return AppProblemCustom
+        if instance.type == AppProblemType.OWN:
+            return AppProblemOwn
         return super().resolve_type(instance, info)
 
 
