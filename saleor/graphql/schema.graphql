@@ -19166,11 +19166,16 @@ type Mutation {
   
   Added in Saleor 3.22. 
   
-  Requires one of the following permissions: AUTHENTICATED_APP.
+  Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
   """
   appProblemClear(
     """If provided, only clears own problems with this aggregate value."""
     aggregate: String
+
+    """
+    ID of the app to clear problems for. Required for staff, disallowed for app callers.
+    """
+    app: ID
 
     """If provided, only clears own problems with this key."""
     key: String
@@ -30076,7 +30081,7 @@ Clear problems from the calling app.
 
 Added in Saleor 3.22. 
 
-Requires one of the following permissions: AUTHENTICATED_APP.
+Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
 """
 type AppProblemClear @doc(category: "Apps") {
   """
