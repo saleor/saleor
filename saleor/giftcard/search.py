@@ -17,7 +17,10 @@ def _add_vector(vectors: list[NoValidationSearchVector], field):
 def prepare_gift_card_search_vector_value(
     gift_card: GiftCard,
 ) -> list[NoValidationSearchVector]:
-    search_vectors = [NoValidationSearchVector(Value(gift_card.code), config="simple")]
+    search_vectors = [
+        NoValidationSearchVector(Value(gift_card.code), config="simple"),
+        NoValidationSearchVector(Value(gift_card.code[-4:]), config="simple"),
+    ]
     _add_vector(search_vectors, gift_card.used_by_email)
     _add_vector(search_vectors, gift_card.created_by_email)
     if gift_card.used_by:
