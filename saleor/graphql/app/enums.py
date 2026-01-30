@@ -2,6 +2,7 @@ from typing import Final
 
 import graphene
 
+from ...app import error_codes
 from ...app.models import AppProblemSeverity
 from ...app.types import AppType
 from ..core.doc_category import DOC_CATEGORY_APPS
@@ -80,3 +81,10 @@ AppProblemSeverityEnum: Final[graphene.Enum] = to_enum(
     AppProblemSeverity, description=severity_description
 )
 AppProblemSeverityEnum.doc_category = DOC_CATEGORY_APPS
+
+AppProblemCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.AppProblemCreateErrorCode
+)
+AppProblemClearErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.AppProblemClearErrorCode
+)

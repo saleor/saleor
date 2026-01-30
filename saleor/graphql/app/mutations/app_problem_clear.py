@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....app.error_codes import AppErrorCode
+from ....app.error_codes import AppProblemClearErrorCode as AppProblemClearErrorCodeEnum
 from ....app.models import AppProblem, AppProblemType
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
@@ -10,9 +10,14 @@ from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
-from ...core.types import AppError
+from ...core.types import Error
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
+from ..enums import AppProblemClearErrorCode
 from ..types import App
+
+
+class AppProblemClearError(Error):
+    code = AppProblemClearErrorCode(description="The error code.", required=True)
 
 
 class AppProblemClear(BaseMutation):
@@ -47,8 +52,7 @@ class AppProblemClear(BaseMutation):
             AppPermission.MANAGE_APPS,
             AuthorizationFilters.AUTHENTICATED_APP,
         )
-        error_type_class = AppError
-        error_type_field = "app_errors"
+        error_type_class = AppProblemClearError
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -63,7 +67,7 @@ class AppProblemClear(BaseMutation):
                     {
                         "app": ValidationError(
                             "App callers cannot specify the 'app' argument.",
-                            code=AppErrorCode.INVALID.value,
+                            code=AppProblemClearErrorCodeEnum.INVALID.value,
                         )
                     }
                 )
@@ -75,7 +79,7 @@ class AppProblemClear(BaseMutation):
                     {
                         "app": ValidationError(
                             "The 'app' argument is required for staff users.",
-                            code=AppErrorCode.REQUIRED.value,
+                            code=AppProblemClearErrorCodeEnum.REQUIRED.value,
                         )
                     }
                 )
@@ -88,7 +92,7 @@ class AppProblemClear(BaseMutation):
                     {
                         "app": ValidationError(
                             "You can't manage this app.",
-                            code=AppErrorCode.OUT_OF_SCOPE_APP.value,
+                            code=AppProblemClearErrorCodeEnum.OUT_OF_SCOPE_APP.value,
                         )
                     }
                 )
@@ -98,7 +102,7 @@ class AppProblemClear(BaseMutation):
                 {
                     "key": ValidationError(
                         "Cannot specify both 'aggregate' and 'key'.",
-                        code=AppErrorCode.INVALID.value,
+                        code=AppProblemClearErrorCodeEnum.INVALID.value,
                     )
                 }
             )

@@ -35,8 +35,12 @@ def test_app_problems_empty(app_api_client, app):
 
 def test_app_problems_returns_problems(app_api_client, app):
     # given
-    AppProblem.objects.create(app=app, type="custom", message="Custom issue 1")
-    AppProblem.objects.create(app=app, type="custom", message="Custom issue 2")
+    AppProblem.objects.create(
+        app=app, type=AppProblemType.OWN, message="Custom issue 1"
+    )
+    AppProblem.objects.create(
+        app=app, type=AppProblemType.OWN, message="Custom issue 2"
+    )
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -52,7 +56,7 @@ def test_app_problems_union_resolution(app_api_client, app):
     # given
     AppProblem.objects.create(
         app=app,
-        type="custom",
+        type=AppProblemType.OWN,
         message="Custom issue",
         aggregate="my-group",
     )

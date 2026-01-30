@@ -17,3 +17,18 @@ class AppErrorCode(Enum):
     OUT_OF_SCOPE_APP = "out_of_scope_app"
     OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"
     UNSUPPORTED_SALEOR_VERSION = "unsupported_saleor_version"
+
+
+class AppProblemCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    REQUIRED = "required"
+    NOT_FOUND = "not_found"
+
+
+class AppProblemClearErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    REQUIRED = "required"
+    NOT_FOUND = "not_found"
+    OUT_OF_SCOPE_APP = "out_of_scope_app"

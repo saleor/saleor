@@ -30051,8 +30051,27 @@ Requires one of the following permissions: AUTHENTICATED_APP.
 type AppProblemCreate @doc(category: "Apps") {
   """The app with the new problem."""
   app: App
-  appErrors: [AppError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [AppError!]!
+  errors: [AppProblemCreateError!]!
+}
+
+type AppProblemCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AppProblemCreateErrorCode!
+}
+
+enum AppProblemCreateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  REQUIRED
+  NOT_FOUND
 }
 
 input AppProblemCreateInput {
@@ -30088,8 +30107,28 @@ type AppProblemClear @doc(category: "Apps") {
   The app whose problems were cleared. Only OWN type of problems can be clear with this mutation.
   """
   app: App
-  appErrors: [AppError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [AppError!]!
+  errors: [AppProblemClearError!]!
+}
+
+type AppProblemClearError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AppProblemClearErrorCode!
+}
+
+enum AppProblemClearErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  REQUIRED
+  NOT_FOUND
+  OUT_OF_SCOPE_APP
 }
 
 """

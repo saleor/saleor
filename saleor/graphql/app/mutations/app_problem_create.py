@@ -1,8 +1,11 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.utils import timezone
 
-from ....app.error_codes import AppErrorCode
+from ....app.error_codes import (
+    AppProblemCreateErrorCode as AppProblemCreateErrorCodeEnum,
+)
 from ....app.models import AppProblem, AppProblemSeverity, AppProblemType
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
@@ -10,9 +13,13 @@ from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
-from ...core.types import AppError
-from ..enums import AppProblemSeverityEnum
+from ...core.types import Error
+from ..enums import AppProblemCreateErrorCode, AppProblemSeverityEnum
 from ..types import App
+
+
+class AppProblemCreateError(Error):
+    code = AppProblemCreateErrorCode(description="The error code.", required=True)
 
 
 class AppProblemCreateInput(graphene.InputObjectType):
@@ -58,8 +65,7 @@ class AppProblemCreate(BaseMutation):
         )
         doc_category = DOC_CATEGORY_APPS
         permissions = (AuthorizationFilters.AUTHENTICATED_APP,)
-        error_type_class = AppError
-        error_type_field = "app_errors"
+        error_type_class = AppProblemCreateError
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -72,16 +78,17 @@ class AppProblemCreate(BaseMutation):
         severity = input_data.get("severity", AppProblemSeverity.ERROR)
 
         if key is not None:
-            existing = AppProblem.objects.filter(app=app, key=key).first()
-            if existing:
-                force = input_data.get("force", False)
-                if force:
-                    AppProblem.objects.filter(pk=existing.pk).update(
-                        message=input_data["message"],
-                        severity=severity,
-                        aggregate=input_data.get("aggregate", ""),
-                        created_at=timezone.now(),
-                    )
+            try:
+                existing = AppProblem.objects.get(app=app, key=key)
+            except AppProblem.DoesNotExist:
+                pass  # fall through to create
+            else:
+                if input_data.get("force", False):
+                    existing.message = input_data["message"]
+                    existing.severity = severity
+                    existing.aggregate = input_data.get("aggregate", "")
+                    existing.created_at = timezone.now()
+                    existing.save()
                 return AppProblemCreate(app=app)
 
         current_count = AppProblem.objects.filter(app=app).count()
@@ -91,16 +98,20 @@ class AppProblemCreate(BaseMutation):
                     "input": ValidationError(
                         f"App has reached the maximum number of problems "
                         f"({AppProblem.MAX_PROBLEMS_PER_APP}).",
-                        code=AppErrorCode.INVALID.value,
+                        code=AppProblemCreateErrorCodeEnum.INVALID.value,
                     )
                 }
             )
-        AppProblem.objects.create(
-            app=app,
-            type=AppProblemType.OWN,
-            message=input_data["message"],
-            aggregate=input_data.get("aggregate", ""),
-            severity=severity,
-            key=key,
-        )
+        try:
+            AppProblem.objects.create(
+                app=app,
+                type=AppProblemType.OWN,
+                message=input_data["message"],
+                aggregate=input_data.get("aggregate", ""),
+                severity=severity,
+                key=key,
+            )
+        except IntegrityError:
+            # Concurrent request already created a problem with this key
+            pass
         return AppProblemCreate(app=app)
