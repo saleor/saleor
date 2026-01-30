@@ -725,8 +725,8 @@ CELERY_BEAT_SCHEDULE = {
         # requiring a search index rebuild.
         "schedule": initiated_page_search_update_schedule,
     },
-    "update-checkout-search-vectors": {
-        "task": "saleor.checkout.tasks.update_checkout_search_vector_task",
+    "update-checkouts-search-vectors": {
+        "task": "saleor.checkout.tasks.update_checkouts_search_vector_task",
         # Scheduled task that runs every 60 seconds to check for checkouts
         # requiring a search index rebuild.
         "schedule": initiated_checkout_search_update_schedule,

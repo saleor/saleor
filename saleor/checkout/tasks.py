@@ -315,14 +315,54 @@ def automatic_checkout_completion_task(
     queue=settings.UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME,
     expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC,
 )
-def update_checkout_search_vector_task():
+def update_checkouts_search_vector_task():
+    """Update search vectors for dirty checkouts by delegating to parallel batch tasks.
+
+    This task orchestrates the search vector update process by:
+    - Fetching checkout IDs that need search index updates (search_index_dirty=True)
+    - Dividing them into batches for parallel processing
+    - Delegating each batch to a separate worker task
+
+    Processing is done in batches to balance performance and resource usage,
+    with multiple tasks running in parallel to speed up the overall process.
+    """
+    # to speed up processing, delegate multiple checkouts to batch processing tasks
+    parallel_tasks = 5
+    batch = UPDATE_SEARCH_BATCH_SIZE * parallel_tasks
     # process the oldest modified checkouts first to prevent repeated updates
     # in case of high update frequency of the checkout instance
-    checkouts = list(
+    checkout_ids = list(
         Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(search_index_dirty=True)
-        .order_by("last_change")[:UPDATE_SEARCH_BATCH_SIZE]
+        .order_by("last_change")
+        .values_list("pk", flat=True)[:batch]
     )
+    if not checkout_ids:
+        return
+
+    for i in range(parallel_tasks):
+        start = i * UPDATE_SEARCH_BATCH_SIZE
+        batch_ids = checkout_ids[start : start + UPDATE_SEARCH_BATCH_SIZE]
+        if batch_ids:
+            update_checkouts_search_vector_task_batch_process.delay(batch_ids)
+
+
+@app.task(expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC)
+def update_checkouts_search_vector_task_batch_process(pks: list[int]):
+    """Process a batch of checkouts to update their search vectors.
+
+    This worker task handles a subset of checkouts by:
+    - Updating their search_vector fields with indexed content
+    - Marking them as clean (search_index_dirty=False)
+
+    :param pks: List of checkout primary keys to process in this batch.
+    """
+    checkouts = list(
+        Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+            pk__in=pks, search_index_dirty=True
+        )
+    )
+
     if not checkouts:
         return
 
