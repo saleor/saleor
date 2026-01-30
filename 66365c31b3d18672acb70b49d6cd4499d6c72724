@@ -1,0 +1,25 @@
+saleor/payment/migrations/0067_remove_transaction_legacy_adyen_plugin_fields.py
+  54e1fe594985865b 1-18
+saleor/payment/tests/fixtures/gateway_response.py
+  54e1fe594985865b 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.40",
+  "base_commit_sha": "66365c31b3d18672acb70b49d6cd4499d6c72724",
+  "prompts": {
+    "54e1fe594985865b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "71b95b3c-7bf0-44e3-9e67-11501280c44d",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 19,
+      "total_deletions": 26,
+      "accepted_lines": 19,
+      "overriden_lines": 0
+    }
+  }
+}
