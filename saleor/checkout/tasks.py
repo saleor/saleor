@@ -32,8 +32,8 @@ task_logger: logging.Logger = get_task_logger(__name__)
 # every 1 minute, so to avoid overlapping executions, the limit is set to 20.
 AUTOMATIC_COMPLETION_BATCH_SIZE = 20
 
-# Results in update time ~0.3s
-UPDATE_SEARCH_BATCH_SIZE = 50
+# Results in update time ~0.5s
+UPDATE_SEARCH_BATCH_SIZE = 100
 
 
 @app.task

@@ -146,20 +146,26 @@ def test_update_checkouts_search_vector_constant_queries(
     checkout_list = checkout_list_with_relations
 
     # when & then
-    # Expected query breakdown (11 total):
-    # 1. Load users (1 query)
-    # 2. Load addresses (1 query)
-    # 3. Load payments (1 query)
-    # 4. Load checkout lines (1 query)
-    # 5. Load transactions (1 query)
-    # 6. Load product variants (1 query)
-    # 7. Load products (1 query)
-    # 8. Load transaction events (1 query)
-    # 9. Transaction savepoint (1 query)
-    # 10. Bulk update (1 query)
-    # 11. Release savepoint (1 query)
+    # Expected query breakdown (14 total):
+    # First transaction block:
+    # 1. Select for update (filter dirty checkouts)
+    # 2. Update search_index_dirty flag
+    # Load checkout data:
+    # 3. Load users (1 query)
+    # 4. Load addresses (1 query)
+    # 5. Load payments (1 query)
+    # 6. Load checkout lines (1 query)
+    # 7. Load transactions (1 query)
+    # 8. Load product variants (1 query)
+    # 9. Load products (1 query)
+    # 10. Load transaction events (1 query)
+    # Second transaction block:
+    # 11. Transaction savepoint
+    # 12. Select for update (lock checkouts)
+    # 13. Bulk update search vectors
+    # 14. Release savepoint
 
-    expected_queries = 11
+    expected_queries = 14
     with django_assert_num_queries(expected_queries):
         update_checkouts_search_vector(checkout_list[: len(checkout_list) - 1])
     with django_assert_num_queries(expected_queries):
