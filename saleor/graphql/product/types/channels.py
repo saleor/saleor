@@ -144,9 +144,8 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
             if not existing_listings:
                 return None
 
-            has_variants = True
             purchase_cost, _margin = get_product_costs_data(
-                existing_listings, has_variants, root.currency
+                existing_listings, root.currency
             )
             return purchase_cost
 
@@ -172,9 +171,8 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
             if not existing_listings:
                 return None
 
-            has_variants = True
             _purchase_cost, margin = get_product_costs_data(
-                existing_listings, has_variants, root.currency
+                existing_listings, root.currency
             )
             return Margin(margin[0], margin[1])
 

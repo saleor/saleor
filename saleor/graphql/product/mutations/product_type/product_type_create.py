@@ -26,6 +26,9 @@ class ProductTypeInput(BaseInputObjectType):
             "Determines if product of this type has multiple variants. This option "
             "mainly simplifies product management in the dashboard. There is always at "
             "least one variant created under the hood."
+            f"{DEPRECATED_IN_3X_INPUT} The field has no effect on the API behavior. "
+            "This is a leftover from the past Simple/Configurable product distinction. "
+            "Products can have multiple variants regardless of this setting. "
         )
     )
     product_attributes = NonNullList(
