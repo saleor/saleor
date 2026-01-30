@@ -2872,6 +2872,13 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """App's dashboard extensions."""
   extensions: [AppExtension!]!
 
+  """
+  List of problems associated with this app.
+  
+  Added in Saleor 3.22.
+  """
+  problems: [AppProblem!]!
+
   """App's brand data."""
   brand: AppBrand
 
@@ -3054,6 +3061,37 @@ type AppExtension implements Node @doc(category: "Apps") {
 }
 
 scalar JSON
+
+"""Represents a problem associated with an app."""
+union AppProblem = AppProblemOwn
+
+"""Problem set by the app on itself."""
+type AppProblemOwn @doc(category: "Apps") {
+  message: String!
+  createdAt: DateTime!
+
+  """Grouping key for this problem. Used to clear related problems."""
+  aggregate: String
+
+  """Severity of the problem."""
+  severity: AppProblemSeverityEnum!
+
+  """Deduplication key for this problem."""
+  key: String
+}
+
+"""Enum determining the severity of an app problem."""
+enum AppProblemSeverityEnum @doc(category: "Apps") {
+  """
+  A non-critical issue that does not prevent the app from functioning. Set by App.
+  """
+  WARNING
+
+  """
+  A critical issue that may prevent the app from functioning correctly. Set by App.
+  """
+  ERROR
+}
 
 """Represents the app's brand data."""
 type AppBrand @doc(category: "Apps") {
@@ -19114,6 +19152,38 @@ type Mutation {
   ): AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: [])
 
   """
+  Add a problem to the calling app. OWN problem type will be created
+  
+  Added in Saleor 3.22. 
+  
+  Requires one of the following permissions: AUTHENTICATED_APP.
+  """
+  appProblemCreate(
+    """Fields required to create an app problem."""
+    input: AppProblemCreateInput!
+  ): AppProblemCreate @doc(category: "Apps")
+
+  """
+  Clear problems from the calling app.
+  
+  Added in Saleor 3.22. 
+  
+  Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
+  """
+  appProblemClear(
+    """If provided, only clears own problems with this aggregate value."""
+    aggregate: String
+
+    """
+    ID of the app to clear problems for. Required for staff, disallowed for app callers.
+    """
+    app: ID
+
+    """If provided, only clears own problems with this key."""
+    key: String
+  ): AppProblemClear @doc(category: "Apps")
+
+  """
   Re-enable sync webhooks for provided app. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends.
   
   Added in Saleor 3.21. 
@@ -29971,6 +30041,96 @@ type AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_S
   appErrors: [AppError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [AppError!]!
   app: App
+}
+
+"""
+Add a problem to the calling app. OWN problem type will be created
+
+Added in Saleor 3.22. 
+
+Requires one of the following permissions: AUTHENTICATED_APP.
+"""
+type AppProblemCreate @doc(category: "Apps") {
+  """The app with the new problem."""
+  app: App
+  errors: [AppProblemCreateError!]!
+}
+
+type AppProblemCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AppProblemCreateErrorCode!
+}
+
+enum AppProblemCreateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  REQUIRED
+  NOT_FOUND
+}
+
+input AppProblemCreateInput {
+  """The problem message to display."""
+  message: String!
+
+  """Grouping key for this problem. Used to clear related problems."""
+  aggregate: String
+
+  """Severity of the problem. Defaults to ERROR."""
+  severity: AppProblemSeverityEnum
+
+  """
+  Optional deduplication key. If a problem with this key already exists, creation is skipped unless `force` is true.
+  """
+  key: String
+
+  """
+  If true and a problem with the same `key` exists, overwrite it with new message, severity, and timestamp. Defaults to false.
+  """
+  force: Boolean
+}
+
+"""
+Clear problems from the calling app.
+
+Added in Saleor 3.22. 
+
+Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
+"""
+type AppProblemClear @doc(category: "Apps") {
+  """
+  The app whose problems were cleared. Only OWN type of problems can be clear with this mutation.
+  """
+  app: App
+  errors: [AppProblemClearError!]!
+}
+
+type AppProblemClearError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AppProblemClearErrorCode!
+}
+
+enum AppProblemClearErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  REQUIRED
+  NOT_FOUND
+  OUT_OF_SCOPE_APP
 }
 
 """

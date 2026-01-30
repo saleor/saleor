@@ -174,6 +174,49 @@ class AppExtension(models.Model):
     settings = models.JSONField(blank=True, default=dict, db_default={})
 
 
+class AppProblemType:
+    OWN = "own"
+    CHOICES = [
+        (OWN, "Own"),
+    ]
+
+
+class AppProblemSeverity:
+    WARNING = "warning"
+    ERROR = "error"
+    CHOICES = [
+        (WARNING, "Warning"),
+        (ERROR, "Error"),
+    ]
+
+
+class AppProblem(models.Model):
+    # Keep low value on purpose, to avoid abusing API and slowing-down during clearing
+    MAX_PROBLEMS_PER_APP = 50
+
+    app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="problems")
+    created_at = models.DateTimeField(auto_now_add=True)
+    message = models.TextField()
+    type = models.CharField(max_length=64, choices=AppProblemType.CHOICES)
+    aggregate = models.CharField(max_length=256, blank=True, default="")
+    severity = models.CharField(
+        max_length=32,
+        choices=AppProblemSeverity.CHOICES,
+        default=AppProblemSeverity.ERROR,
+    )
+    key = models.CharField(max_length=256, blank=True, null=True, default=None)
+
+    class Meta:
+        ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["app", "key"],
+                name="unique_app_problem_key",
+                condition=models.Q(key__isnull=False),
+            ),
+        ]
+
+
 class AppInstallation(Job):
     uuid = models.UUIDField(unique=True, default=uuid4)
     app_name = models.CharField(max_length=60)
