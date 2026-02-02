@@ -2,7 +2,7 @@ import hashlib
 import importlib
 import json
 from inspect import isclass
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urljoin
 
 from django.conf import settings
@@ -31,6 +31,7 @@ from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
 from ..core.telemetry import Scope, SpanKind, saleor_attributes, tracer
 from ..webhook import observability
+from . import GraphQLOperationResult
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
@@ -150,9 +151,10 @@ class GraphQLView(View):
                 status=400,
             )
 
+        result: GraphQLOperationResult | None | list[GraphQLOperationResult | None]
         if isinstance(data, list):
             responses = [self.get_response(request, entry) for entry in data]
-            result: list | dict | None = [response for response, code in responses]
+            result = [response for response, code in responses]
             status_code = max((code for response, code in responses), default=200)
         else:
             result, status_code = self.get_response(request, data)
@@ -212,30 +214,26 @@ class GraphQLView(View):
 
     def get_response(
         self, request: HttpRequest, data: dict
-    ) -> tuple[dict[str, list[Any]] | None, int]:
+    ) -> tuple[GraphQLOperationResult | None, int]:
         with observability.report_gql_operation() as operation:
             execution_result = self.execute_graphql_request(request, data)
             status_code = 200
-            if execution_result:
-                response = {}
-                if execution_result.errors:
-                    response["errors"] = [
-                        self.format_error(e) for e in execution_result.errors
-                    ]
-                    # Error handling form `GraphQL-Core-Legacy` creates a multiple references cycles in
-                    # the error object. We need to clear them.
-                    clear_errors(execution_result.errors)
-                if execution_result.invalid:
-                    status_code = 400
-                else:
-                    response["data"] = execution_result.data
-                if execution_result.extensions:
-                    response["extensions"] = execution_result.extensions
-                result: dict[str, list[Any]] | None = response
+            result: GraphQLOperationResult = {}
+            if execution_result.errors:
+                result["errors"] = [
+                    self.format_error(e) for e in execution_result.errors
+                ]
+                # Error handling form `GraphQL-Core-Legacy` creates a multiple references cycles in
+                # the error object. We need to clear them.
+                clear_errors(execution_result.errors)
+            if execution_result.invalid:
+                status_code = 400
             else:
-                result = None
-            operation.result = result
+                result["data"] = execution_result.data
+            if execution_result.extensions:
+                result["extensions"] = execution_result.extensions
             operation.result_invalid = execution_result.invalid
+            operation.result = dict(result)
         return result, status_code
 
     def get_root_value(self):
@@ -243,7 +241,7 @@ class GraphQLView(View):
 
     def parse_query(
         self, query: str | None
-    ) -> tuple[GraphQLDocument | None, ExecutionResult | None]:
+    ) -> tuple[GraphQLDocument, None] | tuple[None, ExecutionResult]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
         If no query was given or query is not a string, it returns an error.
@@ -267,7 +265,9 @@ class GraphQLView(View):
         except (ValueError, GraphQLSyntaxError) as e:
             return None, ExecutionResult(errors=[e], invalid=True)
 
-    def execute_graphql_request(self, request: HttpRequest, data: dict):
+    def execute_graphql_request(
+        self, request: HttpRequest, data: dict
+    ) -> ExecutionResult:
         with (
             tracer.start_as_current_span(
                 "GraphQL Operation", scope=Scope.SERVICE
@@ -285,7 +285,7 @@ class GraphQLView(View):
                 operation.name = operation_name
                 operation.variables = variables
 
-            if error or document is None:
+            if error:
                 error_description = self.format_span_error_description(error)
                 error_type = (
                     error.errors[0].__class__.__name__
@@ -300,6 +300,7 @@ class GraphQLView(View):
                     )
                     query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
                 return error
+            document = cast(GraphQLDocument, document)
 
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
@@ -485,6 +486,12 @@ class GraphQLView(View):
                     obj_set(operations, file_instance, file_key, False)
             query = operations.get("query")
             variables = operations.get("variables")
+        if not isinstance(query, str):
+            query = None
+        if not isinstance(variables, dict):
+            variables = None
+        if not isinstance(operation_name, str):
+            operation_name = None
         return query, variables, operation_name
 
     def format_error(self, error):
