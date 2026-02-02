@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.postgres.search import SearchQuery
 from django.db.models import Q, QuerySet, Value, prefetch_related_objects
 
@@ -25,7 +26,7 @@ def prepare_gift_card_search_vector_value(
         ),
         NoValidationSearchVector(Value(gift_card.code), config="simple", weight="B"),
     ]
-    for tag in gift_card.tags.all():
+    for tag in gift_card.tags.all()[: settings.GIFT_CARD_MAX_INDEXED_TAGS]:
         _add_vector(search_vectors, tag.name, weight="B")
     _add_vector(search_vectors, gift_card.used_by_email, weight="C")
     _add_vector(search_vectors, gift_card.created_by_email, weight="C")
