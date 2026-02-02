@@ -10,6 +10,14 @@ All notable, unreleased changes to this project will be documented in this file.
     - Shipping method metadata is now also denormalized during draft order finalization, ensuring consistent behavior across all order creation flows.
 - Fields `options`, `mount` and `target` are removed from `AppExtension` and `AppManifestExtension` types. Use `mountName`, `targetName` and `settings`
 - Deprecate the `hasVariants` field on `ProductType`. This setting is a legacy artifact from the former Simple/Configurable product distinction. Products can have multiple variants regardless of this flag. Previously, it only prevented assigning variant attributes to a product type; this restriction will no longer apply.
+- Improved error handling in Federation - #18718 by @NyanKiyoshi
+
+  The type for GraphQL field `representations` in `{ _entities(representations: [_Any!]!) { ... } }` was changed.
+
+  Before: `[_Any]`
+  After: `[_Any!]!`
+
+  Make sure to adapt your GraphQL queries if you use the `_entities` query.
 
 ### GraphQL API
 - Gift cards support as payment method within Transaction API (read more in the [docs](https://docs.saleor.io/developer/gift-cards#using-gift-cards-in-checkout)).

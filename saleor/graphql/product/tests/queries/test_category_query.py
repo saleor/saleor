@@ -608,7 +608,7 @@ def test_query_category_for_federation(api_client, non_default_category):
         ],
     }
     query = """
-      query GetCategoryInFederation($representations: [_Any]) {
+      query GetCategoryInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on Category {

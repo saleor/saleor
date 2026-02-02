@@ -329,7 +329,7 @@ def test_groups_for_federation_query_count(
     )
 
     query = """
-        query GetGroupInFederation($representations: [_Any]) {
+        query GetGroupInFederation($representations: [_Any!]!) {
             _entities(representations: $representations) {
                 __typename
                 ... on Group {

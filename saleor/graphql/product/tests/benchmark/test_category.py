@@ -228,7 +228,7 @@ def test_categories_for_federation_query_count(
     )
 
     query = """
-        query GetCategoryInFederation($representations: [_Any]) {
+        query GetCategoryInFederation($representations: [_Any!]!) {
             _entities(representations: $representations) {
                 __typename
                 ... on Category {
