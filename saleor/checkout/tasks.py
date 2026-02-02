@@ -327,7 +327,7 @@ def update_checkouts_search_vector_task():
     with multiple tasks running in parallel to speed up the overall process.
     """
     # to speed up processing, delegate multiple checkouts to batch processing tasks
-    parallel_tasks = 5
+    parallel_tasks = settings.CHECKOUT_SEARCH_UPDATE_PARALLEL_TASKS
     batch = UPDATE_SEARCH_BATCH_SIZE * parallel_tasks
     # process the oldest modified checkouts first to prevent repeated updates
     # in case of high update frequency of the checkout instance

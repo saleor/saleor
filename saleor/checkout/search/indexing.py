@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import graphene
+from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db import transaction
 from django.db.models import F, Q, Value
@@ -19,10 +20,6 @@ if TYPE_CHECKING:
     from ...payment.models import Payment
     from ..models import Checkout
 
-MAX_INDEXED_LINES = 100
-MAX_INDEXED_PAYMENTS = 100
-MAX_INDEXED_TRANSACTIONS = 100
-
 
 @with_promise_context
 def update_checkouts_search_vector(checkouts: list["Checkout"]):
@@ -38,7 +35,6 @@ def update_checkouts_search_vector(checkouts: list["Checkout"]):
                     pk__in=[checkout.pk for checkout in checkouts],
                     search_index_dirty=True,
                 )
-                .order_by("pk")
                 .values_list("pk", flat=True)
             )
             Checkout.objects.filter(pk__in=pks).update(search_index_dirty=False)
@@ -118,7 +114,9 @@ def generate_checkout_transactions_search_vector_value(
 ) -> list[NoValidationSearchVector]:
     """Generate search vectors for checkout transactions."""
     transaction_vectors = []
-    for transaction_data in transactions_data[:MAX_INDEXED_TRANSACTIONS]:
+    for transaction_data in transactions_data[
+        : settings.CHECKOUT_MAX_INDEXED_TRANSACTIONS
+    ]:
         transaction = transaction_data.transaction
         transaction_vectors.append(
             NoValidationSearchVector(
@@ -154,7 +152,7 @@ def generate_checkout_payments_search_vector_value(
 ) -> list[NoValidationSearchVector]:
     """Generate search vectors for checkout payments."""
     payment_vectors = []
-    for payment in payments[:MAX_INDEXED_PAYMENTS]:
+    for payment in payments[: settings.CHECKOUT_MAX_INDEXED_PAYMENTS]:
         payment_vectors.append(
             NoValidationSearchVector(
                 Value(graphene.Node.to_global_id("Payment", payment.id)),
@@ -178,7 +176,7 @@ def generate_checkout_lines_search_vector_value(
 ) -> list[NoValidationSearchVector]:
     """Generate search vectors for checkout lines."""
     line_vectors = []
-    for line_data in lines_data[:MAX_INDEXED_LINES]:
+    for line_data in lines_data[: settings.CHECKOUT_MAX_INDEXED_LINES]:
         variant = line_data.variant
         if not variant:
             continue

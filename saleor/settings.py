@@ -982,7 +982,6 @@ AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED = datetime.timedelta(
     )
 )
 
-
 # The maximum SearchVector expression count allowed per index SQL statement
 # If the count is exceeded, the expression list will be truncated
 INDEX_MAXIMUM_EXPR_COUNT = 4000
@@ -1003,6 +1002,17 @@ PRODUCT_MAX_INDEXED_VARIANTS = 1000
 # Maximum related objects that can be indexed in a page
 PAGE_MAX_INDEXED_ATTRIBUTES = 1000
 PAGE_MAX_INDEXED_ATTRIBUTE_VALUES = 100
+
+# Maximum related objects that can be indexed in a checkout
+CHECKOUT_MAX_INDEXED_LINES = 100
+CHECKOUT_MAX_INDEXED_TRANSACTIONS = 20
+CHECKOUT_MAX_INDEXED_PAYMENTS = 20
+
+# Number of parallel tasks to spawn for updating checkout search vectors.
+# Each task processes a batch of checkouts concurrently to improve throughput.
+CHECKOUT_SEARCH_UPDATE_PARALLEL_TASKS = int(
+    os.environ.get("CHECKOUT_SEARCH_UPDATE_PARALLEL_TASKS", 5)
+)
 
 # Patch SubscriberExecutionContext class from `graphql-core-legacy` package
 # to fix bug causing not returning errors for subscription queries.
