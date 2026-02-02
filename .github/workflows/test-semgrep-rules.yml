@@ -21,7 +21,7 @@ jobs:
             .semgrep
 
       - name: Install Dependencies
-        run: python3 -m pip install semgrep==1.39.0
+        run: python3 -m pip install semgrep==1.89.0
 
       - name: Run Tests
         working-directory: .semgrep
