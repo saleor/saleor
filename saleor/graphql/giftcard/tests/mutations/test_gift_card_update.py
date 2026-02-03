@@ -224,6 +224,9 @@ def test_update_gift_card_by_app(
     gift_card_tag_list,
 ):
     # given
+    gift_card.search_index_dirty = False
+    gift_card.save(update_fields=["search_index_dirty"])
+
     old_initial_balance = float(gift_card.initial_balance.amount)
     old_current_balance = float(gift_card.current_balance.amount)
     old_tag = gift_card.tags.first()
@@ -329,6 +332,9 @@ def test_update_gift_card_by_app(
     for event in data["events"]:
         assert event in events
 
+    gift_card.refresh_from_db()
+    assert gift_card.search_index_dirty is True
+
     with pytest.raises(old_tag._meta.model.DoesNotExist):
         old_tag.refresh_from_db()
 
@@ -367,6 +373,9 @@ def test_update_gift_card_balance(
     permission_manage_apps,
 ):
     # given
+    gift_card.search_index_dirty = False
+    gift_card.save(update_fields=["search_index_dirty"])
+
     old_initial_balance = float(gift_card.initial_balance.amount)
     old_current_balance = float(gift_card.current_balance.amount)
 
@@ -433,6 +442,11 @@ def test_update_gift_card_balance(
     }
     assert expected_event == data["events"][0]
 
+    gift_card.refresh_from_db()
+    assert gift_card.search_index_dirty is False, (
+        "Search index dirty should not be updated when only balance changed"
+    )
+
 
 def test_update_gift_card_change_to_never_expire(
     staff_api_client,
@@ -442,6 +456,9 @@ def test_update_gift_card_change_to_never_expire(
     permission_manage_apps,
 ):
     # given
+    gift_card_expiry_date.search_index_dirty = False
+    gift_card_expiry_date.save(update_fields=["search_index_dirty"])
+
     gift_card = gift_card_expiry_date
     old_expiry_date = gift_card.expiry_date
 
@@ -489,6 +506,11 @@ def test_update_gift_card_change_to_never_expire(
         "oldExpiryDate": old_expiry_date.isoformat(),
     }
     assert expected_event == data["events"][0]
+
+    gift_card.refresh_from_db()
+    assert gift_card.search_index_dirty is False, (
+        "Search index dirty should not be updated when only expiryDate changed"
+    )
 
 
 def test_update_used_gift_card_to_expiry_date(
@@ -842,6 +864,9 @@ def test_update_gift_card_metadata_empty(
     permission_manage_gift_card,
 ):
     # given
+    gift_card.search_index_dirty = False
+    gift_card.save(update_fields=["search_index_dirty"])
+
     metadata_key = "metadata_key"
     metadata_value = "metadata_value"
 
@@ -878,6 +903,11 @@ def test_update_gift_card_metadata_empty(
     assert data["metadata"][0]["value"] == metadata_value
     assert data["privateMetadata"][0]["key"] == metadata_key
     assert data["privateMetadata"][0]["value"] == metadata_value
+
+    gift_card.refresh_from_db()
+    assert gift_card.search_index_dirty is False, (
+        "Search index dirty should not be updated when only metadata changed"
+    )
 
 
 def test_update_gift_card_metadata_existed(
