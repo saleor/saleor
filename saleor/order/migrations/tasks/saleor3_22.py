@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 
 from ....celeryconf import app
@@ -8,7 +9,7 @@ from ...models import OrderLine
 ORDER_LINE_PRODUCT_ID_BATCH_SIZE = 250
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def populate_order_line_product_type_id_task(line_pk=None):
     """Populate product id for order lines."""

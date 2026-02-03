@@ -13,7 +13,7 @@ from ...models.base import AttributeValue
 BATCH_SIZE = 500
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def fulfill_attribute_value_numeric_field(attribute_value_pk=0):
     value_ids = list(
@@ -69,7 +69,7 @@ def update_product_variant_assignment():
         )
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def assign_product_variants_to_attribute_values_task():
     # Order events proceed from the newest to the oldest
