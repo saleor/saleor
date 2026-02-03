@@ -21,125 +21,42 @@ on:
     outputs:
       version:
         description: Docker image version
-        value: ${{ jobs.merge-digests.outputs.version }}
+        value: ${{ jobs.prepare-variables.outputs.version }}
 
 jobs:
-  build-and-push:
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - ubuntu-24.04 # AMD64
-          - ubuntu-24.04-arm # ARM64
-
-    runs-on: ${{ matrix.platform }}
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Build Image Name
-        id: image
-        env:
-          GH_REPO: ${{ github.repository }}
-        run: |
-          # The name of the owner and of the repository: owner/repository
-          IMAGE_NAME=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
-          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
-
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ inputs.ref }}
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ghcr.io/${{ steps.image.outputs.image_name }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and Push
-        id: build
-        uses: docker/build-push-action@v6
-        with:
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          context: .
-          labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true,oci-mediatypes=true
-          # We set `push-by-digest=true` thus we cannot put any tag and thus we use
-          # the container repository name instead (ghcr.io/saleor/saleor)
-          # (we cannot push both by tags and by digest, only one or the other)
-          tags: ghcr.io/${{ steps.image.outputs.image_name }}
-          push: true
-
-      - name: Export digest
-        run: |
-          mkdir -p ${{ runner.temp }}/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
-
-      - name: Upload digest
-        uses: actions/upload-artifact@v4
-        with:
-          name: digests-${{ matrix.platform }}
-          path: ${{ runner.temp }}/digests/*
-          if-no-files-found: error
-          retention-days: 1
-
-  merge-digests:
-    needs: build-and-push
-
+  prepare-variables:
+    name: Prepare variables
     runs-on: ubuntu-24.04
-
     permissions:
       contents: read
-      packages: write
-
     outputs:
-      version: ${{ steps.meta.outputs.version }}
-
+      image_name: ${{ steps.get-image-name.outputs.image_name }}
+      labels: ${{ steps.metadata.outputs.labels }}
+      tags: ${{ steps.metadata.outputs.tags }}
+      version: ${{ steps.metadata.outputs.version }}
     steps:
-      - name: Build Image Name
-        id: image
+      - name: Get GHCR image name (owner/repo)
+        id: get-image-name
         env:
           GH_REPO: ${{ github.repository }}
         run: |
-          # The name of the owner and of the repository: owner/repository
-          IMAGE_NAME=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
-          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+          # github.repository is already in owner/repo format required
+          # by GHCR; normalize it to lowercase.
+          GHCR_IMAGE_NAME="${GH_REPO,,}"
+          echo "image_name=$GHCR_IMAGE_NAME" >> $GITHUB_OUTPUT
 
-      - name: Download digests
-        uses: actions/download-artifact@v5
-        with:
-          path: ${{ runner.temp }}/digests
-          pattern: digests-*
-          merge-multiple: true
-
-      # Needed by `docker/metadata-action` (to fetch tags and other git information)
+      # Required by docker/metadata-action
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Docker meta
-        id: meta
+      - name: Docker metadata
+        id: metadata
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/${{ steps.image.outputs.image_name }}
+            ghcr.io/${{ steps.get-image-name.outputs.image_name }}
           tags: |
             type=ref,event=branch,prefix=${{ inputs.prefix }}
             type=pep440,pattern={{version}}
@@ -147,34 +64,28 @@ jobs:
             type=raw,value=${{ inputs.version }},enable=${{ inputs.version != null }}
           context: git
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create manifest list and push
-        working-directory: ${{ runner.temp }}/digests
-        env:
-          DOCKER_META_JSON: ${{ steps.meta.outputs.json }}
-          IMAGE_NAME: ${{ steps.image.outputs.image_name }}
-        run: |
-          set -x
-          tag_list=$(echo "$DOCKER_META_JSON" | jq -cr '.tags | map("-t " + .) | join(" ")')
-          image_digest_list=$(printf "ghcr.io/$IMAGE_NAME@sha256:%s " *)
-          docker buildx imagetools create $tag_list $image_digest_list
+  build-push:
+    needs: prepare-variables
+    uses: saleor/saleor-internal-actions/.github/workflows/build-push-image-multi-platform.yaml@92c29aa0e4545de579b892b2ef9f2d6366c29c11 # v1.5.2
+    permissions:
+      contents: read
+      id-token: write # needed for AWS/ECR login (not used, but required permission)
+      packages: write # needed for GHCR
+    with:
+      checkout-ref: ${{ inputs.ref }}
 
-      - name: Inspect image
-        env:
-          IMAGE_VERSION: ${{ steps.meta.outputs.version }}
-          IMAGE_NAME: ${{ steps.image.outputs.image_name }}
-        run: |
-          docker buildx imagetools inspect ghcr.io/"$IMAGE_NAME":"$IMAGE_VERSION"
+      enable-ghcr: true
+      oci-full-repository: ghcr.io/${{ needs.prepare-variables.outputs.image_name }}
+      tags: ${{ needs.prepare-variables.outputs.tags }}
+      labels: ${{ needs.prepare-variables.outputs.labels }}
+
+      amd64-runner-image: ubuntu-24.04
+      arm64-runner-image: ubuntu-24.04-arm
 
   notify:
     if: ${{ failure() }}
-    needs: build-and-push
+    needs: [prepare-variables, build-push]
     runs-on: ubuntu-24.04
 
     permissions:
@@ -182,7 +93,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
           sparse-checkout: |
@@ -193,6 +104,6 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_MENTION_GROUP_ID }}
-          JOB_TITLE: "Build of Saleor Core ${{ steps.meta.outputs.version }}"
+          JOB_TITLE: "Build of Saleor Core ${{ needs.prepare-variables.outputs.version }}"
         run: |
           python3 ./.github/workflows/notify/notify-slack.py

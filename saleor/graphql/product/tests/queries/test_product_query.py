@@ -2178,7 +2178,7 @@ def test_query_product_media_by_id_zero_size_value_original_image_returned(
 
 
 QUERY_PRODUCT_IN_FEDERATION = """
-query GetProductInFederation($representations: [_Any]) {
+query GetProductInFederation($representations: [_Any!]!) {
   _entities(representations: $representations) {
     __typename
     ... on Product {
@@ -2436,7 +2436,7 @@ def test_query_product_media_for_federation(
         ],
     }
     query = """
-      query GetProductMediaInFederation($representations: [_Any]) {
+      query GetProductMediaInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on ProductMedia {

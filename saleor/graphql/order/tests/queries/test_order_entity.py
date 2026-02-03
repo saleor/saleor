@@ -5,7 +5,7 @@ from .....order.models import Order
 from ....tests.utils import get_graphql_content
 
 ORDER_FEDERATION_QUERY = """
-  query GetOrderInFederation($representations: [_Any]) {
+  query GetOrderInFederation($representations: [_Any!]!) {
     _entities(representations: $representations) {
       __typename
       ... on Order {
