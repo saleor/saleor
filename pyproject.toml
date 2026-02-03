@@ -53,7 +53,7 @@ help = "Run tests with db reuse to speed up testing time"
 
 [tool.poetry]
 name = "saleor"
-version = "3.21.46"
+version = "3.21.47"
 description = "A modular, high performance, headless e-commerce platform built with Python, GraphQL, Django, and React."
 authors = [ "Saleor Commerce <hello@saleor.io>" ]
 license = "BSD-3-Clause"
