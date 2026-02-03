@@ -4,7 +4,6 @@ import datetime
 import graphene
 
 from ...app import models
-from ...app.models import AppProblemType
 from ...app.types import (
     DEFAULT_APP_TARGET,
     DeprecatedAppExtensionHttpMethod,
@@ -61,7 +60,6 @@ from .dataloaders import (
     app_promise_callback,
 )
 from .enums import (
-    AppProblemSeverityEnum,
     AppTypeEnum,
     CircuitBreakerState,
     CircuitBreakerStateEnum,
@@ -538,37 +536,39 @@ class AppToken(BaseObjectType):
         return root.token_last_4
 
 
-class AppProblemOwn(BaseObjectType):
-    message = graphene.String(required=True)
+class AppProblem(ModelObjectType[models.AppProblem]):
+    id = graphene.GlobalID(required=True, description="The ID of the app problem.")
     created_at = DateTime(required=True)
-    aggregate = graphene.String(
-        required=False,
-        description="Grouping key for this problem. Used to clear related problems.",
+    updated_at = DateTime(required=True)
+    count = graphene.Int(required=True, description="Number of occurrences.")
+    is_critical = graphene.Boolean(
+        required=True, description="Whether the problem has reached critical threshold."
     )
-    severity = AppProblemSeverityEnum(
-        required=True,
-        description="Severity of the problem.",
+    dismissed = graphene.Boolean(
+        required=True, description="Whether the problem has been dismissed."
     )
-    key = graphene.String(
-        required=False,
-        description="Deduplication key for this problem.",
+    dismissed_by = graphene.Field(
+        "saleor.graphql.core.types.user_or_app.UserOrApp",
+        description="The entity (App or User) that dismissed this problem.",
     )
+    message = graphene.String(required=True)
+    key = graphene.String(required=True)
 
     class Meta:
-        description = "Problem set by the app on itself."
-        doc_category = DOC_CATEGORY_APPS
-
-
-class AppProblem(graphene.Union):
-    class Meta:
-        types = (AppProblemOwn,)
         description = "Represents a problem associated with an app."
+        doc_category = DOC_CATEGORY_APPS
+        interfaces = [graphene.relay.Node]
+        model = models.AppProblem
 
-    @classmethod
-    def resolve_type(cls, instance, info):
-        if instance.type == AppProblemType.OWN:
-            return AppProblemOwn
-        return super().resolve_type(instance, info)
+    @staticmethod
+    def resolve_dismissed_by(root: models.AppProblem, info: ResolveInfo):
+        if root.dismissed_by_app_id is not None:
+            return AppByIdLoader(info.context).load(root.dismissed_by_app_id)
+        if root.dismissed_by_user_id is not None:
+            from ..account.dataloaders import UserByUserIdLoader
+
+            return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
+        return None
 
 
 @federated_entity("id")

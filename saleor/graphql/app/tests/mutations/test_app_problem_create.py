@@ -1,4 +1,8 @@
-from .....app.models import AppProblem, AppProblemSeverity, AppProblemType
+import datetime
+
+from django.utils import timezone
+
+from .....app.models import AppProblem
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_PROBLEM_CREATE_MUTATION = """
@@ -7,12 +11,13 @@ APP_PROBLEM_CREATE_MUTATION = """
             app {
                 id
                 problems {
-                    ... on AppProblemOwn {
-                        message
-                        aggregate
-                        severity
-                        key
-                    }
+                    id
+                    message
+                    key
+                    count
+                    isCritical
+                    dismissed
+                    updatedAt
                 }
             }
             errors {
@@ -27,7 +32,7 @@ APP_PROBLEM_CREATE_MUTATION = """
 
 def test_app_problem_create(app_api_client, app):
     # given
-    variables = {"input": {"message": "Something went wrong"}}
+    variables = {"input": {"message": "Something went wrong", "key": "error-1"}}
 
     # when
     response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
@@ -39,190 +44,32 @@ def test_app_problem_create(app_api_client, app):
     problems = data["app"]["problems"]
     assert len(problems) == 1
     assert problems[0]["message"] == "Something went wrong"
-    assert problems[0]["aggregate"] == ""
-    assert problems[0]["severity"] == "ERROR"
+    assert problems[0]["key"] == "error-1"
+    assert problems[0]["count"] == 1
+    assert problems[0]["isCritical"] is False
+    assert problems[0]["dismissed"] is False
 
     db_problem = AppProblem.objects.get(app=app)
-    assert db_problem.type == AppProblemType.OWN
     assert db_problem.message == "Something went wrong"
-    assert db_problem.severity == AppProblemSeverity.ERROR
+    assert db_problem.key == "error-1"
+    assert db_problem.count == 1
 
 
-def test_app_problem_create_with_aggregate(app_api_client, app):
+def test_app_problem_create_aggregates_within_period(app_api_client, app):
     # given
-    variables = {"input": {"message": "Connection failed", "aggregate": "webhook-123"}}
-
-    # when
-    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemCreate"]
-    assert not data["errors"]
-    problems = data["app"]["problems"]
-    assert len(problems) == 1
-    assert problems[0]["message"] == "Connection failed"
-    assert problems[0]["aggregate"] == "webhook-123"
-
-    db_problem = AppProblem.objects.get(app=app)
-    assert db_problem.aggregate == "webhook-123"
-
-
-def test_app_problem_create_with_warning_severity(app_api_client, app):
-    # given
-    variables = {"input": {"message": "Degraded performance", "severity": "WARNING"}}
-
-    # when
-    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemCreate"]
-    assert not data["errors"]
-    problems = data["app"]["problems"]
-    assert len(problems) == 1
-    assert problems[0]["message"] == "Degraded performance"
-    assert problems[0]["severity"] == "WARNING"
-
-    db_problem = AppProblem.objects.get(app=app)
-    assert db_problem.severity == AppProblemSeverity.WARNING
-
-
-def test_app_problem_create_with_error_severity(app_api_client, app):
-    # given
-    variables = {"input": {"message": "Fatal failure", "severity": "ERROR"}}
-
-    # when
-    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemCreate"]
-    assert not data["errors"]
-    problems = data["app"]["problems"]
-    assert len(problems) == 1
-    assert problems[0]["severity"] == "ERROR"
-
-    db_problem = AppProblem.objects.get(app=app)
-    assert db_problem.severity == AppProblemSeverity.ERROR
-
-
-def test_app_problem_create_by_staff_user_fails(
-    staff_api_client, permission_manage_apps
-):
-    # given
-    staff_api_client.user.user_permissions.add(permission_manage_apps)
-    variables = {"input": {"message": "Something went wrong"}}
-
-    # when
-    response = staff_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-
-    # then
-    assert_no_permission(response)
-
-
-def test_app_problem_create_multiple(app_api_client, app):
-    # given
+    now = timezone.now()
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.OWN,
-        message="Existing problem",
+        message="First occurrence",
+        key="agg-key",
+        count=1,
+        updated_at=now - datetime.timedelta(minutes=30),
     )
-    variables = {"input": {"message": "New problem"}}
-
-    # when
-    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemCreate"]
-    assert not data["errors"]
-    assert AppProblem.objects.filter(app=app).count() == 2
-
-
-def test_app_problem_create_fails_when_limit_reached(app_api_client, app):
-    # given
-    AppProblem.objects.bulk_create(
-        [
-            AppProblem(
-                app=app,
-                type=AppProblemType.OWN,
-                message=f"Problem {i}",
-            )
-            for i in range(AppProblem.MAX_PROBLEMS_PER_APP)
-        ]
-    )
-    variables = {"input": {"message": "One too many"}}
-
-    # when
-    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemCreate"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["code"] == "INVALID"
-    assert data["app"] is None
-    assert AppProblem.objects.filter(app=app).count() == AppProblem.MAX_PROBLEMS_PER_APP
-
-
-def test_app_problem_create_with_key(app_api_client, app):
-    # given
-    variables = {"input": {"message": "Keyed problem", "key": "my-key"}}
-
-    # when
-    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemCreate"]
-    assert not data["errors"]
-    problems = data["app"]["problems"]
-    assert len(problems) == 1
-    assert problems[0]["message"] == "Keyed problem"
-    assert problems[0]["key"] == "my-key"
-
-    db_problem = AppProblem.objects.get(app=app)
-    assert db_problem.key == "my-key"
-
-
-def test_app_problem_create_skips_duplicate_key(app_api_client, app):
-    # given
-    AppProblem.objects.create(
-        app=app,
-        type=AppProblemType.OWN,
-        message="Original",
-        key="dup-key",
-    )
-    variables = {"input": {"message": "Duplicate", "key": "dup-key"}}
-
-    # when
-    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemCreate"]
-    assert not data["errors"]
-    assert AppProblem.objects.filter(app=app).count() == 1
-    assert AppProblem.objects.get(app=app).message == "Original"
-
-
-def test_app_problem_create_force_overwrites_existing(app_api_client, app):
-    # given
-    original = AppProblem.objects.create(
-        app=app,
-        type=AppProblemType.OWN,
-        message="Original",
-        severity=AppProblemSeverity.WARNING,
-        key="overwrite-key",
-    )
-    original_created_at = original.created_at
     variables = {
         "input": {
-            "message": "Updated",
-            "severity": "ERROR",
-            "key": "overwrite-key",
-            "force": True,
+            "message": "Second occurrence",
+            "key": "agg-key",
+            "aggregationPeriod": 60,
         }
     }
 
@@ -234,23 +81,28 @@ def test_app_problem_create_force_overwrites_existing(app_api_client, app):
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
     assert AppProblem.objects.filter(app=app).count() == 1
-
-    updated = AppProblem.objects.get(app=app)
-    assert updated.pk == original.pk
-    assert updated.message == "Updated"
-    assert updated.severity == AppProblemSeverity.ERROR
-    assert updated.created_at > original_created_at
+    problem = AppProblem.objects.get(app=app)
+    assert problem.count == 2
+    assert problem.message == "Second occurrence"
 
 
-def test_app_problem_create_different_keys_both_created(app_api_client, app):
+def test_app_problem_create_new_when_period_expired(app_api_client, app):
     # given
+    now = timezone.now()
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.OWN,
-        message="First",
-        key="key-x",
+        message="Old problem",
+        key="exp-key",
+        count=3,
+        updated_at=now - datetime.timedelta(minutes=120),
     )
-    variables = {"input": {"message": "Second", "key": "key-y"}}
+    variables = {
+        "input": {
+            "message": "New problem",
+            "key": "exp-key",
+            "aggregationPeriod": 60,
+        }
+    }
 
     # when
     response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
@@ -260,14 +112,85 @@ def test_app_problem_create_different_keys_both_created(app_api_client, app):
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
     assert AppProblem.objects.filter(app=app).count() == 2
-    assert AppProblem.objects.filter(app=app, key="key-x").exists()
-    assert AppProblem.objects.filter(app=app, key="key-y").exists()
 
 
-def test_app_problem_create_no_key_allows_duplicates(app_api_client, app):
+def test_app_problem_create_critical_threshold_reached(app_api_client, app):
     # given
-    variables = {"input": {"message": "No key problem"}}
-    app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Almost critical",
+        key="crit-key",
+        count=4,
+        updated_at=now - datetime.timedelta(minutes=5),
+    )
+    variables = {
+        "input": {
+            "message": "Critical now",
+            "key": "crit-key",
+            "aggregationPeriod": 60,
+            "criticalThreshold": 5,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    problem = AppProblem.objects.get(app=app)
+    assert problem.count == 5
+    assert problem.is_critical is True
+
+
+def test_app_problem_create_critical_threshold_not_reached(app_api_client, app):
+    # given
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Not critical yet",
+        key="nc-key",
+        count=2,
+        updated_at=now - datetime.timedelta(minutes=5),
+    )
+    variables = {
+        "input": {
+            "message": "Still not critical",
+            "key": "nc-key",
+            "aggregationPeriod": 60,
+            "criticalThreshold": 10,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    problem = AppProblem.objects.get(app=app)
+    assert problem.count == 3
+    assert problem.is_critical is False
+
+
+def test_app_problem_create_zero_aggregation_period_always_creates_new(
+    app_api_client, app
+):
+    # given
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Existing",
+        key="no-agg",
+        count=1,
+        updated_at=now - datetime.timedelta(minutes=1),
+    )
+    variables = {
+        "input": {"message": "New one", "key": "no-agg", "aggregationPeriod": 0}
+    }
 
     # when
     response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
@@ -277,3 +200,156 @@ def test_app_problem_create_no_key_allows_duplicates(app_api_client, app):
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
     assert AppProblem.objects.filter(app=app).count() == 2
+
+
+def test_app_problem_create_default_aggregation_period_aggregates(app_api_client, app):
+    # given
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Recent",
+        key="def-agg",
+        count=1,
+        updated_at=now - datetime.timedelta(minutes=30),
+    )
+    # No aggregationPeriod specified — defaults to 60 minutes
+    variables = {"input": {"message": "Should aggregate", "key": "def-agg"}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    assert AppProblem.objects.filter(app=app).count() == 1
+    problem = AppProblem.objects.get(app=app)
+    assert problem.count == 2
+    assert problem.message == "Should aggregate"
+
+
+def test_app_problem_create_limit_eviction(app_api_client, app):
+    # given
+    now = timezone.now()
+    problems = AppProblem.objects.bulk_create(
+        [
+            AppProblem(
+                app=app,
+                message=f"Problem {i}",
+                key=f"key-{i}",
+                updated_at=now,
+            )
+            for i in range(AppProblem.MAX_PROBLEMS_PER_APP)
+        ]
+    )
+    oldest_id = AppProblem.objects.filter(app=app).order_by("created_at").first().id
+    variables = {"input": {"message": "One more", "key": "new-key"}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    assert AppProblem.objects.filter(app=app).count() == AppProblem.MAX_PROBLEMS_PER_APP
+    assert not AppProblem.objects.filter(id=oldest_id).exists()
+    assert AppProblem.objects.filter(app=app, key="new-key").exists()
+
+
+def test_app_problem_create_dismissed_problem_not_aggregated(app_api_client, app):
+    # given
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Dismissed one",
+        key="dis-key",
+        count=5,
+        updated_at=now - datetime.timedelta(minutes=5),
+        dismissed=True,
+    )
+    variables = {
+        "input": {
+            "message": "Fresh problem",
+            "key": "dis-key",
+            "aggregationPeriod": 60,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    assert AppProblem.objects.filter(app=app).count() == 2
+    new_problem = AppProblem.objects.filter(app=app, dismissed=False).get()
+    assert new_problem.count == 1
+    assert new_problem.message == "Fresh problem"
+
+
+def test_app_problem_create_message_updates_on_aggregation(app_api_client, app):
+    # given
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Original message",
+        key="msg-key",
+        count=1,
+        updated_at=now - datetime.timedelta(minutes=5),
+    )
+    variables = {
+        "input": {
+            "message": "Updated message",
+            "key": "msg-key",
+            "aggregationPeriod": 60,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    problem = AppProblem.objects.get(app=app)
+    assert problem.message == "Updated message"
+    assert problem.count == 2
+
+
+def test_app_problem_create_by_staff_user_fails(
+    staff_api_client, permission_manage_apps
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {"input": {"message": "Something went wrong", "key": "err"}}
+
+    # when
+    response = staff_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_app_problem_create_critical_on_first_problem(app_api_client, app):
+    # given
+    variables = {
+        "input": {
+            "message": "Immediately critical",
+            "key": "imm-crit",
+            "criticalThreshold": 1,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    problem = AppProblem.objects.get(app=app)
+    assert problem.is_critical is True
+    assert problem.count == 1

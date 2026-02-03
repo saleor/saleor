@@ -20,8 +20,8 @@ from .mutations import (
     AppDeleteFailedInstallation,
     AppFetchManifest,
     AppInstall,
-    AppProblemClear,
     AppProblemCreate,
+    AppProblemDismiss,
     AppReenableSyncWebhooks,
     AppRetryInstall,
     AppTokenCreate,
@@ -194,6 +194,6 @@ class AppMutations(graphene.ObjectType):
     app_deactivate = AppDeactivate.Field()
 
     app_problem_create = AppProblemCreate.Field()
-    app_problem_clear = AppProblemClear.Field()
+    app_problem_dismiss = AppProblemDismiss.Field()
 
     app_reenable_sync_webhooks = AppReenableSyncWebhooks.Field()

@@ -1,6 +1,7 @@
 import graphene
+from django.utils import timezone
 
-from .....app.models import AppProblem, AppProblemSeverity, AppProblemType
+from .....app.models import AppProblem
 from ....tests.utils import get_graphql_content
 
 QUERY_APP_PROBLEMS = """
@@ -8,12 +9,14 @@ QUERY_APP_PROBLEMS = """
         app(id: $id) {
             id
             problems {
-                ... on AppProblemOwn {
-                    message
-                    createdAt
-                    aggregate
-                    severity
-                }
+                id
+                message
+                key
+                createdAt
+                updatedAt
+                count
+                isCritical
+                dismissed
             }
         }
     }
@@ -35,12 +38,9 @@ def test_app_problems_empty(app_api_client, app):
 
 def test_app_problems_returns_problems(app_api_client, app):
     # given
-    AppProblem.objects.create(
-        app=app, type=AppProblemType.OWN, message="Custom issue 1"
-    )
-    AppProblem.objects.create(
-        app=app, type=AppProblemType.OWN, message="Custom issue 2"
-    )
+    now = timezone.now()
+    AppProblem.objects.create(app=app, message="Issue 1", key="k1", updated_at=now)
+    AppProblem.objects.create(app=app, message="Issue 2", key="k2", updated_at=now)
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -50,33 +50,22 @@ def test_app_problems_returns_problems(app_api_client, app):
     # then
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 2
-
-
-def test_app_problems_union_resolution(app_api_client, app):
-    # given
-    AppProblem.objects.create(
-        app=app,
-        type=AppProblemType.OWN,
-        message="Custom issue",
-        aggregate="my-group",
-    )
-    variables = {"id": graphene.Node.to_global_id("App", app.id)}
-
-    # when
-    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
-    content = get_graphql_content(response)
-
-    # then
-    problems = content["data"]["app"]["problems"]
-    assert len(problems) == 1
-    assert problems[0]["message"] == "Custom issue"
-    assert problems[0]["aggregate"] == "my-group"
+    for p in problems:
+        assert p["id"] is not None
+        assert p["message"] is not None
+        assert p["key"] is not None
+        assert p["createdAt"] is not None
+        assert p["updatedAt"] is not None
+        assert p["count"] is not None
+        assert p["isCritical"] is not None
+        assert p["dismissed"] is not None
 
 
 def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
     # given
-    AppProblem.objects.create(app=app, type=AppProblemType.OWN, message="First")
-    AppProblem.objects.create(app=app, type=AppProblemType.OWN, message="Second")
+    now = timezone.now()
+    AppProblem.objects.create(app=app, message="First", key="k1", updated_at=now)
+    AppProblem.objects.create(app=app, message="Second", key="k2", updated_at=now)
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -86,24 +75,23 @@ def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
     # then
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 2
-    # Most recent first
     assert problems[0]["message"] == "Second"
     assert problems[1]["message"] == "First"
 
 
-def test_app_problems_returns_severity(app_api_client, app):
+def test_app_problems_count_and_critical(app_api_client, app):
     # given
+    now = timezone.now()
     AppProblem.objects.create(
-        app=app,
-        type=AppProblemType.OWN,
-        message="Warning issue",
-        severity=AppProblemSeverity.WARNING,
+        app=app, message="Normal", key="k1", updated_at=now, count=3, is_critical=False
     )
     AppProblem.objects.create(
         app=app,
-        type=AppProblemType.OWN,
-        message="Error issue",
-        severity=AppProblemSeverity.ERROR,
+        message="Critical",
+        key="k2",
+        updated_at=now,
+        count=10,
+        is_critical=True,
     )
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
@@ -113,34 +101,142 @@ def test_app_problems_returns_severity(app_api_client, app):
 
     # then
     problems = content["data"]["app"]["problems"]
-    assert len(problems) == 2
-    severities = {p["message"]: p["severity"] for p in problems}
-    assert severities["Warning issue"] == "WARNING"
-    assert severities["Error issue"] == "ERROR"
+    by_msg = {p["message"]: p for p in problems}
+    assert by_msg["Normal"]["count"] == 3
+    assert by_msg["Normal"]["isCritical"] is False
+    assert by_msg["Critical"]["count"] == 10
+    assert by_msg["Critical"]["isCritical"] is True
 
 
-def test_app_problems_default_severity_is_error(app_api_client, app):
+def test_app_problems_dismissed_field(app_api_client, app):
     # given
+    now = timezone.now()
     AppProblem.objects.create(
-        app=app,
-        type=AppProblemType.OWN,
-        message="Default severity",
+        app=app, message="Active", key="k1", updated_at=now, dismissed=False
+    )
+    AppProblem.objects.create(
+        app=app, message="Dismissed", key="k2", updated_at=now, dismissed=True
     )
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
     response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    content = get_graphql_content(response)
+
+    # then
+    problems = content["data"]["app"]["problems"]
+    by_msg = {p["message"]: p for p in problems}
+    assert by_msg["Active"]["dismissed"] is False
+    assert by_msg["Dismissed"]["dismissed"] is True
+
+
+QUERY_APP_PROBLEMS_WITH_DISMISSED_BY = """
+    query ($id: ID) {
+        app(id: $id) {
+            id
+            problems {
+                id
+                dismissed
+                dismissedBy {
+                    ... on App {
+                        id
+                        name
+                    }
+                    ... on User {
+                        id
+                        email
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_app_problems_dismissed_by_app(app_api_client, app):
+    # given
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Dismissed by app",
+        key="k1",
+        updated_at=now,
+        dismissed=True,
+        dismissed_by_app=app,
+    )
+    variables = {"id": graphene.Node.to_global_id("App", app.id)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
     content = get_graphql_content(response)
 
     # then
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 1
-    assert problems[0]["severity"] == "ERROR"
+    assert problems[0]["dismissed"] is True
+    assert problems[0]["dismissedBy"]["name"] == app.name
+
+
+def test_app_problems_dismissed_by_user(staff_api_client, app, permission_manage_apps):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    staff_user = staff_api_client.user
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Dismissed by user",
+        key="k1",
+        updated_at=now,
+        dismissed=True,
+        dismissed_by_user=staff_user,
+    )
+    variables = {"id": graphene.Node.to_global_id("App", app.id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
+    content = get_graphql_content(response)
+
+    # then
+    problems = content["data"]["app"]["problems"]
+    assert len(problems) == 1
+    assert problems[0]["dismissed"] is True
+    assert problems[0]["dismissedBy"]["email"] == staff_user.email
+
+
+def test_app_problems_dismissed_by_null_when_not_dismissed(app_api_client, app):
+    # given
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Not dismissed",
+        key="k1",
+        updated_at=now,
+        dismissed=False,
+    )
+    variables = {"id": graphene.Node.to_global_id("App", app.id)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
+    content = get_graphql_content(response)
+
+    # then
+    problems = content["data"]["app"]["problems"]
+    assert len(problems) == 1
+    assert problems[0]["dismissedBy"] is None
 
 
 def test_app_problems_cascade_delete(app, db):
     # given
-    AppProblem.objects.create(app=app, type=AppProblemType.OWN, message="To be deleted")
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app, message="To be deleted", key="k1", updated_at=now
+    )
     assert AppProblem.objects.count() == 1
 
     # when

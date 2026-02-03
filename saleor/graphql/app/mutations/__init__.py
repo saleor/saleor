@@ -5,8 +5,8 @@ from .app_delete import AppDelete
 from .app_delete_failed_installation import AppDeleteFailedInstallation
 from .app_fetch_manifest import AppFetchManifest
 from .app_install import AppInstall
-from .app_problem_clear import AppProblemClear
 from .app_problem_create import AppProblemCreate
+from .app_problem_dismiss import AppProblemDismiss
 from .app_reenable_sync_webhooks import AppReenableSyncWebhooks
 from .app_retry_install import AppRetryInstall
 from .app_token_create import AppTokenCreate
@@ -20,8 +20,8 @@ __all__ = [
     "AppDeactivate",
     "AppDeleteFailedInstallation",
     "AppDelete",
-    "AppProblemClear",
     "AppProblemCreate",
+    "AppProblemDismiss",
     "AppFetchManifest",
     "AppInstall",
     "AppRetryInstall",

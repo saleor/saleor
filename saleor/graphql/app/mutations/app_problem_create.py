@@ -1,12 +1,9 @@
+import datetime
+
 import graphene
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
 from django.utils import timezone
 
-from ....app.error_codes import (
-    AppProblemCreateErrorCode as AppProblemCreateErrorCodeEnum,
-)
-from ....app.models import AppProblem, AppProblemSeverity, AppProblemType
+from ....app.models import AppProblem
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
 from ...core import ResolveInfo
@@ -14,7 +11,7 @@ from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
 from ...core.types import Error
-from ..enums import AppProblemCreateErrorCode, AppProblemSeverityEnum
+from ..enums import AppProblemCreateErrorCode
 from ..types import App
 
 
@@ -26,26 +23,22 @@ class AppProblemCreateInput(graphene.InputObjectType):
     message = graphene.String(
         required=True, description="The problem message to display."
     )
-    aggregate = graphene.String(
-        required=False,
-        description="Grouping key for this problem. Used to clear related problems.",
-    )
-    severity = AppProblemSeverityEnum(
-        required=False,
-        description="Severity of the problem. Defaults to ERROR.",
-    )
     key = graphene.String(
+        required=True,
+        description="Key identifying the type of problem.",
+    )
+    critical_threshold = graphene.Int(
         required=False,
         description=(
-            "Optional deduplication key. If a problem with this key already exists, "
-            "creation is skipped unless `force` is true."
+            "If set, the problem becomes critical when count reaches this value."
         ),
     )
-    force = graphene.Boolean(
+    aggregation_period = graphene.Int(
         required=False,
+        default_value=60,
         description=(
-            "If true and a problem with the same `key` exists, overwrite it "
-            "with new message, severity, and timestamp. Defaults to false."
+            "Time window in minutes for aggregating problems with the same key. "
+            "Defaults to 60. If 0, a new problem is always created."
         ),
     )
 
@@ -59,10 +52,7 @@ class AppProblemCreate(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Add a problem to the calling app. OWN problem type will be created"
-            + ADDED_IN_322
-        )
+        description = "Add a problem to the calling app." + ADDED_IN_322
         doc_category = DOC_CATEGORY_APPS
         permissions = (AuthorizationFilters.AUTHENTICATED_APP,)
         error_type_class = AppProblemCreateError
@@ -74,44 +64,52 @@ class AppProblemCreate(BaseMutation):
             raise PermissionDenied(permissions=[AuthorizationFilters.AUTHENTICATED_APP])
 
         input_data = data["input"]
-        key = input_data.get("key")
-        severity = input_data.get("severity", AppProblemSeverity.ERROR)
+        key = input_data["key"]
+        message = input_data["message"]
+        critical_threshold = input_data.get("critical_threshold")
+        aggregation_period = input_data.get("aggregation_period", 60)
 
-        if key is not None:
-            try:
-                existing = AppProblem.objects.get(app=app, key=key)
-            except AppProblem.DoesNotExist:
-                pass  # fall through to create
-            else:
-                if input_data.get("force", False):
-                    existing.message = input_data["message"]
-                    existing.severity = severity
-                    existing.aggregate = input_data.get("aggregate", "")
-                    existing.created_at = timezone.now()
-                    existing.save()
+        now = timezone.now()
+
+        existing = (
+            AppProblem.objects.filter(app=app, key=key, dismissed=False)
+            .order_by("-updated_at")
+            .first()
+        )
+
+        if existing is not None and aggregation_period > 0:
+            cutoff = now - datetime.timedelta(minutes=aggregation_period)
+            if existing.updated_at >= cutoff:
+                existing.count += 1
+                existing.updated_at = now
+                existing.message = message
+                if (
+                    critical_threshold is not None
+                    and existing.count >= critical_threshold
+                ):
+                    existing.is_critical = True
+                existing.save(
+                    update_fields=[
+                        "count",
+                        "updated_at",
+                        "message",
+                        "is_critical",
+                    ]
+                )
                 return AppProblemCreate(app=app)
 
-        current_count = AppProblem.objects.filter(app=app).count()
-        if current_count >= AppProblem.MAX_PROBLEMS_PER_APP:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        f"App has reached the maximum number of problems "
-                        f"({AppProblem.MAX_PROBLEMS_PER_APP}).",
-                        code=AppProblemCreateErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
-        try:
-            AppProblem.objects.create(
-                app=app,
-                type=AppProblemType.OWN,
-                message=input_data["message"],
-                aggregate=input_data.get("aggregate", ""),
-                severity=severity,
-                key=key,
-            )
-        except IntegrityError:
-            # Concurrent request already created a problem with this key
-            pass
+        # Create a new problem
+        total_count = AppProblem.objects.filter(app=app).count()
+        if total_count >= AppProblem.MAX_PROBLEMS_PER_APP:
+            AppProblem.objects.filter(app=app).order_by("created_at").first().delete()
+
+        is_critical = critical_threshold is not None and 1 >= critical_threshold
+        AppProblem.objects.create(
+            app=app,
+            message=message,
+            key=key,
+            count=1,
+            updated_at=now,
+            is_critical=is_critical,
+        )
         return AppProblemCreate(app=app)

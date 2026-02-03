@@ -26,7 +26,7 @@ class AppProblemCreateErrorCode(Enum):
     NOT_FOUND = "not_found"
 
 
-class AppProblemClearErrorCode(Enum):
+class AppProblemDismissErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     REQUIRED = "required"
