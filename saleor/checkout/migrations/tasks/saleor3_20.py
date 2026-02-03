@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef
 
@@ -19,7 +20,7 @@ UNDISCOUNTED_UNIT_PRICE_BATCH_SIZE = 500
 DUPLICATED_LINES_CHECKOUT_BATCH_SIZE = 250
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def propagate_lines_undiscounted_unit_price_task(start_pk=0):
     with transaction.atomic():
         checkout_line_pks = list(
@@ -76,7 +77,7 @@ def propagate_lines_undiscounted_unit_price_task(start_pk=0):
             propagate_lines_undiscounted_unit_price_task.delay(checkout_line_pks[-1])
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def clean_duplicated_gift_lines_task(created_after=None):
     extra_order_filter = {}
     if created_after:
