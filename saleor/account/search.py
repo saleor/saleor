@@ -44,13 +44,13 @@ def generate_user_search_vector_value(
 ) -> list[NoValidationSearchVector]:
     search_vectors = [
         NoValidationSearchVector(
-            Value(user.email),
             Value(user.first_name),
             Value(user.last_name),
             config="simple",
             weight="A",
         ),
     ]
+    search_vectors.extend(generate_email_vector(user.email))
     if attach_addresses_data:
         if not already_prefetched:
             prefetch_related_objects(
@@ -62,6 +62,23 @@ def generate_user_search_vector_value(
                 generate_address_search_vector_value(address, weight="B")
             )
     return search_vectors
+
+
+def generate_email_vector(email: str) -> list[NoValidationSearchVector]:
+    """Generate a search vector for email addresses.
+
+    Creates a PostgreSQL search vectors one that include the original email
+    and one for a domain to improve search matching.
+    E.g., 'aadams@example.com' -> ['aadams@example.com', 'example.com']
+    """
+    vectors = [NoValidationSearchVector(Value(email), config="simple", weight="A")]
+    if email and "@" in email:
+        domain = email.split("@")[-1]
+        vectors.append(
+            NoValidationSearchVector(Value(domain), config="simple", weight="B")
+        )
+
+    return vectors
 
 
 def generate_address_search_vector_value(
