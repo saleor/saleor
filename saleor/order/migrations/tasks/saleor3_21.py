@@ -1,6 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef
 from django.utils import timezone
@@ -21,7 +22,7 @@ ORDER_BATCH_SIZE = 250
 LINES_COUNT_BATCH_SIZE = 250
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def set_base_price_expire_time_task():
     orders = Order.objects.filter(status="draft")
@@ -42,7 +43,7 @@ def set_base_price_expire_time_task():
         set_base_price_expire_time_task.delay()
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def migrate_orders_with_waiting_for_approval_fulfillment_task():
     """Migrate order with waiting for approval fulfillment to unfulfilled status.
@@ -72,7 +73,7 @@ def migrate_orders_with_waiting_for_approval_fulfillment_task():
         migrate_orders_with_waiting_for_approval_fulfillment_task.delay()
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def set_lines_count_task(order_number=0):
     """Set lines count for orders."""
@@ -91,7 +92,7 @@ def set_lines_count_task(order_number=0):
         set_lines_count_task.delay(numbers[-1])
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def fix_negative_total_net_for_orders_using_gift_cards_task(start_pk=0):
     # No memory usage tests were conducted here.
