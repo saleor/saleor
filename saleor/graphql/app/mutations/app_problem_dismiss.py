@@ -38,7 +38,14 @@ class AppProblemDismissInput(BaseModel):
     def validate_input(self) -> None:
         """Validate cross-field constraints. Raises Django ValidationError."""
 
-        if self.ids and self.keys:
+        both_provided = self.ids and self.keys
+        neither_provided = not self.ids and not self.keys
+        app_caller_specified_app = self.caller_is_app and self.app_id is not None
+        staff_using_keys_without_app = (
+            not self.caller_is_app and self.keys and self.app_id is None
+        )
+
+        if both_provided:
             raise ValidationError(
                 {
                     "ids": ValidationError(
@@ -48,7 +55,7 @@ class AppProblemDismissInput(BaseModel):
                 }
             )
 
-        if not self.ids and not self.keys:
+        if neither_provided:
             raise ValidationError(
                 {
                     "ids": ValidationError(
@@ -58,7 +65,7 @@ class AppProblemDismissInput(BaseModel):
                 }
             )
 
-        if self.caller_is_app and self.app_id is not None:
+        if app_caller_specified_app:
             raise ValidationError(
                 {
                     "app": ValidationError(
@@ -68,7 +75,7 @@ class AppProblemDismissInput(BaseModel):
                 }
             )
 
-        if not self.caller_is_app and self.keys and self.app_id is None:
+        if staff_using_keys_without_app:
             raise ValidationError(
                 {
                     "app": ValidationError(
@@ -153,9 +160,11 @@ class AppProblemDismiss(BaseMutation):
             info, validated.app_id, field="app", only_type=App
         )
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor_is_superuser(requestor) and not can_manage_app(
-            requestor, target_app
-        ):
+        cannot_manage_target = not requestor_is_superuser(
+            requestor
+        ) and not can_manage_app(requestor, target_app)
+
+        if cannot_manage_target:
             raise ValidationError(
                 {
                     "app": ValidationError(
@@ -185,17 +194,22 @@ class AppProblemDismiss(BaseMutation):
         caller_app: AppModel | None,
         target_app: AppModel | None,
     ) -> AppModel | None:
+        # Invariant - in Pydantic model it can be None, so ensure this method is not called incorrectly without ids
         assert validated.ids is not None
+
         problem_pks = []
+
         for global_id in validated.ids:
             _, pk = from_global_id_or_error(global_id, "AppProblem")
             problem_pks.append(int(pk))
 
         qs = AppProblem.objects.filter(pk__in=problem_pks, dismissed=False)
+
         if caller_app:
             qs = qs.filter(app=caller_app)
 
         problems = list(qs)
+
         if not problems:
             return target_app or caller_app
 
@@ -204,6 +218,7 @@ class AppProblemDismiss(BaseMutation):
             target_app = problems[0].app
 
         qs.update(**cls._build_dismiss_fields(info, caller_app))
+
         return target_app
 
     @classmethod
@@ -214,7 +229,9 @@ class AppProblemDismiss(BaseMutation):
         caller_app: AppModel | None,
         target_app: AppModel | None,
     ) -> None:
+        # Invariant - in Pydantic model it can be None, so ensure this method is not called incorrectly without keys
         assert validated.keys is not None
+
         qs = AppProblem.objects.filter(
             app=target_app, key__in=validated.keys, dismissed=False
         )
