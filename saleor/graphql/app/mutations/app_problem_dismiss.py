@@ -1,3 +1,5 @@
+from typing import Any
+
 import graphene
 from django.core.exceptions import ValidationError
 from pydantic import BaseModel, ConfigDict
@@ -5,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 from ....app.error_codes import (
     AppProblemDismissErrorCode as AppProblemDismissErrorCodeEnum,
 )
+from ....app.models import App as AppModel
 from ....app.models import AppProblem
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
@@ -111,7 +114,9 @@ class AppProblemDismiss(BaseMutation):
         error_type_class = AppProblemDismissError
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+    def perform_mutation(
+        cls, _root: None, info: ResolveInfo, /, **data: Any
+    ) -> "AppProblemDismiss":
         caller_app = info.context.app
 
         validated = AppProblemDismissInput(
@@ -132,33 +137,40 @@ class AppProblemDismiss(BaseMutation):
         return AppProblemDismiss(app=target_app)
 
     @classmethod
-    def _resolve_target_app(cls, info, validated, caller_app):
+    def _resolve_target_app(
+        cls,
+        info: ResolveInfo,
+        validated: AppProblemDismissInput,
+        caller_app: AppModel | None,
+    ) -> AppModel | None:
         if caller_app:
             return caller_app
 
-        if validated.app_id is not None:
-            target_app = cls.get_node_or_error(
-                info, validated.app_id, field="app", only_type=App
-            )
-            requestor = get_user_or_app_from_context(info.context)
-            if not requestor_is_superuser(requestor) and not can_manage_app(
-                requestor, target_app
-            ):
-                raise ValidationError(
-                    {
-                        "app": ValidationError(
-                            "You can't manage this app.",
-                            code=AppProblemDismissErrorCodeEnum.OUT_OF_SCOPE_APP.value,
-                        )
-                    }
-                )
-            return target_app
+        if validated.app_id is None:
+            return None
 
-        return None
+        target_app = cls.get_node_or_error(
+            info, validated.app_id, field="app", only_type=App
+        )
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(
+            requestor, target_app
+        ):
+            raise ValidationError(
+                {
+                    "app": ValidationError(
+                        "You can't manage this app.",
+                        code=AppProblemDismissErrorCodeEnum.OUT_OF_SCOPE_APP.value,
+                    )
+                }
+            )
+        return target_app
 
     @classmethod
-    def _build_dismiss_fields(cls, info, caller_app):
-        fields = {"dismissed": True}
+    def _build_dismiss_fields(
+        cls, info: ResolveInfo, caller_app: AppModel | None
+    ) -> dict[str, Any]:
+        fields: dict[str, Any] = {"dismissed": True}
         if caller_app:
             fields["dismissed_by_app"] = caller_app
         else:
@@ -166,7 +178,14 @@ class AppProblemDismiss(BaseMutation):
         return fields
 
     @classmethod
-    def _dismiss_by_ids(cls, info, validated, caller_app, target_app):
+    def _dismiss_by_ids(
+        cls,
+        info: ResolveInfo,
+        validated: AppProblemDismissInput,
+        caller_app: AppModel | None,
+        target_app: AppModel | None,
+    ) -> AppModel | None:
+        assert validated.ids is not None
         problem_pks = []
         for global_id in validated.ids:
             _, pk = from_global_id_or_error(global_id, "AppProblem")
@@ -188,7 +207,14 @@ class AppProblemDismiss(BaseMutation):
         return target_app
 
     @classmethod
-    def _dismiss_by_keys(cls, info, validated, caller_app, target_app):
+    def _dismiss_by_keys(
+        cls,
+        info: ResolveInfo,
+        validated: AppProblemDismissInput,
+        caller_app: AppModel | None,
+        target_app: AppModel | None,
+    ) -> None:
+        assert validated.keys is not None
         qs = AppProblem.objects.filter(
             app=target_app, key__in=validated.keys, dismissed=False
         )
