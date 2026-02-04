@@ -185,9 +185,6 @@ class AppProblem(models.Model):
     count = models.PositiveIntegerField(default=1)
     is_critical = models.BooleanField(default=False)
     dismissed = models.BooleanField(default=False)
-    dismissed_by_app = models.ForeignKey(
-        App, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
-    )
     dismissed_by_user = models.ForeignKey(
         "account.User",
         null=True,

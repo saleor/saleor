@@ -180,9 +180,7 @@ class AppProblemDismiss(BaseMutation):
         cls, info: ResolveInfo, caller_app: AppModel | None
     ) -> dict[str, Any]:
         fields: dict[str, Any] = {"dismissed": True}
-        if caller_app:
-            fields["dismissed_by_app"] = caller_app
-        else:
+        if not caller_app:
             fields["dismissed_by_user"] = get_user_or_app_from_context(info.context)
         return fields
 

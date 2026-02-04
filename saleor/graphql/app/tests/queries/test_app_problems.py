@@ -162,7 +162,6 @@ def test_app_problems_dismissed_by_app(app_api_client, app):
         key="k1",
         updated_at=now,
         dismissed=True,
-        dismissed_by_app=app,
     )
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 

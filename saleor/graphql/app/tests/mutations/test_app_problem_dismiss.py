@@ -56,7 +56,7 @@ def test_app_problem_dismiss_by_ids_as_app(app_api_client, app):
     p1.refresh_from_db()
     p2.refresh_from_db()
     assert p1.dismissed is True
-    assert p1.dismissed_by_app == app
+    assert p1.dismissed_by_user is None
     assert p2.dismissed is False
 
 

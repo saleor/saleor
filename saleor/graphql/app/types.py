@@ -563,10 +563,10 @@ class AppProblem(ModelObjectType[models.AppProblem]):
 
     @staticmethod
     def resolve_dismissed_by(root: models.AppProblem, info: ResolveInfo):
-        if root.dismissed_by_app_id is not None:
-            return AppByIdLoader(info.context).load(root.dismissed_by_app_id)
         if root.dismissed_by_user_id is not None:
             return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
+        if root.dismissed and root.app_id is not None:
+            return AppByIdLoader(info.context).load(root.app_id)
         return None
 
 
