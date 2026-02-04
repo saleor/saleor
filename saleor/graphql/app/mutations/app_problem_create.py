@@ -7,7 +7,6 @@ from pydantic import BaseModel, ConfigDict, StringConstraints
 
 from ....app.models import App as AppModel
 from ....app.models import AppProblem
-from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
@@ -77,10 +76,7 @@ class AppProblemCreate(BaseMutation):
         cls, _root: None, info: ResolveInfo, /, **data: Any
     ) -> "AppProblemCreate":
         app = info.context.app
-
-        if not app:
-            raise PermissionDenied(permissions=[AuthorizationFilters.AUTHENTICATED_APP])
-
+        assert app is not None
         input_data = data["input"]
         validated = AppProblemCreateValidatedInput(
             message=input_data["message"],
