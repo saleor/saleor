@@ -1,8 +1,11 @@
 import datetime
+from typing import Any
 
 import graphene
 from django.utils import timezone
+from pydantic import BaseModel, ConfigDict
 
+from ....app.models import App as AppModel
 from ....app.models import AppProblem
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
@@ -17,6 +20,17 @@ from ..types import App
 
 class AppProblemCreateError(Error):
     code = AppProblemCreateErrorCode(description="The error code.", required=True)
+
+
+class AppProblemCreateValidatedInput(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    message: str
+    key: str
+    # No threshold - will never escalate to critical if not set by App itself
+    critical_threshold: int | None = None
+    # Minutes
+    aggregation_period: int = 60
 
 
 class AppProblemCreateInput(graphene.InputObjectType):
@@ -58,58 +72,102 @@ class AppProblemCreate(BaseMutation):
         error_type_class = AppProblemCreateError
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+    def perform_mutation(
+        cls, _root: None, info: ResolveInfo, /, **data: Any
+    ) -> "AppProblemCreate":
         app = info.context.app
+
         if not app:
             raise PermissionDenied(permissions=[AuthorizationFilters.AUTHENTICATED_APP])
 
         input_data = data["input"]
-        key = input_data["key"]
-        message = input_data["message"]
-        critical_threshold = input_data.get("critical_threshold")
-        aggregation_period = input_data.get("aggregation_period", 60)
+        validated = AppProblemCreateValidatedInput(
+            message=input_data["message"],
+            key=input_data["key"],
+            critical_threshold=input_data.get("critical_threshold"),
+            aggregation_period=input_data.get("aggregation_period"),
+        )
 
         now = timezone.now()
 
         existing = (
-            AppProblem.objects.filter(app=app, key=key, dismissed=False)
+            AppProblem.objects.filter(app=app, key=validated.key, dismissed=False)
             .order_by("-updated_at")
             .first()
         )
 
-        if existing is not None and aggregation_period > 0:
-            cutoff = now - datetime.timedelta(minutes=aggregation_period)
-            if existing.updated_at >= cutoff:
-                existing.count += 1
-                existing.updated_at = now
-                existing.message = message
-                if (
-                    critical_threshold is not None
-                    and existing.count >= critical_threshold
-                ):
-                    existing.is_critical = True
-                existing.save(
-                    update_fields=[
-                        "count",
-                        "updated_at",
-                        "message",
-                        "is_critical",
-                    ]
-                )
-                return AppProblemCreate(app=app)
+        if not existing:
+            cls._create_new_problem(app, validated, now)
 
-        # Create a new problem
+            return AppProblemCreate(app=app)
+
+        # Flow for existing / update
+        aggregation_enabled = validated.aggregation_period > 0
+        cutoff = now - datetime.timedelta(minutes=validated.aggregation_period)
+        within_aggregation_window = (
+            aggregation_enabled and existing.updated_at >= cutoff
+        )
+
+        if not within_aggregation_window:
+            cls._create_new_problem(app, validated, now)
+            return AppProblemCreate(app=app)
+
+        cls._aggregate_existing(existing, validated, now)
+        return AppProblemCreate(app=app)
+
+    @classmethod
+    def _aggregate_existing(
+        cls,
+        existing: AppProblem,
+        validated: AppProblemCreateValidatedInput,
+        now: datetime.datetime,
+    ) -> None:
+        existing.count += 1
+        existing.updated_at = now
+        existing.message = validated.message
+
+        reached_critical_threshold = (
+            validated.critical_threshold
+            and existing.count >= validated.critical_threshold
+        )
+
+        if reached_critical_threshold:
+            existing.is_critical = True
+
+        existing.save(
+            update_fields=[
+                "count",
+                "updated_at",
+                "message",
+                "is_critical",
+            ]
+        )
+
+    @classmethod
+    def _create_new_problem(
+        cls,
+        app: AppModel,
+        validated: AppProblemCreateValidatedInput,
+        now: datetime.datetime,
+    ) -> None:
         total_count = AppProblem.objects.filter(app=app).count()
-        if total_count >= AppProblem.MAX_PROBLEMS_PER_APP:
-            AppProblem.objects.filter(app=app).order_by("created_at").first().delete()
+        needs_eviction = total_count >= AppProblem.MAX_PROBLEMS_PER_APP
 
-        is_critical = critical_threshold is not None and 1 >= critical_threshold
+        if needs_eviction:
+            oldest = AppProblem.objects.filter(app=app).order_by("created_at").first()
+
+            if oldest:
+                oldest.delete()
+
+        immediately_critical = bool(
+            validated.critical_threshold and validated.critical_threshold <= 1
+        )
+
         AppProblem.objects.create(
             app=app,
-            message=message,
-            key=key,
+            message=validated.message,
+            key=validated.key,
             count=1,
             updated_at=now,
-            is_critical=is_critical,
+            is_critical=immediately_critical,
         )
-        return AppProblemCreate(app=app)
