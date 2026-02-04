@@ -1,0 +1,23 @@
+saleor/graphql/app/mutations/app_problem_create.py
+  55b412481ee15901 129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "c40de3227997e70d580f5755085eb1c06ac7413f",
+  "prompts": {
+    "55b412481ee15901": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fddc258a-8ea0-4715-a618-303d02206907",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 4,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
