@@ -30077,12 +30077,12 @@ input AppProblemCreateInput {
   key: String!
 
   """If set, the problem becomes critical when count reaches this value."""
-  criticalThreshold: Int
+  criticalThreshold: PositiveInt
 
   """
   Time window in minutes for aggregating problems with the same key. Defaults to 60. If 0, a new problem is always created.
   """
-  aggregationPeriod: Int = 60
+  aggregationPeriod: Minute = 60
 }
 
 """

@@ -13,6 +13,7 @@ from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
+from ...core.scalars import Minute, PositiveInt
 from ...core.types import Error
 from ..enums import AppProblemCreateErrorCode
 from ..types import App
@@ -41,13 +42,13 @@ class AppProblemCreateInput(graphene.InputObjectType):
         required=True,
         description="Key identifying the type of problem.",
     )
-    critical_threshold = graphene.Int(
+    critical_threshold = PositiveInt(
         required=False,
         description=(
             "If set, the problem becomes critical when count reaches this value."
         ),
     )
-    aggregation_period = graphene.Int(
+    aggregation_period = Minute(
         required=False,
         default_value=60,
         description=(
