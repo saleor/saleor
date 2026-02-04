@@ -1,9 +1,9 @@
 import datetime
-from typing import Any
+from typing import Annotated, Any
 
 import graphene
 from django.utils import timezone
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, StringConstraints
 
 from ....app.models import App as AppModel
 from ....app.models import AppProblem
@@ -25,8 +25,8 @@ class AppProblemCreateError(Error):
 class AppProblemCreateValidatedInput(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    message: str
-    key: str
+    message: Annotated[str, StringConstraints(min_length=3, max_length=2048)]
+    key: Annotated[str, StringConstraints(min_length=3, max_length=128)]
     # No threshold - will never escalate to critical if not set by App itself
     critical_threshold: int | None = None
     # Minutes
