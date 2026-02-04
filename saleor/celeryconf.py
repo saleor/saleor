@@ -39,7 +39,6 @@ app.autodiscover_tasks(
         "saleor.account.migrations.tasks",
         "saleor.attribute.migrations.tasks",
         "saleor.channel.migrations.tasks",
-        "saleor.giftcard.migrations.tasks",
     ],
     related_name="saleor3_22",
 )

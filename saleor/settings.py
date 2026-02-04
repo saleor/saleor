@@ -977,8 +977,6 @@ PRODUCT_MAX_INDEXED_ATTRIBUTES = 1000
 PRODUCT_MAX_INDEXED_ATTRIBUTE_VALUES = 100
 PRODUCT_MAX_INDEXED_VARIANTS = 1000
 
-# Maximum related objects that can be indexed in a gift card
-GIFT_CARD_MAX_INDEXED_TAGS = 100
 
 # Patch SubscriberExecutionContext class from `graphql-core-legacy` package
 # to fix bug causing not returning errors for subscription queries.
