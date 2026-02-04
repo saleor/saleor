@@ -801,6 +801,12 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
             return None
 
 
+class TransactionCountableConnection(CountableConnection):
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+        node = TransactionItem
+
+
 class GatewayConfigLine(BaseObjectType):
     field = graphene.String(required=True, description="Gateway config key.")
     value = graphene.String(description="Gateway config value for key.")

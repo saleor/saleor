@@ -675,6 +675,32 @@ type Query {
     token: UUID
   ): TransactionItem @doc(category: "Payments")
 
+  """
+  List of transactions.
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+  """
+  transactions(
+    """Where filtering options for transactions."""
+    where: TransactionWhereInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): TransactionCountableConnection @doc(category: "Payments")
+
   """Look up a page by ID or slug."""
   page(
     """ID of the page."""
@@ -13172,6 +13198,36 @@ input PaymentFilterInput @doc(category: "Payments") {
   """Filter by ids."""
   ids: [ID!]
   checkouts: [ID!]
+}
+
+type TransactionCountableConnection @doc(category: "Payments") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TransactionCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TransactionCountableEdge @doc(category: "Payments") {
+  """The item at the end of the edge."""
+  node: TransactionItem!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TransactionWhereInput @doc(category: "Payments") {
+  ids: [ID!]
+
+  """Filter by PSP reference."""
+  pspReference: StringFilterInput
+
+  """List of conditions that must be met."""
+  AND: [TransactionWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [TransactionWhereInput!]
 }
 
 type PageCountableConnection @doc(category: "Pages") {

@@ -7,7 +7,7 @@ from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.utils import from_global_id_or_error
-from .filters import PaymentFilterInput
+from .filters import PaymentFilterInput, TransactionWhereInput
 from .mutations import (
     PaymentCapture,
     PaymentCheckBalance,
@@ -27,12 +27,18 @@ from .mutations import (
     TransactionRequestRefundForGrantedRefund,
     TransactionUpdate,
 )
-from .resolvers import resolve_payment_by_id, resolve_payments, resolve_transaction
+from .resolvers import (
+    resolve_payment_by_id,
+    resolve_payments,
+    resolve_transaction,
+    resolve_transactions,
+)
 from .types import (
     CardPaymentMethodDetails,
     OtherPaymentMethodDetails,
     Payment,
     PaymentCountableConnection,
+    TransactionCountableConnection,
     TransactionItem,
 )
 
@@ -87,6 +93,18 @@ class PaymentQueries(graphene.ObjectType):
         ],
         doc_category=DOC_CATEGORY_PAYMENTS,
     )
+    transactions = FilterConnectionField(
+        TransactionCountableConnection,
+        where=TransactionWhereInput(
+            description="Where filtering options for transactions."
+        ),
+        description="List of transactions.",
+        permissions=[
+            PaymentPermissions.HANDLE_PAYMENTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
+        doc_category=DOC_CATEGORY_PAYMENTS,
+    )
 
     @staticmethod
     def resolve_payment(_root, info: ResolveInfo, **data):
@@ -114,6 +132,14 @@ class PaymentQueries(graphene.ObjectType):
             global_id=str(id), only_type=TransactionItem, raise_error=True
         )
         return resolve_transaction(info, id)
+
+    @staticmethod
+    def resolve_transactions(_root, info: ResolveInfo, **kwargs):
+        qs = resolve_transactions(info)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
+        return create_connection_slice(qs, info, kwargs, TransactionCountableConnection)
 
 
 class PaymentMutations(graphene.ObjectType):
