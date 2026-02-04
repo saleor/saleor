@@ -1,0 +1,23 @@
+saleor/graphql/app/mutations/app_problem_dismiss.py
+  58e7275f3425004d 3,27-76,117-123,128,130,147,149,176
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "bcdc11c3757b5925beb6a16448755f3ac9159b72",
+  "prompts": {
+    "58e7275f3425004d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3736ebb7-67a6-4a92-8ace-d9245d26f158",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 66,
+      "total_deletions": 50,
+      "accepted_lines": 66,
+      "overriden_lines": 0
+    }
+  }
+}
