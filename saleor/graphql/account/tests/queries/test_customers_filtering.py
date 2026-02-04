@@ -42,6 +42,7 @@ def query_customer_with_filter():
         ({"search": "kowalski alice"}, 1),
         ({"search": "John doe"}, 1),
         ({"search": "Alice Doe"}, 0),
+        ({"search": "mirumee.com"}, 2),
     ],
 )
 def test_query_customer_members_with_filter_search(

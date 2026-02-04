@@ -92,6 +92,7 @@ def test_query_staff_members_with_filter_by_ids(
         ({"search": "Kowalski Alice"}, 1),
         ({"search": "John Doe"}, 1),
         ({"search": "Alice Doe"}, 0),
+        ({"search": "mirumee.com"}, 2),
     ],
 )
 def test_query_staff_members_with_filter_search(
