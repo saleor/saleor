@@ -231,7 +231,7 @@ def test_app_problem_create_default_aggregation_period_aggregates(app_api_client
 def test_app_problem_create_limit_eviction(app_api_client, app):
     # given
     now = timezone.now()
-    problems = AppProblem.objects.bulk_create(
+    AppProblem.objects.bulk_create(
         [
             AppProblem(
                 app=app,
