@@ -661,7 +661,7 @@ type Query {
   """
   Look up a transaction by ID.
   
-  Requires one of the following permissions: HANDLE_PAYMENTS.
+  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
   """
   transaction(
     """
