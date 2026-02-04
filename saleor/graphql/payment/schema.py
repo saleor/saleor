@@ -90,6 +90,7 @@ class PaymentQueries(graphene.ObjectType):
         ),
         permissions=[
             PaymentPermissions.HANDLE_PAYMENTS,
+            OrderPermissions.MANAGE_ORDERS,
         ],
         doc_category=DOC_CATEGORY_PAYMENTS,
     )
