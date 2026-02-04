@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.postgres.search import SearchQuery
 from django.db.models import Q, QuerySet, Value, prefetch_related_objects
 
@@ -9,26 +10,34 @@ from .models import GiftCard
 GIFTCARD_FIELDS_TO_PREFETCH = ["used_by", "created_by"]
 
 
-def _add_vector(vectors: list[NoValidationSearchVector], field):
+def _add_vector(vectors: list[NoValidationSearchVector], field, weight: str):
     if field:
-        vectors += [NoValidationSearchVector(Value(field), config="simple")]
+        vectors += [
+            NoValidationSearchVector(Value(field), config="simple", weight=weight)
+        ]
 
 
 def prepare_gift_card_search_vector_value(
     gift_card: GiftCard,
 ) -> list[NoValidationSearchVector]:
-    search_vectors = [NoValidationSearchVector(Value(gift_card.code), config="simple")]
-    _add_vector(search_vectors, gift_card.used_by_email)
-    _add_vector(search_vectors, gift_card.created_by_email)
+    search_vectors = [
+        NoValidationSearchVector(
+            Value(gift_card.code[-4:]), config="simple", weight="A"
+        ),
+        NoValidationSearchVector(Value(gift_card.code), config="simple", weight="B"),
+    ]
+    for tag in gift_card.tags.all()[: settings.GIFT_CARD_MAX_INDEXED_TAGS]:
+        _add_vector(search_vectors, tag.name, weight="B")
+    _add_vector(search_vectors, gift_card.used_by_email, weight="C")
+    _add_vector(search_vectors, gift_card.created_by_email, weight="C")
     if gift_card.used_by:
-        _add_vector(search_vectors, gift_card.used_by.email)
-        _add_vector(search_vectors, gift_card.used_by.first_name)
-        _add_vector(search_vectors, gift_card.used_by.last_name)
+        _add_vector(search_vectors, gift_card.used_by.email, weight="C")
+        _add_vector(search_vectors, gift_card.used_by.first_name, weight="C")
+        _add_vector(search_vectors, gift_card.used_by.last_name, weight="C")
     if gift_card.created_by:
-        _add_vector(search_vectors, gift_card.created_by.email)
-        _add_vector(search_vectors, gift_card.created_by.first_name)
-        _add_vector(search_vectors, gift_card.created_by.last_name)
-
+        _add_vector(search_vectors, gift_card.created_by.email, weight="C")
+        _add_vector(search_vectors, gift_card.created_by.first_name, weight="C")
+        _add_vector(search_vectors, gift_card.created_by.last_name, weight="C")
     return search_vectors
 
 

@@ -395,7 +395,7 @@ def test_collections_for_federation_query_count(
     count_queries,
 ):
     query = """
-        query GetCollectionInFederation($representations: [_Any]) {
+        query GetCollectionInFederation($representations: [_Any!]!) {
             _entities(representations: $representations) {
                 __typename
                 ... on Collection {

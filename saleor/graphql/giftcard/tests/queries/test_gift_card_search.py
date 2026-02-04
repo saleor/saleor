@@ -25,7 +25,25 @@ QUERY_GIFT_CARDS = """
 
 @pytest.mark.parametrize(
     ("search", "indexes"),
-    [("expiry", [0, 1]), ("staff_test@example.com", [2]), ("banana", [])],
+    [
+        # Search by tag name
+        ("test-tag", [0]),
+        ("another-tag", [1]),
+        ("tag", [0, 1, 2]),
+        # Search by created_by email (customer_user creates [0,1], staff_user creates [2])
+        ("staff_test@example.com", [2]),
+        # Search by used_by email (customer_user is used_by for gift_card_used)
+        # and created_by for others - should match all
+        ("test@example.com", [0, 1, 2]),
+        # Search by code
+        ("never_expiry", [0]),  # gift_card code
+        ("expiry_date", [1]),  # gift_card_expiry_date code
+        # Search by last 3 characters of the code
+        ("used", [2]),  # gift_card_used code
+        # No match
+        ("banana", []),
+        ("nonexistent", []),
+    ],
 )
 def test_query_gift_cards_with_search(
     search,

@@ -608,7 +608,7 @@ def test_query_category_for_federation(api_client, non_default_category):
         ],
     }
     query = """
-      query GetCategoryInFederation($representations: [_Any]) {
+      query GetCategoryInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on Category {
@@ -750,7 +750,7 @@ def test_fetch_product_from_category_query(
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listings.filter(channel_id=channel_USD.id)
     purchase_cost, margin = get_product_costs_data(
-        variant_channel_listing, True, channel_USD.currency_code
+        variant_channel_listing, channel_USD.currency_code
     )
     cost_start = product_data["channelListings"][0]["purchaseCost"]["start"]["amount"]
     cost_stop = product_data["channelListings"][0]["purchaseCost"]["stop"]["amount"]

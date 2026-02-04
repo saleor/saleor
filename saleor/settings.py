@@ -493,13 +493,7 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 COUNTRIES_OVERRIDE = {
     "EU": "European Union",
-    "XK": {
-        "name": "Kosovo",
-        "alpha3": "XXK",
-        "ioc_code": "KOS",
-        "numeric": "383",
-        "numeric_padded": "0383",
-    },
+    "XK": "Kosovo",
 }
 
 MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
@@ -1002,6 +996,9 @@ PRODUCT_MAX_INDEXED_VARIANTS = 1000
 # Maximum related objects that can be indexed in a page
 PAGE_MAX_INDEXED_ATTRIBUTES = 1000
 PAGE_MAX_INDEXED_ATTRIBUTE_VALUES = 100
+
+# Maximum related objects that can be indexed in a gift card
+GIFT_CARD_MAX_INDEXED_TAGS = 100
 
 # Maximum related objects that can be indexed in a checkout
 CHECKOUT_MAX_INDEXED_LINES = 100
