@@ -333,6 +333,55 @@ def test_app_problem_create_by_staff_user_fails(
     assert_no_permission(response)
 
 
+def test_app_problem_create_critical_threshold_de_escalates(app_api_client, app):
+    # given
+    now = timezone.now()
+    AppProblem.objects.create(
+        app=app,
+        message="Problem",
+        key="rolling-key",
+        count=1,
+        updated_at=now - datetime.timedelta(minutes=5),
+    )
+
+    # when - send 4 more problems with threshold=5, reaching count=5
+    for i in range(4):
+        variables = {
+            "input": {
+                "message": f"Problem {i + 2}",
+                "key": "rolling-key",
+                "aggregationPeriod": 60,
+                "criticalThreshold": 5,
+            }
+        }
+        response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+        get_graphql_content(response)
+
+    # then - count=5 meets threshold=5, should be critical
+    problem = AppProblem.objects.get(app=app)
+    assert problem.count == 5
+    assert problem.is_critical is True
+
+    # when - send 6th problem with higher threshold=10
+    variables = {
+        "input": {
+            "message": "Problem 6",
+            "key": "rolling-key",
+            "aggregationPeriod": 60,
+            "criticalThreshold": 10,
+        }
+    }
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then - count=6 is below new threshold=10, should de-escalate
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    problem.refresh_from_db()
+    assert problem.count == 6
+    assert problem.is_critical is False
+
+
 def test_app_problem_create_critical_on_first_problem(app_api_client, app):
     # given
     variables = {
