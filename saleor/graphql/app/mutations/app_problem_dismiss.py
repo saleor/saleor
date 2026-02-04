@@ -122,66 +122,74 @@ class AppProblemDismiss(BaseMutation):
         )
         validated.validate_input()
 
-        if caller_app:
-            target_app = caller_app
-        else:
-            if validated.app_id is not None:
-                target_app = cls.get_node_or_error(
-                    info, validated.app_id, field="app", only_type=App
-                )
-                requestor = get_user_or_app_from_context(info.context)
-                if not requestor_is_superuser(requestor) and not can_manage_app(
-                    requestor, target_app
-                ):
-                    raise ValidationError(
-                        {
-                            "app": ValidationError(
-                                "You can't manage this app.",
-                                code=AppProblemDismissErrorCodeEnum.OUT_OF_SCOPE_APP.value,
-                            )
-                        }
-                    )
-            else:
-                target_app = None
+        target_app = cls._resolve_target_app(info, validated, caller_app)
 
         if validated.ids:
-            problem_pks = []
-            for global_id in validated.ids:
-                _, pk = from_global_id_or_error(global_id, "AppProblem")
-                problem_pks.append(int(pk))
-
-            qs = AppProblem.objects.filter(pk__in=problem_pks, dismissed=False)
-            if caller_app:
-                qs = qs.filter(app=caller_app)
-
-            problems = list(qs)
-            if not problems:
-                return AppProblemDismiss(app=target_app or caller_app)
-
-            # For staff calling by IDs, we infer the target app
-            if target_app is None:
-                target_app = problems[0].app
-
-            dismiss_fields = {"dismissed": True}
-            if caller_app:
-                dismiss_fields["dismissed_by_app"] = caller_app
-            else:
-                requestor = get_user_or_app_from_context(info.context)
-                dismiss_fields["dismissed_by_user"] = requestor
-
-            qs.update(**dismiss_fields)
+            target_app = cls._dismiss_by_ids(info, validated, caller_app, target_app)
         else:
-            # keys
-            qs = AppProblem.objects.filter(
-                app=target_app, key__in=validated.keys, dismissed=False
-            )
-            dismiss_fields = {"dismissed": True}
-            if caller_app:
-                dismiss_fields["dismissed_by_app"] = caller_app
-            else:
-                requestor = get_user_or_app_from_context(info.context)
-                dismiss_fields["dismissed_by_user"] = requestor
-
-            qs.update(**dismiss_fields)
+            cls._dismiss_by_keys(info, validated, caller_app, target_app)
 
         return AppProblemDismiss(app=target_app)
+
+    @classmethod
+    def _resolve_target_app(cls, info, validated, caller_app):
+        if caller_app:
+            return caller_app
+
+        if validated.app_id is not None:
+            target_app = cls.get_node_or_error(
+                info, validated.app_id, field="app", only_type=App
+            )
+            requestor = get_user_or_app_from_context(info.context)
+            if not requestor_is_superuser(requestor) and not can_manage_app(
+                requestor, target_app
+            ):
+                raise ValidationError(
+                    {
+                        "app": ValidationError(
+                            "You can't manage this app.",
+                            code=AppProblemDismissErrorCodeEnum.OUT_OF_SCOPE_APP.value,
+                        )
+                    }
+                )
+            return target_app
+
+        return None
+
+    @classmethod
+    def _build_dismiss_fields(cls, info, caller_app):
+        fields = {"dismissed": True}
+        if caller_app:
+            fields["dismissed_by_app"] = caller_app
+        else:
+            fields["dismissed_by_user"] = get_user_or_app_from_context(info.context)
+        return fields
+
+    @classmethod
+    def _dismiss_by_ids(cls, info, validated, caller_app, target_app):
+        problem_pks = []
+        for global_id in validated.ids:
+            _, pk = from_global_id_or_error(global_id, "AppProblem")
+            problem_pks.append(int(pk))
+
+        qs = AppProblem.objects.filter(pk__in=problem_pks, dismissed=False)
+        if caller_app:
+            qs = qs.filter(app=caller_app)
+
+        problems = list(qs)
+        if not problems:
+            return target_app or caller_app
+
+        # For staff calling by IDs, we infer the target app
+        if target_app is None:
+            target_app = problems[0].app
+
+        qs.update(**cls._build_dismiss_fields(info, caller_app))
+        return target_app
+
+    @classmethod
+    def _dismiss_by_keys(cls, info, validated, caller_app, target_app):
+        qs = AppProblem.objects.filter(
+            app=target_app, key__in=validated.keys, dismissed=False
+        )
+        qs.update(**cls._build_dismiss_fields(info, caller_app))
