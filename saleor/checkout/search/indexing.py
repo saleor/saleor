@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import graphene
+from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db import transaction
 from django.db.models import F, Q, Value
@@ -19,15 +20,25 @@ if TYPE_CHECKING:
     from ...payment.models import Payment
     from ..models import Checkout
 
-MAX_INDEXED_LINES = 100
-MAX_INDEXED_PAYMENTS = 100
-MAX_INDEXED_TRANSACTIONS = 100
 
-
-@allow_writer()
 @with_promise_context
 def update_checkouts_search_vector(checkouts: list["Checkout"]):
     """Update search vectors for multiple checkouts using efficient data loading."""
+    # update search_index_dirty flag before to ensure that will not update search vector
+    # with outdated data
+    with transaction.atomic():
+        with allow_writer():
+            # select and lock checkouts to ensure updating in correct order
+            pks = (
+                checkout_qs_select_for_update()
+                .filter(
+                    pk__in=[checkout.pk for checkout in checkouts],
+                    search_index_dirty=True,
+                )
+                .values_list("pk", flat=True)
+            )
+            Checkout.objects.filter(pk__in=pks).update(search_index_dirty=False)
+
     checkout_data_map = load_checkout_data(checkouts)
 
     for checkout in checkouts:
@@ -38,16 +49,15 @@ def update_checkouts_search_vector(checkouts: list["Checkout"]):
         checkout.search_vector = FlatConcatSearchVector(
             *prepare_checkout_search_vector_value(checkout, data)
         )
-        checkout.search_index_dirty = False
 
     with transaction.atomic():
-        _locked_checkouts = (
-            checkout_qs_select_for_update()
-            .filter(pk__in=[checkout.pk for checkout in checkouts])
-            .values_list("pk", flat=True)
-        )
-
-        Checkout.objects.bulk_update(checkouts, ["search_vector", "search_index_dirty"])
+        with allow_writer():
+            _locked_checkouts = (
+                checkout_qs_select_for_update()
+                .filter(pk__in=[checkout.pk for checkout in checkouts])
+                .values_list("pk", flat=True)
+            )
+            Checkout.objects.bulk_update(checkouts, ["search_vector"])
 
 
 def prepare_checkout_search_vector_value(
@@ -104,7 +114,9 @@ def generate_checkout_transactions_search_vector_value(
 ) -> list[NoValidationSearchVector]:
     """Generate search vectors for checkout transactions."""
     transaction_vectors = []
-    for transaction_data in transactions_data[:MAX_INDEXED_TRANSACTIONS]:
+    for transaction_data in transactions_data[
+        : settings.CHECKOUT_MAX_INDEXED_TRANSACTIONS
+    ]:
         transaction = transaction_data.transaction
         transaction_vectors.append(
             NoValidationSearchVector(
@@ -140,7 +152,7 @@ def generate_checkout_payments_search_vector_value(
 ) -> list[NoValidationSearchVector]:
     """Generate search vectors for checkout payments."""
     payment_vectors = []
-    for payment in payments[:MAX_INDEXED_PAYMENTS]:
+    for payment in payments[: settings.CHECKOUT_MAX_INDEXED_PAYMENTS]:
         payment_vectors.append(
             NoValidationSearchVector(
                 Value(graphene.Node.to_global_id("Payment", payment.id)),
@@ -164,7 +176,7 @@ def generate_checkout_lines_search_vector_value(
 ) -> list[NoValidationSearchVector]:
     """Generate search vectors for checkout lines."""
     line_vectors = []
-    for line_data in lines_data[:MAX_INDEXED_LINES]:
+    for line_data in lines_data[: settings.CHECKOUT_MAX_INDEXED_LINES]:
         variant = line_data.variant
         if not variant:
             continue

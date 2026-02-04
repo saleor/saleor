@@ -9,9 +9,6 @@ from ...tests import race_condition
 from ..fetch import fetch_checkout_info
 from ..models import Checkout, CheckoutMetadata
 from ..search.indexing import (
-    MAX_INDEXED_LINES,
-    MAX_INDEXED_PAYMENTS,
-    MAX_INDEXED_TRANSACTIONS,
     generate_checkout_lines_search_vector_value,
     generate_checkout_payments_search_vector_value,
     generate_checkout_transactions_search_vector_value,
@@ -146,20 +143,26 @@ def test_update_checkouts_search_vector_constant_queries(
     checkout_list = checkout_list_with_relations
 
     # when & then
-    # Expected query breakdown (11 total):
-    # 1. Load users (1 query)
-    # 2. Load addresses (1 query)
-    # 3. Load payments (1 query)
-    # 4. Load checkout lines (1 query)
-    # 5. Load transactions (1 query)
-    # 6. Load product variants (1 query)
-    # 7. Load products (1 query)
-    # 8. Load transaction events (1 query)
-    # 9. Transaction savepoint (1 query)
-    # 10. Bulk update (1 query)
-    # 11. Release savepoint (1 query)
+    # Expected query breakdown (14 total):
+    # First transaction block:
+    # 1. Select for update (filter dirty checkouts)
+    # 2. Update search_index_dirty flag
+    # Load checkout data:
+    # 3. Load users (1 query)
+    # 4. Load addresses (1 query)
+    # 5. Load payments (1 query)
+    # 6. Load checkout lines (1 query)
+    # 7. Load transactions (1 query)
+    # 8. Load product variants (1 query)
+    # 9. Load products (1 query)
+    # 10. Load transaction events (1 query)
+    # Second transaction block:
+    # 11. Transaction savepoint
+    # 12. Select for update (lock checkouts)
+    # 13. Bulk update search vectors
+    # 14. Release savepoint
 
-    expected_queries = 11
+    expected_queries = 14
     with django_assert_num_queries(expected_queries):
         update_checkouts_search_vector(checkout_list[: len(checkout_list) - 1])
     with django_assert_num_queries(expected_queries):
@@ -317,10 +320,14 @@ def test_generate_checkout_payments_search_vector_value(checkout):
     )
 
 
-def test_generate_checkout_payments_search_vector_value_respects_max_limit(checkout):
+def test_generate_checkout_payments_search_vector_value_respects_max_limit(
+    checkout, settings
+):
     # given
+    limit = 5
+    settings.CHECKOUT_MAX_INDEXED_PAYMENTS = limit
     payments = []
-    for i in range(MAX_INDEXED_PAYMENTS + 50):
+    for i in range(limit + 50):
         payments.append(
             Payment(
                 gateway="mirumee.payments.dummy",
@@ -337,7 +344,7 @@ def test_generate_checkout_payments_search_vector_value_respects_max_limit(check
     result = generate_checkout_payments_search_vector_value(payments)
 
     # then
-    assert len(result) == MAX_INDEXED_PAYMENTS * 2  # IDs + psp_references
+    assert len(result) == limit * 2  # IDs + psp_references
 
 
 def test_generate_checkout_lines_search_vector_value_empty():
@@ -421,7 +428,7 @@ def test_generate_checkout_lines_search_vector_value_without_sku(
 
 
 def test_generate_checkout_lines_search_vector_value_respects_max_limit(
-    checkout, product
+    checkout, product, settings
 ):
     # given
     variant = product.variants.first()
@@ -432,8 +439,11 @@ def test_generate_checkout_lines_search_vector_value_respects_max_limit(
     product.name = "product name"
     product.save(update_fields=["name"])
 
+    limit = 10
+    settings.CHECKOUT_MAX_INDEXED_LINES = limit
+
     lines_data = []
-    for _ in range(MAX_INDEXED_LINES + 50):
+    for _ in range(limit + 50):
         line_data = CheckoutLineData(
             line=checkout.lines.first(),  # Use actual line instead of None
             variant=variant,
@@ -445,9 +455,9 @@ def test_generate_checkout_lines_search_vector_value_respects_max_limit(
     result = generate_checkout_lines_search_vector_value(lines_data)
 
     # then
-    # Should respect MAX_INDEXED_LINES (100)
+    # Should respect limit (10)
     # Each line can have up to 3 vectors (SKU, product name, variant name)
-    assert len(result) == MAX_INDEXED_LINES * 3
+    assert len(result) == limit * 3
 
 
 def test_generate_checkout_transactions_search_vector_value_empty():
@@ -574,11 +584,13 @@ def test_generate_checkout_transactions_search_vector_value_with_multiple_events
 
 
 def test_generate_checkout_transactions_search_vector_value_respects_max_limit(
-    checkout,
+    checkout, settings
 ):
     # given
+    limit = 5
+    settings.CHECKOUT_MAX_INDEXED_TRANSACTIONS = 5
     transactions_data = []
-    for i in range(MAX_INDEXED_TRANSACTIONS + 50):
+    for i in range(limit + 2):
         transaction = TransactionItem(
             name="Credit card",
             psp_reference=f"PSP-TRANS-{i}",
@@ -598,8 +610,8 @@ def test_generate_checkout_transactions_search_vector_value_respects_max_limit(
     result = generate_checkout_transactions_search_vector_value(transactions_data)
 
     # then
-    # Should respect MAX_INDEXED_TRANSACTIONS (100) - 100 IDs + 100 psp_references = 200
-    assert len(result) == MAX_INDEXED_TRANSACTIONS * 2
+    # Should respect transaction limit (5) - 5 IDs + 5 psp_references = 10
+    assert len(result) == limit * 2
 
 
 def test_search_checkouts_with_value(checkout, checkout_JPY):
@@ -786,6 +798,31 @@ def test_update_checkouts_search_vector_handles_deleted_checkout(
     # when
     with race_condition.RunAfter(
         "saleor.checkout.search.indexing.load_checkout_data", delete_checkout
+    ):
+        update_checkouts_search_vector(checkouts)
+
+    # then
+    checkout_with_item.refresh_from_db()
+    assert checkout_with_item.search_vector
+    assert checkout_with_item.search_index_dirty is False
+    assert not Checkout.objects.filter(pk=checkout_JPY.pk).exists()
+
+
+def test_update_checkouts_search_vector_handles_deleted_checkout_before_lock(
+    checkout_with_item, checkout_JPY
+):
+    # given
+    assert not checkout_with_item.search_vector
+    assert not checkout_JPY.search_vector
+
+    checkouts = [checkout_with_item, checkout_JPY]
+
+    def delete_checkout(*args, **kwargs):
+        Checkout.objects.filter(pk=checkout_JPY.pk).delete()
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.checkout.search.indexing.checkout_qs_select_for_update", delete_checkout
     ):
         update_checkouts_search_vector(checkouts)
 
