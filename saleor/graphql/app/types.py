@@ -26,6 +26,7 @@ from ...thumbnail.utils import (
 from ...webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
+from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
@@ -549,7 +550,7 @@ class AppProblem(ModelObjectType[models.AppProblem]):
     )
     dismissed_by = graphene.Field(
         "saleor.graphql.core.types.user_or_app.UserOrApp",
-        description="The entity (App or User) that dismissed this problem.",
+        description="The entity (App or User) that dismissed this problem. If user does not exist anymore, it can be null",
     )
     message = graphene.String(required=True)
     key = graphene.String(required=True)
@@ -565,8 +566,6 @@ class AppProblem(ModelObjectType[models.AppProblem]):
         if root.dismissed_by_app_id is not None:
             return AppByIdLoader(info.context).load(root.dismissed_by_app_id)
         if root.dismissed_by_user_id is not None:
-            from ..account.dataloaders import UserByUserIdLoader
-
             return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
         return None
 

@@ -3078,7 +3078,9 @@ type AppProblem implements Node @doc(category: "Apps") {
   """Whether the problem has been dismissed."""
   dismissed: Boolean!
 
-  """The entity (App or User) that dismissed this problem."""
+  """
+  The entity (App or User) that dismissed this problem. If user does not exist anymore, it can be null
+  """
   dismissedBy: UserOrApp
   message: String!
   key: String!
