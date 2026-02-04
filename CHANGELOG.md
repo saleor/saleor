@@ -33,6 +33,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Validation on `AppExtension` is now removed. Saleor will accept string values for `mount` and `target` from Manifest during App installation and JSON value for `options` field.
 Validation is now performed on the frontend (Dashboard). This change increases velocity of features related to apps and extensions, now Dashboard is only entity that ensures the contract
 - Improve user search. Use search vector functionality to enable searching users by email address, first name, last name, and addresses.
+- Improve checkout search. Use search vector functionality that returns the objects in the order of the best match.
 
 ### Deprecations
 - Deprecate the `hasVariants` field on `ProductType`.
