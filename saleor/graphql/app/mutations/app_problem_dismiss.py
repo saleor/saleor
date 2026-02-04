@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from pydantic import BaseModel, ConfigDict
 
 from ....app.error_codes import (
     AppProblemDismissErrorCode as AppProblemDismissErrorCodeEnum,
@@ -21,6 +22,58 @@ from ..types import App
 
 class AppProblemDismissError(Error):
     code = AppProblemDismissErrorCode(description="The error code.", required=True)
+
+
+class AppProblemDismissInput(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    ids: list[str] | None = None
+    keys: list[str] | None = None
+    app_id: str | None = None
+    caller_is_app: bool
+
+    def validate_input(self) -> None:
+        """Validate cross-field constraints. Raises Django ValidationError."""
+
+        if self.ids and self.keys:
+            raise ValidationError(
+                {
+                    "ids": ValidationError(
+                        "Cannot specify both 'ids' and 'keys'.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
+
+        if not self.ids and not self.keys:
+            raise ValidationError(
+                {
+                    "ids": ValidationError(
+                        "Must provide either 'ids' or 'keys'.",
+                        code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
+                    )
+                }
+            )
+
+        if self.caller_is_app and self.app_id is not None:
+            raise ValidationError(
+                {
+                    "app": ValidationError(
+                        "App callers cannot specify the 'app' argument.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
+
+        if not self.caller_is_app and self.keys and self.app_id is None:
+            raise ValidationError(
+                {
+                    "app": ValidationError(
+                        "The 'app' argument is required for staff when using 'keys'.",
+                        code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
+                    )
+                }
+            )
 
 
 class AppProblemDismiss(BaseMutation):
@@ -59,59 +112,22 @@ class AppProblemDismiss(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        ids = data.get("ids")
-        keys = data.get("keys")
-        app_id = data.get("app")
-
-        if ids and keys:
-            raise ValidationError(
-                {
-                    "ids": ValidationError(
-                        "Cannot specify both 'ids' and 'keys'.",
-                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
-
-        if not ids and not keys:
-            raise ValidationError(
-                {
-                    "ids": ValidationError(
-                        "Must provide either 'ids' or 'keys'.",
-                        code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
-                    )
-                }
-            )
-
         caller_app = info.context.app
 
+        validated = AppProblemDismissInput(
+            ids=data.get("ids"),
+            keys=data.get("keys"),
+            app_id=data.get("app"),
+            caller_is_app=caller_app is not None,
+        )
+        validated.validate_input()
+
         if caller_app:
-            # App caller
-            if app_id is not None:
-                raise ValidationError(
-                    {
-                        "app": ValidationError(
-                            "App callers cannot specify the 'app' argument.",
-                            code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                        )
-                    }
-                )
             target_app = caller_app
         else:
-            # Staff caller
-            if keys and app_id is None:
-                raise ValidationError(
-                    {
-                        "app": ValidationError(
-                            "The 'app' argument is required for staff when using 'keys'.",
-                            code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
-                        )
-                    }
-                )
-
-            if app_id is not None:
+            if validated.app_id is not None:
                 target_app = cls.get_node_or_error(
-                    info, app_id, field="app", only_type=App
+                    info, validated.app_id, field="app", only_type=App
                 )
                 requestor = get_user_or_app_from_context(info.context)
                 if not requestor_is_superuser(requestor) and not can_manage_app(
@@ -128,9 +144,9 @@ class AppProblemDismiss(BaseMutation):
             else:
                 target_app = None
 
-        if ids:
+        if validated.ids:
             problem_pks = []
-            for global_id in ids:
+            for global_id in validated.ids:
                 _, pk = from_global_id_or_error(global_id, "AppProblem")
                 problem_pks.append(int(pk))
 
@@ -157,7 +173,7 @@ class AppProblemDismiss(BaseMutation):
         else:
             # keys
             qs = AppProblem.objects.filter(
-                app=target_app, key__in=keys, dismissed=False
+                app=target_app, key__in=validated.keys, dismissed=False
             )
             dismiss_fields = {"dismissed": True}
             if caller_app:
