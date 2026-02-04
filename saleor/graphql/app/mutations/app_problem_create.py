@@ -126,13 +126,10 @@ class AppProblemCreate(BaseMutation):
         existing.updated_at = now
         existing.message = validated.message
 
-        reached_critical_threshold = (
+        existing.is_critical = bool(
             validated.critical_threshold
             and existing.count >= validated.critical_threshold
         )
-
-        if reached_critical_threshold:
-            existing.is_critical = True
 
         existing.save(
             update_fields=[
