@@ -185,6 +185,7 @@ class AppProblem(models.Model):
     count = models.PositiveIntegerField(default=1)
     is_critical = models.BooleanField(default=False)
     dismissed = models.BooleanField(default=False)
+    dismissed_by_user_email = models.EmailField(max_length=256, blank=True, null=True)
     dismissed_by_user = models.ForeignKey(
         "account.User",
         null=True,

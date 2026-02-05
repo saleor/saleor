@@ -162,6 +162,7 @@ def test_app_problems_dismissed_by_app(app_api_client, app):
         key="k1",
         updated_at=now,
         dismissed=True,
+        # No dismissed_by_user_email means dismissed by app
     )
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
@@ -189,6 +190,7 @@ def test_app_problems_dismissed_by_user(staff_api_client, app, permission_manage
         key="k1",
         updated_at=now,
         dismissed=True,
+        dismissed_by_user_email=staff_user.email,
         dismissed_by_user=staff_user,
     )
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
@@ -228,6 +230,41 @@ def test_app_problems_dismissed_by_null_when_not_dismissed(app_api_client, app):
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 1
     assert problems[0]["dismissedBy"] is None
+
+
+def test_app_problems_dismissed_by_user_returns_null_when_user_deleted(
+    staff_api_client, app, permission_manage_apps
+):
+    # given - a problem was dismissed by a user who was later deleted
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    staff_user = staff_api_client.user
+    now = timezone.now()
+    problem = AppProblem.objects.create(
+        app=app,
+        message="Dismissed by deleted user",
+        key="k1",
+        updated_at=now,
+        dismissed=True,
+        dismissed_by_user_email=staff_user.email,
+        dismissed_by_user=staff_user,
+    )
+
+    # when - user is deleted (simulating SET_NULL behavior)
+    problem.dismissed_by_user = None
+    problem.save(update_fields=["dismissed_by_user"])
+
+    variables = {"id": graphene.Node.to_global_id("App", app.id)}
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
+    content = get_graphql_content(response)
+
+    # then - dismissedBy should be null, NOT the app (email is preserved)
+    problems = content["data"]["app"]["problems"]
+    assert len(problems) == 1
+    assert problems[0]["dismissed"] is True
+    assert problems[0]["dismissedBy"] is None
+    assert problems[0]["dismissedByEmail"] is staff_user.email
 
 
 def test_app_problems_cascade_delete(app, db):

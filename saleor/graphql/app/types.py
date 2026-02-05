@@ -550,7 +550,10 @@ class AppProblem(ModelObjectType[models.AppProblem]):
     )
     dismissed_by = graphene.Field(
         "saleor.graphql.core.types.user_or_app.UserOrApp",
-        description="The entity (App or User) that dismissed this problem. If user does not exist anymore, it can be null",
+        description="The entity (App or User) that dismissed this problem. If user does not exist anymore, it can be null.",
+    )
+    dismissed_by_user_email = graphene.String(
+        description="Email of the user who dismissed this problem. Preserved even if the user is deleted."
     )
     message = graphene.String(required=True)
     key = graphene.String(required=True)
@@ -563,9 +566,13 @@ class AppProblem(ModelObjectType[models.AppProblem]):
 
     @staticmethod
     def resolve_dismissed_by(root: models.AppProblem, info: ResolveInfo):
-        if root.dismissed_by_user_id is not None:
-            return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
-        if root.dismissed and root.app_id is not None:
+        # Use denormalized email, that is preserved even if user is deleted
+        if root.dismissed_by_user_email:
+            if root.dismissed_by_user_id is not None:
+                return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
+            return None
+        # Otherwise that was app
+        if root.dismissed:
             return AppByIdLoader(info.context).load(root.app_id)
         return None
 

@@ -1,9 +1,10 @@
-from typing import Any
+from typing import Any, cast
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
+from ....account.models import User
 from ....app.error_codes import (
     AppProblemDismissErrorCode as AppProblemDismissErrorCodeEnum,
 )
@@ -294,11 +295,13 @@ class AppProblemDismiss(BaseMutation):
                 }
             )
 
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = cast(User, get_user_or_app_from_context(info.context))
         problem_pks = cls._parse_problem_ids(ids)
 
         AppProblem.objects.filter(pk__in=problem_pks, dismissed=False).update(
-            dismissed=True, dismissed_by_user=requestor
+            dismissed=True,
+            dismissed_by_user_email=requestor.email,
+            dismissed_by_user=requestor,
         )
 
     @classmethod
@@ -319,11 +322,13 @@ class AppProblemDismiss(BaseMutation):
                 }
             )
 
-        requestor = get_user_or_app_from_context(info.context)
+        requestor = cast(User, get_user_or_app_from_context(info.context))
         target_app = cls.get_node_or_error(info, app_id, field="app", only_type=App)
 
         AppProblem.objects.filter(app=target_app, key__in=keys, dismissed=False).update(
-            dismissed=True, dismissed_by_user=requestor
+            dismissed=True,
+            dismissed_by_user_email=requestor.email,
+            dismissed_by_user=requestor,
         )
 
     @classmethod

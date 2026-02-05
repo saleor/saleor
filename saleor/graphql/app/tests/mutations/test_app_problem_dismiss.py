@@ -41,6 +41,7 @@ def test_app_problem_dismiss_by_ids_as_app(app_api_client, app, app_problem_gene
     p1.refresh_from_db()
     p2.refresh_from_db()
     assert p1.dismissed is True
+    assert p1.dismissed_by_user_email is None  # Dismissed by app, no email
     assert p1.dismissed_by_user is None
     assert p2.dismissed is False
 
@@ -118,6 +119,7 @@ def test_app_problem_dismiss_by_ids_as_staff(
     assert not data["errors"]
     p1.refresh_from_db()
     assert p1.dismissed is True
+    assert p1.dismissed_by_user_email == staff_api_client.user.email
     assert p1.dismissed_by_user == staff_api_client.user
 
 
@@ -145,6 +147,7 @@ def test_app_problem_dismiss_by_keys_as_staff(
     assert not data["errors"]
     p1.refresh_from_db()
     assert p1.dismissed is True
+    assert p1.dismissed_by_user_email == staff_api_client.user.email
     assert p1.dismissed_by_user == staff_api_client.user
 
 
@@ -362,8 +365,10 @@ def test_staff_can_dismiss_problems_from_multiple_apps(
     p1.refresh_from_db()
     p2.refresh_from_db()
     assert p1.dismissed is True
+    assert p1.dismissed_by_user_email == staff_api_client.user.email
     assert p1.dismissed_by_user == staff_api_client.user
     assert p2.dismissed is True
+    assert p2.dismissed_by_user_email == staff_api_client.user.email
     assert p2.dismissed_by_user == staff_api_client.user
 
 
