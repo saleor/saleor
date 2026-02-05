@@ -6,7 +6,10 @@ from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db import transaction
 from django.db.models import F, Q, Value
 
-from ...account.search import generate_address_search_vector_value
+from ...account.search import (
+    generate_address_search_vector_value,
+    generate_email_vector,
+)
 from ...core.context import with_promise_context
 from ...core.db.connection import allow_writer
 from ...core.postgres import FlatConcatSearchVector, NoValidationSearchVector
@@ -71,16 +74,10 @@ def prepare_checkout_search_vector_value(
     ]
 
     if checkout.email:
-        search_vectors.append(
-            NoValidationSearchVector(Value(checkout.email), config="simple", weight="A")
-        )
+        search_vectors.extend(generate_email_vector(checkout.email))
 
     if data.user:
-        search_vectors.append(
-            NoValidationSearchVector(
-                Value(data.user.email), config="simple", weight="A"
-            )
-        )
+        search_vectors.extend(generate_email_vector(data.user.email))
         search_vectors.append(
             NoValidationSearchVector(
                 Value(data.user.first_name), config="simple", weight="A"

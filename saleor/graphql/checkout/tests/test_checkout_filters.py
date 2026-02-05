@@ -342,6 +342,7 @@ def test_query_checkout_with_sort(
         ({"search": "Wade"}, 1),
         ({"search": ""}, 4),
         ({"search": "ExternalID"}, 1),
+        ({"search": "example.com"}, 3),
     ],
 )
 def test_checkouts_query_with_filter_search(
