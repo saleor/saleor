@@ -95,11 +95,6 @@ class AppProblemDismissInput(BaseInputObjectType):
 
 
 class AppProblemDismiss(BaseMutation):
-    app = graphene.Field(
-        App,
-        description="The app whose problems were dismissed.",
-    )
-
     class Arguments:
         input = AppProblemDismissInput(
             required=True,
@@ -128,19 +123,18 @@ class AppProblemDismiss(BaseMutation):
 
         cls._validate_top_level(by_app, by_user_with_ids, by_user_with_keys, caller_app)
 
-        target_app: AppModel | None
         if by_app is not None:
             assert caller_app is not None  # validated in _validate_top_level
             cls._validate_by_app_input(by_app)
-            target_app = cls._dismiss_for_app_caller(by_app, caller_app)
+            cls._dismiss_for_app_caller(by_app, caller_app)
         elif by_user_with_ids is not None:
-            target_app = cls._dismiss_by_ids_for_user(info, by_user_with_ids["ids"])
+            cls._dismiss_by_ids_for_user(info, by_user_with_ids["ids"])
         else:
-            target_app = cls._dismiss_by_keys_for_user(
+            cls._dismiss_by_keys_for_user(
                 info, by_user_with_keys["keys"], by_user_with_keys["app"]
             )
 
-        return AppProblemDismiss(app=target_app)
+        return AppProblemDismiss()
 
     @classmethod
     def _validate_top_level(
@@ -235,7 +229,7 @@ class AppProblemDismiss(BaseMutation):
         cls,
         by_app: dict,
         caller_app: AppModel,
-    ) -> AppModel:
+    ) -> None:
         """Dismiss problems for an app caller (can only dismiss own problems)."""
         ids = by_app.get("ids")
         keys = by_app.get("keys")
@@ -260,24 +254,20 @@ class AppProblemDismiss(BaseMutation):
         AppProblem.objects.filter(filter_q, app=caller_app, dismissed=False).update(
             dismissed=True
         )
-        return caller_app
 
     @classmethod
     def _dismiss_by_ids_for_user(
         cls,
         info: ResolveInfo,
         ids: list[str],
-    ) -> AppModel | None:
+    ) -> None:
         """Dismiss problems by IDs for a user/staff caller."""
         requestor = get_user_or_app_from_context(info.context)
         problem_pks = cls._parse_problem_ids(ids)
 
-        qs = AppProblem.objects.filter(pk__in=problem_pks, dismissed=False)
-        first_problem = qs.first()
-        target_app = first_problem.app if first_problem else None
-
-        qs.update(dismissed=True, dismissed_by_user=requestor)
-        return target_app
+        AppProblem.objects.filter(pk__in=problem_pks, dismissed=False).update(
+            dismissed=True, dismissed_by_user=requestor
+        )
 
     @classmethod
     def _dismiss_by_keys_for_user(
@@ -285,7 +275,7 @@ class AppProblemDismiss(BaseMutation):
         info: ResolveInfo,
         keys: list[str],
         app_id: str,
-    ) -> AppModel:
+    ) -> None:
         """Dismiss problems by keys for a user/staff caller."""
         requestor = get_user_or_app_from_context(info.context)
         target_app = cls.get_node_or_error(info, app_id, field="app", only_type=App)
@@ -293,8 +283,6 @@ class AppProblemDismiss(BaseMutation):
         AppProblem.objects.filter(app=target_app, key__in=keys, dismissed=False).update(
             dismissed=True, dismissed_by_user=requestor
         )
-
-        return target_app
 
     @classmethod
     def _build_filter_query(cls, ids: list[str] | None, keys: list[str] | None) -> Q:

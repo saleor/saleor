@@ -30087,8 +30087,6 @@ Added in Saleor 3.22.
 Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
 """
 type AppProblemDismiss @doc(category: "Apps") {
-  """The app whose problems were dismissed."""
-  app: App
   errors: [AppProblemDismissError!]!
 }
 

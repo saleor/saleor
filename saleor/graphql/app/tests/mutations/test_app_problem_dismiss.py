@@ -5,15 +5,6 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 APP_PROBLEM_DISMISS_MUTATION = """
     mutation AppProblemDismiss($input: AppProblemDismissInput!) {
         appProblemDismiss(input: $input) {
-            app {
-                id
-                problems {
-                    id
-                    message
-                    key
-                    dismissed
-                }
-            }
             errors {
                 field
                 code
@@ -340,3 +331,36 @@ def test_app_cannot_dismiss_other_apps_problems(
     assert data["errors"][0]["code"] == "INVALID"
     p1.refresh_from_db()
     assert p1.dismissed is False
+
+
+def test_staff_can_dismiss_problems_from_multiple_apps(
+    staff_api_client, app, app_with_token, permission_manage_apps, app_problem_generator
+):
+    # given - problems from 2 different apps
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    p1 = app_problem_generator(app, key="k1", message="Problem from app 1")
+    p2 = app_problem_generator(app_with_token, key="k2", message="Problem from app 2")
+    variables = {
+        "input": {
+            "byUserWithIds": {
+                "ids": [
+                    graphene.Node.to_global_id("AppProblem", p1.id),
+                    graphene.Node.to_global_id("AppProblem", p2.id),
+                ]
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then - both problems should be dismissed
+    data = content["data"]["appProblemDismiss"]
+    assert not data["errors"]
+    p1.refresh_from_db()
+    p2.refresh_from_db()
+    assert p1.dismissed is True
+    assert p1.dismissed_by_user == staff_api_client.user
+    assert p2.dismissed is True
+    assert p2.dismissed_by_user == staff_api_client.user
