@@ -1,4 +1,4 @@
-from unittest.mock import ANY, Mock, call
+from unittest.mock import ANY, Mock, call, patch
 
 import graphene
 import pytest
@@ -110,7 +110,7 @@ def test_creates_app_from_manifest_installation_failed():
 
 @pytest.fixture
 def installed_app():
-    return App.objects.create(
+    app = App.objects.create(
         name="Installed App",
         identifier="app.already.installed",
         is_active=True,
@@ -118,17 +118,30 @@ def installed_app():
         manifest_url="http://otherapp:3000/manifest",
         type=AppType.THIRDPARTY,
     )
+    manifest_data = {
+        "name": app.name,
+        "version": "1.0.0",
+        "id": app.identifier,
+        "tokenTargetUrl": "http://otherapp:3000/register",
+    }
+    with patch(
+        "saleor.app.management.commands.install_app.fetch_manifest",
+        return_value=manifest_data,
+    ):
+        with patch(
+            "saleor.app.installation_utils.fetch_manifest", return_value=manifest_data
+        ):
+            yield app
 
 
-@pytest.mark.vcr
 def test_creates_app_from_manifest_fails_on_already_installed_app(installed_app):
     with pytest.raises(
-        ValidationError, match="App with the same identifier is already installed"
+        ValidationError,
+        match="App with the same identifier is already installed",
     ):
         call_command("install_app", installed_app.manifest_url)
 
 
-@pytest.mark.vcr
 def test_creates_app_from_manifest_quiet_skips_already_installed_app(installed_app):
     call_command("install_app", installed_app.manifest_url, quiet=True)
 
