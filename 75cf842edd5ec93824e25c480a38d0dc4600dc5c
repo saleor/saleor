@@ -1,0 +1,23 @@
+saleor/graphql/app/types.py
+  6589792ffa8dda4f 557-562,565-570
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "75cf842edd5ec93824e25c480a38d0dc4600dc5c",
+  "prompts": {
+    "6589792ffa8dda4f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e9f260fa-0f71-4e22-a6a0-ea474724dcda",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 2,
+      "accepted_lines": 12,
+      "overriden_lines": 0
+    }
+  }
+}
