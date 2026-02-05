@@ -15,8 +15,11 @@ class UserOrApp(graphene.Union):
 
     @classmethod
     def resolve_type(cls, instance, info):
+        # Support restricted user for AppProblem permission checks
+        if hasattr(instance, "_is_restricted_user"):
+            return account_types.User
         if isinstance(instance, account_models.User):
             return account_types.User
         if isinstance(instance, app_models.App):
-            return account_types.App
+            return app_types.App
         return super().resolve_type(instance, info)

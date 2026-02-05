@@ -13,7 +13,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
 from ...permission.auth_filters import AuthorizationFilters, is_staff_user
-from ...permission.enums import AppPermission
+from ...permission.enums import AccountPermissions, AppPermission
 from ...permission.utils import message_one_of_permissions_required
 from ...thumbnail import PIL_IDENTIFIER_TO_MIME_TYPE
 from ...thumbnail.utils import (
@@ -72,6 +72,51 @@ from .resolvers import (
 )
 
 breaker_board = initialize_breaker_board()
+
+
+class _RestrictedUserForAppProblem:
+    """Private class for restricted User access in AppProblem.
+
+    Returns User __typename and allowed fields (id, email, first_name, last_name, avatar).
+    Raises PermissionDenied for other fields.
+    """
+
+    _is_restricted_user = True  # Marker for type resolution in UserOrApp
+    NEWLY_CREATED_USER = False  # Required by SecureGlobalID.id_resolver
+
+    def __init__(self, user):
+        self._user = user
+
+    @property
+    def id(self):
+        return self._user.id
+
+    @property
+    def pk(self):
+        return self._user.pk
+
+    @property
+    def uuid(self):
+        return self._user.uuid
+
+    @property
+    def email(self):
+        return self._user.email
+
+    @property
+    def first_name(self):
+        return self._user.first_name
+
+    @property
+    def last_name(self):
+        return self._user.last_name
+
+    @property
+    def avatar(self):
+        return self._user.avatar
+
+    def __getattr__(self, name):
+        raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
 
 
 # Maximal thumbnail size for manifest preview
@@ -566,12 +611,29 @@ class AppProblem(ModelObjectType[models.AppProblem]):
 
     @staticmethod
     def resolve_dismissed_by(root: models.AppProblem, info: ResolveInfo):
-        # Use denormalized email, that is preserved even if user is deleted
+        # If dismissed by user (denormalized email present)
         if root.dismissed_by_user_email:
-            if root.dismissed_by_user_id is not None:
+            if root.dismissed_by_user_id is None:
+                return None  # User was deleted
+
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor and requestor.has_perm(AccountPermissions.MANAGE_STAFF):
+                # Full access - return complete User
                 return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
-            return None
-        # Otherwise that was app
+
+            # Restricted access - wrap user in restricted class
+            def create_restricted_user(user):
+                if user is None:
+                    return None
+                return _RestrictedUserForAppProblem(user)
+
+            return (
+                UserByUserIdLoader(info.context)
+                .load(root.dismissed_by_user_id)
+                .then(create_restricted_user)
+            )
+
+        # Dismissed by app - no restriction
         if root.dismissed:
             return AppByIdLoader(info.context).load(root.app_id)
         return None
