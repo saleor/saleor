@@ -21,6 +21,8 @@ from ...utils import get_user_or_app_from_context
 from ..enums import AppProblemDismissErrorCode
 from ..types import App
 
+MAX_ITEMS_LIMIT = 100
+
 
 class AppProblemDismissError(Error):
     code = AppProblemDismissErrorCode(description="The error code.", required=True)
@@ -224,6 +226,26 @@ class AppProblemDismiss(BaseMutation):
                 }
             )
 
+        if ids and len(ids) > MAX_ITEMS_LIMIT:
+            raise ValidationError(
+                {
+                    "ids": ValidationError(
+                        f"Cannot specify more than {MAX_ITEMS_LIMIT} IDs.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
+
+        if keys and len(keys) > MAX_ITEMS_LIMIT:
+            raise ValidationError(
+                {
+                    "keys": ValidationError(
+                        f"Cannot specify more than {MAX_ITEMS_LIMIT} keys.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
+
     @classmethod
     def _dismiss_for_app_caller(
         cls,
@@ -262,6 +284,16 @@ class AppProblemDismiss(BaseMutation):
         ids: list[str],
     ) -> None:
         """Dismiss problems by IDs for a user/staff caller."""
+        if len(ids) > MAX_ITEMS_LIMIT:
+            raise ValidationError(
+                {
+                    "ids": ValidationError(
+                        f"Cannot specify more than {MAX_ITEMS_LIMIT} IDs.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
+
         requestor = get_user_or_app_from_context(info.context)
         problem_pks = cls._parse_problem_ids(ids)
 
@@ -277,6 +309,16 @@ class AppProblemDismiss(BaseMutation):
         app_id: str,
     ) -> None:
         """Dismiss problems by keys for a user/staff caller."""
+        if len(keys) > MAX_ITEMS_LIMIT:
+            raise ValidationError(
+                {
+                    "keys": ValidationError(
+                        f"Cannot specify more than {MAX_ITEMS_LIMIT} keys.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
+
         requestor = get_user_or_app_from_context(info.context)
         target_app = cls.get_node_or_error(info, app_id, field="app", only_type=App)
 

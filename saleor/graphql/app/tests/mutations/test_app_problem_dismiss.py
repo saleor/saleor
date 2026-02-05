@@ -1,6 +1,7 @@
 import graphene
 
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ...mutations.app_problem_dismiss import MAX_ITEMS_LIMIT
 
 APP_PROBLEM_DISMISS_MUTATION = """
     mutation AppProblemDismiss($input: AppProblemDismissInput!) {
@@ -364,3 +365,91 @@ def test_staff_can_dismiss_problems_from_multiple_apps(
     assert p1.dismissed_by_user == staff_api_client.user
     assert p2.dismissed is True
     assert p2.dismissed_by_user == staff_api_client.user
+
+
+# --- Max items limit tests ---
+
+
+def test_app_problem_dismiss_by_app_with_too_many_ids_fails(app_api_client, app):
+    # given
+    ids = [
+        graphene.Node.to_global_id("AppProblem", i) for i in range(MAX_ITEMS_LIMIT + 1)
+    ]
+    variables = {"input": {"byApp": {"ids": ids}}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "ids"
+    assert data["errors"][0]["code"] == "INVALID"
+    assert "100" in data["errors"][0]["message"]
+
+
+def test_app_problem_dismiss_by_app_with_too_many_keys_fails(app_api_client, app):
+    # given
+    keys = [f"key-{i}" for i in range(MAX_ITEMS_LIMIT + 1)]
+    variables = {"input": {"byApp": {"keys": keys}}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "keys"
+    assert data["errors"][0]["code"] == "INVALID"
+    assert "100" in data["errors"][0]["message"]
+
+
+def test_app_problem_dismiss_by_user_with_too_many_ids_fails(
+    staff_api_client, app, permission_manage_apps
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    ids = [
+        graphene.Node.to_global_id("AppProblem", i) for i in range(MAX_ITEMS_LIMIT + 1)
+    ]
+    variables = {"input": {"byUserWithIds": {"ids": ids}}}
+
+    # when
+    response = staff_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "ids"
+    assert data["errors"][0]["code"] == "INVALID"
+    assert "100" in data["errors"][0]["message"]
+
+
+def test_app_problem_dismiss_by_user_with_too_many_keys_fails(
+    staff_api_client, app, permission_manage_apps
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    keys = [f"key-{i}" for i in range(MAX_ITEMS_LIMIT + 1)]
+    variables = {
+        "input": {
+            "byUserWithKeys": {
+                "keys": keys,
+                "app": graphene.Node.to_global_id("App", app.id),
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "keys"
+    assert data["errors"][0]["code"] == "INVALID"
+    assert "100" in data["errors"][0]["message"]
