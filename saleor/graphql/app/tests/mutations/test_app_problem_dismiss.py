@@ -91,6 +91,7 @@ def test_app_problem_dismiss_by_ids_and_keys_as_app_fails(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "byApp"
     assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["message"] == "Cannot specify both 'ids' and 'keys'."
 
 
 # --- Staff caller tests (byUserWithIds / byUserWithKeys) ---
@@ -175,6 +176,10 @@ def test_app_problem_dismiss_multiple_inputs_fails(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "input"
     assert data["errors"][0]["code"] == "INVALID"
+    assert (
+        data["errors"][0]["message"]
+        == "Must provide exactly one of 'byApp', 'byUserWithIds', or 'byUserWithKeys'."
+    )
 
 
 def test_app_problem_dismiss_no_input_fails(app_api_client, app):
@@ -190,6 +195,10 @@ def test_app_problem_dismiss_no_input_fails(app_api_client, app):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "input"
     assert data["errors"][0]["code"] == "REQUIRED"
+    assert (
+        data["errors"][0]["message"]
+        == "Must provide one of 'byApp', 'byUserWithIds', or 'byUserWithKeys'."
+    )
 
 
 def test_app_problem_dismiss_empty_by_app_fails(app_api_client, app):
@@ -205,6 +214,7 @@ def test_app_problem_dismiss_empty_by_app_fails(app_api_client, app):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "byApp"
     assert data["errors"][0]["code"] == "REQUIRED"
+    assert data["errors"][0]["message"] == "Must provide either 'ids' or 'keys'."
 
 
 def test_app_caller_cannot_use_by_user_with_ids(
@@ -227,6 +237,10 @@ def test_app_caller_cannot_use_by_user_with_ids(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "byUserWithIds"
     assert data["errors"][0]["code"] == "INVALID"
+    assert (
+        data["errors"][0]["message"]
+        == "App callers cannot use this input. Use 'byApp' instead."
+    )
 
 
 def test_app_caller_cannot_use_by_user_with_keys(app_api_client, app):
@@ -249,6 +263,10 @@ def test_app_caller_cannot_use_by_user_with_keys(app_api_client, app):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "byUserWithKeys"
     assert data["errors"][0]["code"] == "INVALID"
+    assert (
+        data["errors"][0]["message"]
+        == "App callers cannot use this input. Use 'byApp' instead."
+    )
 
 
 def test_user_caller_cannot_use_by_app(
@@ -270,6 +288,7 @@ def test_user_caller_cannot_use_by_app(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "byApp"
     assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["message"] == "Only app callers can use 'byApp'."
 
 
 # --- Permission tests ---
@@ -333,6 +352,10 @@ def test_app_cannot_dismiss_other_apps_problems(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "ids"
     assert data["errors"][0]["code"] == "INVALID"
+    assert (
+        data["errors"][0]["message"]
+        == "Cannot dismiss problems belonging to other apps."
+    )
     p1.refresh_from_db()
     assert p1.dismissed is False
 
@@ -391,7 +414,7 @@ def test_app_problem_dismiss_by_app_with_too_many_ids_fails(app_api_client, app)
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "ids"
     assert data["errors"][0]["code"] == "INVALID"
-    assert "100" in data["errors"][0]["message"]
+    assert data["errors"][0]["message"] == "Cannot specify more than 100 IDs."
 
 
 def test_app_problem_dismiss_by_app_with_too_many_keys_fails(app_api_client, app):
@@ -408,7 +431,7 @@ def test_app_problem_dismiss_by_app_with_too_many_keys_fails(app_api_client, app
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "keys"
     assert data["errors"][0]["code"] == "INVALID"
-    assert "100" in data["errors"][0]["message"]
+    assert data["errors"][0]["message"] == "Cannot specify more than 100 keys."
 
 
 def test_app_problem_dismiss_by_user_with_too_many_ids_fails(
@@ -430,7 +453,7 @@ def test_app_problem_dismiss_by_user_with_too_many_ids_fails(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "ids"
     assert data["errors"][0]["code"] == "INVALID"
-    assert "100" in data["errors"][0]["message"]
+    assert data["errors"][0]["message"] == "Cannot specify more than 100 IDs."
 
 
 def test_app_problem_dismiss_by_user_with_too_many_keys_fails(
@@ -457,4 +480,4 @@ def test_app_problem_dismiss_by_user_with_too_many_keys_fails(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "keys"
     assert data["errors"][0]["code"] == "INVALID"
-    assert "100" in data["errors"][0]["message"]
+    assert data["errors"][0]["message"] == "Cannot specify more than 100 keys."

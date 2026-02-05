@@ -39,8 +39,8 @@ def test_app_problems_empty(app_api_client, app):
 def test_app_problems_returns_problems(app_api_client, app):
     # given
     now = timezone.now()
-    AppProblem.objects.create(app=app, message="Issue 1", key="k1", updated_at=now)
-    AppProblem.objects.create(app=app, message="Issue 2", key="k2", updated_at=now)
+    p1 = AppProblem.objects.create(app=app, message="Issue 1", key="k1", updated_at=now)
+    p2 = AppProblem.objects.create(app=app, message="Issue 2", key="k2", updated_at=now)
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -50,22 +50,26 @@ def test_app_problems_returns_problems(app_api_client, app):
     # then
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 2
-    for p in problems:
-        assert p["id"] is not None
-        assert p["message"] is not None
-        assert p["key"] is not None
-        assert p["createdAt"] is not None
-        assert p["updatedAt"] is not None
-        assert p["count"] is not None
-        assert p["isCritical"] is not None
-        assert p["dismissed"] is not None
+    # Ordered by created_at desc, so p2 comes first
+    assert problems[0]["id"] == graphene.Node.to_global_id("AppProblem", p2.id)
+    assert problems[0]["message"] == "Issue 2"
+    assert problems[0]["key"] == "k2"
+    assert problems[0]["count"] == 1
+    assert problems[0]["isCritical"] is False
+    assert problems[0]["dismissed"] is False
+    assert problems[1]["id"] == graphene.Node.to_global_id("AppProblem", p1.id)
+    assert problems[1]["message"] == "Issue 1"
+    assert problems[1]["key"] == "k1"
+    assert problems[1]["count"] == 1
+    assert problems[1]["isCritical"] is False
+    assert problems[1]["dismissed"] is False
 
 
 def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
     # given
     now = timezone.now()
-    AppProblem.objects.create(app=app, message="First", key="k1", updated_at=now)
-    AppProblem.objects.create(app=app, message="Second", key="k2", updated_at=now)
+    p1 = AppProblem.objects.create(app=app, message="First", key="k1", updated_at=now)
+    p2 = AppProblem.objects.create(app=app, message="Second", key="k2", updated_at=now)
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -75,8 +79,12 @@ def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
     # then
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 2
+    assert problems[0]["id"] == graphene.Node.to_global_id("AppProblem", p2.id)
     assert problems[0]["message"] == "Second"
+    assert problems[0]["key"] == "k2"
+    assert problems[1]["id"] == graphene.Node.to_global_id("AppProblem", p1.id)
     assert problems[1]["message"] == "First"
+    assert problems[1]["key"] == "k1"
 
 
 def test_app_problems_count_and_critical(app_api_client, app):
@@ -232,6 +240,30 @@ def test_app_problems_dismissed_by_null_when_not_dismissed(app_api_client, app):
     assert problems[0]["dismissedBy"] is None
 
 
+QUERY_APP_PROBLEMS_WITH_DISMISSED_BY_AND_EMAIL = """
+    query ($id: ID) {
+        app(id: $id) {
+            id
+            problems {
+                id
+                dismissed
+                dismissedBy {
+                    ... on App {
+                        id
+                        name
+                    }
+                    ... on User {
+                        id
+                        email
+                    }
+                }
+                dismissedByUserEmail
+            }
+        }
+    }
+"""
+
+
 def test_app_problems_dismissed_by_user_returns_null_when_user_deleted(
     staff_api_client, app, permission_manage_apps
 ):
@@ -255,7 +287,7 @@ def test_app_problems_dismissed_by_user_returns_null_when_user_deleted(
 
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
     response = staff_api_client.post_graphql(
-        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY_AND_EMAIL, variables
     )
     content = get_graphql_content(response)
 
@@ -264,7 +296,7 @@ def test_app_problems_dismissed_by_user_returns_null_when_user_deleted(
     assert len(problems) == 1
     assert problems[0]["dismissed"] is True
     assert problems[0]["dismissedBy"] is None
-    assert problems[0]["dismissedByEmail"] is staff_user.email
+    assert problems[0]["dismissedByUserEmail"] == staff_user.email
 
 
 def test_app_problems_cascade_delete(app, db):

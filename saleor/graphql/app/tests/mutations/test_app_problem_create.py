@@ -630,6 +630,7 @@ def test_app_problem_create_negative_aggregation_period_fails(app_api_client, ap
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "aggregationPeriod"
     assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["message"] == "Input should be greater than or equal to 0"
     assert AppProblem.objects.filter(app=app).count() == 0
 
 
