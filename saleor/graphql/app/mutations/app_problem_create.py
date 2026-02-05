@@ -2,11 +2,13 @@ import datetime
 from typing import Annotated, Any
 
 import graphene
+from django.db.models import F
 from django.utils import timezone
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
 from ....app.models import App as AppModel
 from ....app.models import AppProblem
+from ....core.tracing import traced_atomic_transaction
 from ....permission.auth_filters import AuthorizationFilters
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
@@ -87,30 +89,33 @@ class AppProblemCreate(BaseMutation):
 
         now = timezone.now()
 
-        existing = (
-            AppProblem.objects.filter(app=app, key=validated.key, dismissed=False)
-            .order_by("-updated_at")
-            .first()
-        )
+        with traced_atomic_transaction():
+            # Lock the most recent matching problem to prevent race conditions
+            existing = (
+                AppProblem.objects.select_for_update()
+                .filter(app=app, key=validated.key, dismissed=False)
+                .order_by("-updated_at")
+                .first()
+            )
 
-        if not existing:
-            cls._create_new_problem(app, validated, now)
+            if not existing:
+                cls._create_new_problem(app, validated, now)
 
+                return AppProblemCreate(app=app)
+
+            # Flow for existing / update
+            aggregation_enabled = validated.aggregation_period > 0
+            cutoff = now - datetime.timedelta(minutes=validated.aggregation_period)
+            within_aggregation_window = (
+                aggregation_enabled and existing.updated_at >= cutoff
+            )
+
+            if not within_aggregation_window:
+                cls._create_new_problem(app, validated, now)
+                return AppProblemCreate(app=app)
+
+            cls._aggregate_existing(existing, validated, now)
             return AppProblemCreate(app=app)
-
-        # Flow for existing / update
-        aggregation_enabled = validated.aggregation_period > 0
-        cutoff = now - datetime.timedelta(minutes=validated.aggregation_period)
-        within_aggregation_window = (
-            aggregation_enabled and existing.updated_at >= cutoff
-        )
-
-        if not within_aggregation_window:
-            cls._create_new_problem(app, validated, now)
-            return AppProblemCreate(app=app)
-
-        cls._aggregate_existing(existing, validated, now)
-        return AppProblemCreate(app=app)
 
     @classmethod
     def _aggregate_existing(
@@ -119,22 +124,19 @@ class AppProblemCreate(BaseMutation):
         validated: AppProblemCreateValidatedInput,
         now: datetime.datetime,
     ) -> None:
-        existing.count += 1
-        existing.updated_at = now
-        existing.message = validated.message
-
-        existing.is_critical = bool(
-            validated.critical_threshold
-            and existing.count >= validated.critical_threshold
+        # Can be calculated here, the update itself happens in db and this is needed only to
+        # calculate is_critical, so even if count is actually higher due to thread race, is_critical will
+        # be still true
+        new_count = existing.count + 1
+        is_critical = bool(
+            validated.critical_threshold and new_count >= validated.critical_threshold
         )
 
-        existing.save(
-            update_fields=[
-                "count",
-                "updated_at",
-                "message",
-                "is_critical",
-            ]
+        AppProblem.objects.filter(pk=existing.pk).update(
+            count=F("count") + 1,
+            updated_at=now,
+            message=validated.message,
+            is_critical=is_critical,
         )
 
     @classmethod
@@ -148,7 +150,14 @@ class AppProblemCreate(BaseMutation):
         needs_eviction = total_count >= AppProblem.MAX_PROBLEMS_PER_APP
 
         if needs_eviction:
-            oldest = AppProblem.objects.filter(app=app).order_by("created_at").first()
+            # Use select_for_update with skip_locked to prevent deadlocks
+            # when multiple concurrent requests try to evict
+            oldest = (
+                AppProblem.objects.select_for_update(skip_locked=True)
+                .filter(app=app)
+                .order_by("created_at")
+                .first()
+            )
 
             if oldest:
                 oldest.delete()
