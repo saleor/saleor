@@ -3080,11 +3080,15 @@ type AppProblem implements Node @doc(category: "Apps") {
 
   """
   The entity (App or User) that dismissed this problem. If user does not exist anymore, it can be null.
+  
+  When dismissed by a User, requires MANAGE_STAFF permission. When dismissed by an App, any authenticated requestor can access.
   """
   dismissedBy: UserOrApp
 
   """
   Email of the user who dismissed this problem. Preserved even if the user is deleted.
+  
+  Requires one of the following permissions: MANAGE_STAFF, or being an authenticated staff user.
   """
   dismissedByUserEmail: String
   message: String!

@@ -554,10 +554,20 @@ class AppProblem(ModelObjectType[models.AppProblem]):
     )
     dismissed_by = graphene.Field(
         "saleor.graphql.core.types.user_or_app.UserOrApp",
-        description="The entity (App or User) that dismissed this problem. If user does not exist anymore, it can be null.",
+        description=(
+            "The entity (App or User) that dismissed this problem. "
+            "If user does not exist anymore, it can be null."
+            "\n\nWhen dismissed by a User, requires MANAGE_STAFF permission. "
+            "When dismissed by an App, any authenticated requestor can access."
+        ),
     )
     dismissed_by_user_email = graphene.String(
-        description="Email of the user who dismissed this problem. Preserved even if the user is deleted."
+        description=(
+            "Email of the user who dismissed this problem. "
+            "Preserved even if the user is deleted."
+            "\n\nRequires one of the following permissions: "
+            "MANAGE_STAFF, or being an authenticated staff user."
+        ),
     )
     message = graphene.String(required=True)
     key = graphene.String(required=True)
