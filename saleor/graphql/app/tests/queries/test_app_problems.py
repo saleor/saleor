@@ -1,5 +1,4 @@
 import graphene
-from django.utils import timezone
 
 from .....app.models import AppProblem
 from ....tests.utils import get_graphql_content
@@ -38,9 +37,8 @@ def test_app_problems_empty(app_api_client, app):
 
 def test_app_problems_returns_problems(app_api_client, app):
     # given
-    now = timezone.now()
-    p1 = AppProblem.objects.create(app=app, message="Issue 1", key="k1", updated_at=now)
-    p2 = AppProblem.objects.create(app=app, message="Issue 2", key="k2", updated_at=now)
+    p1 = AppProblem.objects.create(app=app, message="Issue 1", key="k1")
+    p2 = AppProblem.objects.create(app=app, message="Issue 2", key="k2")
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -67,9 +65,8 @@ def test_app_problems_returns_problems(app_api_client, app):
 
 def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
     # given
-    now = timezone.now()
-    p1 = AppProblem.objects.create(app=app, message="First", key="k1", updated_at=now)
-    p2 = AppProblem.objects.create(app=app, message="Second", key="k2", updated_at=now)
+    p1 = AppProblem.objects.create(app=app, message="First", key="k1")
+    p2 = AppProblem.objects.create(app=app, message="Second", key="k2")
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -89,15 +86,13 @@ def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
 
 def test_app_problems_count_and_critical(app_api_client, app):
     # given
-    now = timezone.now()
     AppProblem.objects.create(
-        app=app, message="Normal", key="k1", updated_at=now, count=3, is_critical=False
+        app=app, message="Normal", key="k1", count=3, is_critical=False
     )
     AppProblem.objects.create(
         app=app,
         message="Critical",
         key="k2",
-        updated_at=now,
         count=10,
         is_critical=True,
     )
@@ -118,13 +113,8 @@ def test_app_problems_count_and_critical(app_api_client, app):
 
 def test_app_problems_dismissed_field(app_api_client, app):
     # given
-    now = timezone.now()
-    AppProblem.objects.create(
-        app=app, message="Active", key="k1", updated_at=now, dismissed=False
-    )
-    AppProblem.objects.create(
-        app=app, message="Dismissed", key="k2", updated_at=now, dismissed=True
-    )
+    AppProblem.objects.create(app=app, message="Active", key="k1", dismissed=False)
+    AppProblem.objects.create(app=app, message="Dismissed", key="k2", dismissed=True)
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
@@ -163,12 +153,10 @@ QUERY_APP_PROBLEMS_WITH_DISMISSED_BY = """
 
 def test_app_problems_dismissed_by_app(app_api_client, app):
     # given
-    now = timezone.now()
     AppProblem.objects.create(
         app=app,
         message="Dismissed by app",
         key="k1",
-        updated_at=now,
         dismissed=True,
         # No dismissed_by_user_email means dismissed by app
     )
@@ -191,12 +179,10 @@ def test_app_problems_dismissed_by_user(staff_api_client, app, permission_manage
     # given
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     staff_user = staff_api_client.user
-    now = timezone.now()
     AppProblem.objects.create(
         app=app,
         message="Dismissed by user",
         key="k1",
-        updated_at=now,
         dismissed=True,
         dismissed_by_user_email=staff_user.email,
         dismissed_by_user=staff_user,
@@ -218,12 +204,10 @@ def test_app_problems_dismissed_by_user(staff_api_client, app, permission_manage
 
 def test_app_problems_dismissed_by_null_when_not_dismissed(app_api_client, app):
     # given
-    now = timezone.now()
     AppProblem.objects.create(
         app=app,
         message="Not dismissed",
         key="k1",
-        updated_at=now,
         dismissed=False,
     )
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
@@ -270,12 +254,10 @@ def test_app_problems_dismissed_by_user_returns_null_when_user_deleted(
     # given - a problem was dismissed by a user who was later deleted
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     staff_user = staff_api_client.user
-    now = timezone.now()
     problem = AppProblem.objects.create(
         app=app,
         message="Dismissed by deleted user",
         key="k1",
-        updated_at=now,
         dismissed=True,
         dismissed_by_user_email=staff_user.email,
         dismissed_by_user=staff_user,
@@ -301,10 +283,7 @@ def test_app_problems_dismissed_by_user_returns_null_when_user_deleted(
 
 def test_app_problems_cascade_delete(app, db):
     # given
-    now = timezone.now()
-    AppProblem.objects.create(
-        app=app, message="To be deleted", key="k1", updated_at=now
-    )
+    AppProblem.objects.create(app=app, message="To be deleted", key="k1")
     assert AppProblem.objects.count() == 1
 
     # when

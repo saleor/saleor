@@ -182,7 +182,7 @@ class AppProblem(models.Model):
 
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="problems")
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now=True)
     message = models.CharField(max_length=2048)
     key = models.CharField(max_length=128)
     count = models.PositiveIntegerField(default=1)

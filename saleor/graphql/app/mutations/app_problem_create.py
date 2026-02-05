@@ -185,6 +185,5 @@ class AppProblemCreate(BaseMutation):
             message=validated.message,
             key=validated.key,
             count=1,
-            updated_at=now,
             is_critical=immediately_critical,
         )

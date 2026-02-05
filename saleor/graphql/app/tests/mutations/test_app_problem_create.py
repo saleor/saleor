@@ -485,7 +485,6 @@ def test_app_problem_create_concurrent_creation_race_condition(app_api_client, a
             "aggregationPeriod": 60,
         }
     }
-    now = timezone.now()
 
     def create_problem_concurrently(*args, **kwargs):
         # Simulate another request creating a problem with the same key
@@ -494,7 +493,6 @@ def test_app_problem_create_concurrent_creation_race_condition(app_api_client, a
             message="Concurrent problem",
             key="race-create-key",
             count=1,
-            updated_at=now,
         )
 
     # when
@@ -586,7 +584,6 @@ def test_app_problem_create_limit_race_condition_prevented(app_api_client, app):
             message="Concurrent problem",
             key="concurrent-key",
             count=1,
-            updated_at=now,
         )
 
     # when

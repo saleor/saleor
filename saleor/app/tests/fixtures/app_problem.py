@@ -26,16 +26,21 @@ def app_problem_generator():
         if dismissed_by_user is not None:
             dismissed_by_user_email = dismissed_by_user.email
 
-        return AppProblem.objects.create(
+        problem = AppProblem.objects.create(
             app=app,
             message=message,
             key=key,
             count=count,
             is_critical=is_critical,
-            updated_at=updated_at,
             dismissed=dismissed,
             dismissed_by_user_email=dismissed_by_user_email,
             dismissed_by_user=dismissed_by_user,
         )
+        # Use .update() to set specific updated_at for testing since auto_now=True
+        # ignores values passed to create/save
+        if updated_at is not None:
+            AppProblem.objects.filter(pk=problem.pk).update(updated_at=updated_at)
+            problem.refresh_from_db()
+        return problem
 
     return create_problem
