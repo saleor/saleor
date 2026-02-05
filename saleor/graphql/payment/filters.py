@@ -30,10 +30,7 @@ class PaymentFilterInput(FilterInputObjectType):
 
 
 def filter_transaction_by_ids(qs, _, value):
-    """Filter TransactionItem by global IDs.
-
-    TransactionItem uses token for global ID generation, not the database id.
-    """
+    """Filter TransactionItem by global IDs."""
     _, tokens = resolve_global_ids_to_primary_keys(value, "TransactionItem")
     return qs.filter(token__in=tokens)
 
