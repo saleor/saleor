@@ -3,6 +3,7 @@ import graphene
 from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
@@ -99,7 +100,7 @@ class PaymentQueries(graphene.ObjectType):
         where=TransactionWhereInput(
             description="Where filtering options for transactions."
         ),
-        description="List of transactions.",
+        description="List of transactions." + ADDED_IN_322,
         permissions=[
             PaymentPermissions.HANDLE_PAYMENTS,
             OrderPermissions.MANAGE_ORDERS,

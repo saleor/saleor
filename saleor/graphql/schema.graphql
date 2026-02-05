@@ -678,6 +678,8 @@ type Query {
   """
   List of transactions.
   
+  Added in Saleor 3.22.
+  
   Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
   """
   transactions(
@@ -13609,6 +13611,13 @@ input LinesFilterInput @doc(category: "Orders") {
 input TransactionFilterInput @doc(category: "Orders") {
   """Filter by payment method details used to pay for the order."""
   paymentMethodDetails: PaymentMethodDetailsFilterInput
+
+  """
+  Filter by PSP reference of transactions.
+  
+  Added in Saleor 3.22.
+  """
+  pspReference: StringFilterInput
 
   """Filter by metadata fields of transactions."""
   metadata: MetadataFilterInput
