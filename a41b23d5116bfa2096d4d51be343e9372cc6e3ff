@@ -1,0 +1,27 @@
+saleor/graphql/app/mutations/app_problem_create.py
+  7f2ddb83ec463208 9,94-96,152-153,155-157,159,161-162
+saleor/graphql/app/tests/mutations/test_app_problem_create.py
+  7f2ddb83ec463208 459,490,496-590
+saleor/app/lock_objects.py
+  7f2ddb83ec463208 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "a41b23d5116bfa2096d4d51be343e9372cc6e3ff",
+  "prompts": {
+    "7f2ddb83ec463208": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7441b926-9852-4f16-8759-c2ffbbbfe238",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 123,
+      "total_deletions": 22,
+      "accepted_lines": 116,
+      "overriden_lines": 0
+    }
+  }
+}
