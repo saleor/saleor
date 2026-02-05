@@ -7,12 +7,20 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 
 @pytest.fixture
 def transactions_in_different_channels(
-    order_list, channel_USD, channel_JPY, channel_PLN, transaction_item_generator
+    order_list,
+    checkout,
+    channel_USD,
+    channel_JPY,
+    channel_PLN,
+    transaction_item_generator,
 ):
     order_list[0].channel = channel_PLN
     order_list[1].channel = channel_JPY
     order_list[2].channel = channel_USD
     Order.objects.bulk_update(order_list, ["channel"])
+
+    checkout.channel = channel_USD
+    checkout.save(update_fields=["channel"])
 
     transaction_1 = transaction_item_generator(
         order_id=order_list[0].pk,
@@ -29,8 +37,13 @@ def transactions_in_different_channels(
         psp_reference="PSP-USD",
         currency="USD",
     )
+    transaction_4 = transaction_item_generator(
+        checkout_id=checkout.pk,
+        psp_reference="PSP-CHECKOUT-USD",
+        currency="USD",
+    )
 
-    return [transaction_1, transaction_2, transaction_3]
+    return [transaction_1, transaction_2, transaction_3, transaction_4]
 
 
 TRANSACTIONS_QUERY = """
@@ -119,8 +132,11 @@ def test_transactions_query_filtered_by_accessible_channels_for_user(
     transactions = content["data"]["transactions"]["edges"]
 
     # Should only see transactions from channel_USD
-    assert len(transactions) == 1
-    assert transactions[0]["node"]["pspReference"] == "PSP-USD"
+    assert len(transactions) == 2
+    assert {node["node"]["pspReference"] for node in transactions} == {
+        "PSP-USD",
+        "PSP-CHECKOUT-USD",
+    }
 
 
 def test_transactions_query_by_user_with_no_channel_access(
@@ -147,39 +163,6 @@ def test_transactions_query_by_user_with_no_channel_access(
     assert len(transactions) == 0
 
 
-def test_transactions_query_filtered_by_checkout_channel(
-    staff_api_client,
-    permission_group_manage_orders,
-    checkout_with_items,
-    transaction_item_generator,
-):
-    # given
-    checkout = checkout_with_items
-    channel = checkout.channel
-    psp_reference = "PSP-CHECKOUT-USD"
-    transaction_item_generator(
-        checkout_id=checkout_with_items.pk,
-        psp_reference=psp_reference,
-        currency="USD",
-    )
-
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    permission_group_manage_orders.channels.add(channel)
-
-    variables = {}
-
-    # when
-    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
-
-    # then
-    content = get_graphql_content(response)
-    transactions = content["data"]["transactions"]["edges"]
-    returned_psp_refs = {node["node"]["pspReference"] for node in transactions}
-
-    # Should see transactions from accessible channel checkouts
-    assert psp_reference in returned_psp_refs
-
-
 def test_transactions_query_filter_by_ids(
     staff_api_client,
     permission_group_manage_orders,
@@ -197,6 +180,11 @@ def test_transactions_query_filter_by_ids(
     transaction_2 = transaction_item_generator(
         order_id=order_with_lines.pk,
         psp_reference="PSP ref2",
+        currency="USD",
+    )
+    _transaction_3 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="PSP ref3",
         currency="USD",
     )
 
