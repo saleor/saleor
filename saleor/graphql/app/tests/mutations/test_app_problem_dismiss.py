@@ -87,11 +87,9 @@ def test_app_problem_dismiss_by_keys_as_app(app_api_client, app):
     assert p3.dismissed is False
 
 
-def test_app_problem_dismiss_by_ids_and_keys_as_app(app_api_client, app):
-    # given - test that both ids and keys can be provided (dismisses union)
+def test_app_problem_dismiss_by_ids_and_keys_as_app_fails(app_api_client, app):
+    # given - cannot specify both ids and keys
     p1 = _create_problem(app, key="k1", message="Problem 1")
-    p2 = _create_problem(app, key="k2", message="Problem 2")
-    p3 = _create_problem(app, key="k3", message="Problem 3")
     variables = {
         "input": {
             "byApp": {
@@ -107,13 +105,9 @@ def test_app_problem_dismiss_by_ids_and_keys_as_app(app_api_client, app):
 
     # then
     data = content["data"]["appProblemDismiss"]
-    assert not data["errors"]
-    p1.refresh_from_db()
-    p2.refresh_from_db()
-    p3.refresh_from_db()
-    assert p1.dismissed is True  # dismissed by ID
-    assert p2.dismissed is True  # dismissed by key
-    assert p3.dismissed is False  # not matched
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "byApp"
+    assert data["errors"][0]["code"] == "INVALID"
 
 
 # --- Staff caller tests (byUserWithIds / byUserWithKeys) ---

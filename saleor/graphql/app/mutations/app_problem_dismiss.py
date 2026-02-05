@@ -32,12 +32,12 @@ class AppProblemDismissByAppInput(BaseInputObjectType):
     ids = NonNullList(
         graphene.ID,
         required=False,
-        description="List of problem IDs to dismiss. Can be combined with keys.",
+        description="List of problem IDs to dismiss. Cannot be combined with keys.",
     )
     keys = NonNullList(
         graphene.String,
         required=False,
-        description="List of problem keys to dismiss. Can be combined with ids.",
+        description="List of problem keys to dismiss. Cannot be combined with ids.",
     )
 
     class Meta:
@@ -75,7 +75,7 @@ class AppProblemDismissByUserWithKeysInput(BaseInputObjectType):
 
 
 class AppProblemDismissInput(BaseInputObjectType):
-    """Input for dismissing app problems."""
+    """Input for dismissing app problems. Only one can be specified."""
 
     by_app = graphene.Field(
         AppProblemDismissByAppInput,
@@ -206,15 +206,25 @@ class AppProblemDismiss(BaseMutation):
 
     @classmethod
     def _validate_by_app_input(cls, by_app: dict) -> None:
-        """Validate byApp input has at least ids or keys."""
+        """Validate byApp input has exactly one of ids or keys."""
         ids = by_app.get("ids")
         keys = by_app.get("keys")
+
+        if ids and keys:
+            raise ValidationError(
+                {
+                    "byApp": ValidationError(
+                        "Cannot specify both 'ids' and 'keys'.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
 
         if not ids and not keys:
             raise ValidationError(
                 {
                     "byApp": ValidationError(
-                        "Must provide at least one of 'ids' or 'keys'.",
+                        "Must provide either 'ids' or 'keys'.",
                         code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
                     )
                 }

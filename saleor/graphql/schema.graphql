@@ -30111,7 +30111,7 @@ enum AppProblemDismissErrorCode {
   OUT_OF_SCOPE_APP
 }
 
-"""Input for dismissing app problems."""
+"""Input for dismissing app problems. Only one can be specified."""
 input AppProblemDismissInput @doc(category: "Apps") {
   """For app callers only - dismiss own problems."""
   byApp: AppProblemDismissByAppInput
@@ -30125,10 +30125,10 @@ input AppProblemDismissInput @doc(category: "Apps") {
 
 """Input for app callers to dismiss their own problems."""
 input AppProblemDismissByAppInput @doc(category: "Apps") {
-  """List of problem IDs to dismiss. Can be combined with keys."""
+  """List of problem IDs to dismiss. Cannot be combined with keys."""
   ids: [ID!]
 
-  """List of problem keys to dismiss. Can be combined with ids."""
+  """List of problem keys to dismiss. Cannot be combined with ids."""
   keys: [String!]
 }
 
