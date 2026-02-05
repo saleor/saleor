@@ -3,6 +3,7 @@ import datetime
 
 import graphene
 
+from ...account import models as account_models
 from ...app import models
 from ...app.types import (
     DEFAULT_APP_TARGET,
@@ -13,8 +14,11 @@ from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
 from ...permission.auth_filters import AuthorizationFilters, is_staff_user
-from ...permission.enums import AppPermission
-from ...permission.utils import message_one_of_permissions_required
+from ...permission.enums import AccountPermissions, AppPermission
+from ...permission.utils import (
+    has_one_of_permissions,
+    message_one_of_permissions_required,
+)
 from ...thumbnail import PIL_IDENTIFIER_TO_MIME_TYPE
 from ...thumbnail.utils import (
     ProcessedIconImage,
@@ -565,15 +569,32 @@ class AppProblem(ModelObjectType[models.AppProblem]):
         model = models.AppProblem
 
     @staticmethod
+    def resolve_dismissed_by_user_email(root: models.AppProblem, info: ResolveInfo):
+        requestor = get_user_or_app_from_context(info.context)
+
+        # Authenticated user can access
+        if isinstance(requestor, account_models.User):
+            return root.dismissed_by_user_email
+
+        # Apps need MANAGE_STAFF (which they can't have in this codebase)
+        raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
+
+    @staticmethod
     def resolve_dismissed_by(root: models.AppProblem, info: ResolveInfo):
-        # Use denormalized email, that is preserved even if user is deleted
+        # Dismissed by User case - requires MANAGE_STAFF permission
         if root.dismissed_by_user_email:
+            requestor = get_user_or_app_from_context(info.context)
+            if not has_one_of_permissions(requestor, [AccountPermissions.MANAGE_STAFF]):
+                raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
+
             if root.dismissed_by_user_id is not None:
                 return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
             return None
-        # Otherwise that was app
+
+        # Dismissed by App case - accessible to any authenticated requestor
         if root.dismissed:
             return AppByIdLoader(info.context).load(root.app_id)
+
         return None
 
 
