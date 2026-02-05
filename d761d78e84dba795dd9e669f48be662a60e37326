@@ -1,0 +1,23 @@
+AGENTS.md
+  22cd5a4423163792 18-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "d761d78e84dba795dd9e669f48be662a60e37326",
+  "prompts": {
+    "22cd5a4423163792": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4a72308-a67c-4578-a790-6f3ef6044187",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 101,
+      "total_deletions": 0,
+      "accepted_lines": 87,
+      "overriden_lines": 0
+    }
+  }
+}
