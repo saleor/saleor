@@ -30070,7 +30070,9 @@ input AppProblemCreateInput {
   """
   key: String!
 
-  """If set, the problem becomes critical when count reaches this value."""
+  """
+  If set, the problem becomes critical when count reaches this value. If sent again with higher value than already counted, problem can be de-escalated.
+  """
   criticalThreshold: PositiveInt
 
   """

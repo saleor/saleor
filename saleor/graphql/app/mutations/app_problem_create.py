@@ -2,10 +2,15 @@ import datetime
 from typing import Annotated, Any
 
 import graphene
+from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils import timezone
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import ValidationError as PydanticValidationError
 
+from ....app.error_codes import (
+    AppProblemCreateErrorCode as AppProblemCreateErrorCodeEnum,
+)
 from ....app.lock_objects import app_qs_select_for_update
 from ....app.models import App as AppModel
 from ....app.models import AppProblem
@@ -25,15 +30,27 @@ class AppProblemCreateError(Error):
     code = AppProblemCreateErrorCode(description="The error code.", required=True)
 
 
+def pydantic_to_validation_error(exc: PydanticValidationError) -> ValidationError:
+    """Convert Pydantic ValidationError to Django ValidationError."""
+    errors: dict[str, ValidationError] = {}
+    for error in exc.errors():
+        field = str(error["loc"][0]) if error["loc"] else "input"
+        errors[field] = ValidationError(
+            error["msg"],
+            code=AppProblemCreateErrorCodeEnum.INVALID.value,
+        )
+    return ValidationError(errors)
+
+
 class AppProblemCreateValidatedInput(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     message: Annotated[str, StringConstraints(min_length=3, max_length=2048)]
     key: Annotated[str, StringConstraints(min_length=3, max_length=128)]
     # No threshold - will never escalate to critical if not set by App itself
-    critical_threshold: int | None = None
+    critical_threshold: Annotated[int, Field(ge=1)] | None = None
     # Minutes
-    aggregation_period: int = 60
+    aggregation_period: Annotated[int, Field(ge=0)] = 60
 
 
 class AppProblemCreateInput(graphene.InputObjectType):
@@ -47,7 +64,7 @@ class AppProblemCreateInput(graphene.InputObjectType):
     critical_threshold = PositiveInt(
         required=False,
         description=(
-            "If set, the problem becomes critical when count reaches this value."
+            "If set, the problem becomes critical when count reaches this value. If sent again with higher value than already counted, problem can be de-escalated."
         ),
     )
     aggregation_period = Minute(
@@ -81,12 +98,18 @@ class AppProblemCreate(BaseMutation):
         app = info.context.app
         assert app is not None
         input_data = data["input"]
-        validated = AppProblemCreateValidatedInput(**input_data)
+        try:
+            validated = AppProblemCreateValidatedInput(**input_data)
+        except PydanticValidationError as exc:
+            raise pydantic_to_validation_error(exc) from exc
 
         now = timezone.now()
 
         with traced_atomic_transaction():
             # Lock the App row to serialize all problem operations for this app
+            # At this point it trades performance for correctness
+            # If we need to improve performance, we can skip locking entire app row and
+            # schedule a cleanup task for > 100 items
             app_qs_select_for_update().filter(pk=app.pk).first()
 
             existing = (

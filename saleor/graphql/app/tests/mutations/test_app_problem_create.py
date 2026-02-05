@@ -606,3 +606,70 @@ def test_app_problem_create_limit_race_condition_prevented(app_api_client, app):
     assert total_count == AppProblem.MAX_PROBLEMS_PER_APP
     assert AppProblem.objects.filter(app=app, key="new-key").exists()
     assert AppProblem.objects.filter(app=app, key="concurrent-key").exists()
+
+
+# --- Validation tests ---
+
+
+def test_app_problem_create_negative_aggregation_period_fails(app_api_client, app):
+    # given
+    variables = {
+        "input": {
+            "message": "Something went wrong",
+            "key": "error-1",
+            "aggregationPeriod": -1,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "aggregationPeriod"
+    assert data["errors"][0]["code"] == "INVALID"
+    assert AppProblem.objects.filter(app=app).count() == 0
+
+
+def test_app_problem_create_zero_critical_threshold_fails(app_api_client, app):
+    # given
+    variables = {
+        "input": {
+            "message": "Something went wrong",
+            "key": "error-1",
+            "criticalThreshold": 0,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+
+    # then - PositiveInt scalar rejects 0 at GraphQL level
+    assert response.status_code == 400
+    content = response.json()
+    assert "errors" in content
+    assert "PositiveInt" in content["errors"][0]["message"]
+    assert AppProblem.objects.filter(app=app).count() == 0
+
+
+def test_app_problem_create_negative_critical_threshold_fails(app_api_client, app):
+    # given
+    variables = {
+        "input": {
+            "message": "Something went wrong",
+            "key": "error-1",
+            "criticalThreshold": -5,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+
+    # then - PositiveInt scalar rejects negative values at GraphQL level
+    assert response.status_code == 400
+    content = response.json()
+    assert "errors" in content
+    assert "PositiveInt" in content["errors"][0]["message"]
+    assert AppProblem.objects.filter(app=app).count() == 0
