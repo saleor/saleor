@@ -42,7 +42,7 @@ class AppProblemCreateInput(graphene.InputObjectType):
     )
     key = graphene.String(
         required=True,
-        description="Key identifying the type of problem.",
+        description="Key identifying the type of problem. App can add multiple problems under the same key, to merge them together or delete them in batch.",
     )
     critical_threshold = PositiveInt(
         required=False,

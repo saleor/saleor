@@ -30065,7 +30065,9 @@ input AppProblemCreateInput {
   """The problem message to display."""
   message: String!
 
-  """Key identifying the type of problem."""
+  """
+  Key identifying the type of problem. App can add multiple problems under the same key, to merge them together or delete them in batch.
+  """
   key: String!
 
   """If set, the problem becomes critical when count reaches this value."""
