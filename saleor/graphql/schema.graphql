@@ -19164,16 +19164,8 @@ type Mutation {
   Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
   """
   appProblemDismiss(
-    """
-    ID of the app whose problems to dismiss. Required for staff when using keys, disallowed for app callers.
-    """
-    app: ID
-
-    """List of problem IDs to dismiss."""
-    ids: [ID!]
-
-    """List of problem keys to dismiss."""
-    keys: [String!]
+    """Input for dismissing app problems."""
+    input: AppProblemDismissInput!
   ): AppProblemDismiss @doc(category: "Apps")
 
   """
@@ -30117,6 +30109,42 @@ enum AppProblemDismissErrorCode {
   REQUIRED
   NOT_FOUND
   OUT_OF_SCOPE_APP
+}
+
+"""Input for dismissing app problems."""
+input AppProblemDismissInput @doc(category: "Apps") {
+  """For app callers only - dismiss own problems."""
+  byApp: AppProblemDismissByAppInput
+
+  """For staff/user callers - dismiss problems by IDs."""
+  byUserWithIds: AppProblemDismissByUserWithIdsInput
+
+  """For staff/user callers - dismiss problems by keys for specified app."""
+  byUserWithKeys: AppProblemDismissByUserWithKeysInput
+}
+
+"""Input for app callers to dismiss their own problems."""
+input AppProblemDismissByAppInput @doc(category: "Apps") {
+  """List of problem IDs to dismiss. Can be combined with keys."""
+  ids: [ID!]
+
+  """List of problem keys to dismiss. Can be combined with ids."""
+  keys: [String!]
+}
+
+"""Input for staff/user callers to dismiss problems by IDs."""
+input AppProblemDismissByUserWithIdsInput @doc(category: "Apps") {
+  """List of problem IDs to dismiss."""
+  ids: [ID!]!
+}
+
+"""Input for staff/user callers to dismiss problems by keys."""
+input AppProblemDismissByUserWithKeysInput @doc(category: "Apps") {
+  """List of problem keys to dismiss."""
+  keys: [String!]!
+
+  """ID of the app whose problems to dismiss."""
+  app: ID!
 }
 
 """

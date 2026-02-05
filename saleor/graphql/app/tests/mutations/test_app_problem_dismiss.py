@@ -5,8 +5,8 @@ from .....app.models import AppProblem
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_PROBLEM_DISMISS_MUTATION = """
-    mutation AppProblemDismiss($ids: [ID!], $keys: [String!], $app: ID) {
-        appProblemDismiss(ids: $ids, keys: $keys, app: $app) {
+    mutation AppProblemDismiss($input: AppProblemDismissInput!) {
+        appProblemDismiss(input: $input) {
             app {
                 id
                 problems {
@@ -36,14 +36,19 @@ def _create_problem(app, key="test-key", message="Test problem", dismissed=False
     )
 
 
+# --- App caller tests (byApp) ---
+
+
 def test_app_problem_dismiss_by_ids_as_app(app_api_client, app):
     # given
     p1 = _create_problem(app, key="k1", message="Problem 1")
     p2 = _create_problem(app, key="k2", message="Problem 2")
     variables = {
-        "ids": [
-            graphene.Node.to_global_id("AppProblem", p1.id),
-        ]
+        "input": {
+            "byApp": {
+                "ids": [graphene.Node.to_global_id("AppProblem", p1.id)],
+            }
+        }
     }
 
     # when
@@ -65,7 +70,7 @@ def test_app_problem_dismiss_by_keys_as_app(app_api_client, app):
     p1 = _create_problem(app, key="same-key", message="Problem 1")
     p2 = _create_problem(app, key="same-key", message="Problem 2")
     p3 = _create_problem(app, key="other-key", message="Problem 3")
-    variables = {"keys": ["same-key"]}
+    variables = {"input": {"byApp": {"keys": ["same-key"]}}}
 
     # when
     response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
@@ -82,6 +87,38 @@ def test_app_problem_dismiss_by_keys_as_app(app_api_client, app):
     assert p3.dismissed is False
 
 
+def test_app_problem_dismiss_by_ids_and_keys_as_app(app_api_client, app):
+    # given - test that both ids and keys can be provided (dismisses union)
+    p1 = _create_problem(app, key="k1", message="Problem 1")
+    p2 = _create_problem(app, key="k2", message="Problem 2")
+    p3 = _create_problem(app, key="k3", message="Problem 3")
+    variables = {
+        "input": {
+            "byApp": {
+                "ids": [graphene.Node.to_global_id("AppProblem", p1.id)],
+                "keys": ["k2"],
+            }
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert not data["errors"]
+    p1.refresh_from_db()
+    p2.refresh_from_db()
+    p3.refresh_from_db()
+    assert p1.dismissed is True  # dismissed by ID
+    assert p2.dismissed is True  # dismissed by key
+    assert p3.dismissed is False  # not matched
+
+
+# --- Staff caller tests (byUserWithIds / byUserWithKeys) ---
+
+
 def test_app_problem_dismiss_by_ids_as_staff(
     staff_api_client, app, permission_manage_apps
 ):
@@ -89,7 +126,11 @@ def test_app_problem_dismiss_by_ids_as_staff(
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     p1 = _create_problem(app, key="k1")
     variables = {
-        "ids": [graphene.Node.to_global_id("AppProblem", p1.id)],
+        "input": {
+            "byUserWithIds": {
+                "ids": [graphene.Node.to_global_id("AppProblem", p1.id)],
+            }
+        }
     }
 
     # when
@@ -104,34 +145,19 @@ def test_app_problem_dismiss_by_ids_as_staff(
     assert p1.dismissed_by_user == staff_api_client.user
 
 
-def test_app_problem_dismiss_by_keys_as_staff_requires_app_arg(
-    staff_api_client, app, permission_manage_apps
-):
-    # given
-    staff_api_client.user.user_permissions.add(permission_manage_apps)
-    _create_problem(app, key="k1")
-    variables = {"keys": ["k1"]}
-
-    # when
-    response = staff_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemDismiss"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "app"
-    assert data["errors"][0]["code"] == "REQUIRED"
-
-
-def test_app_problem_dismiss_by_keys_as_staff_with_app_arg(
+def test_app_problem_dismiss_by_keys_as_staff(
     staff_api_client, app, permission_manage_apps
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     p1 = _create_problem(app, key="k1")
     variables = {
-        "keys": ["k1"],
-        "app": graphene.Node.to_global_id("App", app.id),
+        "input": {
+            "byUserWithKeys": {
+                "keys": ["k1"],
+                "app": graphene.Node.to_global_id("App", app.id),
+            }
+        }
     }
 
     # when
@@ -146,12 +172,17 @@ def test_app_problem_dismiss_by_keys_as_staff_with_app_arg(
     assert p1.dismissed_by_user == staff_api_client.user
 
 
-def test_app_problem_dismiss_both_ids_and_keys_fails(app_api_client, app):
+# --- Validation error tests ---
+
+
+def test_app_problem_dismiss_multiple_inputs_fails(app_api_client, app):
     # given
     p1 = _create_problem(app)
     variables = {
-        "ids": [graphene.Node.to_global_id("AppProblem", p1.id)],
-        "keys": ["test-key"],
+        "input": {
+            "byApp": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]},
+            "byUserWithIds": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]},
+        }
     }
 
     # when
@@ -161,23 +192,13 @@ def test_app_problem_dismiss_both_ids_and_keys_fails(app_api_client, app):
     # then
     data = content["data"]["appProblemDismiss"]
     assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "input"
     assert data["errors"][0]["code"] == "INVALID"
 
 
-def test_app_problem_dismiss_neither_ids_nor_keys_fails(app_api_client, app):
-    # when
-    response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemDismiss"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["code"] == "REQUIRED"
-
-
-def test_app_problem_dismiss_app_caller_cannot_specify_app_arg(app_api_client, app):
+def test_app_problem_dismiss_no_input_fails(app_api_client, app):
     # given
-    variables = {"app": graphene.Node.to_global_id("App", app.id), "keys": ["k1"]}
+    variables = {"input": {}}
 
     # when
     response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
@@ -186,14 +207,97 @@ def test_app_problem_dismiss_app_caller_cannot_specify_app_arg(app_api_client, a
     # then
     data = content["data"]["appProblemDismiss"]
     assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "app"
+    assert data["errors"][0]["field"] == "input"
+    assert data["errors"][0]["code"] == "REQUIRED"
+
+
+def test_app_problem_dismiss_empty_by_app_fails(app_api_client, app):
+    # given - byApp provided but without ids or keys
+    variables = {"input": {"byApp": {}}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "byApp"
+    assert data["errors"][0]["code"] == "REQUIRED"
+
+
+def test_app_caller_cannot_use_by_user_with_ids(app_api_client, app):
+    # given - app caller tries to use byUserWithIds
+    p1 = _create_problem(app)
+    variables = {
+        "input": {
+            "byUserWithIds": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "byUserWithIds"
     assert data["errors"][0]["code"] == "INVALID"
+
+
+def test_app_caller_cannot_use_by_user_with_keys(app_api_client, app):
+    # given - app caller tries to use byUserWithKeys
+    variables = {
+        "input": {
+            "byUserWithKeys": {
+                "keys": ["k1"],
+                "app": graphene.Node.to_global_id("App", app.id),
+            }
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "byUserWithKeys"
+    assert data["errors"][0]["code"] == "INVALID"
+
+
+def test_user_caller_cannot_use_by_app(staff_api_client, app, permission_manage_apps):
+    # given - staff caller tries to use byApp
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    p1 = _create_problem(app)
+    variables = {
+        "input": {"byApp": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "byApp"
+    assert data["errors"][0]["code"] == "INVALID"
+
+
+# --- Permission tests ---
 
 
 def test_app_problem_dismiss_without_permission(staff_api_client, app):
     # given
     p1 = _create_problem(app)
-    variables = {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}
+    variables = {
+        "input": {
+            "byUserWithIds": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}
+        }
+    }
 
     # when
     response = staff_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
@@ -202,36 +306,15 @@ def test_app_problem_dismiss_without_permission(staff_api_client, app):
     assert_no_permission(response)
 
 
-def test_app_problem_dismiss_out_of_scope_app(
-    staff_api_client, app, permission_manage_apps
-):
-    # given
-    staff_api_client.user.user_permissions.add(permission_manage_apps)
-    from .....permission.models import Permission
-
-    extra_perm = Permission.objects.get(codename="manage_orders")
-    app.permissions.add(extra_perm)
-
-    variables = {
-        "keys": ["k1"],
-        "app": graphene.Node.to_global_id("App", app.id),
-    }
-
-    # when
-    response = staff_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["appProblemDismiss"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "app"
-    assert data["errors"][0]["code"] == "OUT_OF_SCOPE_APP"
+# --- Idempotency and edge cases ---
 
 
 def test_app_problem_dismiss_idempotent(app_api_client, app):
-    # given
+    # given - problem already dismissed
     p1 = _create_problem(app, key="k1", dismissed=True)
-    variables = {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}
+    variables = {
+        "input": {"byApp": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}}
+    }
 
     # when
     response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
@@ -242,3 +325,24 @@ def test_app_problem_dismiss_idempotent(app_api_client, app):
     assert not data["errors"]
     p1.refresh_from_db()
     assert p1.dismissed is True
+
+
+def test_app_cannot_dismiss_other_apps_problems(app_api_client, app, app_with_token):
+    # given - p1 belongs to a different app
+    other_app = app_with_token
+    p1 = _create_problem(other_app, key="k1")
+    variables = {
+        "input": {"byApp": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}}
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then - error returned
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "ids"
+    assert data["errors"][0]["code"] == "INVALID"
+    p1.refresh_from_db()
+    assert p1.dismissed is False

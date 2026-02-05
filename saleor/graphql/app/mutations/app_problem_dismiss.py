@@ -2,7 +2,7 @@ from typing import Any
 
 import graphene
 from django.core.exceptions import ValidationError
-from pydantic import BaseModel, ConfigDict
+from django.db.models import Q
 
 from ....app.error_codes import (
     AppProblemDismissErrorCode as AppProblemDismissErrorCodeEnum,
@@ -11,14 +11,13 @@ from ....app.models import App as AppModel
 from ....app.models import AppProblem
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
-from ...account.utils import can_manage_app
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
-from ...core.types import Error, NonNullList
+from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import from_global_id_or_error
-from ...utils import get_user_or_app_from_context, requestor_is_superuser
+from ...utils import get_user_or_app_from_context
 from ..enums import AppProblemDismissErrorCode
 from ..types import App
 
@@ -27,63 +26,72 @@ class AppProblemDismissError(Error):
     code = AppProblemDismissErrorCode(description="The error code.", required=True)
 
 
-class AppProblemDismissInput(BaseModel):
-    model_config = ConfigDict(frozen=True)
+class AppProblemDismissByAppInput(BaseInputObjectType):
+    """Input for app callers to dismiss their own problems."""
 
-    ids: list[str] | None = None
-    keys: list[str] | None = None
-    app_id: str | None = None
-    caller_is_app: bool
+    ids = NonNullList(
+        graphene.ID,
+        required=False,
+        description="List of problem IDs to dismiss. Can be combined with keys.",
+    )
+    keys = NonNullList(
+        graphene.String,
+        required=False,
+        description="List of problem keys to dismiss. Can be combined with ids.",
+    )
 
-    def validate_input(self) -> None:
-        """Validate cross-field constraints. Raises Django ValidationError."""
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
 
-        both_provided = self.ids and self.keys
-        neither_provided = not self.ids and not self.keys
-        app_caller_specified_app = self.caller_is_app and self.app_id is not None
-        staff_using_keys_without_app = (
-            not self.caller_is_app and self.keys and self.app_id is None
-        )
 
-        if both_provided:
-            raise ValidationError(
-                {
-                    "ids": ValidationError(
-                        "Cannot specify both 'ids' and 'keys'.",
-                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
+class AppProblemDismissByUserWithIdsInput(BaseInputObjectType):
+    """Input for staff/user callers to dismiss problems by IDs."""
 
-        if neither_provided:
-            raise ValidationError(
-                {
-                    "ids": ValidationError(
-                        "Must provide either 'ids' or 'keys'.",
-                        code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
-                    )
-                }
-            )
+    ids = NonNullList(
+        graphene.ID,
+        required=True,
+        description="List of problem IDs to dismiss.",
+    )
 
-        if app_caller_specified_app:
-            raise ValidationError(
-                {
-                    "app": ValidationError(
-                        "App callers cannot specify the 'app' argument.",
-                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
 
-        if staff_using_keys_without_app:
-            raise ValidationError(
-                {
-                    "app": ValidationError(
-                        "The 'app' argument is required for staff when using 'keys'.",
-                        code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
-                    )
-                }
-            )
+
+class AppProblemDismissByUserWithKeysInput(BaseInputObjectType):
+    """Input for staff/user callers to dismiss problems by keys."""
+
+    keys = NonNullList(
+        graphene.String,
+        required=True,
+        description="List of problem keys to dismiss.",
+    )
+    app = graphene.ID(
+        required=True,
+        description="ID of the app whose problems to dismiss.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
+
+
+class AppProblemDismissInput(BaseInputObjectType):
+    """Input for dismissing app problems."""
+
+    by_app = graphene.Field(
+        AppProblemDismissByAppInput,
+        description="For app callers only - dismiss own problems.",
+    )
+    by_user_with_ids = graphene.Field(
+        AppProblemDismissByUserWithIdsInput,
+        description="For staff/user callers - dismiss problems by IDs.",
+    )
+    by_user_with_keys = graphene.Field(
+        AppProblemDismissByUserWithKeysInput,
+        description="For staff/user callers - dismiss problems by keys for specified app.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
 
 
 class AppProblemDismiss(BaseMutation):
@@ -93,22 +101,9 @@ class AppProblemDismiss(BaseMutation):
     )
 
     class Arguments:
-        ids = NonNullList(
-            graphene.ID,
-            required=False,
-            description="List of problem IDs to dismiss.",
-        )
-        keys = NonNullList(
-            graphene.String,
-            required=False,
-            description="List of problem keys to dismiss.",
-        )
-        app = graphene.ID(
-            required=False,
-            description=(
-                "ID of the app whose problems to dismiss. "
-                "Required for staff when using keys, disallowed for app callers."
-            ),
+        input = AppProblemDismissInput(
+            required=True,
+            description="Input for dismissing app problems.",
         )
 
     class Meta:
@@ -125,112 +120,188 @@ class AppProblemDismiss(BaseMutation):
         cls, _root: None, info: ResolveInfo, /, **data: Any
     ) -> "AppProblemDismiss":
         caller_app = info.context.app
+        input_data = data.get("input", {})
 
-        validated = AppProblemDismissInput(
-            ids=data.get("ids"),
-            keys=data.get("keys"),
-            app_id=data.get("app"),
-            caller_is_app=caller_app is not None,
-        )
-        validated.validate_input()
+        by_app = input_data.get("by_app")
+        by_user_with_ids = input_data.get("by_user_with_ids")
+        by_user_with_keys = input_data.get("by_user_with_keys")
 
-        target_app = cls._resolve_target_app(info, validated, caller_app)
+        cls._validate_top_level(by_app, by_user_with_ids, by_user_with_keys, caller_app)
 
-        if validated.ids:
-            target_app = cls._dismiss_by_ids(info, validated, caller_app, target_app)
+        target_app: AppModel | None
+        if by_app is not None:
+            assert caller_app is not None  # validated in _validate_top_level
+            cls._validate_by_app_input(by_app)
+            target_app = cls._dismiss_for_app_caller(by_app, caller_app)
+        elif by_user_with_ids is not None:
+            target_app = cls._dismiss_by_ids_for_user(info, by_user_with_ids["ids"])
         else:
-            cls._dismiss_by_keys(info, validated, caller_app, target_app)
+            target_app = cls._dismiss_by_keys_for_user(
+                info, by_user_with_keys["keys"], by_user_with_keys["app"]
+            )
 
         return AppProblemDismiss(app=target_app)
 
     @classmethod
-    def _resolve_target_app(
+    def _validate_top_level(
         cls,
-        info: ResolveInfo,
-        validated: AppProblemDismissInput,
+        by_app: dict | None,
+        by_user_with_ids: dict | None,
+        by_user_with_keys: dict | None,
         caller_app: AppModel | None,
-    ) -> AppModel | None:
-        if caller_app:
-            return caller_app
+    ) -> None:
+        """Validate top-level input: exactly one branch, matching caller type."""
+        provided = [
+            by_app is not None,
+            by_user_with_ids is not None,
+            by_user_with_keys is not None,
+        ]
+        count = sum(provided)
 
-        if validated.app_id is None:
-            return None
-
-        target_app = cls.get_node_or_error(
-            info, validated.app_id, field="app", only_type=App
-        )
-        requestor = get_user_or_app_from_context(info.context)
-        cannot_manage_target = not requestor_is_superuser(
-            requestor
-        ) and not can_manage_app(requestor, target_app)
-
-        if cannot_manage_target:
+        if count == 0:
             raise ValidationError(
                 {
-                    "app": ValidationError(
-                        "You can't manage this app.",
-                        code=AppProblemDismissErrorCodeEnum.OUT_OF_SCOPE_APP.value,
+                    "input": ValidationError(
+                        "Must provide one of 'byApp', 'byUserWithIds', or 'byUserWithKeys'.",
+                        code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
                     )
                 }
             )
-        return target_app
+
+        if count > 1:
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        "Must provide exactly one of 'byApp', 'byUserWithIds', or 'byUserWithKeys'.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
+
+        # Validate caller-type matching
+        is_app_caller = caller_app is not None
+        uses_by_app = by_app is not None
+        uses_by_user = by_user_with_ids is not None or by_user_with_keys is not None
+
+        if uses_by_app and not is_app_caller:
+            raise ValidationError(
+                {
+                    "byApp": ValidationError(
+                        "Only app callers can use 'byApp'.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
+
+        if uses_by_user and is_app_caller:
+            field = "byUserWithIds" if by_user_with_ids else "byUserWithKeys"
+            raise ValidationError(
+                {
+                    field: ValidationError(
+                        "App callers cannot use this input. Use 'byApp' instead.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
 
     @classmethod
-    def _build_dismiss_fields(
-        cls, info: ResolveInfo, caller_app: AppModel | None
-    ) -> dict[str, Any]:
-        fields: dict[str, Any] = {"dismissed": True}
-        if not caller_app:
-            fields["dismissed_by_user"] = get_user_or_app_from_context(info.context)
-        return fields
+    def _validate_by_app_input(cls, by_app: dict) -> None:
+        """Validate byApp input has at least ids or keys."""
+        ids = by_app.get("ids")
+        keys = by_app.get("keys")
+
+        if not ids and not keys:
+            raise ValidationError(
+                {
+                    "byApp": ValidationError(
+                        "Must provide at least one of 'ids' or 'keys'.",
+                        code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
+                    )
+                }
+            )
 
     @classmethod
-    def _dismiss_by_ids(
+    def _dismiss_for_app_caller(
+        cls,
+        by_app: dict,
+        caller_app: AppModel,
+    ) -> AppModel:
+        """Dismiss problems for an app caller (can only dismiss own problems)."""
+        ids = by_app.get("ids")
+        keys = by_app.get("keys")
+
+        # Validate that all provided IDs belong to the caller app
+        if ids:
+            problem_pks = cls._parse_problem_ids(ids)
+            other_app_problems = AppProblem.objects.filter(pk__in=problem_pks).exclude(
+                app=caller_app
+            )
+            if other_app_problems.exists():
+                raise ValidationError(
+                    {
+                        "ids": ValidationError(
+                            "Cannot dismiss problems belonging to other apps.",
+                            code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                        )
+                    }
+                )
+
+        filter_q = cls._build_filter_query(ids, keys)
+        AppProblem.objects.filter(filter_q, app=caller_app, dismissed=False).update(
+            dismissed=True
+        )
+        return caller_app
+
+    @classmethod
+    def _dismiss_by_ids_for_user(
         cls,
         info: ResolveInfo,
-        validated: AppProblemDismissInput,
-        caller_app: AppModel | None,
-        target_app: AppModel | None,
+        ids: list[str],
     ) -> AppModel | None:
-        # Invariant - in Pydantic model it can be None, so ensure this method is not called incorrectly without ids
-        assert validated.ids is not None
-
-        problem_pks = []
-
-        for global_id in validated.ids:
-            _, pk = from_global_id_or_error(global_id, "AppProblem")
-            problem_pks.append(int(pk))
+        """Dismiss problems by IDs for a user/staff caller."""
+        requestor = get_user_or_app_from_context(info.context)
+        problem_pks = cls._parse_problem_ids(ids)
 
         qs = AppProblem.objects.filter(pk__in=problem_pks, dismissed=False)
+        first_problem = qs.first()
+        target_app = first_problem.app if first_problem else None
 
-        if caller_app:
-            qs = qs.filter(app=caller_app)
+        qs.update(dismissed=True, dismissed_by_user=requestor)
+        return target_app
 
-        problems = list(qs)
+    @classmethod
+    def _dismiss_by_keys_for_user(
+        cls,
+        info: ResolveInfo,
+        keys: list[str],
+        app_id: str,
+    ) -> AppModel:
+        """Dismiss problems by keys for a user/staff caller."""
+        requestor = get_user_or_app_from_context(info.context)
+        target_app = cls.get_node_or_error(info, app_id, field="app", only_type=App)
 
-        if not problems:
-            return target_app or caller_app
-
-        # For staff calling by IDs, we infer the target app
-        if target_app is None:
-            target_app = problems[0].app
-
-        qs.update(**cls._build_dismiss_fields(info, caller_app))
+        AppProblem.objects.filter(app=target_app, key__in=keys, dismissed=False).update(
+            dismissed=True, dismissed_by_user=requestor
+        )
 
         return target_app
 
     @classmethod
-    def _dismiss_by_keys(
-        cls,
-        info: ResolveInfo,
-        validated: AppProblemDismissInput,
-        caller_app: AppModel | None,
-        target_app: AppModel | None,
-    ) -> None:
-        # Invariant - in Pydantic model it can be None, so ensure this method is not called incorrectly without keys
-        assert validated.keys is not None
+    def _build_filter_query(cls, ids: list[str] | None, keys: list[str] | None) -> Q:
+        """Build Q filter for ids OR keys."""
+        filter_q = Q()
+        if ids:
+            problem_pks = cls._parse_problem_ids(ids)
+            filter_q |= Q(pk__in=problem_pks)
+        if keys:
+            filter_q |= Q(key__in=keys)
+        return filter_q
 
-        qs = AppProblem.objects.filter(
-            app=target_app, key__in=validated.keys, dismissed=False
-        )
-        qs.update(**cls._build_dismiss_fields(info, caller_app))
+    @classmethod
+    def _parse_problem_ids(cls, global_ids: list[str]) -> list[int]:
+        """Convert global IDs to database PKs."""
+        problem_pks = []
+        for global_id in global_ids:
+            _, pk = from_global_id_or_error(global_id, "AppProblem")
+            problem_pks.append(int(pk))
+        return problem_pks
