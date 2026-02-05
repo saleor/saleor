@@ -456,7 +456,7 @@ def test_app_problem_create_concurrent_creation_race_condition(app_api_client, a
 
     This test simulates a race condition where another request creates a problem
     with the same key between checking for existing and creating a new one.
-    The select_for_update ensures only one request proceeds at a time.
+    The App row lock ensures only one request proceeds at a time.
     """
     # given
     variables = {
@@ -487,9 +487,104 @@ def test_app_problem_create_concurrent_creation_race_condition(app_api_client, a
         content = get_graphql_content(response)
 
     # then - both problems are created (transaction isolation means each sees their own view)
-    # In real concurrent scenario, the lock would serialize them
+    # In real concurrent scenario, the App row lock would serialize them
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
     # The mutation creates its own problem since the concurrent one wasn't visible
     # during its transaction
     assert AppProblem.objects.filter(app=app, key="race-create-key").count() == 2
+
+
+def test_app_problem_create_bulk_eviction_when_over_limit(app_api_client, app):
+    """Test that multiple oldest problems are evicted when count exceeds limit."""
+    # given - create 120 problems (20 over the limit of 100)
+    now = timezone.now()
+    AppProblem.objects.bulk_create(
+        [
+            AppProblem(
+                app=app,
+                message=f"Problem {i}",
+                key=f"key-{i}",
+                updated_at=now,
+            )
+            for i in range(120)
+        ]
+    )
+    # Track the 21 oldest problem IDs (should be evicted to make room for the new one)
+    oldest_21_ids = list(
+        AppProblem.objects.filter(app=app)
+        .order_by("created_at")
+        .values_list("id", flat=True)[:21]
+    )
+    variables = {"input": {"message": "One more", "key": "new-key"}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    # Should have exactly MAX_PROBLEMS_PER_APP (100) after eviction and creation
+    assert AppProblem.objects.filter(app=app).count() == AppProblem.MAX_PROBLEMS_PER_APP
+    # All 21 oldest should be deleted
+    for old_id in oldest_21_ids:
+        assert not AppProblem.objects.filter(id=old_id).exists()
+    # New problem should exist
+    assert AppProblem.objects.filter(app=app, key="new-key").exists()
+
+
+def test_app_problem_create_limit_race_condition_prevented(app_api_client, app):
+    """Test that concurrent requests don't exceed the limit due to App lock.
+
+    This test simulates a race condition where another request creates a problem
+    between checking the count and creating a new one. The App row lock prevents
+    this by serializing all problem operations for the same app.
+
+    The bulk eviction logic ensures that when over limit, we evict enough oldest
+    problems to make room for the new one.
+    """
+    # given - at exactly the limit (100 problems)
+    now = timezone.now()
+    AppProblem.objects.bulk_create(
+        [
+            AppProblem(
+                app=app,
+                message=f"Problem {i}",
+                key=f"key-{i}",
+                updated_at=now,
+            )
+            for i in range(AppProblem.MAX_PROBLEMS_PER_APP)
+        ]
+    )
+    variables = {"input": {"message": "New problem", "key": "new-key"}}
+
+    def create_problem_concurrently(*args, **kwargs):
+        # Simulate another request creating a problem at the same time
+        # In a real scenario, the App row lock would serialize this
+        AppProblem.objects.create(
+            app=app,
+            message="Concurrent problem",
+            key="concurrent-key",
+            count=1,
+            updated_at=now,
+        )
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.app.mutations.app_problem_create.AppProblemCreate._create_new_problem",
+        create_problem_concurrently,
+    ):
+        response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+        content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    # The concurrent problem was created, making count 101. The mutation then
+    # sees 101 problems and evicts 2 oldest (101 - 100 + 1 = 2) before creating
+    # the new one, resulting in exactly 100 problems.
+    total_count = AppProblem.objects.filter(app=app).count()
+    assert total_count == AppProblem.MAX_PROBLEMS_PER_APP
+    assert AppProblem.objects.filter(app=app, key="new-key").exists()
+    assert AppProblem.objects.filter(app=app, key="concurrent-key").exists()

@@ -6,6 +6,7 @@ from django.db.models import F
 from django.utils import timezone
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
+from ....app.lock_objects import app_qs_select_for_update
 from ....app.models import App as AppModel
 from ....app.models import AppProblem
 from ....core.tracing import traced_atomic_transaction
@@ -90,10 +91,11 @@ class AppProblemCreate(BaseMutation):
         now = timezone.now()
 
         with traced_atomic_transaction():
-            # Lock the most recent matching problem to prevent race conditions
+            # Lock the App row to serialize all problem operations for this app
+            app_qs_select_for_update().filter(pk=app.pk).first()
+
             existing = (
-                AppProblem.objects.select_for_update()
-                .filter(app=app, key=validated.key, dismissed=False)
+                AppProblem.objects.filter(app=app, key=validated.key, dismissed=False)
                 .order_by("-updated_at")
                 .first()
             )
@@ -147,20 +149,17 @@ class AppProblemCreate(BaseMutation):
         now: datetime.datetime,
     ) -> None:
         total_count = AppProblem.objects.filter(app=app).count()
-        needs_eviction = total_count >= AppProblem.MAX_PROBLEMS_PER_APP
+        # +1 accounts for the new problem we're about to create
+        excess_count = total_count - AppProblem.MAX_PROBLEMS_PER_APP + 1
 
-        if needs_eviction:
-            # Use select_for_update with skip_locked to prevent deadlocks
-            # when multiple concurrent requests try to evict
-            oldest = (
-                AppProblem.objects.select_for_update(skip_locked=True)
-                .filter(app=app)
+        if excess_count > 0:
+            oldest_pks = list(
+                AppProblem.objects.filter(app=app)
                 .order_by("created_at")
-                .first()
+                .values_list("pk", flat=True)[:excess_count]
             )
-
-            if oldest:
-                oldest.delete()
+            if oldest_pks:
+                AppProblem.objects.filter(pk__in=oldest_pks).delete()
 
         immediately_critical = bool(
             validated.critical_threshold and validated.critical_threshold <= 1
