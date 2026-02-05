@@ -1,0 +1,142 @@
+saleor/graphql/app/tests/mutations/test_app_problem_dismiss.py
+  2e33c333323f37c0 3,94,179,198,217,240,266,291,355,417,434,456,483
+saleor/graphql/app/tests/mutations/test_app_problem_create.py
+  2e33c333323f37c0 5,633
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "9a4fb225d914a5141aa15a3cbac33e43436185a5",
+  "prompts": {
+    "22cd5a4423163792": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4a72308-a67c-4578-a790-6f3ef6044187",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 177,
+      "total_deletions": 6,
+      "accepted_lines": 173,
+      "overriden_lines": 0
+    },
+    "2e33c333323f37c0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7c2dd620-7230-45b2-9960-63b2c5685a83",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 15,
+      "total_deletions": 13,
+      "accepted_lines": 42,
+      "overriden_lines": 0
+    },
+    "55b412481ee15901": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fddc258a-8ea0-4715-a618-303d02206907",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 5,
+      "accepted_lines": 47,
+      "overriden_lines": 0
+    },
+    "7f2ddb83ec463208": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7441b926-9852-4f16-8759-c2ffbbbfe238",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 43,
+      "total_deletions": 31,
+      "accepted_lines": 175,
+      "overriden_lines": 0
+    },
+    "8908435f662f3da6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "21332f7b-9bf8-45bf-b275-93efebbe4b51",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 19,
+      "total_deletions": 15,
+      "accepted_lines": 109,
+      "overriden_lines": 0
+    },
+    "8c4eb5bab4683381": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c139160-9d81-43fb-bbc0-21fa49eb67f0",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 249,
+      "total_deletions": 5,
+      "accepted_lines": 57,
+      "overriden_lines": 0
+    },
+    "95b1e51d7a6f8127": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6e6a26d1-a7e0-450a-8f21-00d5f11740fa",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 41,
+      "total_deletions": 0,
+      "accepted_lines": 33,
+      "overriden_lines": 0
+    },
+    "99ca8b4e441b4b6c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a8bd4db9-17c8-4f7e-bd10-84579b3c36e2",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 97,
+      "total_deletions": 21,
+      "accepted_lines": 143,
+      "overriden_lines": 0
+    },
+    "af39e2f5371b15a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8f704937-54ff-43f1-b268-76ee44bf04fe",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 151,
+      "total_deletions": 59,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    },
+    "dfe22205577daa0c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e6bbdd4d-0767-48f6-97a2-e786e997d6c3",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 1023,
+      "total_deletions": 392,
+      "accepted_lines": 298,
+      "overriden_lines": 0
+    }
+  }
+}
