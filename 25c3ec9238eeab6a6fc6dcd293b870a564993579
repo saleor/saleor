@@ -1,0 +1,29 @@
+saleor/app/tests/fixtures/__init__.py
+  7f2ddb83ec463208 4
+saleor/graphql/app/tests/mutations/test_app_problem_dismiss.py
+  7f2ddb83ec463208 30,32-33,56,58-60,79,82,107,111,133,137,163,166,216,219,260,264,284,287,304,306,323,327
+saleor/app/tests/fixtures/app_problem.py
+  7f2ddb83ec463208 1-32
+saleor/graphql/app/tests/mutations/test_app_problem_create.py
+  7f2ddb83ec463208 60,64,93,97,123,127,156,160,189,193,215,219,272,276,306,310,352,356,425,435
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "25c3ec9238eeab6a6fc6dcd293b870a564993579",
+  "prompts": {
+    "7f2ddb83ec463208": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7441b926-9852-4f16-8759-c2ffbbbfe238",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 122,
+      "total_deletions": 71,
+      "accepted_lines": 78,
+      "overriden_lines": 0
+    }
+  }
+}
