@@ -5,7 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils import timezone
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 from pydantic import ValidationError as PydanticValidationError
 
 from ....app.error_codes import (
@@ -52,14 +52,27 @@ class AppProblemCreateValidatedInput(BaseModel):
     # Minutes
     aggregation_period: Annotated[int, Field(ge=0)] = 60
 
+    @field_validator("aggregation_period", mode="before")
+    @classmethod
+    def default_aggregation_period(cls, v: int | None) -> int:
+        """Accept null from GraphQL and map to default (60)."""
+        if v is None:
+            return 60
+        return v
+
 
 class AppProblemCreateInput(graphene.InputObjectType):
     message = graphene.String(
-        required=True, description="The problem message to display."
+        required=True,
+        description="The problem message to display. Must be between 3 and 2048 characters.",
     )
     key = graphene.String(
         required=True,
-        description="Key identifying the type of problem. App can add multiple problems under the same key, to merge them together or delete them in batch.",
+        description=(
+            "Key identifying the type of problem. App can add multiple problems under "
+            "the same key, to merge them together or delete them in batch. "
+            "Must be between 3 and 128 characters."
+        ),
     )
     critical_threshold = PositiveInt(
         required=False,

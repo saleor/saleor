@@ -30067,11 +30067,11 @@ enum AppProblemCreateErrorCode {
 }
 
 input AppProblemCreateInput {
-  """The problem message to display."""
+  """The problem message to display. Must be between 3 and 2048 characters."""
   message: String!
 
   """
-  Key identifying the type of problem. App can add multiple problems under the same key, to merge them together or delete them in batch.
+  Key identifying the type of problem. App can add multiple problems under the same key, to merge them together or delete them in batch. Must be between 3 and 128 characters.
   """
   key: String!
 
