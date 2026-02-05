@@ -56,11 +56,13 @@ def test_app_problem_create(app_api_client, app):
     assert db_problem.count == 1
 
 
-def test_app_problem_create_aggregates_within_period(app_api_client, app):
+def test_app_problem_create_aggregates_within_period(
+    app_api_client, app, app_problem_generator
+):
     # given
     now = timezone.now()
-    AppProblem.objects.create(
-        app=app,
+    app_problem_generator(
+        app,
         message="First occurrence",
         key="agg-key",
         count=1,
@@ -87,11 +89,13 @@ def test_app_problem_create_aggregates_within_period(app_api_client, app):
     assert problem.message == "Second occurrence"
 
 
-def test_app_problem_create_new_when_period_expired(app_api_client, app):
+def test_app_problem_create_new_when_period_expired(
+    app_api_client, app, app_problem_generator
+):
     # given
     now = timezone.now()
-    AppProblem.objects.create(
-        app=app,
+    app_problem_generator(
+        app,
         message="Old problem",
         key="exp-key",
         count=3,
@@ -115,11 +119,13 @@ def test_app_problem_create_new_when_period_expired(app_api_client, app):
     assert AppProblem.objects.filter(app=app).count() == 2
 
 
-def test_app_problem_create_critical_threshold_reached(app_api_client, app):
+def test_app_problem_create_critical_threshold_reached(
+    app_api_client, app, app_problem_generator
+):
     # given
     now = timezone.now()
-    AppProblem.objects.create(
-        app=app,
+    app_problem_generator(
+        app,
         message="Almost critical",
         key="crit-key",
         count=4,
@@ -146,11 +152,13 @@ def test_app_problem_create_critical_threshold_reached(app_api_client, app):
     assert problem.is_critical is True
 
 
-def test_app_problem_create_critical_threshold_not_reached(app_api_client, app):
+def test_app_problem_create_critical_threshold_not_reached(
+    app_api_client, app, app_problem_generator
+):
     # given
     now = timezone.now()
-    AppProblem.objects.create(
-        app=app,
+    app_problem_generator(
+        app,
         message="Not critical yet",
         key="nc-key",
         count=2,
@@ -178,12 +186,12 @@ def test_app_problem_create_critical_threshold_not_reached(app_api_client, app):
 
 
 def test_app_problem_create_zero_aggregation_period_always_creates_new(
-    app_api_client, app
+    app_api_client, app, app_problem_generator
 ):
     # given
     now = timezone.now()
-    AppProblem.objects.create(
-        app=app,
+    app_problem_generator(
+        app,
         message="Existing",
         key="no-agg",
         count=1,
@@ -203,11 +211,13 @@ def test_app_problem_create_zero_aggregation_period_always_creates_new(
     assert AppProblem.objects.filter(app=app).count() == 2
 
 
-def test_app_problem_create_default_aggregation_period_aggregates(app_api_client, app):
+def test_app_problem_create_default_aggregation_period_aggregates(
+    app_api_client, app, app_problem_generator
+):
     # given
     now = timezone.now()
-    AppProblem.objects.create(
-        app=app,
+    app_problem_generator(
+        app,
         message="Recent",
         key="def-agg",
         count=1,
@@ -258,11 +268,13 @@ def test_app_problem_create_limit_eviction(app_api_client, app):
     assert AppProblem.objects.filter(app=app, key="new-key").exists()
 
 
-def test_app_problem_create_dismissed_problem_not_aggregated(app_api_client, app):
+def test_app_problem_create_dismissed_problem_not_aggregated(
+    app_api_client, app, app_problem_generator
+):
     # given
     now = timezone.now()
-    AppProblem.objects.create(
-        app=app,
+    app_problem_generator(
+        app,
         message="Dismissed one",
         key="dis-key",
         count=5,
@@ -290,11 +302,13 @@ def test_app_problem_create_dismissed_problem_not_aggregated(app_api_client, app
     assert new_problem.message == "Fresh problem"
 
 
-def test_app_problem_create_message_updates_on_aggregation(app_api_client, app):
+def test_app_problem_create_message_updates_on_aggregation(
+    app_api_client, app, app_problem_generator
+):
     # given
     now = timezone.now()
-    AppProblem.objects.create(
-        app=app,
+    app_problem_generator(
+        app,
         message="Original message",
         key="msg-key",
         count=1,
@@ -334,11 +348,13 @@ def test_app_problem_create_by_staff_user_fails(
     assert_no_permission(response)
 
 
-def test_app_problem_create_critical_threshold_de_escalates(app_api_client, app):
+def test_app_problem_create_critical_threshold_de_escalates(
+    app_api_client, app, app_problem_generator
+):
     # given
     now = timezone.now()
-    AppProblem.objects.create(
-        app=app,
+    app_problem_generator(
+        app,
         message="Problem",
         key="rolling-key",
         count=1,
@@ -405,7 +421,9 @@ def test_app_problem_create_critical_on_first_problem(app_api_client, app):
     assert problem.count == 1
 
 
-def test_app_problem_create_concurrent_aggregation_race_condition(app_api_client, app):
+def test_app_problem_create_concurrent_aggregation_race_condition(
+    app_api_client, app, app_problem_generator
+):
     """Test that concurrent aggregation requests don't lose count updates.
 
     This test simulates a race condition where another request aggregates the same
@@ -414,8 +432,8 @@ def test_app_problem_create_concurrent_aggregation_race_condition(app_api_client
     """
     # given
     now = timezone.now()
-    problem = AppProblem.objects.create(
-        app=app,
+    problem = app_problem_generator(
+        app,
         message="Initial problem",
         key="race-key",
         count=1,

@@ -15,6 +15,7 @@
 - Use `pytest` fixtures for setup and teardown
 - Declare test suites flat in file. Do not wrapp in classes
 - Prefer using fixtures over mocking. Fixtures are usually within directory "tests/fixtures" and are functions decorated with`@pytest.fixture`
+- When you create an object for testing and fixture for it doesn't exist, create new one. You can use factory to pass arguments to the fixture.
 
 # Concurrency and Thread Safety
 
