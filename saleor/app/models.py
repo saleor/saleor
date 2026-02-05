@@ -175,6 +175,9 @@ class AppExtension(models.Model):
 
 
 class AppProblem(models.Model):
+    # Note: When increasing this value, please revise performance. Now dismissing 100 rows is cheap,
+    # but if we increase this number, it can be too heavy and we may need to find more performant way,
+    # e.g. delegate to Celery
     MAX_PROBLEMS_PER_APP = 100
 
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="problems")

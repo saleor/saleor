@@ -2,6 +2,7 @@ import datetime
 
 from django.utils import timezone
 
+from .....app.error_codes import AppProblemCreateErrorCode
 from .....app.models import AppProblem
 from .....tests import race_condition
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -629,7 +630,7 @@ def test_app_problem_create_negative_aggregation_period_fails(app_api_client, ap
     data = content["data"]["appProblemCreate"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "aggregationPeriod"
-    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["code"] == AppProblemCreateErrorCode.INVALID.name
     assert data["errors"][0]["message"] == "Input should be greater than or equal to 0"
     assert AppProblem.objects.filter(app=app).count() == 0
 
