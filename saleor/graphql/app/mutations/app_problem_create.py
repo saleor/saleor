@@ -81,12 +81,7 @@ class AppProblemCreate(BaseMutation):
         app = info.context.app
         assert app is not None
         input_data = data["input"]
-        validated = AppProblemCreateValidatedInput(
-            message=input_data["message"],
-            key=input_data["key"],
-            critical_threshold=input_data.get("critical_threshold"),
-            aggregation_period=input_data.get("aggregation_period"),
-        )
+        validated = AppProblemCreateValidatedInput(**input_data)
 
         now = timezone.now()
 
@@ -126,9 +121,6 @@ class AppProblemCreate(BaseMutation):
         validated: AppProblemCreateValidatedInput,
         now: datetime.datetime,
     ) -> None:
-        # Can be calculated here, the update itself happens in db and this is needed only to
-        # calculate is_critical, so even if count is actually higher due to thread race, is_critical will
-        # be still true
         new_count = existing.count + 1
         is_critical = bool(
             validated.critical_threshold and new_count >= validated.critical_threshold
