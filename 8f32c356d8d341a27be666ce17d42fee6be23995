@@ -1,0 +1,25 @@
+saleor/app/tests/fixtures/app_problem.py
+  2e33c333323f37c0 29,39-44
+saleor/app/models.py
+  2e33c333323f37c0 185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "8f32c356d8d341a27be666ce17d42fee6be23995",
+  "prompts": {
+    "2e33c333323f37c0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7c2dd620-7230-45b2-9960-63b2c5685a83",
+        "model": "claude-opus-4-5-20251101"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 16,
+      "total_deletions": 35,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    }
+  }
+}
