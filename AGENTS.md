@@ -106,8 +106,3 @@ with traced_atomic_transaction():
 | `select_for_update` | `saleor/payment/lock_objects.py` | Complex read-modify-write |
 | `update_or_create` | `saleor/graphql/attribute/utils/type_handlers.py` | Upsert operations |
 | `traced_atomic_transaction` | `saleor/core/tracing.py` | Multi-operation atomicity |
-
-
-## Code style
-- use relative imports
-- NEVER use lazy/inline imports, put them at the top of the file
