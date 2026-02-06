@@ -13163,6 +13163,9 @@ input TransactionWhereInput @doc(category: "Payments") {
   """Filter by PSP reference."""
   pspReference: StringFilterInput
 
+  """Filter by app identifier."""
+  appIdentifier: StringFilterInput
+
   """List of conditions that must be met."""
   AND: [TransactionWhereInput!]
 

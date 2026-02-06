@@ -2,6 +2,7 @@ import graphene
 import pytest
 
 from .....order.models import Order
+from .....payment.models import TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 
@@ -396,3 +397,125 @@ def test_transactions_query_combined_filters(
     transactions = content["data"]["transactions"]["edges"]
     assert len(transactions) == 1
     assert transactions[0]["node"]["pspReference"] == transaction_1.psp_reference
+
+
+@pytest.mark.parametrize(
+    ("where", "expected_app_identifiers"),
+    [
+        ({"eq": "app.identifier.1"}, ["app.identifier.1"]),
+        ({"eq": "Non-existing"}, []),
+        ({"eq": None}, []),
+        ({"eq": ""}, []),
+        (
+            {"oneOf": ["app.identifier.1", "app.identifier.2"]},
+            ["app.identifier.1", "app.identifier.2"],
+        ),
+        ({"oneOf": ["app.identifier.1"]}, ["app.identifier.1"]),
+        ({"oneOf": ["Non-existing 1", "Non-existing 2"]}, []),
+        ({"oneOf": []}, []),
+        (None, []),
+    ],
+)
+def test_transactions_query_filter_by_app_identifier(
+    where,
+    expected_app_identifiers,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    app_identifier_1 = "app.identifier.1"
+    app_identifier_2 = "app.identifier.2"
+    app_identifier_3 = "app.identifier.3"
+
+    transaction_1 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="PSP ref1",
+        currency="USD",
+    )
+    transaction_2 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="PSP ref2",
+        currency="USD",
+    )
+    transaction_3 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="PSP ref3",
+        currency="USD",
+    )
+
+    transaction_1.app_identifier = app_identifier_1
+    transaction_2.app_identifier = app_identifier_2
+    transaction_3.app_identifier = app_identifier_3
+    TransactionItem.objects.bulk_update(
+        [transaction_1, transaction_2, transaction_3], ["app_identifier"]
+    )
+
+    variables = {"where": {"appIdentifier": where}}
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == len(expected_app_identifiers)
+
+
+def test_transactions_query_filter_by_app_identifier_combined_with_psp_reference(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    target_app_identifier = "my.app.identifier"
+    other_app_identifier = "other.app.identifier"
+    target_psp_reference = "PSP-TARGET"
+    other_psp_reference = "PSP-OTHER"
+
+    target_transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference=target_psp_reference,
+        currency="USD",
+    )
+    transaction_2 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference=other_psp_reference,
+        currency="USD",
+    )
+    transaction_3 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference=target_psp_reference,
+        currency="USD",
+    )
+
+    target_transaction.app_identifier = target_app_identifier
+    transaction_2.app_identifier = target_app_identifier
+    transaction_3.app_identifier = other_app_identifier
+    TransactionItem.objects.bulk_update(
+        [target_transaction, transaction_2, transaction_3], ["app_identifier"]
+    )
+
+    variables = {
+        "where": {
+            "AND": [
+                {"appIdentifier": {"eq": target_app_identifier}},
+                {"pspReference": {"eq": target_psp_reference}},
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == 1
+    assert transactions[0]["node"]["pspReference"] == target_transaction.psp_reference
