@@ -16,7 +16,11 @@ from .....discount.models import VoucherCode
 from .....order.models import Order
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...enums import (
     AllocationStrategyEnum,
     MarkAsPaidStrategyEnum,
@@ -877,13 +881,13 @@ def test_channel_update_mutation_negative_expire_orders(
         CHANNEL_UPDATE_MUTATION,
         variables=variables,
         permissions=(permission_manage_channels,),
+        check_no_permissions=False,
     )
 
     # then
-    content = get_graphql_content(response)
-    error = content["data"]["channelUpdate"]["errors"][0]
-    assert error["field"] == "expireOrdersAfter"
-    assert error["code"] == ChannelErrorCode.INVALID.name
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+    assert 'Expected type "Minute"' in content["errors"][0]["message"]
 
 
 @patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
@@ -1151,7 +1155,7 @@ def test_channel_update_delete_expired_orders_after(
     )
 
 
-@pytest.mark.parametrize("delete_expired_after", [-1, 0, 121, 300])
+@pytest.mark.parametrize("delete_expired_after", [0, 121, 300])
 def test_channel_update_set_incorrect_delete_expired_orders_after(
     delete_expired_after,
     permission_manage_orders,
@@ -1348,13 +1352,13 @@ def test_channel_update_draft_order_line_price_freeze_period_negative_value(
         CHANNEL_UPDATE_MUTATION,
         variables=variables,
         permissions=(permission_manage_orders,),
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
+    content = get_graphql_content_from_response(response)
 
     # then
-    error = content["data"]["channelUpdate"]["errors"][0]
-    assert error["field"] == "draftOrderLinePriceFreezePeriod"
-    assert error["code"] == ChannelErrorCode.INVALID.name
+    assert "errors" in content
+    assert 'Expected type "Hour"' in content["errors"][0]["message"]
 
 
 CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
@@ -1614,13 +1618,13 @@ def test_channel_update_with_automatic_completion_delay_below_0(
         CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS,
         variables=variables,
         permissions=(permission_manage_channels,),
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
+    content = get_graphql_content_from_response(response)
 
     # then
-    error = content["data"]["channelUpdate"]["errors"][0]
-    assert error["field"] == "delay"
-    assert error["code"] == ChannelErrorCode.INVALID.name
+    assert "errors" in content
+    assert 'Expected type "Minute"' in content["errors"][0]["message"]
 
 
 def test_channel_update_with_delay_exceeding_threshold(
