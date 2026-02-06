@@ -4,10 +4,10 @@ import pytest
 
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
+from ...tax.webhooks.parser import parse_tax_data
 from ..event_types import WebhookEventSyncType
 from ..models import Webhook, WebhookEvent
 from ..transport.synchronous import trigger_taxes_all_webhooks_sync
-from ..transport.taxes import parse_tax_data
 
 
 @pytest.fixture
@@ -64,7 +64,7 @@ def test_trigger_tax_webhook_sync(
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
     assert delivery.webhook == webhook
-    assert tax_data == parse_tax_data(tax_data_response, lines_count)
+    assert tax_data == parse_tax_data(event_type, tax_data_response, lines_count)
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -91,7 +91,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
     assert delivery.webhook == successful_webhook
-    assert tax_data == parse_tax_data(tax_data_response, lines_count)
+    assert tax_data == parse_tax_data(event_type, tax_data_response, lines_count)
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -122,7 +122,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
         assert delivery.payload.get_payload() == data
         assert delivery.webhook == webhook
 
-    assert tax_data == parse_tax_data(tax_data_response, lines_count)
+    assert tax_data == parse_tax_data(event_type, tax_data_response, lines_count)
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")

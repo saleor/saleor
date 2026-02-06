@@ -156,9 +156,9 @@ def test_excluded_shipping_methods_for_order(
 
     mocked_webhook.assert_called_once_with(
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-        payload,
         shipping_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
@@ -265,9 +265,9 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
     event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     mocked_webhook.assert_any_call(
         event_type,
-        payload,
         shipping_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
@@ -275,9 +275,9 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
     )
     mocked_webhook.assert_any_call(
         event_type,
-        payload,
         second_shipping_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
@@ -396,9 +396,9 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
 
     mocked_webhook.assert_any_call(
         event_type,
-        payload,
         first_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
@@ -406,9 +406,9 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     )
     mocked_webhook.assert_any_call(
         event_type,
-        payload,
         second_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,

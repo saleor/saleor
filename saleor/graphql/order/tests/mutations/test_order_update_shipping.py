@@ -559,7 +559,9 @@ def test_order_update_shipping_with_voucher_discount(
     order.voucher = voucher
     order.save()
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     discount = order.discounts.get()
     initial_discount_amount = (
