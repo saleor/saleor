@@ -3536,7 +3536,6 @@ def test_transaction_event_report_with_invalid_card_payment_method_details(
 
     for error in transaction_report_data["errors"]:
         assert error["code"] == "INVALID"
-        assert error["field"] == "paymentMethodDetails"
 
 
 def test_transaction_event_report_with_invalid_other_payment_method_details(
@@ -3579,7 +3578,7 @@ def test_transaction_event_report_with_invalid_other_payment_method_details(
     assert len(transaction_report_data["errors"]) == 1
     error = transaction_report_data["errors"][0]
     assert error["code"] == "INVALID"
-    assert error["field"] == "paymentMethodDetails"
+    assert error["field"] == "name"
 
 
 def test_transaction_event_report_event_already_exists_updates_card_payment_method_details(

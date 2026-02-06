@@ -61,11 +61,13 @@ from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_318, ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
+from ...core.limited_string import LimitedString
 from ...core.mutations import BaseMutation
 from ...core.scalars import DateTime, PositiveDecimal, WeightScalar
 from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
+from ...core.validators import validate_string_constraints
 from ...discount.enums import DiscountValueTypeEnum
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...payment.mutations.transaction.transaction_create import (
@@ -428,8 +430,10 @@ class OrderBulkCreateDeliveryMethodInput(BaseInputObjectType):
 
 
 class OrderBulkCreateNoteInput(BaseInputObjectType):
-    message = graphene.String(
-        required=True, description=f"Note message. Max characters: {MAX_NOTE_LENGTH}."
+    message = LimitedString(
+        max_length=MAX_NOTE_LENGTH,
+        required=True,
+        description="Note message.",
     )
     date = DateTime(description="The date associated with the message.")
     user_id = graphene.ID(description="The user ID associated with the message.")
@@ -1488,14 +1492,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         object_storage: dict[str, Any],
         index: int,
     ) -> OrderEvent | None:
-        if len(note_input["message"]) > MAX_NOTE_LENGTH:
-            order_data.errors.append(
-                OrderBulkError(
-                    message=f"Note message exceeds character limit: {MAX_NOTE_LENGTH}.",
-                    path=f"notes.{index}.message",
-                    code=OrderBulkCreateErrorCode.NOTE_LENGTH,
+        try:
+            validate_string_constraints(OrderBulkCreateNoteInput, note_input)
+        except ValidationError as exc:
+            for field_name, errors in exc.message_dict.items():
+                order_data.errors.append(
+                    OrderBulkError(
+                        message=errors[0],
+                        path=f"notes.{index}.{field_name}",
+                        code=OrderBulkCreateErrorCode.NOTE_LENGTH,
+                    )
                 )
-            )
             return None
 
         date = note_input.get("date")
