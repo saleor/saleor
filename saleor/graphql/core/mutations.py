@@ -59,6 +59,7 @@ from .utils import (
     snake_to_camel_case,
 )
 from .utils.error_codes import get_error_code_from_error
+from .validators import validate_string_constraints
 from .validators.file import validate_upload_file
 
 MISSING_NODE_ERROR_MESSAGE_PREFIX = "Couldn't resolve to a node:"
@@ -715,6 +716,10 @@ class DeprecatedModelMutation(BaseMutation):
 
         if not input_cls:
             input_cls = getattr(cls.Arguments, "input")
+
+        # Validate string length constraints from LimitedString fields
+        validate_string_constraints(input_cls, data)
+
         cleaned_input = {}
 
         for field_name, field_item in input_cls._meta.fields.items():
