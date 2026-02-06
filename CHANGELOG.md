@@ -36,3 +36,4 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 
 ### Deprecations
 - Deprecate the `hasVariants` field on `ProductType`.
+- Deprecate export mutations (`exportProducts`, `exportGiftCards`, `exportVoucherCodes`). All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.
