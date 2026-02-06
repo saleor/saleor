@@ -1,0 +1,25 @@
+saleor/graphql/core/mutations.py
+  c5b287abd4164e5c 54
+saleor/graphql/product/tests/mutations/test_product_media_update.py
+  c5b287abd4164e5c 85-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "7533f8fefe3c6538d5dcccc5735eb75d58964a16",
+  "prompts": {
+    "c5b287abd4164e5c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5ffcd6ad-9956-4113-a7c2-b315f418e9c6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 4,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}
