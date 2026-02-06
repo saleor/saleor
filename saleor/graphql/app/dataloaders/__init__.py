@@ -1,5 +1,6 @@
 from .app import ActiveAppByIdLoader, AppByIdLoader, AppByTokenLoader
 from .app_extension import AppExtensionByAppIdLoader, AppExtensionByIdLoader
+from .app_problems import AppProblemsByAppIdLoader
 from .app_tokens import AppTokensByAppIdLoader
 from .apps import ActiveAppsByAppIdentifierLoader, AppsByEventTypeLoader
 from .thumbnail import (
@@ -13,6 +14,7 @@ __all__ = [
     "ActiveAppsByAppIdentifierLoader",
     "app_promise_callback",
     "AppByIdLoader",
+    "AppProblemsByAppIdLoader",
     "AppByTokenLoader",
     "AppExtensionByAppIdLoader",
     "AppExtensionByIdLoader",

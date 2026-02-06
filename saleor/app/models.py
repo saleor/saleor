@@ -174,6 +174,33 @@ class AppExtension(models.Model):
     settings = models.JSONField(blank=True, default=dict, db_default={})
 
 
+class AppProblem(models.Model):
+    # Note: When increasing this value, please revise performance. Now dismissing 100 rows is cheap,
+    # but if we increase this number, it can be too heavy and we may need to find more performant way,
+    # e.g. delegate to Celery
+    MAX_PROBLEMS_PER_APP = 100
+
+    app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="problems")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    message = models.CharField(max_length=2048)
+    key = models.CharField(max_length=128)
+    count = models.PositiveIntegerField(default=1)
+    is_critical = models.BooleanField(default=False)
+    dismissed = models.BooleanField(default=False)
+    dismissed_by_user_email = models.EmailField(max_length=256, blank=True, null=True)
+    dismissed_by_user = models.ForeignKey(
+        "account.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    class Meta:
+        ordering = ("-created_at",)
+
+
 class AppInstallation(Job):
     uuid = models.UUIDField(unique=True, default=uuid4)
     app_name = models.CharField(max_length=60)
