@@ -887,7 +887,11 @@ def test_channel_update_mutation_negative_expire_orders(
     # then
     content = get_graphql_content_from_response(response)
     assert "errors" in content
-    assert 'Expected type "Minute"' in content["errors"][0]["message"]
+    expected_msg = (
+        'In field "orderSettings": In field "expireOrdersAfter":'
+        ' Expected type "Minute", found -1.'
+    )
+    assert expected_msg in content["errors"][0]["message"]
 
 
 @patch("saleor.plugins.manager.PluginsManager.channel_metadata_updated")
@@ -1358,7 +1362,11 @@ def test_channel_update_draft_order_line_price_freeze_period_negative_value(
 
     # then
     assert "errors" in content
-    assert 'Expected type "Hour"' in content["errors"][0]["message"]
+    expected_msg = (
+        'In field "orderSettings": In field "draftOrderLinePriceFreezePeriod":'
+        ' Expected type "Hour", found -5.'
+    )
+    assert expected_msg in content["errors"][0]["message"]
 
 
 CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """
@@ -1624,7 +1632,11 @@ def test_channel_update_with_automatic_completion_delay_below_0(
 
     # then
     assert "errors" in content
-    assert 'Expected type "Minute"' in content["errors"][0]["message"]
+    expected_msg = (
+        'In field "checkoutSettings": In field "automaticCompletion":'
+        ' In field "delay": Expected type "Minute", found -1.'
+    )
+    assert expected_msg in content["errors"][0]["message"]
 
 
 def test_channel_update_with_delay_exceeding_threshold(

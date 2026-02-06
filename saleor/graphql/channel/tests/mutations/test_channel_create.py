@@ -282,7 +282,11 @@ def test_channel_create_mutation_negative_expire_orders(
     # then
     content = get_graphql_content_from_response(response)
     assert "errors" in content
-    assert 'Expected type "Minute"' in content["errors"][0]["message"]
+    expected_msg = (
+        'In field "orderSettings": In field "expireOrdersAfter":'
+        ' Expected type "Minute", found -1.'
+    )
+    assert expected_msg in content["errors"][0]["message"]
 
 
 def test_channel_create_draft_order_line_price_freeze_period_negative_value(
@@ -319,7 +323,11 @@ def test_channel_create_draft_order_line_price_freeze_period_negative_value(
     # then
     content = get_graphql_content_from_response(response)
     assert "errors" in content
-    assert 'Expected type "Hour"' in content["errors"][0]["message"]
+    expected_msg_part = (
+        'In field "orderSettings": In field "draftOrderLinePriceFreezePeriod":'
+        ' Expected type "Hour", found -1.'
+    )
+    assert expected_msg_part in content["errors"][0]["message"]
 
 
 @pytest.mark.parametrize("expire_input", [0, None])
@@ -1064,7 +1072,11 @@ def test_channel_create_with_automatic_completion_delay_value_below_0(
 
     # then
     assert "errors" in content
-    assert 'Expected type "Minute"' in content["errors"][0]["message"]
+    expected_msg = (
+        'In field "checkoutSettings": In field "automaticCompletion":'
+        ' In field "delay": Expected type "Minute", found -1.'
+    )
+    assert expected_msg in content["errors"][0]["message"]
 
 
 def test_channel_create_with_delay_exceeding_threshold(
