@@ -16,7 +16,11 @@ from .....core.utils.json_serializer import CustomJsonEncoder
 from .....tax.models import TaxConfiguration
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...enums import (
     AllocationStrategyEnum,
     MarkAsPaidStrategyEnum,
@@ -272,13 +276,17 @@ def test_channel_create_mutation_negative_expire_orders(
         CHANNEL_CREATE_MUTATION,
         variables=variables,
         permissions=(permission_manage_channels,),
+        check_no_permissions=False,
     )
 
     # then
-    content = get_graphql_content(response)
-    error = content["data"]["channelCreate"]["errors"][0]
-    assert error["field"] == "expireOrdersAfter"
-    assert error["code"] == ChannelErrorCode.INVALID.name
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+    expected_msg = (
+        'In field "orderSettings": In field "expireOrdersAfter":'
+        ' Expected type "Minute", found -1.'
+    )
+    assert expected_msg in content["errors"][0]["message"]
 
 
 def test_channel_create_draft_order_line_price_freeze_period_negative_value(
@@ -309,13 +317,17 @@ def test_channel_create_draft_order_line_price_freeze_period_negative_value(
         CHANNEL_CREATE_MUTATION,
         variables=variables,
         permissions=(permission_manage_channels,),
+        check_no_permissions=False,
     )
 
     # then
-    content = get_graphql_content(response)
-    error = content["data"]["channelCreate"]["errors"][0]
-    assert error["field"] == "draftOrderLinePriceFreezePeriod"
-    assert error["code"] == ChannelErrorCode.INVALID.name
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+    expected_msg_part = (
+        'In field "orderSettings": In field "draftOrderLinePriceFreezePeriod":'
+        ' Expected type "Hour", found -1.'
+    )
+    assert expected_msg_part in content["errors"][0]["message"]
 
 
 @pytest.mark.parametrize("expire_input", [0, None])
@@ -862,7 +874,44 @@ def test_channel_create_set_delete_expired_orders_after(
     )
 
 
-@pytest.mark.parametrize("delete_expired_after", [-1, 0, 121, 300])
+def test_channel_create_mutation_negative_delete_expired_orders_after(
+    permission_manage_channels,
+    app_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "orderSettings": {"deleteExpiredOrdersAfter": -1},
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+    expected_msg = (
+        'In field "orderSettings": In field "deleteExpiredOrdersAfter":'
+        ' Expected type "Day", found -1.'
+    )
+    assert expected_msg in content["errors"][0]["message"]
+
+
+@pytest.mark.parametrize("delete_expired_after", [0, 121, 300])
 def test_channel_create_mutation_set_incorrect_delete_expired_orders_after(
     delete_expired_after, permission_manage_channels, staff_api_client, channel_USD
 ):
@@ -1054,13 +1103,17 @@ def test_channel_create_with_automatic_completion_delay_value_below_0(
         CHANNEL_CREATE_MUTATION,
         variables=variables,
         permissions=(permission_manage_channels,),
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
+    content = get_graphql_content_from_response(response)
 
     # then
-    error = content["data"]["channelCreate"]["errors"][0]
-    assert error["field"] == "delay"
-    assert error["code"] == ChannelErrorCode.INVALID.name
+    assert "errors" in content
+    expected_msg = (
+        'In field "checkoutSettings": In field "automaticCompletion":'
+        ' In field "delay": Expected type "Minute", found -1.'
+    )
+    assert expected_msg in content["errors"][0]["message"]
 
 
 def test_channel_create_with_delay_exceeding_threshold(

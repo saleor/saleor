@@ -41,15 +41,6 @@ DELETE_EXPIRED_ORDERS_MAX_DAYS = 120
 def clean_expire_orders_after(expire_orders_after: int) -> int | None:
     if expire_orders_after is None or expire_orders_after == 0:
         return None
-    if expire_orders_after < 0:
-        raise ValidationError(
-            {
-                "expire_orders_after": ValidationError(
-                    "Expiration time for orders cannot be lower than 0.",
-                    code=ChannelErrorCode.INVALID.value,
-                )
-            }
-        )
     return expire_orders_after
 
 
@@ -217,15 +208,6 @@ def clean_automatic_completion_delay(
             settings.AUTOMATIC_CHECKOUT_COMPLETION_OLDEST_MODIFIED.total_seconds() // 60
         )
         if delay is not None:
-            if delay < 0:
-                raise ValidationError(
-                    {
-                        "delay": ValidationError(
-                            "The automatic completion delay must be greater than or equal to 0.",
-                            code=ChannelErrorCode.INVALID.value,
-                        )
-                    }
-                )
             if delay >= oldest_allowed_checkout:
                 raise ValidationError(
                     {
