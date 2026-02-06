@@ -506,6 +506,34 @@ def test_transaction_create_by_user_query_no_permission(
     assert_no_permission(response)
 
 
+def test_transaction_by_user_with_manage_orders(
+    user_api_client,
+    transaction_item_created_by_app,
+    permission_manage_orders,
+    customer_user,
+):
+    # given
+    user_api_client.user = customer_user
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+
+    event = transaction_item_created_by_app.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_transaction_fields(content, transaction_item_created_by_app, event)
+
+
 def test_query_transaction_by_invalid_id(staff_api_client, permission_manage_payments):
     # given
     id = graphene.Node.to_global_id("Order", "e6cad766-c9df-4970-b77b-b8eb0e303fb6")

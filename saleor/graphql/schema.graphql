@@ -661,7 +661,7 @@ type Query {
   """
   Look up a transaction by ID.
   
-  Requires one of the following permissions: HANDLE_PAYMENTS.
+  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
   """
   transaction(
     """
@@ -674,6 +674,34 @@ type Query {
     """
     token: UUID
   ): TransactionItem @doc(category: "Payments")
+
+  """
+  List of transactions. For apps with `MANAGE_ORDERS` permission, returns all transactions. For apps with just `HANDLE_PAYMENTS` permission, returns only transactions created by that app. For staff users, returns transactions from orders and checkouts in channels they have access to.
+  
+  Added in Saleor 3.22.
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+  """
+  transactions(
+    """Where filtering options for transactions."""
+    where: TransactionWhereInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): TransactionCountableConnection @doc(category: "Payments")
 
   """Look up a page by ID or slug."""
   page(
@@ -13174,6 +13202,39 @@ input PaymentFilterInput @doc(category: "Payments") {
   checkouts: [ID!]
 }
 
+type TransactionCountableConnection @doc(category: "Payments") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TransactionCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TransactionCountableEdge @doc(category: "Payments") {
+  """The item at the end of the edge."""
+  node: TransactionItem!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TransactionWhereInput @doc(category: "Payments") {
+  ids: [ID!]
+
+  """Filter by PSP reference."""
+  pspReference: StringFilterInput
+
+  """Filter by app identifier."""
+  appIdentifier: StringFilterInput
+
+  """List of conditions that must be met."""
+  AND: [TransactionWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [TransactionWhereInput!]
+}
+
 type PageCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -13615,6 +13676,13 @@ input LinesFilterInput @doc(category: "Orders") {
 input TransactionFilterInput @doc(category: "Orders") {
   """Filter by payment method details used to pay for the order."""
   paymentMethodDetails: PaymentMethodDetailsFilterInput
+
+  """
+  Filter by PSP reference of transactions.
+  
+  Added in Saleor 3.22.
+  """
+  pspReference: StringFilterInput
 
   """Filter by metadata fields of transactions."""
   metadata: MetadataFilterInput
