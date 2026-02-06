@@ -1,0 +1,25 @@
+saleor/graphql/channel/tests/mutations/test_channel_update.py
+  309c096dfa0d1689 1162-1194
+saleor/graphql/channel/tests/mutations/test_channel_create.py
+  309c096dfa0d1689 877-913
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "687a5f1daf0dedd85a409a19853548ba8e99a97f",
+  "prompts": {
+    "309c096dfa0d1689": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f1aaf63d-0305-43d2-b91a-9d819a350272",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 70,
+      "total_deletions": 0,
+      "accepted_lines": 70,
+      "overriden_lines": 0
+    }
+  }
+}
