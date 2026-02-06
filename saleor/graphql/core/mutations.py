@@ -51,6 +51,7 @@ from .types import (
     Upload,
     UploadError,
 )
+from .types.base import BaseInputObjectType
 from .utils import (
     WebhookEventInfo,
     ext_ref_to_global_id_or_error,
@@ -522,7 +523,6 @@ class BaseMutation(graphene.Mutation):
         and recursively validates their string constraints. Top-level list
         arguments are skipped — bulk mutations handle per-item validation.
         """
-        from .types.base import BaseInputObjectType
 
         if not hasattr(cls._meta, "arguments") or not cls._meta.arguments:
             return
@@ -543,7 +543,6 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def _validate_string_constraints_recursive(cls, input_cls, data):
         """Recursively validate LimitedString constraints on an input type."""
-        from .types.base import BaseInputObjectType
 
         if data is None:
             return

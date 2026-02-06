@@ -3,7 +3,6 @@ from unittest.mock import patch
 import graphene
 
 from .....graphql.tests.utils import get_graphql_content
-from .....product.error_codes import ProductErrorCode
 
 PRODUCT_MEDIA_UPDATE_QUERY = """
     mutation updateProductMedia($mediaId: ID!, $alt: String) {
@@ -83,5 +82,5 @@ def test_product_image_update_mutation_alt_over_char_limit(
     # then
     errors = content["data"]["productMediaUpdate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "input"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["field"] == "alt"
+    assert errors[0]["code"] == "MAX_LENGTH"
