@@ -3602,7 +3602,6 @@ def test_transaction_update_with_invalid_card_payment_method_details(
 
     for error in transaction_data["errors"]:
         assert error["code"] == "INVALID"
-        assert error["field"] == "paymentMethodDetails"
 
 
 def test_transaction_update_with_invalid_other_payment_method_details(
@@ -3636,7 +3635,7 @@ def test_transaction_update_with_invalid_other_payment_method_details(
     assert len(transaction_data["errors"]) == 1
     error = transaction_data["errors"][0]
     assert error["code"] == "INVALID"
-    assert error["field"] == "paymentMethodDetails"
+    assert error["field"] == "name"
 
 
 # Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.

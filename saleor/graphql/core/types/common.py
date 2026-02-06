@@ -93,9 +93,10 @@ from ..enums import (
     WebhookTriggerErrorCode,
     WeightUnitsEnum,
 )
+from ..limited_string import LimitedString
 from ..scalars import Date, PositiveDecimal
 from ..tracing import traced_resolver
-from .base import BaseObjectType
+from .base import BaseInputObjectType, BaseObjectType
 from .money import VAT
 from .upload import Upload
 
@@ -1006,8 +1007,8 @@ class IconThumbnailField(ThumbnailField):
     )
 
 
-class MediaInput(graphene.InputObjectType):
-    alt = graphene.String(description="Alt text for a product media.")
+class MediaInput(BaseInputObjectType):
+    alt = LimitedString(max_length=250, description="Alt text for a product media.")
     image = Upload(
         required=False, description="Represents an image file in a multipart request."
     )
