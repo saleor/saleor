@@ -4,6 +4,7 @@ from ...app import models as app_models
 from ...checkout import models as checkout_models
 from ...order import models as order_models
 from ...payment import models
+from ...permission.enums import OrderPermissions
 from ..account.utils import get_user_accessible_channels
 from ..core.context import get_database_connection_name
 from ..utils import get_user_or_app_from_context
@@ -49,7 +50,11 @@ def resolve_transactions(info):
     transactions = models.TransactionItem.objects.using(connection_name).all()
 
     if isinstance(requestor, app_models.App):
-        return transactions
+        # App with MANAGE_ORDERS permission can see all transactions
+        if requestor.has_perm(OrderPermissions.MANAGE_ORDERS):
+            return transactions
+        # Otherwise, app can only see transactions it created
+        return transactions.filter(app_id=requestor.id)
 
     # Filter by accessible channels for user
     accessible_channels = get_user_accessible_channels(info, requestor)

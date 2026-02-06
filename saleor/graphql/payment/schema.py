@@ -100,7 +100,14 @@ class PaymentQueries(graphene.ObjectType):
         where=TransactionWhereInput(
             description="Where filtering options for transactions."
         ),
-        description="List of transactions." + ADDED_IN_322,
+        description=(
+            "List of transactions. "
+            "For apps with `MANAGE_ORDERS` permission, returns all transactions. "
+            "For apps with just `HANDLE_PAYMENTS` permission, "
+            "returns only transactions created by that app. "
+            "For staff users, returns transactions from orders and checkouts "
+            "in channels they have access to." + ADDED_IN_322
+        ),
         permissions=[
             PaymentPermissions.HANDLE_PAYMENTS,
             OrderPermissions.MANAGE_ORDERS,

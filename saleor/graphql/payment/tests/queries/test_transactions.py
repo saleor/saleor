@@ -73,13 +73,93 @@ def test_transactions_query_no_permission(
     assert_no_permission(response)
 
 
-def test_transactions_query_by_app(
+def test_transactions_query_by_app_with_manage_orders_returns_all(
+    transactions_in_different_channels,
+    app_api_client,
+    permission_manage_orders,
+):
+    # given
+    # App with MANAGE_ORDERS permission should see all transactions
+    app_api_client.app.permissions.add(permission_manage_orders)
+    variables = {}
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == len(transactions_in_different_channels)
+
+
+def test_transactions_query_by_app_with_handle_payments_returns_only_own(
+    order_with_lines,
+    app_api_client,
+    permission_manage_payments,
+    transaction_item_generator,
+):
+    # given
+    # App with just HANDLE_PAYMENTS should only see transactions it created
+    app = app_api_client.app
+    app.permissions.add(permission_manage_payments)
+
+    # Transaction created by this app
+    own_transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="PSP-OWN",
+        currency="USD",
+        app=app,
+    )
+    # Transaction created by another app (or no app)
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="PSP-OTHER",
+        currency="USD",
+        app=None,
+    )
+
+    variables = {}
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == 1
+    assert transactions[0]["node"]["pspReference"] == own_transaction.psp_reference
+
+
+def test_transactions_query_by_app_with_handle_payments_no_own_transactions(
     transactions_in_different_channels,
     app_api_client,
     permission_manage_payments,
 ):
     # given
+    # App with just HANDLE_PAYMENTS sees nothing if it didn't create any transactions
     app_api_client.app.permissions.add(permission_manage_payments)
+    variables = {}
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    # None of the transactions_in_different_channels were created by this app
+    assert len(transactions) == 0
+
+
+def test_transactions_query_by_app_with_both_permissions_returns_all(
+    transactions_in_different_channels,
+    app_api_client,
+    permission_manage_payments,
+    permission_manage_orders,
+):
+    # given
+    # App with both MANAGE_ORDERS and HANDLE_PAYMENTS should see all transactions
+    app_api_client.app.permissions.add(permission_manage_payments)
+    app_api_client.app.permissions.add(permission_manage_orders)
     variables = {}
 
     # when
