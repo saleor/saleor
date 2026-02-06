@@ -24,6 +24,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...utils import get_user_or_app_from_context
 from ..types import Order
 from .utils import try_payment_action
 
@@ -113,8 +114,14 @@ class OrderMarkAsPaid(BaseMutation):
     ):
         order = cls.get_node_or_error(info, id, only_type=Order)
         cls.check_channel_permissions(info, [order.channel_id])
+
+        requestor = get_user_or_app_from_context(info.context)
         manager = get_plugin_manager_promise(info.context).get()
-        order, _ = fetch_order_prices_if_expired(order, manager)
+
+        order, _ = fetch_order_prices_if_expired(
+            order, manager, requestor=requestor
+        ).get()
+
         cls.clean_billing_address(order)
         user = info.context.user
         user = cast(User, user)

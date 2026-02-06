@@ -734,10 +734,6 @@ class BasePlugin:
         Optional["TaxData"],
     ]
 
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    get_taxes_for_order: Callable[["Order", str, Any], Optional["TaxData"]]
-
     get_client_token: Callable[[Any, Any], Any]
 
     get_order_line_tax_rate: Callable[

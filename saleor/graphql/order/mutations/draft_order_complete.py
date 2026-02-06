@@ -120,6 +120,7 @@ class DraftOrderComplete(BaseMutation):
     ):
         user = info.context.user
         app = get_app_promise(info.context).get()
+        requestor = app or user
 
         manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(
@@ -131,8 +132,8 @@ class DraftOrderComplete(BaseMutation):
         cls.check_channel_permissions(info, [order.channel_id])
         force_update = order.tax_error is not None
         order, _ = fetch_order_prices_if_expired(
-            order, manager, force_update=force_update
-        )
+            order, manager, requestor=requestor, force_update=force_update
+        ).get()
         if order.tax_error is not None:
             raise ValidationError(
                 "Configured Tax App returned invalid response.",
@@ -142,7 +143,7 @@ class DraftOrderComplete(BaseMutation):
 
         country = get_order_country(order)
         validate_draft_order(
-            order, order.lines.all(), country, requestor=app or user
+            order, order.lines.all(), country, requestor=requestor
         ).get()
         with traced_atomic_transaction():
             update_fields = [

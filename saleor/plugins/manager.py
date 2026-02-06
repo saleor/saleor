@@ -650,16 +650,6 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout_info.channel.slug,
         )
 
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
-    def get_taxes_for_order(self, order: "Order", app_identifier) -> TaxData | None:
-        return self.__run_tax_method_until_first_success(
-            "get_taxes_for_order",
-            order,
-            app_identifier,
-            channel_slug=order.channel.slug,
-        )
-
     def __run_tax_method_until_first_success(
         self,
         method_name: str,

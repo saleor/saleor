@@ -1,7 +1,6 @@
 import json
 import logging
 from collections import defaultdict
-from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Union
 
@@ -72,14 +71,12 @@ def excluded_shipping_methods_for_order(
     if not available_shipping_methods:
         return Promise.resolve([])
 
-    generate_function = generate_excluded_shipping_methods_for_order_payload
-    payload_fun = lambda: generate_function(  # noqa: E731
-        order,
-        available_shipping_methods,
-    )
     return _get_excluded_shipping_data(
         event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-        payload_fun=payload_fun,
+        static_payload=generate_excluded_shipping_methods_for_order_payload(
+            order,
+            available_shipping_methods,
+        ),
         subscribable_object=(order, available_shipping_methods),
         allow_replica=allow_replica,
         requestor=requestor,
@@ -100,7 +97,7 @@ def _get_cache_data_for_exclude_shipping_methods(payload: str) -> dict:
 def _get_excluded_shipping_methods_or_fetch(
     webhooks: QuerySet,
     event_type: str,
-    payload: str,
+    static_payload: str,
     subscribable_object: (
         tuple[Union["Order", "Checkout"], list["ShippingMethodData"]] | None
     ),
@@ -112,7 +109,7 @@ def _get_excluded_shipping_methods_or_fetch(
     The data will be fetched from the cache. If missing it will fetch it from all
     defined webhooks by calling a request to each of them one by one.
     """
-    cache_data = _get_cache_data_for_exclude_shipping_methods(payload)
+    cache_data = _get_cache_data_for_exclude_shipping_methods(static_payload)
     # Gather responses from webhooks
     promised_responses = []
 
@@ -120,7 +117,7 @@ def _get_excluded_shipping_methods_or_fetch(
         promised_responses.append(
             trigger_webhook_sync_promise_if_not_cached(
                 event_type=event_type,
-                payload=payload,
+                static_payload=static_payload,
                 webhook=webhook,
                 cache_data=cache_data,
                 allow_replica=allow_replica,
@@ -147,7 +144,7 @@ def _get_excluded_shipping_methods_or_fetch(
 
 def _get_excluded_shipping_data(
     event_type: str,
-    payload_fun: Callable[[], str],
+    static_payload: str,
     subscribable_object: (
         tuple[Union["Order", "Checkout"], list["ShippingMethodData"]] | None
     ),
@@ -167,11 +164,10 @@ def _get_excluded_shipping_data(
     """
     webhooks = get_webhooks_for_event(event_type)
     if webhooks:
-        payload = payload_fun()
         promised_excluded_methods_map = _get_excluded_shipping_methods_or_fetch(
             webhooks,
             event_type,
-            payload,
+            static_payload,
             subscribable_object,
             allow_replica,
             requestor,
