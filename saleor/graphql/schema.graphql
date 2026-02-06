@@ -676,7 +676,7 @@ type Query {
   ): TransactionItem @doc(category: "Payments")
 
   """
-  List of transactions.
+  List of transactions. For apps with `MANAGE_ORDERS` permission, returns all transactions. For apps with just `HANDLE_PAYMENTS` permission, returns only transactions created by that app. For staff users, returns transactions from orders and checkouts in channels they have access to.
   
   Added in Saleor 3.22.
   
