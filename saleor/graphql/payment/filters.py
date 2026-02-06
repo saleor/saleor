@@ -42,10 +42,19 @@ class TransactionWhere(WhereFilterSet):
         method="filter_psp_reference",
         help_text="Filter by PSP reference.",
     )
+    app_identifier = OperationObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_app_identifier",
+        help_text="Filter by app identifier.",
+    )
 
     @staticmethod
     def filter_psp_reference(qs, _, value):
         return filter_where_by_value_field(qs, "psp_reference", value)
+
+    @staticmethod
+    def filter_app_identifier(qs, _, value):
+        return filter_where_by_value_field(qs, "app_identifier", value)
 
     class Meta:
         abstract = True
