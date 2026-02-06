@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
 
+from ....app.models import App
 from ....app.validators import AppURLValidator
 from ....core import JobStatus
 from ...installation_utils import fetch_manifest, install_app
@@ -44,8 +45,17 @@ class Command(BaseCommand):
 
         self.validate_manifest_url(manifest_url)
         manifest_data = fetch_manifest(manifest_url)
-
         permissions = clean_permissions(manifest_data.get("permissions", []))
+
+        if quiet and (
+            app := App.objects.not_removed()
+            .filter(identifier=manifest_data.get("id"))
+            .first()
+        ):
+            self.stdout.write(
+                f"App with the same identifier is already installed: {app.name}"
+            )
+            return None
 
         app_job = AppInstallation.objects.create(
             app_name=manifest_data["name"], manifest_url=manifest_url
