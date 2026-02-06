@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
   After: `[_Any!]!`
 
   Make sure to adapt your GraphQL queries if you use the `_entities` query.
+- Mutations `channelCreate` and `channelUpdate` now raise GraphQL errors instead `INVALID` when negative `MINUTE`/`HOUR`/`DAY` values are passed.
 
 ### GraphQL API
 - Gift cards support as payment method within Transaction API (read more in the [docs](https://docs.saleor.io/developer/gift-cards#using-gift-cards-in-checkout)).
