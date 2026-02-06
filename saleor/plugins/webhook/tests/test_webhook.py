@@ -2465,25 +2465,20 @@ def test_is_event_active(settings, webhook, permission_manage_orders):
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-@mock.patch("saleor.webhook.transport.synchronous.transport.get_webhooks_for_event")
 @mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.synchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
     mocked_generate_payload,
-    mocked_get_webhooks_for_event,
     mocked_request,
     draft_order,
     app_api_client,
     permission_manage_orders,
     settings,
-    subscription_calculate_taxes_for_order,
+    tax_configuration_tax_app,
+    tax_app,
 ):
     # given
-    webhook = subscription_calculate_taxes_for_order
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    mocked_get_webhooks_for_event.return_value = [webhook]
-
     order_discount = draft_order.discounts.create(
         value_type=DiscountValueType.FIXED,
         value=Decimal(10),

@@ -1,16 +1,13 @@
 import graphene
 import pytest
-from django.utils import timezone
 
 from ...app.models import App
 from ...permission.enums import (
     CheckoutPermissions,
-    OrderPermissions,
     get_permissions_from_codenames,
 )
-from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.models import Webhook, WebhookEvent
-from ...webhook.transport.taxes import get_current_tax_app
 
 
 @pytest.fixture
@@ -63,63 +60,3 @@ def tax_app(tax_app_factory):
         name="Tax App",
         is_active=True,
     )
-
-
-def test_get_current_tax_app(tax_app):
-    assert tax_app == get_current_tax_app()
-
-
-def test_get_current_tax_app_removed_app(tax_app):
-    tax_app.removed_at = timezone.now()
-    tax_app.save(update_fields=["removed_at"])
-    assert get_current_tax_app() is None
-
-
-def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
-    # given
-    tax_app_factory(
-        name="A Tax App",
-    )
-    tax_app_factory(
-        name="Z Tax App",
-    )
-    expected_app = tax_app_factory(
-        name="Tax App",
-    )
-    app_factory(
-        name="Non Tax App",
-        is_active=True,
-        webhook_event_types=[
-            WebhookEventAsyncType.ORDER_UPDATED,
-        ],
-        permissions=[
-            OrderPermissions.MANAGE_ORDERS,
-        ],
-    )
-    tax_app_factory(name="Unauthorized Tax App", permissions=[])
-    tax_app_factory(
-        name="Partial Tax App 2",
-        webhook_event_types=[
-            WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-        ],
-    )
-    tax_app_factory(
-        name="Partial Tax App 1",
-        webhook_event_types=[
-            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-        ],
-    )
-    tax_app_factory(
-        name="Inactive Tax App",
-        is_active=False,
-    )
-
-    # when
-    app = get_current_tax_app()
-
-    # then
-    assert expected_app == app
-
-
-def test_get_current_tax_app_no_app():
-    assert get_current_tax_app() is None

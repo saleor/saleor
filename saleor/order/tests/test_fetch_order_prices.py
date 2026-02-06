@@ -35,8 +35,8 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderLineDiscount.objects.count() == 1
@@ -153,8 +153,8 @@ def test_fetch_order_prices_order_discount_flat_rates(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert not OrderLineDiscount.objects.exists()
@@ -285,8 +285,8 @@ def test_fetch_order_prices_gift_discount_flat_rates(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert len(lines) == 3
@@ -416,8 +416,8 @@ def test_fetch_order_prices_catalogue_and_order_discounts_flat_rates(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     line_1 = [line for line in lines if line.quantity == 3][0]
@@ -569,8 +569,8 @@ def test_fetch_order_prices_catalogue_and_gift_discounts_flat_rates(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert len(lines) == 3
@@ -729,8 +729,8 @@ def test_fetch_order_prices_catalogue_and_order_discounts_exceed_total_flat_rate
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     line_1 = [line for line in lines if line.quantity == 3][0]
@@ -851,8 +851,8 @@ def test_fetch_order_prices_manual_discount_and_order_discount_flat_rates(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert not OrderLineDiscount.objects.exists()
@@ -988,8 +988,8 @@ def test_fetch_order_prices_manual_discount_and_gift_discount_flat_rates(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert not OrderLineDiscount.objects.exists()
@@ -1135,8 +1135,8 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     catalogue_discount = OrderLineDiscount.objects.get()
@@ -1317,8 +1317,8 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     discounted_line, line_1 = lines
@@ -1435,8 +1435,8 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     discounted_line, line_1 = lines
@@ -1525,13 +1525,17 @@ def test_fetch_order_prices_order_promotion_discount_race_condition(
 
     # when
     def call_before_creating_order_promotion_line_discount(*args, **kwargs):
-        calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
+        calculations.fetch_order_prices_if_expired(
+            order, plugins_manager, None, None, True
+        ).get()
 
     with race_condition.RunBefore(
         "saleor.discount.utils.promotion._handle_order_promotion",
         call_before_creating_order_promotion_line_discount,
     ):
-        calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
+        calculations.fetch_order_prices_if_expired(
+            order, plugins_manager, None, None, True
+        ).get()
 
     # then
     assert OrderDiscount.objects.count() == 1
@@ -1596,8 +1600,8 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderDiscount.objects.count() == 2
@@ -1691,8 +1695,8 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_percentage(
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderDiscount.objects.count() == 2
@@ -1785,8 +1789,8 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_to
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderDiscount.objects.count() == 2
@@ -1840,8 +1844,8 @@ def test_fetch_order_prices_catalogue_discount_prices_entered_with_tax_tax_exemp
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderLineDiscount.objects.count() == 1
@@ -1961,8 +1965,8 @@ def test_fetch_order_prices_removing_catalogue_promotion_doesnt_remove_discount(
 
     tax_rate = Decimal("1.23")
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
     variant_1 = line_1.variant
     variant_1_listing = variant_1.channel_listings.get(channel=channel)
     variant_1_undiscounted_unit_price = variant_1_listing.price_amount
@@ -1977,8 +1981,8 @@ def test_fetch_order_prices_removing_catalogue_promotion_doesnt_remove_discount(
     fetch_variants_for_promotion_rules(PromotionRule.objects.all())
     update_discounted_prices_for_promotion(Product.objects.all())
     order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     variant_1_listing.refresh_from_db()

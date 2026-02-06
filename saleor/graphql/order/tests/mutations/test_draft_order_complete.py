@@ -1445,7 +1445,9 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
     currency = order.currency
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    fetch_order_prices_if_expired(order, plugins_manager, force_update=True)
+    fetch_order_prices_if_expired(
+        order, plugins_manager, requestor=None, force_update=True
+    ).get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -1542,7 +1544,9 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
     currency = order.currency
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    fetch_order_prices_if_expired(order, plugins_manager, force_update=True)
+    fetch_order_prices_if_expired(
+        order, plugins_manager, requestor=None, force_update=True
+    ).get()
 
     # when
     response = staff_api_client.post_graphql(

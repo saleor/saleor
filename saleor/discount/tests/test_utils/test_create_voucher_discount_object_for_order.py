@@ -44,7 +44,9 @@ def test_create_discount_for_voucher_specific_product_fixed(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     discounted_line, line_1 = lines
@@ -144,7 +146,9 @@ def test_create_discount_for_voucher_specific_product_percentage(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     discounted_line, line_1 = lines
@@ -248,7 +252,9 @@ def test_create_discount_for_voucher_apply_once_per_order_percentage(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     discounted_line, line_1 = lines
@@ -358,7 +364,9 @@ def test_create_discount_for_voucher_apply_once_per_order_fixed(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     discounted_line, line_1 = lines
@@ -465,7 +473,9 @@ def test_create_discount_for_voucher_entire_order_fixed(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderDiscount.objects.count() == 1
@@ -583,7 +593,9 @@ def test_create_discount_for_voucher_entire_order_multiple_lines(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderDiscount.objects.count() == 1
@@ -675,7 +687,9 @@ def test_create_discount_for_voucher_entire_order_percentage(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderDiscount.objects.count() == 1
@@ -785,7 +799,9 @@ def test_create_discount_for_voucher_shipping_fixed(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderDiscount.objects.count() == 1
@@ -861,7 +877,9 @@ def test_create_discount_for_voucher_shipping_percentage(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderDiscount.objects.count() == 1
@@ -933,7 +951,9 @@ def test_create_discount_for_voucher_specific_product_line_with_catalogue_discou
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     assert OrderLineDiscount.objects.count() == 2

@@ -126,7 +126,7 @@ def test_add_fixed_order_discount_to_order(
     assert len(errors) == 0
 
     assert order.should_refresh_prices
-    fetch_order_prices_if_expired(order, plugins_manager)
+    fetch_order_prices_if_expired(order, plugins_manager, None).get()
 
     # Use `net` values in comparison due to that fixture have taxes incluted in
     # prices but after recalculation taxes are removed because in tests we
@@ -189,7 +189,7 @@ def test_add_percentage_order_discount_to_order(
     assert len(errors) == 0
 
     assert order.should_refresh_prices
-    fetch_order_prices_if_expired(order, plugins_manager)
+    fetch_order_prices_if_expired(order, plugins_manager, None).get()
 
     # Use `net` values in comparison due to that fixture have taxes included in
     # prices but after recalculation taxes are removed because in tests we
@@ -286,7 +286,7 @@ def test_add_fixed_order_discount_to_order_by_app(
     assert Decimal(discount_data["amount_value"]) == order_discount.amount.amount
 
     assert order.should_refresh_prices
-    fetch_order_prices_if_expired(order, plugins_manager)
+    fetch_order_prices_if_expired(order, plugins_manager, None).get()
 
     # Use `net` values in comparison due to that fixture have taxes incluted in
     # prices but after recalculation taxes are removed because in tests we
@@ -353,7 +353,7 @@ def test_add_manual_discount_replaces_entire_voucher(
     assert manual_discount.amount.amount == expected_discount_amount.amount
 
     assert order.should_refresh_prices
-    fetch_order_prices_if_expired(order, plugins_manager)
+    fetch_order_prices_if_expired(order, plugins_manager, None).get()
 
     assert (
         order.total_net_amount
@@ -410,7 +410,7 @@ def test_add_manual_discount_keeps_shipping_voucher(
     applied_discount_amount = manual_discount_value + shipping_discount.amount_value
 
     assert order.should_refresh_prices
-    fetch_order_prices_if_expired(order, plugins_manager)
+    fetch_order_prices_if_expired(order, plugins_manager, None).get()
     assert (
         order.total_net_amount
         == order.undiscounted_total_net_amount - applied_discount_amount
@@ -461,7 +461,7 @@ def test_add_manual_discount_replaces_order_promotion(
     assert manual_discount.amount.amount == discount_value
 
     assert order.should_refresh_prices
-    fetch_order_prices_if_expired(order, plugins_manager)
+    fetch_order_prices_if_expired(order, plugins_manager, None).get()
 
     assert (
         order.total_net_amount == order.undiscounted_total_net_amount - discount_value
@@ -520,7 +520,7 @@ def test_add_manual_discount_replaces_gift_discount(
     assert manual_discount.amount.amount == discount_value
 
     assert order.should_refresh_prices
-    fetch_order_prices_if_expired(order, plugins_manager)
+    fetch_order_prices_if_expired(order, plugins_manager, None).get()
     assert (
         order.total_net_amount == order.undiscounted_total_net_amount - discount_value
     )
@@ -1118,7 +1118,7 @@ def test_delete_manual_discount_from_order_with_entire_order_voucher(
     order.voucher_code = code
     order.voucher = voucher
     order.save(update_fields=["voucher_code", "voucher"])
-    fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    fetch_order_prices_if_expired(order, plugins_manager, None, None, True).get()
     assert order.discounts.get() == manual_discount
     voucher_discount_amount = voucher.channel_listings.get().discount
     undiscounted_total_net_amount = order.undiscounted_total_net_amount

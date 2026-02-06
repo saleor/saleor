@@ -1384,16 +1384,6 @@ def subscription_thumbnail_created_webhook(subscription_webhook):
 
 
 @pytest.fixture
-def subscription_calculate_taxes_for_order(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        queries.ORDER_CALCULATE_TAXES,
-        WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-    )
-
-
-@pytest.fixture
 def subscription_app_installed_webhook_removed_app(subscription_webhook, removed_app):
     return subscription_webhook(
         queries.APP_INSTALLED, WebhookEventAsyncType.APP_INSTALLED, app=removed_app

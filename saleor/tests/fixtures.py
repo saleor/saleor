@@ -1718,12 +1718,12 @@ def tax_configuration_flat_rates(channel_USD):
 
 
 @pytest.fixture
-def tax_configuration_tax_app(channel_USD):
+def tax_configuration_tax_app(channel_USD, tax_app):
     tc = channel_USD.tax_configuration
     tc.country_exceptions.all().delete()
     tc.prices_entered_with_tax = False
     tc.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
-    tc.tax_app_id = "avatax.app"
+    tc.tax_app_id = tax_app.identifier
     tc.save()
     return tc
 

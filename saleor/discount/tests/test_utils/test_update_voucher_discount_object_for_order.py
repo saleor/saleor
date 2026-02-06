@@ -46,7 +46,9 @@ def test_update_voucher_discount_specific_product_with_different_variants(
     order.voucher = voucher_1
     order.voucher_code = voucher_1.codes.first().code
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     line_1, line_2 = lines
     discount_1 = line_1.discounts.get()
@@ -67,7 +69,9 @@ def test_update_voucher_discount_specific_product_with_different_variants(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -174,7 +178,9 @@ def test_update_voucher_discount_specific_product_with_apply_once_per_order(
     order.voucher = voucher_1
     order.voucher_code = voucher_1.codes.first().code
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     cheapest_line, line_2 = lines
     discount_1 = line_2.discounts.get()
@@ -195,7 +201,9 @@ def test_update_voucher_discount_specific_product_with_apply_once_per_order(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     cheapest_line, line_2 = lines
@@ -309,7 +317,9 @@ def test_update_voucher_discount_apply_once_per_order_with_specific_product(
     order.voucher = voucher_1
     order.voucher_code = voucher_1.codes.first().code
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     line_1, line_2 = lines
     discount = line_1.discounts.get()
@@ -331,7 +341,9 @@ def test_update_voucher_discount_apply_once_per_order_with_specific_product(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -428,7 +440,9 @@ def test_update_voucher_discount_specific_product_with_entire_order(
     order.voucher = voucher_1
     order.voucher_code = voucher_1.codes.first().code
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     line_1, line_2 = lines
     discount_1 = line_2.discounts.get()
@@ -451,7 +465,9 @@ def test_update_voucher_discount_specific_product_with_entire_order(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     with pytest.raises(OrderLineDiscount.DoesNotExist):
@@ -579,7 +595,9 @@ def test_update_voucher_discount_shipping_with_specific_product(
     order.voucher = voucher_1
     order.voucher_code = voucher_1.codes.first().code
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     assert order.undiscounted_base_shipping_price == undiscounted_shipping_price
     assert order.base_shipping_price == shipping_price_after_discount
@@ -598,7 +616,9 @@ def test_update_voucher_discount_shipping_with_specific_product(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -706,7 +726,9 @@ def test_update_voucher_discount_specific_product_with_shipping(
     order.voucher = voucher_1
     order.voucher_code = voucher_1.codes.first().code
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     line_1, line_2 = lines
     assert (
@@ -725,7 +747,9 @@ def test_update_voucher_discount_specific_product_with_shipping(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -826,7 +850,9 @@ def test_update_voucher_discount_shipping_with_entire_order(
     order.voucher = voucher_1
     order.voucher_code = voucher_1.codes.first().code
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     assert order.undiscounted_base_shipping_price == undiscounted_shipping_price
     assert order.base_shipping_price == shipping_price_after_discount
@@ -847,7 +873,9 @@ def test_update_voucher_discount_shipping_with_entire_order(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -973,7 +1001,9 @@ def test_update_voucher_discount_entire_order_with_shipping(
     order.voucher = voucher_1
     order.voucher_code = voucher_1.codes.first().code
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     assert order.subtotal_net_amount == quantize_price(
         undiscounted_subtotal.amount - voucher_1_discount.amount, currency
@@ -993,7 +1023,9 @@ def test_update_voucher_discount_entire_order_with_shipping(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -1092,7 +1124,9 @@ def test_update_voucher_discount_entire_order_with_specific_product(
     order.voucher = voucher_1
     order.voucher_code = voucher_1.codes.first().code
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     assert order.subtotal_net_amount == quantize_price(
         undiscounted_subtotal.amount - voucher_1_discount.amount, currency
@@ -1111,7 +1145,9 @@ def test_update_voucher_discount_entire_order_with_specific_product(
 
     # when
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     # then
     line_1, line_2 = lines

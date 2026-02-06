@@ -253,6 +253,9 @@ def setup_order_webhooks(
 ):
     subscription_async_webhooks = """
     fragment OrderFragment on Order {
+      shippingMethods {
+        id
+      }
       shippingPrice {
         gross {
           amount
