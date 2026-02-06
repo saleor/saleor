@@ -18,7 +18,7 @@ def test_validate_draft_order(draft_order):
             draft_order.lines.all(),
             "US",
             get_plugins_manager(allow_replica=False),
-        )
+        ).get()
         is None
     )
 
@@ -33,7 +33,7 @@ def test_validate_draft_order_without_sku(draft_order):
             draft_order.lines.all(),
             "US",
             get_plugins_manager(allow_replica=False),
-        )
+        ).get()
         is None
     )
 
@@ -47,7 +47,7 @@ def test_validate_draft_order_wrong_shipping(draft_order):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     msg = "Shipping method is not valid for chosen shipping address"
     assert e.value.error_dict["shipping"][0].message == msg
 
@@ -57,7 +57,7 @@ def test_validate_draft_order_no_order_lines(order, shipping_method):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     msg = "Could not create order without any products."
     assert e.value.error_dict["lines"][0].message == msg
 
@@ -73,7 +73,7 @@ def test_validate_draft_order_non_existing_variant(draft_order):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     msg = "Could not create orders with non-existing products."
     assert e.value.error_dict["lines"][0].message == msg
 
@@ -90,7 +90,7 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     msg = "Can't finalize draft with unpublished product."
     error = e.value.error_dict["lines"][0]
 
@@ -108,7 +108,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     msg = "Can't finalize draft with product unavailable for purchase."
     error = e.value.error_dict["lines"][0]
 
@@ -131,7 +131,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     msg = "Can't finalize draft with product unavailable for purchase."
     error = e.value.error_dict["lines"][0]
 
@@ -151,7 +151,7 @@ def test_validate_draft_order_out_of_stock_variant(draft_order):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     msg = "Insufficient product stock."
     assert e.value.error_dict["lines"][0].message == msg
 
@@ -163,7 +163,7 @@ def test_validate_draft_order_no_shipping_address(draft_order):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no shipping address."
     assert error.code == OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value
@@ -176,7 +176,7 @@ def test_validate_draft_order_no_billing_address(draft_order):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no billing address."
     assert error.code == OrderErrorCode.BILLING_ADDRESS_NOT_SET.value
@@ -189,7 +189,7 @@ def test_validate_draft_order_no_shipping_method(draft_order):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
     error = e.value.error_dict["shipping"][0]
     assert error.message == "Shipping method is required."
     assert error.code == OrderErrorCode.SHIPPING_METHOD_REQUIRED.value
@@ -206,7 +206,7 @@ def test_validate_draft_order_no_shipping_method_shipping_not_required(
     assert (
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
         is None
     )
 
@@ -224,7 +224,7 @@ def test_validate_draft_order_no_shipping_address_no_method_shipping_not_require
     assert (
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
         is None
     )
 
@@ -238,7 +238,7 @@ def test_validate_draft_order_voucher(draft_order_with_voucher):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(
             order, order.lines.all(), "US", get_plugins_manager(allow_replica=False)
-        )
+        ).get()
 
     error = e.value.error_dict["voucher"][0]
     assert error.code == OrderErrorCode.INVALID_VOUCHER.value
