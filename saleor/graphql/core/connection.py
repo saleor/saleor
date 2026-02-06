@@ -1,9 +1,10 @@
-import json
+from base64 import b64encode
 from collections.abc import Callable, Iterable
 from decimal import Decimal, InvalidOperation
 from typing import TYPE_CHECKING, Any
 
 import graphene
+import orjson
 from django.conf import settings
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
@@ -12,7 +13,7 @@ from graphql import GraphQLError
 from graphql.language.ast import FragmentSpread, InlineFragment, SelectionSet
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
-from graphql_relay.utils import base64, unbase64
+from graphql_relay.utils import unbase64
 
 from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
 from ..channel.utils import get_default_channel_slug_or_graphql_error
@@ -38,12 +39,12 @@ def to_global_cursor(values):
     if not isinstance(values, Iterable):
         values = [values]
     values = [value if value is None else str(value) for value in values]
-    return base64(json.dumps(values))
+    return b64encode(orjson.dumps(values, option=orjson.OPT_UTC_Z)).decode("utf-8")
 
 
 def from_global_cursor(cursor) -> list[str]:
     values = unbase64(cursor)
-    return json.loads(values)
+    return orjson.loads(values)
 
 
 def get_field_value(instance: DjangoModel, field_name: str):
@@ -517,7 +518,11 @@ def filter_qs(
 
     filterset = filterset_class(filter_input, queryset=queryset, request=request)
     if not filterset.is_valid():
-        raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
+        raise GraphQLError(
+            orjson.dumps(
+                filterset.errors.get_json_data(), option=orjson.OPT_UTC_Z
+            ).decode("utf-8")
+        )
 
     if isinstance(iterable, ChannelQsContext):
         return ChannelQsContext(filterset.qs, iterable.channel_slug)
