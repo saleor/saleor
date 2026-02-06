@@ -17,6 +17,11 @@ ADDED_IN_321 = "\n\nAdded in Saleor 3.21."
 ADDED_IN_322 = "\n\nAdded in Saleor 3.22."
 ADDED_IN_323 = "\n\nAdded in Saleor 3.23."
 
+DEPRECATED_EXPORT_MUTATIONS = (
+    "Export functionality is deprecated and will be removed. "
+    "All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools."
+)
+
 
 PREVIEW_FEATURE = (
     "\n\nNote: this API is currently in Feature Preview and can be subject to "
