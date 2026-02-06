@@ -1,0 +1,31 @@
+saleor/graphql/core/types/base.py
+  8f8485b3c6e9c1e7 36-44,48-56
+saleor/graphql/core/mutations.py
+  8f8485b3c6e9c1e7 719-722
+saleor/graphql/core/tests/test_limited_string.py
+  8f8485b3c6e9c1e7 1-187
+saleor/graphql/core/limited_string.py
+  8f8485b3c6e9c1e7 1-27
+saleor/graphql/core/validators/__init__.py
+  8f8485b3c6e9c1e7 230-257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "4561a82d5f713ecf722f992485b2fba826f48446",
+  "prompts": {
+    "8f8485b3c6e9c1e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9b32be07-bbf5-4584-ba4f-9b59717438f6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 267,
+      "total_deletions": 0,
+      "accepted_lines": 265,
+      "overriden_lines": 0
+    }
+  }
+}
