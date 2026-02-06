@@ -1,4 +1,4 @@
-from unittest.mock import ANY, Mock, call
+from unittest.mock import ANY, Mock, call, patch
 
 import graphene
 import pytest
@@ -10,6 +10,7 @@ from ... import schema_version
 from ...core import JobStatus
 from ...permission.enums import get_permissions
 from ..models import App, AppInstallation
+from ..types import AppType
 
 
 @pytest.mark.vcr
@@ -103,6 +104,49 @@ def test_creates_app_from_manifest_installation_failed():
     app_job = AppInstallation.objects.get()
     assert app_job.status == JobStatus.FAILED
     assert app_job.uuid is not None
+
+
+@pytest.fixture
+def installed_app():
+    app = App.objects.create(
+        name="Installed App",
+        identifier="app.already.installed",
+        is_active=True,
+        is_installed=True,
+        manifest_url="http://otherapp:3000/manifest",
+        type=AppType.THIRDPARTY,
+    )
+    manifest_data = {
+        "name": app.name,
+        "version": "1.0.0",
+        "id": app.identifier,
+        "tokenTargetUrl": "http://otherapp:3000/register",
+    }
+    with patch(
+        "saleor.app.management.commands.install_app.fetch_manifest",
+        return_value=manifest_data,
+    ):
+        with patch(
+            "saleor.app.installation_utils.fetch_manifest", return_value=manifest_data
+        ):
+            yield app
+
+
+def test_creates_app_from_manifest_fails_on_already_installed_app(installed_app):
+    with pytest.raises(
+        ValidationError,
+        match="App with the same identifier is already installed",
+    ):
+        call_command("install_app", installed_app.manifest_url)
+
+
+def test_creates_app_from_manifest_quiet_skips_already_installed_app(installed_app):
+    call_command("install_app", installed_app.manifest_url, quiet=True)
+
+    assert App.objects.all().count() == 1
+
+    app = App.objects.get()
+    assert app.pk == installed_app.pk
 
 
 def test_creates_app_object():
