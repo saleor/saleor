@@ -1,0 +1,45 @@
+saleor/graphql/core/mutations.py
+  a5840dd31718c312 518-577,588
+saleor/graphql/payment/tests/mutations/test_transaction_create.py
+  a5840dd31718c312 2674
+saleor/graphql/payment/tests/mutations/test_transaction_update.py
+  a5840dd31718c312 3638
+saleor/graphql/product/mutations/product/product_media_create.py
+  a5840dd31718c312 14,28
+saleor/graphql/product/bulk_mutations/product_bulk_create.py
+  a5840dd31718c312 44,461-464,467-468,470
+saleor/graphql/order/bulk_mutations/order_bulk_create.py
+  a5840dd31718c312 64,70,433-434,436,1495-1498,1501-1502,1504
+saleor/graphql/product/mutations/product/product_media_update.py
+  a5840dd31718c312 8,16
+saleor/graphql/payment/tests/mutations/test_transaction_event_report.py
+  a5840dd31718c312 3581
+saleor/graphql/product/tests/mutations/test_product_media_create.py
+  a5840dd31718c312 386
+saleor/graphql/core/types/common.py
+  a5840dd31718c312 96,99,1010-1011
+saleor/graphql/payment/mutations/transaction/shared.py
+  a5840dd31718c312 12,18-20,23-25,28-30,33-35,49-50
+saleor/graphql/order/tests/mutations/test_order_bulk_create.py
+  a5840dd31718c312 2721
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "04e0dd0a73be42295797287c1677b2c1b167bf2e",
+  "prompts": {
+    "a5840dd31718c312": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f711640f-76c5-47e2-b7f8-cbb31854b029",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 160,
+      "total_deletions": 158,
+      "accepted_lines": 111,
+      "overriden_lines": 0
+    }
+  }
+}
