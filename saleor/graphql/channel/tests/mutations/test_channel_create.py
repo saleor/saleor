@@ -874,6 +874,43 @@ def test_channel_create_set_delete_expired_orders_after(
     )
 
 
+def test_channel_create_mutation_negative_delete_expired_orders_after(
+    permission_manage_channels,
+    app_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "orderSettings": {"deleteExpiredOrdersAfter": -1},
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+    expected_msg = (
+        'In field "orderSettings": In field "deleteExpiredOrdersAfter":'
+        ' Expected type "Day", found -1.'
+    )
+    assert expected_msg in content["errors"][0]["message"]
+
+
 @pytest.mark.parametrize("delete_expired_after", [0, 121, 300])
 def test_channel_create_mutation_set_incorrect_delete_expired_orders_after(
     delete_expired_after, permission_manage_channels, staff_api_client, channel_USD
