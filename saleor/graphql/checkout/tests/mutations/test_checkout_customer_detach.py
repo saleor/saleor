@@ -31,7 +31,8 @@ MUTATION_CHECKOUT_CUSTOMER_DETACH = """
 def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_user):
     checkout = checkout_with_item
     checkout.user = customer_user
-    checkout.save(update_fields=["user"])
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["user", "search_index_dirty"])
     previous_last_change = checkout.last_change
 
     variables = {"id": to_global_id_or_none(checkout)}
@@ -46,6 +47,7 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
     checkout.refresh_from_db()
     assert checkout.user is None
     assert checkout.last_change != previous_last_change
+    assert checkout.search_index_dirty is True
 
     # Mutation should fail when user calling it doesn't own the checkout.
     other_user = User.objects.create_user("othercustomer@example.com", "password")

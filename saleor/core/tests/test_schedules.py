@@ -11,6 +11,7 @@ from ...checkout.models import Checkout
 from ...discount.models import Promotion
 from ..schedules import (
     checkout_automatic_completion_schedule,
+    checkout_search_update_schedule,
     gift_card_search_update_schedule,
     page_search_update_schedule,
     product_search_update_schedule,
@@ -522,6 +523,59 @@ def test_automatic_completion_schedule_zero_total(checkout_with_prices, channel_
         last_change=timezone.now() - datetime.timedelta(minutes=7),
         total_gross_amount=0,
     )
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_checkout_search_update_schedule_are_dirty(checkout):
+    # given
+    schedule = checkout_search_update_schedule()
+    checkout.search_index_dirty = True
+    checkout.save(update_fields=["search_index_dirty"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
+
+    # then
+    assert is_due is True
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_checkout_search_update_schedule_remaining_estimate_initial_state():
+    # given
+    schedule = checkout_search_update_schedule()
+
+    # when
+    remaining = schedule.remaining_estimate(last_run_at=timezone.now())
+
+    # then
+    assert remaining == schedule.initial_timedelta
+
+
+@freeze_time("2020-10-10 12:00:00")
+def test_checkout_search_update_schedule_remaining_estimate():
+    # given
+    schedule = checkout_search_update_schedule()
+    time_delta = datetime.timedelta(seconds=30)
+
+    # when
+    remaining = schedule.remaining_estimate(last_run_at=timezone.now() - time_delta)
+
+    # then
+    assert remaining == schedule.initial_timedelta - time_delta
+
+
+def test_checkout_search_update_schedule_not_dirty(checkout):
+    # given
+    schedule = checkout_search_update_schedule()
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     # when
     is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))

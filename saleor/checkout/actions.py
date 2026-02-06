@@ -1,6 +1,6 @@
 import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, Optional
 
 from django.utils import timezone
 
@@ -204,13 +204,11 @@ def update_last_transaction_modified_at_for_checkout(
 
 def transaction_amounts_for_checkout_updated(
     transaction: TransactionItem,
+    checkout: Checkout,
     manager: "PluginsManager",
     user: Optional["User"],
     app: Optional["App"],
 ):
-    if not transaction.checkout_id:
-        return
-    checkout = cast(Checkout, transaction.checkout)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     previous_charge_status = checkout_info.checkout.charge_status

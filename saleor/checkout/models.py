@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.indexes import BTreeIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
@@ -313,6 +314,9 @@ class Checkout(models.Model):
         max_length=TAX_ERROR_FIELD_LENGTH, blank=True, null=True
     )
 
+    search_vector = SearchVectorField(blank=True, null=True)
+    search_index_dirty = models.BooleanField(default=True, db_default=True)
+
     class Meta:
         ordering = ("-last_change", "pk")
         permissions = (
@@ -327,6 +331,10 @@ class Checkout(models.Model):
                 name="automaticcompletionattempt_idx",
             ),
             models.Index(fields=["created_at"], name="idx_checkout_created_at"),
+            GinIndex(
+                name="checkout_tsearch",
+                fields=["search_vector"],
+            ),
         ]
 
     def __iter__(self):

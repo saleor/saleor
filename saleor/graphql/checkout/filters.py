@@ -6,6 +6,7 @@ from django.db.models import Exists, OuterRef, Q
 
 from ...account.models import User
 from ...checkout.models import Checkout
+from ...checkout.search.indexing import search_checkouts
 from ...payment.models import Payment
 from ..channel.filters import get_currency_from_filter_data
 from ..channel.types import Channel
@@ -98,30 +99,7 @@ def filter_channels(qs, _, values):
 
 
 def filter_checkout_search(qs, _, value):
-    if payment_id := get_payment_id_from_query(value):
-        return filter_checkout_by_payment(qs, payment_id)
-
-    users = (
-        User.objects.using(qs.db)
-        .filter(
-            Q(email__ilike=value)
-            | Q(first_name__ilike=value)
-            | Q(last_name__ilike=value)
-        )
-        .values("pk")
-    )
-
-    filter_option = Q(Exists(users.filter(id=OuterRef("user_id"))))
-
-    possible_token = get_checkout_id_from_query(value) or value
-
-    if checkout_id := get_checkout_token_from_query(possible_token):
-        filter_option |= Q(token=checkout_id)
-
-    payments = Payment.objects.using(qs.db).filter(psp_reference=value).values("id")
-    filter_option |= Q(Exists(payments.filter(checkout_id=OuterRef("token"))))
-
-    return qs.filter(filter_option)
+    return search_checkouts(qs, value)
 
 
 def filter_checkout_metadata(qs, _, value):

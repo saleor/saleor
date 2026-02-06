@@ -2713,6 +2713,9 @@ def test_transaction_update_for_checkout_fully_paid(
     )
 
     checkout = checkout_with_prices
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
+
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
@@ -2736,6 +2739,7 @@ def test_transaction_update_for_checkout_fully_paid(
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert checkout.search_index_dirty is True
 
     mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
     mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())
@@ -2766,6 +2770,9 @@ def test_transaction_update_for_checkout_fully_authorized(
     )
 
     checkout = checkout_with_prices
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
+
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
@@ -2789,6 +2796,7 @@ def test_transaction_update_for_checkout_fully_authorized(
     checkout.refresh_from_db()
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert checkout.search_index_dirty is True
 
     mocked_checkout_fully_paid.assert_not_called()
     mocked_checkout_fully_authorized.assert_called_once_with(checkout, webhooks=set())

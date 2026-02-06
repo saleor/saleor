@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from ...payment.models import Transaction, TransactionEvent, TransactionItem
+from ...payment.models import Payment, Transaction, TransactionEvent, TransactionItem
 from ..core.dataloaders import DataLoader
 
 
@@ -42,3 +42,16 @@ class TransactionByPaymentIdLoader(DataLoader[int, list[Transaction]]):
             transaction_group[transaction.payment_id].append(transaction)
 
         return [transaction_group.get(payment_id, []) for payment_id in keys]
+
+
+class PaymentsByCheckoutTokenLoader(DataLoader[str, list["Payment"]]):
+    context_key = "payments_by_checkout_token"
+
+    def batch_load(self, keys):
+        payments = Payment.objects.using(self.database_connection_name).filter(
+            checkout_id__in=keys
+        )
+        payment_map = defaultdict(list)
+        for payment in payments:
+            payment_map[str(payment.checkout_id)].append(payment)
+        return [payment_map[str(checkout_id)] for checkout_id in keys]
