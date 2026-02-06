@@ -3,11 +3,12 @@ import graphene
 from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.utils import from_global_id_or_error
-from .filters import PaymentFilterInput
+from .filters import PaymentFilterInput, TransactionWhereInput
 from .mutations import (
     PaymentCapture,
     PaymentCheckBalance,
@@ -27,12 +28,18 @@ from .mutations import (
     TransactionRequestRefundForGrantedRefund,
     TransactionUpdate,
 )
-from .resolvers import resolve_payment_by_id, resolve_payments, resolve_transaction
+from .resolvers import (
+    resolve_payment_by_id,
+    resolve_payments,
+    resolve_transaction,
+    resolve_transactions,
+)
 from .types import (
     CardPaymentMethodDetails,
     OtherPaymentMethodDetails,
     Payment,
     PaymentCountableConnection,
+    TransactionCountableConnection,
     TransactionItem,
 )
 
@@ -84,6 +91,26 @@ class PaymentQueries(graphene.ObjectType):
         ),
         permissions=[
             PaymentPermissions.HANDLE_PAYMENTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
+        doc_category=DOC_CATEGORY_PAYMENTS,
+    )
+    transactions = FilterConnectionField(
+        TransactionCountableConnection,
+        where=TransactionWhereInput(
+            description="Where filtering options for transactions."
+        ),
+        description=(
+            "List of transactions. "
+            "For apps with `MANAGE_ORDERS` permission, returns all transactions. "
+            "For apps with just `HANDLE_PAYMENTS` permission, "
+            "returns only transactions created by that app. "
+            "For staff users, returns transactions from orders and checkouts "
+            "in channels they have access to." + ADDED_IN_322
+        ),
+        permissions=[
+            PaymentPermissions.HANDLE_PAYMENTS,
+            OrderPermissions.MANAGE_ORDERS,
         ],
         doc_category=DOC_CATEGORY_PAYMENTS,
     )
@@ -114,6 +141,14 @@ class PaymentQueries(graphene.ObjectType):
             global_id=str(id), only_type=TransactionItem, raise_error=True
         )
         return resolve_transaction(info, id)
+
+    @staticmethod
+    def resolve_transactions(_root, info: ResolveInfo, **kwargs):
+        qs = resolve_transactions(info)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
+        return create_connection_slice(qs, info, kwargs, TransactionCountableConnection)
 
 
 class PaymentMutations(graphene.ObjectType):
