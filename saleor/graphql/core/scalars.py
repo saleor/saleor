@@ -96,7 +96,20 @@ class WeightScalar(graphene.Scalar):
     @staticmethod
     def parse_value(value):
         if isinstance(value, dict):
-            weight = Weight(**{value["unit"]: value["value"]})
+            unit = value.get("unit")
+            weight_value = value.get("value")
+
+            if unit is None or weight_value is None:
+                return None
+
+            try:
+                weight_decimal = decimal.Decimal(str(weight_value))
+            except decimal.DecimalException:
+                return None
+            try:
+                weight = Weight(**{unit: weight_decimal})
+            except (TypeError, ValueError, AttributeError):
+                return None
         else:
             weight = WeightScalar.parse_decimal(value)
         return weight
@@ -118,6 +131,8 @@ class WeightScalar(graphene.Scalar):
 
     @staticmethod
     def parse_decimal(value):
+        if value is None:
+            return None
         try:
             value = decimal.Decimal(value)
         except decimal.DecimalException:
@@ -132,13 +147,18 @@ class WeightScalar(graphene.Scalar):
 
         for field in node.fields:
             if field.name.value == "value":
+                if field.value.value is None:
+                    return None
                 try:
                     value = decimal.Decimal(field.value.value)
                 except decimal.DecimalException:
                     return None
             if field.name.value == "unit":
                 unit = field.value.value
-        return Weight(**{unit: value})
+        try:
+            return Weight(**{unit: value})
+        except (TypeError, ValueError, AttributeError):
+            return None
 
 
 class UUID(graphene.UUID):
