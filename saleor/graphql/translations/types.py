@@ -320,14 +320,14 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
         if all_permissions_required(info.context, [ProductPermissions.MANAGE_PRODUCTS]):
             return (
                 AttributesByProductVariantIdAndSelectionAndLimitLoader(info.context)
-                .load((root.id, variant_selection, limit))
+                .load((root.id, limit, variant_selection))
                 .then(with_attributes)
             )
         return (
             AttributesVisibleToCustomerByProductVariantIdAndSelectionAndLimitLoader(
                 info.context
             )
-            .load((root.id, variant_selection, limit))
+            .load((root.id, limit, variant_selection))
             .then(with_attributes)
         )
 
