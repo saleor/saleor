@@ -11,12 +11,10 @@ from ....channel.models import Channel
 from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
-from ....order.delivery_context import get_all_shipping_methods_for_order
 from ....product.models import Category
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import (
     ShippingMethod,
-    ShippingMethodChannelListing,
     ShippingZone,
 )
 from ....shipping.utils import convert_to_shipping_method_data
@@ -3076,120 +3074,6 @@ def test_checkout_list_methods_mismatch_in_subscription_query_definition(
 
     # then
     assert not deliveries
-
-
-def test_order_filter_shipping_methods(
-    order_line_with_one_allocation,
-    subscription_order_filter_shipping_methods_webhook,
-    address,
-):
-    # given
-    order = order_line_with_one_allocation.order
-    order_line_with_one_allocation.is_shipping_required = True
-    order_line_with_one_allocation.save(update_fields=["is_shipping_required"])
-
-    order.currency = "USD"
-    order.shipping_address = address
-    order.save(update_fields=["shipping_address"])
-    webhooks = [subscription_order_filter_shipping_methods_webhook]
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
-    order_id = graphene.Node.to_global_id("Order", order.pk)
-    all_shipping_methods = get_all_shipping_methods_for_order(
-        order, ShippingMethodChannelListing.objects.all()
-    )
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(
-        event_type, (order, all_shipping_methods), webhooks
-    )
-
-    # then
-    shipping_methods = [
-        {
-            "id": graphene.Node.to_global_id("ShippingMethod", sm.id),
-            "name": sm.name,
-        }
-        for sm in all_shipping_methods
-    ]
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert payload["order"] == {"id": order_id}
-    for method in shipping_methods:
-        assert method in payload["shippingMethods"]
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_order_filter_shipping_methods_no_methods_in_channel(
-    order_line_with_one_allocation,
-    subscription_order_filter_shipping_methods_webhook,
-    shipping_method_channel_PLN,
-):
-    # given
-    order = order_line_with_one_allocation.order
-    order.save(update_fields=["shipping_address"])
-    webhooks = [subscription_order_filter_shipping_methods_webhook]
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
-    order_id = graphene.Node.to_global_id("Order", order.pk)
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, (order, []), webhooks)
-
-    # then
-    expected_payload = {"order": {"id": order_id}, "shippingMethods": []}
-
-    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_order_filter_shipping_methods_with_circular_call_for_available_methods(
-    order_line_with_one_allocation,
-    subscription_order_filter_shipping_methods_webhook_with_available_ship_methods,
-):
-    # given
-    webhooks = [
-        subscription_order_filter_shipping_methods_webhook_with_available_ship_methods
-    ]
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
-    order = order_line_with_one_allocation.order
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, (order, []), webhooks)
-
-    # then
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert len(payload["errors"]) == 1
-    assert (
-        payload["errors"][0]["message"]
-        == "Resolving this field is not allowed in synchronous events."
-    )
-
-
-def test_order_filter_shipping_methods_with_circular_call_for_shipping_methods(
-    order_line_with_one_allocation,
-    subscription_order_filter_shipping_methods_webhook_with_shipping_methods,
-):
-    # given
-    webhooks = [
-        subscription_order_filter_shipping_methods_webhook_with_shipping_methods
-    ]
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
-    order = order_line_with_one_allocation.order
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, (order, []), webhooks)
-
-    # then
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert len(payload["errors"]) == 1
-    assert (
-        payload["errors"][0]["message"]
-        == "Resolving this field is not allowed in synchronous events."
-    )
-    assert payload["order"] is None
 
 
 @patch.object(logger, "info")

@@ -18,24 +18,27 @@ from ...webhooks.exclude_shipping import (
 
 
 @pytest.fixture
-def available_shipping_methods_factory():
-    def factory(num_methods=1) -> list[ShippingMethodData]:
-        methods = []
-        for i in range(num_methods):
-            methods.append(
-                ShippingMethodData(
-                    id=str(i),
-                    price=Money(Decimal(10), "usd"),
-                    name=uuid.uuid4().hex,
-                    maximum_order_weight=Weight(kg=0),
-                    minimum_order_weight=Weight(kg=0),
-                    maximum_delivery_days=0,
-                    minimum_delivery_days=5,
-                )
-            )
-        return methods
-
-    return factory
+def available_shipping_methods():
+    return [
+        ShippingMethodData(
+            id="1",
+            price=Money(Decimal(10), "usd"),
+            name=uuid.uuid4().hex,
+            maximum_order_weight=Weight(kg=0),
+            minimum_order_weight=Weight(kg=0),
+            maximum_delivery_days=0,
+            minimum_delivery_days=5,
+        ),
+        ShippingMethodData(
+            id="2",
+            price=Money(Decimal(10), "usd"),
+            name=uuid.uuid4().hex,
+            maximum_order_weight=Weight(kg=0),
+            minimum_order_weight=Weight(kg=0),
+            maximum_delivery_days=0,
+            minimum_delivery_days=5,
+        ),
+    ]
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.get")
@@ -50,7 +53,7 @@ def test_excluded_shipping_methods_for_order_use_cache(
     mocked_cache_set,
     mocked_cache_get,
     order_with_lines,
-    available_shipping_methods_factory,
+    available_shipping_methods,
     app_exclude_shipping_for_order,
 ):
     # given
@@ -69,8 +72,6 @@ def test_excluded_shipping_methods_for_order_use_cache(
     mocked_payload.return_value = payload
 
     mocked_cache_get.return_value = (payload, [{"id": "1", "reason": webhook_reason}])
-
-    available_shipping_methods = available_shipping_methods_factory(num_methods=2)
 
     # when
     excluded_shipping_methods_for_order(
@@ -98,7 +99,7 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_empty(
     mocked_cache_set,
     mocked_cache_get,
     order_with_lines,
-    available_shipping_methods_factory,
+    available_shipping_methods,
     app_exclude_shipping_for_order,
 ):
     # given
@@ -122,8 +123,6 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_empty(
     mocked_payload.return_value = payload
 
     mocked_cache_get.return_value = None
-
-    available_shipping_methods = available_shipping_methods_factory(num_methods=2)
 
     # when
     excluded_shipping_methods_for_order(
@@ -162,7 +161,7 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_payload_is_dif
     mocked_cache_set,
     mocked_cache_get,
     order_with_lines,
-    available_shipping_methods_factory,
+    available_shipping_methods,
     app_exclude_shipping_for_order,
 ):
     # given
@@ -184,8 +183,6 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_payload_is_dif
     mocked_payload.return_value = payload
 
     mocked_cache_get.return_value = None
-
-    available_shipping_methods = available_shipping_methods_factory(num_methods=2)
 
     # when
     excluded_shipping_methods_for_order(

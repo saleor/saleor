@@ -3083,22 +3083,6 @@ PAYMENT_LIST_GATEWAYS = """
     }
     """
 
-ORDER_FILTER_SHIPPING_METHODS = """
-subscription{
-  event{
-    ...on OrderFilterShippingMethods{
-      order{
-        id
-      }
-      shippingMethods{
-      id
-      name
-      }
-    }
-  }
-}
-"""
-
 
 CHECKOUT_FILTER_SHIPPING_METHODS = """
 subscription{
@@ -3171,36 +3155,6 @@ subscription{
       checkout{
         id
         availablePaymentGateways{
-          id
-        }
-      }
-    }
-  }
-}
-"""
-
-ORDER_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS = """
-subscription{
-  event{
-    ...on OrderFilterShippingMethods{
-      order{
-        id
-        availableShippingMethods{
-          id
-        }
-      }
-    }
-  }
-}
-"""
-
-ORDER_FILTER_SHIPPING_METHODS_CIRCULAR_SHIPPING_METHODS = """
-subscription{
-  event{
-    ...on OrderFilterShippingMethods{
-      order{
-        id
-        shippingMethods{
           id
         }
       }
