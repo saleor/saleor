@@ -1,0 +1,23 @@
+saleor/graphql/app/tests/mutations/test_app_problem_create.py
+  287ca03fefa8f38f 626-631
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "171484a229ef3756f75382878562cb15ab565e7d",
+  "prompts": {
+    "287ca03fefa8f38f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4fbe6d41-5b1b-4b16-8a8b-67ded4b6d22c",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 13,
+      "total_deletions": 14,
+      "accepted_lines": 6,
+      "overriden_lines": 0
+    }
+  }
+}
