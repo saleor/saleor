@@ -119,36 +119,13 @@ class AppProblemDismiss(BaseMutation):
         cls, _root: None, info: ResolveInfo, /, **data: Any
     ) -> "AppProblemDismiss":
         caller_app = info.context.app
+        is_app_caller = caller_app is not None
         input_data = data.get("input", {})
 
         by_app = input_data.get("by_app")
         by_user_with_ids = input_data.get("by_user_with_ids")
         by_user_with_keys = input_data.get("by_user_with_keys")
 
-        cls._validate_top_level(by_app, by_user_with_ids, by_user_with_keys, caller_app)
-
-        if by_app is not None:
-            assert caller_app is not None  # validated in _validate_top_level
-            cls._validate_by_app_input(by_app)
-            cls._dismiss_for_app_caller(by_app, caller_app)
-        elif by_user_with_ids is not None:
-            cls._dismiss_by_ids_for_user(info, by_user_with_ids["ids"])
-        else:
-            cls._dismiss_by_keys_for_user(
-                info, by_user_with_keys["keys"], by_user_with_keys["app"]
-            )
-
-        return AppProblemDismiss()
-
-    @classmethod
-    def _validate_top_level(
-        cls,
-        by_app: dict | None,
-        by_user_with_ids: dict | None,
-        by_user_with_keys: dict | None,
-        caller_app: AppModel | None,
-    ) -> None:
-        """Validate top-level input: exactly one branch, matching caller type."""
         validate_one_of_args_is_in_mutation(
             "by_app",
             by_app,
@@ -159,12 +136,30 @@ class AppProblemDismiss(BaseMutation):
             use_camel_case=True,
         )
 
-        # Validate caller-type matching
-        is_app_caller = caller_app is not None
-        uses_by_app = by_app is not None
-        uses_by_user = by_user_with_ids is not None or by_user_with_keys is not None
+        if by_app and caller_app:
+            cls._validate_by_app_input(by_app)
+            cls._dismiss_for_app_caller(by_app, caller_app)
+        elif by_user_with_ids and not is_app_caller:
+            cls._validate_by_user_with_ids_input(by_user_with_ids["ids"])
+            cls._dismiss_by_ids_for_user(info, by_user_with_ids["ids"])
+        elif by_user_with_keys and not is_app_caller:
+            cls._validate_by_user_with_keys_input(by_user_with_keys["keys"])
+            cls._dismiss_by_keys_for_user(
+                info, by_user_with_keys["keys"], by_user_with_keys["app"]
+            )
+        else:
+            cls._raise_caller_type_mismatch(by_app, by_user_with_ids, is_app_caller)
 
-        if uses_by_app and not is_app_caller:
+        return AppProblemDismiss()
+
+    @classmethod
+    def _raise_caller_type_mismatch(
+        cls,
+        by_app: dict | None,
+        by_user_with_ids: dict | None,
+        is_app_caller: bool,
+    ) -> None:
+        if by_app is not None:
             raise ValidationError(
                 {
                     "byApp": ValidationError(
@@ -173,17 +168,15 @@ class AppProblemDismiss(BaseMutation):
                     )
                 }
             )
-
-        if uses_by_user and is_app_caller:
-            field = "byUserWithIds" if by_user_with_ids else "byUserWithKeys"
-            raise ValidationError(
-                {
-                    field: ValidationError(
-                        "App callers cannot use this input. Use 'byApp' instead.",
-                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
+        field = "byUserWithIds" if by_user_with_ids else "byUserWithKeys"
+        raise ValidationError(
+            {
+                field: ValidationError(
+                    "App callers cannot use this input. Use 'byApp' instead.",
+                    code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                )
+            }
+        )
 
     @classmethod
     def _validate_by_app_input(cls, by_app: dict) -> None:
@@ -263,12 +256,8 @@ class AppProblemDismiss(BaseMutation):
         )
 
     @classmethod
-    def _dismiss_by_ids_for_user(
-        cls,
-        info: ResolveInfo,
-        ids: list[str],
-    ) -> None:
-        """Dismiss problems by IDs for a user/staff caller."""
+    def _validate_by_user_with_ids_input(cls, ids: list[str]) -> None:
+        """Validate byUserWithIds input."""
         if len(ids) > MAX_ITEMS_LIMIT:
             raise ValidationError(
                 {
@@ -279,6 +268,26 @@ class AppProblemDismiss(BaseMutation):
                 }
             )
 
+    @classmethod
+    def _validate_by_user_with_keys_input(cls, keys: list[str]) -> None:
+        """Validate byUserWithKeys input."""
+        if len(keys) > MAX_ITEMS_LIMIT:
+            raise ValidationError(
+                {
+                    "keys": ValidationError(
+                        f"Cannot specify more than {MAX_ITEMS_LIMIT} keys.",
+                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def _dismiss_by_ids_for_user(
+        cls,
+        info: ResolveInfo,
+        ids: list[str],
+    ) -> None:
+        """Dismiss problems by IDs for a user/staff caller."""
         requestor = cast(User, get_user_or_app_from_context(info.context))
         problem_pks = cls._parse_problem_ids(ids)
 
@@ -296,16 +305,6 @@ class AppProblemDismiss(BaseMutation):
         app_id: str,
     ) -> None:
         """Dismiss problems by keys for a user/staff caller."""
-        if len(keys) > MAX_ITEMS_LIMIT:
-            raise ValidationError(
-                {
-                    "keys": ValidationError(
-                        f"Cannot specify more than {MAX_ITEMS_LIMIT} keys.",
-                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
-
         requestor = cast(User, get_user_or_app_from_context(info.context))
         target_app = cls.get_node_or_error(info, app_id, field="app", only_type=App)
 
