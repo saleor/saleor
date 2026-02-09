@@ -1,0 +1,42 @@
+saleor/graphql/app/mutations/app_problem_dismiss.py
+  bb348e5b25a04ef3 21,152-159
+saleor/graphql/app/tests/mutations/test_app_problem_create.py
+  e1ba30d14a6b8f2d 253,258
+saleor/graphql/app/tests/mutations/test_app_problem_dismiss.py
+  bb348e5b25a04ef3 178-179,182,197-198,201,213,216-218,220-221
+saleor/graphql/app/mutations/app_problem_create.py
+  e1ba30d14a6b8f2d 198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "132542459a0ca16b88b16f1af755280b7d6ec01d",
+  "prompts": {
+    "bb348e5b25a04ef3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ba980178-8611-4e5b-bb33-4128303f7045",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 23,
+      "total_deletions": 36,
+      "accepted_lines": 21,
+      "overriden_lines": 0
+    },
+    "e1ba30d14a6b8f2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "37100a06-c182-43b5-a485-9cdbf5720f26",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 6,
+      "total_deletions": 3,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}
