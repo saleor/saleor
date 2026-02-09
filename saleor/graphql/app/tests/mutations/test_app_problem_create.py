@@ -727,6 +727,7 @@ def test_app_problem_create_message_too_short_fails(app_api_client, app):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "message"
     assert data["errors"][0]["code"] == AppProblemCreateErrorCode.INVALID.name
+    assert data["errors"][0]["message"] == "String should have at least 3 characters"
     assert AppProblem.objects.filter(app=app).count() == 0
 
 
@@ -770,6 +771,7 @@ def test_app_problem_create_key_too_short_fails(app_api_client, app):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "key"
     assert data["errors"][0]["code"] == AppProblemCreateErrorCode.INVALID.name
+    assert data["errors"][0]["message"] == "String should have at least 3 characters"
     assert AppProblem.objects.filter(app=app).count() == 0
 
 
@@ -791,6 +793,7 @@ def test_app_problem_create_key_too_long_fails(app_api_client, app):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "key"
     assert data["errors"][0]["code"] == AppProblemCreateErrorCode.INVALID.name
+    assert data["errors"][0]["message"] == "String should have at most 128 characters"
     assert AppProblem.objects.filter(app=app).count() == 0
 
 

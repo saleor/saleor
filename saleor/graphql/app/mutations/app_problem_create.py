@@ -2,7 +2,6 @@ import datetime
 from typing import Annotated, Any
 
 import graphene
-from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils import timezone
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
@@ -22,24 +21,13 @@ from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Minute, PositiveInt
 from ...core.types import Error
+from ...error import pydantic_to_validation_error
 from ..enums import AppProblemCreateErrorCode
 from ..types import App
 
 
 class AppProblemCreateError(Error):
     code = AppProblemCreateErrorCode(description="The error code.", required=True)
-
-
-def pydantic_to_validation_error(exc: PydanticValidationError) -> ValidationError:
-    """Convert Pydantic ValidationError to Django ValidationError."""
-    errors: dict[str, ValidationError] = {}
-    for error in exc.errors():
-        field = str(error["loc"][0]) if error["loc"] else "input"
-        errors[field] = ValidationError(
-            error["msg"],
-            code=AppProblemCreateErrorCodeEnum.INVALID.value,
-        )
-    return ValidationError(errors)
 
 
 class AppProblemCreateValidatedInput(BaseModel):
@@ -126,7 +114,9 @@ class AppProblemCreate(BaseMutation):
         try:
             validated = AppProblemCreateValidatedInput(**input_data)
         except PydanticValidationError as exc:
-            raise pydantic_to_validation_error(exc) from exc
+            raise pydantic_to_validation_error(
+                exc, error_code=AppProblemCreateErrorCodeEnum.INVALID.value
+            ) from exc
 
         now = timezone.now()
 
