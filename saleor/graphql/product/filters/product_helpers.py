@@ -136,9 +136,9 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
         .filter(Exists(stocks.filter(product_variant_id=OuterRef("pk"))))
         .values("product_id")
     )
-    if stock_availability == StockAvailability.IN_STOCK:
+    if stock_availability == StockAvailability.IN_STOCK.value:  # type: ignore[attr-defined]
         qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
-    if stock_availability == StockAvailability.OUT_OF_STOCK:
+    if stock_availability == StockAvailability.OUT_OF_STOCK.value:  # type: ignore[attr-defined]
         qs = qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
     return qs
 
