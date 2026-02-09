@@ -3521,7 +3521,7 @@ class WebhookPlugin(BasePlugin):
         expected_lines_count: int,
         subscriptable_object=None,
         pregenerated_subscription_payloads: dict | None = None,
-    ) -> TaxData:
+    ) -> TaxData | None:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
         app = (
@@ -3542,6 +3542,12 @@ class WebhookPlugin(BasePlugin):
             msg = "Configured tax app's webhook for taxes calculation doesn't exists."
             logger.warning(msg)
             raise TaxDataError(msg)
+
+        if webhook.defer_if_conditions and subscriptable_object is not None:
+            from saleor.webhook.defer_conditions import should_defer_webhook
+
+            if should_defer_webhook(webhook.defer_if_conditions, subscriptable_object):
+                return None
 
         request_context = initialize_request(
             app=app,

@@ -309,3 +309,14 @@ class EventDeliveryStatusEnum(BaseEnum):
 
     class Meta:
         doc_category = DOC_CATEGORY_WEBHOOKS
+
+
+class WebhookDeferIfConditionEnum(graphene.Enum):
+    ADDRESS_MISSING = "ADDRESS_MISSING"
+
+    class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS
+        description = (
+            "Conditions under which a webhook delivery should be deferred. "
+            "If any condition evaluates to true, the webhook will not fire."
+        )

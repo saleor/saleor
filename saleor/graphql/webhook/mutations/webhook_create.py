@@ -139,6 +139,24 @@ class WebhookCreate(DeprecatedModelMutation, NotifyUserEventValidationMixin):
                 )
             cleaned_data["filterable_channel_slugs"] = filterable_channel_slugs
 
+            defer_if_conditions = subscription_query.get_defer_if_conditions()
+            if defer_if_conditions:
+                tax_events = {
+                    "checkout_calculate_taxes",
+                    "order_calculate_taxes",
+                    "calculate_taxes",
+                }
+                if not any(e in tax_events for e in subscription_query.events):
+                    raise_validation_error(
+                        field="query",
+                        message=(
+                            "deferIf conditions are only supported "
+                            "for CalculateTaxes events."
+                        ),
+                        code=WebhookErrorCode.INVALID,
+                    )
+            cleaned_data["defer_if_conditions"] = defer_if_conditions
+
         if headers := cleaned_data.get("custom_headers"):
             try:
                 cleaned_data["custom_headers"] = custom_headers_validator(headers)

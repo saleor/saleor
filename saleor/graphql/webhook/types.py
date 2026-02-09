@@ -196,6 +196,10 @@ class Webhook(ModelObjectType[models.Webhook]):
     custom_headers = JSONString(
         description="Custom headers, which will be added to HTTP request."
     )
+    defer_if_conditions = NonNullList(
+        graphene.String,
+        description="Conditions under which webhook delivery is deferred.",
+    )
 
     class Meta:
         description = "Webhook."

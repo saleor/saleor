@@ -64,6 +64,25 @@ class SubscriptionQuery:
                 break
         return channels
 
+    def get_defer_if_conditions(self) -> list[str]:
+        """Get deferIf conditions from the subscription query.
+
+        Looks for a deferIf argument on any top-level subscription field
+        (e.g. calculateTaxes(deferIf: [ADDRESS_MISSING])).
+        """
+        if not self.is_valid:
+            return []
+        subscription = self._get_subscription(self.ast)
+        subscription = cast(OperationDefinition, subscription)
+
+        for selection in subscription.selection_set.selections:
+            if selection.arguments:
+                for arg in selection.arguments:
+                    if arg.name.value == "deferIf":
+                        values = getattr(arg.value, "values", [])
+                        return [value.value for value in values]
+        return []
+
     def _check_if_invalid_top_field_selection(self, subscription: OperationDefinition):
         """Check if subscription selects only one top field.
 

@@ -403,6 +403,12 @@ def trigger_taxes_all_webhooks_sync(
     is_sync_event = event_type in WebhookEventSyncType.ALL
 
     for webhook in webhooks:
+        if webhook.defer_if_conditions:
+            from saleor.webhook.defer_conditions import should_defer_webhook
+
+            if should_defer_webhook(webhook.defer_if_conditions, subscribable_object):
+                continue
+
         if webhook.subscription_query:
             request_context = request_map.get(webhook.app_id)
             if not request_context:
