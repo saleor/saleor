@@ -18,10 +18,13 @@ All notable, unreleased changes to this project will be documented in this file.
   After: `[_Any!]!`
 
   Make sure to adapt your GraphQL queries if you use the `_entities` query.
+- Mutations `channelCreate` and `channelUpdate` now raise GraphQL errors instead `INVALID` when negative `MINUTE`/`HOUR`/`DAY` values are passed.
 
 ### GraphQL API
 - Gift cards support as payment method within Transaction API (read more in the [docs](https://docs.saleor.io/developer/gift-cards#using-gift-cards-in-checkout)).
 - `Attribute` fields `name`, `slug` and `type` are now non-nullable in schema.
+- Added new scalar `NonNegativeInt` which allows integer values greater than or equal to zero.
+- Scalars `Minute`, `Hour` and `Day` now inherit from `NonNegativeInt`, which mean GraphQL disallows negative values for time units.
 
 ### Webhooks
 
@@ -36,3 +39,4 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 
 ### Deprecations
 - Deprecate the `hasVariants` field on `ProductType`.
+- Deprecate export mutations (`exportProducts`, `exportGiftCards`, `exportVoucherCodes`). All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.

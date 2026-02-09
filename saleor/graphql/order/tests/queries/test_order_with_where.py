@@ -3254,6 +3254,133 @@ def test_orders_filter_by_transactions_with_mixed_conditions(
 
 
 @pytest.mark.parametrize(
+    ("psp_reference_filter", "expected_indexes"),
+    [
+        ({"eq": "PSP-ref-1"}, [0]),
+        ({"eq": "PSP-ref-2"}, [0]),
+        ({"eq": "PSP-ref-3"}, [1]),
+        ({"eq": "PSP-ref-4"}, [2]),
+        ({"eq": "non-existent-ref"}, []),
+        ({"oneOf": ["PSP-ref-1", "PSP-ref-3"]}, [0, 1]),
+        ({"oneOf": ["PSP-ref-2", "PSP-ref-4"]}, [0, 2]),
+        ({"oneOf": ["PSP-ref-1", "PSP-ref-2", "PSP-ref-3", "PSP-ref-4"]}, [0, 1, 2]),
+        ({"oneOf": ["non-existent-ref"]}, []),
+        ({"oneOf": []}, []),
+        ({"eq": None}, []),
+        (None, []),
+    ],
+)
+def test_orders_filter_by_transaction_psp_reference(
+    psp_reference_filter,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+    transaction_item_generator,
+):
+    # given
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        psp_reference="PSP-ref-1",
+    )
+
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        psp_reference="PSP-ref-2",
+    )
+
+    transaction_item_generator(
+        order_id=order_list[1].pk,
+        charged_value=order_list[1].total.gross.amount,
+        psp_reference="PSP-ref-3",
+    )
+
+    transaction_item_generator(
+        order_id=order_list[2].pk,
+        charged_value=order_list[2].total.gross.amount,
+        psp_reference="PSP-ref-4",
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"transactions": [{"pspReference": psp_reference_filter}]}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+def test_orders_filter_by_transaction_psp_reference_payment_details_and_metadata(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+    transaction_item_generator,
+):
+    # given
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        psp_reference="PSP-ref-1",
+        payment_method_type="card",
+        cc_brand="Visa",
+        metadata={"foo": "bar"},
+    )
+
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        psp_reference="PSP-ref-2",
+        payment_method_type="other",
+        metadata={"baz": "qux"},
+    )
+
+    transaction_item_generator(
+        order_id=order_list[1].pk,
+        charged_value=order_list[1].total.gross.amount,
+        psp_reference="PSP-ref-3",
+        payment_method_type="card",
+        cc_brand="Mastercard",
+        metadata={"foo": "bar"},
+    )
+
+    transaction_item_generator(
+        order_id=order_list[2].pk,
+        charged_value=order_list[2].total.gross.amount,
+        psp_reference="PSP-ref-4",
+        payment_method_type="card",
+        cc_brand="Visa",
+        metadata={},
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "transactions": [
+                {"pspReference": {"oneOf": ["PSP-ref-1", "PSP-ref-3", "PSP-ref-4"]}},
+                {"paymentMethodDetails": {"card": {"brand": {"eq": "Visa"}}}},
+                {"metadata": {"key": "foo"}},
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    assert orders[0]["node"]["number"] == str(order_list[0].number)
+
+
+@pytest.mark.parametrize(
     ("address_filter", "expected_indexes"),
     [
         ({"phoneNumber": {"eq": "+48123456789"}}, [0]),

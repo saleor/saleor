@@ -1,5 +1,9 @@
-import graphene
+from typing import cast
 
+import graphene
+from django.core.exceptions import ValidationError
+
+from ....channel import models as channel_models
 from ....csv import models as csv_models
 from ....csv.events import export_started_event
 from ....csv.tasks import export_products_task
@@ -10,6 +14,7 @@ from ...attribute.types import Attribute
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
+from ...core.enums import ExportErrorCode
 from ...core.types import BaseInputObjectType, ExportError, NonNullList
 from ...core.utils import WebhookEventInfo
 from ...product.filters.product import ProductFilterInput
@@ -17,6 +22,20 @@ from ...product.types import Product
 from ...warehouse.types import Warehouse
 from ..enums import ExportScope, FileTypeEnum, ProductFieldEnum
 from .base_export import BaseExportMutation
+
+# Filters that require a channel to work properly
+CHANNEL_REQUIRED_FILTERS = frozenset(
+    [
+        "is_published",
+        "published_from",
+        "is_available",
+        "available_from",
+        "is_visible_in_listing",
+        "price",
+        "minimal_price",
+        "stock_availability",
+    ]
+)
 
 
 class ExportInfoInput(BaseInputObjectType):
@@ -91,8 +110,15 @@ class ExportProducts(BaseExportMutation):
         cls, _root, info: ResolveInfo, /, input
     ):
         scope = cls.get_scope(input, Product)
-        export_info = cls.get_export_info(input["export_info"])
+        export_info_input = input.get("export_info") or {}
+        export_info = cls.get_export_info(export_info_input)
         file_type = input["file_type"]
+
+        if "filter" in scope:
+            scope = cast(dict[str, dict], scope)
+            scope = cls.add_channel_to_filter_scope(
+                scope, input.get("filter", {}), export_info
+            )
 
         app = get_app_promise(info.context).get()
 
@@ -104,6 +130,49 @@ class ExportProducts(BaseExportMutation):
 
         export_file.refresh_from_db()
         return cls(export_file=export_file)
+
+    @classmethod
+    def add_channel_to_filter_scope(
+        cls, scope: dict, filter_input: dict, export_info: dict
+    ) -> dict:
+        """Add channel slug to filter scope if channel-dependent filters are used.
+
+        When filter contains fields that require a channel (like stock_availability,
+        is_published, price, etc.), exactly one channel must be provided in
+        export_info.channels. The channel slug is then injected into the filter.
+        """
+        used_channel_filters = set(filter_input.keys()) & CHANNEL_REQUIRED_FILTERS
+        if not used_channel_filters:
+            return scope
+
+        channel_pks = export_info.get("channels") or []
+        if len(channel_pks) != 1:
+            raise ValidationError(
+                {
+                    "channels": ValidationError(
+                        "Exactly one channel must be provided in export_info.channels "
+                        f"when using channel-dependent filters: "
+                        f"{', '.join(sorted(used_channel_filters))}.",
+                        code=ExportErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
+        channel_pk = channel_pks[0]
+        channel = channel_models.Channel.objects.filter(pk=channel_pk).first()
+        if not channel:
+            raise ValidationError(
+                {
+                    "channels": ValidationError(
+                        "Channel not found.",
+                        code=ExportErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+
+        # Inject channel slug into the filter
+        updated_filter = {**scope["filter"], "channel": channel.slug}
+        return {"filter": updated_filter}
 
     @classmethod
     def get_export_info(cls, export_info_input):

@@ -51,17 +51,39 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
+      - name: Check if tag should be tagged as "latest"
+        id: check-latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_TAG: ${{ inputs.ref || github.ref_name }}
+        run: |
+          set -u
+
+          CURRENT_LATEST=$(gh api "/repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name)
+          HIGHEST=$( (echo "$CURRENT_LATEST"; echo "$CURRENT_TAG") | sort -V | tail -1)
+
+          echo "Selected: $CURRENT_TAG, Latest: $CURRENT_LATEST"
+
+          if [[ "$CURRENT_TAG" == "$HIGHEST" ]]; then
+            echo "is_latest=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_latest=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Docker metadata
         id: metadata
         uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/${{ steps.get-image-name.outputs.image_name }}
+          flavor: |
+            latest=false
           tags: |
             type=ref,event=branch,prefix=${{ inputs.prefix }}
             type=pep440,pattern={{version}}
             type=pep440,pattern={{major}}.{{minor}}
             type=raw,value=${{ inputs.version }},enable=${{ inputs.version != null }}
+            type=raw,value=latest,enable=${{ steps.check-latest.outputs.is_latest }}
           context: git
 
 

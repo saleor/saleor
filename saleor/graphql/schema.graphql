@@ -661,7 +661,7 @@ type Query {
   """
   Look up a transaction by ID.
   
-  Requires one of the following permissions: HANDLE_PAYMENTS.
+  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
   """
   transaction(
     """
@@ -674,6 +674,34 @@ type Query {
     """
     token: UUID
   ): TransactionItem @doc(category: "Payments")
+
+  """
+  List of transactions. For apps with `MANAGE_ORDERS` permission, returns all transactions. For apps with just `HANDLE_PAYMENTS` permission, returns only transactions created by that app. For staff users, returns transactions from orders and checkouts in channels they have access to.
+  
+  Added in Saleor 3.22.
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+  """
+  transactions(
+    """Where filtering options for transactions."""
+    where: TransactionWhereInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): TransactionCountableConnection @doc(category: "Payments")
 
   """Look up a page by ID or slug."""
   page(
@@ -13152,6 +13180,39 @@ input PaymentFilterInput @doc(category: "Payments") {
   checkouts: [ID!]
 }
 
+type TransactionCountableConnection @doc(category: "Payments") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TransactionCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TransactionCountableEdge @doc(category: "Payments") {
+  """The item at the end of the edge."""
+  node: TransactionItem!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TransactionWhereInput @doc(category: "Payments") {
+  ids: [ID!]
+
+  """Filter by PSP reference."""
+  pspReference: StringFilterInput
+
+  """Filter by app identifier."""
+  appIdentifier: StringFilterInput
+
+  """List of conditions that must be met."""
+  AND: [TransactionWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [TransactionWhereInput!]
+}
+
 type PageCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -13593,6 +13654,13 @@ input LinesFilterInput @doc(category: "Orders") {
 input TransactionFilterInput @doc(category: "Orders") {
   """Filter by payment method details used to pay for the order."""
   paymentMethodDetails: PaymentMethodDetailsFilterInput
+
+  """
+  Filter by PSP reference of transactions.
+  
+  Added in Saleor 3.22.
+  """
+  pspReference: StringFilterInput
 
   """Filter by metadata fields of transactions."""
   metadata: MetadataFilterInput
@@ -18215,7 +18283,7 @@ type Mutation {
   exportProducts(
     """Fields required to export product data."""
     input: ExportProductsInput!
-  ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, PRODUCT_EXPORT_COMPLETED], syncEvents: [])
+  ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, PRODUCT_EXPORT_COMPLETED], syncEvents: []) @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 
   """
   Export gift cards to csv file. 
@@ -18229,14 +18297,12 @@ type Mutation {
   exportGiftCards(
     """Fields required to export gift cards data."""
     input: ExportGiftCardsInput!
-  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
+  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: []) @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 
   """
   Export voucher codes to csv/xlsx file.
   
-  Added in Saleor 3.18.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.18. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -18246,7 +18312,7 @@ type Mutation {
   exportVoucherCodes(
     """Fields required to export voucher codes."""
     input: ExportVoucherCodesInput!
-  ): ExportVoucherCodes @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODE_EXPORT_COMPLETED], syncEvents: [])
+  ): ExportVoucherCodes @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODE_EXPORT_COMPLETED], syncEvents: []) @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -28025,9 +28091,7 @@ input ExportGiftCardsInput @doc(category: "Gift cards") {
 """
 Export voucher codes to csv/xlsx file.
 
-Added in Saleor 3.18.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.18. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 

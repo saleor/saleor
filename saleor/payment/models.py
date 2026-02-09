@@ -188,6 +188,8 @@ class TransactionItem(ModelWithMetadata):
             *ModelWithMetadata.Meta.indexes,
             BTreeIndex(fields=["payment_method_type"], name="payment_method_type_ids"),
             BTreeIndex(fields=["cc_brand"], name="cc_brand_idx"),
+            BTreeIndex(fields=["psp_reference"], name="psp_reference_idx"),
+            BTreeIndex(fields=["app_identifier"], name="app_identifier_idx"),
         ]
         constraints = [
             models.UniqueConstraint(
