@@ -21,6 +21,7 @@ from ...product.models import ProductVariant
 from ...warehouse.models import Stock, Warehouse
 from ..account.filters import AddressFilterInput, filter_address
 from ..channel.filters import get_currency_from_filter_data
+from ..core.descriptions import ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
@@ -589,6 +590,9 @@ class TransactionFilterInput(BaseInputObjectType):
     payment_method_details = PaymentMethodDetailsFilterInput(
         description="Filter by payment method details used to pay for the order.",
     )
+    psp_reference = StringFilterInput(
+        description="Filter by PSP reference of transactions." + ADDED_IN_322,
+    )
     metadata = MetadataFilterInput(
         description="Filter by metadata fields of transactions."
     )
@@ -607,6 +611,10 @@ class TransactionFilterInput(BaseInputObjectType):
         if filter_value := value.get("type"):
             return PaymentMethodDetailsFilterInput.filter_type(qs, _, filter_value)
         return qs.none()
+
+    @staticmethod
+    def filter_psp_reference(qs, _, value):
+        return filter_where_by_value_field(qs, "psp_reference", value)
 
     @staticmethod
     def filter_metadata(qs, _, value):
@@ -680,8 +688,9 @@ def filter_where_transactions(qs, _, value):
     for input_data in value:
         metadata_value = input_data.get("metadata")
         payment_method_details_value = input_data.get("payment_method_details")
+        psp_reference_value = input_data.get("psp_reference")
 
-        if not any([metadata_value, payment_method_details_value]):
+        if not any([metadata_value, payment_method_details_value, psp_reference_value]):
             return qs.none()
 
         transaction_qs = None
@@ -694,6 +703,12 @@ def filter_where_transactions(qs, _, value):
                 transaction_qs or TransactionItem.objects.using(qs.db),
                 _,
                 metadata_value,
+            )
+        if psp_reference_value:
+            transaction_qs = TransactionFilterInput.filter_psp_reference(
+                transaction_qs or TransactionItem.objects.using(qs.db),
+                _,
+                psp_reference_value,
             )
         if transaction_qs is not None:
             lookup &= Q(Exists(transaction_qs.filter(order_id=OuterRef("id"))))
