@@ -2,6 +2,7 @@ import base64
 import datetime
 
 import graphene
+from graphql import GraphQLError
 
 from ...account import models as account_models
 from ...app import models
@@ -38,7 +39,7 @@ from ..core.dataloaders import DataLoader
 from ..core.descriptions import ADDED_IN_319, ADDED_IN_321, ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.scalars import JSON, DateTime
+from ..core.scalars import JSON, DateTime, PositiveInt
 from ..core.types import (
     BaseEnum,
     BaseObjectType,
@@ -682,6 +683,10 @@ class App(ModelObjectType[models.App]):
         AppProblem,
         description="List of problems associated with this app." + ADDED_IN_322,
         required=True,
+        limit=PositiveInt(
+            description="Limit number of returned problems. Must be between 1 and 100.",
+            required=False,
+        ),
     )
     brand = graphene.Field(AppBrand, description="App's brand data.")
     breaker_state = CircuitBreakerStateEnum(
@@ -731,8 +736,16 @@ class App(ModelObjectType[models.App]):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_problems(root: models.App, info: ResolveInfo):
-        return AppProblemsByAppIdLoader(info.context).load(root.id)
+    def resolve_problems(root: models.App, info: ResolveInfo, limit: int | None = None):
+        if limit is not None and limit > 100:
+            raise GraphQLError("Limit must be between 1 and 100.")
+
+        promise = AppProblemsByAppIdLoader(info.context).load(root.id)
+
+        if limit is not None:
+            return promise.then(lambda problems: problems[:limit])
+
+        return promise
 
     @staticmethod
     def __resolve_references(roots: list["App"], info: ResolveInfo):

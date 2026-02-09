@@ -21,6 +21,18 @@ QUERY_APP_PROBLEMS = """
     }
 """
 
+QUERY_APP_PROBLEMS_WITH_LIMIT = """
+    query ($id: ID, $limit: PositiveInt) {
+        app(id: $id) {
+            id
+            problems(limit: $limit) {
+                id
+                message
+            }
+        }
+    }
+"""
+
 
 def test_app_problems_empty(app_api_client, app):
     # given
@@ -558,3 +570,57 @@ def test_app_without_manage_staff_cannot_see_dismissed_by_when_dismissed_by_user
     # then
     assert "errors" in content
     assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
+
+
+def test_app_problems_limit_negative(app_api_client, app):
+    # given
+    AppProblem.objects.create(app=app, message="Issue 1", key="k1")
+    variables = {
+        "id": graphene.Node.to_global_id("App", app.id),
+        "limit": -1,
+    }
+
+    # when
+    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS_WITH_LIMIT, variables)
+    content = get_graphql_content_from_response(response)
+
+    # then
+    assert len(content["errors"]) == 1
+    assert 'Expected type "PositiveInt", found -1.' in content["errors"][0]["message"]
+
+
+def test_app_problems_limit_zero(app_api_client, app):
+    # given
+    AppProblem.objects.create(app=app, message="Issue 1", key="k1")
+    variables = {
+        "id": graphene.Node.to_global_id("App", app.id),
+        "limit": 0,
+    }
+
+    # when
+    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS_WITH_LIMIT, variables)
+    content = get_graphql_content_from_response(response)
+
+    # then
+    assert len(content["errors"]) == 1
+    assert 'Expected type "PositiveInt", found 0.' in content["errors"][0]["message"]
+
+
+def test_app_problems_limit_one(app_api_client, app):
+    # given
+    AppProblem.objects.create(app=app, message="Issue 1", key="k1")
+    p2 = AppProblem.objects.create(app=app, message="Issue 2", key="k2")
+    variables = {
+        "id": graphene.Node.to_global_id("App", app.id),
+        "limit": 1,
+    }
+
+    # when
+    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS_WITH_LIMIT, variables)
+    content = get_graphql_content(response)
+
+    # then
+    problems = content["data"]["app"]["problems"]
+    assert len(problems) == 1
+    assert problems[0]["id"] == graphene.Node.to_global_id("AppProblem", p2.id)
+    assert problems[0]["message"] == "Issue 2"

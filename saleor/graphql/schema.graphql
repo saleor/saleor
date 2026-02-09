@@ -2905,7 +2905,10 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   
   Added in Saleor 3.22.
   """
-  problems: [AppProblem!]!
+  problems(
+    """Limit number of returned problems. Must be between 1 and 100."""
+    limit: PositiveInt
+  ): [AppProblem!]!
 
   """App's brand data."""
   brand: AppBrand
