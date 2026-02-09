@@ -622,14 +622,13 @@ def test_app_problem_create_negative_aggregation_period_fails(app_api_client, ap
 
     # when
     response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-    content = get_graphql_content(response)
 
-    # then
-    data = content["data"]["appProblemCreate"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "aggregationPeriod"
-    assert data["errors"][0]["code"] == AppProblemCreateErrorCode.INVALID.name
-    assert data["errors"][0]["message"] == "Input should be greater than or equal to 0"
+    # then - Minute scalar rejects negative values at GraphQL level
+    assert response.status_code == 400
+    content = response.json()
+    assert "errors" in content
+    error_message = content["errors"][0]["message"]
+    assert 'Expected type "Minute", found -1' in error_message
     assert AppProblem.objects.filter(app=app).count() == 0
 
 
