@@ -45,12 +45,20 @@ def pydantic_to_validation_error(exc: PydanticValidationError) -> ValidationErro
 class AppProblemCreateValidatedInput(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    message: Annotated[str, StringConstraints(min_length=3, max_length=2048)]
+    message: Annotated[str, StringConstraints(min_length=3)]
     key: Annotated[str, StringConstraints(min_length=3, max_length=128)]
     # No threshold - will never escalate to critical if not set by App itself
     critical_threshold: Annotated[int, Field(ge=1)] | None = None
     # Minutes
     aggregation_period: Annotated[int, Field(ge=0)] = 60
+
+    @field_validator("message", mode="after")
+    @classmethod
+    def truncate_message(cls, v: str) -> str:
+        """Truncate message to 2048 characters including '...' suffix if too long."""
+        if len(v) > 2048:
+            return v[:2045] + "..."
+        return v
 
     @field_validator("aggregation_period", mode="before")
     @classmethod
@@ -64,7 +72,11 @@ class AppProblemCreateValidatedInput(BaseModel):
 class AppProblemCreateInput(graphene.InputObjectType):
     message = graphene.String(
         required=True,
-        description="The problem message to display. Must be between 3 and 2048 characters.",
+        description=(
+            "The problem message to display. Must be at least 3 characters. "
+            "Messages longer than 2048 characters will be truncated to 2048 "
+            "characters with '...' suffix."
+        ),
     )
     key = graphene.String(
         required=True,

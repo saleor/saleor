@@ -729,11 +729,12 @@ def test_app_problem_create_message_too_short_fails(app_api_client, app):
     assert AppProblem.objects.filter(app=app).count() == 0
 
 
-def test_app_problem_create_message_too_long_fails(app_api_client, app):
+def test_app_problem_create_message_too_long_is_truncated(app_api_client, app):
     # given
+    long_message = "a" * 3000
     variables = {
         "input": {
-            "message": "a" * 2049,  # max_length=2048
+            "message": long_message,
             "key": "error-1",
         }
     }
@@ -744,10 +745,10 @@ def test_app_problem_create_message_too_long_fails(app_api_client, app):
 
     # then
     data = content["data"]["appProblemCreate"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "message"
-    assert data["errors"][0]["code"] == AppProblemCreateErrorCode.INVALID.name
-    assert AppProblem.objects.filter(app=app).count() == 0
+    assert not data["errors"]
+    problem = AppProblem.objects.get(app=app)
+    assert len(problem.message) == 2048
+    assert problem.message == "a" * 2045 + "..."
 
 
 def test_app_problem_create_key_too_short_fails(app_api_client, app):
@@ -792,11 +793,12 @@ def test_app_problem_create_key_too_long_fails(app_api_client, app):
     assert AppProblem.objects.filter(app=app).count() == 0
 
 
-def test_app_problem_create_message_at_max_length_succeeds(app_api_client, app):
+def test_app_problem_create_message_at_2048_chars_is_not_truncated(app_api_client, app):
     # given
+    message = "a" * 2048
     variables = {
         "input": {
-            "message": "a" * 2048,  # exactly at max_length
+            "message": message,
             "key": "error-1",
         }
     }
@@ -809,6 +811,7 @@ def test_app_problem_create_message_at_max_length_succeeds(app_api_client, app):
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
     problem = AppProblem.objects.get(app=app)
+    assert problem.message == message
     assert len(problem.message) == 2048
 
 

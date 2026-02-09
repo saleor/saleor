@@ -30071,7 +30071,9 @@ enum AppProblemCreateErrorCode {
 }
 
 input AppProblemCreateInput {
-  """The problem message to display. Must be between 3 and 2048 characters."""
+  """
+  The problem message to display. Must be at least 3 characters. Messages longer than 2048 characters will be truncated to 2048 characters with '...' suffix.
+  """
   message: String!
 
   """
