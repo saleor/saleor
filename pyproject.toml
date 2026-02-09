@@ -85,7 +85,7 @@ dependencies = [
   "python-magic>=0.4.27,<0.5 ; sys_platform != 'win32'",
   "python-magic-bin>=0.4.14,<0.5 ; sys_platform == 'win32'",
   "nh3>=0.3.2",
-  "idna>=3.10",
+  "idna>=3.10"
 ]
 
   [[project.authors]]
@@ -294,4 +294,4 @@ target-version = "py312"
     known-first-party = [ "saleor" ]
 
 [tool.poetry]
-version = "3.22.32"
+version = "3.22.33"
