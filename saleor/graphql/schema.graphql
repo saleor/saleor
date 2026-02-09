@@ -3109,24 +3109,27 @@ type AppProblem implements Node @doc(category: "Apps") {
   """Whether the problem has reached critical threshold."""
   isCritical: Boolean!
 
-  """Whether the problem has been dismissed."""
-  dismissed: Boolean!
+  """Dismissal information. Null if the problem has not been dismissed."""
+  dismissed: AppProblemDismissed
+  message: String!
+  key: String!
+}
 
+"""Dismissal information for an app problem."""
+type AppProblemDismissed {
   """
   The entity (App or User) that dismissed this problem. If user does not exist anymore, it can be null.
   
   When dismissed by a User, requires MANAGE_STAFF permission. When dismissed by an App, any authenticated requestor can access.
   """
-  dismissedBy: UserOrApp
+  by: UserOrApp
 
   """
   Email of the user who dismissed this problem. Preserved even if the user is deleted.
   
   Requires one of the following permissions: MANAGE_STAFF, or being an authenticated staff user.
   """
-  dismissedByUserEmail: String
-  message: String!
-  key: String!
+  userEmail: String
 }
 
 union UserOrApp = User | App

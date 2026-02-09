@@ -541,6 +541,53 @@ class AppToken(BaseObjectType):
         return root.token_last_4
 
 
+class AppProblemDismissed(graphene.ObjectType):
+    by = graphene.Field(
+        "saleor.graphql.core.types.user_or_app.UserOrApp",
+        description=(
+            "The entity (App or User) that dismissed this problem. "
+            "If user does not exist anymore, it can be null."
+            "\n\nWhen dismissed by a User, requires MANAGE_STAFF permission. "
+            "When dismissed by an App, any authenticated requestor can access."
+        ),
+    )
+    user_email = graphene.String(
+        description=(
+            "Email of the user who dismissed this problem. "
+            "Preserved even if the user is deleted."
+            "\n\nRequires one of the following permissions: "
+            "MANAGE_STAFF, or being an authenticated staff user."
+        ),
+    )
+
+    class Meta:
+        description = "Dismissal information for an app problem."
+        doc_category = DOC_CATEGORY_APPS
+
+    @staticmethod
+    def resolve_by(root: models.AppProblem, info: ResolveInfo):
+        if root.is_dismissed_by_user():
+            requestor = get_user_or_app_from_context(info.context)
+            if not has_one_of_permissions(requestor, [AccountPermissions.MANAGE_STAFF]):
+                raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
+
+            if root.dismissed_by_user_id is not None:
+                return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
+            return None
+
+        # Dismissed by App case - accessible to any authenticated requestor
+        return AppByIdLoader(info.context).load(root.app_id)
+
+    @staticmethod
+    def resolve_user_email(root: models.AppProblem, info: ResolveInfo):
+        requestor = get_user_or_app_from_context(info.context)
+
+        if isinstance(requestor, account_models.User):
+            return root.dismissed_by_user_email
+
+        raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
+
+
 class AppProblem(ModelObjectType[models.AppProblem]):
     id = graphene.GlobalID(required=True, description="The ID of the app problem.")
     app = graphene.Field(
@@ -554,24 +601,10 @@ class AppProblem(ModelObjectType[models.AppProblem]):
     is_critical = graphene.Boolean(
         required=True, description="Whether the problem has reached critical threshold."
     )
-    dismissed = graphene.Boolean(
-        required=True, description="Whether the problem has been dismissed."
-    )
-    dismissed_by = graphene.Field(
-        "saleor.graphql.core.types.user_or_app.UserOrApp",
+    dismissed = graphene.Field(
+        AppProblemDismissed,
         description=(
-            "The entity (App or User) that dismissed this problem. "
-            "If user does not exist anymore, it can be null."
-            "\n\nWhen dismissed by a User, requires MANAGE_STAFF permission. "
-            "When dismissed by an App, any authenticated requestor can access."
-        ),
-    )
-    dismissed_by_user_email = graphene.String(
-        description=(
-            "Email of the user who dismissed this problem. "
-            "Preserved even if the user is deleted."
-            "\n\nRequires one of the following permissions: "
-            "MANAGE_STAFF, or being an authenticated staff user."
+            "Dismissal information. Null if the problem has not been dismissed."
         ),
     )
     message = graphene.String(required=True)
@@ -588,34 +621,10 @@ class AppProblem(ModelObjectType[models.AppProblem]):
         return AppByIdLoader(info.context).load(root.app_id)
 
     @staticmethod
-    def resolve_dismissed_by_user_email(root: models.AppProblem, info: ResolveInfo):
-        requestor = get_user_or_app_from_context(info.context)
-
-        # Authenticated user can access
-        if isinstance(requestor, account_models.User):
-            return root.dismissed_by_user_email
-
-        # Apps need MANAGE_STAFF (which they can't have in this codebase)
-        raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
-
-    @staticmethod
-    def resolve_dismissed_by(root: models.AppProblem, info: ResolveInfo):
-        # Dismissed by User case - requires MANAGE_STAFF permission
-
-        if root.is_dismissed_by_user():
-            requestor = get_user_or_app_from_context(info.context)
-            if not has_one_of_permissions(requestor, [AccountPermissions.MANAGE_STAFF]):
-                raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
-
-            if root.dismissed_by_user_id is not None:
-                return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
+    def resolve_dismissed(root: models.AppProblem, _info: ResolveInfo):
+        if not root.dismissed:
             return None
-
-        # Dismissed by App case - accessible to any authenticated requestor
-        if root.dismissed:
-            return AppByIdLoader(info.context).load(root.app_id)
-
-        return None
+        return root
 
 
 @federated_entity("id")
