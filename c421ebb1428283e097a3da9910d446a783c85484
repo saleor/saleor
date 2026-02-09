@@ -1,0 +1,23 @@
+saleor/product/error_codes.py
+  f0e9555be3853afd 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "c421ebb1428283e097a3da9910d446a783c85484",
+  "prompts": {
+    "f0e9555be3853afd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e62cd02b-a683-416f-a633-225c467b9c64",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
