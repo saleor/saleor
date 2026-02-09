@@ -216,7 +216,6 @@ class CheckoutLinesAdd(BaseMutation):
         checkout_id=None,
         token=None,
         id=None,
-        lines_update=False,
     ):
         app = get_app_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
@@ -257,9 +256,7 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_info, lines, manager, save=False
         )
         update_fields = shipping_update_fields + invalidate_update_fields
-        if lines_update is False:
-            checkout.search_index_dirty = True
-            update_fields.append("search_index_dirty")
+        cls.mark_search_vectors_as_dirty(checkout, update_fields)
         checkout.save(update_fields=update_fields)
         call_checkout_info_event(
             manager,
@@ -269,6 +266,11 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
         return CheckoutLinesAdd(checkout=SyncWebhookControlContext(node=checkout))
+
+    @classmethod
+    def mark_search_vectors_as_dirty(cls, checkout, update_fields):
+        checkout.search_index_dirty = True
+        update_fields.append("search_index_dirty")
 
     @classmethod
     def _get_variants_from_lines_input(cls, lines: list[dict]) -> list[ProductVariant]:
