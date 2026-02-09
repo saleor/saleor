@@ -7,7 +7,6 @@ from ...app import models
 from ...app.types import (
     DEFAULT_APP_TARGET,
     DeprecatedAppExtensionHttpMethod,
-    DeprecatedAppExtensionTarget,
 )
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
@@ -239,7 +238,6 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
         return AppByIdLoader(info.context).load(root.app_id).then(_resolve_access_token)
 
-    # TODO Return settings directly from the DB
     @staticmethod
     def resolve_settings(root: models.AppExtension, _info: ResolveInfo):
         """Return app extension settings as plain JSON with same structure as options."""
@@ -251,14 +249,15 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
         # Fallback if settings not propagated in DB yet
         # Make it case-insensitive due to migration logic - enum will become uppercased in DB
-        if root.target.upper() == DeprecatedAppExtensionTarget.WIDGET.upper():
+        # TODO Remove after 3.23 when migrations are complete
+        if root.target.upper() == "WIDGET":
             return {
                 "widgetTarget": {
                     "method": http_method,
                 }
             }
 
-        if root.target.upper() == DeprecatedAppExtensionTarget.NEW_TAB.upper():
+        if root.target.upper() == "NEW_TAB":
             return {
                 "newTabTarget": {
                     "method": http_method,
