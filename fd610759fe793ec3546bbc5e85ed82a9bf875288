@@ -1,0 +1,39 @@
+saleor/graphql/webhook/types.py
+  e59fce6f4f36bf56 199-202
+saleor/webhook/defer_conditions.py
+  e59fce6f4f36bf56 1-27
+saleor/graphql/webhook/subscription_types.py
+  e59fce6f4f36bf56 83,2623-2626,2783-2797
+saleor/graphql/webhook/mutations/webhook_create.py
+  e59fce6f4f36bf56 142-159
+saleor/graphql/webhook/subscription_query.py
+  e59fce6f4f36bf56 67-85
+saleor/webhook/transport/synchronous/transport.py
+  e59fce6f4f36bf56 406-411
+saleor/plugins/webhook/plugin.py
+  e59fce6f4f36bf56 3524,3546-3551
+saleor/graphql/webhook/enums.py
+  e59fce6f4f36bf56 312-322
+saleor/webhook/models.py
+  e59fce6f4f36bf56 38-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "fd610759fe793ec3546bbc5e85ed82a9bf875288",
+  "prompts": {
+    "e59fce6f4f36bf56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "24ad756d-bfa4-43f5-8180-40ea5f7c9303",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 121,
+      "total_deletions": 1,
+      "accepted_lines": 117,
+      "overriden_lines": 0
+    }
+  }
+}
