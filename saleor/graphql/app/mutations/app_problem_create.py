@@ -23,7 +23,7 @@ from ...core.scalars import Minute, PositiveInt
 from ...core.types import Error
 from ...error import pydantic_to_validation_error
 from ..enums import AppProblemCreateErrorCode
-from ..types import App
+from ..types import AppProblem as AppProblemType
 
 
 class AppProblemCreateError(Error):
@@ -91,7 +91,9 @@ class AppProblemCreateInput(graphene.InputObjectType):
 
 
 class AppProblemCreate(BaseMutation):
-    app = graphene.Field(App, description="The app with the new problem.")
+    app_problem = graphene.Field(
+        AppProblemType, description="The created or updated app problem."
+    )
 
     class Arguments:
         input = AppProblemCreateInput(
@@ -134,9 +136,8 @@ class AppProblemCreate(BaseMutation):
             )
 
             if not existing:
-                cls._create_new_problem(app, validated, now)
-
-                return AppProblemCreate(app=app)
+                problem = cls._create_new_problem(app, validated, now)
+                return AppProblemCreate(app_problem=problem)
 
             # Flow for existing / update
             aggregation_enabled = validated.aggregation_period > 0
@@ -146,11 +147,12 @@ class AppProblemCreate(BaseMutation):
             )
 
             if not within_aggregation_window:
-                cls._create_new_problem(app, validated, now)
-                return AppProblemCreate(app=app)
+                problem = cls._create_new_problem(app, validated, now)
+                return AppProblemCreate(app_problem=problem)
 
             cls._aggregate_existing(existing, validated, now)
-            return AppProblemCreate(app=app)
+            existing.refresh_from_db()
+            return AppProblemCreate(app_problem=existing)
 
     @classmethod
     def _aggregate_existing(
@@ -177,7 +179,7 @@ class AppProblemCreate(BaseMutation):
         app: AppModel,
         validated: AppProblemCreateValidatedInput,
         now: datetime.datetime,
-    ) -> None:
+    ) -> AppProblem:
         total_count = AppProblem.objects.filter(app=app).count()
         # +1 accounts for the new problem we're about to create
         excess_count = total_count - AppProblem.MAX_PROBLEMS_PER_APP + 1
@@ -195,7 +197,7 @@ class AppProblemCreate(BaseMutation):
             validated.critical_threshold and validated.critical_threshold <= 1
         )
 
-        AppProblem.objects.create(
+        return AppProblem.objects.create(
             app=app,
             message=validated.message,
             key=validated.key,

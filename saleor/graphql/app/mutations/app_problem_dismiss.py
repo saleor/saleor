@@ -139,10 +139,10 @@ class AppProblemDismiss(BaseMutation):
             cls._validate_by_app_input(by_app)
             cls._dismiss_for_app_caller(by_app, caller_app)
         elif by_user_with_ids and not is_app_caller:
-            cls._validate_by_user_with_ids_input(by_user_with_ids["ids"])
+            cls._validate_items_limit(by_user_with_ids["ids"], "ids")
             cls._dismiss_by_ids_for_user(info, by_user_with_ids["ids"])
         elif by_user_with_keys and not is_app_caller:
-            cls._validate_by_user_with_keys_input(by_user_with_keys["keys"])
+            cls._validate_items_limit(by_user_with_keys["keys"], "keys")
             cls._dismiss_by_keys_for_user(
                 info, by_user_with_keys["keys"], by_user_with_keys["app"]
             )
@@ -203,25 +203,9 @@ class AppProblemDismiss(BaseMutation):
                 }
             )
 
-        if ids and len(ids) > MAX_ITEMS_LIMIT:
-            raise ValidationError(
-                {
-                    "ids": ValidationError(
-                        f"Cannot specify more than {MAX_ITEMS_LIMIT} IDs.",
-                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
-
-        if keys and len(keys) > MAX_ITEMS_LIMIT:
-            raise ValidationError(
-                {
-                    "keys": ValidationError(
-                        f"Cannot specify more than {MAX_ITEMS_LIMIT} keys.",
-                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
+        items = ids or keys
+        assert items is not None
+        cls._validate_items_limit(items, "ids" if ids else "keys")
 
     @classmethod
     def _dismiss_for_app_caller(
@@ -259,26 +243,13 @@ class AppProblemDismiss(BaseMutation):
             ).update(dismissed=True)
 
     @classmethod
-    def _validate_by_user_with_ids_input(cls, ids: list[str]) -> None:
-        """Validate byUserWithIds input."""
-        if len(ids) > MAX_ITEMS_LIMIT:
+    def _validate_items_limit(cls, items: list[str], field_name: str) -> None:
+        """Validate that items list does not exceed MAX_ITEMS_LIMIT."""
+        if len(items) > MAX_ITEMS_LIMIT:
             raise ValidationError(
                 {
-                    "ids": ValidationError(
-                        f"Cannot specify more than {MAX_ITEMS_LIMIT} IDs.",
-                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
-
-    @classmethod
-    def _validate_by_user_with_keys_input(cls, keys: list[str]) -> None:
-        """Validate byUserWithKeys input."""
-        if len(keys) > MAX_ITEMS_LIMIT:
-            raise ValidationError(
-                {
-                    "keys": ValidationError(
-                        f"Cannot specify more than {MAX_ITEMS_LIMIT} keys.",
+                    field_name: ValidationError(
+                        f"Cannot specify more than {MAX_ITEMS_LIMIT} items.",
                         code=AppProblemDismissErrorCodeEnum.INVALID.value,
                     )
                 }

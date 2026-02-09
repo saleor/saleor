@@ -3094,6 +3094,9 @@ scalar JSON
 type AppProblem implements Node @doc(category: "Apps") {
   """The ID of the app problem."""
   id: ID!
+
+  """The app this problem belongs to."""
+  app: App!
   createdAt: DateTime!
   updatedAt: DateTime!
 
@@ -30109,8 +30112,8 @@ Added in Saleor 3.22.
 Requires one of the following permissions: AUTHENTICATED_APP.
 """
 type AppProblemCreate @doc(category: "Apps") {
-  """The app with the new problem."""
-  app: App
+  """The created or updated app problem."""
+  appProblem: AppProblem
   errors: [AppProblemCreateError!]!
 }
 

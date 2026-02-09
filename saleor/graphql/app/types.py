@@ -542,6 +542,11 @@ class AppToken(BaseObjectType):
 
 class AppProblem(ModelObjectType[models.AppProblem]):
     id = graphene.GlobalID(required=True, description="The ID of the app problem.")
+    app = graphene.Field(
+        "saleor.graphql.app.types.App",
+        required=True,
+        description="The app this problem belongs to.",
+    )
     created_at = DateTime(required=True)
     updated_at = DateTime(required=True)
     count = graphene.Int(required=True, description="Number of occurrences.")
@@ -576,6 +581,10 @@ class AppProblem(ModelObjectType[models.AppProblem]):
         doc_category = DOC_CATEGORY_APPS
         interfaces = [graphene.relay.Node]
         model = models.AppProblem
+
+    @staticmethod
+    def resolve_app(root: models.AppProblem, info: ResolveInfo):
+        return AppByIdLoader(info.context).load(root.app_id)
 
     @staticmethod
     def resolve_dismissed_by_user_email(root: models.AppProblem, info: ResolveInfo):

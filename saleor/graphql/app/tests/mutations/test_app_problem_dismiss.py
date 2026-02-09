@@ -420,7 +420,7 @@ def test_app_problem_dismiss_by_app_with_too_many_ids_fails(app_api_client, app)
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "ids"
     assert data["errors"][0]["code"] == AppProblemDismissErrorCode.INVALID.name
-    assert data["errors"][0]["message"] == "Cannot specify more than 100 IDs."
+    assert data["errors"][0]["message"] == "Cannot specify more than 100 items."
 
 
 def test_app_problem_dismiss_by_app_with_too_many_keys_fails(app_api_client, app):
@@ -437,7 +437,7 @@ def test_app_problem_dismiss_by_app_with_too_many_keys_fails(app_api_client, app
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "keys"
     assert data["errors"][0]["code"] == AppProblemDismissErrorCode.INVALID.name
-    assert data["errors"][0]["message"] == "Cannot specify more than 100 keys."
+    assert data["errors"][0]["message"] == "Cannot specify more than 100 items."
 
 
 def test_app_problem_dismiss_by_user_with_too_many_ids_fails(
@@ -459,7 +459,7 @@ def test_app_problem_dismiss_by_user_with_too_many_ids_fails(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "ids"
     assert data["errors"][0]["code"] == AppProblemDismissErrorCode.INVALID.name
-    assert data["errors"][0]["message"] == "Cannot specify more than 100 IDs."
+    assert data["errors"][0]["message"] == "Cannot specify more than 100 items."
 
 
 def test_app_problem_dismiss_by_user_with_too_many_keys_fails(
@@ -486,7 +486,7 @@ def test_app_problem_dismiss_by_user_with_too_many_keys_fails(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "keys"
     assert data["errors"][0]["code"] == AppProblemDismissErrorCode.INVALID.name
-    assert data["errors"][0]["message"] == "Cannot specify more than 100 keys."
+    assert data["errors"][0]["message"] == "Cannot specify more than 100 items."
 
 
 # --- Invalid ID format tests ---

@@ -10,16 +10,16 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 APP_PROBLEM_CREATE_MUTATION = """
     mutation AppProblemCreate($input: AppProblemCreateInput!) {
         appProblemCreate(input: $input) {
-            app {
+            appProblem {
                 id
-                problems {
+                message
+                key
+                count
+                isCritical
+                dismissed
+                updatedAt
+                app {
                     id
-                    message
-                    key
-                    count
-                    isCritical
-                    dismissed
-                    updatedAt
                 }
             }
             errors {
@@ -43,13 +43,13 @@ def test_app_problem_create(app_api_client, app):
     # then
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
-    problems = data["app"]["problems"]
-    assert len(problems) == 1
-    assert problems[0]["message"] == "Something went wrong"
-    assert problems[0]["key"] == "error-1"
-    assert problems[0]["count"] == 1
-    assert problems[0]["isCritical"] is False
-    assert problems[0]["dismissed"] is False
+    problem_data = data["appProblem"]
+    assert problem_data["message"] == "Something went wrong"
+    assert problem_data["key"] == "error-1"
+    assert problem_data["count"] == 1
+    assert problem_data["isCritical"] is False
+    assert problem_data["dismissed"] is False
+    assert problem_data["app"]["id"] is not None
 
     db_problem = AppProblem.objects.get(app=app)
     assert db_problem.message == "Something went wrong"
