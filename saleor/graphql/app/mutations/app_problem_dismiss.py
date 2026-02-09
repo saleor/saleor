@@ -36,12 +36,12 @@ class AppProblemDismissByAppInput(BaseInputObjectType):
     ids = NonNullList(
         graphene.ID,
         required=False,
-        description="List of problem IDs to dismiss. Cannot be combined with keys. Max 100.",
+        description=f"List of problem IDs to dismiss. Cannot be combined with keys. Max {MAX_ITEMS_LIMIT}.",
     )
     keys = NonNullList(
         graphene.String,
         required=False,
-        description="List of problem keys to dismiss. Cannot be combined with ids. Max 100.",
+        description=f"List of problem keys to dismiss. Cannot be combined with ids. Max {MAX_ITEMS_LIMIT}.",
     )
 
     class Meta:
@@ -54,7 +54,7 @@ class AppProblemDismissByUserWithIdsInput(BaseInputObjectType):
     ids = NonNullList(
         graphene.ID,
         required=True,
-        description="List of problem IDs to dismiss. Max 100.",
+        description=f"List of problem IDs to dismiss. Max {MAX_ITEMS_LIMIT}.",
     )
 
     class Meta:
@@ -67,7 +67,7 @@ class AppProblemDismissByUserWithKeysInput(BaseInputObjectType):
     keys = NonNullList(
         graphene.String,
         required=True,
-        description="List of problem keys to dismiss. Max 100.",
+        description=f"List of problem keys to dismiss. Max {MAX_ITEMS_LIMIT}.",
     )
     app = graphene.ID(
         required=True,
