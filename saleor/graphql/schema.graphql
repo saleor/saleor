@@ -30138,22 +30138,22 @@ input AppProblemDismissInput @doc(category: "Apps") {
 
 """Input for app callers to dismiss their own problems."""
 input AppProblemDismissByAppInput @doc(category: "Apps") {
-  """List of problem IDs to dismiss. Cannot be combined with keys."""
+  """List of problem IDs to dismiss. Cannot be combined with keys. Max 100."""
   ids: [ID!]
 
-  """List of problem keys to dismiss. Cannot be combined with ids."""
+  """List of problem keys to dismiss. Cannot be combined with ids. Max 100."""
   keys: [String!]
 }
 
 """Input for staff/user callers to dismiss problems by IDs."""
 input AppProblemDismissByUserWithIdsInput @doc(category: "Apps") {
-  """List of problem IDs to dismiss."""
+  """List of problem IDs to dismiss. Max 100."""
   ids: [ID!]!
 }
 
 """Input for staff/user callers to dismiss problems by keys."""
 input AppProblemDismissByUserWithKeysInput @doc(category: "Apps") {
-  """List of problem keys to dismiss."""
+  """List of problem keys to dismiss. Max 100."""
   keys: [String!]!
 
   """ID of the app whose problems to dismiss."""
