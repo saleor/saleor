@@ -249,12 +249,13 @@ def test_app_problem_create_limit_eviction(app_api_client, app):
                 app=app,
                 message=f"Problem {i}",
                 key=f"key-{i}",
-                updated_at=now,
+                updated_at=now
+                - datetime.timedelta(minutes=AppProblem.MAX_PROBLEMS_PER_APP - i),
             )
             for i in range(AppProblem.MAX_PROBLEMS_PER_APP)
         ]
     )
-    oldest_id = AppProblem.objects.filter(app=app).order_by("created_at").first().id
+    oldest_id = AppProblem.objects.filter(app=app).order_by("updated_at").first().id
     variables = {"input": {"message": "One more", "key": "new-key"}}
 
     # when

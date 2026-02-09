@@ -175,11 +175,11 @@ def test_app_problem_dismiss_multiple_inputs_fails(
     # then
     data = content["data"]["appProblemDismiss"]
     assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "input"
-    assert data["errors"][0]["code"] == AppProblemDismissErrorCode.INVALID.name
+    assert data["errors"][0]["field"] is None
+    assert data["errors"][0]["code"] == "GRAPHQL_ERROR"
     assert (
         data["errors"][0]["message"]
-        == "Must provide exactly one of 'byApp', 'byUserWithIds', or 'byUserWithKeys'."
+        == "Argument 'byApp' cannot be combined with 'byUserWithIds'"
     )
 
 
@@ -194,11 +194,11 @@ def test_app_problem_dismiss_no_input_fails(app_api_client, app):
     # then
     data = content["data"]["appProblemDismiss"]
     assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "input"
-    assert data["errors"][0]["code"] == AppProblemDismissErrorCode.REQUIRED.name
+    assert data["errors"][0]["field"] is None
+    assert data["errors"][0]["code"] == "GRAPHQL_ERROR"
     assert (
         data["errors"][0]["message"]
-        == "Must provide one of 'byApp', 'byUserWithIds', or 'byUserWithKeys'."
+        == "At least one of arguments is required: 'byApp', 'byUserWithIds', 'byUserWithKeys'."
     )
 
 
@@ -210,12 +210,15 @@ def test_app_problem_dismiss_empty_by_app_fails(app_api_client, app):
     response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
     content = get_graphql_content(response)
 
-    # then
+    # then - empty byApp ({}) is falsy, so treated as not provided
     data = content["data"]["appProblemDismiss"]
     assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "byApp"
-    assert data["errors"][0]["code"] == AppProblemDismissErrorCode.REQUIRED.name
-    assert data["errors"][0]["message"] == "Must provide either 'ids' or 'keys'."
+    assert data["errors"][0]["field"] is None
+    assert data["errors"][0]["code"] == "GRAPHQL_ERROR"
+    assert (
+        data["errors"][0]["message"]
+        == "At least one of arguments is required: 'byApp', 'byUserWithIds', 'byUserWithKeys'."
+    )
 
 
 def test_app_caller_cannot_use_by_user_with_ids(

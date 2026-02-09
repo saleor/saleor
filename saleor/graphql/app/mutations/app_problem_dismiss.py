@@ -18,6 +18,7 @@ from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import from_global_id_or_error
+from ...core.validators import validate_one_of_args_is_in_mutation
 from ...utils import get_user_or_app_from_context
 from ..enums import AppProblemDismissErrorCode
 from ..types import App
@@ -148,32 +149,15 @@ class AppProblemDismiss(BaseMutation):
         caller_app: AppModel | None,
     ) -> None:
         """Validate top-level input: exactly one branch, matching caller type."""
-        provided = [
-            by_app is not None,
-            by_user_with_ids is not None,
-            by_user_with_keys is not None,
-        ]
-        count = sum(provided)
-
-        if count == 0:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        "Must provide one of 'byApp', 'byUserWithIds', or 'byUserWithKeys'.",
-                        code=AppProblemDismissErrorCodeEnum.REQUIRED.value,
-                    )
-                }
-            )
-
-        if count > 1:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        "Must provide exactly one of 'byApp', 'byUserWithIds', or 'byUserWithKeys'.",
-                        code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                    )
-                }
-            )
+        validate_one_of_args_is_in_mutation(
+            "by_app",
+            by_app,
+            "by_user_with_ids",
+            by_user_with_ids,
+            "by_user_with_keys",
+            by_user_with_keys,
+            use_camel_case=True,
+        )
 
         # Validate caller-type matching
         is_app_caller = caller_app is not None

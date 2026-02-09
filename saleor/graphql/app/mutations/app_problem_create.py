@@ -195,7 +195,7 @@ class AppProblemCreate(BaseMutation):
         if excess_count > 0:
             oldest_pks = list(
                 AppProblem.objects.filter(app=app)
-                .order_by("created_at")
+                .order_by("updated_at")
                 .values_list("pk", flat=True)[:excess_count]
             )
             if oldest_pks:
