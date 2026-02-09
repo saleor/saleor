@@ -9,7 +9,9 @@ from ....permission.enums import DiscountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_318, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_318,
+)
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.types import BaseInputObjectType, ExportError, NonNullList
 from ...core.utils import WebhookEventInfo, raise_validation_error
@@ -44,9 +46,7 @@ class ExportVoucherCodes(BaseExportMutation):
         )
 
     class Meta:
-        description = (
-            "Export voucher codes to csv/xlsx file." + ADDED_IN_318 + PREVIEW_FEATURE
-        )
+        description = "Export voucher codes to csv/xlsx file." + ADDED_IN_318
         doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = ExportError
