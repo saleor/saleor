@@ -600,7 +600,8 @@ class AppProblem(ModelObjectType[models.AppProblem]):
     @staticmethod
     def resolve_dismissed_by(root: models.AppProblem, info: ResolveInfo):
         # Dismissed by User case - requires MANAGE_STAFF permission
-        if root.dismissed_by_user_email:
+
+        if root.is_dismissed_by_user():
             requestor = get_user_or_app_from_context(info.context)
             if not has_one_of_permissions(requestor, [AccountPermissions.MANAGE_STAFF]):
                 raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])

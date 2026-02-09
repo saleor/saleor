@@ -200,6 +200,12 @@ class AppProblem(models.Model):
     class Meta:
         ordering = ("-created_at",)
 
+    def is_dismissed_by_user(self) -> bool:
+        # Rely on "dismissed_by_user_email" field because if we rely on dismissed_by: User, we will lose this value
+        # if user gets deleted. dismissed_by_user_email is denormalized which always holds the value
+
+        return self.dismissed_by_user_email is not None
+
 
 class AppInstallation(Job):
     uuid = models.UUIDField(unique=True, default=uuid4)
