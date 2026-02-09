@@ -1,13 +1,14 @@
+import decimal
 import hashlib
 import importlib
-import json
 from inspect import isclass
 from typing import Any, cast
 from urllib.parse import urljoin
 
+import orjson
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render
 from django.views.generic import View
 from graphql import GraphQLBackend, GraphQLDocument, GraphQLSchema
@@ -53,6 +54,29 @@ from .utils import (
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
+
+
+def default_serializer(obj):
+    if isinstance(obj, decimal.Decimal):
+        return str(obj)
+    raise TypeError
+
+
+class JsonResponse(HttpResponse):
+    def __init__(
+        self,
+        data,
+        safe=True,
+        **kwargs,
+    ):
+        if safe and not isinstance(data, dict):
+            raise TypeError(
+                "In order to allow non-dict objects to be serialized set the "
+                "safe parameter to False."
+            )
+        kwargs.setdefault("content_type", "application/json")
+        data = orjson.dumps(data, option=orjson.OPT_UTC_Z, default=default_serializer)
+        super().__init__(content=data, **kwargs)
 
 
 class GraphQLView(View):
@@ -462,8 +486,8 @@ class GraphQLView(View):
         if content_type == "application/graphql":
             return {"query": request.body.decode("utf-8")}
         if content_type == "application/json":
-            body = request.body.decode("utf-8")
-            return json.loads(body)
+            body = request.body
+            return orjson.loads(body)
         if content_type in ["application/x-www-form-urlencoded", "multipart/form-data"]:
             return request.POST
         return {}
@@ -477,8 +501,8 @@ class GraphQLView(View):
             operation_name = None
 
         if request.content_type == "multipart/form-data":
-            operations = json.loads(data.get("operations", "{}"))
-            files_map = json.loads(data.get("map", "{}"))
+            operations = orjson.loads(data.get("operations", "{}"))
+            files_map = orjson.loads(data.get("map", "{}"))
             for file_key in files_map:
                 # file key is which file it is in the form-data
                 file_instances = files_map[file_key]

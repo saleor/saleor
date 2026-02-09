@@ -800,9 +800,7 @@ def test_attributes_filter_attributes_in_collection_invalid_collection_id(
 
     # then
     content = get_graphql_content_from_response(response)
-    message_error = (
-        '{"in_collection": [{"message": "Invalid ID specified.", "code": ""}]}'
-    )
+    message_error = '{"in_collection":[{"message":"Invalid ID specified.","code":""}]}'
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == message_error
     assert content["data"]["attributes"] is None
@@ -1395,9 +1393,7 @@ def test_attributes_filter_in_category_invalid_category_id(
 
     # then
     content = get_graphql_content_from_response(response)
-    message_error = (
-        '{"in_category": [{"message": "Invalid ID specified.", "code": ""}]}'
-    )
+    message_error = '{"in_category":[{"message":"Invalid ID specified.","code":""}]}'
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == message_error
     assert content["data"]["attributes"] is None
