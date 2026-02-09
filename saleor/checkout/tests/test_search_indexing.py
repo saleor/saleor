@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -831,3 +832,49 @@ def test_update_checkouts_search_vector_handles_deleted_checkout_before_lock(
     assert checkout_with_item.search_vector
     assert checkout_with_item.search_index_dirty is False
     assert not Checkout.objects.filter(pk=checkout_JPY.pk).exists()
+
+
+def test_update_checkouts_search_vector_resets_flag_on_prepare_exception(
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.search_index_dirty = True
+    checkout.save(update_fields=["search_index_dirty"])
+    assert not checkout.search_vector
+
+    # when
+    with patch(
+        "saleor.checkout.search.indexing.prepare_checkout_search_vector_value",
+        side_effect=ValueError("Test error"),
+    ):
+        with pytest.raises(ValueError, match="Test error"):
+            update_checkouts_search_vector([checkout])
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.search_index_dirty is True
+    assert not checkout.search_vector
+
+
+def test_update_checkouts_search_vector_resets_flag_on_load_data_exception(
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.search_index_dirty = True
+    checkout.save(update_fields=["search_index_dirty"])
+    assert not checkout.search_vector
+
+    # when
+    with patch(
+        "saleor.checkout.search.indexing.load_checkout_data",
+        side_effect=RuntimeError("Database error"),
+    ):
+        with pytest.raises(RuntimeError, match="Database error"):
+            update_checkouts_search_vector([checkout])
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.search_index_dirty is True
+    assert not checkout.search_vector

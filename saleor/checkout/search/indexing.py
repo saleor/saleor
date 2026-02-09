@@ -42,16 +42,26 @@ def update_checkouts_search_vector(checkouts: list["Checkout"]):
             )
             Checkout.objects.filter(pk__in=pks).update(search_index_dirty=False)
 
-    checkout_data_map = load_checkout_data(checkouts)
+    checkout_pks = [checkout.pk for checkout in checkouts]
+    try:
+        checkout_data_map = load_checkout_data(checkouts)
 
-    for checkout in checkouts:
-        data = checkout_data_map.get(checkout.pk)
-        if not data:
-            continue
+        for checkout in checkouts:
+            data = checkout_data_map.get(checkout.pk)
+            if not data:
+                continue
 
-        checkout.search_vector = FlatConcatSearchVector(
-            *prepare_checkout_search_vector_value(checkout, data)
-        )
+            checkout.search_vector = FlatConcatSearchVector(
+                *prepare_checkout_search_vector_value(checkout, data)
+            )
+    except Exception:
+        # Reset search_index_dirty flag if processing fails
+        with transaction.atomic():
+            with allow_writer():
+                Checkout.objects.filter(pk__in=checkout_pks).update(
+                    search_index_dirty=True
+                )
+        raise
 
     with transaction.atomic():
         with allow_writer():
