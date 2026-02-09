@@ -331,5 +331,15 @@ class AppProblemDismiss(BaseMutation):
         problem_pks = []
         for global_id in global_ids:
             _, pk = from_global_id_or_error(global_id, "AppProblem")
-            problem_pks.append(int(pk))
+            try:
+                problem_pks.append(int(pk))
+            except (ValueError, TypeError) as err:
+                raise ValidationError(
+                    {
+                        "ids": ValidationError(
+                            f"Invalid ID: {global_id}.",
+                            code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                        )
+                    }
+                ) from err
         return problem_pks

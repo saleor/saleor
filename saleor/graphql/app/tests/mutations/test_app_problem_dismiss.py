@@ -1,3 +1,5 @@
+import base64
+
 import graphene
 
 from .....app.error_codes import AppProblemDismissErrorCode
@@ -485,3 +487,25 @@ def test_app_problem_dismiss_by_user_with_too_many_keys_fails(
     assert data["errors"][0]["field"] == "keys"
     assert data["errors"][0]["code"] == AppProblemDismissErrorCode.INVALID.name
     assert data["errors"][0]["message"] == "Cannot specify more than 100 keys."
+
+
+# --- Invalid ID format tests ---
+
+
+def test_app_problem_dismiss_with_non_integer_id_fails(app_api_client, app):
+    # given - ID with UUID instead of integer pk
+    invalid_id = base64.b64encode(
+        b"AppProblem:a7f47ac1-058c-4372-a567-0e02b2c3d479"
+    ).decode("utf-8")
+    variables = {"input": {"byApp": {"ids": [invalid_id]}}}
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appProblemDismiss"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "ids"
+    assert data["errors"][0]["code"] == AppProblemDismissErrorCode.INVALID.name
+    assert "Invalid ID" in data["errors"][0]["message"]
