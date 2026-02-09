@@ -108,24 +108,11 @@ jobs:
   notify:
     if: ${{ failure() }}
     needs: [prepare-variables, build-push]
-    runs-on: ubuntu-24.04
-
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.ref }}
-          sparse-checkout: |
-            ./.github/workflows/notify
-
-      - name: Notify Slack
-        env:
-          JOB_STATUS: ${{ job.status }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_MENTION_GROUP_ID }}
-          JOB_TITLE: "Build of Saleor Core ${{ needs.prepare-variables.outputs.version }}"
-        run: |
-          python3 ./.github/workflows/notify/notify-slack.py
+    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@ac946d73a756846acaba11e06fb485b445edac10 # v1.9.0
+    with:
+      type: build
+      ref: ${{ needs.prepare-variables.outputs.version }}
+      status: failure
+      mention_group_id: ${{ secrets.SLACK_MENTION_GROUP_ID }}
+    secrets:
+      slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
