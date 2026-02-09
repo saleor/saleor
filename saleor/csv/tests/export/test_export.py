@@ -15,8 +15,10 @@ from ....core import JobStatus
 from ....discount.models import VoucherCode
 from ....giftcard.models import GiftCard
 from ....graphql.csv.enums import ProductFieldEnum
+from ....graphql.product.enums import StockAvailability
 from ....graphql.product.filters.product import ProductFilter
 from ....product.models import Product, ProductChannelListing
+from ....warehouse.models import Allocation
 from ... import FileTypes
 from ...utils.export import (
     append_to_file,
@@ -556,6 +558,35 @@ def get_product_queryset_filter(product_list):
     queryset = get_queryset(Product, ProductFilter, {"ids": {"is_published": True}})
 
     assert queryset.count() == len(product_list) - 1
+
+
+def test_get_product_queryset_filter_stock_availability(
+    product_list,
+    order_line,
+    channel_USD,
+):
+    # given
+    # Allocate stock only for one product
+    out_of_stock_product = product_list[0]
+    stock = out_of_stock_product.variants.first().stocks.first()
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=stock.quantity
+    )
+
+    # when
+    queryset = get_queryset(
+        Product,
+        ProductFilter,
+        {
+            "filter": {
+                "stock_availability": StockAvailability.OUT_OF_STOCK.name,
+                "channel": channel_USD.slug,
+            }
+        },
+    )
+
+    # then
+    assert queryset.count() == 1
 
 
 def test_create_file_with_headers_csv(user_export_file, tmpdir, media_root):
