@@ -2,7 +2,6 @@ from typing import Any, cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Q
 
 from ....account.models import User
 from ....app.error_codes import (
@@ -250,10 +249,14 @@ class AppProblemDismiss(BaseMutation):
                     }
                 )
 
-        filter_q = cls._build_filter_query(ids, keys)
-        AppProblem.objects.filter(filter_q, app=caller_app, dismissed=False).update(
-            dismissed=True
-        )
+        if ids:
+            AppProblem.objects.filter(
+                pk__in=problem_pks, app=caller_app, dismissed=False
+            ).update(dismissed=True)
+        else:
+            AppProblem.objects.filter(
+                key__in=keys, app=caller_app, dismissed=False
+            ).update(dismissed=True)
 
     @classmethod
     def _validate_by_user_with_ids_input(cls, ids: list[str]) -> None:
@@ -313,17 +316,6 @@ class AppProblemDismiss(BaseMutation):
             dismissed_by_user_email=requestor.email,
             dismissed_by_user=requestor,
         )
-
-    @classmethod
-    def _build_filter_query(cls, ids: list[str] | None, keys: list[str] | None) -> Q:
-        """Build Q filter for ids OR keys."""
-        filter_q = Q()
-        if ids:
-            problem_pks = cls._parse_problem_ids(ids)
-            filter_q |= Q(pk__in=problem_pks)
-        if keys:
-            filter_q |= Q(key__in=keys)
-        return filter_q
 
     @classmethod
     def _parse_problem_ids(cls, global_ids: list[str]) -> list[int]:
