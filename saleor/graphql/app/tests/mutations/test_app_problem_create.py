@@ -117,7 +117,12 @@ def test_app_problem_create_new_when_period_expired(
     # then
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
-    assert AppProblem.objects.filter(app=app).count() == 2
+    problems = AppProblem.objects.filter(app=app).order_by("created_at")
+    assert problems.count() == 2
+    assert problems[0].count == 3
+    assert problems[0].message == "Old problem"
+    assert problems[1].count == 1
+    assert problems[1].message == "New problem"
 
 
 def test_app_problem_create_critical_threshold_reached(
