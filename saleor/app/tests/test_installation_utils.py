@@ -854,6 +854,87 @@ def test_install_app_webhook_incorrect_custom_headers(
     )
 
 
+def test_install_app_with_webhook_defer_if_conditions(
+    app_manifest, app_installation, monkeypatch
+):
+    # given
+    calculate_taxes_query = """
+        subscription {
+          calculateTaxes(deferIf: [ADDRESS_MISSING]) {
+            taxBase {
+              currency
+            }
+          }
+        }
+    """
+    webhook_data = {
+        "name": "tax-webhook-with-defer",
+        "asyncEvents": [],
+        "syncEvents": ["CHECKOUT_CALCULATE_TAXES", "ORDER_CALCULATE_TAXES"],
+        "query": calculate_taxes_query,
+        "targetUrl": "https://app.example/api/tax",
+        "isActive": True,
+    }
+    app_manifest["webhooks"] = [webhook_data]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    webhook = app.webhooks.get()
+    assert webhook.defer_if_conditions == ["ADDRESS_MISSING"]
+    assert webhook.name == "tax-webhook-with-defer"
+
+
+def test_install_app_with_webhook_no_defer_if_conditions(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given - standard webhook without deferIf
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    webhook = app.webhooks.get()
+    assert webhook.defer_if_conditions == []
+
+
+def test_install_app_with_webhook_invalid_query_stores_empty_defer_conditions(
+    app_manifest, app_installation, monkeypatch
+):
+    # given - webhook with invalid query still gets empty defer conditions
+    webhook_data = {
+        "name": "webhook-invalid-query",
+        "asyncEvents": ["ORDER_CREATED"],
+        "query": "not a valid query at all {{{",
+        "targetUrl": "https://app.example/api/webhook",
+        "isActive": True,
+    }
+    app_manifest["webhooks"] = [webhook_data]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    # when & then - should raise validation error for bad query
+    with pytest.raises(ValidationError) as excinfo:
+        install_app(app_installation, activate=True)
+
+    error_dict = excinfo.value.error_dict
+    assert "webhooks" in error_dict
+
+
 def test_install_app_lack_of_token_target_url_in_manifest_data(
     app_manifest, app_installation, monkeypatch, permission_manage_products
 ):
