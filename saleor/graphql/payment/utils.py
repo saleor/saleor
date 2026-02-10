@@ -142,11 +142,24 @@ def resolve_reason_reference_page(
     The referenced Page must belong to the PageType configured in
     refundReasonReferenceType site setting.
     """
+    from graphql import GraphQLError
+
     from ..core.utils import from_global_id_or_error
 
-    _, reason_reference_pk = from_global_id_or_error(
-        reason_reference_id, only_type="Page", raise_error=True
-    )
+    try:
+        _, reason_reference_pk = from_global_id_or_error(
+            reason_reference_id, only_type="Page", raise_error=True
+        )
+    except GraphQLError:
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    "Invalid reason reference. Must be an ID of a Page with the "
+                    "configured PageType.",
+                    code=error_code_enum.INVALID.value,
+                )
+            }
+        ) from None
     try:
         return Page.objects.get(
             pk=reason_reference_pk,

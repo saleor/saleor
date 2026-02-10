@@ -48,6 +48,7 @@ mutation OrderGrantRefundUpdate(
         }
         quantity
         reason
+        reasonReference { id }
       }
       status
       transactionEvents{
@@ -2798,7 +2799,7 @@ def test_grant_refund_update_with_reason_reference_not_valid_page_id(
         "TransactionItem", transaction_item.token
     )
 
-    invalid_page_id = graphene.Node.to_global_id("Product", 12345)
+    invalid_page_id = graphene.Node.to_global_id("Product", "12345")
 
     variables = {
         "id": granted_refund_id,
@@ -2820,7 +2821,7 @@ def test_grant_refund_update_with_reason_reference_not_valid_page_id(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == "GRAPHQL_ERROR"
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
 
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
@@ -2882,8 +2883,194 @@ def test_grant_refund_update_with_reason_reference_not_valid_id(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == "GRAPHQL_ERROR"
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
 
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
     assert granted_refund.reason == current_reason
+
+
+def test_grant_refund_update_add_lines_with_per_line_reason_reference(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    site_settings,
+):
+    # given
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    page = Page.objects.create(
+        slug="damaged-product",
+        title="Damaged Product",
+        page_type=page_type,
+        is_published=True,
+    )
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save(update_fields=["refund_reason_reference_type"])
+
+    order = order_with_lines
+    granted_refund = order.granted_refunds.create(
+        amount_value=Decimal("10.00"),
+        currency=order.currency,
+        reason="Reason",
+        reason_reference=page,
+        user=staff_api_client.user,
+    )
+    order_line = order.lines.first()
+    page_id = to_global_id_or_none(page)
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "reasonReference": page_id,
+            "addLines": [
+                {
+                    "id": to_global_id_or_none(order_line),
+                    "quantity": 1,
+                    "reason": "Line damage",
+                    "reasonReference": page_id,
+                },
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert not data["errors"]
+
+    granted_refund_data = data["grantedRefund"]
+    assert len(granted_refund_data["lines"]) == 1
+    line_data = granted_refund_data["lines"][0]
+    assert line_data["reason"] == "Line damage"
+    assert line_data["reasonReference"]["id"] == page_id
+
+    granted_refund_line = granted_refund.lines.first()
+    assert granted_refund_line.reason_reference == page
+
+
+def test_grant_refund_update_add_lines_without_per_line_reason_reference(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    site_settings,
+):
+    # given - per-line reason reference is always optional
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    page = Page.objects.create(
+        slug="damaged-product",
+        title="Damaged Product",
+        page_type=page_type,
+        is_published=True,
+    )
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save(update_fields=["refund_reason_reference_type"])
+
+    order = order_with_lines
+    granted_refund = order.granted_refunds.create(
+        amount_value=Decimal("10.00"),
+        currency=order.currency,
+        reason="Reason",
+        reason_reference=page,
+        user=staff_api_client.user,
+    )
+    order_line = order.lines.first()
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    page_id = to_global_id_or_none(page)
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "reasonReference": page_id,
+            "addLines": [
+                {
+                    "id": to_global_id_or_none(order_line),
+                    "quantity": 1,
+                    "reason": "Line damage",
+                },
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    assert not data["errors"]
+
+    granted_refund_data = data["grantedRefund"]
+    line_data = granted_refund_data["lines"][0]
+    assert line_data["reasonReference"] is None
+
+    granted_refund_line = granted_refund.lines.first()
+    assert granted_refund_line.reason_reference is None
+
+
+def test_grant_refund_update_add_lines_with_wrong_page_type_reason_reference(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    site_settings,
+):
+    # given
+    page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
+    wrong_page_type = PageType.objects.create(name="Blog Posts", slug="blog-posts")
+    wrong_page = Page.objects.create(
+        slug="blog-post",
+        title="Blog Post",
+        page_type=wrong_page_type,
+        is_published=True,
+    )
+    valid_page = Page.objects.create(
+        slug="damaged-product",
+        title="Damaged Product",
+        page_type=page_type,
+        is_published=True,
+    )
+    site_settings.refund_reason_reference_type = page_type
+    site_settings.save(update_fields=["refund_reason_reference_type"])
+
+    order = order_with_lines
+    granted_refund = order.granted_refunds.create(
+        amount_value=Decimal("10.00"),
+        currency=order.currency,
+        reason="Reason",
+        reason_reference=valid_page,
+        user=staff_api_client.user,
+    )
+    order_line = order.lines.first()
+    granted_refund_id = to_global_id_or_none(granted_refund)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    valid_page_id = to_global_id_or_none(valid_page)
+    variables = {
+        "id": granted_refund_id,
+        "input": {
+            "reasonReference": valid_page_id,
+            "addLines": [
+                {
+                    "id": to_global_id_or_none(order_line),
+                    "quantity": 1,
+                    "reasonReference": to_global_id_or_none(wrong_page),
+                },
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "reasonReference"
+    assert errors[0]["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name

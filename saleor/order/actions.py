@@ -1493,7 +1493,11 @@ def _move_fulfillment_lines_to_target_fulfillment(
             moved_line.quantity += fulfilled_to_move
             fulfillment_line.quantity -= fulfilled_to_move
 
-            # Set per-line reason data on new fulfillment lines
+            # Set per-line reason data on new fulfillment lines.
+            # TODO: when consolidating into an existing line (fulfillment_line_existed),
+            #  per-line reason/reason_reference from input are silently discarded and
+            #  only the quantity is updated. Consider merging or overwriting the reason
+            #  data when multiple source lines are consolidated into one target line.
             if not fulfillment_line_existed:
                 moved_line.reason = fulfillment_line_data.reason or ""
                 moved_line.reason_reference = fulfillment_line_data.reason_reference
