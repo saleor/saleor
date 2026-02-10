@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import patch
 
 from django.utils import timezone
 
@@ -14,7 +15,6 @@ APP_PROBLEM_CREATE_MUTATION = """
                 key
                 count
                 isCritical
-                dismissed
                 updatedAt
                 app {
                     id
@@ -29,7 +29,10 @@ APP_PROBLEM_CREATE_MUTATION = """
     }
 """
 
+MOCKED_MAX = 2
 
+
+@patch.object(AppProblem, "MAX_PROBLEMS_PER_APP", MOCKED_MAX)
 def test_app_problem_create_limit_eviction(app_api_client, app):
     # given
     now = timezone.now()
@@ -39,10 +42,9 @@ def test_app_problem_create_limit_eviction(app_api_client, app):
                 app=app,
                 message=f"Problem {i}",
                 key=f"key-{i}",
-                updated_at=now
-                - datetime.timedelta(minutes=AppProblem.MAX_PROBLEMS_PER_APP - i),
+                updated_at=now - datetime.timedelta(minutes=MOCKED_MAX - i),
             )
-            for i in range(AppProblem.MAX_PROBLEMS_PER_APP)
+            for i in range(MOCKED_MAX)
         ]
     )
     oldest_id = AppProblem.objects.filter(app=app).order_by("updated_at").first().id
@@ -55,14 +57,16 @@ def test_app_problem_create_limit_eviction(app_api_client, app):
     # then
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
-    assert AppProblem.objects.filter(app=app).count() == AppProblem.MAX_PROBLEMS_PER_APP
+    assert AppProblem.objects.filter(app=app).count() == MOCKED_MAX
     assert not AppProblem.objects.filter(id=oldest_id).exists()
     assert AppProblem.objects.filter(app=app, key="new-key").exists()
 
 
+@patch.object(AppProblem, "MAX_PROBLEMS_PER_APP", MOCKED_MAX)
 def test_app_problem_create_bulk_eviction_when_over_limit(app_api_client, app):
     """Test that multiple oldest problems are evicted when count exceeds limit."""
-    # given - create 120 problems (20 over the limit of 100)
+    # given - create 4 problems (2 over the mocked limit of 2)
+    over_limit = MOCKED_MAX + 2
     now = timezone.now()
     AppProblem.objects.bulk_create(
         [
@@ -72,14 +76,15 @@ def test_app_problem_create_bulk_eviction_when_over_limit(app_api_client, app):
                 key=f"key-{i}",
                 updated_at=now,
             )
-            for i in range(120)
+            for i in range(over_limit)
         ]
     )
-    # Track the 21 oldest problem IDs (should be evicted to make room for the new one)
-    oldest_21_ids = list(
+    # Track the 3 oldest problem IDs (should be evicted to make room for the new one)
+    evict_count = over_limit - MOCKED_MAX + 1
+    oldest_ids = list(
         AppProblem.objects.filter(app=app)
         .order_by("created_at")
-        .values_list("id", flat=True)[:21]
+        .values_list("id", flat=True)[:evict_count]
     )
     variables = {"input": {"message": "One more", "key": "new-key"}}
 
@@ -90,10 +95,7 @@ def test_app_problem_create_bulk_eviction_when_over_limit(app_api_client, app):
     # then
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
-    # Should have exactly MAX_PROBLEMS_PER_APP (100) after eviction and creation
-    assert AppProblem.objects.filter(app=app).count() == AppProblem.MAX_PROBLEMS_PER_APP
-    # All 21 oldest should be deleted
-    for old_id in oldest_21_ids:
+    assert AppProblem.objects.filter(app=app).count() == MOCKED_MAX
+    for old_id in oldest_ids:
         assert not AppProblem.objects.filter(id=old_id).exists()
-    # New problem should exist
     assert AppProblem.objects.filter(app=app, key="new-key").exists()

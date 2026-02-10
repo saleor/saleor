@@ -14,7 +14,6 @@ APP_PROBLEM_CREATE_MUTATION = """
                 key
                 count
                 isCritical
-                dismissed
                 updatedAt
                 app {
                     id

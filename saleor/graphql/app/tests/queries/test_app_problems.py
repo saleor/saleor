@@ -15,6 +15,52 @@ QUERY_APP_PROBLEMS = """
                 updatedAt
                 count
                 isCritical
+            }
+        }
+    }
+"""
+
+QUERY_APP_PROBLEMS_WITH_LIMIT = """
+    query ($id: ID, $limit: PositiveInt) {
+        app(id: $id) {
+            id
+            problems(limit: $limit) {
+                id
+                message
+            }
+        }
+    }
+"""
+
+QUERY_APP_PROBLEMS_WITH_DISMISSED_BY = """
+    query ($id: ID) {
+        app(id: $id) {
+            id
+            problems {
+                id
+                dismissed {
+                    by {
+                        ... on App {
+                            id
+                            name
+                        }
+                        ... on User {
+                            id
+                            email
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+QUERY_APP_PROBLEMS_WITH_DISMISSED_BY_AND_EMAIL = """
+    query ($id: ID) {
+        app(id: $id) {
+            id
+            problems {
+                id
                 dismissed {
                     by {
                         ... on App {
@@ -33,13 +79,15 @@ QUERY_APP_PROBLEMS = """
     }
 """
 
-QUERY_APP_PROBLEMS_WITH_LIMIT = """
-    query ($id: ID, $limit: PositiveInt) {
+QUERY_APP_PROBLEMS_WITH_DISMISSED_EMAIL_ONLY = """
+    query ($id: ID) {
         app(id: $id) {
             id
-            problems(limit: $limit) {
+            problems {
                 id
-                message
+                dismissed {
+                    userEmail
+                }
             }
         }
     }
@@ -78,13 +126,11 @@ def test_app_problems_returns_problems(app_api_client, app):
     assert problems[0]["key"] == "k2"
     assert problems[0]["count"] == 1
     assert problems[0]["isCritical"] is False
-    assert problems[0]["dismissed"] is None
     assert problems[1]["id"] == graphene.Node.to_global_id("AppProblem", p1.id)
     assert problems[1]["message"] == "Issue 1"
     assert problems[1]["key"] == "k1"
     assert problems[1]["count"] == 1
     assert problems[1]["isCritical"] is False
-    assert problems[1]["dismissed"] is None
 
 
 def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
@@ -141,28 +187,15 @@ def test_app_problems_dismissed_null_when_not_dismissed(app_api_client, app):
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = app_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
     content = get_graphql_content(response)
 
     # then
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 1
     assert problems[0]["dismissed"] is None
-
-
-def test_app_problems_dismissed_present_when_dismissed(app_api_client, app):
-    # given
-    AppProblem.objects.create(app=app, message="Dismissed", key="k1", dismissed=True)
-    variables = {"id": graphene.Node.to_global_id("App", app.id)}
-
-    # when
-    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
-    content = get_graphql_content(response)
-
-    # then
-    problems = content["data"]["app"]["problems"]
-    assert len(problems) == 1
-    assert problems[0]["dismissed"] is not None
 
 
 def test_app_problems_dismissed_by_app(app_api_client, app):
@@ -177,7 +210,9 @@ def test_app_problems_dismissed_by_app(app_api_client, app):
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = app_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
     content = get_graphql_content(response)
 
     # then
@@ -205,7 +240,9 @@ def test_app_problems_dismissed_by_user(
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = staff_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY_AND_EMAIL, variables
+    )
     content = get_graphql_content(response)
 
     # then
@@ -237,10 +274,12 @@ def test_app_problems_dismissed_by_user_returns_null_when_user_deleted(
     problem.save(update_fields=["dismissed_by_user"])
 
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
-    response = staff_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY_AND_EMAIL, variables
+    )
     content = get_graphql_content(response)
 
-    # then - dismissedBy should be null, NOT the app (email is preserved)
+    # then - dismissed.by should be null, NOT the app (email is preserved)
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 1
     assert problems[0]["dismissed"]["by"] is None
@@ -267,7 +306,9 @@ def test_app_cannot_see_dismissed_user_email(
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = app_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_EMAIL_ONLY, variables
+    )
     content = get_graphql_content_from_response(response)
 
     # then - apps cannot have MANAGE_STAFF, so they get permission denied
@@ -292,7 +333,9 @@ def test_authenticated_user_can_see_dismissed_user_email(
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = staff_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_EMAIL_ONLY, variables
+    )
     content = get_graphql_content(response)
 
     # then
@@ -317,12 +360,17 @@ def test_app_without_manage_staff_cannot_see_dismissed_user_email(
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = app_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_EMAIL_ONLY, variables
+    )
     content = get_graphql_content_from_response(response)
 
     # then
     assert "errors" in content
     assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
+
+
+# Permission tests for dismissed.by field - when dismissed by App
 
 
 def test_app_can_see_dismissed_by_when_dismissed_by_app(app_api_client, app):
@@ -337,7 +385,9 @@ def test_app_can_see_dismissed_by_when_dismissed_by_app(app_api_client, app):
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = app_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
     content = get_graphql_content(response)
 
     # then
@@ -361,13 +411,18 @@ def test_authenticated_user_can_see_dismissed_by_when_dismissed_by_app(
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = staff_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
     content = get_graphql_content(response)
 
     # then
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 1
     assert problems[0]["dismissed"]["by"]["name"] == app.name
+
+
+# Permission tests for dismissed.by field - when dismissed by User
 
 
 def test_user_with_manage_staff_can_see_dismissed_by_when_dismissed_by_user(
@@ -389,7 +444,9 @@ def test_user_with_manage_staff_can_see_dismissed_by_when_dismissed_by_user(
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = staff_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
     content = get_graphql_content(response)
 
     # then
@@ -414,7 +471,9 @@ def test_user_without_manage_staff_cannot_see_dismissed_by_when_dismissed_by_use
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = staff_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
     content = get_graphql_content_from_response(response)
 
     # then
@@ -439,7 +498,9 @@ def test_app_cannot_see_dismissed_by_when_dismissed_by_user(
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = app_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
     content = get_graphql_content_from_response(response)
 
     # then - apps cannot have MANAGE_STAFF, so they get permission denied
@@ -463,7 +524,9 @@ def test_app_without_manage_staff_cannot_see_dismissed_by_when_dismissed_by_user
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
 
     # when
-    response = app_api_client.post_graphql(QUERY_APP_PROBLEMS, variables)
+    response = app_api_client.post_graphql(
+        QUERY_APP_PROBLEMS_WITH_DISMISSED_BY, variables
+    )
     content = get_graphql_content_from_response(response)
 
     # then

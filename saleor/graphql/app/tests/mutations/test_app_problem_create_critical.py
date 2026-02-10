@@ -14,7 +14,6 @@ APP_PROBLEM_CREATE_MUTATION = """
                 key
                 count
                 isCritical
-                dismissed
                 updatedAt
                 app {
                     id
@@ -145,6 +144,48 @@ def test_app_problem_create_critical_threshold_de_escalates(
     problem.refresh_from_db()
     assert problem.count == 6
     assert problem.is_critical is False
+
+
+def test_app_problem_create_critical_threshold_not_reached_due_to_expired_aggregation(
+    app_api_client, app, app_problem_generator
+):
+    # given - existing problem with count=4, threshold=5
+    # but aggregation period expired, so a new problem is created instead
+    now = timezone.now()
+    existing = app_problem_generator(
+        app,
+        message="Almost critical",
+        key="crit-key",
+        count=4,
+        updated_at=now - datetime.timedelta(minutes=120),
+    )
+    variables = {
+        "input": {
+            "message": "New occurrence",
+            "key": "crit-key",
+            "aggregationPeriod": 60,
+            "criticalThreshold": 5,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then - a new problem is created instead of aggregating
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
+    assert AppProblem.objects.filter(app=app, key="crit-key").count() == 2
+
+    # old problem stays at count=4, not critical
+    existing.refresh_from_db()
+    assert existing.count == 4
+    assert existing.is_critical is False
+
+    # new problem starts at count=1, not critical
+    new_problem = data["appProblem"]
+    assert new_problem["count"] == 1
+    assert new_problem["isCritical"] is False
 
 
 def test_app_problem_create_critical_on_first_problem(app_api_client, app):
