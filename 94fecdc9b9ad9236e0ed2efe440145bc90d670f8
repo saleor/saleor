@@ -1,0 +1,38 @@
+saleor/app/installation_utils.py
+  98dbcfe1bebb392d 278-285,287-298
+saleor/graphql/webhook/subscription_query.py
+  afa76ca40f3daf4a 20-34,75-76,95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "94fecdc9b9ad9236e0ed2efe440145bc90d670f8",
+  "prompts": {
+    "98dbcfe1bebb392d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fed30f4c-a814-4916-8c86-efc332414548",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 43,
+      "total_deletions": 11,
+      "accepted_lines": 40,
+      "overriden_lines": 0
+    },
+    "afa76ca40f3daf4a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7c51aac3-2fb2-42ef-a781-92d89e90f4fb",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 18,
+      "total_deletions": 6,
+      "accepted_lines": 18,
+      "overriden_lines": 0
+    }
+  }
+}
