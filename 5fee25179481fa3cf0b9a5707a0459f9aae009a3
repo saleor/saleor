@@ -1,0 +1,33 @@
+saleor/webhook/tests/test_defer_conditions.py
+  ce409027f18e9340 2-206
+saleor/plugins/webhook/tests/test_tax_webhook.py
+  ce409027f18e9340 588-661
+saleor/app/tests/test_installation_utils.py
+  ce409027f18e9340 857-937
+saleor/webhook/tests/test_tax_webhook_tasks.py
+  ce409027f18e9340 2,6,147-297
+saleor/graphql/webhook/tests/mutations/test_webhook_create.py
+  ce409027f18e9340 475-515,517-599
+saleor/graphql/webhook/tests/test_subscription_query.py
+  ce409027f18e9340 687-783
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "5fee25179481fa3cf0b9a5707a0459f9aae009a3",
+  "prompts": {
+    "ce409027f18e9340": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9087456d-4396-4bde-8758-df0438ff4fdb",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 757,
+      "total_deletions": 19,
+      "accepted_lines": 734,
+      "overriden_lines": 1
+    }
+  }
+}
