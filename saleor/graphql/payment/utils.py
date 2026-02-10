@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 from django.core.exceptions import ValidationError
 
+from ...page.models import Page
 from ...payment import models as payment_models
 from ...site.models import SiteSettings
 
@@ -93,3 +94,71 @@ def validate_and_resolve_refund_reason_context(
         "refund_reason_reference_type": refund_reason_reference_type,
         "should_apply": should_apply,
     }
+
+
+def validate_per_line_reason_reference(
+    *,
+    reason_reference_id: str | None,
+    site_settings: SiteSettings,
+    error_code_enum,
+    field_name: str = "reason_reference",
+):
+    """Validate per-line reason reference.
+
+    Per-line reason references are always optional (for both staff and apps),
+    but when provided the referenced Page must match the configured PageType.
+    """
+    refund_reason_reference_type = site_settings.refund_reason_reference_type
+
+    if not refund_reason_reference_type and reason_reference_id:
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    "Reason reference type is not configured.",
+                    code=error_code_enum.INVALID.value,
+                )
+            }
+        ) from None
+
+    should_apply = bool(
+        reason_reference_id is not None and refund_reason_reference_type
+    )
+
+    return {
+        "refund_reason_reference_type": refund_reason_reference_type,
+        "should_apply": should_apply,
+    }
+
+
+def resolve_reason_reference_page(
+    reason_reference_id: str,
+    refund_reason_reference_type_id: int,
+    error_code_enum,
+    *,
+    field_name: str = "reason_reference",
+) -> Page:
+    """Resolve and validate a reason reference Page by global ID and PageType.
+
+    The referenced Page must belong to the PageType configured in
+    refundReasonReferenceType site setting.
+    """
+    from ..core.utils import from_global_id_or_error
+
+    _, reason_reference_pk = from_global_id_or_error(
+        reason_reference_id, only_type="Page", raise_error=True
+    )
+    try:
+        return Page.objects.get(
+            pk=reason_reference_pk,
+            page_type=refund_reason_reference_type_id,
+        )
+    except Page.DoesNotExist:
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    "Invalid reason reference. Must be an ID of a Page with the "
+                    "configured PageType.",
+                    code=error_code_enum.INVALID.value,
+                )
+            }
+        ) from None

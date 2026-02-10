@@ -154,6 +154,7 @@ from ..tax.types import TaxClass
 from ..warehouse.types import Allocation, Stock, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentByIdLoader,
     FulfillmentLinesByFulfillmentIdLoader,
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
@@ -161,6 +162,7 @@ from .dataloaders import (
     OrderByNumberLoader,
     OrderEventsByIdLoader,
     OrderEventsByOrderIdLoader,
+    OrderGrantedRefundByIdLoader,
     OrderGrantedRefundLinesByOrderGrantedRefundIdLoader,
     OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
@@ -241,6 +243,12 @@ class OrderGrantedRefundLine(
         required=True,
     )
     reason = graphene.String(description="Reason for refunding the line.")
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason Model (Page) reference for this refund line."
+        + ADDED_IN_322,
+    )
 
     class Meta:
         default_resolver = (
@@ -262,6 +270,40 @@ class OrderGrantedRefundLine(
             OrderLineByIdLoader(info.context)
             .load(root.node.order_line_id)
             .then(_wrap_with_sync_webhook_control_context)
+        )
+
+    @staticmethod
+    def resolve_reason_reference(
+        root: SyncWebhookControlContext[models.OrderGrantedRefundLine], info
+    ):
+        if not root.node.reason_reference_id:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+
+            def _get_channel_context(granted_refund):
+                return (
+                    ChannelByOrderIdLoader(info.context)
+                    .load(granted_refund.order_id)
+                    .then(
+                        lambda channel: ChannelContext(
+                            node=page, channel_slug=channel.slug
+                        )
+                    )
+                )
+
+            return (
+                OrderGrantedRefundByIdLoader(info.context)
+                .load(root.node.granted_refund_id)
+                .then(_get_channel_context)
+            )
+
+        return (
+            PageByIdLoader(info.context)
+            .load(root.node.reason_reference_id)
+            .then(wrap_page_with_context)
         )
 
 
@@ -812,6 +854,15 @@ class FulfillmentLine(
         lambda: OrderLine,
         description="The order line to which the fulfillment line is related.",
     )
+    reason = graphene.String(
+        description="Reason for the fulfillment line action." + ADDED_IN_322
+    )
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason Model (Page) reference for this fulfillment line."
+        + ADDED_IN_322,
+    )
 
     class Meta:
         default_resolver = (
@@ -834,6 +885,37 @@ class FulfillmentLine(
             OrderLineByIdLoader(info.context)
             .load(root.node.order_line_id)
             .then(_wrap_with_sync_webhook_control_context)
+        )
+
+    @staticmethod
+    def resolve_reason_reference(
+        root: SyncWebhookControlContext[models.FulfillmentLine], info
+    ):
+        if not root.node.reason_reference_id:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+
+            return (
+                FulfillmentByIdLoader(info.context)
+                .load(root.node.fulfillment_id)
+                .then(
+                    lambda fulfillment: ChannelByOrderIdLoader(info.context)
+                    .load(fulfillment.order_id)
+                    .then(
+                        lambda channel: ChannelContext(
+                            node=page, channel_slug=channel.slug
+                        )
+                    )
+                )
+            )
+
+        return (
+            PageByIdLoader(info.context)
+            .load(root.node.reason_reference_id)
+            .then(wrap_page_with_context)
         )
 
 
@@ -860,6 +942,15 @@ class Fulfillment(
         Warehouse,
         required=False,
         description="Warehouse from fulfillment was fulfilled.",
+    )
+    reason = graphene.String(
+        description="Reason for the fulfillment action." + ADDED_IN_322
+    )
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason Model (Page) reference for this fulfillment."
+        + ADDED_IN_322,
     )
     shipping_refunded_amount = graphene.Field(
         Money,
@@ -967,6 +1058,30 @@ class Fulfillment(
             OrderByIdLoader(info.context)
             .load(fulfillment.order_id)
             .then(_resolve_total_refund_amount)
+        )
+
+    @staticmethod
+    def resolve_reason_reference(
+        root: SyncWebhookControlContext[models.Fulfillment], info
+    ):
+        if not root.node.reason_reference_id:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+            return (
+                ChannelByOrderIdLoader(info.context)
+                .load(root.node.order_id)
+                .then(
+                    lambda channel: ChannelContext(node=page, channel_slug=channel.slug)
+                )
+            )
+
+        return (
+            PageByIdLoader(info.context)
+            .load(root.node.reason_reference_id)
+            .then(wrap_page_with_context)
         )
 
 

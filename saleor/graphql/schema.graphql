@@ -11598,6 +11598,20 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Warehouse from fulfillment was fulfilled."""
   warehouse: Warehouse
 
+  """
+  Reason for the fulfillment action.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  Reason Model (Page) reference for this fulfillment.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
+
   """Amount of refunded shipping price."""
   shippingRefundedAmount: Money
 
@@ -11625,6 +11639,20 @@ type FulfillmentLine implements Node @doc(category: "Orders") {
 
   """The order line to which the fulfillment line is related."""
   orderLine: OrderLine
+
+  """
+  Reason for the fulfillment line action.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  Reason Model (Page) reference for this fulfillment line.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 }
 
 """Represents order line of particular order."""
@@ -12573,6 +12601,13 @@ type OrderGrantedRefundLine {
 
   """Reason for refunding the line."""
   reason: String
+
+  """
+  Reason Model (Page) reference for this refund line.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 }
 
 """
@@ -25252,6 +25287,13 @@ input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
 
   """Reason of the granted refund for the line."""
   reason: String
+
+  """
+  ID of a `Page` to reference as reason for this line. When provided, must match the configured `PageType` in refund settings. Always optional for both staff and apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 """
@@ -25362,6 +25404,13 @@ input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {
 
   """Reason of the granted refund for the line."""
   reason: String
+
+  """
+  ID of a `Page` to reference as reason for this line. When provided, must match the configured `PageType` in refund settings. Always optional for both staff and apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 """

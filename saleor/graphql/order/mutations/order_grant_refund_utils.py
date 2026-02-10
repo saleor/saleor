@@ -85,11 +85,15 @@ def get_input_lines_data(
             )
             uuid_pk = uuid.UUID(pk)
             reason = cast(str | None, line.get("reason"))
-            granted_refund_lines[uuid_pk] = models.OrderGrantedRefundLine(
+            reason_reference_id = cast(str | None, line.get("reason_reference"))
+            granted_refund_line = models.OrderGrantedRefundLine(
                 order_line_id=uuid_pk,
                 quantity=int(line["quantity"]),
                 reason=reason,
             )
+            # Store the raw ID for later validation/resolution in mutation
+            granted_refund_line._raw_reason_reference_id = reason_reference_id  # type: ignore[attr-defined]
+            granted_refund_lines[uuid_pk] = granted_refund_line
         except (GraphQLError, ValueError) as e:
             errors.append(
                 {
