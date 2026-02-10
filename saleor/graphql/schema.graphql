@@ -13219,6 +13219,9 @@ enum PageSortField @doc(category: "Pages") {
 
   """Sort pages by creation date."""
   CREATED_AT
+
+  """Sort pages by search rank."""
+  RANK
 }
 
 input PageFilterInput @doc(category: "Pages") {
@@ -13884,6 +13887,9 @@ enum GiftCardSortField @doc(category: "Gift cards") {
 
   """Sort gift cards by created at."""
   CREATED_AT
+
+  """Sort gift cards by rank."""
+  RANK
 }
 
 input GiftCardFilterInput @doc(category: "Gift cards") {
@@ -14717,6 +14723,9 @@ enum CheckoutSortField @doc(category: "Checkout") {
 
   """Sort checkouts by payment."""
   PAYMENT
+
+  """Sort checkouts by rank."""
+  RANK
 }
 
 input CheckoutFilterInput @doc(category: "Checkout") {
@@ -15077,6 +15086,9 @@ enum UserSortField @doc(category: "Users") {
 
   """Sort users by last modified at."""
   LAST_MODIFIED_AT
+
+  """Sort users by rank."""
+  RANK
 }
 
 type GroupCountableConnection @doc(category: "Users") {

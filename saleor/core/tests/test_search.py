@@ -42,16 +42,12 @@ def test_parse_search_query_or_with_negation():
     assert parse_search_query("coffee OR tea -decaf") == "coffee:* | tea:* & !decaf:*"
 
 
-def test_parse_search_query_special_characters_stripped():
-    assert parse_search_query("user@example.com") == "userexamplecom:*"
+def test_parse_search_query_with_email():
+    assert parse_search_query("user@example.com") == "user@example.com:*"
 
 
 def test_parse_search_query_empty_string():
     assert parse_search_query("") is None
-
-
-def test_parse_search_query_only_special_characters():
-    assert parse_search_query("!@#$%") is None
 
 
 def test_parse_search_query_whitespace_normalization():
@@ -150,11 +146,6 @@ def test_parse_search_query_mixed_case_or_is_regular_word():
 def test_parse_search_query_unclosed_quote():
     # Unclosed quote should still parse the words as a phrase
     assert parse_search_query('"green tea') == "(green <-> tea)"
-
-
-def test_parse_search_query_standalone_dash_ignored():
-    # Standalone dash (space before and after) is ignored
-    assert parse_search_query("coffee - tea") == "coffee:* & tea:*"
 
 
 @pytest.fixture

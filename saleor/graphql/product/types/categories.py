@@ -166,6 +166,9 @@ class Category(ModelObjectType[models.Category]):
 
     @staticmethod
     def resolve_products(root: models.Category, info, *, channel=None, **kwargs):
+        from ..utils import check_for_sorting_by_rank
+
+        check_for_sorting_by_rank(info, kwargs)
         search = kwargs.get("search")
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(

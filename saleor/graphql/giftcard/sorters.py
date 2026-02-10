@@ -7,6 +7,7 @@ class GiftCardSortField(BaseEnum):
     USED_BY = ["used_by__first_name", "used_by__last_name", "created_at"]
     CURRENT_BALANCE = ["current_balance_amount", "created_at"]
     CREATED_AT = ["created_at", "id"]
+    RANK = ["search_rank", "id"]
 
     class Meta:
         doc_category = DOC_CATEGORY_GIFT_CARDS

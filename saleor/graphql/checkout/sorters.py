@@ -9,6 +9,7 @@ class CheckoutSortField(BaseEnum):
     CREATION_DATE = ["created_at", "pk"]
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
     PAYMENT = ["last_charge_status", "pk"]
+    RANK = ["search_rank", "pk"]
 
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT

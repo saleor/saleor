@@ -11,7 +11,10 @@ from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.fields import BaseField, FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
-from ..core.utils import from_global_id_or_error
+from ..core.utils import (
+    from_global_id_or_error,
+    validate_apply_search_rank_sorting,
+)
 from ..core.validators import validate_one_of_args_is_in_query
 from .bulk_mutations import (
     CustomerBulkDelete,
@@ -82,7 +85,7 @@ from .resolvers import (
     resolve_staff_users,
     resolve_user,
 )
-from .sorters import PermissionGroupSortingInput, UserSortingInput
+from .sorters import PermissionGroupSortingInput, UserSortField, UserSortingInput
 from .types import (
     Address,
     AddressValidationData,
@@ -227,6 +230,9 @@ class AccountQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_customers(_root, info: ResolveInfo, **kwargs):
+        validate_apply_search_rank_sorting(
+            kwargs, UserSortField.RANK, "UserSortingInput", info
+        )
         search = kwargs.get("search")
         qs = resolve_customers(info)
         if search:

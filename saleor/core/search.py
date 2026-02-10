@@ -9,8 +9,15 @@ if TYPE_CHECKING:
 
 
 def _sanitize_word(word: str) -> str:
-    """Remove non-alphanumeric characters from a word."""
-    return re.sub(r"[^\w]", "", word)
+    """Remove PostgreSQL tsquery metacharacters from a word.
+
+    Removes only the special characters that have meaning in tsquery syntax,
+    while preserving characters commonly used in emails, slugs, etc.
+
+    Preserved: alphanumeric, underscore, hyphen, @, period
+    Removed: parentheses, &, |, !, :, <, >, ', *
+    """
+    return re.sub(r"[()&|!:<>\'*]", "", word)
 
 
 def _tokenize(value: str) -> list[dict]:

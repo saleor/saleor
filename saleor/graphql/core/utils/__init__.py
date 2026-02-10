@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from graphene import ObjectType
-from graphql.error import GraphQLError
+from graphql import GraphQLError
 from requests import Response
 
 from ....plugins.const import APP_ID_PREFIX
@@ -186,3 +186,62 @@ def create_file_from_response(response: Response, filename: str) -> File:
     file_data.seek(0)
     # Create a Django File object from the BytesIO object
     return File(file_data, filename)
+
+
+def validate_apply_search_rank_sorting(
+    kwargs: dict,
+    rank_sort_field,
+    sorting_input_type_name: str,
+    info,
+) -> None:
+    """Apply RANK sorting validation and defaults for search-based queries.
+
+    Validates that RANK sorting is only used with search filters and automatically
+    sets RANK as the default sort when search is used without explicit sorting.
+
+    Args:
+        kwargs: Query kwargs containing sort_by, filter, search parameters.
+                Modified in-place to add default RANK sorting if needed.
+        rank_sort_field: The RANK value from the SortField enum (e.g., CheckoutSortField.RANK)
+        sorting_input_type_name: Name of the sorting input type in GraphQL schema
+                                 (e.g., "CheckoutSortingInput")
+        info: ResolveInfo object to access the GraphQL schema
+
+    Raises:
+        GraphQLError: If RANK sorting is used without a search filter
+
+    """
+
+    if sort_field_from_kwargs(kwargs) == rank_sort_field:
+        # sort by RANK can be used only with search filter
+        if not search_string_in_kwargs(kwargs):
+            raise GraphQLError(
+                "Sorting by RANK is available only when using a search filter."
+            )
+    if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
+        # default to sorting by RANK if search is used
+        # and no explicit sorting is requested
+        sorting_type = info.schema.get_type(sorting_input_type_name)
+        kwargs["sort_by"] = sorting_type.create_container(
+            {"direction": "-", "field": rank_sort_field.value}
+        )
+
+
+def search_string_in_kwargs(kwargs: dict) -> bool:
+    """Check if there's a search string in kwargs (filter or search parameter).
+
+    Used to determine if search-based sorting (RANK) should be applied.
+    """
+    filter_search = (
+        (kwargs.get("filter") or {}).get("search", "") or kwargs.get("search", "") or ""
+    )
+    return bool(filter_search.strip())
+
+
+def sort_field_from_kwargs(kwargs: dict) -> list[str] | None:
+    """Extract the sort field from kwargs.
+
+    Returns the field value from sort_by parameter, or None if not present.
+    """
+    sort_by = kwargs.get("sort_by")
+    return sort_by.get("field") if sort_by else None

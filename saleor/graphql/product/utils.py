@@ -170,6 +170,7 @@ def check_for_sorting_by_rank(info, kwargs: dict):
                 "Sorting by RANK is available only when using a search filter "
                 "or search argument."
             )
+
     if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
         # default to sorting by RANK if search is used
         # and no explicit sorting is requested

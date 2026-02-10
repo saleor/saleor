@@ -10,7 +10,10 @@ from ..core.context import get_database_connection_name
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
-from ..core.utils import from_global_id_or_error
+from ..core.utils import (
+    from_global_id_or_error,
+    validate_apply_search_rank_sorting,
+)
 from .bulk_mutations import (
     GiftCardBulkActivate,
     GiftCardBulkCreate,
@@ -28,7 +31,7 @@ from .mutations import (
     GiftCardUpdate,
 )
 from .resolvers import resolve_gift_card, resolve_gift_card_tags, resolve_gift_cards
-from .sorters import GiftCardSortingInput
+from .sorters import GiftCardSortField, GiftCardSortingInput
 from .types import GiftCard, GiftCardCountableConnection, GiftCardTagCountableConnection
 
 
@@ -88,6 +91,19 @@ class GiftCardQueries(graphene.ObjectType):
     def resolve_gift_cards(
         _root, info: ResolveInfo, /, *, sort_by=None, filter=None, search=None, **kwargs
     ):
+        # Build kwargs dict for helper function
+        helper_kwargs = {
+            "sort_by": sort_by,
+            "filter": filter,
+            "search": search,
+            **kwargs,
+        }
+        validate_apply_search_rank_sorting(
+            helper_kwargs, GiftCardSortField.RANK, "GiftCardSortingInput", info
+        )
+        # Update sort_by if it was modified by validate_apply_search_rank_sorting
+        sort_by = helper_kwargs.get("sort_by", sort_by)
+
         sorting_by_balance = sort_by and "current_balance_amount" in sort_by.get(
             "field", []
         )

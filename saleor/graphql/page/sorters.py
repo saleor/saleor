@@ -10,6 +10,7 @@ class PageSortField(BaseEnum):
     PUBLICATION_DATE = ["published_at", "title", "slug", "pk"]
     PUBLISHED_AT = ["published_at", "title", "slug"]
     CREATED_AT = ["created_at", "title", "slug"]
+    RANK = ["search_rank", "slug"]
 
     class Meta:
         doc_category = DOC_CATEGORY_PAGES
@@ -24,6 +25,7 @@ class PageSortField(BaseEnum):
             PageSortField.CREATED_AT.name: "creation date.",  # type: ignore[attr-defined] # noqa: E501
             PageSortField.PUBLICATION_DATE.name: "publication date.",  # type: ignore[attr-defined] # noqa: E501
             PageSortField.PUBLISHED_AT.name: "publication date.",  # type: ignore[attr-defined] # noqa: E501
+            PageSortField.RANK.name: "search rank.",  # type: ignore[attr-defined] # noqa: E501
         }
         if self.name in descriptions:
             return f"Sort pages by {descriptions[self.name]}"
