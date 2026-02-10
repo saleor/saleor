@@ -51,6 +51,7 @@ from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_320,
     ADDED_IN_321,
+    ADDED_IN_322,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -78,9 +79,9 @@ from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..product.dataloaders import ProductVariantByIdLoader
 from ..shipping.dataloaders import ShippingMethodChannelListingByChannelSlugLoader
 from ..shipping.types import ShippingMethod
+from ..tax.enums import CalculateTaxesDeferIfConditionEnum
 from ..translations import types as translation_types
 from ..warehouse.dataloaders import WarehouseByIdLoader
-from .enums import WebhookDeferIfConditionEnum
 from .resolvers import (
     resolve_only_internal_shipping_methods_for_checkout,
     resolve_shipping_methods_for_checkout,
@@ -2782,10 +2783,11 @@ class Subscription(SubscriptionObjectType):
 
     calculate_taxes = BaseField(
         CalculateTaxes,
-        description="Synchronous webhook for calculating checkout/order taxes.",
+        description="Synchronous webhook for calculating checkout/order taxes."
+        + ADDED_IN_322,
         resolver=calculate_taxes_resolver,
         defer_if=graphene.Argument(
-            NonNullList(WebhookDeferIfConditionEnum),
+            NonNullList(CalculateTaxesDeferIfConditionEnum),
             description=(
                 "List of conditions under which the webhook delivery should be "
                 "deferred (skipped). If any condition evaluates to true, the "

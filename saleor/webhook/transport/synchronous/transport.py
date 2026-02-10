@@ -34,6 +34,7 @@ from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
     recalculate_refundable_for_checkout,
 )
+from ....tax.defer_conditions import should_defer_webhook
 from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
@@ -404,8 +405,6 @@ def trigger_taxes_all_webhooks_sync(
 
     for webhook in webhooks:
         if webhook.defer_if_conditions:
-            from saleor.webhook.defer_conditions import should_defer_webhook
-
             if should_defer_webhook(webhook.defer_if_conditions, subscribable_object):
                 continue
 

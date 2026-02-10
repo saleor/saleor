@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 from ...checkout.models import Checkout
 from ...order.models import Order
-from ..defer_conditions import (
+from ...tax.defer_conditions import (
     ADDRESS_MISSING,
     _is_address_missing,
     should_defer_webhook,

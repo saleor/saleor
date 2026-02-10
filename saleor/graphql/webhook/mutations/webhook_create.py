@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
+from ....tax.defer_conditions import validate_defer_if_for_tax_events
 from ....webhook import models
 from ....webhook.const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from ....webhook.error_codes import WebhookErrorCode
@@ -141,12 +142,7 @@ class WebhookCreate(DeprecatedModelMutation, NotifyUserEventValidationMixin):
 
             defer_if_conditions = subscription_query.get_defer_if_conditions()
             if defer_if_conditions:
-                tax_events = {
-                    "checkout_calculate_taxes",
-                    "order_calculate_taxes",
-                    "calculate_taxes",
-                }
-                if not any(e in tax_events for e in subscription_query.events):
+                if not validate_defer_if_for_tax_events(subscription_query.events):
                     raise_validation_error(
                         field="query",
                         message=(

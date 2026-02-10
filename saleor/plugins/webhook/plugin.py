@@ -61,6 +61,7 @@ from ...payment.utils import (
     recalculate_refundable_for_checkout,
 )
 from ...settings import WEBHOOK_SYNC_TIMEOUT
+from ...tax.defer_conditions import should_defer_webhook
 from ...thumbnail.models import Thumbnail
 from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TTL
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -3544,8 +3545,6 @@ class WebhookPlugin(BasePlugin):
             raise TaxDataError(msg)
 
         if webhook.defer_if_conditions and subscriptable_object is not None:
-            from saleor.webhook.defer_conditions import should_defer_webhook
-
             if should_defer_webhook(webhook.defer_if_conditions, subscriptable_object):
                 return None
 

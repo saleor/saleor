@@ -1753,9 +1753,6 @@ type Webhook implements Node @doc(category: "Webhooks") {
 
   """Custom headers, which will be added to HTTP request."""
   customHeaders: JSONString
-
-  """Conditions under which webhook delivery is deferred."""
-  deferIfConditions: [String!]
 }
 
 """An object with an ID"""
@@ -31429,12 +31426,16 @@ type Subscription @doc(category: "Miscellaneous") {
     channels: [String!]
   ): OrderBulkCreated @doc(category: "Orders")
 
-  """Synchronous webhook for calculating checkout/order taxes."""
+  """
+  Synchronous webhook for calculating checkout/order taxes.
+  
+  Added in Saleor 3.22.
+  """
   calculateTaxes(
     """
     List of conditions under which the webhook delivery should be deferred (skipped). If any condition evaluates to true, the webhook will not be delivered.
     """
-    deferIf: [WebhookDeferIfConditionEnum!]
+    deferIf: [CalculateTaxesDeferIfConditionEnum!]
   ): CalculateTaxes @doc(category: "Taxes")
 
   """
@@ -31894,9 +31895,9 @@ type TaxableObjectLine @doc(category: "Taxes") {
 union TaxSourceLine = CheckoutLine | OrderLine
 
 """
-Conditions under which a webhook delivery should be deferred. If any condition evaluates to true, the webhook will not fire.
+Conditions under which a tax webhook delivery should be deferred. If any condition evaluates to true, the webhook will not fire.
 """
-enum WebhookDeferIfConditionEnum {
+enum CalculateTaxesDeferIfConditionEnum {
   ADDRESS_MISSING
 }
 
