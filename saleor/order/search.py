@@ -2,16 +2,13 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.conf import settings
-from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import F, Q, Value, prefetch_related_objects
+from django.db.models import Value, prefetch_related_objects
 
 from ..account.search import generate_address_search_vector_value
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from . import OrderEvents
 
 if TYPE_CHECKING:
-    from django.db.models import QuerySet
-
     from .models import Order
 
 
@@ -270,13 +267,3 @@ def generate_order_events_search_vector_value(
                 )
             )
     return event_vectors
-
-
-def search_orders(qs: "QuerySet[Order]", value) -> "QuerySet[Order]":
-    if value:
-        query = SearchQuery(value, search_type="websearch", config="simple")
-        lookup = Q(search_vector=query)
-        qs = qs.filter(lookup).annotate(
-            search_rank=SearchRank(F("search_vector"), query)
-        )
-    return qs

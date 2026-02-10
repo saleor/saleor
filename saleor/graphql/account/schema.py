@@ -1,6 +1,6 @@
 import graphene
 
-from ...account.search import search_users
+from ...core.search import prefix_search
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, OrderPermissions
 from ...permission.utils import message_one_of_permissions_required
@@ -230,7 +230,7 @@ class AccountQueries(graphene.ObjectType):
         search = kwargs.get("search")
         qs = resolve_customers(info)
         if search:
-            qs = search_users(qs, search)
+            qs = prefix_search(qs, search)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )

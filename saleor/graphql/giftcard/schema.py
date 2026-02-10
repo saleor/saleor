@@ -1,8 +1,8 @@
 import graphene
 from graphql.error import GraphQLError
 
+from ...core.search import prefix_search
 from ...giftcard import models
-from ...giftcard.search import search_gift_cards
 from ...permission.enums import GiftcardPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -96,7 +96,7 @@ class GiftCardQueries(graphene.ObjectType):
             raise GraphQLError("Sorting by balance requires filtering by currency.")
         qs = resolve_gift_cards(info)
         if search:
-            qs = search_gift_cards(qs, search)
+            qs = prefix_search(qs, search)
         qs = filter_connection_queryset(
             qs,
             {"sort_by": sort_by, "filter": filter, **kwargs},

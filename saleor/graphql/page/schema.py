@@ -1,6 +1,6 @@
 import graphene
 
-from ...page.search import search_pages
+from ...core.search import prefix_search
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -120,7 +120,7 @@ class PageQueries(graphene.ObjectType):
             search = kwargs.get("search") or kwargs.get("filter", {}).get("search")
             if search:
                 qs = ChannelQsContext(
-                    qs=search_pages(qs.qs, search), channel_slug=qs.channel_slug
+                    qs=prefix_search(qs.qs, search), channel_slug=qs.channel_slug
                 )
 
             qs = filter_connection_queryset(

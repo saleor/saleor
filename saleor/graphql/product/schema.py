@@ -2,6 +2,7 @@ import graphene
 from django.db.models import Exists, OuterRef
 from promise import Promise
 
+from ...core.search import prefix_search
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
 from ...product import models
@@ -9,7 +10,6 @@ from ...product.deprecations import (
     DEPRECATION_WARNING_MESSAGE as DEPRECATION_DIGITAL_CONTENT,
 )
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
-from ...product.search import search_products
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
@@ -543,7 +543,7 @@ class ProductQueries(graphene.ObjectType):
             qs = resolve_products(info, requestor, channel_obj, limited_channel_access)
             if search:
                 qs = ChannelQsContext(
-                    qs=search_products(qs.qs, search), channel_slug=channel
+                    qs=prefix_search(qs.qs, search), channel_slug=channel
                 )
             kwargs["channel"] = channel
             qs = filter_connection_queryset(
@@ -645,7 +645,7 @@ class ProductQueries(graphene.ObjectType):
                 requestor=requestor,
             )
             if search:
-                products = search_products(
+                products = prefix_search(
                     models.Product.objects.using(
                         get_database_connection_name(info.context)
                     ),

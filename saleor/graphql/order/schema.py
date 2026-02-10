@@ -3,8 +3,8 @@ from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
 from ...core.exceptions import PermissionDenied
+from ...core.search import prefix_search
 from ...order import models
-from ...order.search import search_orders
 from ...permission.enums import OrderPermissions
 from ...permission.utils import has_one_of_permissions
 from ..core import ResolveInfo
@@ -247,7 +247,7 @@ class OrderQueries(graphene.ObjectType):
         search = kwargs.get("search")
         qs = resolve_orders(info, channel)
         if search:
-            qs = search_orders(qs, search)
+            qs = prefix_search(qs, search)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
@@ -273,7 +273,7 @@ class OrderQueries(graphene.ObjectType):
         search = kwargs.get("search")
         qs = resolve_draft_orders(info)
         if search:
-            qs = search_orders(qs, search)
+            qs = prefix_search(qs, search)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )

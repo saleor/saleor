@@ -2,10 +2,10 @@ import graphene
 from graphene import relay
 from promise import Promise
 
+from ....core.search import prefix_search
 from ....permission.utils import has_one_of_permissions
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
-from ....product.search import search_products
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -195,7 +195,7 @@ class Category(ModelObjectType[models.Category]):
 
             if search:
                 channel_qs = ChannelQsContext(
-                    qs=search_products(qs, search), channel_slug=channel
+                    qs=prefix_search(qs, search), channel_slug=channel
                 )
             else:
                 channel_qs = ChannelQsContext(qs=qs, channel_slug=channel)
