@@ -1,0 +1,27 @@
+saleor/graphql/app/enums.py
+  12a08c4903d179eb 69-82
+saleor/graphql/app/tests/queries/test_app_problems.py
+  12a08c4903d179eb 64-71,220,250,281,284,395,421,424,427-439,441-445,447-450,453,473,480,483,500,509,526,530,535-536,539-540,544,551-552,554,557-592
+saleor/graphql/app/types.py
+  12a08c4903d179eb 68-69,547-552,554-556,573,575-584,588,591
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "76c55e7a5d8f82700b39f83002740c2bd90996c6",
+  "prompts": {
+    "12a08c4903d179eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5d76171e-111f-47e3-afb1-96ef61017503",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 146,
+      "total_deletions": 62,
+      "accepted_lines": 137,
+      "overriden_lines": 0
+    }
+  }
+}
