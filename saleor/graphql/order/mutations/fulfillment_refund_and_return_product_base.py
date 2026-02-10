@@ -6,7 +6,12 @@ from ....order import FulfillmentLineData
 from ....order import models as order_models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
+from ....site.models import SiteSettings
 from ...core.mutations import BaseMutation
+from ...payment.utils import (
+    resolve_reason_reference_page,
+    validate_per_line_reason_reference,
+)
 from ..types import FulfillmentLine, OrderLine
 
 
@@ -85,7 +90,11 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
     @classmethod
     def clean_fulfillment_lines(
-        cls, fulfillment_lines_data, cleaned_input, whitelisted_statuses
+        cls,
+        fulfillment_lines_data,
+        cleaned_input,
+        whitelisted_statuses,
+        site_settings: SiteSettings | None = None,
     ):
         fulfillment_lines = cls.get_nodes_or_error(
             [line["fulfillment_line_id"] for line in fulfillment_lines_data],
@@ -134,17 +143,36 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     line.pk,
                     "order_line_id",
                 )
+
+            reason = line_data.get("reason")
+            reason_reference_instance = None
+            reason_reference_id = line_data.get("reason_reference")
+            if site_settings and reason_reference_id is not None:
+                per_line_ctx = validate_per_line_reason_reference(
+                    reason_reference_id=reason_reference_id,
+                    site_settings=site_settings,
+                    error_code_enum=OrderErrorCode,
+                )
+                if per_line_ctx["should_apply"]:
+                    reason_reference_instance = resolve_reason_reference_page(
+                        str(reason_reference_id),
+                        per_line_ctx["refund_reason_reference_type"].pk,
+                        OrderErrorCode,
+                    )
+
             cleaned_fulfillment_lines.append(
                 FulfillmentLineData(
                     line=line,
                     quantity=quantity,
                     replace=replace,
+                    reason=reason,
+                    reason_reference=reason_reference_instance,
                 )
             )
         cleaned_input["fulfillment_lines"] = cleaned_fulfillment_lines
 
     @classmethod
-    def clean_lines(cls, lines_data, cleaned_input):
+    def clean_lines(cls, lines_data, cleaned_input, site_settings=None):
         order_lines = cls.get_nodes_or_error(
             [line["order_line_id"] for line in lines_data],
             field="order_lines",
@@ -190,9 +218,30 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     "order_line_id",
                 )
 
+            reason = line_data.get("reason")
+            reason_reference_instance = None
+            reason_reference_id = line_data.get("reason_reference")
+            if site_settings and reason_reference_id is not None:
+                per_line_ctx = validate_per_line_reason_reference(
+                    reason_reference_id=reason_reference_id,
+                    site_settings=site_settings,
+                    error_code_enum=OrderErrorCode,
+                )
+                if per_line_ctx["should_apply"]:
+                    reason_reference_instance = resolve_reason_reference_page(
+                        str(reason_reference_id),
+                        per_line_ctx["refund_reason_reference_type"].pk,
+                        OrderErrorCode,
+                    )
+
             cleaned_order_lines.append(
                 OrderLineInfo(
-                    line=line, quantity=quantity, variant=variant, replace=replace
+                    line=line,
+                    quantity=quantity,
+                    variant=variant,
+                    replace=replace,
+                    reason=reason,
+                    reason_reference=reason_reference_instance,
                 )
             )
         cleaned_input["order_lines"] = cleaned_order_lines

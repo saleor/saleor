@@ -25161,6 +25161,20 @@ input OrderReturnProductsInput @doc(category: "Orders") {
 
   """If true, Saleor will call refund action for all lines."""
   refund: Boolean = false
+
+  """
+  Global reason for the return.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  ID of a `Page` to reference as reason for the return. Required for staff users when refund reason reference type is configured. Always optional for apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 input OrderReturnLineInput @doc(category: "Orders") {
@@ -25172,6 +25186,20 @@ input OrderReturnLineInput @doc(category: "Orders") {
 
   """Determines, if the line should be added to replace order."""
   replace: Boolean = false
+
+  """
+  Reason for returning the line.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  ID of a `Page` to reference as reason for returning this line. When provided, must match the configured `PageType` in refund settings. Always optional for both staff and apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
@@ -25183,6 +25211,20 @@ input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
 
   """Determines, if the line should be added to replace order."""
   replace: Boolean = false
+
+  """
+  Reason for returning the line.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  ID of a `Page` to reference as reason for returning this line. When provided, must match the configured `PageType` in refund settings. Always optional for both staff and apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 """
