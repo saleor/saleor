@@ -1,0 +1,23 @@
+saleor/graphql/app/tests/mutations/test_app_problem_create_race_conditions.py
+  10e9577f29c9b9da 59-61,66,81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "f5a407304feeec6035bc6e2f83e53fee33a2f402",
+  "prompts": {
+    "10e9577f29c9b9da": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f5db3b2a-5ba8-4532-82de-6cab47fec83c",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 4,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
