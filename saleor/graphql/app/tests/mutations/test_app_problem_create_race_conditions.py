@@ -56,10 +56,15 @@ def test_app_problem_create_concurrent_aggregation_race_condition(
         }
     }
 
+    async_count_increment = 10
+    current_count = problem.count
+
     def simulate_concurrent_increment(*args, **kwargs):
         # Simulate another request incrementing the count concurrently
         # This happens after the select_for_update but tests that F() is used
-        AppProblem.objects.filter(pk=problem.pk).update(count=problem.count + 10)
+        AppProblem.objects.filter(pk=problem.pk).update(
+            count=problem.count + async_count_increment
+        )
 
     # when
     with race_condition.RunBefore(
@@ -73,9 +78,7 @@ def test_app_problem_create_concurrent_aggregation_race_condition(
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
     problem.refresh_from_db()
-    # The F() expression should add 1 to whatever the current value is (11),
-    # resulting in 12, not 2 (which would happen with count += 1)
-    assert problem.count == 12
+    assert problem.count == async_count_increment + current_count + 1
 
 
 def test_app_problem_create_concurrent_creation_race_condition(app_api_client, app):
