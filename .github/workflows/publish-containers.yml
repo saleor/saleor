@@ -116,11 +116,11 @@ jobs:
   notify:
     if: ${{ failure() }}
     needs: [prepare-variables, build-push]
-    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@ac946d73a756846acaba11e06fb485b445edac10 # v1.9.0
+    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@eb0c692da7bf13f5e1a82c17488b24c514dd10a1 # v1.10.0
     with:
       type: build
-      ref: ${{ needs.prepare-variables.outputs.version }}
+      ref: ${{ needs.prepare-variables.outputs.version || inputs.ref || github.ref_name }}
       status: failure
-      mention_group_id: ${{ secrets.SLACK_MENTION_GROUP_ID }}
     secrets:
       slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+      mention_group_id: ${{ secrets.SLACK_MENTION_GROUP_ID }}
