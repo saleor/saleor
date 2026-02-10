@@ -2393,6 +2393,62 @@ def test_updates_checkout_last_transaction_modified_at(
     )
 
 
+@pytest.mark.parametrize(
+    "current_search_index_dirty",
+    [True, False],
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_updates_checkout_search_index_dirty(
+    mocked_initialize,
+    current_search_index_dirty,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout.search_index_dirty = current_search_index_dirty
+    checkout.save(update_fields=["search_index_dirty"])
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info,
+        plugins_manager,
+        lines,
+    )
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionInitialize"]["errors"]
+    checkout.refresh_from_db()
+    assert checkout.search_index_dirty is True
+
+
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
 def test_for_locked_checkout(
     mocked_initialize,

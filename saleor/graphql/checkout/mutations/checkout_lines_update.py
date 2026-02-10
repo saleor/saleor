@@ -233,6 +233,12 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         )
 
     @classmethod
+    def mark_search_vectors_as_dirty(cls, checkout, update_fields):
+        # As any changes applied with `CheckoutLinesUpdate` do not influence the
+        # checkout search vector, we don't mark it as dirty.
+        pass
+
+    @classmethod
     def _get_variants_from_lines_input(cls, lines: list[dict]) -> list[ProductVariant]:
         """Return list of ProductVariant objects.
 

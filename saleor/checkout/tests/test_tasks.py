@@ -20,6 +20,8 @@ from ..tasks import (
     delete_expired_checkouts,
     task_logger,
     trigger_automatic_checkout_completion_task,
+    update_checkouts_search_vector_task,
+    update_checkouts_search_vector_task_batch_process,
 )
 
 
@@ -1444,3 +1446,195 @@ def test_trigger_automatic_checkout_completion_task_with_cut_off_date(
     ]
     assert eligible_checkout.pk in called_checkouts
     assert ineligible_checkout_due_to_cut_off.pk not in called_checkouts
+
+
+@mock.patch(
+    "saleor.checkout.tasks.update_checkouts_search_vector_task_batch_process.delay"
+)
+def test_update_checkouts_search_vector_task_updates_dirty_checkouts(
+    mock_batch_process,
+    checkouts_list,
+):
+    # given
+    assert len(checkouts_list) > 3
+    dirty_checkouts = checkouts_list[:3]
+    for checkout in dirty_checkouts:
+        checkout.search_index_dirty = True
+
+    for checkout in checkouts_list[3:]:
+        checkout.search_index_dirty = False
+
+    Checkout.objects.bulk_update(checkouts_list, ["search_index_dirty"])
+
+    # when
+    update_checkouts_search_vector_task()
+
+    # then
+    mock_batch_process.assert_called_once()
+    called_pks = mock_batch_process.call_args[0][0]
+    assert len(called_pks) == 3
+    assert set(called_pks) == {c.pk for c in dirty_checkouts}
+
+
+@mock.patch(
+    "saleor.checkout.tasks.update_checkouts_search_vector_task_batch_process.delay"
+)
+def test_update_checkouts_search_vector_task_respects_batch_size(
+    mock_batch_process,
+    checkouts_list,
+):
+    # given
+    batch_size = 1
+    parallel_tasks = 5
+
+    assert len(checkouts_list) >= batch_size * parallel_tasks
+    # Mark more checkouts as dirty than the batch size
+    for checkout in checkouts_list[: batch_size * parallel_tasks]:
+        checkout.search_index_dirty = True
+
+    Checkout.objects.bulk_update(checkouts_list, ["search_index_dirty"])
+
+    # when
+    with mock.patch("saleor.checkout.tasks.UPDATE_SEARCH_BATCH_SIZE", batch_size):
+        update_checkouts_search_vector_task()
+
+    # then
+    # Should spawn 5 parallel tasks (default parallel_tasks value)
+    assert mock_batch_process.call_count == 5
+    # Each call should have batch_size items
+    all_pks = []
+    for call in mock_batch_process.call_args_list:
+        called_pks = call[0][0]
+        assert len(called_pks) == batch_size
+        all_pks.extend(called_pks)
+
+    # Verify each batch gets unique PKs - no duplicates
+    assert len(all_pks) == len(set(all_pks))
+
+
+@mock.patch(
+    "saleor.checkout.tasks.update_checkouts_search_vector_task_batch_process.delay"
+)
+def test_update_checkouts_search_vector_task_no_dirty_checkouts(
+    mock_batch_process,
+    checkouts_list,
+):
+    # given
+    Checkout.objects.update(search_index_dirty=False)
+
+    # when
+    update_checkouts_search_vector_task()
+
+    # then
+    mock_batch_process.assert_not_called()
+
+
+@mock.patch(
+    "saleor.checkout.tasks.update_checkouts_search_vector_task_batch_process.delay"
+)
+def test_update_checkouts_search_vector_task_skips_clean_checkouts(
+    mock_batch_process,
+    checkouts_list,
+):
+    # given
+    dirty_checkout = checkouts_list[0]
+    dirty_checkout.search_index_dirty = True
+    dirty_checkout.save(update_fields=["search_index_dirty"])
+
+    clean_checkouts = checkouts_list[1:]
+    for checkout in clean_checkouts:
+        checkout.search_index_dirty = False
+
+    Checkout.objects.bulk_update(clean_checkouts, ["search_index_dirty"])
+
+    # when
+    update_checkouts_search_vector_task()
+
+    # then
+    mock_batch_process.assert_called_once()
+    called_pks = mock_batch_process.call_args[0][0]
+    assert len(called_pks) == 1
+    assert called_pks[0] == dirty_checkout.pk
+
+
+@mock.patch("saleor.checkout.tasks.update_checkouts_search_vector")
+def test_update_checkouts_search_vector_task_batch_process_updates_checkouts(
+    mock_update_search_vector,
+    checkouts_list,
+):
+    # given
+    dirty_checkouts = checkouts_list[:3]
+    for checkout in dirty_checkouts:
+        checkout.search_index_dirty = True
+    Checkout.objects.bulk_update(dirty_checkouts, ["search_index_dirty"])
+
+    pks = [c.pk for c in dirty_checkouts]
+
+    # when
+    update_checkouts_search_vector_task_batch_process(pks)
+
+    # then
+    mock_update_search_vector.assert_called_once()
+    called_checkouts = mock_update_search_vector.call_args[0][0]
+    assert len(called_checkouts) == 3
+    assert {c.pk for c in called_checkouts} == set(pks)
+
+
+@mock.patch("saleor.checkout.tasks.update_checkouts_search_vector")
+def test_update_checkouts_search_vector_task_batch_process_skips_clean_checkouts(
+    mock_update_search_vector,
+    checkouts_list,
+):
+    # given
+    dirty_checkout = checkouts_list[0]
+    dirty_checkout.search_index_dirty = True
+    dirty_checkout.save(update_fields=["search_index_dirty"])
+
+    clean_checkout = checkouts_list[1]
+    clean_checkout.search_index_dirty = False
+    clean_checkout.save(update_fields=["search_index_dirty"])
+
+    pks = [dirty_checkout.pk, clean_checkout.pk]
+
+    # when
+    update_checkouts_search_vector_task_batch_process(pks)
+
+    # then
+    mock_update_search_vector.assert_called_once()
+    called_checkouts = mock_update_search_vector.call_args[0][0]
+    assert len(called_checkouts) == 1
+    assert called_checkouts[0].pk == dirty_checkout.pk
+
+
+@mock.patch("saleor.checkout.tasks.update_checkouts_search_vector")
+def test_update_checkouts_search_vector_task_batch_process_no_dirty_checkouts(
+    mock_update_search_vector,
+    checkouts_list,
+):
+    # given
+    clean_checkouts = checkouts_list[:3]
+    for checkout in clean_checkouts:
+        checkout.search_index_dirty = False
+    Checkout.objects.bulk_update(clean_checkouts, ["search_index_dirty"])
+
+    pks = [c.pk for c in clean_checkouts]
+
+    # when
+    update_checkouts_search_vector_task_batch_process(pks)
+
+    # then
+    mock_update_search_vector.assert_not_called()
+
+
+@mock.patch("saleor.checkout.tasks.update_checkouts_search_vector")
+def test_update_checkouts_search_vector_task_batch_process_empty_pks(
+    mock_update_search_vector,
+):
+    # given
+    pks = []
+
+    # when
+    update_checkouts_search_vector_task_batch_process(pks)
+
+    # then
+    mock_update_search_vector.assert_not_called()
