@@ -4,10 +4,10 @@ from django.db.models import Value
 
 from ...account.models import User
 from ...account.search import update_user_search_vector
+from ...checkout.models import Checkout
+from ...checkout.search.indexing import update_checkouts_search_vector
 from ...product.models import Product, ProductChannelListing
 from ..search import parse_search_query, prefix_search
-
-# --- parse_search_query unit tests ---
 
 
 def test_parse_search_query_single_word():
@@ -63,8 +63,88 @@ def test_parse_search_query_preserves_case():
 
 
 def test_parse_search_query_single_word_in_quotes():
-    # Single word phrase should be treated as a prefix word
-    assert parse_search_query('"coffee"') == "coffee:*"
+    # Single word in quotes should be an exact match (no prefix)
+    assert parse_search_query('"coffee"') == "coffee"
+
+
+def test_parse_search_query_quoted_word_with_or():
+    assert parse_search_query('"aaron" OR aallen') == "aaron | aallen:*"
+
+
+def test_parse_search_query_or_two_plain_words():
+    assert parse_search_query("aaron0 OR aallen") == "aaron0:* | aallen:*"
+
+
+def test_parse_search_query_or_between_phrases():
+    assert (
+        parse_search_query('"green tea" OR "black coffee"')
+        == "(green <-> tea) | (black <-> coffee)"
+    )
+
+
+def test_parse_search_query_negated_word_with_or():
+    assert parse_search_query("coffee OR tea -decaf -sugar") == (
+        "coffee:* | tea:* & !decaf:* & !sugar:*"
+    )
+
+
+def test_parse_search_query_phrase_and_prefix_and_negation():
+    assert parse_search_query('"green tea" maker -cheap') == (
+        "(green <-> tea) & maker:* & !cheap:*"
+    )
+
+
+def test_parse_search_query_multiple_or_operators():
+    assert parse_search_query("coffee OR tea OR juice") == (
+        "coffee:* | tea:* | juice:*"
+    )
+
+
+def test_parse_search_query_or_with_negated_phrase():
+    assert parse_search_query('coffee OR -"green tea"') == (
+        "coffee:* | !(green <-> tea)"
+    )
+
+
+def test_parse_search_query_quoted_exact_and_prefix_mixed():
+    assert parse_search_query('"exact" prefix') == "exact & prefix:*"
+
+
+def test_parse_search_query_multiple_phrases_with_words():
+    assert parse_search_query('"green tea" "black coffee" sugar') == (
+        "(green <-> tea) & (black <-> coffee) & sugar:*"
+    )
+
+
+def test_parse_search_query_or_chain_with_phrase_in_middle():
+    assert parse_search_query('coffee OR "green tea" OR juice') == (
+        "coffee:* | (green <-> tea) | juice:*"
+    )
+
+
+def test_parse_search_query_negation_before_or():
+    # Negation applies to decaf, then OR connects to tea
+    assert parse_search_query("coffee -decaf OR tea") == ("coffee:* & !decaf:* | tea:*")
+
+
+def test_parse_search_query_parentheses_are_stripped():
+    # Parentheses are not supported for grouping; they are stripped as special chars
+    assert parse_search_query("(green AND Tea) OR (coffee AND -black)") == (
+        "green:* & Tea:* | coffee:* & !black:*"
+    )
+
+
+def test_parse_search_query_lowercase_or_is_regular_word():
+    # Only uppercase OR is recognized as an operator
+    assert parse_search_query("coffee or tea") == "coffee:* & or:* & tea:*"
+
+
+def test_parse_search_query_lowercase_and_is_regular_word():
+    assert parse_search_query("coffee and tea") == "coffee:* & and:* & tea:*"
+
+
+def test_parse_search_query_mixed_case_or_is_regular_word():
+    assert parse_search_query("coffee Or tea") == "coffee:* & Or:* & tea:*"
 
 
 def test_parse_search_query_unclosed_quote():
@@ -75,9 +155,6 @@ def test_parse_search_query_unclosed_quote():
 def test_parse_search_query_standalone_dash_ignored():
     # Standalone dash (space before and after) is ignored
     assert parse_search_query("coffee - tea") == "coffee:* & tea:*"
-
-
-# --- prefix_search integration tests (Products) ---
 
 
 @pytest.fixture
@@ -95,8 +172,8 @@ def products_for_search(category, product_type, channel_USD):
             product_type=product_type,
             category=category,
             search_vector=(
-                SearchVector(Value(name), weight="A")
-                + SearchVector(Value(description), weight="C")
+                SearchVector(Value(name), config="simple", weight="A")
+                + SearchVector(Value(description), config="simple", weight="C")
             ),
         )
         ProductChannelListing.objects.create(
@@ -225,3 +302,80 @@ def test_prefix_search_users_perfect_match_priority(users_for_search):
     # then – "John" exact match should rank higher than "Johnny"
     assert len(results) == 2
     assert results[0].first_name == "John"
+
+
+def test_prefix_search_checkouts_exact_match_priority(
+    channel_USD,
+):
+    # given
+
+    checkouts = []
+
+    # Checkout 1: email starts with "aaron00"
+    checkout1 = Checkout.objects.create(
+        channel=channel_USD,
+        email="aaron00@example.net",
+        user=None,
+        currency="USD",
+    )
+
+    # Checkout 2: different email, user is "Aaron Smith" (exact match for "aaron")
+    user2 = User.objects.create(
+        email="smith.other@example.com", first_name="Aaron", last_name="Smith"
+    )
+    checkout2 = Checkout.objects.create(
+        channel=channel_USD,
+        email=user2.email,
+        user=user2,
+        currency="USD",
+    )
+
+    # Checkout 3: email contains "aaron" in middle, user is "Bob Wilson"
+    # - not found as search uses prefix match
+    user3 = User.objects.create(
+        email="bob.wilson@example.com", first_name="Bob", last_name="Wilson"
+    )
+    checkout3 = Checkout.objects.create(
+        channel=channel_USD,
+        email=user3.email,
+        user=user3,
+        currency="USD",
+    )
+
+    # Checkout 4: user last name is "Aaron" (exact match), and email starts with `aaron`
+    user4 = User.objects.create(
+        email="aaron.thompson@example.com", first_name="Jane", last_name="Aaron"
+    )
+    checkout4 = Checkout.objects.create(
+        channel=channel_USD,
+        email=user4.email,
+        user=user4,
+        currency="USD",
+    )
+
+    # Checkout 5: no match at all
+    user5 = User.objects.create(
+        email="charlie.brown@example.com", first_name="Charlie", last_name="Brown"
+    )
+    checkout5 = Checkout.objects.create(
+        channel=channel_USD,
+        email=user5.email,
+        user=user5,
+        currency="USD",
+    )
+
+    checkouts = [checkout1, checkout2, checkout3, checkout4, checkout5]
+
+    # Update search vectors
+    update_checkouts_search_vector(checkouts)
+
+    # when
+    results = list(
+        prefix_search(Checkout.objects.all(), "aaron").order_by("-search_rank")
+    )
+
+    # then
+    expected_indexes = [3, 1, 0]
+    assert len(results) == len(expected_indexes)
+    for result, expected_index in zip(results, expected_indexes, strict=False):
+        assert result.pk == checkouts[expected_index].pk

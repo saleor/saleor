@@ -63,6 +63,10 @@ def _tokenize(value: str) -> list[dict]:
             tokens.append({"type": "or"})
             continue
 
+        # AND operator – explicit AND is a no-op (AND is implicit between terms)
+        if raw_word == "AND" and not negated:
+            continue
+
         word = _sanitize_word(raw_word)
         if word:
             tokens.append({"type": "word", "word": word, "negated": negated})
@@ -92,17 +96,17 @@ def parse_search_query(value: str) -> str | None:
         return None
 
     parts: list[str] = []
+    pending_connector = " & "
 
     for token in tokens:
         if token["type"] == "or":
-            # Replace the last AND connector with OR
-            if parts and parts[-1] == " & ":
-                parts[-1] = " | "
+            pending_connector = " | "
             continue
 
-        # Insert AND connector between terms (unless we just placed an OR)
-        if parts and parts[-1] not in (" & ", " | "):
-            parts.append(" & ")
+        # Insert connector between terms
+        if parts:
+            parts.append(pending_connector)
+        pending_connector = " & "
 
         neg = "!" if token["negated"] else ""
 
@@ -112,7 +116,7 @@ def parse_search_query(value: str) -> str | None:
         elif token["type"] == "phrase":
             words = token["words"]
             if len(words) == 1:
-                parts.append(f"{neg}{words[0]}:*")
+                parts.append(f"{neg}{words[0]}")
             else:
                 # Use <-> (followed-by) for phrase matching
                 phrase_tsquery = " <-> ".join(words)
