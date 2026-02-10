@@ -17,6 +17,21 @@ from graphql.language.ast import (
 from ...webhook.error_codes import WebhookErrorCode
 
 
+def _extract_list_argument_values(value) -> list[str]:
+    """Extract string values from a GraphQL AST argument node.
+
+    Handles both ListValue ([A, B]) and single-value coercion (A → [A]),
+    matching GraphQL's runtime list coercion behavior.
+    """
+    # ListValue node has a "values" attribute
+    if hasattr(value, "values"):
+        return [v.value for v in value.values]
+    # Single value (e.g. EnumValue, StringValue) — coerce to a one-element list
+    if hasattr(value, "value"):
+        return [value.value]
+    return []
+
+
 class IsFragment(Flag):
     TRUE = True
     FALSE = False
@@ -57,10 +72,8 @@ class SubscriptionQuery:
             return []
         channels = []
         for arg in selection.arguments:
-            argument_name = arg.name.value
-            argument_values = getattr(arg.value, "values", [])
-            if argument_name == "channels":
-                channels = [value.value for value in argument_values]
+            if arg.name.value == "channels":
+                channels = _extract_list_argument_values(arg.value)
                 break
         return channels
 
@@ -79,8 +92,7 @@ class SubscriptionQuery:
             if selection.arguments:
                 for arg in selection.arguments:
                     if arg.name.value == "deferIf":
-                        values = getattr(arg.value, "values", [])
-                        return [value.value for value in values]
+                        return _extract_list_argument_values(arg.value)
         return []
 
     def _check_if_invalid_top_field_selection(self, subscription: OperationDefinition):
