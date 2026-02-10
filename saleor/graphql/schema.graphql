@@ -3114,12 +3114,15 @@ type AppProblem implements Node @doc(category: "Apps") {
 
 """Dismissal information for an app problem."""
 type AppProblemDismissed {
+  """Whether the problem was dismissed by an App or a User."""
+  by: AppProblemDismissedByEnum!
+
   """
-  The entity (App or User) that dismissed this problem. If user does not exist anymore, it can be null.
+  The user who dismissed this problem. Null if dismissed by an app or the user was deleted.
   
-  When dismissed by a User, requires MANAGE_STAFF permission. When dismissed by an App, any authenticated requestor can access.
+  Requires MANAGE_STAFF permission. Not accessible for apps.
   """
-  by: UserOrApp
+  user: User
 
   """
   Email of the user who dismissed this problem. Preserved even if the user is deleted.
@@ -3129,7 +3132,10 @@ type AppProblemDismissed {
   userEmail: String
 }
 
-union UserOrApp = User | App
+enum AppProblemDismissedByEnum @doc(category: "Apps") {
+  APP
+  USER
+}
 
 """Represents user data."""
 type User implements Node & ObjectWithMetadata @doc(category: "Users") {
@@ -11364,6 +11370,8 @@ enum TransactionEventTypeEnum @doc(category: "Payments") {
   CANCEL_REQUEST
   INFO
 }
+
+union UserOrApp = User | App
 
 """
 Represents a payment method used for a transaction.

@@ -66,6 +66,20 @@ AppTypeEnum: Final[graphene.Enum] = to_enum(AppType, description=description)
 AppTypeEnum.doc_category = DOC_CATEGORY_APPS
 
 
+class AppProblemDismissedBy:
+    APP = "app"
+    USER = "user"
+
+    CHOICES = [
+        (APP, "app"),
+        (USER, "user"),
+    ]
+
+
+AppProblemDismissedByEnum: Final[graphene.Enum] = to_enum(AppProblemDismissedBy)
+AppProblemDismissedByEnum.doc_category = DOC_CATEGORY_APPS
+
+
 AppProblemCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     error_codes.AppProblemCreateErrorCode
 )
