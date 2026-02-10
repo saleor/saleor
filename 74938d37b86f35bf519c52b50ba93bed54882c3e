@@ -1,0 +1,36 @@
+saleor/order/actions.py
+  e1bf5e5677c7f474 1496-1500
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "74938d37b86f35bf519c52b50ba93bed54882c3e",
+  "prompts": {
+    "65f400c262b9439d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "134b752d-2a6f-41e5-861e-ab84768c1bff",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 783,
+      "total_deletions": 14,
+      "accepted_lines": 30,
+      "overriden_lines": 0
+    },
+    "e1bf5e5677c7f474": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4cac903d-ac0c-4ac6-a2a1-7867de6eec85",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 1,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
