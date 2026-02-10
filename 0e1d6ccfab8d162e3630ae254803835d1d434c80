@@ -1,0 +1,33 @@
+saleor/graphql/tax/enums.py
+  7ad9b952f56f250f 36-46
+saleor/graphql/webhook/tests/mutations/test_webhook_create_defer.py
+  7ad9b952f56f250f 1-124
+saleor/webhook/tests/test_defer_conditions.py
+  7ad9b952f56f250f 5
+saleor/graphql/webhook/subscription_types.py
+  7ad9b952f56f250f 54,2787,2790
+saleor/graphql/webhook/mutations/webhook_create.py
+  7ad9b952f56f250f 145
+saleor/tax/defer_conditions.py
+  7ad9b952f56f250f 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.0.42",
+  "base_commit_sha": "0e1d6ccfab8d162e3630ae254803835d1d434c80",
+  "prompts": {
+    "7ad9b952f56f250f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "32b211a3-a1a2-43ed-8ccd-6499b9c54b0d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 183,
+      "total_deletions": 153,
+      "accepted_lines": 178,
+      "overriden_lines": 0
+    }
+  }
+}
