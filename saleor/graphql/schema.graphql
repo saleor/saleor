@@ -3097,9 +3097,6 @@ scalar JSON
 type AppProblem implements Node @doc(category: "Apps") {
   """The ID of the app problem."""
   id: ID!
-
-  """The app this problem belongs to."""
-  app: App!
   createdAt: DateTime!
   updatedAt: DateTime!
 

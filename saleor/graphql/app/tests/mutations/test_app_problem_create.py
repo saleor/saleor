@@ -11,9 +11,6 @@ APP_PROBLEM_CREATE_MUTATION = """
                 count
                 isCritical
                 updatedAt
-                app {
-                    id
-                }
             }
             errors {
                 field
@@ -41,7 +38,6 @@ def test_app_problem_create(app_api_client, app):
     assert problem_data["key"] == "error-1"
     assert problem_data["count"] == 1
     assert problem_data["isCritical"] is False
-    assert problem_data["app"]["id"] is not None
 
     db_problem = AppProblem.objects.get(app=app)
     assert db_problem.message == "Something went wrong"

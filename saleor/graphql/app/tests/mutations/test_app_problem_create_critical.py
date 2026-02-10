@@ -15,9 +15,6 @@ APP_PROBLEM_CREATE_MUTATION = """
                 count
                 isCritical
                 updatedAt
-                app {
-                    id
-                }
             }
             errors {
                 field
