@@ -18,6 +18,8 @@ from ..models import Checkout
 from .loaders import CheckoutData, CheckoutLineData, TransactionData, load_checkout_data
 
 if TYPE_CHECKING:
+    from uuid import UUID
+
     from django.db.models import QuerySet
 
     from ...payment.models import Payment
@@ -27,22 +29,11 @@ if TYPE_CHECKING:
 @with_promise_context
 def update_checkouts_search_vector(checkouts: list["Checkout"]):
     """Update search vectors for multiple checkouts using efficient data loading."""
+    checkout_pks = [checkout.pk for checkout in checkouts]
     # update search_index_dirty flag before to ensure that will not update search vector
     # with outdated data
-    with transaction.atomic():
-        with allow_writer():
-            # select and lock checkouts to ensure updating in correct order
-            pks = (
-                checkout_qs_select_for_update()
-                .filter(
-                    pk__in=[checkout.pk for checkout in checkouts],
-                    search_index_dirty=True,
-                )
-                .values_list("pk", flat=True)
-            )
-            Checkout.objects.filter(pk__in=pks).update(search_index_dirty=False)
+    set_search_index_dirty(checkout_pks, search_index_dirty_value=False)
 
-    checkout_pks = [checkout.pk for checkout in checkouts]
     try:
         checkout_data_map = load_checkout_data(checkouts)
 
@@ -56,11 +47,7 @@ def update_checkouts_search_vector(checkouts: list["Checkout"]):
             )
     except Exception:
         # Reset search_index_dirty flag if processing fails
-        with transaction.atomic():
-            with allow_writer():
-                Checkout.objects.filter(pk__in=checkout_pks).update(
-                    search_index_dirty=True
-                )
+        set_search_index_dirty(checkout_pks, search_index_dirty_value=True)
         raise
 
     with transaction.atomic():
@@ -71,6 +58,21 @@ def update_checkouts_search_vector(checkouts: list["Checkout"]):
                 .values_list("pk", flat=True)
             )
             Checkout.objects.bulk_update(checkouts, ["search_vector"])
+
+
+def set_search_index_dirty(checkout_pks: list["UUID"], search_index_dirty_value: bool):
+    """Reset search vectors for multiple checkouts."""
+    with transaction.atomic():
+        with allow_writer():
+            # select and lock checkouts to ensure updating in correct order
+            pks = (
+                checkout_qs_select_for_update()
+                .filter(pk__in=checkout_pks)
+                .values_list("pk", flat=True)
+            )
+            Checkout.objects.filter(pk__in=pks).update(
+                search_vector=None, search_index_dirty=search_index_dirty_value
+            )
 
 
 def prepare_checkout_search_vector_value(
