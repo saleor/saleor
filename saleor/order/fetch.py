@@ -139,9 +139,8 @@ def fetch_draft_order_lines_info(
         )
 
     if lines is None:
-        with allow_writer():
-            # TODO: load lines with dataloader and pass as an argument
-            lines = list(order.lines.prefetch_related(*prefetch_related_fields))
+        # TODO: load lines with dataloader and pass as an argument
+        lines = list(order.lines.prefetch_related(*prefetch_related_fields))
     else:
         prefetch_related_objects(lines, *prefetch_related_fields)
 
