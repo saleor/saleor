@@ -62,15 +62,3 @@ def test_get_usage_telemetry_checks_reported_at(site_settings, settings):
 
     # then
     assert data is not None
-
-
-@mock.patch("saleor.asgi.usage_telemetry.send_usage_telemetry")
-async def test_send_usage_telemetry_disabled(send_usage_telemetry_mock, settings):
-    # given
-    settings.SEND_USAGE_TELEMETRY = False
-
-    # when
-    await send_usage_telemetry_task()
-
-    # then
-    send_usage_telemetry_mock.assert_not_called()

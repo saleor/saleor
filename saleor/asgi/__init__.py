@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/3.1/howto/deployment/asgi/
 import gc
 import os
 
+from django.conf import settings
+
 from ..core.telemetry import initialize_telemetry
 from .asgi_handler import get_asgi_application
 from .cors_handler import cors_handler
@@ -39,6 +41,7 @@ application = health_check(application, "/health/")
 application = gzip_compression(application)
 application = cors_handler(application)
 application = telemetry_middleware(application)
-application = usage_telemetry_middleware(application)
+if settings.SEND_USAGE_TELEMETRY is True:
+    application = usage_telemetry_middleware(application)
 
 preload_app()

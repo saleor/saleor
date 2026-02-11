@@ -26,9 +26,6 @@ logger = logging.getLogger(__name__)
 
 
 async def send_usage_telemetry_task():
-    if not settings.SEND_USAGE_TELEMETRY:
-        return
-
     # Multiple workers from the same parent process will start almost at the same time.
     # Randomize the start of actual logic to avoid sending data more than once.
     await asyncio.sleep(random.randint(0, 5))
