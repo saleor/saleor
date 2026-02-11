@@ -201,9 +201,15 @@ class AppProblem(models.Model):
         ordering = ("-created_at",)
 
     def is_dismissed_by_user(self) -> bool:
-        # Rely on "dismissed_by_user_email" field because if we rely on dismissed_by: User, we will lose this value
-        # if user gets deleted. dismissed_by_user_email is denormalized which always holds the value
+        """Check if the problem was dismissed by a user (staff).
 
+        Uses the denormalized ``dismissed_by_user_email`` field instead of the
+        ``dismissed_by_user`` FK because the FK is set to NULL when the user is
+        deleted, whereas the email field is preserved indefinitely.
+
+        Method abstracts the fact that we don't store dedicated "by app" or "by user" field,
+        We have only one needed (email) that is enough to deduct this.
+        """
         return self.dismissed_by_user_email is not None
 
 

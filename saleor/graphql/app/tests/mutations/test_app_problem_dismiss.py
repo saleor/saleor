@@ -26,7 +26,9 @@ def test_app_problem_dismiss_multiple_inputs_fails(
     variables = {
         "input": {
             "byApp": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]},
-            "byUserWithIds": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]},
+            "byStaffWithIds": {
+                "ids": [graphene.Node.to_global_id("AppProblem", p1.id)]
+            },
         }
     }
 
@@ -41,7 +43,7 @@ def test_app_problem_dismiss_multiple_inputs_fails(
     assert data["errors"][0]["code"] == "GRAPHQL_ERROR"
     assert (
         data["errors"][0]["message"]
-        == "Argument 'byApp' cannot be combined with 'byUserWithIds'"
+        == "Argument 'byApp' cannot be combined with 'byStaffWithIds'"
     )
 
 
@@ -60,7 +62,7 @@ def test_app_problem_dismiss_no_input_fails(app_api_client, app):
     assert data["errors"][0]["code"] == "GRAPHQL_ERROR"
     assert (
         data["errors"][0]["message"]
-        == "At least one of arguments is required: 'byApp', 'byUserWithIds', 'byUserWithKeys'."
+        == "At least one of arguments is required: 'byApp', 'byStaffWithIds', 'byStaffWithKeys'."
     )
 
 
@@ -79,7 +81,7 @@ def test_app_problem_dismiss_empty_by_app_fails(app_api_client, app):
     assert data["errors"][0]["code"] == "GRAPHQL_ERROR"
     assert (
         data["errors"][0]["message"]
-        == "At least one of arguments is required: 'byApp', 'byUserWithIds', 'byUserWithKeys'."
+        == "At least one of arguments is required: 'byApp', 'byStaffWithIds', 'byStaffWithKeys'."
     )
 
 
@@ -90,7 +92,7 @@ def test_app_problem_dismiss_without_permission(
     p1 = app_problem_generator(app)
     variables = {
         "input": {
-            "byUserWithIds": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}
+            "byStaffWithIds": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}
         }
     }
 

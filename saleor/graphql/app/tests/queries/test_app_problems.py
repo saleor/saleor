@@ -259,19 +259,16 @@ def test_app_problems_dismissed_by_user_returns_null_when_user_deleted(
         permission_manage_apps, permission_manage_staff
     )
     staff_user = staff_api_client.user
-    problem = AppProblem.objects.create(
+    AppProblem.objects.create(
         app=app,
         message="Dismissed by deleted user",
         key="k1",
         dismissed=True,
         dismissed_by_user_email=staff_user.email,
-        dismissed_by_user=staff_user,
+        dismissed_by_user=None,
     )
 
-    # when - user is deleted (simulating SET_NULL behavior)
-    problem.dismissed_by_user = None
-    problem.save(update_fields=["dismissed_by_user"])
-
+    # when
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
     response = staff_api_client.post_graphql(
         QUERY_APP_PROBLEMS_WITH_DISMISSED_BY_AND_EMAIL, variables
@@ -561,24 +558,21 @@ def test_dismissed_user_returns_null_when_dismissed_by_app(
 def test_dismissed_user_returns_null_when_user_deleted(
     staff_api_client, app, permission_manage_apps, permission_manage_staff
 ):
-    # given
+    # given - dismissed_by_user is None (simulating SET_NULL after user deletion)
     staff_api_client.user.user_permissions.add(
         permission_manage_apps, permission_manage_staff
     )
     staff_user = staff_api_client.user
-    problem = AppProblem.objects.create(
+    AppProblem.objects.create(
         app=app,
         message="Dismissed by deleted user",
         key="k1",
         dismissed=True,
         dismissed_by_user_email=staff_user.email,
-        dismissed_by_user=staff_user,
+        dismissed_by_user=None,
     )
 
-    # when - user FK is set to null (simulating SET_NULL behavior)
-    problem.dismissed_by_user = None
-    problem.save(update_fields=["dismissed_by_user"])
-
+    # when
     variables = {"id": graphene.Node.to_global_id("App", app.id)}
     response = staff_api_client.post_graphql(
         QUERY_APP_PROBLEMS_WITH_DISMISSED_USER, variables

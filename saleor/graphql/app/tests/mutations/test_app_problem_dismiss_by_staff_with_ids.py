@@ -25,7 +25,7 @@ def test_app_problem_dismiss_by_ids_as_staff(
     p1 = app_problem_generator(app, key="k1")
     variables = {
         "input": {
-            "byUserWithIds": {
+            "byStaffWithIds": {
                 "ids": [graphene.Node.to_global_id("AppProblem", p1.id)],
             }
         }
@@ -53,7 +53,7 @@ def test_staff_can_dismiss_problems_from_multiple_apps(
     p2 = app_problem_generator(app_with_token, key="k2", message="Problem from app 2")
     variables = {
         "input": {
-            "byUserWithIds": {
+            "byStaffWithIds": {
                 "ids": [
                     graphene.Node.to_global_id("AppProblem", p1.id),
                     graphene.Node.to_global_id("AppProblem", p2.id),
@@ -101,7 +101,7 @@ def test_user_caller_cannot_use_by_app(
     assert data["errors"][0]["message"] == "Only app callers can use 'byApp'."
 
 
-def test_app_problem_dismiss_by_user_with_too_many_ids_fails(
+def test_app_problem_dismiss_by_staff_with_too_many_ids_fails(
     staff_api_client, app, permission_manage_apps
 ):
     # given
@@ -109,7 +109,7 @@ def test_app_problem_dismiss_by_user_with_too_many_ids_fails(
     ids = [
         graphene.Node.to_global_id("AppProblem", i) for i in range(MAX_ITEMS_LIMIT + 1)
     ]
-    variables = {"input": {"byUserWithIds": {"ids": ids}}}
+    variables = {"input": {"byStaffWithIds": {"ids": ids}}}
 
     # when
     response = staff_api_client.post_graphql(APP_PROBLEM_DISMISS_MUTATION, variables)

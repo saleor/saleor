@@ -137,14 +137,14 @@ def test_app_cannot_dismiss_other_apps_problems(
     assert p1.dismissed is False
 
 
-def test_app_caller_cannot_use_by_user_with_ids(
+def test_app_caller_cannot_use_by_staff_with_ids(
     app_api_client, app, app_problem_generator
 ):
-    # given - app caller tries to use byUserWithIds
+    # given - app caller tries to use byStaffWithIds (staff-only)
     p1 = app_problem_generator(app)
     variables = {
         "input": {
-            "byUserWithIds": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}
+            "byStaffWithIds": {"ids": [graphene.Node.to_global_id("AppProblem", p1.id)]}
         }
     }
 
@@ -155,7 +155,7 @@ def test_app_caller_cannot_use_by_user_with_ids(
     # then
     data = content["data"]["appProblemDismiss"]
     assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "byUserWithIds"
+    assert data["errors"][0]["field"] == "byStaffWithIds"
     assert data["errors"][0]["code"] == AppProblemDismissErrorCode.INVALID.name
     assert (
         data["errors"][0]["message"]
@@ -163,11 +163,11 @@ def test_app_caller_cannot_use_by_user_with_ids(
     )
 
 
-def test_app_caller_cannot_use_by_user_with_keys(app_api_client, app):
-    # given - app caller tries to use byUserWithKeys
+def test_app_caller_cannot_use_by_staff_with_keys(app_api_client, app):
+    # given - app caller tries to use byStaffWithKeys (staff-only)
     variables = {
         "input": {
-            "byUserWithKeys": {
+            "byStaffWithKeys": {
                 "keys": ["k1"],
                 "app": graphene.Node.to_global_id("App", app.id),
             }
@@ -181,7 +181,7 @@ def test_app_caller_cannot_use_by_user_with_keys(app_api_client, app):
     # then
     data = content["data"]["appProblemDismiss"]
     assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "byUserWithKeys"
+    assert data["errors"][0]["field"] == "byStaffWithKeys"
     assert data["errors"][0]["code"] == AppProblemDismissErrorCode.INVALID.name
     assert (
         data["errors"][0]["message"]

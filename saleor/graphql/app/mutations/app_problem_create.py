@@ -1,8 +1,7 @@
 import datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 import graphene
-from django.db.models import F
 from django.utils import timezone
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 from pydantic import ValidationError as PydanticValidationError
@@ -110,8 +109,7 @@ class AppProblemCreate(BaseMutation):
     def perform_mutation(
         cls, _root: None, info: ResolveInfo, /, **data: Any
     ) -> "AppProblemCreate":
-        app = info.context.app
-        assert app is not None
+        app = cast(AppModel, info.context.app)
         input_data = data["input"]
         try:
             validated = AppProblemCreateValidatedInput(**input_data)
@@ -151,7 +149,6 @@ class AppProblemCreate(BaseMutation):
                 return AppProblemCreate(app_problem=problem)
 
             cls._aggregate_existing(existing, validated, now)
-            existing.refresh_from_db()
             return AppProblemCreate(app_problem=existing)
 
     @classmethod
@@ -161,17 +158,15 @@ class AppProblemCreate(BaseMutation):
         validated: AppProblemCreateValidatedInput,
         now: datetime.datetime,
     ) -> None:
-        new_count = existing.count + 1
-        is_critical = bool(
-            validated.critical_threshold and new_count >= validated.critical_threshold
+        # In transaction block - we can safely modify in memory
+        existing.count += 1
+        existing.is_critical = bool(
+            validated.critical_threshold
+            and existing.count >= validated.critical_threshold
         )
-
-        AppProblem.objects.filter(pk=existing.pk).update(
-            count=F("count") + 1,
-            updated_at=now,
-            message=validated.message,
-            is_critical=is_critical,
-        )
+        existing.message = validated.message
+        existing.updated_at = now
+        existing.save(update_fields=["count", "updated_at", "message", "is_critical"])
 
     @classmethod
     def _create_new_problem(

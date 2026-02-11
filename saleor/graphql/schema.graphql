@@ -2904,11 +2904,13 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   List of problems associated with this app.
   
   Added in Saleor 3.22.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, MANAGE_APPS.
   """
   problems(
     """Limit number of returned problems. Must be between 1 and 100."""
     limit: PositiveInt
-  ): [AppProblem!]!
+  ): [AppProblem!]
 
   """App's brand data."""
   brand: AppBrand
@@ -3099,30 +3101,82 @@ Represents a problem associated with an app.
 Added in Saleor 3.22.
 """
 type AppProblem implements Node @doc(category: "Apps") {
-  """The ID of the app problem."""
+  """
+  The ID of the app problem.
+  
+  Added in Saleor 3.22.
+  """
   id: ID!
+
+  """
+  The date and time when the problem was created.
+  
+  Added in Saleor 3.22.
+  """
   createdAt: DateTime!
+
+  """
+  The date and time when the problem was last updated.
+  
+  Added in Saleor 3.22.
+  """
   updatedAt: DateTime!
 
-  """Number of occurrences."""
+  """
+  Number of occurrences.
+  
+  Added in Saleor 3.22.
+  """
   count: Int!
 
-  """Whether the problem has reached critical threshold."""
+  """
+  Whether the problem has reached critical threshold.
+  
+  Added in Saleor 3.22.
+  """
   isCritical: Boolean!
 
-  """Dismissal information. Null if the problem has not been dismissed."""
+  """
+  Dismissal information. Null if the problem has not been dismissed.
+  
+  Added in Saleor 3.22.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, MANAGE_APPS.
+  """
   dismissed: AppProblemDismissed
+
+  """
+  The problem message.
+  
+  Added in Saleor 3.22.
+  """
   message: String!
+
+  """
+  Key identifying the type of problem.
+  
+  Added in Saleor 3.22.
+  """
   key: String!
 }
 
-"""Dismissal information for an app problem."""
+"""
+Dismissal information for an app problem.
+
+Added in Saleor 3.22.
+"""
 type AppProblemDismissed {
-  """Whether the problem was dismissed by an App or a User."""
+  """
+  Whether the problem was dismissed by an App or a User.
+  
+  Added in Saleor 3.22.
+  """
   by: AppProblemDismissedByEnum!
 
   """
   The user who dismissed this problem. Null if dismissed by an app or the user was deleted.
+  
+  Added in Saleor 3.22.
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
@@ -3130,6 +3184,8 @@ type AppProblemDismissed {
 
   """
   Email of the user who dismissed this problem. Preserved even if the user is deleted.
+  
+  Added in Saleor 3.22.
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
@@ -30211,11 +30267,11 @@ input AppProblemDismissInput @doc(category: "Apps") {
   """For app callers only - dismiss own problems."""
   byApp: AppProblemDismissByAppInput
 
-  """For staff/user callers - dismiss problems by IDs."""
-  byUserWithIds: AppProblemDismissByUserWithIdsInput
+  """For staff callers - dismiss problems by IDs."""
+  byStaffWithIds: AppProblemDismissByStaffWithIdsInput
 
-  """For staff/user callers - dismiss problems by keys for specified app."""
-  byUserWithKeys: AppProblemDismissByUserWithKeysInput
+  """For staff callers - dismiss problems by keys for specified app."""
+  byStaffWithKeys: AppProblemDismissByStaffWithKeysInput
 }
 
 """Input for app callers to dismiss their own problems."""
@@ -30227,14 +30283,14 @@ input AppProblemDismissByAppInput @doc(category: "Apps") {
   keys: [String!]
 }
 
-"""Input for staff/user callers to dismiss problems by IDs."""
-input AppProblemDismissByUserWithIdsInput @doc(category: "Apps") {
+"""Input for staff callers to dismiss problems by IDs."""
+input AppProblemDismissByStaffWithIdsInput @doc(category: "Apps") {
   """List of problem IDs to dismiss. Max 100."""
   ids: [ID!]!
 }
 
-"""Input for staff/user callers to dismiss problems by keys."""
-input AppProblemDismissByUserWithKeysInput @doc(category: "Apps") {
+"""Input for staff callers to dismiss problems by keys."""
+input AppProblemDismissByStaffWithKeysInput @doc(category: "Apps") {
   """List of problem keys to dismiss. Max 100."""
   keys: [String!]!
 

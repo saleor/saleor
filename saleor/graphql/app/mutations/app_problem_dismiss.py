@@ -47,8 +47,8 @@ class AppProblemDismissByAppInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_APPS
 
 
-class AppProblemDismissByUserWithIdsInput(BaseInputObjectType):
-    """Input for staff/user callers to dismiss problems by IDs."""
+class AppProblemDismissByStaffWithIdsInput(BaseInputObjectType):
+    """Input for staff callers to dismiss problems by IDs."""
 
     ids = NonNullList(
         graphene.ID,
@@ -60,8 +60,8 @@ class AppProblemDismissByUserWithIdsInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_APPS
 
 
-class AppProblemDismissByUserWithKeysInput(BaseInputObjectType):
-    """Input for staff/user callers to dismiss problems by keys."""
+class AppProblemDismissByStaffWithKeysInput(BaseInputObjectType):
+    """Input for staff callers to dismiss problems by keys."""
 
     keys = NonNullList(
         graphene.String,
@@ -84,13 +84,13 @@ class AppProblemDismissInput(BaseInputObjectType):
         AppProblemDismissByAppInput,
         description="For app callers only - dismiss own problems.",
     )
-    by_user_with_ids = graphene.Field(
-        AppProblemDismissByUserWithIdsInput,
-        description="For staff/user callers - dismiss problems by IDs.",
+    by_staff_with_ids = graphene.Field(
+        AppProblemDismissByStaffWithIdsInput,
+        description="For staff callers - dismiss problems by IDs.",
     )
-    by_user_with_keys = graphene.Field(
-        AppProblemDismissByUserWithKeysInput,
-        description="For staff/user callers - dismiss problems by keys for specified app.",
+    by_staff_with_keys = graphene.Field(
+        AppProblemDismissByStaffWithKeysInput,
+        description="For staff callers - dismiss problems by keys for specified app.",
     )
 
     class Meta:
@@ -118,36 +118,35 @@ class AppProblemDismiss(BaseMutation):
         cls, _root: None, info: ResolveInfo, /, **data: Any
     ) -> "AppProblemDismiss":
         caller_app = info.context.app
-        is_app_caller = caller_app is not None
         input_data = data.get("input", {})
 
         by_app = input_data.get("by_app")
-        by_user_with_ids = input_data.get("by_user_with_ids")
-        by_user_with_keys = input_data.get("by_user_with_keys")
+        by_staff_with_ids = input_data.get("by_staff_with_ids")
+        by_staff_with_keys = input_data.get("by_staff_with_keys")
 
         validate_one_of_args_is_in_mutation(
             "by_app",
             by_app,
-            "by_user_with_ids",
-            by_user_with_ids,
-            "by_user_with_keys",
-            by_user_with_keys,
+            "by_staff_with_ids",
+            by_staff_with_ids,
+            "by_staff_with_keys",
+            by_staff_with_keys,
             use_camel_case=True,
         )
 
         if by_app and caller_app:
             cls._validate_by_app_input(by_app)
             cls._dismiss_for_app_caller(by_app, caller_app)
-        elif by_user_with_ids and not is_app_caller:
-            cls._validate_items_limit(by_user_with_ids["ids"], "ids")
-            cls._dismiss_by_ids_for_user(info, by_user_with_ids["ids"])
-        elif by_user_with_keys and not is_app_caller:
-            cls._validate_items_limit(by_user_with_keys["keys"], "keys")
-            cls._dismiss_by_keys_for_user(
-                info, by_user_with_keys["keys"], by_user_with_keys["app"]
+        elif by_staff_with_ids and not caller_app:
+            cls._validate_items_limit(by_staff_with_ids["ids"], "ids")
+            cls._dismiss_by_ids_for_staff(info, by_staff_with_ids["ids"])
+        elif by_staff_with_keys and not caller_app:
+            cls._validate_items_limit(by_staff_with_keys["keys"], "keys")
+            cls._dismiss_by_keys_for_staff(
+                info, by_staff_with_keys["keys"], by_staff_with_keys["app"]
             )
         else:
-            cls._raise_caller_type_mismatch(by_app, by_user_with_ids, is_app_caller)
+            cls._raise_caller_type_mismatch(by_app, by_staff_with_ids)
 
         return AppProblemDismiss()
 
@@ -155,8 +154,7 @@ class AppProblemDismiss(BaseMutation):
     def _raise_caller_type_mismatch(
         cls,
         by_app: dict | None,
-        by_user_with_ids: dict | None,
-        is_app_caller: bool,
+        by_staff_with_ids: dict | None,
     ) -> None:
         if by_app is not None:
             raise ValidationError(
@@ -167,7 +165,7 @@ class AppProblemDismiss(BaseMutation):
                     )
                 }
             )
-        field = "byUserWithIds" if by_user_with_ids else "byUserWithKeys"
+        field = "byStaffWithIds" if by_staff_with_ids else "byStaffWithKeys"
         raise ValidationError(
             {
                 field: ValidationError(
@@ -236,11 +234,11 @@ class AppProblemDismiss(BaseMutation):
         if ids:
             AppProblem.objects.filter(
                 pk__in=problem_pks, app=caller_app, dismissed=False
-            ).update(dismissed=True)
+            ).order_by("pk").update(dismissed=True)
         else:
             AppProblem.objects.filter(
                 key__in=keys, app=caller_app, dismissed=False
-            ).update(dismissed=True)
+            ).order_by("pk").update(dismissed=True)
 
     @classmethod
     def _validate_items_limit(cls, items: list[str], field_name: str) -> None:
@@ -256,33 +254,37 @@ class AppProblemDismiss(BaseMutation):
             )
 
     @classmethod
-    def _dismiss_by_ids_for_user(
+    def _dismiss_by_ids_for_staff(
         cls,
         info: ResolveInfo,
         ids: list[str],
     ) -> None:
-        """Dismiss problems by IDs for a user/staff caller."""
+        """Dismiss problems by IDs for a staff caller."""
         requestor = cast(User, get_user_or_app_from_context(info.context))
         problem_pks = cls._parse_problem_ids(ids)
 
-        AppProblem.objects.filter(pk__in=problem_pks, dismissed=False).update(
+        AppProblem.objects.filter(pk__in=problem_pks, dismissed=False).order_by(
+            "pk"
+        ).update(
             dismissed=True,
             dismissed_by_user_email=requestor.email,
             dismissed_by_user=requestor,
         )
 
     @classmethod
-    def _dismiss_by_keys_for_user(
+    def _dismiss_by_keys_for_staff(
         cls,
         info: ResolveInfo,
         keys: list[str],
         app_id: str,
     ) -> None:
-        """Dismiss problems by keys for a user/staff caller."""
+        """Dismiss problems by keys for a staff caller."""
         requestor = cast(User, get_user_or_app_from_context(info.context))
         target_app = cls.get_node_or_error(info, app_id, field="app", only_type=App)
 
-        AppProblem.objects.filter(app=target_app, key__in=keys, dismissed=False).update(
+        AppProblem.objects.filter(
+            app=target_app, key__in=keys, dismissed=False
+        ).order_by("pk").update(
             dismissed=True,
             dismissed_by_user_email=requestor.email,
             dismissed_by_user=requestor,

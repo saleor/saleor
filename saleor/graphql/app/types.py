@@ -543,13 +543,15 @@ class AppToken(BaseObjectType):
 class AppProblemDismissed(graphene.ObjectType):
     by = AppProblemDismissedByEnum(
         required=True,
-        description="Whether the problem was dismissed by an App or a User.",
+        description=(
+            "Whether the problem was dismissed by an App or a User." + ADDED_IN_322
+        ),
     )
     user = PermissionsField(
         "saleor.graphql.account.types.User",
         description=(
             "The user who dismissed this problem. "
-            "Null if dismissed by an app or the user was deleted."
+            "Null if dismissed by an app or the user was deleted." + ADDED_IN_322
         ),
         permissions=[AccountPermissions.MANAGE_STAFF],
     )
@@ -557,13 +559,13 @@ class AppProblemDismissed(graphene.ObjectType):
         graphene.String,
         description=(
             "Email of the user who dismissed this problem. "
-            "Preserved even if the user is deleted."
+            "Preserved even if the user is deleted." + ADDED_IN_322
         ),
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
 
     class Meta:
-        description = "Dismissal information for an app problem."
+        description = "Dismissal information for an app problem." + ADDED_IN_322
         doc_category = DOC_CATEGORY_APPS
 
     @staticmethod
@@ -585,21 +587,45 @@ class AppProblemDismissed(graphene.ObjectType):
 
 
 class AppProblem(ModelObjectType[models.AppProblem]):
-    id = graphene.GlobalID(required=True, description="The ID of the app problem.")
-    created_at = DateTime(required=True)
-    updated_at = DateTime(required=True)
-    count = graphene.Int(required=True, description="Number of occurrences.")
-    is_critical = graphene.Boolean(
-        required=True, description="Whether the problem has reached critical threshold."
+    id = graphene.GlobalID(
+        required=True,
+        description="The ID of the app problem." + ADDED_IN_322,
     )
-    dismissed = graphene.Field(
+    created_at = DateTime(
+        required=True,
+        description="The date and time when the problem was created." + ADDED_IN_322,
+    )
+    updated_at = DateTime(
+        required=True,
+        description="The date and time when the problem was last updated."
+        + ADDED_IN_322,
+    )
+    count = graphene.Int(
+        required=True, description="Number of occurrences." + ADDED_IN_322
+    )
+    is_critical = graphene.Boolean(
+        required=True,
+        description="Whether the problem has reached critical threshold."
+        + ADDED_IN_322,
+    )
+    dismissed = PermissionsField(
         AppProblemDismissed,
         description=(
             "Dismissal information. Null if the problem has not been dismissed."
+            + ADDED_IN_322
         ),
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AppPermission.MANAGE_APPS,
+        ],
     )
-    message = graphene.String(required=True)
-    key = graphene.String(required=True)
+    message = graphene.String(
+        required=True, description="The problem message." + ADDED_IN_322
+    )
+    key = graphene.String(
+        required=True,
+        description="Key identifying the type of problem." + ADDED_IN_322,
+    )
 
     class Meta:
         description = "Represents a problem associated with an app." + ADDED_IN_322
@@ -675,10 +701,13 @@ class App(ModelObjectType[models.App]):
         description="App's dashboard extensions.",
         required=True,
     )
-    problems = NonNullList(
-        AppProblem,
+    problems = PermissionsField(
+        NonNullList(AppProblem),
         description="List of problems associated with this app." + ADDED_IN_322,
-        required=True,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AppPermission.MANAGE_APPS,
+        ],
         limit=PositiveInt(
             description="Limit number of returned problems. Must be between 1 and 100.",
             required=False,

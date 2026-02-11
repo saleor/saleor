@@ -25,7 +25,7 @@ def test_app_problem_dismiss_by_keys_as_staff(
     p1 = app_problem_generator(app, key="k1")
     variables = {
         "input": {
-            "byUserWithKeys": {
+            "byStaffWithKeys": {
                 "keys": ["k1"],
                 "app": graphene.Node.to_global_id("App", app.id),
             }
@@ -45,7 +45,7 @@ def test_app_problem_dismiss_by_keys_as_staff(
     assert p1.dismissed_by_user == staff_api_client.user
 
 
-def test_app_problem_dismiss_by_user_with_too_many_keys_fails(
+def test_app_problem_dismiss_by_staff_with_too_many_keys_fails(
     staff_api_client, app, permission_manage_apps
 ):
     # given
@@ -53,7 +53,7 @@ def test_app_problem_dismiss_by_user_with_too_many_keys_fails(
     keys = [f"key-{i}" for i in range(MAX_ITEMS_LIMIT + 1)]
     variables = {
         "input": {
-            "byUserWithKeys": {
+            "byStaffWithKeys": {
                 "keys": keys,
                 "app": graphene.Node.to_global_id("App", app.id),
             }

@@ -92,38 +92,54 @@ def test_app_problem_create_critical_threshold_not_reached(
     assert problem.is_critical is False
 
 
-def test_app_problem_create_critical_threshold_de_escalates(
+def test_app_problem_create_critical_threshold_reached_via_aggregation(
     app_api_client, app, app_problem_generator
 ):
-    # given
+    # given - existing problem with count=4, one more push with threshold=5
     now = timezone.now()
     app_problem_generator(
         app,
         message="Problem",
         key="rolling-key",
-        count=1,
+        count=4,
         updated_at=now - datetime.timedelta(minutes=5),
     )
-
-    # when - send 4 more problems with threshold=5, reaching count=5
-    for i in range(4):
-        variables = {
-            "input": {
-                "message": f"Problem {i + 2}",
-                "key": "rolling-key",
-                "aggregationPeriod": 60,
-                "criticalThreshold": 5,
-            }
+    variables = {
+        "input": {
+            "message": "Problem 5",
+            "key": "rolling-key",
+            "aggregationPeriod": 60,
+            "criticalThreshold": 5,
         }
-        response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-        get_graphql_content(response)
+    }
+
+    # when
+    response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
 
     # then - count=5 meets threshold=5, should be critical
+    data = content["data"]["appProblemCreate"]
+    assert not data["errors"]
     problem = AppProblem.objects.get(app=app)
     assert problem.count == 5
     assert problem.is_critical is True
 
-    # when - send 6th problem with higher threshold=10
+
+def test_app_problem_create_critical_threshold_de_escalates(
+    app_api_client, app, app_problem_generator
+):
+    # given - existing critical problem with count=5
+    now = timezone.now()
+    app_problem_generator(
+        app,
+        message="Problem",
+        key="rolling-key",
+        count=5,
+        is_critical=True,
+        updated_at=now - datetime.timedelta(minutes=5),
+    )
+
+    # when - send problem with higher threshold=10
     variables = {
         "input": {
             "message": "Problem 6",
@@ -138,7 +154,7 @@ def test_app_problem_create_critical_threshold_de_escalates(
     # then - count=6 is below new threshold=10, should de-escalate
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
-    problem.refresh_from_db()
+    problem = AppProblem.objects.get(app=app)
     assert problem.count == 6
     assert problem.is_critical is False
 
