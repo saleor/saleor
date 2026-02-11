@@ -602,7 +602,7 @@ class AppProblem(ModelObjectType[models.AppProblem]):
     key = graphene.String(required=True)
 
     class Meta:
-        description = "Represents a problem associated with an app."
+        description = "Represents a problem associated with an app." + ADDED_IN_322
         doc_category = DOC_CATEGORY_APPS
         interfaces = [graphene.relay.Node]
         model = models.AppProblem

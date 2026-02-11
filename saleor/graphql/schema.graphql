@@ -3093,7 +3093,11 @@ type AppExtension implements Node @doc(category: "Apps") {
 
 scalar JSON
 
-"""Represents a problem associated with an app."""
+"""
+Represents a problem associated with an app.
+
+Added in Saleor 3.22.
+"""
 type AppProblem implements Node @doc(category: "Apps") {
   """The ID of the app problem."""
   id: ID!
