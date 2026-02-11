@@ -76,7 +76,8 @@ class AppProblemCreateInput(graphene.InputObjectType):
     critical_threshold = PositiveInt(
         required=False,
         description=(
-            "If set, the problem becomes critical when count reaches this value. If sent again with higher value than already counted, problem can be de-escalated."
+            "If set, the problem becomes critical when count reaches this value. "
+            "If sent again with higher value than already counted, problem can be de-escalated."
         ),
     )
     aggregation_period = Minute(
