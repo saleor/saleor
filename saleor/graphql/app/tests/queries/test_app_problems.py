@@ -289,11 +289,10 @@ def test_app_problems_dismissed_by_user_returns_null_when_user_deleted(
 
 
 def test_app_cannot_see_dismissed_user_email(
-    app_api_client, app, staff_user, permission_manage_apps, permission_manage_staff
+    app_api_client, app, staff_user, permission_manage_apps
 ):
-    # given - apps cannot have MANAGE_STAFF permission in this codebase
-    # even if we add the permission, it's explicitly blocked for apps
-    app_api_client.app.permissions.add(permission_manage_apps, permission_manage_staff)
+    # given
+    app_api_client.app.permissions.add(permission_manage_apps)
     AppProblem.objects.create(
         app=app,
         message="Problem",
@@ -310,7 +309,7 @@ def test_app_cannot_see_dismissed_user_email(
     )
     content = get_graphql_content_from_response(response)
 
-    # then - apps cannot have MANAGE_STAFF, so they get permission denied
+    # then
     assert "errors" in content
     assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
 
@@ -507,10 +506,10 @@ def test_user_without_manage_staff_cannot_see_dismissed_user(
 
 
 def test_app_cannot_see_dismissed_user(
-    app_api_client, app, staff_user, permission_manage_apps, permission_manage_staff
+    app_api_client, app, staff_user, permission_manage_apps
 ):
-    # given - apps cannot have MANAGE_STAFF permission in this codebase
-    app_api_client.app.permissions.add(permission_manage_apps, permission_manage_staff)
+    # given
+    app_api_client.app.permissions.add(permission_manage_apps)
     AppProblem.objects.create(
         app=app,
         message="Dismissed by user",
@@ -527,7 +526,7 @@ def test_app_cannot_see_dismissed_user(
     )
     content = get_graphql_content_from_response(response)
 
-    # then - apps are denied access to the user field
+    # then
     assert "errors" in content
     assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
 

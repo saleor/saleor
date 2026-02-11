@@ -4,7 +4,6 @@ import datetime
 import graphene
 from graphql import GraphQLError
 
-from ...account import models as account_models
 from ...app import models
 from ...app.types import (
     DEFAULT_APP_TARGET,
@@ -15,10 +14,7 @@ from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
 from ...permission.auth_filters import AuthorizationFilters, is_staff_user
 from ...permission.enums import AccountPermissions, AppPermission
-from ...permission.utils import (
-    has_one_of_permissions,
-    message_one_of_permissions_required,
-)
+from ...permission.utils import message_one_of_permissions_required
 from ...thumbnail import PIL_IDENTIFIER_TO_MIME_TYPE
 from ...thumbnail.utils import (
     ProcessedIconImage,
@@ -39,6 +35,7 @@ from ..core.dataloaders import DataLoader
 from ..core.descriptions import ADDED_IN_319, ADDED_IN_321, ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
+from ..core.fields import PermissionsField
 from ..core.scalars import JSON, DateTime, PositiveInt
 from ..core.types import (
     BaseEnum,
@@ -548,21 +545,21 @@ class AppProblemDismissed(graphene.ObjectType):
         required=True,
         description="Whether the problem was dismissed by an App or a User.",
     )
-    user = graphene.Field(
+    user = PermissionsField(
         "saleor.graphql.account.types.User",
         description=(
             "The user who dismissed this problem. "
             "Null if dismissed by an app or the user was deleted."
-            "\n\nRequires MANAGE_STAFF permission. Not accessible for apps."
         ),
+        permissions=[AccountPermissions.MANAGE_STAFF],
     )
-    user_email = graphene.String(
+    user_email = PermissionsField(
+        graphene.String,
         description=(
             "Email of the user who dismissed this problem. "
             "Preserved even if the user is deleted."
-            "\n\nRequires one of the following permissions: "
-            "MANAGE_STAFF, or being an authenticated staff user."
         ),
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
 
     class Meta:
@@ -577,27 +574,14 @@ class AppProblemDismissed(graphene.ObjectType):
 
     @staticmethod
     def resolve_user(root: models.AppProblem, info: ResolveInfo):
-        requestor = get_user_or_app_from_context(info.context)
-
-        if isinstance(requestor, models.App):
-            raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
-
-        if not has_one_of_permissions(requestor, [AccountPermissions.MANAGE_STAFF]):
-            raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
-
         if not root.is_dismissed_by_user() or root.dismissed_by_user_id is None:
             return None
 
         return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
 
     @staticmethod
-    def resolve_user_email(root: models.AppProblem, info: ResolveInfo):
-        requestor = get_user_or_app_from_context(info.context)
-
-        if isinstance(requestor, account_models.User):
-            return root.dismissed_by_user_email
-
-        raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
+    def resolve_user_email(root: models.AppProblem, _info: ResolveInfo):
+        return root.dismissed_by_user_email
 
 
 class AppProblem(ModelObjectType[models.AppProblem]):

@@ -3120,14 +3120,14 @@ type AppProblemDismissed {
   """
   The user who dismissed this problem. Null if dismissed by an app or the user was deleted.
   
-  Requires MANAGE_STAFF permission. Not accessible for apps.
+  Requires one of the following permissions: MANAGE_STAFF.
   """
   user: User
 
   """
   Email of the user who dismissed this problem. Preserved even if the user is deleted.
   
-  Requires one of the following permissions: MANAGE_STAFF, or being an authenticated staff user.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
   userEmail: String
 }
