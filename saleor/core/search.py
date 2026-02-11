@@ -11,13 +11,13 @@ if TYPE_CHECKING:
 def _sanitize_word(word: str) -> str:
     """Remove PostgreSQL tsquery metacharacters from a word.
 
-    Removes only the special characters that have meaning in tsquery syntax,
-    while preserving characters commonly used in emails, slugs, etc.
+    Replaces special characters that have meaning in tsquery syntax with spaces,
+    so that e.g. "22:20" becomes "22 20" (two separate tokens) rather than "2220".
 
     Preserved: alphanumeric, underscore, hyphen, @, period
-    Removed: parentheses, &, |, !, :, <, >, ', *
+    Replaced with space: parentheses, &, |, !, :, <, >, ', *
     """
-    return re.sub(r"[()&|!:<>\'*]", "", word)
+    return re.sub(r"[()&|!:<>\'*]", " ", word).strip()
 
 
 def _tokenize(value: str) -> list[dict]:
@@ -53,7 +53,10 @@ def _tokenize(value: str) -> list[dict]:
             else:
                 phrase = value[i + 1 : end]
                 i = end + 1
-            words = [_sanitize_word(w) for w in phrase.split() if _sanitize_word(w)]
+            words = []
+            for w in phrase.split():
+                sanitized = _sanitize_word(w)
+                words.extend(sanitized.split())
             if words:
                 tokens.append({"type": "phrase", "words": words, "negated": negated})
             continue
@@ -74,8 +77,8 @@ def _tokenize(value: str) -> list[dict]:
         if raw_word == "AND" and not negated:
             continue
 
-        word = _sanitize_word(raw_word)
-        if word:
+        sanitized = _sanitize_word(raw_word)
+        for word in sanitized.split():
             tokens.append({"type": "word", "word": word, "negated": negated})
 
     return tokens
