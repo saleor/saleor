@@ -221,10 +221,12 @@ def usage_telemetry_middleware(application: ASGI3Application) -> ASGI3Applicatio
             if message["type"] == "lifespan.startup":
                 try:
                     asyncio.create_task(send_usage_telemetry_task())
+                except Exception:
+                    logger.exception(
+                        "Exception happened during scheduling usage telemetry task"
+                    )
+                finally:
                     await send({"type": "lifespan.startup.complete"})
-                except Exception as exc:
-                    await send({"type": "lifespan.startup.failed", "message": str(exc)})
-                    return None
             elif message["type"] == "lifespan.shutdown":
                 await send({"type": "lifespan.shutdown.complete"})
                 return None
