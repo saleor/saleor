@@ -293,3 +293,69 @@ def test_transactions_query_filter_by_app_identifier_combined_with_psp_reference
     transactions = content["data"]["transactions"]["edges"]
     assert len(transactions) == 1
     assert transactions[0]["node"]["pspReference"] == target_transaction.psp_reference
+
+
+def test_transactions_query_filter_respects_app_permissions(
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+    transaction_item_generator,
+    external_app,
+):
+    # given
+    app = app_api_client.app
+    app.permissions.add(permission_manage_payments)
+    external_app.permissions.add(permission_manage_payments)
+
+    app_1_identifier = app.identifier
+    app_2_identifier = external_app.identifier
+
+    # Create transactions for App1
+    transaction_app1_1 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="APP1-PSP-REF-1",
+        currency="USD",
+    )
+    transaction_app1_2 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="APP1-PSP-REF-2",
+        currency="USD",
+    )
+
+    # Create transactions for App2
+    transaction_app2_1 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="APP2-PSP-REF-1",
+        currency="USD",
+    )
+    transaction_app2_2 = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="APP2-PSP-REF-2",
+        currency="USD",
+    )
+
+    transaction_app1_1.app_identifier = app_1_identifier
+    transaction_app1_2.app_identifier = app_1_identifier
+    transaction_app2_1.app_identifier = app_2_identifier
+    transaction_app2_2.app_identifier = app_2_identifier
+
+    TransactionItem.objects.bulk_update(
+        [
+            transaction_app1_1,
+            transaction_app1_2,
+            transaction_app2_1,
+            transaction_app2_2,
+        ],
+        ["app_identifier"],
+    )
+
+    # Filter by App2 pspReference using App1 credentials
+    variables = {"where": {"pspReference": {"eq": transaction_app2_1.psp_reference}}}
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == 0
