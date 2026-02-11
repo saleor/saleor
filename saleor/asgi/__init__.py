@@ -15,6 +15,7 @@ from .cors_handler import cors_handler
 from .gzip_compression import gzip_compression
 from .health_check import health_check
 from .telemetry import telemetry_middleware
+from .usage_telemetry import usage_telemetry_middleware
 
 
 def preload_app() -> None:
@@ -38,5 +39,6 @@ application = health_check(application, "/health/")
 application = gzip_compression(application)
 application = cors_handler(application)
 application = telemetry_middleware(application)
+application = usage_telemetry_middleware(application)
 
 preload_app()
