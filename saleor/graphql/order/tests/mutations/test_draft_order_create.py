@@ -1,7 +1,7 @@
 import datetime
 from datetime import timedelta
 from decimal import Decimal
-from unittest.mock import ANY, Mock, patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
@@ -14,12 +14,13 @@ from .....account.models import Address
 from .....checkout import AddressType
 from .....core.models import EventDelivery
 from .....core.prices import quantize_price
-from .....core.taxes import TaxError, zero_taxed_money
+from .....core.taxes import TaxError
 from .....discount import DiscountType, DiscountValueType, RewardType, RewardValueType
 from .....discount.models import VoucherChannelListing, VoucherCode, VoucherCustomer
 from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.actions import call_order_event
+from .....order.calculations import process_order_prices
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Order, OrderEvent, OrderLine
 from .....payment.model_helpers import get_subtotal
@@ -2535,9 +2536,12 @@ def test_draft_order_create_invalid_address_skip_validation(
     assert order.billing_address.validation_skipped is True
 
 
-@patch("saleor.order.calculations.fetch_order_prices_if_expired")
+@patch(
+    "saleor.graphql.order.dataloaders.process_order_prices",
+    wraps=process_order_prices,
+)
 def test_draft_order_create_price_recalculation(
-    mock_fetch_order_prices_if_expired,
+    mock_process_order_prices,
     staff_api_client,
     permission_group_manage_orders,
     customer_user,
@@ -2549,13 +2553,7 @@ def test_draft_order_create_price_recalculation(
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    fake_order = Mock()
-    fake_order.total = zero_taxed_money(channel_PLN.currency_code)
-    fake_order.subtotal = zero_taxed_money(channel_PLN.currency_code)
-    fake_order.undiscounted_total = zero_taxed_money(channel_PLN.currency_code)
-    fake_order.shipping_price = zero_taxed_money(channel_PLN.currency_code)
-    fetch_prices_response = Mock(return_value=(fake_order, None))
-    mock_fetch_order_prices_if_expired.side_effect = fetch_prices_response
+
     query = DRAFT_ORDER_CREATE_MUTATION
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_1 = product_available_in_many_channels.variants.first()
@@ -2597,7 +2595,7 @@ def test_draft_order_create_price_recalculation(
     assert Order.objects.count() == 1
     order = Order.objects.first()
     lines = list(order.lines.all())
-    mock_fetch_order_prices_if_expired.assert_called()
+    mock_process_order_prices.assert_called()
 
 
 def test_draft_order_create_update_display_gross_prices(

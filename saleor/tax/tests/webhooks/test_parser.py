@@ -1,10 +1,8 @@
 import pytest
-from pydantic import ValidationError
 
-from ...core.taxes import TaxData
-from ..transport.taxes import (
-    parse_tax_data,
-)
+from ....core.taxes import TaxData, TaxDataError
+from ....webhook.event_types import WebhookEventSyncType
+from ...webhooks.parser import parse_tax_data
 
 
 def test_parse_tax_data_success(tax_data_response):
@@ -12,7 +10,9 @@ def test_parse_tax_data_success(tax_data_response):
     line_count = len(tax_data_response["lines"])
 
     # when
-    tax_data = parse_tax_data(tax_data_response, line_count)
+    tax_data = parse_tax_data(
+        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES, tax_data_response, line_count
+    )
 
     # then
     assert isinstance(tax_data, TaxData)
@@ -25,8 +25,10 @@ def test_parse_tax_data_keyerror(tax_data_response):
     line_count = len(tax_data_response["lines"])
 
     # when & then
-    with pytest.raises(ValidationError):
-        parse_tax_data(tax_data_response, line_count)
+    with pytest.raises(TaxDataError):
+        parse_tax_data(
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES, tax_data_response, line_count
+        )
 
 
 def test_parse_tax_data_decimalexception(tax_data_response):
@@ -35,8 +37,10 @@ def test_parse_tax_data_decimalexception(tax_data_response):
     line_count = len(tax_data_response["lines"])
 
     # when & then
-    with pytest.raises(ValidationError):
-        parse_tax_data(tax_data_response, line_count)
+    with pytest.raises(TaxDataError):
+        parse_tax_data(
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES, tax_data_response, line_count
+        )
 
 
 @pytest.mark.parametrize(
@@ -57,5 +61,5 @@ def test_parse_tax_data_decimalexception(tax_data_response):
     ],
 )
 def test_parse_tax_data_malformed(response_data):
-    with pytest.raises(ValidationError):
-        parse_tax_data(response_data, 1)
+    with pytest.raises(TaxDataError):
+        parse_tax_data(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES, response_data, 1)

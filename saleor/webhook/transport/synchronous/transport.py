@@ -10,13 +10,12 @@ from django.core.cache import cache
 from django.db import transaction
 from opentelemetry.trace import StatusCode
 from promise import Promise
-from pydantic import ValidationError
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
-from ....core.taxes import TaxData
+from ....core.taxes import TaxData, TaxDataError
 from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.events import call_event
@@ -36,6 +35,7 @@ from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
     recalculate_refundable_for_checkout,
 )
+from ....tax.webhooks.parser import parse_tax_data
 from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
@@ -45,7 +45,6 @@ from ...payloads import generate_transaction_action_request_payload
 from ...utils import get_webhooks_for_event
 from .. import signature_for_payload
 from ..metrics import record_external_request
-from ..taxes import parse_tax_data
 from ..utils import (
     WebhookResponse,
     WebhookSchemes,
@@ -208,7 +207,7 @@ def send_webhook_request_sync(
 
 def trigger_webhook_sync_promise_if_not_cached(
     event_type: str,
-    payload: str,
+    static_payload: str,
     webhook: "Webhook",
     cache_data: dict,
     allow_replica: bool,
@@ -258,9 +257,9 @@ def trigger_webhook_sync_promise_if_not_cached(
 
     return trigger_webhook_sync_promise(
         event_type,
-        payload,
         webhook,
         allow_replica,
+        static_payload=static_payload,
         subscribable_object=subscribable_object,
         timeout=request_timeout,
         request=request,
@@ -508,9 +507,9 @@ def trigger_webhook_sync(
 
 def trigger_webhook_sync_promise(
     event_type: str,
-    payload: str,
     webhook: "Webhook",
     allow_replica,
+    static_payload: str,
     subscribable_object=None,
     timeout=None,
     request=None,
@@ -545,7 +544,7 @@ def trigger_webhook_sync_promise(
             EventDelivery(
                 status=EventDeliveryStatus.PENDING,
                 event_type=event_type,
-                payload=EventPayload(payload=payload),
+                payload=EventPayload(payload=static_payload),
                 webhook=webhook,
             )
         )
@@ -623,14 +622,10 @@ def trigger_taxes_all_webhooks_sync(
 
         response_data = send_webhook_request_sync(delivery)
         try:
-            parsed_response = parse_tax_data(response_data, expected_lines_count)
-        except ValidationError as e:
-            logger.warning(
-                "Webhook response for event %s is invalid: %s",
-                event_type,
-                str(e),
-                extra={"errors": e.errors()},
+            parsed_response = parse_tax_data(
+                event_type, response_data, expected_lines_count
             )
+        except TaxDataError:
             continue
         return parsed_response
     return None

@@ -887,7 +887,9 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     order.refresh_from_db()
 
     # when
-    fetch_order_prices_if_expired(order, manager, force_update=True)
+    fetch_order_prices_if_expired(
+        order, manager, requestor=None, force_update=True
+    ).get()
     order.refresh_from_db()
 
     # then
