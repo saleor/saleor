@@ -1,0 +1,45 @@
+saleor/graphql/app/tests/mutations/test_app_problem_create_race_conditions.py
+  5831f32e259d0bc5 2,10,33,36,38-41,61-63,73-74,78,123,134,144,171
+saleor/graphql/app/tests/queries/test_app_problems.py
+  5831f32e259d0bc5 268,561,572,575
+saleor/graphql/app/mutations/app_problem_dismiss.py
+  5831f32e259d0bc5 50-51,63-64,87-89,91-93,124-125,130-133,140-146,157,168,237,241,257,262,266-268,275,281,287
+saleor/graphql/app/types.py
+  5831f32e259d0bc5 546-548,554,562,568,592,595-596,599-601,604,609,611,615,617-627,704-705,707-710
+saleor/graphql/app/tests/mutations/test_app_problem_dismiss_by_staff_with_ids.py
+  5831f32e259d0bc5 28,56,104,112
+saleor/graphql/app/tests/mutations/test_app_problem_dismiss_by_staff_with_keys.py
+  5831f32e259d0bc5 28,48,56
+saleor/graphql/app/tests/mutations/test_app_problem_dismiss.py
+  5831f32e259d0bc5 29,46,65,84,95
+saleor/graphql/query_cost_map.py
+  5831f32e259d0bc5 141
+saleor/graphql/app/tests/mutations/test_app_problem_dismiss_by_app.py
+  5831f32e259d0bc5 140,143,147,158,166-167,170,184
+saleor/graphql/app/mutations/app_problem_create.py
+  5831f32e259d0bc5 2,112,162-163,165,167-169
+saleor/graphql/app/tests/mutations/test_app_problem_create_critical.py
+  5831f32e259d0bc5 95,98,104,109,112,114-116,118,121-122,127-142,157
+saleor/app/models.py
+  5831f32e259d0bc5 204,206-208,212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.1",
+  "base_commit_sha": "df91c6476f5e424bc6e4f742b6b95d3431b9c7bf",
+  "prompts": {
+    "5831f32e259d0bc5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be18a852-be45-4fcc-8198-6d1a0d756399",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 181,
+      "total_deletions": 143,
+      "accepted_lines": 153,
+      "overriden_lines": 0
+    }
+  }
+}
