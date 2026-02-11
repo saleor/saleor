@@ -257,9 +257,6 @@ def test_prefix_search_negation(products_for_search):
     assert results.first().name == "Coffee Maker"
 
 
-# --- prefix_search integration tests (Users) ---
-
-
 @pytest.fixture
 def users_for_search():
     users = []

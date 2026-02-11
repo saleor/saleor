@@ -31,7 +31,7 @@ from ..core.types import TaxedMoney
 from ..core.utils import (
     ext_ref_to_global_id_or_error,
     from_global_id_or_error,
-    validate_apply_search_rank_sorting,
+    validate_and_apply_search_rank_sorting,
 )
 from ..core.validators import validate_one_of_args_is_in_query
 from ..utils import get_user_or_app_from_context
@@ -223,7 +223,7 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_orders(_root, info: ResolveInfo, *, channel=None, **kwargs):
-        validate_apply_search_rank_sorting(
+        validate_and_apply_search_rank_sorting(
             kwargs, OrderSortField.RANK, "OrderSortingInput", info
         )
         search = kwargs.get("search")
@@ -239,7 +239,7 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_draft_orders(_root, info: ResolveInfo, **kwargs):
-        validate_apply_search_rank_sorting(
+        validate_and_apply_search_rank_sorting(
             kwargs, OrderSortField.RANK, "OrderSortingInput", info
         )
         search = kwargs.get("search")

@@ -14,7 +14,7 @@ from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.fields import BaseField, ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
-from ..core.utils import validate_apply_search_rank_sorting
+from ..core.utils import validate_and_apply_search_rank_sorting
 from ..payment.mutations import CheckoutPaymentCreate
 from .filters import CheckoutFilterInput
 from .mutations import (
@@ -104,7 +104,7 @@ class CheckoutQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_checkouts(_root, info: ResolveInfo, *, channel=None, **kwargs):
-        validate_apply_search_rank_sorting(
+        validate_and_apply_search_rank_sorting(
             kwargs, CheckoutSortField.RANK, "CheckoutSortingInput", info
         )
         qs = resolve_checkouts(info, channel)

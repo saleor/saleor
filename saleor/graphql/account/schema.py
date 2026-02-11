@@ -13,7 +13,7 @@ from ..core.fields import BaseField, FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
 from ..core.utils import (
     from_global_id_or_error,
-    validate_apply_search_rank_sorting,
+    validate_and_apply_search_rank_sorting,
 )
 from ..core.validators import validate_one_of_args_is_in_query
 from .bulk_mutations import (
@@ -230,7 +230,7 @@ class AccountQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_customers(_root, info: ResolveInfo, **kwargs):
-        validate_apply_search_rank_sorting(
+        validate_and_apply_search_rank_sorting(
             kwargs, UserSortField.RANK, "UserSortingInput", info
         )
         search = kwargs.get("search")

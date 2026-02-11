@@ -188,7 +188,7 @@ def create_file_from_response(response: Response, filename: str) -> File:
     return File(file_data, filename)
 
 
-def validate_apply_search_rank_sorting(
+def validate_and_apply_search_rank_sorting(
     kwargs: dict,
     rank_sort_field,
     sorting_input_type_name: str,
@@ -243,5 +243,4 @@ def sort_field_from_kwargs(kwargs: dict) -> list[str] | None:
 
     Returns the field value from sort_by parameter, or None if not present.
     """
-    sort_by = kwargs.get("sort_by")
-    return sort_by.get("field") if sort_by else None
+    return (kwargs.get("sort_by") or {}).get("field")
