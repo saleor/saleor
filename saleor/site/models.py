@@ -104,6 +104,8 @@ class SiteSettings(ModelWithMetadata):
     # usage telemetry
     instance_id = models.UUIDField(
         default=uuid.uuid4,
+        null=True,
+        blank=True,
     )
     usage_telemetry_reported_at = models.DateTimeField(null=True, blank=True)
 
