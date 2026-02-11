@@ -22,15 +22,28 @@ jobs:
         env:
           VERSION: ${{ steps.set-version.outputs.VERSION }}
         run: |
-          latest=$(gh api --jq .name /repos/saleor/saleor/releases/latest)
-          if [ "$VERSION" \> "$latest" ]
-          then
+          set -ux
+
+          # Only stable semver releases (e.g. 3.22.0) can be tagged as latest.
+          # Non-semver refs (branch names, PR refs) are not valid candidates to become latest.
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag inferred from this run ('$VERSION') is not a semver release - can't be tagged as latest."
+            echo "IS_LATEST=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          CURRENT_LATEST=$(gh api "/repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name)
+          HIGHEST=$( (echo "$CURRENT_LATEST"; echo "$VERSION") | sort -V | tail -1)
+
+          echo "Selected: $VERSION, Latest: $CURRENT_LATEST"
+
+          if [ "$VERSION" = "$HIGHEST" ]; then
             echo "IS_LATEST=true" >> $GITHUB_OUTPUT
           else
             echo "IS_LATEST=false" >> $GITHUB_OUTPUT
           fi
       - name: Create tag
-        uses: actions/github-script@v5
+        uses: actions/github-script@v8
         env:
           VERSION: ${{ steps.set-version.outputs.VERSION }}
         with:
