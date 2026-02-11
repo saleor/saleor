@@ -5,7 +5,6 @@ import logging
 import random
 import sys
 
-import aiohttp
 from asgiref.sync import sync_to_async
 from asgiref.typing import (
     ASGI3Application,
@@ -21,6 +20,7 @@ from django.utils import timezone
 
 from .. import __version__ as saleor_version
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
+from ..core.http_client import HTTPClient
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ async def send_usage_telemetry_task():
         if data is None:
             return
 
-        await send_usage_telemetry(data)
+        await sync_to_async(send_usage_telemetry, thread_sensitive=False)(data)
     except Exception:
         logger.exception("Sending usage telemetry has failed")
 
@@ -167,7 +167,7 @@ def get_usage_telemetry():
         connections.close_all()
 
 
-async def send_usage_telemetry(data: dict):
+def send_usage_telemetry(data: dict):
     url = "https://usage-telemetry.saleor.io/"
 
     logger.info("Sending usage telemetry data: %s to: %s", data, url)
@@ -180,13 +180,15 @@ async def send_usage_telemetry(data: dict):
         "x-amz-content-sha256": hashlib.sha256(json_data.encode("utf-8")).hexdigest(),
     }
 
-    async with aiohttp.ClientSession(
-        headers=headers, timeout=aiohttp.ClientTimeout(total=30)
-    ) as session:
-        async with session.post(url, data=json_data) as resp:
-            pass
+    resp = HTTPClient.send_request(
+        "POST",
+        url,
+        json=data,
+        headers=headers,
+        allow_redirects=False,
+    )
 
-    return resp.status == 200
+    return resp.status_code == 200
 
 
 def update_usage_telemetry_reported_at(dt, close_connections):

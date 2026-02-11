@@ -1,9 +1,8 @@
 from datetime import timedelta
-from unittest import mock
 
 from django.utils import timezone
 
-from ..usage_telemetry import get_usage_telemetry, send_usage_telemetry_task
+from ..usage_telemetry import get_usage_telemetry
 
 
 def test_get_usage_telemetry(site_settings):

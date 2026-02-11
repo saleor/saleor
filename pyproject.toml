@@ -12,7 +12,6 @@ readme = "README.md"
 license = "BSD-3-Clause"
 dependencies = [
     "Adyen>=4.0.0,<5",
-    "aiohttp>=3.13.3,<4",
     "asgiref>=3.7.2,<4",
     "authlib>=1.6.4,<2",
     "authorizenet>=1.1.5,<2",
