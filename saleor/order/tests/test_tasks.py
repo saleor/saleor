@@ -13,7 +13,6 @@ from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import OrderEvents, OrderStatus
-from ..actions import call_order_event, call_order_events
 from ..models import Order, OrderEvent, get_order_number
 from ..tasks import (
     _bulk_release_voucher_usage,
@@ -381,10 +380,6 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     ).exists()
 
 
-@patch(
-    "saleor.order.tasks.call_order_events",
-    wraps=call_order_events,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -393,7 +388,6 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
 def test_expire_orders_task_do_not_call_sync_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_events,
     setup_order_webhooks,
     order_list,
     channel_USD,
@@ -459,7 +453,6 @@ def test_expire_orders_task_do_not_call_sync_webhooks(
     )
 
     assert not mocked_send_webhook_request_sync.called
-    assert wrapped_call_order_events.called
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -813,10 +806,6 @@ def test_bulk_release_voucher_usage_voucher_usage_mismatch(
     assert code.used == 0
 
 
-@patch(
-    "saleor.order.tasks.call_order_event",
-    wraps=call_order_event,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -825,7 +814,6 @@ def test_bulk_release_voucher_usage_voucher_usage_mismatch(
 def test_send_order_updated(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
     setup_order_webhooks,
     order_with_lines,
     settings,
@@ -878,8 +866,15 @@ def test_send_order_updated(
         webhook_id=additional_order_webhook.id
     ).exists()
 
-    tax_delivery_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
     )
 
     tax_delivery = tax_delivery_call.args[0]
@@ -891,5 +886,3 @@ def test_send_order_updated(
         filter_shipping_delivery.event_type
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
-
-    assert wrapped_call_order_event.called

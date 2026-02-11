@@ -4,7 +4,9 @@ from unittest import mock
 import graphene
 from django.test import override_settings
 
-from .....graphql.webhook.subscription_payload import generate_payload_from_subscription
+from .....graphql.webhook.subscription_payload import (
+    generate_payload_promise_from_subscription,
+)
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.models import Webhook
 from ..transport import (
@@ -115,8 +117,8 @@ def test_create_deliveries_no_payload_changes_limiting_disabled(webhook_app, var
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.generate_payload_from_subscription",
-    wraps=generate_payload_from_subscription,
+    "saleor.webhook.transport.asynchronous.transport.generate_payload_promise_from_subscription",
+    wraps=generate_payload_promise_from_subscription,
 )
 def test_create_deliveries_reuse_request_for_webhooks(
     mock_generate_payload_from_subscription, webhook_app, variant
@@ -171,7 +173,7 @@ def test_create_deliveries_for_multiple_subscription_objects(
     # when
     deliveries = create_deliveries_for_multiple_subscription_objects(
         event_type, product_list, webhooks
-    )
+    ).get()
 
     # then
     assert len(deliveries) == len(product_list)
@@ -198,7 +200,7 @@ def test_create_deliveries_for_multiple_subscription_objects_when_more_objs_than
     # when
     deliveries = create_deliveries_for_multiple_subscription_objects(
         event_type, product_list, webhooks
-    )
+    ).get()
 
     # then
     assert len(deliveries) == len(product_list)

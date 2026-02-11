@@ -13,7 +13,6 @@ from .....order import events as order_events
 from .....order.actions import (
     WEBHOOK_EVENTS_FOR_ORDER_CHARGED,
     WEBHOOK_EVENTS_FOR_ORDER_CONFIRMED,
-    call_order_event,
     handle_fully_paid_order,
     order_charged,
     order_confirmed,
@@ -604,10 +603,6 @@ def test_order_confirm_skip_address_validation(
     assert order.status == OrderStatus.UNFULFILLED
 
 
-@patch(
-    "saleor.order.actions.call_order_event",
-    wraps=call_order_event,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -618,7 +613,6 @@ def test_order_confirm_triggers_webhooks(
     capture_mock,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
     setup_order_webhooks,
     staff_api_client,
     order_unconfirmed,
@@ -698,4 +692,3 @@ def test_order_confirm_triggers_webhooks(
         any_order=True,
     )
     assert not mocked_send_webhook_request_sync.called
-    assert wrapped_call_order_event.called

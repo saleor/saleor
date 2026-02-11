@@ -10,6 +10,7 @@ from measurement.measures import Weight
 from prices import Money
 from promise import Promise
 
+from ....core.prices import quantize_price
 from ....shipping.interface import ShippingMethodData
 from ....webhook.const import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
@@ -139,6 +140,28 @@ def test_excluded_shipping_methods_for_order(
     payload_dict = {"order": {"id": 1, "some_field": "12"}}
     payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
+    expected_cache_key_data = {
+        "order": {
+            "id": 1,
+            "some_field": "12",
+            "base_shipping_price_amount": str(
+                quantize_price(
+                    order_with_lines.base_shipping_price.amount,
+                    order_with_lines.currency,
+                )
+            ),
+            "lines_pricing": [
+                {
+                    "base_unit_price_amount": str(
+                        quantize_price(
+                            line.base_unit_price.amount, order_with_lines.currency
+                        )
+                    ),
+                }
+                for line in order_with_lines.lines.all()
+            ],
+        }
+    }
 
     # when
     excluded_methods = excluded_shipping_methods_for_order(
@@ -165,7 +188,7 @@ def test_excluded_shipping_methods_for_order(
         requestor=None,
     )
     expected_cache_key = generate_cache_key_for_webhook(
-        payload_dict,
+        expected_cache_key_data,
         shipping_webhook.target_url,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         shipping_app.id,
@@ -245,6 +268,28 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
     payload_dict = {"order": {"id": 1, "some_field": "12"}}
     payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
+    expected_cache_key_data = {
+        "order": {
+            "id": 1,
+            "some_field": "12",
+            "base_shipping_price_amount": str(
+                quantize_price(
+                    order_with_lines.base_shipping_price.amount,
+                    order_with_lines.currency,
+                )
+            ),
+            "lines_pricing": [
+                {
+                    "base_unit_price_amount": str(
+                        quantize_price(
+                            line.base_unit_price.amount, order_with_lines.currency
+                        )
+                    ),
+                }
+                for line in order_with_lines.lines.all()
+            ],
+        }
+    }
 
     # when
     excluded_methods = excluded_shipping_methods_for_order(
@@ -285,13 +330,13 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
     )
     assert mocked_webhook.call_count == 2
     expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
-        payload_dict,
+        expected_cache_key_data,
         shipping_webhook.target_url,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         shipping_app.id,
     )
     expected_cache_for_second_webhook_key = generate_cache_key_for_webhook(
-        payload_dict,
+        expected_cache_key_data,
         second_shipping_webhook.target_url,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         second_shipping_app.id,
@@ -379,6 +424,28 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     payload_dict = {"order": {"id": 1, "some_field": "12"}}
     payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
+    expected_cache_key_data = {
+        "order": {
+            "id": 1,
+            "some_field": "12",
+            "base_shipping_price_amount": str(
+                quantize_price(
+                    order_with_lines.base_shipping_price.amount,
+                    order_with_lines.currency,
+                )
+            ),
+            "lines_pricing": [
+                {
+                    "base_unit_price_amount": str(
+                        quantize_price(
+                            line.base_unit_price.amount, order_with_lines.currency
+                        )
+                    ),
+                }
+                for line in order_with_lines.lines.all()
+            ],
+        }
+    }
 
     # when
     excluded_methods = excluded_shipping_methods_for_order(
@@ -417,13 +484,13 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     assert mocked_webhook.call_count == 2
 
     expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
-        payload_dict,
+        expected_cache_key_data,
         first_webhook.target_url,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         shipping_app.id,
     )
     expected_cache_for_second_webhook_key = generate_cache_key_for_webhook(
-        payload_dict,
+        expected_cache_key_data,
         second_webhook.target_url,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         shipping_app.id,
