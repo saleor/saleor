@@ -25,6 +25,7 @@ from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.scalars import DateTime
 from ...core.types import Image, ModelObjectType, ThumbnailField
+from ...core.utils import validate_and_apply_search_rank_sorting
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import CategoryTranslation
@@ -35,7 +36,7 @@ from ..dataloaders import (
     ThumbnailByCategoryIdSizeAndFormatLoader,
 )
 from ..filters.product import ProductFilterInput, ProductWhereInput
-from ..sorters import ProductOrder
+from ..sorters import ProductOrder, ProductOrderField
 from .products import ProductCountableConnection
 
 
@@ -166,9 +167,9 @@ class Category(ModelObjectType[models.Category]):
 
     @staticmethod
     def resolve_products(root: models.Category, info, *, channel=None, **kwargs):
-        from ..utils import check_for_sorting_by_rank
-
-        check_for_sorting_by_rank(info, kwargs)
+        validate_and_apply_search_rank_sorting(
+            kwargs, ProductOrderField.RANK, "ProductOrder", info
+        )
         search = kwargs.get("search")
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(

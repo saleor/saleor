@@ -31,7 +31,7 @@ from ..core.fields import (
 )
 from ..core.tracing import traced_resolver
 from ..core.types import NonNullList
-from ..core.utils import from_global_id_or_error
+from ..core.utils import from_global_id_or_error, validate_and_apply_search_rank_sorting
 from ..core.validators import validate_one_of_args_is_in_query
 from ..shop.resolvers import get_database_connection_name
 from ..translations.mutations import (
@@ -132,6 +132,7 @@ from .sorters import (
     CategorySortingInput,
     CollectionSortingInput,
     ProductOrder,
+    ProductOrderField,
     ProductTypeSortingInput,
     ProductVariantSortingInput,
 )
@@ -149,7 +150,6 @@ from .types import (
     ProductVariant,
     ProductVariantCountableConnection,
 )
-from .utils import check_for_sorting_by_rank
 
 
 class ProductQueries(graphene.ObjectType):
@@ -526,7 +526,9 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     @traced_resolver
     def resolve_products(_root, info: ResolveInfo, *, channel=None, **kwargs):
-        check_for_sorting_by_rank(info, kwargs)
+        validate_and_apply_search_rank_sorting(
+            kwargs, ProductOrderField.RANK, "ProductOrder", info
+        )
         search = kwargs.get("search")
 
         requestor = get_user_or_app_from_context(info.context)

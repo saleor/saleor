@@ -216,7 +216,8 @@ def validate_and_apply_search_rank_sorting(
         # sort by RANK can be used only with search filter
         if not search_string_in_kwargs(kwargs):
             raise GraphQLError(
-                "Sorting by RANK is available only when using a search filter."
+                "Sorting by RANK is available only when using a search filter "
+                "or search argument."
             )
     if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
         # default to sorting by RANK if search is used
@@ -242,5 +243,7 @@ def sort_field_from_kwargs(kwargs: dict) -> list[str] | None:
     """Extract the sort field from kwargs.
 
     Returns the field value from sort_by parameter, or None if not present.
+    Also checks for attribute_id used by product sorting.
     """
-    return (kwargs.get("sort_by") or {}).get("field")
+    sort_by = kwargs.get("sort_by") or {}
+    return sort_by.get("field") or sort_by.get("attribute_id")
