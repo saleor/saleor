@@ -5,6 +5,7 @@ from django.conf import settings
 from django.http import FileResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
 
+from .deprecations import deprecated_digital_content
 from .models import DigitalContentUrl
 from .utils.digital_products import (
     digital_content_url_is_valid,
@@ -12,6 +13,7 @@ from .utils.digital_products import (
 )
 
 
+@deprecated_digital_content
 def digital_product(request, token: str) -> FileResponse | HttpResponseNotFound:
     """Return the direct download link to content if given token is still valid."""
 
