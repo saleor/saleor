@@ -1,5 +1,15 @@
 # Saleor
 
+## Graphql
+
+###  API versioning
+
+- Check last git tag to find what version we are branched from (e.g. 3.22 tag). Based on that, add description to new fields with ADDED_IN_{VERSION} clause
+
+
+### GraphQL permissions
+- Use PermissionsField to describe field restrictions
+
 # Testing
 
 ## Running tests
@@ -19,6 +29,8 @@
 - When writing assertions, prefer assertion on actual returned value instead of checking if it's not none. For example: `assert email is "a@b.com` instead if `assert email is not None`
 - When asserting GraphQL errors, assert error message too
 - When asserting to Enum, import enum in a test file and use `assert error.code == MyEnum.SOME_ERROR.name` instead plain string comparison
+- Avoid assertion to plain values, if you already have references to existing value. For example, when you create entity in database and assert if entity is returned in response, compare response fields with entity fields, instead plain values.
+-
 
 # Concurrency and Thread Safety
 

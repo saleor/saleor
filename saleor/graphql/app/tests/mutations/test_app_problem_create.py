@@ -34,14 +34,14 @@ def test_app_problem_create(app_api_client, app):
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
     problem_data = data["appProblem"]
-    assert problem_data["message"] == "Something went wrong"
-    assert problem_data["key"] == "error-1"
+    assert problem_data["message"] == variables["input"]["message"]
+    assert problem_data["key"] == variables["input"]["key"]
     assert problem_data["count"] == 1
     assert problem_data["isCritical"] is False
 
     db_problem = AppProblem.objects.get(app=app)
-    assert db_problem.message == "Something went wrong"
-    assert db_problem.key == "error-1"
+    assert db_problem.message == variables["input"]["message"]
+    assert db_problem.key == variables["input"]["key"]
     assert db_problem.count == 1
 
 

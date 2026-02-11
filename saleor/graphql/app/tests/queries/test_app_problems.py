@@ -121,13 +121,13 @@ def test_app_problems_returns_problems(app_api_client, app):
     assert len(problems) == 2
     # Ordered by created_at desc, so p2 comes first
     assert problems[0]["id"] == graphene.Node.to_global_id("AppProblem", p2.id)
-    assert problems[0]["message"] == "Issue 2"
-    assert problems[0]["key"] == "k2"
+    assert problems[0]["message"] == p2.message
+    assert problems[0]["key"] == p2.key
     assert problems[0]["count"] == 1
     assert problems[0]["isCritical"] is False
     assert problems[1]["id"] == graphene.Node.to_global_id("AppProblem", p1.id)
-    assert problems[1]["message"] == "Issue 1"
-    assert problems[1]["key"] == "k1"
+    assert problems[1]["message"] == p1.message
+    assert problems[1]["key"] == p1.key
     assert problems[1]["count"] == 1
     assert problems[1]["isCritical"] is False
 
@@ -146,11 +146,11 @@ def test_app_problems_ordered_by_created_at_desc(app_api_client, app):
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 2
     assert problems[0]["id"] == graphene.Node.to_global_id("AppProblem", p2.id)
-    assert problems[0]["message"] == "Second"
-    assert problems[0]["key"] == "k2"
+    assert problems[0]["message"] == p2.message
+    assert problems[0]["key"] == p2.key
     assert problems[1]["id"] == graphene.Node.to_global_id("AppProblem", p1.id)
-    assert problems[1]["message"] == "First"
-    assert problems[1]["key"] == "k1"
+    assert problems[1]["message"] == p1.message
+    assert problems[1]["key"] == p1.key
 
 
 def test_app_problems_count_and_critical(app_api_client, app):
@@ -643,4 +643,4 @@ def test_app_problems_limit_one(app_api_client, app):
     problems = content["data"]["app"]["problems"]
     assert len(problems) == 1
     assert problems[0]["id"] == graphene.Node.to_global_id("AppProblem", p2.id)
-    assert problems[0]["message"] == "Issue 2"
+    assert problems[0]["message"] == p2.message

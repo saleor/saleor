@@ -56,7 +56,7 @@ def test_app_problem_create_aggregates_within_period(
     assert AppProblem.objects.filter(app=app).count() == 1
     problem = AppProblem.objects.get(app=app)
     assert problem.count == 2
-    assert problem.message == "Second occurrence"
+    assert problem.message == variables["input"]["message"]
 
 
 def test_app_problem_create_new_when_period_expired(
@@ -91,7 +91,7 @@ def test_app_problem_create_new_when_period_expired(
     assert problems[0].count == 3
     assert problems[0].message == "Old problem"
     assert problems[1].count == 1
-    assert problems[1].message == "New problem"
+    assert problems[1].message == variables["input"]["message"]
 
 
 def test_app_problem_create_zero_aggregation_period_always_creates_new(
@@ -145,7 +145,7 @@ def test_app_problem_create_default_aggregation_period_aggregates(
     assert AppProblem.objects.filter(app=app).count() == 1
     problem = AppProblem.objects.get(app=app)
     assert problem.count == 2
-    assert problem.message == "Should aggregate"
+    assert problem.message == variables["input"]["message"]
 
 
 def test_app_problem_create_dismissed_problem_not_aggregated(
@@ -179,7 +179,7 @@ def test_app_problem_create_dismissed_problem_not_aggregated(
     assert AppProblem.objects.filter(app=app).count() == 2
     new_problem = AppProblem.objects.filter(app=app, dismissed=False).get()
     assert new_problem.count == 1
-    assert new_problem.message == "Fresh problem"
+    assert new_problem.message == variables["input"]["message"]
 
 
 def test_app_problem_create_message_updates_on_aggregation(
@@ -210,5 +210,5 @@ def test_app_problem_create_message_updates_on_aggregation(
     data = content["data"]["appProblemCreate"]
     assert not data["errors"]
     problem = AppProblem.objects.get(app=app)
-    assert problem.message == "Updated message"
+    assert problem.message == variables["input"]["message"]
     assert problem.count == 2
