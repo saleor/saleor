@@ -7,7 +7,51 @@ from ...account.search import update_user_search_vector
 from ...checkout.models import Checkout
 from ...checkout.search.indexing import update_checkouts_search_vector
 from ...product.models import Product, ProductChannelListing
-from ..search import parse_search_query, prefix_search
+from ..search import _sanitize_word, parse_search_query, prefix_search
+
+
+def test_sanitize_word_removes_tsquery_metacharacters():
+    # given
+    word_with_metacharacters = "test()&|!:<>'*word"
+
+    # when
+    result = _sanitize_word(word_with_metacharacters)
+
+    # then
+    assert result == "test word"
+
+
+def test_sanitize_word_preserves_safe_characters():
+    # given
+    safe_word = "user-name_123@example.com"
+
+    # when
+    result = _sanitize_word(safe_word)
+
+    # then
+    assert result == "user-name_123@example.com"
+
+
+def test_sanitize_word_handles_empty_string():
+    # given
+    empty_string = ""
+
+    # when
+    result = _sanitize_word(empty_string)
+
+    # then
+    assert result == ""
+
+
+def test_sanitize_word_handles_only_metacharacters():
+    # given
+    only_metacharacters = "()&|!"
+
+    # when
+    result = _sanitize_word(only_metacharacters)
+
+    # then
+    assert result == ""
 
 
 def test_parse_search_query_single_word():
@@ -146,6 +190,18 @@ def test_parse_search_query_mixed_case_or_is_regular_word():
 def test_parse_search_query_unclosed_quote():
     # Unclosed quote should still parse the words as a phrase
     assert parse_search_query('"green tea') == "(green <-> tea)"
+
+
+def test_parse_search_query_whitespace_only_returns_none():
+    assert parse_search_query("   ") is None
+
+
+def test_parse_search_query_hyphenated_words_preserved():
+    assert parse_search_query("my-product-slug") == "my-product-slug:*"
+
+
+def test_parse_search_query_quoted_phrase_with_metacharacters():
+    assert parse_search_query('"test(value)"') == "(test <-> value)"
 
 
 @pytest.fixture
@@ -292,7 +348,7 @@ def test_prefix_search_users_perfect_match_priority(users_for_search):
     assert results[0].first_name == "John"
 
 
-def test_prefix_search_checkouts_exact_match_priority(
+def test_prefix_search_checkout_exact_match_priority(
     channel_USD,
 ):
     # given

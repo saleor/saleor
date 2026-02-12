@@ -84,24 +84,10 @@ def test_query_customer_members_with_filter_search(
     assert len(users) == count
 
 
-QUERY_CUSTOMERS_WITH_SEARCH_AND_SORT = """
-    query ($search: String, $sortBy: UserSortingInput) {
-        customers(first: 10, search: $search, sortBy: $sortBy) {
-            totalCount
-            edges {
-                node {
-                    id
-                    firstName
-                }
-            }
-        }
-    }
-"""
-
-
 def test_customers_search_sorted_by_rank_exact_match_prioritized(
     staff_api_client,
     permission_manage_users,
+    query_customer_with_filter,
 ):
     # given
     users = User.objects.bulk_create(
@@ -141,13 +127,14 @@ def test_customers_search_sorted_by_rank_exact_match_prioritized(
     User.objects.bulk_update(users, ["search_vector"])
 
     variables = {
-        "search": "aaron",
-        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "filter": {
+            "search": "aaron",
+        }
     }
 
     # when
     response = staff_api_client.post_graphql(
-        QUERY_CUSTOMERS_WITH_SEARCH_AND_SORT,
+        query_customer_with_filter,
         variables,
         permissions=[permission_manage_users],
     )

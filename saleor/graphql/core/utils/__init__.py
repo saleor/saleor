@@ -216,8 +216,7 @@ def validate_and_apply_search_rank_sorting(
         # sort by RANK can be used only with search filter
         if not search_string_in_kwargs(kwargs):
             raise GraphQLError(
-                "Sorting by RANK is available only when using a search filter "
-                "or search argument."
+                "Sorting by RANK is available only when using a search filter."
             )
     if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
         # default to sorting by RANK if search is used

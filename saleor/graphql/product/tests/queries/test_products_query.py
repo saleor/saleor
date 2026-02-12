@@ -863,10 +863,7 @@ def test_sort_product_by_rank_without_search(
     }
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response, ignore_errors=True)
-    message = (
-        "Sorting by RANK is available only when using a search filter or search "
-        "argument."
-    )
+    message = "Sorting by RANK is available only when using a search filter."
     assert "errors" in content
     assert content["errors"][0]["message"] == message
 
@@ -893,10 +890,7 @@ def test_products_query_by_rank_returns_error_with_filter_nontype_search(
 
     assert "errors" in content
     errors = content["errors"]
-    expected_message = (
-        "Sorting by RANK is available only when using a search filter "
-        "or search argument."
-    )
+    expected_message = "Sorting by RANK is available only when using a search filter."
     assert len(errors) == 1
     assert errors[0]["message"] == expected_message
 
@@ -936,10 +930,7 @@ def test_products_query_by_rank_returns_error_with_nontype_search(
 
     assert "errors" in content
     errors = content["errors"]
-    expected_message = (
-        "Sorting by RANK is available only when using a search filter "
-        "or search argument."
-    )
+    expected_message = "Sorting by RANK is available only when using a search filter."
     assert len(errors) == 1
     assert errors[0]["message"] == expected_message
 
