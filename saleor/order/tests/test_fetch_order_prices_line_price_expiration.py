@@ -60,8 +60,8 @@ def test_fetch_order_prices_lines_expired_base_prices(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -149,8 +149,8 @@ def test_fetch_order_prices_single_line_expired_base_prices(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -302,8 +302,8 @@ def test_fetch_order_prices_lines_expired_catalogue_discount(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -473,8 +473,8 @@ def test_fetch_order_prices_single_line_expired_catalogue_discount(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -606,8 +606,8 @@ def test_fetch_order_prices_lines_expired_new_catalogue_discount(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -756,8 +756,8 @@ def test_fetch_order_prices_lines_expired_manual_line_discount(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -913,8 +913,8 @@ def test_fetch_order_prices_single_line_expired_manual_line_discount(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -1077,8 +1077,8 @@ def test_fetch_order_prices_lines_expired_specific_product_voucher(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -1236,8 +1236,8 @@ def test_fetch_order_prices_single_line_expired_specific_product_voucher(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -1392,8 +1392,8 @@ def test_fetch_order_prices_lines_expired_apply_once_per_order_voucher(
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -1538,8 +1538,8 @@ def test_fetch_order_prices_single_line_expired_apply_once_per_order_voucher_new
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines
@@ -1689,8 +1689,8 @@ def test_fetch_order_prices_single_line_expired_apply_once_per_order_voucher_old
 
     # when
     order, lines = fetch_order_prices_if_expired(
-        order, plugins_manager, lines=None, force_update=False
-    )
+        order, plugins_manager, requestor=None, lines=None, force_update=False
+    ).get()
 
     # then
     line_1, line_2 = lines

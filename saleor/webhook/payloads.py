@@ -26,7 +26,6 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..discount.utils.shared import is_order_level_discount
 from ..discount.utils.voucher import is_order_level_voucher
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
@@ -39,7 +38,6 @@ from ..product.models import Collection, Product, ProductMedia, ProductVariant
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod
 from ..tax.models import TaxClassCountryRate
-from ..tax.utils import get_charge_taxes_for_order
 from ..thumbnail.models import Thumbnail
 from ..warehouse.models import Stock, Warehouse
 from . import traced_payload_generator
@@ -1363,104 +1361,6 @@ def generate_checkout_payload_for_tax_calculation(
         },
     )
     return checkout_data
-
-
-def _generate_order_lines_payload_for_tax_calculation(lines: QuerySet[OrderLine]):
-    serializer = PayloadSerializer()
-
-    charge_taxes = False
-    if lines:
-        charge_taxes = get_charge_taxes_for_order(lines[0].order)
-
-    return serializer.serialize(
-        lines,
-        fields=("product_name", "variant_name", "quantity"),
-        extra_dict_data={
-            "variant_id": (lambda line: line.product_variant_id),
-            "full_name": (
-                lambda line: line.variant.display_product() if line.variant else None
-            ),
-            "product_metadata": (
-                lambda line: line.variant.product.metadata if line.variant else {}
-            ),
-            "product_type_metadata": (
-                lambda line: (
-                    line.variant.product.product_type.metadata if line.variant else {}
-                )
-            ),
-            "charge_taxes": (lambda _line: charge_taxes),
-            "sku": (lambda line: line.product_sku),
-            "unit_amount": (
-                lambda line: quantize_price(line.base_unit_price_amount, line.currency)
-            ),
-            "total_amount": (
-                lambda line: quantize_price(
-                    line.base_unit_price_amount * line.quantity, line.currency
-                )
-            ),
-        },
-    )
-
-
-@allow_writer()
-@traced_payload_generator
-def generate_order_payload_for_tax_calculation(order: "Order"):
-    serializer = PayloadSerializer()
-
-    tax_configuration = order.channel.tax_configuration
-    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-
-    # Prepare Order data
-    address = order.shipping_address or order.billing_address
-    lines = order.lines.all()
-
-    # Prepare user data
-    user = order.user
-    user_id = None
-    user_public_metadata = {}
-    if user:
-        user_id = graphene.Node.to_global_id("User", user.id)
-        user_public_metadata = user.metadata
-
-    # Prepare discount data
-    discounts = order.discounts.all()
-    discounts_dict = []
-    for discount in discounts:
-        # Only order level discounts, like entire order vouchers,
-        # order promotions and manual discounts should be taken into account
-        if not is_order_level_discount(discount):
-            continue
-        quantize_price_fields(discount, ("amount_value",), order.currency)
-        discount_amount = quantize_price(discount.amount_value, order.currency)
-        discounts_dict.append({"name": discount.name, "amount": discount_amount})
-
-    # Prepare shipping data
-    shipping_method_name = order.shipping_method_name
-    shipping_method_amount = quantize_price(
-        order.base_shipping_price_amount, order.currency
-    )
-
-    order_data = serializer.serialize(
-        [order],
-        fields=["currency", "metadata"],
-        additional_fields={
-            "channel": (lambda o: o.channel, CHANNEL_FIELDS),
-            "address": (lambda o: address, ADDRESS_FIELDS),
-        },
-        extra_dict_data={
-            "id": graphene.Node.to_global_id("Order", order.id),
-            "user_id": user_id,
-            "user_public_metadata": user_public_metadata,
-            "discounts": discounts_dict,
-            "included_taxes_in_prices": prices_entered_with_tax,
-            "shipping_amount": shipping_method_amount,
-            "shipping_name": shipping_method_name,
-            "lines": json.loads(
-                _generate_order_lines_payload_for_tax_calculation(lines)
-            ),
-        },
-    )
-    return order_data
 
 
 @allow_writer()

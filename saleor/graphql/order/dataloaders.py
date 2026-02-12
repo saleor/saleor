@@ -4,7 +4,17 @@ from typing import cast
 from uuid import UUID
 
 from django.db.models import F
+from promise import Promise
 
+from ...core.db.connection import allow_writer_in_context
+from ...order.calculations import (
+    get_expired_line_ids,
+    prepare_order_lines_for_refresh,
+    process_order_prices,
+    process_order_promotion,
+    should_refresh_prices,
+)
+from ...order.delivery_context import get_valid_shipping_methods_for_order
 from ...order.models import (
     Fulfillment,
     FulfillmentLine,
@@ -15,8 +25,18 @@ from ...order.models import (
     OrderLine,
 )
 from ...payment.models import TransactionEvent, TransactionItem
+from ...shipping.interface import ShippingMethodData
 from ...warehouse.models import Allocation
+from ..app.dataloaders.utils import get_app_promise
+from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..core.dataloaders import DataLoader
+from ..plugins.dataloaders import (
+    plugin_manager_promise,
+)
+from ..shipping.dataloaders import (
+    ShippingMethodChannelListingByChannelSlugLoader,
+)
+from ..utils import get_user_or_app_from_context
 
 
 class OrderLinesByVariantIdAndChannelIdLoader(
@@ -254,3 +274,176 @@ class TransactionEventsByOrderGrantedRefundIdLoader(
         for event in events:
             event_map[event.related_granted_refund_id].append(event)
         return [event_map.get(granted_refund_id, []) for granted_refund_id in keys]
+
+
+class OrderPromotionCalculateByOrderIdLoaderAndWebhookSyncLoader(
+    DataLoader[tuple[UUID, bool], tuple[Order, Iterable[OrderLine]]]
+):
+    context_key = "order_promotion_calculate_by_order_id_and_webhook_sync"
+
+    def batch_load(self, keys):
+        orders_loader = OrderByIdLoader(self.context).load_many(
+            [order_id for order_id, _ in keys]
+        )
+        lines_loader = OrderLinesByOrderIdLoader(self.context).load_many(
+            [order_id for order_id, _ in keys]
+        )
+
+        current_lines_ids_per_order: dict[UUID, set[UUID]] = {}
+
+        def refresh_lines(data: list[tuple[Order, list[OrderLine]]]):
+            for order, _order_lines in data:
+                if order is None:
+                    continue
+
+                if order.id not in current_lines_ids_per_order:
+                    continue
+                if current_lines_ids_per_order[order.id] != {
+                    line.id for line in _order_lines
+                }:
+                    # While re-calculating the prices, the order lines might have been
+                    # changed (gift promotions). In that case, we need to refresh
+                    # the order lines in dataloader cache to make sure that the
+                    # rest of the code works with up-to-date data.
+                    OrderLinesByOrderIdLoader(self.context).clear(order.id)
+                    OrderLinesByOrderIdLoader(self.context).prime(
+                        order.id, _order_lines
+                    )
+            return data
+
+        def calculate_prices(data):
+            orders, lines = data
+            results: list[Promise[tuple[Order | None, Iterable[OrderLine]]]] = []
+            for order, order_lines, (_, allow_sync_webhooks) in zip(
+                orders, lines, keys, strict=True
+            ):
+                if order is None:
+                    results.append(Promise.resolve((None, [])))
+                    continue
+                order = cast(Order, order)
+
+                expired_line_ids = get_expired_line_ids(order, order_lines)
+                if not should_refresh_prices(
+                    order=order,
+                    force_update=False,
+                    expired_line_ids=expired_line_ids,
+                    database_connection_name=self.database_connection_name,
+                    allow_sync_webhooks=allow_sync_webhooks,
+                ):
+                    results.append(Promise.resolve((order, order_lines)))
+                    continue
+
+                lines_info = prepare_order_lines_for_refresh(
+                    order=order,
+                    lines=order_lines,
+                    expired_line_ids=expired_line_ids,
+                    database_connection_name=self.database_connection_name,
+                )
+                if lines_info is None:
+                    results.append(Promise.resolve((order, order_lines)))
+                    continue
+
+                process_order_promotion(
+                    order,
+                    lines_info,
+                    database_connection_name=self.database_connection_name,
+                )
+                refreshed_lines = [line_info.line for line_info in lines_info]
+                current_lines_ids_per_order[order.id] = {
+                    line.id for line in refreshed_lines
+                }
+
+                results.append(Promise.resolve((order, refreshed_lines)))
+            return Promise.all(results).then(refresh_lines)
+
+        return Promise.all([orders_loader, lines_loader]).then(calculate_prices)
+
+
+class OrderPriceCalculationByOrderIdAndWebhookSyncLoader(
+    DataLoader[tuple[UUID, bool], tuple[Order, Iterable[OrderLine]]]
+):
+    context_key = "order_price_calculation_by_order_id_and_webhook_sync"
+
+    def batch_load(self, keys):
+        def with_updated_promotions(
+            data,
+        ):
+            app, orders_and_lines = data
+
+            def calculate_prices(manager):
+                results: list[Promise[tuple[Order, Iterable[OrderLine]]]] = []
+                for (order, lines), (_, allow_sync_webhooks) in zip(
+                    orders_and_lines, keys, strict=True
+                ):
+                    expired_line_ids = get_expired_line_ids(order, lines)
+                    if not should_refresh_prices(
+                        order=order,
+                        force_update=False,
+                        expired_line_ids=expired_line_ids,
+                        database_connection_name=self.database_connection_name,
+                        allow_sync_webhooks=allow_sync_webhooks,
+                    ):
+                        results.append(Promise.resolve((order, lines)))
+                        continue
+                    result = process_order_prices(
+                        order=order,
+                        manager=manager,
+                        requestor=app or self.context.user,
+                        lines=lines,
+                        database_connection_name=self.database_connection_name,
+                    )
+                    results.append(result)
+                return Promise.all(results)
+
+            return plugin_manager_promise(self.context, app).then(calculate_prices)
+
+        return Promise.all(
+            [
+                get_app_promise(self.context),
+                OrderPromotionCalculateByOrderIdLoaderAndWebhookSyncLoader(
+                    self.context
+                ).load_many(keys),
+            ]
+        ).then(with_updated_promotions)
+
+
+class OrderShippingMethodsByOrderIdAndWebhookSyncLoader(
+    DataLoader[tuple[UUID, bool], list[ShippingMethodData]]
+):
+    context_key = "order_shipping_methods_by_order"
+
+    def batch_load(self, keys):
+        requestor = get_user_or_app_from_context(self.context)
+        orders = OrderByIdLoader(self.context).load_many([order for (order, _) in keys])
+
+        def with_orders(orders: list[Order]):
+            def with_listings(channel_listings):
+                results: list[Promise[list[ShippingMethodData]]] = []
+                with allow_writer_in_context(self.context):
+                    for order, listings, (_, allow_sync_webhooks) in zip(
+                        orders, channel_listings, keys, strict=True
+                    ):
+                        result = get_valid_shipping_methods_for_order(
+                            order,
+                            listings,
+                            requestor=requestor,
+                            database_connection_name=self.database_connection_name,
+                            allow_sync_webhooks=allow_sync_webhooks,
+                        )
+                    results.append(result)
+                return Promise.all(results)
+
+            def with_channels(channels):
+                return (
+                    ShippingMethodChannelListingByChannelSlugLoader(self.context)
+                    .load_many([c.slug for c in channels])
+                    .then(with_listings)
+                )
+
+            return (
+                ChannelByIdLoader(self.context)
+                .load_many([order.channel_id for order in orders if order is not None])
+                .then(with_channels)
+            )
+
+        return orders.then(with_orders)

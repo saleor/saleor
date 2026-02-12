@@ -165,6 +165,8 @@ def _trigger_order_sync_webhooks(
     webhook_event_map: dict[str, set["Webhook"]],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
+    # FIXME: We can drop this after migrating the ASYNC webhooks to promise
+    # approach
     if (
         webhook_event_map.get(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
         and order.should_refresh_prices
@@ -172,15 +174,15 @@ def _trigger_order_sync_webhooks(
         fetch_order_prices_if_expired(
             order,
             manager,
+            # This is temporary, as the whole handler will be dropped when moving
+            # ASYNC webhooks to Promises.
+            requestor=None,
             database_connection_name=database_connection_name,
-        )
+        ).get()
     if webhook_event_map.get(WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS):
         shipping_listings = ShippingMethodChannelListing.objects.filter(
             channel_id=order.channel_id
         )
-        # FIXME: Calling .get() as we need to have all webhooks on Promise
-        # to be able to use them here. We can drop this after migrating
-        # fetch_order_prices_if_expired to use Promise as well.
         get_valid_shipping_methods_for_order(
             order,
             shipping_listings,

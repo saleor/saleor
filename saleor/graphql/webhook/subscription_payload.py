@@ -216,11 +216,13 @@ def generate_payload_from_subscription(
         ast,
     )
     app_id = request.app.pk if request.app else None
+
     results = document.execute(
         allow_subscriptions=True,
         root=(event_type, subscribable_object),
         context=get_context_value(request),
     )
+
     if hasattr(results, "errors"):
         logger.warning(
             "Unable to build a payload for subscription. Error: %s",
