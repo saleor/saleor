@@ -1,3 +1,4 @@
+import mimetypes
 import os
 import secrets
 from io import BytesIO
@@ -253,10 +254,13 @@ class ProcessedIconImage(ProcessedImage):
     LOSSLESS_WEBP = True
 
 
-def get_filename_from_url(url: str) -> str:
+def get_filename_from_url(url: str, mime_type: str | None = None) -> str:
     """Prepare a unique filename for file from the URL to avoid overwriting."""
     file_name = os.path.basename(urlparse(url).path)
     name, format = os.path.splitext(file_name)
+    if not format and mime_type:
+        # If the URL does not include a file extension, guess it based on the mime type
+        format = mimetypes.guess_extension(mime_type, strict=False) or ""
     name = name[:FILE_NAME_MAX_LENGTH]
     hash = secrets.token_hex(nbytes=4)
     return f"{name}_{hash}{format}"
