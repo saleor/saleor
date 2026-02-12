@@ -397,11 +397,18 @@ def test_create_token_email_case_insensitive(
     assert data["token"]
 
 
+@patch("saleor.account.throttling.cache")
 @freeze_time("2020-03-18 12:00:00")
 def test_create_token_do_not_update_last_login_when_in_threshold(
-    api_client, customer_user, settings
+    mocked_cache,
+    api_client,
+    customer_user,
+    settings,
+    setup_mock_for_cache,
 ):
     # given
+    setup_mock_for_cache({}, mocked_cache)
+
     customer_password = customer_user._password
     customer_user.last_login = datetime.datetime.now(tz=datetime.UTC)
     customer_user.save()
@@ -423,11 +430,14 @@ def test_create_token_do_not_update_last_login_when_in_threshold(
     assert customer_user.last_login == expected_last_login
 
 
+@patch("saleor.account.throttling.cache")
 @freeze_time("2020-03-18 12:00:00")
 def test_create_token_do_update_last_login_when_out_of_threshold(
-    api_client, customer_user, settings
+    mocked_cache, api_client, customer_user, settings, setup_mock_for_cache
 ):
     # given
+    setup_mock_for_cache({}, mocked_cache)
+
     customer_password = customer_user._password
     customer_user.last_login = datetime.datetime.now(tz=datetime.UTC)
     customer_user.save()
