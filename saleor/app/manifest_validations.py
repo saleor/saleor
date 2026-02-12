@@ -54,15 +54,14 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
     """
     extension_url = extension["url"]
 
-    # Assume app URL is the one that originally received the token.
-    app_url = manifest_data.get("tokenTargetUrl")
+    if extension_url.startswith("/"):
+        # Relative URLs (starting with '/') are allowed when appUrl is provided
+        # Assume app URL is the one that originally received the token.
+        app_url = manifest_data.get("appUrl")
 
-    if not app_url:
-        raise ValidationError("Manifest is invalid, token_target_url is missing")
-
-    # Only validate absolute URLs (with protocol)
-    # Relative URLs (starting with '/') are allowed when tokenTargetUrl is provided
-    if not extension_url.startswith("/"):
+        if not app_url:
+            raise ValidationError("Manifest is invalid, appUrl is missing")
+    else:
         _clean_app_url(extension_url)
 
 
@@ -100,8 +99,8 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     _validate_required_fields(manifest_data, errors)
 
     try:
-        if "tokenTargetUrl" in manifest_data:
-            _clean_app_url(manifest_data["tokenTargetUrl"])
+        if token_target_url := manifest_data.get("tokenTargetUrl"):
+            _clean_app_url(token_target_url)
     except (ValidationError, AttributeError):
         errors["tokenTargetUrl"].append(
             ValidationError(
@@ -294,7 +293,7 @@ def _clean_webhooks(manifest_data, errors):
 
 
 def _validate_required_fields(manifest_data, errors):
-    manifest_required_fields = {"id", "version", "name", "tokenTargetUrl"}
+    manifest_required_fields = {"id", "version", "name"}
     extension_required_fields = {"label", "url", "mount"}
     webhook_required_fields = {"name", "targetUrl", "query"}
 
