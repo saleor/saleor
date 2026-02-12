@@ -1212,6 +1212,12 @@ ALLOWED_MIME_TYPES.update(
     json.loads(os.environ.get("UPLOAD_ADDITIONAL_ALLOWED_MIME_TYPES", "{}"))
 )
 
+# Usage telemetry
+SEND_USAGE_TELEMETRY = get_bool_from_env("SEND_USAGE_TELEMETRY", True)
+SEND_USAGE_TELEMETRY_AFTER_TIMEDELTA = datetime.timedelta(
+    seconds=parse(os.environ.get("SEND_USAGE_TELEMETRY_AFTER_TIMEDELTA", "1 day"))
+)
+
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
 i18n_rules_override()

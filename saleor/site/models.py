@@ -1,3 +1,4 @@
+import uuid
 from email.headerregistry import Address
 from email.utils import parseaddr
 from typing import Final
@@ -99,6 +100,14 @@ class SiteSettings(ModelWithMetadata):
     refund_reason_reference_type = models.ForeignKey(
         null=True, blank=True, on_delete=models.SET_NULL, to="page.PageType"
     )
+
+    # usage telemetry
+    instance_id = models.UUIDField(
+        default=uuid.uuid4,
+        null=True,
+        blank=True,
+    )
+    usage_telemetry_reported_at = models.DateTimeField(null=True, blank=True)
 
     # deprecated
     charge_taxes_on_shipping = models.BooleanField(default=True)
