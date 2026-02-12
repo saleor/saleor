@@ -88,7 +88,13 @@ def detect_mime_type(file_data) -> str:
     return mime_type
 
 
-def is_image_mimetype(mimetype: str) -> bool:
+def get_mime_type(content_type_header: str | None) -> str | None:
+    if content_type_header is None:
+        return None
+    return content_type_header.split(";", maxsplit=1)[0].strip().lower()
+
+
+def is_image_mimetype(mimetype: str | None) -> bool:
     """Check if mimetype is image."""
     if mimetype is None:
         return False
