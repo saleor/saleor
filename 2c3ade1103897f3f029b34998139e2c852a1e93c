@@ -1,0 +1,39 @@
+saleor/graphql/payment/utils.py
+  65f400c262b9439d 5,97-144,147-148,163-177
+saleor/order/actions.py
+  65f400c262b9439d 85,1436-1437,1501-1504,1719-1720,1727-1728,1779-1780,1784-1786,1810-1811,1825-1826,1866-1867,1881-1882,1918-1919,1975-1976,1987-1988
+  e1bf5e5677c7f474 1496-1500
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "2c3ade1103897f3f029b34998139e2c852a1e93c",
+  "prompts": {
+    "65f400c262b9439d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "134b752d-2a6f-41e5-861e-ab84768c1bff",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 783,
+      "total_deletions": 14,
+      "accepted_lines": 96,
+      "overriden_lines": 0
+    },
+    "e1bf5e5677c7f474": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4cac903d-ac0c-4ac6-a2a1-7867de6eec85",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 1,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
