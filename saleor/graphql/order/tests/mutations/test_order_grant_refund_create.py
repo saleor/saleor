@@ -96,6 +96,7 @@ mutation OrderGrantRefundCreate(
     errors{
       field
       code
+      message
       lines{
         field
         code
@@ -1373,7 +1374,7 @@ def test_grant_refund_with_reference_not_enabled_created_by_user_rejected(
     error = errors[0]
 
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundCreateErrorCode.GRAPHQL_ERROR.name
 
 
 def test_grant_refund_with_reference_not_enabled_created_by_app_rejects(
@@ -1426,7 +1427,7 @@ def test_grant_refund_with_reference_not_enabled_created_by_app_rejects(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundCreateErrorCode.GRAPHQL_ERROR.name
 
 
 def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid_id(
@@ -1475,7 +1476,7 @@ def test_grant_refund_with_reference_required_created_by_user_throws_for_invalid
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundCreateErrorCode.GRAPHQL_ERROR.name
 
     assert order.granted_refunds.count() == 0
 
@@ -1533,7 +1534,7 @@ def test_grant_refund_with_reason_reference_wrong_page_type_created_by_user(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundCreateErrorCode.GRAPHQL_ERROR.name
 
     assert order.granted_refunds.count() == 0
 
@@ -1584,7 +1585,12 @@ def test_grant_refund_with_reason_reference_not_valid_page_id(
     error = errors[0]
 
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundCreateErrorCode.GRAPHQL_ERROR.name
+    assert (
+        error["message"]
+        == "Invalid reason reference. Must be an ID of a Page with the configured "
+        "PageType."
+    )
 
     assert order.granted_refunds.count() == 0
 
@@ -1635,7 +1641,7 @@ def test_grant_refund_with_reason_reference_not_valid_id_created_by_user(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundCreateErrorCode.GRAPHQL_ERROR.name
 
     assert order.granted_refunds.count() == 0
 
@@ -1837,7 +1843,12 @@ def test_grant_refund_with_per_line_reason_reference_wrong_page_type(
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "reasonReference"
-    assert errors[0]["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert errors[0]["code"] == OrderGrantRefundCreateErrorCode.GRAPHQL_ERROR.name
+    assert (
+        errors[0]["message"]
+        == "Invalid reason reference. Must be an ID of a Page with the configured "
+        "PageType."
+    )
 
 
 def test_grant_refund_with_per_line_reason_reference_when_not_configured(
@@ -1893,4 +1904,5 @@ def test_grant_refund_with_per_line_reason_reference_when_not_configured(
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "reasonReference"
-    assert errors[0]["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert errors[0]["code"] == OrderGrantRefundCreateErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["message"] == "Reason reference type is not configured."

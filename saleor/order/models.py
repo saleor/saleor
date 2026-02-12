@@ -796,6 +796,8 @@ class Fulfillment(ModelWithMetadata):
     tracking_number = models.CharField(max_length=255, default="", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     reason = models.TextField(blank=True, default="")
+    # Applicable to fulfillments with status: REFUNDED, RETURNED,
+    # REFUNDED_AND_RETURNED, REPLACED.
     reason_reference = models.ForeignKey(
         "page.Page", related_name="+", on_delete=models.SET_NULL, null=True, blank=True
     )

@@ -1,3 +1,5 @@
+import uuid
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -6,6 +8,7 @@ from ....order import FulfillmentLineData
 from ....order import models as order_models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
+from ....page.models import Page
 from ....site.models import SiteSettings
 from ...core.mutations import BaseMutation
 from ...payment.utils import (
@@ -183,6 +186,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         )
         order_lines = list(order_lines)
         cleaned_order_lines = []
+        order_lines_reason_data: dict[uuid.UUID, tuple[str | None, Page | None]] = {}
         for line, line_data in zip(order_lines, lines_data, strict=False):
             quantity = line_data["quantity"]
             if line.is_gift_card:
@@ -240,8 +244,8 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     quantity=quantity,
                     variant=variant,
                     replace=replace,
-                    reason=reason,
-                    reason_reference=reason_reference_instance,
                 )
             )
+            order_lines_reason_data[line.pk] = (reason, reason_reference_instance)
         cleaned_input["order_lines"] = cleaned_order_lines
+        cleaned_input["order_lines_reason_data"] = order_lines_reason_data

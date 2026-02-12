@@ -138,9 +138,13 @@ class OrderGrantRefundCreate(BaseMutation):
         cls,
         order: models.Order,
         lines: list[dict[str, str | int]],
-    ) -> tuple[list[models.OrderGrantedRefundLine], list[dict[str, str]] | None]:
+    ) -> tuple[
+        list[models.OrderGrantedRefundLine],
+        dict,
+        list[dict[str, str]] | None,
+    ]:
         errors: list[dict[str, str]] = []
-        input_lines_data = get_input_lines_data(
+        input_lines_data, raw_reason_reference_ids = get_input_lines_data(
             lines, errors, OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value
         )
         assign_order_lines(
@@ -157,9 +161,9 @@ class OrderGrantRefundCreate(BaseMutation):
         )
 
         if errors:
-            return [], errors
+            return [], {}, errors
 
-        return list(input_lines_data.values()), None
+        return list(input_lines_data.values()), raw_reason_reference_ids, None
 
     @classmethod
     def calculate_amount(
@@ -204,6 +208,7 @@ class OrderGrantRefundCreate(BaseMutation):
     def _resolve_per_line_reason_references(
         cls,
         cleaned_input_lines: list[models.OrderGrantedRefundLine],
+        raw_reason_reference_ids: dict,
         site_settings,
     ):
         """Validate and resolve per-line reason references.
@@ -212,7 +217,7 @@ class OrderGrantRefundCreate(BaseMutation):
         match the configured PageType. No inheritance from order-level.
         """
         for line in cleaned_input_lines:
-            raw_id = getattr(line, "_raw_reason_reference_id", None)
+            raw_id = raw_reason_reference_ids.get(line.order_line_id)
             if raw_id is None:
                 continue
 
@@ -245,9 +250,10 @@ class OrderGrantRefundCreate(BaseMutation):
         cls.validate_input(input)
 
         cleaned_input_lines: list[models.OrderGrantedRefundLine] = []
+        raw_reason_reference_ids: dict = {}
         if input_lines:
-            cleaned_input_lines, lines_errors = cls.clean_input_lines(
-                order, input_lines
+            cleaned_input_lines, raw_reason_reference_ids, lines_errors = (
+                cls.clean_input_lines(order, input_lines)
             )
             if lines_errors:
                 raise ValidationError(
@@ -331,7 +337,9 @@ class OrderGrantRefundCreate(BaseMutation):
 
         # Validate and resolve per-line reason references
         if cleaned_input_lines:
-            cls._resolve_per_line_reason_references(cleaned_input_lines, site.settings)
+            cls._resolve_per_line_reason_references(
+                cleaned_input_lines, raw_reason_reference_ids, site.settings
+            )
 
         return {
             "amount": amount,

@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 
 from django.core.exceptions import ValidationError
+from graphql import GraphQLError
 
 from ...page.models import Page
 from ...payment import models as payment_models
@@ -66,7 +67,7 @@ def validate_and_resolve_refund_reason_context(
             {
                 refund_reference_field_name: ValidationError(
                     "Reason reference type is not configured.",
-                    code=error_code_enum.INVALID.value,
+                    code=error_code_enum.GRAPHQL_ERROR.value,
                 )
             }
         ) from None
@@ -115,7 +116,7 @@ def validate_per_line_reason_reference(
             {
                 field_name: ValidationError(
                     "Reason reference type is not configured.",
-                    code=error_code_enum.INVALID.value,
+                    code=error_code_enum.GRAPHQL_ERROR.value,
                 )
             }
         ) from None
@@ -142,8 +143,6 @@ def resolve_reason_reference_page(
     The referenced Page must belong to the PageType configured in
     refundReasonReferenceType site setting.
     """
-    from graphql import GraphQLError
-
     from ..core.utils import from_global_id_or_error
 
     try:
@@ -156,7 +155,7 @@ def resolve_reason_reference_page(
                 field_name: ValidationError(
                     "Invalid reason reference. Must be an ID of a Page with the "
                     "configured PageType.",
-                    code=error_code_enum.INVALID.value,
+                    code=error_code_enum.GRAPHQL_ERROR.value,
                 )
             }
         ) from None
@@ -171,7 +170,7 @@ def resolve_reason_reference_page(
                 field_name: ValidationError(
                     "Invalid reason reference. Must be an ID of a Page with the "
                     "configured PageType.",
-                    code=error_code_enum.INVALID.value,
+                    code=error_code_enum.GRAPHQL_ERROR.value,
                 )
             }
         ) from None

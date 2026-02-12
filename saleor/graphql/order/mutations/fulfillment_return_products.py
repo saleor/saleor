@@ -248,6 +248,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
                 cleaned_input["include_shipping_costs"],
                 reason=cleaned_input.get("reason", ""),
                 reason_reference=cleaned_input.get("reason_reference_instance"),
+                order_lines_reason_data=cleaned_input.get("order_lines_reason_data"),
             )
         except PaymentError:
             cls.raise_error_for_payment_error()

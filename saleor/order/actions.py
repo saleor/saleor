@@ -1410,6 +1410,7 @@ def _move_order_lines_to_target_fulfillment(
     order_lines_to_move: list[OrderLineInfo],
     target_fulfillment: Fulfillment,
     manager: "PluginsManager",
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> list[FulfillmentLine]:
     """Move order lines with given quantity to the target fulfillment."""
     fulfillment_lines_to_create: list[FulfillmentLine] = []
@@ -1428,13 +1429,19 @@ def _move_order_lines_to_target_fulfillment(
             )
             line_to_move.quantity_fulfilled += unfulfilled_to_move
 
+            reason_str = ""
+            reason_reference = None
+            if order_lines_reason_data and line_to_move.id in order_lines_reason_data:
+                raw_reason, reason_reference = order_lines_reason_data[line_to_move.id]
+                reason_str = raw_reason or ""
+
             fulfillment_line = FulfillmentLine(
                 fulfillment=target_fulfillment,
                 order_line_id=line_to_move.id,
                 stock_id=None,
                 quantity=unfulfilled_to_move,
-                reason=line_data.reason or "",
-                reason_reference=line_data.reason_reference,
+                reason=reason_str,
+                reason_reference=reason_reference,
             )
 
             # update current lines with new value of quantity
@@ -1493,14 +1500,9 @@ def _move_fulfillment_lines_to_target_fulfillment(
             moved_line.quantity += fulfilled_to_move
             fulfillment_line.quantity -= fulfilled_to_move
 
-            # Set per-line reason data on new fulfillment lines.
-            # TODO: when consolidating into an existing line (fulfillment_line_existed),
-            #  per-line reason/reason_reference from input are silently discarded and
-            #  only the quantity is updated. Consider merging or overwriting the reason
-            #  data when multiple source lines are consolidated into one target line.
-            if not fulfillment_line_existed:
-                moved_line.reason = fulfillment_line_data.reason or ""
-                moved_line.reason_reference = fulfillment_line_data.reason_reference
+            # Always update reason data (latest wins when consolidating).
+            moved_line.reason = fulfillment_line_data.reason or ""
+            moved_line.reason_reference = fulfillment_line_data.reason_reference
 
             if fulfillment_line.quantity == 0:
                 # the fulfillment line without any items will be deleted
@@ -1519,7 +1521,10 @@ def _move_fulfillment_lines_to_target_fulfillment(
                 fulfillment_lines_to_update.append(moved_line)
 
         # update the fulfillment lines with new values
-        FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+        FulfillmentLine.objects.bulk_update(
+            fulfillment_lines_to_update,
+            ["quantity", "reason", "reason_reference"],
+        )
         FulfillmentLine.objects.bulk_create(fulfillment_lines_to_create)
 
         # Remove the empty fulfillment lines
@@ -1550,6 +1555,7 @@ def create_refund_fulfillment(
     manager: "PluginsManager",
     amount=None,
     refund_shipping_costs=False,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ):
     """Proceed with all steps required for refunding products.
 
@@ -1585,6 +1591,7 @@ def create_refund_fulfillment(
             order_lines_to_move=order_lines_to_refund,
             target_fulfillment=refunded_fulfillment,
             manager=manager,
+            order_lines_reason_data=order_lines_reason_data,
         )
 
         _move_fulfillment_lines_to_target_fulfillment(
@@ -1718,6 +1725,7 @@ def _move_lines_to_return_fulfillment(
     manager: "PluginsManager",
     reason: str = "",
     reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> Fulfillment:
     target_fulfillment = Fulfillment.objects.create(
         status=fulfillment_status,
@@ -1731,6 +1739,7 @@ def _move_lines_to_return_fulfillment(
         order_lines_to_move=order_lines,
         target_fulfillment=target_fulfillment,
         manager=manager,
+        order_lines_reason_data=order_lines_reason_data,
     )
 
     fulfillment_lines_already_refunded = FulfillmentLine.objects.filter(
@@ -1778,6 +1787,7 @@ def _move_lines_to_replace_fulfillment(
     manager: "PluginsManager",
     reason: str = "",
     reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> Fulfillment:
     target_fulfillment = Fulfillment.objects.create(
         status=FulfillmentStatus.REPLACED,
@@ -1789,6 +1799,7 @@ def _move_lines_to_replace_fulfillment(
         order_lines_to_move=order_lines_to_replace,
         target_fulfillment=target_fulfillment,
         manager=manager,
+        order_lines_reason_data=order_lines_reason_data,
     )
     _move_fulfillment_lines_to_target_fulfillment(
         fulfillment_lines_to_move=fulfillment_lines_to_replace,
@@ -1809,6 +1820,7 @@ def create_return_fulfillment(
     manager: "PluginsManager",
     reason: str = "",
     reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> Fulfillment:
     status = FulfillmentStatus.RETURNED
     if total_refund_amount is not None:
@@ -1824,6 +1836,7 @@ def create_return_fulfillment(
             manager=manager,
             reason=reason,
             reason_reference=reason_reference,
+            order_lines_reason_data=order_lines_reason_data,
         )
         returned_lines: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = {}
         order_lines_with_fulfillment = OrderLine.objects.in_bulk(
@@ -1865,6 +1878,7 @@ def process_replace(
     manager: "PluginsManager",
     reason: str = "",
     reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> tuple[Fulfillment, Optional["Order"]]:
     """Create replace fulfillment and new draft order.
 
@@ -1880,6 +1894,7 @@ def process_replace(
             manager=manager,
             reason=reason,
             reason_reference=reason_reference,
+            order_lines_reason_data=order_lines_reason_data,
         )
         new_order = create_replace_order(
             user=user,
@@ -1917,6 +1932,7 @@ def create_fulfillments_for_returned_products(
     refund_shipping_costs=False,
     reason: str = "",
     reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> tuple[Fulfillment, Fulfillment | None, Order | None]:
     """Process the request for replacing or returning the products.
 
@@ -1974,6 +1990,7 @@ def create_fulfillments_for_returned_products(
                 manager=manager,
                 reason=reason,
                 reason_reference=reason_reference,
+                order_lines_reason_data=order_lines_reason_data,
             )
         return_fulfillment = create_return_fulfillment(
             user=user,
@@ -1986,6 +2003,7 @@ def create_fulfillments_for_returned_products(
             manager=manager,
             reason=reason,
             reason_reference=reason_reference,
+            order_lines_reason_data=order_lines_reason_data,
         )
         Fulfillment.objects.filter(
             order=order,

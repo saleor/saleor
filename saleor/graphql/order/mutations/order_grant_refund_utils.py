@@ -75,8 +75,9 @@ def get_input_lines_data(
     lines: list[dict[str, str | int]],
     errors: list[dict[str, str]],
     error_code: str,
-) -> dict[uuid.UUID, models.OrderGrantedRefundLine]:
+) -> tuple[dict[uuid.UUID, models.OrderGrantedRefundLine], dict[uuid.UUID, str | None]]:
     granted_refund_lines = {}
+    raw_reason_reference_ids: dict[uuid.UUID, str | None] = {}
     for line in lines:
         order_line_id = cast(str, line["id"])
         try:
@@ -91,9 +92,8 @@ def get_input_lines_data(
                 quantity=int(line["quantity"]),
                 reason=reason,
             )
-            # Store the raw ID for later validation/resolution in mutation
-            granted_refund_line._raw_reason_reference_id = reason_reference_id  # type: ignore[attr-defined]
             granted_refund_lines[uuid_pk] = granted_refund_line
+            raw_reason_reference_ids[uuid_pk] = reason_reference_id
         except (GraphQLError, ValueError) as e:
             errors.append(
                 {
@@ -103,7 +103,7 @@ def get_input_lines_data(
                     "message": str(e),
                 }
             )
-    return granted_refund_lines
+    return granted_refund_lines, raw_reason_reference_ids
 
 
 def assign_order_lines(

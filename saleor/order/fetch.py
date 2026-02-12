@@ -23,7 +23,6 @@ from ..discount.utils.voucher import (
     get_the_cheapest_line,
 )
 from ..graphql.core.types import Money
-from ..page.models import Page
 from ..payment.models import Payment
 from ..product.models import (
     DigitalContent,
@@ -52,8 +51,6 @@ class OrderLineInfo:
     replace: bool = False
     warehouse_pk: UUID | None = None
     line_discounts: Iterable["OrderLineDiscount"] | None = None
-    reason: str | None = None
-    reason_reference: Page | None = None
 
 
 def fetch_order_info(order: "Order") -> OrderInfo:

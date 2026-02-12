@@ -241,8 +241,8 @@ class OrderGrantRefundUpdate(BaseMutation):
         lines: list[dict[str, str | int]],
         errors: list[dict[str, Any]],
         line_ids_exclude: list[int],
-    ) -> list[models.OrderGrantedRefundLine]:
-        input_lines_data = get_input_lines_data(
+    ) -> tuple[list[models.OrderGrantedRefundLine], dict]:
+        input_lines_data, raw_reason_reference_ids = get_input_lines_data(
             lines, errors, OrderGrantRefundUpdateLineErrorCode.GRAPHQL_ERROR.value
         )
         assign_order_lines(
@@ -259,17 +259,18 @@ class OrderGrantRefundUpdate(BaseMutation):
             granted_refund_lines_to_exclude=line_ids_exclude,
         )
 
-        return list(input_lines_data.values())
+        return list(input_lines_data.values()), raw_reason_reference_ids
 
     @classmethod
     def _resolve_per_line_reason_references(
         cls,
         lines_to_add: list[models.OrderGrantedRefundLine],
+        raw_reason_reference_ids: dict,
         site_settings,
     ):
         """Validate and resolve per-line reason references for addLines."""
         for line in lines_to_add:
-            raw_id = getattr(line, "_raw_reason_reference_id", None)
+            raw_id = raw_reason_reference_ids.get(line.order_line_id)
             if raw_id is None:
                 continue
 
@@ -321,9 +322,10 @@ class OrderGrantRefundUpdate(BaseMutation):
                 params={"remove_lines": remove_errors},
             )
 
-        lines_to_add = []
+        lines_to_add: list[models.OrderGrantedRefundLine] = []
+        raw_reason_reference_ids: dict = {}
         if add_lines:
-            lines_to_add = cls.clean_add_lines(
+            lines_to_add, raw_reason_reference_ids = cls.clean_add_lines(
                 order, add_lines, add_errors, line_ids_to_remove
             )
             for line in lines_to_add:
@@ -416,7 +418,9 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         # Validate and resolve per-line reason references for addLines
         if lines_to_add:
-            cls._resolve_per_line_reason_references(lines_to_add, site.settings)
+            cls._resolve_per_line_reason_references(
+                lines_to_add, raw_reason_reference_ids, site.settings
+            )
 
         cleaned_input = {
             "amount": amount,

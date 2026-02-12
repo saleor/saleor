@@ -2572,7 +2572,7 @@ def test_grant_refund_update_with_reference_not_enabled_by_user_rejects(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.GRAPHQL_ERROR.name
 
 
 def test_grant_refund_update_with_reference_not_enabled_by_app_rejects(
@@ -2635,7 +2635,7 @@ def test_grant_refund_update_with_reference_not_enabled_by_app_rejects(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.GRAPHQL_ERROR.name
 
 
 def test_grant_refund_update_with_reference_required_by_user_throws_for_invalid_id(
@@ -2695,7 +2695,7 @@ def test_grant_refund_update_with_reference_required_by_user_throws_for_invalid_
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.GRAPHQL_ERROR.name
 
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
@@ -2759,7 +2759,7 @@ def test_grant_refund_update_with_reason_reference_wrong_page_type_created_by_us
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.GRAPHQL_ERROR.name
 
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
@@ -2821,7 +2821,7 @@ def test_grant_refund_update_with_reason_reference_not_valid_page_id(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.GRAPHQL_ERROR.name
 
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
@@ -2883,7 +2883,7 @@ def test_grant_refund_update_with_reason_reference_not_valid_id(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.GRAPHQL_ERROR.name
 
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
@@ -3073,4 +3073,4 @@ def test_grant_refund_update_add_lines_with_wrong_page_type_reason_reference(
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "reasonReference"
-    assert errors[0]["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
+    assert errors[0]["code"] == OrderGrantRefundUpdateErrorCode.GRAPHQL_ERROR.name
