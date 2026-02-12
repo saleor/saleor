@@ -145,7 +145,8 @@ def test_sort_order_by_rank_without_search(
     assert "errors" in content
     assert (
         content["errors"][0]["message"]
-        == "Sorting by RANK is available only when using a search filter."
+        == "Sorting by RANK is available only when using a search filter "
+        "or search argument."
     )
 
 
@@ -167,7 +168,10 @@ def test_sort_order_by_rank_with_nonetype_search(
     content = get_graphql_content(response, ignore_errors=True)
 
     errors = content["errors"]
-    expected_message = "Sorting by RANK is available only when using a search filter."
+    expected_message = (
+        "Sorting by RANK is available only when using a search filter "
+        "or search argument."
+    )
     assert len(errors) == 1
     assert errors[0]["message"] == expected_message
 
