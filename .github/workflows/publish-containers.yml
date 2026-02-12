@@ -21,87 +21,106 @@ on:
     outputs:
       version:
         description: Docker image version
-        value: ${{ jobs.docker.outputs.version }}
+        value: ${{ jobs.prepare-variables.outputs.version }}
 
 jobs:
-  docker:
+  prepare-variables:
+    name: Prepare variables
     runs-on: ubuntu-24.04
-
     permissions:
       contents: read
-      packages: write
-
     outputs:
-      version: ${{ steps.meta.outputs.version }}
-
+      image_name: ${{ steps.get-image-name.outputs.image_name }}
+      labels: ${{ steps.metadata.outputs.labels }}
+      tags: ${{ steps.metadata.outputs.tags }}
+      version: ${{ steps.metadata.outputs.version }}
     steps:
+      - name: Get GHCR image name (owner/repo)
+        id: get-image-name
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # github.repository is already in owner/repo format required
+          # by GHCR; normalize it to lowercase.
+          GHCR_IMAGE_NAME="${GH_REPO,,}"
+          echo "image_name=$GHCR_IMAGE_NAME" >> $GITHUB_OUTPUT
+
+      # Required by docker/metadata-action
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
 
-      # Outputs the name of the repository (owner/repo)
-      - name: Build Image Name
-        id: image
+      - name: Check if tag should be tagged as "latest"
+        id: check-latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_TAG: ${{ inputs.ref || github.ref_name }}
         run: |
-          # The name of the owner and of the repository: owner/repository
-          IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+          set -ux
 
-      - name: Docker meta
-        id: meta
+          # Only stable semver releases (e.g. 3.22.0) can be tagged as latest.
+          # Non-semver refs (branch names, PR refs) are not valid candidates to become latest.
+          if ! [[ "$CURRENT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag inferred from this run ('$CURRENT_TAG') is not a semver release - can't be tagged as latest."
+            echo "IS_LATEST=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          CURRENT_LATEST=$(gh api "/repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name)
+          HIGHEST=$( (echo "$CURRENT_LATEST"; echo "$CURRENT_TAG") | sort -V | tail -1)
+
+          echo "Selected: $CURRENT_TAG, Latest: $CURRENT_LATEST"
+
+          if [[ "$CURRENT_TAG" == "$HIGHEST" ]]; then
+            echo "IS_LATEST=true" >> $GITHUB_OUTPUT
+          else
+            echo "IS_LATEST=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Docker metadata
+        id: metadata
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/${{ steps.image.outputs.image_name }}
+            ghcr.io/${{ steps.get-image-name.outputs.image_name }}
+          flavor: |
+            latest=false
           tags: |
             type=ref,event=branch,prefix=${{ inputs.prefix }}
             type=pep440,pattern={{version}}
             type=pep440,pattern={{major}}.{{minor}}
             type=raw,value=${{ inputs.version }},enable=${{ inputs.version != null }}
+            type=raw,value=latest,enable=${{ steps.check-latest.outputs.IS_LATEST }}
           context: git
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
 
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
+  build-push:
+    needs: prepare-variables
+    uses: saleor/saleor-internal-actions/.github/workflows/build-push-image-multi-platform.yaml@92c29aa0e4545de579b892b2ef9f2d6366c29c11 # v1.5.2
+    permissions:
+      contents: read
+      id-token: write # needed for AWS/ECR login (not used, but required permission)
+      packages: write # needed for GHCR
+    with:
+      checkout-ref: ${{ inputs.ref }}
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      enable-ghcr: true
+      oci-full-repository: ghcr.io/${{ needs.prepare-variables.outputs.image_name }}
+      tags: ${{ needs.prepare-variables.outputs.tags }}
+      labels: ${{ needs.prepare-variables.outputs.labels }}
 
-      - name: Build and Push
-        id: docker_build
-        uses: docker/build-push-action@v5
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          context: .
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+      amd64-runner-image: ubuntu-24.04
+      arm64-runner-image: ubuntu-24.04-arm
 
-      - name: Image digest
-        run: |
-          echo $"\
-            Digest: ${{ steps.docker_build.outputs.digest }}
-            Tags: ${{ steps.meta.outputs.tags }}"
-
-      - name: Notify Slack
-        if: ${{ failure() }}
-        env:
-          JOB_STATUS: ${{ job.status }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_MENTION_GROUP_ID }}
-          JOB_TITLE: "Build of Saleor Core ${{ steps.meta.outputs.version }}"
-        run: |
-          python3 ./.github/workflows/notify/notify-slack.py
+  notify:
+    if: ${{ failure() }}
+    needs: [prepare-variables, build-push]
+    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@eb0c692da7bf13f5e1a82c17488b24c514dd10a1 # v1.10.0
+    with:
+      type: build
+      ref: ${{ needs.prepare-variables.outputs.version || inputs.ref || github.ref_name }}
+      status: failure
+    secrets:
+      slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+      mention_group_id: ${{ secrets.SLACK_MENTION_GROUP_ID }}
