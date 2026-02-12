@@ -2,6 +2,9 @@ import graphene
 
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
+from ...product.deprecations import (
+    DEPRECATION_WARNING_MESSAGE as DEPRECATION_DIGITAL_CONTENT,
+)
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.search import search_products
 from ..channel import ChannelContext, ChannelQsContext
@@ -160,6 +163,7 @@ class ProductQueries(graphene.ObjectType):
             ProductPermissions.MANAGE_PRODUCTS,
         ],
         doc_category=DOC_CATEGORY_PRODUCTS,
+        deprecation_reason=DEPRECATION_DIGITAL_CONTENT,
     )
     digital_contents = ConnectionField(
         DigitalContentCountableConnection,
@@ -168,6 +172,7 @@ class ProductQueries(graphene.ObjectType):
             ProductPermissions.MANAGE_PRODUCTS,
         ],
         doc_category=DOC_CATEGORY_PRODUCTS,
+        deprecation_reason=DEPRECATION_DIGITAL_CONTENT,
     )
     categories = FilterConnectionField(
         CategoryCountableConnection,
@@ -662,11 +667,19 @@ class ProductMutations(graphene.ObjectType):
     product_type_reorder_attributes = ProductTypeReorderAttributes.Field()
     product_reorder_attribute_values = ProductReorderAttributeValues.Field()
 
-    digital_content_create = DigitalContentCreate.Field()
-    digital_content_delete = DigitalContentDelete.Field()
-    digital_content_update = DigitalContentUpdate.Field()
+    digital_content_create = DigitalContentCreate.Field(
+        deprecation_reason=DEPRECATION_DIGITAL_CONTENT
+    )
+    digital_content_delete = DigitalContentDelete.Field(
+        deprecation_reason=DEPRECATION_DIGITAL_CONTENT
+    )
+    digital_content_update = DigitalContentUpdate.Field(
+        deprecation_reason=DEPRECATION_DIGITAL_CONTENT
+    )
 
-    digital_content_url_create = DigitalContentUrlCreate.Field()
+    digital_content_url_create = DigitalContentUrlCreate.Field(
+        deprecation_reason=DEPRECATION_DIGITAL_CONTENT
+    )
 
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()
