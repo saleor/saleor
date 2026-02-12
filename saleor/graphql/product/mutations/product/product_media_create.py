@@ -137,7 +137,7 @@ class ProductMediaCreate(BaseMutation):
                                 )
                             }
                         )
-                    filename = get_filename_from_url(media_url)
+                    filename = get_filename_from_url(media_url, mime_type)
                     image_file = create_file_from_response(image_data, filename)
                     media = product.media.create(
                         image=image_file,
