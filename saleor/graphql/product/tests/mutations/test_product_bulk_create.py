@@ -983,8 +983,12 @@ def test_product_bulk_create_with_media_image_with_invalid_exif(
     assert len(error_1) == 1
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
+)
 @pytest.mark.vcr
 def test_product_bulk_create_with_media_with_media_url(
+    mock_HTTPClient,
     staff_api_client,
     product_type,
     category,
@@ -993,6 +997,9 @@ def test_product_bulk_create_with_media_with_media_url(
     media_root,
 ):
     # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="text/html; charset=utf-8")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     description_json_string = json.dumps(description_json)
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
@@ -1078,20 +1085,22 @@ def test_product_bulk_create_with_media_with_media_url(
 
 
 @patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.is_image_url",
-    return_value=False,
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
 )
 @patch(
     "saleor.graphql.product.bulk_mutations.product_bulk_create.get_oembed_data",
 )
 def test_product_bulk_create_with_media_with_media_url_invalid_provider(
     mocked_get_oembed_data,
-    _mocked_is_image_url,
+    mock_HTTPClient,
     staff_api_client,
     product_type,
     permission_manage_products,
 ):
     # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="text/plain")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     mocked_get_oembed_data.side_effect = UnsupportedMediaProviderException()
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1260,9 +1269,11 @@ def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     data = content["data"]["productBulkCreate"]
     assert data["count"] == 0
     error_1 = data["results"][0]["errors"]
-    assert error_1[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert (
+        error_1[0]["code"] == ProductBulkCreateErrorCode.UNSUPPORTED_MEDIA_PROVIDER.name
+    )
     assert error_1[0]["path"] == "media.0.mediaUrl"
-    assert error_1[0]["message"] == "Invalid file type."
+    assert error_1[0]["message"] == "Unsupported media provider or incorrect URL."
     assert len(error_1) == 1
 
 
