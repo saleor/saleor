@@ -25,7 +25,9 @@ class PageSortField(BaseEnum):
             PageSortField.CREATED_AT.name: "creation date.",  # type: ignore[attr-defined] # noqa: E501
             PageSortField.PUBLICATION_DATE.name: "publication date.",  # type: ignore[attr-defined] # noqa: E501
             PageSortField.PUBLISHED_AT.name: "publication date.",  # type: ignore[attr-defined] # noqa: E501
-            PageSortField.RANK.name: "search rank.",  # type: ignore[attr-defined] # noqa: E501
+            PageSortField.RANK.name: (  # type: ignore[attr-defined] # noqa: E501
+                "rank. Note: This option is available only with the `search` filter."
+            ),
         }
         if self.name in descriptions:
             return f"Sort pages by {descriptions[self.name]}"

@@ -14,6 +14,13 @@ class GiftCardSortField(BaseEnum):
 
     @property
     def description(self):
+        descriptions = {
+            GiftCardSortField.RANK.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+                "rank. Note: This option is available only with the `search` filter."
+            ),
+        }
+        if self.name in descriptions:
+            return f"Sort gift cards by {descriptions[self.name]}"
         if self.name in GiftCardSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort gift cards by {sort_name}."

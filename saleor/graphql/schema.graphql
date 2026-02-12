@@ -13220,7 +13220,9 @@ enum PageSortField @doc(category: "Pages") {
   """Sort pages by creation date."""
   CREATED_AT
 
-  """Sort pages by search rank."""
+  """
+  Sort pages by rank. Note: This option is available only with the `search` filter.
+  """
   RANK
 }
 
@@ -13888,7 +13890,9 @@ enum GiftCardSortField @doc(category: "Gift cards") {
   """Sort gift cards by created at."""
   CREATED_AT
 
-  """Sort gift cards by rank."""
+  """
+  Sort gift cards by rank. Note: This option is available only with the `search` filter.
+  """
   RANK
 }
 
@@ -14724,7 +14728,9 @@ enum CheckoutSortField @doc(category: "Checkout") {
   """Sort checkouts by payment."""
   PAYMENT
 
-  """Sort checkouts by rank."""
+  """
+  Sort checkouts by rank. Note: This option is available only with the `search` filter.
+  """
   RANK
 }
 
@@ -15087,7 +15093,9 @@ enum UserSortField @doc(category: "Users") {
   """Sort users by last modified at."""
   LAST_MODIFIED_AT
 
-  """Sort users by rank."""
+  """
+  Sort users by rank. Note: This option is available only with the `search` filter.
+  """
   RANK
 }
 

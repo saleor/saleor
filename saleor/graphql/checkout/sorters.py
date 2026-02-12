@@ -16,6 +16,13 @@ class CheckoutSortField(BaseEnum):
 
     @property
     def description(self):
+        descriptions = {
+            CheckoutSortField.RANK.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+                "rank. Note: This option is available only with the `search` filter."
+            ),
+        }
+        if self.name in descriptions:
+            return f"Sort checkouts by {descriptions[self.name]}"
         if self.name in CheckoutSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort checkouts by {sort_name}."
