@@ -1,0 +1,42 @@
+saleor/graphql/order/mutations/fulfillment_return_products.py
+  65f400c262b9439d 8,14,18-21,23,44-53,74-83,114-122,163-164,178-199,205-206,215,226,249-250
+saleor/order/fetch.py
+  65f400c262b9439d 26,55-56
+saleor/order/__init__.py
+  65f400c262b9439d 5,310-311
+saleor/graphql/order/mutations/fulfillment_refund_and_return_product_base.py
+  65f400c262b9439d 9,12,96-97,146-162,168-169,175,221-236,242-244
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "9943a1238551cdc5afe7150626fd3715f189e3a8",
+  "prompts": {
+    "65f400c262b9439d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "134b752d-2a6f-41e5-861e-ab84768c1bff",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 783,
+      "total_deletions": 14,
+      "accepted_lines": 115,
+      "overriden_lines": 0
+    },
+    "e1bf5e5677c7f474": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4cac903d-ac0c-4ac6-a2a1-7867de6eec85",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": null,
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  }
+}
