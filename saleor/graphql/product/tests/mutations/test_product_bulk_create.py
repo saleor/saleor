@@ -1214,9 +1214,7 @@ def test_product_bulk_create_with_media_with_media_url_invalid_image_type(
     assert len(error_1) == 1
 
 
-@patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
-)
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
 def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     mock_HTTPClient,
     staff_api_client,
@@ -1227,7 +1225,7 @@ def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     # given
     mock_response = Mock()
     mock_response.headers = Mock()
-    mock_response.headers.get = Mock(return_value="text/plain")
+    mock_response.headers.get = Mock(return_value="image/not-supported")
     mock_response.raw = Mock()
     mock_response.raw.read = Mock(return_value=b"fake_image_data")
     mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
@@ -1265,11 +1263,9 @@ def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     data = content["data"]["productBulkCreate"]
     assert data["count"] == 0
     error_1 = data["results"][0]["errors"]
-    assert (
-        error_1[0]["code"] == ProductBulkCreateErrorCode.UNSUPPORTED_MEDIA_PROVIDER.name
-    )
+    assert error_1[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
     assert error_1[0]["path"] == "media.0.mediaUrl"
-    assert error_1[0]["message"] == "Unsupported media provider or incorrect URL."
+    assert error_1[0]["message"] == "Invalid file type."
     assert len(error_1) == 1
 
 
