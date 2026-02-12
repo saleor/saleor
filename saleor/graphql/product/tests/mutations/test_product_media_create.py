@@ -106,11 +106,15 @@ def test_product_media_create_mutation_without_file(
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
+@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
 @pytest.mark.vcr
 def test_product_media_create_mutation_with_media_url(
-    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+    mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
 ):
     # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="text/html; charset=utf-8")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
         "mediaUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -197,10 +201,14 @@ def test_product_media_create_mutation_with_both_url_and_image(
     assert errors[0]["field"] == "input"
 
 
+@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
 def test_product_media_create_mutation_with_unknown_url(
-    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+    mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
 ):
     # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="text/html; charset=utf-8")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
         "mediaUrl": "https://www.videohosting.com/SomeVideoID",
@@ -270,7 +278,7 @@ def test_product_media_create_mutation_invalid_image_file_fetch_only_header(
     # given
     mock_response = Mock()
     mock_response.headers = Mock()
-    mock_response.headers.get = Mock(return_value="text/plain")
+    mock_response.headers.get = Mock(return_value="image/not-supported")
     mock_response.raw = Mock()
     mock_response.raw.read = Mock(return_value=b"fake_image_data")
     mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
