@@ -48,9 +48,7 @@ def order_for_payload(fulfilled_order, voucher_percentage):
 
 @freeze_time()
 @pytest.mark.parametrize("prices_entered_with_tax", [True, False])
-# @patch("saleor.order.webhooks.order_calculate_taxes._generate_order_lines_payload_for_tax_calculation")
 def test_generate_order_payload_for_tax_calculation(
-    # mocked_order_lines,
     order_for_payload,
     prices_entered_with_tax,
 ):
