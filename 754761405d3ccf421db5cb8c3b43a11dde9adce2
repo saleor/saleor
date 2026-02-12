@@ -1,0 +1,75 @@
+saleor/graphql/order/mutations/fulfillment_return_products.py
+  a3878ed06223df35 251
+  65f400c262b9439d 8,14,18-21,23,44-53,74-83,114-122,163-164,178-199,205-206,215,226,249-250
+saleor/order/actions.py
+  a3878ed06223df35 1413,1432-1437,1443,1503,1526,1558,1594,1728,1742,1790,1802,1823,1839,1881,1897,1935,1993,2006
+saleor/graphql/payment/utils.py
+  65f400c262b9439d 6,98-118,120-147,162-172,174-176
+  a3878ed06223df35 4,70,119,158,173
+saleor/order/migrations/0222_add_reason_and_reason_reference_to_fulfillmentline.py
+  a3878ed06223df35 1-30
+saleor/order/models.py
+  a3878ed06223df35 799-800
+  65f400c262b9439d 798,801-803,872-875,990-992
+saleor/graphql/order/mutations/order_grant_refund_create.py
+  65f400c262b9439d 21-25,64-71,208,210,212,214,216-219,221-222,224-227,229-233,315,332,334-335,338-339
+  a3878ed06223df35 143-144,147,164,166,211,220,253,255-256,341
+saleor/graphql/order/tests/mutations/test_fulfillment_return_products_by_app.py
+  a3878ed06223df35 1-53
+saleor/graphql/payment/tests/test_utils.py
+  a3878ed06223df35 1,5,10-14,60,194,244,286-434
+saleor/graphql/order/mutations/fulfillment_refund_products.py
+  a3878ed06223df35 158
+saleor/graphql/order/mutations/fulfillment_refund_and_return_product_base.py
+  a3878ed06223df35 1-2,11,189,249,251
+  65f400c262b9439d 12,15,99-100,149-165,171-172,178,225-240,246
+saleor/graphql/order/mutations/order_grant_refund_utils.py
+  65f400c262b9439d 89-90,95
+  a3878ed06223df35 78,80,96,106
+saleor/order/migrations/0220_add_reason_reference_to_ordergrantedrefundline.py
+  a3878ed06223df35 1-25
+saleor/graphql/order/tests/mutations/test_fulfillment_return_products.py
+  a3878ed06223df35 1348-1351,1456-1457,1514-1519
+saleor/graphql/order/tests/mutations/test_order_grant_refund_create.py
+  a3878ed06223df35 99,1377,1430,1479,1537,1588-1593,1644,1846-1851,1907-1908
+saleor/order/migrations/0221_add_reason_and_reason_reference_to_fulfillment.py
+  a3878ed06223df35 1-30
+saleor/graphql/order/tests/mutations/test_order_grant_refund_update.py
+  a3878ed06223df35 2575,2638,2698,2762,2824,2886,3076
+saleor/graphql/order/mutations/order_grant_refund_update.py
+  a3878ed06223df35 244-245,262,268,273,325-326,328,422
+  65f400c262b9439d 22-26,71-78,265,267,269,271-272,274-275,277-280,282-286,396,413,416,419-420
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "754761405d3ccf421db5cb8c3b43a11dde9adce2",
+  "prompts": {
+    "65f400c262b9439d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "134b752d-2a6f-41e5-861e-ab84768c1bff",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 783,
+      "total_deletions": 14,
+      "accepted_lines": 257,
+      "overriden_lines": 0
+    },
+    "a3878ed06223df35": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "845e55c7-c101-4f7a-a78f-3a4b06c31fd0",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 443,
+      "total_deletions": 121,
+      "accepted_lines": 398,
+      "overriden_lines": 0
+    }
+  }
+}
