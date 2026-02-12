@@ -983,9 +983,7 @@ def test_product_bulk_create_with_media_image_with_invalid_exif(
     assert len(error_1) == 1
 
 
-@patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
-)
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
 @pytest.mark.vcr
 def test_product_bulk_create_with_media_with_media_url(
     mock_HTTPClient,
@@ -1084,9 +1082,7 @@ def test_product_bulk_create_with_media_with_media_url(
     )
 
 
-@patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
-)
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
 @patch(
     "saleor.graphql.product.bulk_mutations.product_bulk_create.get_oembed_data",
 )
