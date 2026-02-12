@@ -1,23 +1,23 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from promise import Promise
 
 from ...core.exceptions import InsufficientStock
 from ...discount.interface import VariantPromotionRuleInfo
 from ...discount.models import NotApplicable
 from ...discount.utils.voucher import validate_voucher_in_order
-from ...order.error_codes import OrderErrorCode
-from ...order.utils import (
-    get_total_quantity,
+from ...order.delivery_context import (
     get_valid_shipping_methods_for_order,
     is_shipping_required,
 )
-from ...plugins.manager import PluginsManager
+from ...order.error_codes import OrderErrorCode
+from ...order.utils import get_total_quantity
 from ...product.models import Product, ProductChannelListing, ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_to_shipping_method_data
@@ -25,6 +25,8 @@ from ...warehouse.availability import check_stock_and_preorder_quantity
 from ..core.validators import validate_variants_available_in_channel
 
 if TYPE_CHECKING:
+    from ...account.models import User
+    from ...app.models import App
     from ...channel.models import Channel
     from ...order.models import Order, OrderLine
 
@@ -57,42 +59,50 @@ def validate_total_quantity(lines: Iterable["OrderLine"], errors: T_ERRORS):
 def get_shipping_method_availability_error(
     order: "Order",
     method: Optional["ShippingMethodData"],
-    manager: "PluginsManager",
+    requestor: Union["App", "User", None],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     allow_sync_webhooks: bool = True,
-):
+) -> Promise[ValidationError | None]:
     """Validate whether shipping method is still available for the order."""
-    is_valid = False
-    if method:
-        valid_methods_ids = {
-            m.id
-            for m in get_valid_shipping_methods_for_order(
-                order,
-                order.channel.shipping_method_listings.all(),
-                manager,
-                database_connection_name=database_connection_name,
-                allow_sync_webhooks=allow_sync_webhooks,
-            )
-            if m.active
-        }
-        is_valid = method.id in valid_methods_ids
 
-    if not is_valid:
-        return ValidationError(
-            "Shipping method cannot be used with this order.",
-            code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+    def get_valid_shipping_methods(valid_methods):
+        valid_methods_ids = {
+            valid_method.id for valid_method in valid_methods if valid_method.active
+        }
+        is_valid = False
+        if method:
+            is_valid = method.id in valid_methods_ids
+
+        if not is_valid:
+            return ValidationError(
+                "Shipping method cannot be used with this order.",
+                code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+            )
+        return None
+
+    promised_valid_methods: Promise[list[ShippingMethodData]] = Promise.resolve([])
+    if method:
+        promised_valid_methods = get_valid_shipping_methods_for_order(
+            order,
+            order.channel.shipping_method_listings.all(),
+            requestor=requestor,
+            database_connection_name=database_connection_name,
+            allow_sync_webhooks=allow_sync_webhooks,
         )
-    return None
+    return promised_valid_methods.then(get_valid_shipping_methods)
 
 
 def validate_shipping_method(
     order: "Order",
     channel: "Channel",
     errors: T_ERRORS,
-    manager: "PluginsManager",
+    requestor: Union["App", "User", None],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     allow_sync_webhooks: bool = True,
-):
+) -> Promise[None]:
+    error = None
+    promised_error: Promise[ValidationError | None] = Promise.resolve(None)
+
     if not order.shipping_method:
         error = ValidationError(
             "Shipping method is required.",
@@ -122,16 +132,22 @@ def validate_shipping_method(
                 code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
             )
         else:
-            error = get_shipping_method_availability_error(
+            promised_error = get_shipping_method_availability_error(
                 order,
                 convert_to_shipping_method_data(order.shipping_method, listing),
-                manager,
+                requestor=requestor,
                 database_connection_name=database_connection_name,
                 allow_sync_webhooks=allow_sync_webhooks,
             )
 
     if error:
         errors["shipping"].append(error)
+
+    def append_error(error_from_promise: ValidationError | None):
+        if error_from_promise:
+            errors["shipping"].append(error_from_promise)
+
+    return promised_error.then(append_error)
 
 
 def validate_billing_address(order: "Order", errors: T_ERRORS):
@@ -346,10 +362,10 @@ def validate_draft_order(
     order: "Order",
     lines: Iterable["OrderLine"],
     country: str,
-    manager: "PluginsManager",
+    requestor: Union["App", "User", None],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     allow_sync_webhooks: bool = True,
-):
+) -> Promise[None]:
     """Check if the given order contains the proper data.
 
     - Has proper customer data,
@@ -359,19 +375,20 @@ def validate_draft_order(
     - Product variants are published.
     - Voucher is properly applied.
 
-    Returns a list of errors if any were found.
+    Raises ValidationError with a list of errors if any were found.
     """
     channel = order.channel
 
+    promised_error = Promise.resolve(None)
     errors: T_ERRORS = defaultdict(list)
     validate_billing_address(order, errors)
     if is_shipping_required(lines):
         validate_shipping_address(order, errors)
-        validate_shipping_method(
+        promised_error = validate_shipping_method(
             order,
             channel,
             errors,
-            manager,
+            requestor,
             database_connection_name,
             allow_sync_webhooks=allow_sync_webhooks,
         )
@@ -387,8 +404,11 @@ def validate_draft_order(
     validate_variants_is_available(channel, lines, errors, database_connection_name)
     _validate_voucher(order, lines, channel, errors)
 
-    if errors:
-        raise ValidationError(errors)
+    def raise_errors(_):
+        if errors:
+            raise ValidationError(errors)
+
+    return promised_error.then(raise_errors)
 
 
 def prepare_insufficient_stock_order_validation_errors(exc):

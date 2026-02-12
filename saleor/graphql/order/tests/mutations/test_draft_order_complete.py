@@ -9,6 +9,7 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
+from promise import Promise
 
 from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
@@ -786,7 +787,7 @@ def test_draft_order_complete_not_available_shipping_method(
     assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
-@patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+@patch("saleor.order.webhooks.exclude_shipping.excluded_shipping_methods_for_order")
 def test_draft_order_complete_with_excluded_shipping_method(
     mocked_webhook,
     draft_order,
@@ -798,9 +799,9 @@ def test_draft_order_complete_with_excluded_shipping_method(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "archives-are-incomplete"
-    mocked_webhook.return_value = [
-        ExcludedShippingMethod(str(shipping_method.id), webhook_reason)
-    ]
+    mocked_webhook.return_value = Promise.resolve(
+        [ExcludedShippingMethod(str(shipping_method.id), webhook_reason)]
+    )
     order = draft_order
     order.status = OrderStatus.DRAFT
     order.shipping_method = shipping_method
@@ -817,7 +818,7 @@ def test_draft_order_complete_with_excluded_shipping_method(
     assert data["errors"][0]["field"] == "shipping"
 
 
-@patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+@patch("saleor.order.webhooks.exclude_shipping.excluded_shipping_methods_for_order")
 def test_draft_order_complete_with_not_excluded_shipping_method(
     mocked_webhook,
     draft_order,
@@ -831,9 +832,9 @@ def test_draft_order_complete_with_not_excluded_shipping_method(
     webhook_reason = "archives-are-incomplete"
     other_shipping_method_id = "1337"
     assert other_shipping_method_id != shipping_method.id
-    mocked_webhook.return_value = [
-        ExcludedShippingMethod(other_shipping_method_id, webhook_reason)
-    ]
+    mocked_webhook.return_value = Promise.resolve(
+        [ExcludedShippingMethod(other_shipping_method_id, webhook_reason)]
+    )
     order = draft_order
     order.status = OrderStatus.DRAFT
     order.shipping_method = shipping_method
@@ -877,8 +878,8 @@ def test_draft_order_complete_builtin_shipping_method_metadata_denormalization(
         shipping_method.metadata = {}
         shipping_method.save()
 
-    with race_condition.RunAfter(
-        "saleor.graphql.order.mutations.draft_order_complete.get_app_promise",
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.draft_order_complete.OrderInfo",
         clear_shipping_metadata,
     ):
         response = staff_api_client.post_graphql(
