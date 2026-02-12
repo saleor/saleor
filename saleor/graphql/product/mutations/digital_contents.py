@@ -5,6 +5,7 @@ from ....core.db.connection import allow_writer
 from ....core.exceptions import PermissionDenied
 from ....permission.enums import ProductPermissions
 from ....product import models
+from ....product.deprecations import deprecated_digital_content
 from ....product.error_codes import ProductErrorCode
 from ...core import ResolveInfo
 from ...core.context import ChannelContext, disallow_replica_in_context
@@ -116,9 +117,8 @@ class DigitalContentCreate(BaseMutation):
         return data
 
     @classmethod
-    def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, input, variant_id: str
-    ):
+    @deprecated_digital_content
+    def perform_mutation(cls, _root, info: ResolveInfo, /, input, variant_id: str):
         variant = cls.get_node_or_error(
             info, variant_id, field="id", only_type=ProductVariant
         )
@@ -180,10 +180,9 @@ class DigitalContentDelete(BaseMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
 
     @classmethod
+    @deprecated_digital_content
     @allow_writer()
-    def mutate(  # type: ignore[override]
-        cls, root, info: ResolveInfo, /, *, variant_id: str
-    ):
+    def mutate(cls, root, info: ResolveInfo, /, *, variant_id: str):
         disallow_replica_in_context(info.context)
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
@@ -222,6 +221,7 @@ class DigitalContentUpdate(BaseMutation):
         support_private_meta_field = True
 
     @classmethod
+    @deprecated_digital_content
     def clean_input(cls, info: ResolveInfo, data):
         use_default_settings = data.get("use_default_settings")
         if use_default_settings:
