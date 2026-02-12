@@ -2,7 +2,7 @@ import re
 from typing import TYPE_CHECKING
 
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import F
+from django.db.models import F, Value
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -150,11 +150,15 @@ def prefix_search(qs: "QuerySet", value: str) -> "QuerySet":
     The queryset must have a ``search_vector`` SearchVectorField.
     """
     if not value:
-        return qs
+        # return a original queryset annotated with search_rank=0
+        # to allow default RANK sorting
+        return qs.annotate(search_rank=Value(0))
 
     parsed_query = parse_search_query(value)
     if not parsed_query:
-        return qs
+        # return empty queryset as the provided value is not searchable
+        # annotated with search_rank=0 to allow default RANK sorting
+        return qs.annotate(search_rank=Value(0)).none()
 
     # Prefix query – broadens matching via :*
     prefix_query = SearchQuery(parsed_query, search_type="raw", config="simple")

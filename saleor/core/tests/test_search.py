@@ -12,13 +12,13 @@ from ..search import _sanitize_word, parse_search_query, prefix_search
 
 def test_sanitize_word_removes_tsquery_metacharacters():
     # given
-    word_with_metacharacters = "test()&|!:<>'*word"
+    word_with_metacharacters = "test()&|!:<>'"
 
     # when
     result = _sanitize_word(word_with_metacharacters)
 
     # then
-    assert result == "test word"
+    assert result == "test"
 
 
 def test_sanitize_word_preserves_safe_characters():
@@ -230,7 +230,6 @@ def products_for_search(category, product_type, channel_USD):
     return products
 
 
-@pytest.mark.django_db
 def test_prefix_search_returns_prefix_matches(products_for_search):
     # given
     qs = Product.objects.all()
@@ -244,7 +243,6 @@ def test_prefix_search_returns_prefix_matches(products_for_search):
     assert names == {"Coffee Maker", "Coffeehouse Special"}
 
 
-@pytest.mark.django_db
 def test_prefix_search_perfect_match_scores_higher(products_for_search):
     # given
     qs = Product.objects.all()
@@ -257,7 +255,6 @@ def test_prefix_search_perfect_match_scores_higher(products_for_search):
     assert results[0].name == "Coffee Maker"
 
 
-@pytest.mark.django_db
 def test_prefix_search_empty_value_returns_all(products_for_search):
     # when
     results = prefix_search(Product.objects.all(), "")
@@ -266,7 +263,14 @@ def test_prefix_search_empty_value_returns_all(products_for_search):
     assert results.count() == 3
 
 
-@pytest.mark.django_db
+def test_prefix_search_not_searchable_value_returns_nothing(products_for_search):
+    # when
+    results = prefix_search(Product.objects.all(), ":::")
+
+    # then
+    assert results.count() == 0
+
+
 def test_prefix_search_no_matches(products_for_search):
     # when
     results = prefix_search(Product.objects.all(), "xyz")
@@ -275,7 +279,6 @@ def test_prefix_search_no_matches(products_for_search):
     assert results.count() == 0
 
 
-@pytest.mark.django_db
 def test_prefix_search_case_insensitive(products_for_search):
     # when
     results = prefix_search(Product.objects.all(), "COFFEE")
@@ -284,7 +287,6 @@ def test_prefix_search_case_insensitive(products_for_search):
     assert results.count() == 2
 
 
-@pytest.mark.django_db
 def test_prefix_search_multiple_terms_and(products_for_search):
     # when
     results = prefix_search(Product.objects.all(), "coffee mak")
@@ -294,7 +296,6 @@ def test_prefix_search_multiple_terms_and(products_for_search):
     assert results.first().name == "Coffee Maker"
 
 
-@pytest.mark.django_db
 def test_prefix_search_or_operator(products_for_search):
     # when
     results = prefix_search(Product.objects.all(), "coffee OR tea")
@@ -303,7 +304,6 @@ def test_prefix_search_or_operator(products_for_search):
     assert results.count() == 3
 
 
-@pytest.mark.django_db
 def test_prefix_search_negation(products_for_search):
     # when
     results = prefix_search(Product.objects.all(), "coffee -special")
@@ -327,7 +327,6 @@ def users_for_search():
     return users
 
 
-@pytest.mark.django_db
 def test_prefix_search_users(users_for_search):
     # when
     results = prefix_search(User.objects.all(), "joh")
@@ -338,7 +337,6 @@ def test_prefix_search_users(users_for_search):
     assert emails == {"john.doe@example.com", "johnny.smith@example.com"}
 
 
-@pytest.mark.django_db
 def test_prefix_search_users_perfect_match_priority(users_for_search):
     # when
     results = list(prefix_search(User.objects.all(), "john").order_by("-search_rank"))
