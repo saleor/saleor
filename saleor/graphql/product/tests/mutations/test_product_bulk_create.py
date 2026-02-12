@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from io import BytesIO
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
@@ -1332,6 +1333,56 @@ def test_product_bulk_create_with_media_image_file_is_fetched_only_once(
         assert img.format == "PNG"  # Ensure the image format is PNG
         assert img.size[0] > 0  # Ensure the image has dimensions
         assert img.size[1] > 0  # Ensure the image has dimensions
+
+
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
+def test_product_bulk_create_with_no_extension_media_url(
+    mock_HTTPClient,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="image/png")
+    # generate PNG image content
+    image_content = BytesIO()
+    PIL.Image.new("RGB", size=(100, 100)).save(image_content, format="PNG")
+    image_content = image_content.read()
+    mock_response.content = image_content
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
+    variables = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "category": graphene.Node.to_global_id("Category", category.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "mediaUrl": "https://saleor.io/image-path",
+                }
+            ],
+        },
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        variables={"products": variables},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)["data"]["productBulkCreate"]
+
+    # then
+    assert not content["results"][0]["errors"]
+    # validate image file
+    _, product_id = graphene.Node.from_global_id(content["results"][0]["product"]["id"])
+    product_image = Product.objects.get(id=product_id).media.first()
+    assert product_image.image.name.startswith("products/image-path_")
+    assert product_image.image.name.endswith(".png")
+    with product_image.image.open("rb") as img:
+        assert img.read() == image_content
 
 
 def test_product_bulk_create_with_attributes(
