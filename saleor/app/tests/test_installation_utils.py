@@ -737,7 +737,7 @@ def test_install_app_webhook_incorrect_custom_headers(
     )
 
 
-def test_install_app_lack_of_token_target_url_in_manifest_data(
+def test_install_app_manifest_data_without_token_target_url(
     app_manifest, app_installation, monkeypatch, permission_manage_products
 ):
     # given
@@ -753,13 +753,11 @@ def test_install_app_lack_of_token_target_url_in_manifest_data(
 
     app_installation.permissions.set([permission_manage_products])
 
-    # when & then
-    with pytest.raises(ValidationError) as excinfo:
-        install_app(app_installation, activate=True)
+    # when
+    install_app(app_installation, activate=True)
 
-    error_dict = excinfo.value.error_dict
-    assert "tokenTargetUrl" in error_dict
-    assert error_dict["tokenTargetUrl"][0].message == "Field required."
+    # then
+    assert App.objects.count() == 1
 
 
 @pytest.fixture

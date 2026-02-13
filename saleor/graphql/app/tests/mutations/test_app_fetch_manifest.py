@@ -921,6 +921,7 @@ def test_app_fetch_manifest_extension_with_relative_url(
     staff_api_client, app_manifest, permission_manage_apps, monkeypatch
 ):
     # given
+    app_manifest["appUrl"] = "http://127.0.0.1:5000"
     app_manifest["extensions"] = [
         {
             "permissions": [],

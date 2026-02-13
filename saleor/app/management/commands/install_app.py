@@ -75,4 +75,8 @@ class Command(BaseCommand):
             app_job.save(update_fields=["status"])
             raise e
 
-        return json.dumps({"auth_token": token}) if not quiet else None
+        response_message = None
+        if token and not quiet:
+            response_message = json.dumps({"auth_token": token})
+
+        return response_message

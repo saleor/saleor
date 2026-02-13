@@ -27,7 +27,7 @@ from ..thumbnail.validators import validate_icon_image
 from ..webhook.models import Webhook, WebhookEvent
 from .error_codes import AppErrorCode
 from .manifest_validations import clean_manifest_data
-from .models import App, AppExtension, AppInstallation
+from .models import App, AppExtension, AppInstallation, AppToken
 from .types import DEFAULT_APP_TARGET, AppType
 
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
@@ -212,7 +212,9 @@ def fetch_manifest(manifest_url: str, timeout=settings.COMMON_REQUESTS_TIMEOUT):
     return response.json()
 
 
-def install_app(app_installation: AppInstallation, activate: bool = False):
+def install_app(
+    app_installation: AppInstallation, activate: bool = False
+) -> tuple[App, AppToken | None]:
     manifest_data = fetch_manifest(app_installation.manifest_url)
     assigned_permissions = app_installation.permissions.all()
 
@@ -296,14 +298,16 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             )
     WebhookEvent.objects.bulk_create(webhook_events)
 
-    _, token = app.tokens.create(name="Default token")  # type: ignore[call-arg] # calling create on a related manager # noqa: E501
+    token = None
+    if tokent_target_url := manifest_data.get("tokenTargetUrl"):
+        _, token = app.tokens.create(name="Default token")  # type: ignore[call-arg] # calling create on a related manager # noqa: E501
 
-    try:
-        send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)
-    except requests.RequestException as e:
-        fetch_brand_data_async(manifest_data, app_installation=app_installation)
-        app.delete()
-        raise e
+        try:
+            send_app_token(target_url=tokent_target_url, token=token)
+        except requests.RequestException as e:
+            fetch_brand_data_async(manifest_data, app_installation=app_installation)
+            app.delete()
+            raise e
     PluginsManager(plugins=settings.PLUGINS).app_installed(app)
     fetch_brand_data_async(manifest_data, app=app)
     return app, token
