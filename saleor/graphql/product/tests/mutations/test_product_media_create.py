@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 import graphene
 import PIL
 import pytest
+from django.conf import settings
 from PIL import Image
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
@@ -312,7 +313,11 @@ def test_product_media_create_mutation_invalid_image_file_fetch_only_header(
 
     # Ensure that only headers were fetched
     mock_HTTPClient.send_request.assert_called_once_with(
-        "GET", url, stream=True, allow_redirects=False
+        "GET",
+        url,
+        stream=True,
+        allow_redirects=False,
+        timeout=settings.COMMON_REQUESTS_TIMEOUT,
     )
     mock_response.headers.get.assert_called_once_with("content-type")
 

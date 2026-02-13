@@ -2,6 +2,7 @@ import datetime
 from collections import defaultdict
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils.text import slugify
@@ -486,7 +487,11 @@ class ProductBulkCreate(BaseMutation):
                     continue
             elif media_url:
                 with HTTPClient.send_request(
-                    "GET", media_url, stream=True, timeout=30, allow_redirects=False
+                    "GET",
+                    media_url,
+                    stream=True,
+                    allow_redirects=False,
+                    timeout=settings.COMMON_REQUESTS_TIMEOUT,
                 ) as image_data:
                     mime_type = get_mime_type(image_data.headers.get("content-type"))
                     if is_image_mimetype(mime_type):
