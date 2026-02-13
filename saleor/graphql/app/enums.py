@@ -2,6 +2,7 @@ from typing import Final
 
 import graphene
 
+from ...app import error_codes
 from ...app.types import AppType
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.enums import to_enum
@@ -63,3 +64,25 @@ CircuitBreakerStateEnum.doc_category = DOC_CATEGORY_APPS
 
 AppTypeEnum: Final[graphene.Enum] = to_enum(AppType, description=description)
 AppTypeEnum.doc_category = DOC_CATEGORY_APPS
+
+
+class AppProblemDismissedBy:
+    APP = "app"
+    USER = "user"
+
+    CHOICES = [
+        (APP, "app"),
+        (USER, "user"),
+    ]
+
+
+AppProblemDismissedByEnum: Final[graphene.Enum] = to_enum(AppProblemDismissedBy)
+AppProblemDismissedByEnum.doc_category = DOC_CATEGORY_APPS
+
+
+AppProblemCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.AppProblemCreateErrorCode
+)
+AppProblemDismissErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.AppProblemDismissErrorCode
+)
