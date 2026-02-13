@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from graphql import GraphQLError
 
 from .....app.models import App
 from .....core.prices import quantize_price
@@ -227,12 +228,21 @@ class TransactionRequestAction(BaseMutation):
                 reason_reference_pk = cls.get_global_id_or_error(
                     str(reason_reference_id), only_type="Page", field="reason_reference"
                 )
+            except (GraphQLError, ValueError):
+                raise ValidationError(
+                    {
+                        "refund_reason_reference": ValidationError(
+                            "Invalid reason reference.",
+                            code=TransactionRequestActionErrorCode.GRAPHQL_ERROR.value,
+                        )
+                    }
+                ) from None
 
+            try:
                 reason_reference_instance = Page.objects.get(
                     pk=reason_reference_pk, page_type=refund_reason_reference_type.pk
                 )
-
-            except (Page.DoesNotExist, ValueError):
+            except Page.DoesNotExist:
                 raise ValidationError(
                     {
                         "refund_reason_reference": ValidationError(

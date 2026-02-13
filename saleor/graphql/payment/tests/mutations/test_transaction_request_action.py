@@ -1564,7 +1564,7 @@ def test_transaction_request_refund_with_reason_reference_not_configured_created
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "refundReasonReference"
-    assert error["code"] == TransactionRequestActionErrorCode.INVALID.name
+    assert error["code"] == TransactionRequestActionErrorCode.GRAPHQL_ERROR.name
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")

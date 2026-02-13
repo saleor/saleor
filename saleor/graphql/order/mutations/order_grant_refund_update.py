@@ -19,7 +19,11 @@ from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.types import TransactionItem
-from ...payment.utils import validate_and_resolve_refund_reason_context
+from ...payment.utils import (
+    resolve_reason_reference_page,
+    validate_and_resolve_refund_reason_context,
+    validate_per_line_reason_reference,
+)
 from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineErrorCode
 from ..types import Order, OrderGrantedRefund
@@ -64,6 +68,14 @@ class OrderGrantRefundUpdateLineAddInput(BaseInputObjectType):
         description="The quantity of line items to be marked to refund.", required=True
     )
     reason = graphene.String(description="Reason of the granted refund for the line.")
+    reason_reference = graphene.ID(
+        description=(
+            "ID of a `Page` to reference as reason for this line. "
+            "When provided, must match the configured `PageType` in refund settings. "
+            "Always optional for both staff and apps."
+        )
+        + ADDED_IN_322
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -229,8 +241,8 @@ class OrderGrantRefundUpdate(BaseMutation):
         lines: list[dict[str, str | int]],
         errors: list[dict[str, Any]],
         line_ids_exclude: list[int],
-    ) -> list[models.OrderGrantedRefundLine]:
-        input_lines_data = get_input_lines_data(
+    ) -> tuple[list[models.OrderGrantedRefundLine], dict]:
+        input_lines_data, raw_reason_reference_ids = get_input_lines_data(
             lines, errors, OrderGrantRefundUpdateLineErrorCode.GRAPHQL_ERROR.value
         )
         assign_order_lines(
@@ -247,31 +259,32 @@ class OrderGrantRefundUpdate(BaseMutation):
             granted_refund_lines_to_exclude=line_ids_exclude,
         )
 
-        return list(input_lines_data.values())
+        return list(input_lines_data.values()), raw_reason_reference_ids
 
     @classmethod
-    def _resolve_refund_reason_instance(
-        cls, /, reason_reference_id: str, refund_reason_reference_type: int
+    def _resolve_per_line_reason_references(
+        cls,
+        lines_to_add: list[models.OrderGrantedRefundLine],
+        raw_reason_reference_ids: dict,
+        site_settings,
     ):
-        reason_reference_pk = cls.get_global_id_or_error(
-            reason_reference_id, only_type="Page", field="reason_reference"
-        )
+        """Validate and resolve per-line reason references for addLines."""
+        for line in lines_to_add:
+            raw_id = raw_reason_reference_ids.get(line.order_line_id)
+            if raw_id is None:
+                continue
 
-        try:
-            return Page.objects.get(
-                pk=reason_reference_pk,
-                page_type=refund_reason_reference_type,
+            context = validate_per_line_reason_reference(
+                reason_reference_id=raw_id,
+                site_settings=site_settings,
+                error_code_enum=OrderGrantRefundUpdateErrorCode,
             )
-
-        except (Page.DoesNotExist, ValueError):
-            raise ValidationError(
-                {
-                    "reason_reference": ValidationError(
-                        "Invalid reason reference. Must be an ID of a Model (Page)",
-                        code=OrderGrantRefundUpdateErrorCode.INVALID.value,
-                    )
-                }
-            ) from None
+            if context["should_apply"]:
+                line.reason_reference = resolve_reason_reference_page(
+                    raw_id,
+                    context["refund_reason_reference_type"].pk,
+                    OrderGrantRefundUpdateErrorCode,
+                )
 
     @classmethod
     def clean_input(
@@ -309,9 +322,10 @@ class OrderGrantRefundUpdate(BaseMutation):
                 params={"remove_lines": remove_errors},
             )
 
-        lines_to_add = []
+        lines_to_add: list[models.OrderGrantedRefundLine] = []
+        raw_reason_reference_ids: dict = {}
         if add_lines:
-            lines_to_add = cls.clean_add_lines(
+            lines_to_add, raw_reason_reference_ids = cls.clean_add_lines(
                 order, add_lines, add_errors, line_ids_to_remove
             )
             for line in lines_to_add:
@@ -379,6 +393,7 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         site = get_site_promise(info.context).get()
 
+        # Validate order-level reason reference
         refund_reason_context = validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference_id,
             requestor_is_user=bool(requestor_is_user),
@@ -395,9 +410,16 @@ class OrderGrantRefundUpdate(BaseMutation):
         reason_reference_instance: Page | None = None
 
         if should_apply:
-            reason_reference_instance = cls._resolve_refund_reason_instance(
+            reason_reference_instance = resolve_reason_reference_page(
                 str(reason_reference_id),
                 refund_reason_reference_type.pk,
+                OrderGrantRefundUpdateErrorCode,
+            )
+
+        # Validate and resolve per-line reason references for addLines
+        if lines_to_add:
+            cls._resolve_per_line_reason_references(
+                lines_to_add, raw_reason_reference_ids, site.settings
             )
 
         cleaned_input = {
