@@ -255,7 +255,9 @@ class CheckoutLinesAdd(BaseMutation):
         invalidate_update_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.save(update_fields=shipping_update_fields + invalidate_update_fields)
+        update_fields = shipping_update_fields + invalidate_update_fields
+        cls.mark_search_vectors_as_dirty(checkout, update_fields)
+        checkout.save(update_fields=update_fields)
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
@@ -264,6 +266,11 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
         return CheckoutLinesAdd(checkout=SyncWebhookControlContext(node=checkout))
+
+    @classmethod
+    def mark_search_vectors_as_dirty(cls, checkout, update_fields):
+        checkout.search_index_dirty = True
+        update_fields.append("search_index_dirty")
 
     @classmethod
     def _get_variants_from_lines_input(cls, lines: list[dict]) -> list[ProductVariant]:

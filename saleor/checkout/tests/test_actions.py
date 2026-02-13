@@ -54,7 +54,7 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         transaction_amounts_for_checkout_updated(
-            transaction, manager=plugins_manager, user=None, app=None
+            transaction, checkout, manager=plugins_manager, user=None, app=None
         )
 
     # then
@@ -94,7 +94,7 @@ def test_transaction_amounts_for_checkout_updated_not_fully_paid_no_automatic_co
     # when
     with django_capture_on_commit_callbacks(execute=True):
         transaction_amounts_for_checkout_updated(
-            transaction, manager=plugins_manager, user=None, app=None
+            transaction, checkout, manager=plugins_manager, user=None, app=None
         )
 
     # then
@@ -136,7 +136,7 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         transaction_amounts_for_checkout_updated(
-            second_transaction, manager=plugins_manager, user=None, app=None
+            second_transaction, checkout, manager=plugins_manager, user=None, app=None
         )
 
     # then
@@ -188,7 +188,7 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_authorized(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         transaction_amounts_for_checkout_updated(
-            second_transaction, manager=plugins_manager, user=None, app=None
+            second_transaction, checkout, manager=plugins_manager, user=None, app=None
         )
 
     # then
@@ -226,7 +226,7 @@ def test_transaction_amounts_for_checkout_updated_fully_authorized(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         transaction_amounts_for_checkout_updated(
-            transaction, manager=plugins_manager, user=None, app=None
+            transaction, checkout, manager=plugins_manager, user=None, app=None
         )
 
     # then
@@ -269,7 +269,7 @@ def test_transaction_amounts_for_checkout_updated_updates_last_transaction_modif
     # when
     with django_capture_on_commit_callbacks(execute=True):
         transaction_amounts_for_checkout_updated(
-            transaction, manager=plugins_manager, user=None, app=None
+            transaction, checkout, manager=plugins_manager, user=None, app=None
         )
 
     # then
@@ -298,7 +298,7 @@ def test_get_checkout_refundable_with_transaction_and_last_refund_success(
 
     # when
     transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=None, app=None
+        transaction, checkout, manager=plugins_manager, user=None, app=None
     )
 
     # then
@@ -329,7 +329,7 @@ def test_get_checkout_refundable_with_transaction_and_last_refund_failure(
 
     # when
     transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=None, app=None
+        transaction, checkout, manager=plugins_manager, user=None, app=None
     )
 
     # then
@@ -360,7 +360,7 @@ def test_get_checkout_refundable_with_transaction_without_funds(
 
     # when
     transaction_amounts_for_checkout_updated(
-        transaction, manager=plugins_manager, user=None, app=None
+        transaction, checkout, manager=plugins_manager, user=None, app=None
     )
 
     # then
@@ -392,7 +392,7 @@ def test_get_checkout_refundable_with_multiple_transactions_without_funds(
 
     # when
     transaction_amounts_for_checkout_updated(
-        first_transaction, manager=plugins_manager, user=None, app=None
+        first_transaction, checkout, manager=plugins_manager, user=None, app=None
     )
 
     # then
@@ -426,7 +426,7 @@ def test_get_checkout_refundable_with_multiple_transactions_with_failure_refund(
 
     # when
     transaction_amounts_for_checkout_updated(
-        first_transaction, manager=plugins_manager, app=None, user=None
+        first_transaction, checkout, manager=plugins_manager, app=None, user=None
     )
 
     # then
@@ -463,7 +463,7 @@ def test_get_checkout_refundable_with_multiple_active_transactions(
 
     # when
     transaction_amounts_for_checkout_updated(
-        first_transaction, manager=plugins_manager, user=None, app=None
+        first_transaction, checkout, manager=plugins_manager, user=None, app=None
     )
 
     # then
@@ -1222,7 +1222,7 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         transaction_amounts_for_checkout_updated(
-            transaction, manager=plugins_manager, user=None, app=None
+            transaction, checkout, manager=plugins_manager, user=None, app=None
         )
 
     # then
@@ -1339,7 +1339,7 @@ def test_transaction_amounts_for_checkout_fully_authorized_triggers_sync_webhook
     # when
     with django_capture_on_commit_callbacks(execute=True):
         transaction_amounts_for_checkout_updated(
-            transaction, manager=plugins_manager, user=None, app=None
+            transaction, checkout, manager=plugins_manager, user=None, app=None
         )
 
     # then

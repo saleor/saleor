@@ -650,16 +650,6 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout_info.channel.slug,
         )
 
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
-    def get_taxes_for_order(self, order: "Order", app_identifier) -> TaxData | None:
-        return self.__run_tax_method_until_first_success(
-            "get_taxes_for_order",
-            order,
-            app_identifier,
-            channel_slug=order.channel.slug,
-        )
-
     def __run_tax_method_until_first_success(
         self,
         method_name: str,
@@ -2873,24 +2863,6 @@ class PluginsManager(PaymentInterface):
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(
             plugin, "external_verify", default_value, data, request
-        )
-
-    def excluded_shipping_methods_for_order(
-        self,
-        order: "Order",
-        available_shipping_methods: list["ShippingMethodData"],
-    ) -> list[ExcludedShippingMethod]:
-        default_value: list[ExcludedShippingMethod] = []
-
-        if not available_shipping_methods:
-            return default_value
-
-        return self.__run_method_on_plugins(
-            "excluded_shipping_methods_for_order",
-            default_value,
-            order,
-            available_shipping_methods,
-            channel_slug=order.channel.slug,
         )
 
     def excluded_shipping_methods_for_checkout(

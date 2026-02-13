@@ -3007,7 +3007,7 @@ def test_draft_order_update_with_voucher_specific_product_and_manual_line_discou
         value_type=DiscountValueType.FIXED,
         value=manual_line_discount_value,
     )
-    fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    fetch_order_prices_if_expired(order, plugins_manager, None, None, True).get()
 
     shipping_price = order.shipping_price.net
     currency = order.currency
@@ -3155,7 +3155,7 @@ def test_draft_order_update_with_voucher_apply_once_per_order_and_manual_line_di
         value_type=DiscountValueType.FIXED,
         value=manual_line_discount_value,
     )
-    fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    fetch_order_prices_if_expired(order, plugins_manager, None, None, True).get()
 
     shipping_price = order.shipping_price.net
     currency = order.currency

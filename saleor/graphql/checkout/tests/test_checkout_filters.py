@@ -11,6 +11,7 @@ from prices import Money
 from ....account.models import User
 from ....checkout.models import Checkout
 from ....checkout.payment_utils import update_checkout_payment_statuses
+from ....checkout.search.indexing import update_checkouts_search_vector
 from ....payment.models import ChargeStatus, Payment
 from ...core.connection import where_filter_qs
 from ...tests.utils import get_graphql_content
@@ -335,12 +336,13 @@ def test_query_checkout_with_sort(
 @pytest.mark.parametrize(
     ("checkouts_filter", "count"),
     [
-        ({"search": "user_email"}, 2),
+        ({"search": "User"}, 2),
         ({"search": "john@wayne.com"}, 1),
         ({"search": "Leslie"}, 1),
         ({"search": "Wade"}, 1),
         ({"search": ""}, 4),
         ({"search": "ExternalID"}, 1),
+        ({"search": "example.com"}, 3),
     ],
 )
 def test_checkouts_query_with_filter_search(
@@ -352,9 +354,15 @@ def test_checkouts_query_with_filter_search(
     channel_USD,
 ):
     # given
-    user1 = User.objects.create(email="user_email1@example.com")
-    user2 = User.objects.create(email="user_email2@example.com")
-    user3 = User.objects.create(email="john@wayne.com")
+    user1 = User.objects.create(
+        first_name="User", last_name="One", email="user_email1@example.com"
+    )
+    user2 = User.objects.create(
+        first_name="User", last_name="Two", email="user_email2@example.com"
+    )
+    user3 = User.objects.create(
+        first_name="John", last_name="Wayne", email="john@wayne.com"
+    )
 
     checkouts = Checkout.objects.bulk_create(
         [
@@ -380,12 +388,13 @@ def test_checkouts_query_with_filter_search(
             ),
         ]
     )
-
     checkout_with_payment = checkouts[1]
     payment = Payment.objects.create(
         checkout=checkout_with_payment, psp_reference="ExternalID"
     )
     payment.transactions.create(gateway_response={}, is_success=True)
+    update_checkouts_search_vector(checkouts)
+
     variables = {"filter": checkouts_filter}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
 
@@ -422,10 +431,41 @@ def test_checkouts_query_with_filter_search_by_global_payment_id(
 
     checkout_with_payment = checkouts[0]
     payment = Payment.objects.create(checkout=checkout_with_payment)
-    global_id = graphene.Node.to_global_id("Payment", payment.pk)
 
+    update_checkouts_search_vector(checkouts)
+
+    global_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"filter": {"search": global_id}}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkouts"]["totalCount"] == 1
+
+
+def test_filtering_checkout_discounted_object_by_transaction_psp_reference(
+    checkout_with_item, staff_api_client, permission_manage_checkouts
+):
+    # given
+    checkout = checkout_with_item
+    transaction_psp_reference = "test_psp_reference"
+    checkout.payment_transactions.create(
+        currency=checkout.currency,
+        psp_reference=transaction_psp_reference,
+    )
+
+    Checkout.objects.create(
+        currency=checkout.currency,
+        user=checkout.user,
+        channel=checkout.channel,
+    )
+    update_checkouts_search_vector([checkout])
+
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+    variables = {"filter": {"search": transaction_psp_reference}}
 
     # when
     response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
@@ -439,6 +479,7 @@ def test_checkouts_query_with_filter_search_by_token(
     checkout, staff_api_client, permission_manage_checkouts
 ):
     # given
+    update_checkouts_search_vector([checkout])
     variables = {"filter": {"search": checkout.pk}}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
 

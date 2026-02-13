@@ -1,5 +1,4 @@
 import logging
-import mimetypes
 import os
 
 import magic
@@ -88,7 +87,13 @@ def detect_mime_type(file_data) -> str:
     return mime_type
 
 
-def is_image_mimetype(mimetype: str) -> bool:
+def get_mime_type(content_type_header: str | None) -> str | None:
+    if content_type_header is None:
+        return None
+    return content_type_header.split(";", maxsplit=1)[0].strip().lower()
+
+
+def is_image_mimetype(mimetype: str | None) -> bool:
     """Check if mimetype is image."""
     if mimetype is None:
         return False
@@ -100,12 +105,6 @@ def is_supported_image_mimetype(mimetype: str) -> bool:
     if mimetype is None:
         return False
     return mimetype in MIME_TYPE_TO_PIL_IDENTIFIER.keys()
-
-
-def is_image_url(url: str) -> bool:
-    """Check if file URL seems to be an image."""
-    filetype = mimetypes.guess_type(url)[0]
-    return filetype is not None and is_image_mimetype(filetype)
 
 
 def is_valid_image_content_type(content_type: str | None) -> bool:

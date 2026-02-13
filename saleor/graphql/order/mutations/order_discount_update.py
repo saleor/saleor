@@ -15,6 +15,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ...discount.types import OrderDiscount
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...utils import get_user_or_app_from_context
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -51,6 +52,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         cls, _root, info: ResolveInfo, /, *, discount_id: str, input
     ):
         manager = get_plugin_manager_promise(info.context).get()
+        requestor = get_user_or_app_from_context(info.context)
         order_discount = cls.get_node_or_error(
             info, discount_id, only_type=OrderDiscount
         )
@@ -86,7 +88,9 @@ class OrderDiscountUpdate(OrderDiscountCommon):
                 # discount.
                 # Calling refreshing prices because it's set proper discount amount
                 # on OrderDiscount.
-                fetch_order_prices_if_expired(order, manager, force_update=True)
+                fetch_order_prices_if_expired(
+                    order, manager, requestor=requestor, force_update=True
+                ).get()
                 order_discount.refresh_from_db()
                 app = get_app_promise(info.context).get()
                 events.order_discount_updated_event(

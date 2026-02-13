@@ -1,3 +1,4 @@
+import dataclasses
 from decimal import Decimal
 from typing import Literal
 from unittest.mock import Mock, patch, sentinel
@@ -5,6 +6,7 @@ from unittest.mock import Mock, patch, sentinel
 import pytest
 from django.test import override_settings
 from prices import Money, TaxedMoney
+from promise import Promise
 
 from ...core.prices import quantize_price
 from ...core.taxes import (
@@ -813,6 +815,7 @@ def fetch_kwargs(order_with_lines, plugins_manager):
     return {
         "order": order_with_lines,
         "manager": plugins_manager,
+        "requestor": None,
         "force_update": True,
     }
 
@@ -821,8 +824,9 @@ def fetch_kwargs(order_with_lines, plugins_manager):
 def fetch_kwargs_with_lines(order_with_lines, order_lines, plugins_manager):
     return {
         "order": order_with_lines,
-        "lines": order_lines,
         "manager": plugins_manager,
+        "requestor": None,
+        "lines": order_lines,
     }
 
 
@@ -898,7 +902,7 @@ def test_fetch_order_prices_if_expired_plugins(
     plugins_manager.calculate_order_total = Mock(return_value=total)
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     order_with_lines.refresh_from_db()
@@ -935,7 +939,7 @@ def test_fetch_order_prices_if_expired_flat_rates(
     tc.save()
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
     order.refresh_from_db()
     line = order.lines.first()
 
@@ -950,18 +954,22 @@ def test_fetch_order_prices_if_expired_flat_rates(
     assert order.shipping_tax_rate == Decimal("0.2300")
 
 
+@patch("saleor.tax.webhooks.shared.trigger_webhook_sync_promise")
 def test_fetch_order_prices_if_expired_webhooks_success(
-    plugins_manager,
+    mocked_trigger_webhook_sync_promise,
     fetch_kwargs,
     order_with_lines,
     tax_data,
+    tax_configuration_tax_app,
 ):
     # given
     currency = order_with_lines.currency
-    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
+    mocked_trigger_webhook_sync_promise.return_value = Promise.resolve(
+        dataclasses.asdict(tax_data)
+    )
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     shipping_price = get_taxed_money(tax_data, "shipping_price", currency)
@@ -999,7 +1007,9 @@ def test_fetch_order_prices_if_expired_plugins_with_allow_sync_webhooks_to_false
     lines_from_input = fetch_kwargs_with_lines["lines"]
 
     # when
-    order, lines = calculations.fetch_order_prices_if_expired(**fetch_kwargs_with_lines)
+    order, lines = calculations.fetch_order_prices_if_expired(
+        **fetch_kwargs_with_lines
+    ).get()
 
     # then
     assert order_from_input == order
@@ -1036,7 +1046,7 @@ def test_fetch_order_prices_if_expired_flat_rates_with_allow_sync_webhook_set_to
     fetch_kwargs["allow_sync_webhooks"] = False
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
     order.refresh_from_db()
     line = order.lines.first()
 
@@ -1064,7 +1074,9 @@ def test_fetch_order_prices_tax_app_with_allow_sync_webhook_set_to_false(
     lines_from_input = fetch_kwargs_with_lines["lines"]
 
     # when
-    order, lines = calculations.fetch_order_prices_if_expired(**fetch_kwargs_with_lines)
+    order, lines = calculations.fetch_order_prices_if_expired(
+        **fetch_kwargs_with_lines
+    ).get()
 
     # then
     assert order_from_input == order
@@ -1072,14 +1084,16 @@ def test_fetch_order_prices_tax_app_with_allow_sync_webhook_set_to_false(
     plugins_manager.get_taxes_for_order.assert_not_called()
 
 
+@patch("saleor.tax.webhooks.shared.trigger_webhook_sync_promise")
 @pytest.mark.parametrize("prices_entered_with_tax", [True, False])
 def test_fetch_order_prices_if_expired_recalculate_all_prices(
-    plugins_manager,
+    mocked_trigger_webhook_sync_promise,
     fetch_kwargs,
     order_with_lines,
     tax_data,
     tax_data_prices_entered_with_tax,
     prices_entered_with_tax,
+    tax_configuration_tax_app,
 ):
     # given
     tax_data = tax_data_prices_entered_with_tax if prices_entered_with_tax else tax_data
@@ -1093,10 +1107,13 @@ def test_fetch_order_prices_if_expired_recalculate_all_prices(
     order_with_lines.undiscounted_total_net_amount = Decimal("0.00")
     order_with_lines.undiscounted_total_gross_amount = Decimal("0.00")
     order_with_lines.save()
-    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
+
+    mocked_trigger_webhook_sync_promise.return_value = Promise.resolve(
+        dataclasses.asdict(tax_data)
+    )
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     order_with_lines.refresh_from_db()
@@ -1153,7 +1170,7 @@ def test_fetch_order_prices_when_tax_exemption(
     plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     order_with_lines.refresh_from_db()
@@ -1194,7 +1211,7 @@ def test_fetch_order_prices_when_tax_exemption(
 
 def test_fetch_order_prices_if_expired_prefetch(fetch_kwargs, order_lines):
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     assert all(line._state.fields_cache for line in order_lines)
@@ -1204,7 +1221,7 @@ def test_fetch_order_prices_if_expired_prefetch_with_lines(
     fetch_kwargs_with_lines, order_lines
 ):
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs_with_lines)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs_with_lines).get()
 
     # then
     assert all(line._state.fields_cache for line in order_lines)
@@ -1225,7 +1242,7 @@ def test_fetch_order_prices_if_expired_use_base_shipping_price(
     order.save()
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     order_with_lines.refresh_from_db()
@@ -1261,7 +1278,7 @@ def test_fetch_order_prices_if_expired_flat_rates_and_no_tax_calc_strategy(
     )
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
     order.refresh_from_db()
     line = order.lines.first()
 
@@ -1269,21 +1286,30 @@ def test_fetch_order_prices_if_expired_flat_rates_and_no_tax_calc_strategy(
     assert order.shipping_tax_rate == Decimal("0.2300")
 
 
+@patch("saleor.tax.webhooks.shared.trigger_webhook_sync_promise")
 def test_fetch_order_prices_on_promotion_if_expired_recalculate_all_prices(
-    plugins_manager,
+    mocked_trigger_webhook_sync_promise,
     fetch_kwargs,
     order_with_lines,
     order_line_on_promotion,
     tax_data_prices_entered_with_tax,
+    tax_configuration_tax_app,
 ):
     # given
+    tc = order_with_lines.channel.tax_configuration
+    tc.prices_entered_with_tax = True
+    tc.save(update_fields=["prices_entered_with_tax"])
+
     tax_data = tax_data_prices_entered_with_tax
     currency = order_with_lines.currency
     order_line_on_promotion.order = order_with_lines
-    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
+
+    mocked_trigger_webhook_sync_promise.return_value = Promise.resolve(
+        dataclasses.asdict(tax_data)
+    )
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     order_with_lines.refresh_from_db()
@@ -1326,10 +1352,14 @@ def test_order_line_unit(mocked_fetch_order_prices_if_expired):
         unit_price=expected_line_unit_price,
         undiscounted_unit_price=expected_line_undiscounted_unit_price,
     )
-    mocked_fetch_order_prices_if_expired.return_value = (Mock(), [order_line])
+    mocked_fetch_order_prices_if_expired.return_value = Promise.resolve(
+        (Mock(), [order_line])
+    )
 
     # when
-    line_unit_price = calculations.order_line_unit(order, order_line, Mock())
+    line_unit_price = calculations.order_line_unit(
+        order, order_line, None, Mock()
+    ).get()
 
     # then
     assert line_unit_price == OrderTaxedPricesData(
@@ -1354,10 +1384,14 @@ def test_order_line_total(mocked_fetch_order_prices_if_expired):
         total_price=expected_line_total_price,
         undiscounted_total_price=expected_line_undiscounted_total_price,
     )
-    mocked_fetch_order_prices_if_expired.return_value = (Mock(), [order_line])
+    mocked_fetch_order_prices_if_expired.return_value = Promise.resolve(
+        (Mock(), [order_line])
+    )
 
     # when
-    line_total_price = calculations.order_line_total(order, order_line, Mock())
+    line_total_price = calculations.order_line_total(
+        order, order_line, manager=Mock(), requestor=None
+    ).get()
 
     # then
     assert line_total_price == OrderTaxedPricesData(
@@ -1372,10 +1406,14 @@ def test_order_line_tax_rate(mocked_fetch_order_prices_if_expired):
     expected_line_tax_rate = sentinel.TAX_RATE
 
     order_line = Mock(pk=1, tax_rate=expected_line_tax_rate)
-    mocked_fetch_order_prices_if_expired.return_value = (Mock(), [order_line])
+    mocked_fetch_order_prices_if_expired.return_value = Promise.resolve(
+        (Mock(), [order_line])
+    )
 
     # when
-    line_tax_rate = calculations.order_line_tax_rate(Mock(), order_line, Mock())
+    line_tax_rate = calculations.order_line_tax_rate(
+        order=Mock(), order_line=order_line, manager=Mock(), requestor=None
+    ).get()
 
     # then
     assert line_tax_rate == expected_line_tax_rate
@@ -1387,10 +1425,12 @@ def test_order_shipping(mocked_fetch_order_prices_if_expired):
     expected_shipping_price = Decimal("1234.0000")
 
     order = Mock(shipping_price=expected_shipping_price, currency="USD")
-    mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
+    mocked_fetch_order_prices_if_expired.return_value = Promise.resolve((order, Mock()))
 
     # when
-    shipping_price = calculations.order_shipping(order, Mock())
+    shipping_price = calculations.order_shipping(
+        order, manager=Mock(), requestor=None
+    ).get()
 
     # then
     assert shipping_price == quantize_price(expected_shipping_price, order.currency)
@@ -1402,10 +1442,12 @@ def test_order_shipping_tax_rate(mocked_fetch_order_prices_if_expired):
     expected_shipping_tax_rate = sentinel.SHIPPING_TAX_RATE
 
     order = Mock(shipping_tax_rate=expected_shipping_tax_rate)
-    mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
+    mocked_fetch_order_prices_if_expired.return_value = Promise.resolve((order, Mock()))
 
     # when
-    shipping_tax_rate = calculations.order_shipping_tax_rate(order, Mock())
+    shipping_tax_rate = calculations.order_shipping_tax_rate(
+        order, manager=Mock(), requestor=None
+    ).get()
 
     # then
     assert shipping_tax_rate == expected_shipping_tax_rate
@@ -1417,10 +1459,10 @@ def test_order_total(mocked_fetch_order_prices_if_expired):
     expected_total = Decimal("1234.0000")
 
     order = Mock(total=expected_total, currency="USD")
-    mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
+    mocked_fetch_order_prices_if_expired.return_value = Promise.resolve((order, Mock()))
 
     # when
-    total = calculations.order_total(order, Mock())
+    total = calculations.order_total(order, Mock(), requestor=None).get()
 
     # then
     assert total == quantize_price(expected_total, order.currency)
@@ -1446,10 +1488,12 @@ def test_order_subtotal(mocked_fetch_order_prices_if_expired):
     for expected_line_total in expected_line_totals:
         line = Mock(total_price=expected_line_total, currency=currency)
         lines.append(line)
-    mocked_fetch_order_prices_if_expired.return_value = (order, lines)
+    mocked_fetch_order_prices_if_expired.return_value = Promise.resolve((order, lines))
 
     # when
-    subtotal = calculations.order_subtotal(order, manager, lines)
+    subtotal = calculations.order_subtotal(
+        order, manager, requestor=None, lines=lines
+    ).get()
 
     # then
     expected_subtotal = quantize_price(
@@ -1465,10 +1509,12 @@ def test_order_undiscounted_total(mocked_fetch_order_prices_if_expired):
     expected_undiscounted_total = Decimal("1234.0000")
 
     order = Mock(undiscounted_total=expected_undiscounted_total, currency="USD")
-    mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
+    mocked_fetch_order_prices_if_expired.return_value = Promise.resolve((order, Mock()))
 
     # when
-    undiscounted_total = calculations.order_undiscounted_total(order, Mock())
+    undiscounted_total = calculations.order_undiscounted_total(
+        order, manager=Mock(), requestor=None
+    ).get()
 
     # then
     assert undiscounted_total == quantize_price(
@@ -1476,12 +1522,12 @@ def test_order_undiscounted_total(mocked_fetch_order_prices_if_expired):
     )
 
 
+@patch("saleor.tax.webhooks.shared.trigger_webhook_sync_promise")
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_total")
-@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_order")
 @override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
 def test_fetch_order_data_calls_plugin(
-    mock_get_taxes,
     mock_calculate_order_line_total,
+    mock_trigger_webhook_sync_promise,
     order_with_lines,
     order_lines,
 ):
@@ -1501,50 +1547,51 @@ def test_fetch_order_data_calls_plugin(
     fetch_kwargs = {
         "order": order,
         "manager": get_plugins_manager(allow_replica=False),
+        "requestor": None,
         "lines": order_lines,
         "force_update": True,
     }
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     assert mock_calculate_order_line_total.call_count == 2
-    mock_get_taxes.assert_not_called()
+    mock_trigger_webhook_sync_promise.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_total")
-@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_order")
+@patch("saleor.tax.webhooks.shared.trigger_webhook_sync_promise")
 @patch("saleor.order.calculations._apply_tax_data")
-@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
 def test_fetch_order_data_calls_tax_app(
     mock_apply_tax_data,
-    mock_get_taxes,
+    mock_trigger_webhook_sync_promise,
     mock_calculate_order_total,
     order_with_lines,
     order_lines,
-    tax_data_response,
+    tax_data,
+    tax_configuration_tax_app,
 ):
     # given
     order = order_with_lines
-    order.channel.tax_configuration.tax_app_id = "test.app"
-    order.channel.tax_configuration.save()
-
-    mock_get_taxes.return_value = tax_data_response
+    mock_trigger_webhook_sync_promise.return_value = Promise.resolve(
+        dataclasses.asdict(tax_data)
+    )
 
     fetch_kwargs = {
         "order": order,
         "manager": get_plugins_manager(allow_replica=False),
+        "requestor": None,
         "lines": order_lines,
         "force_update": True,
     }
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     mock_apply_tax_data.assert_called_once()
-    mock_get_taxes.assert_called_once()
+    mock_trigger_webhook_sync_promise.assert_called_once()
     mock_calculate_order_total.assert_not_called()
 
 
@@ -1560,23 +1607,26 @@ def test_fetch_order_data_calls_inactive_plugin(
     fetch_kwargs = {
         "order": order,
         "manager": get_plugins_manager(allow_replica=False),
+        "requestor": None,
         "lines": order_lines,
         "force_update": True,
     }
 
     # when
-    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
 
     # then
     assert order_with_lines.tax_error == "Empty tax data."
 
 
 @pytest.mark.parametrize("tax_app_id", [None, "test.app"])
+@patch("saleor.tax.webhooks.shared.trigger_webhook_sync_promise")
 def test_calculate_taxes_empty_tax_data_logging_address(
-    tax_app_id, draft_order, order_lines, address, caplog
+    mocked_trigger_webhook_sync_promise, tax_app_id, draft_order, address, caplog
 ):
     # given
     order = draft_order
+    order_lines = list(order.lines.all())
 
     address.validation_skipped = True
     address.postal_code = "invalid postal code"
@@ -1589,24 +1639,14 @@ def test_calculate_taxes_empty_tax_data_logging_address(
     order.channel.tax_configuration.tax_app_id = tax_app_id
     order.channel.tax_configuration.save()
 
-    zero_money = zero_taxed_money(order.currency)
-    zero_prices = OrderTaxedPricesData(
-        undiscounted_price=zero_money,
-        price_with_discounts=zero_money,
-    )
-    manager_methods = {
-        "calculate_order_line_unit": Mock(side_effect=TaxError()),
-        "calculate_order_line_total": Mock(return_value=zero_prices),
-        "get_order_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_order_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "calculate_order_shipping": Mock(return_value=zero_money),
-        "get_taxes_for_order": Mock(return_value=None),
-    }
-    manager = Mock(**manager_methods)
+    mocked_trigger_webhook_sync_promise.return_value = Promise.resolve(None)
+    manager = get_plugins_manager(allow_replica=False)
     tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
 
     # when
-    calculations.calculate_taxes(order, manager, order_lines, tax_calculation_strategy)
+    calculations.calculate_taxes(
+        order, manager, order_lines, tax_calculation_strategy, requestor=None
+    ).get()
 
     # then
     assert (
@@ -1620,7 +1660,9 @@ def test_calculate_taxes_empty_tax_data_logging_address(
     [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
 )
 @patch.object(logger, "warning")
+@patch("saleor.order.webhooks.order_calculate_taxes.get_taxes")
 def test_fetch_order_data_tax_data_with_tax_data_error(
+    mocked_get_taxes,
     mocked_logger,
     prices_entered_with_tax,
     tax_app_id,
@@ -1637,24 +1679,12 @@ def test_fetch_order_data_tax_data_with_tax_data_error(
     error_msg = "Invalid tax data"
     errors = [{"error1": "Negative tax data"}, {"error2": "Invalid tax data"}]
     returned_tax_error = TaxDataError(message=error_msg, errors=errors)
-    zero_money = zero_taxed_money(order.currency)
-    zero_prices = OrderTaxedPricesData(
-        undiscounted_price=zero_money,
-        price_with_discounts=zero_money,
-    )
-    manager_methods = {
-        "calculate_order_line_unit": Mock(return_value=zero_prices),
-        "calculate_order_line_total": Mock(return_value=zero_prices),
-        "calculate_order_total": Mock(return_value=zero_money),
-        "calculate_order_shipping": Mock(return_value=zero_money),
-        "get_order_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_order_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_taxes_for_order": Mock(side_effect=returned_tax_error),
-    }
-    manager = Mock(**manager_methods)
+    mocked_get_taxes.return_value = Promise.reject(returned_tax_error)
 
     # when
-    calculations.fetch_order_prices_if_expired(order, manager, None, True)
+    calculations.fetch_order_prices_if_expired(
+        order, get_plugins_manager(allow_replica=False), None, None, True
+    ).get()
 
     # then
     assert order.tax_error == error_msg
@@ -1694,7 +1724,7 @@ def test_fetch_order_data_tax_data_missing_tax_id_empty_tax_data(
     manager = Mock(**manager_methods)
 
     # when
-    calculations.fetch_order_prices_if_expired(order, manager, None, True)
+    calculations.fetch_order_prices_if_expired(order, manager, None, None, True).get()
 
     # then
     assert not order.tax_error
@@ -1741,7 +1771,7 @@ def test_fetch_order_data_plugin_tax_data_with_negative_values(
     manager = get_plugins_manager(allow_replica=False)
 
     # when
-    calculations.fetch_order_prices_if_expired(order, manager, None, True)
+    calculations.fetch_order_prices_if_expired(order, manager, None, None, True).get()
 
     # then
     assert order.tax_error == TaxDataErrorMessage.NEGATIVE_VALUE
@@ -1789,7 +1819,7 @@ def test_fetch_order_data_plugin_tax_data_price_overflow(
     manager = get_plugins_manager(allow_replica=False)
 
     # when
-    calculations.fetch_order_prices_if_expired(order, manager, None, True)
+    calculations.fetch_order_prices_if_expired(order, manager, None, None, True).get()
 
     # then
     assert order.tax_error == TaxDataErrorMessage.OVERFLOW
@@ -1845,8 +1875,9 @@ def test_fetch_order_prices_flat_rates_with_weighted_shipping_tax(
     calculations.fetch_order_prices_if_expired(
         order=order,
         manager=plugins_manager,
+        requestor=None,
         force_update=True,
-    )
+    ).get()
 
     # then
     order.refresh_from_db()
@@ -1877,6 +1908,7 @@ def test_fetch_order_prices_if_expired_order_removed_before_save(
     fetch_kwargs = {
         "order": order,
         "manager": manager,
+        "requestor": None,
         "lines": lines,
         "force_update": True,
     }
@@ -1891,7 +1923,7 @@ def test_fetch_order_prices_if_expired_order_removed_before_save(
     ):
         result_order, result_lines = calculations.fetch_order_prices_if_expired(
             **fetch_kwargs
-        )
+        ).get()
 
     # then
     # Check if order was deleted
@@ -1925,6 +1957,7 @@ def test_fetch_order_prices_if_expired_order_updated_during_price_recalculation(
     fetch_kwargs = {
         "order": order,
         "manager": manager,
+        "requestor": None,
         "lines": lines,
         "force_update": True,
     }
@@ -1941,7 +1974,7 @@ def test_fetch_order_prices_if_expired_order_updated_during_price_recalculation(
     ):
         result_order, result_lines = calculations.fetch_order_prices_if_expired(
             **fetch_kwargs
-        )
+        ).get()
 
     # then
     # Check if prices are recalculated and returned in objects

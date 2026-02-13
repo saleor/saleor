@@ -1272,21 +1272,19 @@ def _get_parsed_transaction_data_for_action_webhook(
     return transaction_request_response, None
 
 
-def update_order_with_transaction_details(transaction: TransactionItem):
-    if transaction.order_id:
-        order = cast(Order, transaction.order)
-        update_order_search_vector(order, save=False)
-        updates_amounts_for_order(order, save=False)
-        order.save(
-            update_fields=[
-                "total_charged_amount",
-                "charge_status",
-                "updated_at",
-                "total_authorized_amount",
-                "authorize_status",
-                "search_vector",
-            ]
-        )
+def update_order_with_transaction_details(order: Order):
+    update_order_search_vector(order, save=False)
+    updates_amounts_for_order(order, save=False)
+    order.save(
+        update_fields=[
+            "total_charged_amount",
+            "charge_status",
+            "updated_at",
+            "total_authorized_amount",
+            "authorize_status",
+            "search_vector",
+        ]
+    )
 
 
 def update_transaction_item_with_payment_method_details(
@@ -1399,6 +1397,8 @@ def process_order_or_checkout_with_transaction(
                 transaction_amounts_for_checkout_updated_without_price_recalculation(
                     transaction, locked_checkout, manager, user, app
                 )
+                locked_checkout.search_index_dirty = True
+                locked_checkout.save(update_fields=["search_index_dirty"])
             else:
                 checkout_deleted = True
                 # If the checkout was deleted, we still want to update the order associated with the transaction.
@@ -1616,15 +1616,22 @@ def create_transaction_event_from_request_and_webhook_response(
             "modified_at",
         ]
     )
-
-    if transaction_item.order_id:
+    manager = get_plugins_manager(allow_replica=True)
+    source_object = get_source_object(transaction_item)
+    if isinstance(source_object, Checkout):
+        recalculate_refundable_for_checkout(transaction_item, request_event, event)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, source_object, manager, app=app, user=None
+        )
+        # for transaction event only psp reference is indexed
+        if psp_reference:
+            mark_checkout_search_index_dirty(source_object)
+    elif isinstance(source_object, Order):
         # circular import
         from ..order.actions import order_transaction_updated
 
-        manager = get_plugins_manager(allow_replica=False)
-        order = cast(Order, transaction_item.order)
-        order_info = fetch_order_info(order)
-        update_order_with_transaction_details(transaction_item)
+        order_info = fetch_order_info(source_object)
+        update_order_with_transaction_details(source_object)
         order_transaction_updated(
             order_info=order_info,
             transaction_item=transaction_item,
@@ -1641,18 +1648,31 @@ def create_transaction_event_from_request_and_webhook_response(
             )
             calculate_order_granted_refund_status(granted_refund)
 
-    elif transaction_item.checkout_id:
-        manager = get_plugins_manager(allow_replica=True)
-        recalculate_refundable_for_checkout(transaction_item, request_event, event)
-        transaction_amounts_for_checkout_updated(
-            transaction_item, manager, app=app, user=None
-        )
-    source_object = transaction_item.checkout or transaction_item.order
     if event and source_object and app:
         invalidate_cache_for_stored_payment_methods_if_needed(
             event, source_object, app.identifier
         )
     return event
+
+
+def get_source_object(
+    transaction_item: TransactionItem,
+) -> Checkout | Order | None:
+    source_object: Checkout | Order | None = None
+    if transaction_item.checkout_id:
+        source_object = Checkout.objects.filter(pk=transaction_item.checkout_id).first()
+    if not source_object:
+        source_object = Order.objects.filter(
+            pk__in=TransactionItem.objects.filter(pk=transaction_item.pk).values_list(
+                "order_id", flat=True
+            )
+        ).first()
+    return source_object
+
+
+def mark_checkout_search_index_dirty(checkout: Checkout):
+    checkout.search_index_dirty = True
+    checkout.safe_update(update_fields=["search_index_dirty"])
 
 
 def _prepare_manual_event(
@@ -1910,6 +1930,10 @@ def handle_transaction_initialize_session(
             source_object,
             app.identifier,  # type: ignore[union-attr]
         )
+    if isinstance(source_object, Checkout):
+        # new transaction created, so we need to mark the checkout search index as dirty
+        source_object.search_index_dirty = True
+        source_object.safe_update(update_fields=["search_index_dirty"])
     data_to_return = response_data.get("data") if response_data else None
     return created_event.transaction, created_event, data_to_return
 
@@ -1949,6 +1973,9 @@ def handle_transaction_process_session(
     invalidate_cache_for_stored_payment_methods_if_needed(
         created_event, source_object, app.identifier
     )
+    if isinstance(source_object, Checkout):
+        source_object.search_index_dirty = True
+        source_object.safe_update(update_fields=["search_index_dirty"])
     data_to_return = response_data.get("data") if response_data else None
     return created_event, data_to_return
 

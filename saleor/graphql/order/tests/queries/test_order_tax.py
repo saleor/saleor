@@ -1,40 +1,42 @@
 from decimal import Decimal
 from functools import reduce
 from operator import getitem
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import graphene
 import pytest
-from prices import Money, TaxedMoney
+from prices import TaxedMoney
 
+from .....core.prices import quantize_price
+from .....core.taxes import zero_taxed_money
 from .....order import OrderStatus
-from .....order.interface import OrderTaxedPricesData
+from .....order.calculations import process_order_prices
 from ....tests.utils import get_graphql_content
 
 
 @pytest.mark.parametrize(
-    ("fun_to_patch", "price_name"),
+    ("field_on_order", "price_name"),
     [
-        ("order_total", "total"),
-        ("order_undiscounted_total", "undiscountedTotal"),
-        ("order_shipping", "shippingPrice"),
+        ("total", "total"),
+        ("undiscounted_total", "undiscountedTotal"),
+        ("shipping_price", "shippingPrice"),
     ],
 )
 def test_order_resolver_tax_recalculation(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
-    fun_to_patch,
+    field_on_order,
     price_name,
+    tax_configuration_flat_rates,
 ):
     # given
-    price = TaxedMoney(
-        net=Money(amount="1234.56", currency="USD"),
-        gross=Money(amount="1267.89", currency="USD"),
-    )
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
+    order.total = zero_taxed_money(currency=order.currency)
+    order.undiscounted_total = zero_taxed_money(currency=order.currency)
+    order.shipping_price = zero_taxed_money(currency=order.currency)
     order.save()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -48,10 +50,14 @@ def test_order_resolver_tax_recalculation(
         """
     variables = {"id": order_id}
 
+    current_tax_price = getattr(order, field_on_order)
+    assert current_tax_price.net == current_tax_price.gross
+
     # when
     with patch(
-        f"saleor.order.calculations.{fun_to_patch}", new=Mock(return_value=price)
-    ):
+        "saleor.graphql.order.dataloaders.process_order_prices",
+        wraps=process_order_prices,
+    ) as mocked_process_order_prices:
         response = staff_api_client.post_graphql(
             query,
             variables,
@@ -60,43 +66,47 @@ def test_order_resolver_tax_recalculation(
         )
         content = get_graphql_content(response)
         data = content["data"]["order"]
+        assert mocked_process_order_prices.called
 
     # then
-    assert str(data[price_name]["net"]["amount"]) == str(price.net.amount)
-    assert str(data[price_name]["gross"]["amount"]) == str(price.gross.amount)
+    order.refresh_from_db()
+    assert order.should_refresh_prices is False
+    assert quantize_price(
+        Decimal(data[price_name]["gross"]["amount"]), order.currency
+    ) == quantize_price(getattr(order, field_on_order).gross.amount, order.currency)
 
-
-ORDER_LINE_PRICE_DATA = OrderTaxedPricesData(
-    price_with_discounts=TaxedMoney(
-        net=Money(amount="1234.56", currency="USD"),
-        gross=Money(amount="1267.89", currency="USD"),
-    ),
-    undiscounted_price=TaxedMoney(
-        net=Money(amount="7234.56", currency="USD"),
-        gross=Money(amount="7267.89", currency="USD"),
-    ),
-)
+    assert Decimal(data[price_name]["net"]["amount"]) == quantize_price(
+        getattr(order, field_on_order).net.amount, order.currency
+    )
 
 
 @pytest.mark.parametrize(
-    ("fun_to_patch", "price_name", "expected_price"),
+    (
+        "field_on_order_line",
+        "price_name",
+    ),
     [
-        ("order_line_unit", "unitPrice", ORDER_LINE_PRICE_DATA.price_with_discounts),
         (
-            "order_line_unit",
-            "undiscountedUnitPrice",
-            ORDER_LINE_PRICE_DATA.undiscounted_price,
+            "unit_price",
+            "unitPrice",
         ),
-        ("order_line_total", "totalPrice", ORDER_LINE_PRICE_DATA.price_with_discounts),
+        (
+            "undiscounted_unit_price",
+            "undiscountedUnitPrice",
+        ),
+        (
+            "total_price",
+            "totalPrice",
+        ),
     ],
 )
 def test_order_line_resolver_tax_recalculation(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
-    fun_to_patch,
+    field_on_order_line,
     price_name,
-    expected_price,
+    tax_configuration_flat_rates,
 ):
     # given
     order = order_with_lines
@@ -105,6 +115,16 @@ def test_order_line_resolver_tax_recalculation(
     order.save()
 
     order.lines.last().delete()
+    assert order.lines.count() == 1
+
+    order_line = order.lines.first()
+    order_line.unit_price = zero_taxed_money(currency=order.currency)
+    order_line.undiscounted_unit_price = zero_taxed_money(currency=order.currency)
+    order_line.total_price = zero_taxed_money(currency=order.currency)
+    order_line.save()
+
+    taxed_price: TaxedMoney = getattr(order_line, field_on_order_line)
+    assert taxed_price.net == taxed_price.gross
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -121,9 +141,9 @@ def test_order_line_resolver_tax_recalculation(
 
     # when
     with patch(
-        f"saleor.order.calculations.{fun_to_patch}",
-        new=Mock(return_value=ORDER_LINE_PRICE_DATA),
-    ):
+        "saleor.graphql.order.dataloaders.process_order_prices",
+        wraps=process_order_prices,
+    ) as mocked_process_order_prices:
         response = staff_api_client.post_graphql(
             query,
             variables,
@@ -132,10 +152,22 @@ def test_order_line_resolver_tax_recalculation(
         )
         content = get_graphql_content(response)
         data = content["data"]["order"]["lines"][0]
-
+        assert mocked_process_order_prices.called
     # then
-    assert str(data[price_name]["net"]["amount"]) == str(expected_price.net.amount)
-    assert str(data[price_name]["gross"]["amount"]) == str(expected_price.gross.amount)
+    order.refresh_from_db()
+    assert order.should_refresh_prices is False
+    order_line.refresh_from_db()
+
+    assert quantize_price(
+        Decimal(data[price_name]["net"]["amount"]), order.currency
+    ) == quantize_price(
+        getattr(order_line, field_on_order_line).net.amount, order.currency
+    )
+    assert quantize_price(
+        Decimal(data[price_name]["gross"]["amount"]), order.currency
+    ) == quantize_price(
+        getattr(order_line, field_on_order_line).gross.amount, order.currency
+    )
 
 
 ORDER_SHIPPING_TAX_RATE_QUERY = """
@@ -158,10 +190,10 @@ query OrderLineTaxRate($id: ID!) {
 
 
 @pytest.mark.parametrize(
-    ("query", "fun_to_patch", "path"),
+    ("query", "path"),
     [
-        (ORDER_SHIPPING_TAX_RATE_QUERY, "order_shipping_tax_rate", ["shippingTaxRate"]),
-        (ORDER_LINE_TAX_RATE_QUERY, "order_line_tax_rate", ["lines", 0, "taxRate"]),
+        (ORDER_SHIPPING_TAX_RATE_QUERY, ["shippingTaxRate"]),
+        (ORDER_LINE_TAX_RATE_QUERY, ["lines", 0, "taxRate"]),
     ],
 )
 def test_order_tax_rate_resolver_tax_recalculation(
@@ -169,17 +201,23 @@ def test_order_tax_rate_resolver_tax_recalculation(
     permission_manage_orders,
     order_with_lines,
     query,
-    fun_to_patch,
     path,
+    tax_configuration_flat_rates,
 ):
     # given
-    tax_rate = Decimal("0.01")
+    expected_tax_rate = Decimal("0.23")
+
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
+    order.shipping_tax_rate = Decimal("0.0")
     order.save()
 
     order.lines.last().delete()
+    assert order.lines.count() == 1
+    order_line = order.lines.first()
+    order_line.tax_rate = Decimal("0.0")
+    order_line.save()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
 
@@ -187,8 +225,9 @@ def test_order_tax_rate_resolver_tax_recalculation(
 
     # when
     with patch(
-        f"saleor.order.calculations.{fun_to_patch}", new=Mock(return_value=tax_rate)
-    ):
+        "saleor.graphql.order.dataloaders.process_order_prices",
+        wraps=process_order_prices,
+    ) as mocked_process_order_prices:
         response = staff_api_client.post_graphql(
             query,
             variables,
@@ -197,6 +236,6 @@ def test_order_tax_rate_resolver_tax_recalculation(
         )
         content = get_graphql_content(response)
         data = content["data"]["order"]
-
+        assert mocked_process_order_prices.called
     # then
-    assert str(reduce(getitem, path, data)) == str(tax_rate)
+    assert str(reduce(getitem, path, data)) == str(expected_tax_rate)

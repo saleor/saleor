@@ -20,7 +20,7 @@ from ...checkout.models import CheckoutLine
 from ...checkout.utils import add_voucher_to_checkout
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
-from ...discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
+from ...discount import DiscountType, DiscountValueType, RewardValueType
 from ...discount.models import CheckoutDiscount, CheckoutLineDiscount
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import FulfillmentLineData, OrderOrigin
@@ -43,14 +43,12 @@ from ..payloads import (
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
-    generate_excluded_shipping_methods_for_order_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
     generate_meta,
     generate_metadata_updated_payload,
     generate_order_payload,
-    generate_order_payload_for_tax_calculation,
     generate_payment_payload,
     generate_product_media_payload,
     generate_product_payload,
@@ -304,201 +302,6 @@ def test_generate_order_payload(
 
 
 @freeze_time()
-@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
-@mock.patch("saleor.webhook.payloads._generate_order_lines_payload_for_tax_calculation")
-def test_generate_order_payload_for_tax_calculation(
-    mocked_order_lines,
-    order_for_payload,
-    prices_entered_with_tax,
-):
-    # given
-    order = order_for_payload
-
-    tax_configuration = order.channel.tax_configuration
-    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
-    tax_configuration.save(update_fields=["prices_entered_with_tax"])
-    tax_configuration.country_exceptions.all().delete()
-
-    order_lines = '"order_lines"'
-    mocked_order_lines.return_value = order_lines
-
-    order = order_for_payload
-    discount_1, discount_2 = list(order.discounts.all())
-    user = order.user
-
-    # when
-    payload = json.loads(generate_order_payload_for_tax_calculation(order))[0]
-
-    # then
-    currency = order.currency
-
-    assert payload == {
-        "type": "Order",
-        "id": graphene.Node.to_global_id("Order", order.id),
-        "channel": {
-            "id": graphene.Node.to_global_id("Channel", order.channel_id),
-            "type": "Channel",
-            "slug": order.channel.slug,
-            "currency_code": order.channel.currency_code,
-        },
-        "address": {
-            "id": graphene.Node.to_global_id("Address", order.shipping_address_id),
-            "type": "Address",
-            "first_name": order.shipping_address.first_name,
-            "last_name": order.shipping_address.last_name,
-            "company_name": order.shipping_address.company_name,
-            "street_address_1": order.shipping_address.street_address_1,
-            "street_address_2": order.shipping_address.street_address_2,
-            "city": order.shipping_address.city,
-            "city_area": order.shipping_address.city_area,
-            "postal_code": order.shipping_address.postal_code,
-            "country": order.shipping_address.country.code,
-            "country_area": order.shipping_address.country_area,
-            "phone": str(order.shipping_address.phone),
-        },
-        "user_id": graphene.Node.to_global_id("User", user.pk),
-        "user_public_metadata": user.metadata,
-        "included_taxes_in_prices": prices_entered_with_tax,
-        "currency": order.currency,
-        "shipping_name": order.shipping_method.name,
-        "shipping_amount": str(
-            quantize_price(order.base_shipping_price_amount, currency)
-        ),
-        "metadata": order.metadata,
-        "discounts": [
-            {
-                "name": discount_1.name,
-                "amount": str(quantize_price(discount_1.amount_value, currency)),
-            },
-            {
-                "name": discount_2.name,
-                "amount": str(quantize_price(discount_2.amount_value, currency)),
-            },
-        ],
-        "lines": json.loads(order_lines),
-    }
-    mocked_order_lines.assert_called_once()
-
-
-@freeze_time()
-@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
-@mock.patch("saleor.webhook.payloads._generate_order_lines_payload_for_tax_calculation")
-def test_generate_order_payload_for_tax_calculation_entire_order_voucher(
-    mocked_order_lines, order_for_payload, prices_entered_with_tax, voucher
-):
-    # given
-    order = order_for_payload
-
-    tax_configuration = order.channel.tax_configuration
-    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
-    tax_configuration.save(update_fields=["prices_entered_with_tax"])
-    tax_configuration.country_exceptions.all().delete()
-
-    order_lines = '"order_lines"'
-    mocked_order_lines.return_value = order_lines
-
-    order = order_for_payload
-    discount_1, discount_2 = list(order.discounts.all())
-    voucher.type = VoucherType.ENTIRE_ORDER
-    voucher.apply_once_per_order = False
-    voucher.save()
-    discount_2.voucher = voucher
-    discount_2.save()
-    user = order.user
-
-    # when
-    payload = json.loads(generate_order_payload_for_tax_calculation(order))[0]
-
-    # then
-    currency = order.currency
-
-    assert payload == {
-        "type": "Order",
-        "id": graphene.Node.to_global_id("Order", order.id),
-        "channel": {
-            "id": graphene.Node.to_global_id("Channel", order.channel_id),
-            "type": "Channel",
-            "slug": order.channel.slug,
-            "currency_code": order.channel.currency_code,
-        },
-        "address": {
-            "id": graphene.Node.to_global_id("Address", order.shipping_address_id),
-            "type": "Address",
-            "first_name": order.shipping_address.first_name,
-            "last_name": order.shipping_address.last_name,
-            "company_name": order.shipping_address.company_name,
-            "street_address_1": order.shipping_address.street_address_1,
-            "street_address_2": order.shipping_address.street_address_2,
-            "city": order.shipping_address.city,
-            "city_area": order.shipping_address.city_area,
-            "postal_code": order.shipping_address.postal_code,
-            "country": order.shipping_address.country.code,
-            "country_area": order.shipping_address.country_area,
-            "phone": str(order.shipping_address.phone),
-        },
-        "user_id": graphene.Node.to_global_id("User", user.pk),
-        "user_public_metadata": user.metadata,
-        "included_taxes_in_prices": prices_entered_with_tax,
-        "currency": order.currency,
-        "shipping_name": order.shipping_method.name,
-        "shipping_amount": str(
-            quantize_price(order.base_shipping_price_amount, currency)
-        ),
-        "metadata": order.metadata,
-        "discounts": [
-            {
-                "name": discount_1.name,
-                "amount": str(quantize_price(discount_1.amount_value, currency)),
-            },
-            {
-                "name": discount_2.name,
-                "amount": str(quantize_price(discount_2.amount_value, currency)),
-            },
-        ],
-        "lines": json.loads(order_lines),
-    }
-    mocked_order_lines.assert_called_once()
-
-
-@freeze_time()
-@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
-@mock.patch("saleor.webhook.payloads._generate_order_lines_payload_for_tax_calculation")
-def test_generate_order_payload_for_tax_calculation_line_level_voucher_excluded(
-    mocked_order_lines, order_for_payload, prices_entered_with_tax, voucher
-):
-    # given
-    order = order_for_payload
-
-    tax_configuration = order.channel.tax_configuration
-    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
-    tax_configuration.save(update_fields=["prices_entered_with_tax"])
-
-    order_lines = '"order_lines"'
-    mocked_order_lines.return_value = order_lines
-
-    order = order_for_payload
-    discount_1, discount_2 = list(order.discounts.all())
-    voucher.type = VoucherType.ENTIRE_ORDER
-    # line level vouchers should be excluded from discounts
-    voucher.apply_once_per_order = True
-    voucher.save()
-    discount_2.voucher = voucher
-    discount_2.save()
-
-    # when
-    payload = json.loads(generate_order_payload_for_tax_calculation(order))[0]
-
-    # then
-    assert payload["discounts"] == [
-        {
-            "name": discount_1.name,
-            "amount": str(quantize_price(discount_1.amount_value, order.currency)),
-        },
-    ]
-    mocked_order_lines.assert_called_once()
-
-
-@freeze_time()
 @mock.patch("saleor.webhook.payloads.generate_order_lines_payload")
 @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
 def test_generate_order_payload_no_user_email_but_user_set(
@@ -735,112 +538,6 @@ def test_order_lines_have_all_required_fields(
         ),
         "voucher_code": line.voucher_code,
         "sale_id": line.sale_id,
-    }
-
-
-@pytest.mark.parametrize(
-    ("charge_taxes", "prices_entered_with_tax"),
-    [(False, False), (False, True), (True, False), (True, True)],
-)
-def test_order_lines_for_tax_calculation_have_all_required_fields(
-    order,
-    order_line_with_one_allocation,
-    charge_taxes,
-    prices_entered_with_tax,
-):
-    tax_configuration = order.channel.tax_configuration
-    tax_configuration.charge_taxes = charge_taxes
-    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
-    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
-    tax_configuration.country_exceptions.all().delete()
-
-    order.lines.add(order_line_with_one_allocation)
-    currency = order.currency
-    line = order_line_with_one_allocation
-    line.voucher_code = "Voucher001"
-    line.unit_discount_amount = Decimal("10.0")
-    line.unit_discount_type = DiscountValueType.FIXED
-    line.undiscounted_unit_price = line.unit_price + line.unit_discount
-    line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
-    line.sale_id = graphene.Node.to_global_id("Sale", 1)
-    line.save()
-    variant = line.variant
-    product = variant.product
-    product_type = product.product_type
-    product.metadata = {"product_meta": "value"}
-    product.save()
-    product_type.metadata = {"product_type_meta": "value"}
-    product_type.save()
-
-    payload = json.loads(generate_order_payload_for_tax_calculation(order))[0]
-    lines_payload = payload.get("lines")
-
-    assert len(lines_payload) == 1
-    line_id = graphene.Node.to_global_id("OrderLine", line.id)
-    line_payload = lines_payload[0]
-    assert line_payload == {
-        "type": "OrderLine",
-        "id": line_id,
-        "variant_id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "full_name": variant.display_product(),
-        "product_name": line.product_name,
-        "variant_name": line.variant_name,
-        "product_metadata": {"product_meta": "value"},
-        "product_type_metadata": {"product_type_meta": "value"},
-        "quantity": line.quantity,
-        "sku": line.product_sku,
-        "charge_taxes": charge_taxes,
-        "unit_amount": str(quantize_price(line.base_unit_price_amount, currency)),
-        "total_amount": str(
-            quantize_price(line.base_unit_price_amount * line.quantity, currency)
-        ),
-    }
-
-
-@pytest.mark.parametrize("charge_taxes", [True, False])
-def test_order_lines_for_tax_calculation_with_removed_variant(
-    order, order_line_with_one_allocation, charge_taxes
-):
-    tax_configuration = order.channel.tax_configuration
-    tax_configuration.charge_taxes = charge_taxes
-    tax_configuration.save(update_fields=["charge_taxes"])
-    tax_configuration.country_exceptions.all().delete()
-
-    order.lines.add(order_line_with_one_allocation)
-    currency = order.currency
-    line = order_line_with_one_allocation
-    line.voucher_code = "Voucher001"
-    line.unit_discount_amount = Decimal("10.0")
-    line.unit_discount_type = DiscountValueType.FIXED
-    line.undiscounted_unit_price = line.unit_price + line.unit_discount
-    line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
-    line.sale_id = graphene.Node.to_global_id("Sale", 1)
-    variant = line.variant
-    line.variant = None
-    line.save()
-
-    payload = json.loads(generate_order_payload_for_tax_calculation(order))[0]
-    lines_payload = payload.get("lines")
-
-    assert len(lines_payload) == 1
-    line_id = graphene.Node.to_global_id("OrderLine", line.id)
-    line_payload = lines_payload[0]
-    assert line_payload == {
-        "type": "OrderLine",
-        "id": line_id,
-        "variant_id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "full_name": None,
-        "product_name": line.product_name,
-        "variant_name": line.variant_name,
-        "product_metadata": {},
-        "product_type_metadata": {},
-        "quantity": line.quantity,
-        "sku": line.product_sku,
-        "charge_taxes": charge_taxes,
-        "unit_amount": str(quantize_price(line.base_unit_price_amount, currency)),
-        "total_amount": str(
-            quantize_price(line.base_unit_price_amount * line.quantity, currency)
-        ),
     }
 
 
@@ -2545,37 +2242,6 @@ def test_generate_checkout_payload(
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
         "warehouse_address": ANY,
     }
-
-
-@patch("saleor.order.calculations.fetch_order_prices_if_expired")
-def test_generate_excluded_shipping_methods_for_order(mocked_fetch, order):
-    shipping_method = ShippingMethodData(
-        id="123",
-        price=Money(Decimal("10.59"), "USD"),
-        name="shipping",
-        maximum_order_weight=Weight(kg=10),
-        minimum_order_weight=Weight(g=1),
-        maximum_delivery_days=10,
-        minimum_delivery_days=2,
-    )
-    response = json.loads(
-        generate_excluded_shipping_methods_for_order_payload(order, [shipping_method])
-    )
-
-    assert "order" in response
-    assert response["shipping_methods"] == [
-        {
-            "id": graphene.Node.to_global_id("ShippingMethod", "123"),
-            "price": "10.59",
-            "currency": "USD",
-            "name": "shipping",
-            "maximum_order_weight": "10.0:kg",
-            "minimum_order_weight": "1.0:g",
-            "maximum_delivery_days": 10,
-            "minimum_delivery_days": 2,
-        }
-    ]
-    mocked_fetch.assert_not_called()
 
 
 def test_generate_excluded_shipping_methods_for_checkout(checkout):

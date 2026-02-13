@@ -35,6 +35,7 @@ from ..utils import get_user_or_app_from_context
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.order_bulk_cancel import OrderBulkCancel
 from .bulk_mutations.order_bulk_create import OrderBulkCreate
+from .dataloaders import OrderByIdLoader
 from .filters import (
     DraftOrderFilter,
     DraftOrderWhereInput,
@@ -227,7 +228,10 @@ class OrderQueries(graphene.ObjectType):
             except ValidationError:
                 return None
         _, id = from_global_id_or_error(id, Order)
-        return resolve_order(info, id)
+        wrapped_order = resolve_order(info, id)
+        if wrapped_order:
+            OrderByIdLoader(info.context).prime(id, wrapped_order.node)
+        return wrapped_order
 
     @staticmethod
     def resolve_orders(_root, info: ResolveInfo, *, channel=None, **kwargs):
@@ -287,7 +291,12 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_order_by_token(_root, info: ResolveInfo, *, token):
-        return resolve_order_by_token(info, token)
+        wrapped_order = resolve_order_by_token(info, token)
+        if wrapped_order:
+            OrderByIdLoader(info.context).prime(
+                wrapped_order.node.id, wrapped_order.node
+            )
+        return wrapped_order
 
 
 class OrderMutations(graphene.ObjectType):
