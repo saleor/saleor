@@ -684,3 +684,46 @@ def test_me_query_stored_payment_methods(
             "data": payment_method_data,
         }
     ]
+
+
+ME_ORDERS_PAGINATION_QUERY = """
+    query Me($first: Int, $last: Int, $after: String, $before: String) {
+        me {
+            orders(first: $first, last: $last, after: $after, before: $before) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                    startCursor
+                    endCursor
+                }
+                totalCount
+            }
+        }
+    }
+"""
+
+
+def test_me_orders_pagination_has_previous_page(user_api_client, order_list):
+    # given - 3 orders exist for the user; fetch first page of 1
+    variables = {"first": 1}
+    response = user_api_client.post_graphql(ME_ORDERS_PAGINATION_QUERY, variables)
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    end_cursor = orders_data["pageInfo"]["endCursor"]
+    assert orders_data["pageInfo"]["hasPreviousPage"] is False
+    assert orders_data["pageInfo"]["hasNextPage"] is True
+
+    # when - fetch second page using after cursor
+    variables = {"first": 1, "after": end_cursor}
+    response = user_api_client.post_graphql(ME_ORDERS_PAGINATION_QUERY, variables)
+
+    # then - second page should report hasPreviousPage=True
+    content = get_graphql_content(response)
+    page_info = content["data"]["me"]["orders"]["pageInfo"]
+    assert page_info["hasPreviousPage"] is True
+    assert page_info["hasNextPage"] is True
