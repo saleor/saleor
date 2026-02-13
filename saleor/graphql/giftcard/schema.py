@@ -1,8 +1,8 @@
 import graphene
 from graphql.error import GraphQLError
 
+from ...core.search import prefix_search
 from ...giftcard import models
-from ...giftcard.search import search_gift_cards
 from ...permission.enums import GiftcardPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -10,7 +10,10 @@ from ..core.context import get_database_connection_name
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
-from ..core.utils import from_global_id_or_error
+from ..core.utils import (
+    from_global_id_or_error,
+    validate_and_apply_search_rank_sorting,
+)
 from .bulk_mutations import (
     GiftCardBulkActivate,
     GiftCardBulkCreate,
@@ -28,7 +31,7 @@ from .mutations import (
     GiftCardUpdate,
 )
 from .resolvers import resolve_gift_card, resolve_gift_card_tags, resolve_gift_cards
-from .sorters import GiftCardSortingInput
+from .sorters import GiftCardSortField, GiftCardSortingInput
 from .types import GiftCard, GiftCardCountableConnection, GiftCardTagCountableConnection
 
 
@@ -85,9 +88,14 @@ class GiftCardQueries(graphene.ObjectType):
         return resolve_gift_card(info, id)
 
     @staticmethod
-    def resolve_gift_cards(
-        _root, info: ResolveInfo, /, *, sort_by=None, filter=None, search=None, **kwargs
-    ):
+    def resolve_gift_cards(_root, info: ResolveInfo, /, **kwargs):
+        validate_and_apply_search_rank_sorting(
+            kwargs, GiftCardSortField.RANK, "GiftCardSortingInput", info
+        )
+        sort_by = kwargs.get("sort_by", None)
+        filter = kwargs.get("filter", None)
+        search = kwargs.get("search", None)
+
         sorting_by_balance = sort_by and "current_balance_amount" in sort_by.get(
             "field", []
         )
@@ -96,7 +104,7 @@ class GiftCardQueries(graphene.ObjectType):
             raise GraphQLError("Sorting by balance requires filtering by currency.")
         qs = resolve_gift_cards(info)
         if search:
-            qs = search_gift_cards(qs, search)
+            qs = prefix_search(qs, search)
         qs = filter_connection_queryset(
             qs,
             {"sort_by": sort_by, "filter": filter, **kwargs},

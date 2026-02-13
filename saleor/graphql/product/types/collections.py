@@ -4,9 +4,9 @@ import graphene
 from graphene import relay
 from promise import Promise
 
+from ....core.search import prefix_search
 from ....permission.enums import ProductPermissions
 from ....product import models
-from ....product.search import search_products
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -30,7 +30,10 @@ from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
 from ...core.types import Image, NonNullList, ThumbnailField
 from ...core.types.context import ChannelContextType
-from ...core.utils import from_global_id_or_error
+from ...core.utils import (
+    from_global_id_or_error,
+    validate_and_apply_search_rank_sorting,
+)
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import CollectionTranslation
@@ -40,8 +43,7 @@ from ..dataloaders import (
     ThumbnailByCollectionIdSizeAndFormatLoader,
 )
 from ..filters.product import ProductFilterInput, ProductWhereInput
-from ..sorters import ProductOrder
-from ..utils import check_for_sorting_by_rank
+from ..sorters import ProductOrder, ProductOrderField
 from .channels import CollectionChannelListing
 from .products import ProductCountableConnection
 
@@ -137,7 +139,9 @@ class Collection(ChannelContextType[models.Collection]):
     def resolve_products(
         root: ChannelContext[models.Collection], info: ResolveInfo, **kwargs
     ):
-        check_for_sorting_by_rank(info, kwargs)
+        validate_and_apply_search_rank_sorting(
+            kwargs, ProductOrderField.RANK, "ProductOrder", info
+        )
         search = kwargs.get("search")
 
         requestor = get_user_or_app_from_context(info.context)
@@ -150,7 +154,7 @@ class Collection(ChannelContextType[models.Collection]):
 
             if search:
                 qs = ChannelQsContext(
-                    qs=search_products(qs, search), channel_slug=root.channel_slug
+                    qs=prefix_search(qs, search), channel_slug=root.channel_slug
                 )
             else:
                 qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)

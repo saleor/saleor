@@ -10,11 +10,11 @@ from django.utils import timezone
 from graphql.error import GraphQLError
 
 from ...core.postgres import FlatConcat
+from ...core.search import prefix_search
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...invoice.models import Invoice
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
-from ...order.search import search_orders
 from ...payment import ChargeStatus, PaymentMethodType
 from ...payment.models import TransactionItem
 from ...product.models import ProductVariant
@@ -182,7 +182,7 @@ def filter_updated_at_range(qs, _, value):
 
 
 def filter_order_search(qs, _, value):
-    return search_orders(qs, value)
+    return prefix_search(qs, value)
 
 
 def filter_channels(qs, _, values):

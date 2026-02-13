@@ -2,7 +2,7 @@ import django_filters
 from django.db.models import Count, Exists, OuterRef
 
 from ...account.models import Address, User
-from ...account.search import search_users
+from ...core.search import prefix_search
 from ...order.models import Order
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.filters import (
@@ -66,7 +66,7 @@ def filter_staff_status(qs, _, value):
 
 
 def filter_user_search(qs, _, value):
-    return search_users(qs, value)
+    return prefix_search(qs, value)
 
 
 def filter_search(qs, _, value):

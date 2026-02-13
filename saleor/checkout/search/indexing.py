@@ -2,9 +2,8 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.conf import settings
-from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db import transaction
-from django.db.models import F, Q, Value
+from django.db.models import Value
 
 from ...account.search import (
     generate_address_search_vector_value,
@@ -19,8 +18,6 @@ from .loaders import CheckoutData, CheckoutLineData, TransactionData, load_check
 
 if TYPE_CHECKING:
     from uuid import UUID
-
-    from django.db.models import QuerySet
 
     from ...payment.models import Payment
     from ..models import Checkout
@@ -218,14 +215,3 @@ def generate_checkout_lines_search_vector_value(
             )
 
     return line_vectors
-
-
-def search_checkouts(qs: "QuerySet[Checkout]", value) -> "QuerySet[Checkout]":
-    """Filter checkouts by search query using the search_vector field."""
-    if value:
-        query = SearchQuery(value, search_type="websearch", config="simple")
-        lookup = Q(search_vector=query)
-        qs = qs.filter(lookup).annotate(
-            search_rank=SearchRank(F("search_vector"), query)
-        )
-    return qs

@@ -5,9 +5,9 @@ from django.utils.text import slugify
 
 from ...account.models import Address
 from ...product.models import Product, ProductChannelListing
-from ...product.search import search_products
 from ...tests.utils import dummy_editorjs
 from ..postgres import FlatConcat
+from ..search import prefix_search
 
 PRODUCTS = [
     ("Arabica Coffee", "The best grains in galactic"),
@@ -45,7 +45,7 @@ def named_products(category, product_type, channel_USD):
 def execute_search(phrase):
     """Execute storefront search."""
     qs = Product.objects.all()
-    return search_products(qs, phrase)
+    return prefix_search(qs, phrase)
 
 
 @pytest.mark.parametrize(

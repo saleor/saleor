@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
-from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import F, Q, QuerySet, Value, prefetch_related_objects
+from django.db.models import Value, prefetch_related_objects
 
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 
@@ -138,13 +137,3 @@ def generate_address_search_vector_value(
             )
         )
     return search_vectors
-
-
-def search_users(qs: "QuerySet[User]", value) -> "QuerySet[User]":
-    if value:
-        query = SearchQuery(value, search_type="websearch", config="simple")
-        lookup = Q(search_vector=query)
-        qs = qs.filter(lookup).annotate(
-            search_rank=SearchRank(F("search_vector"), query)
-        )
-    return qs

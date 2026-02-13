@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.postgres.search import SearchQuery
 from django.db.models import Q, QuerySet, Value, prefetch_related_objects
 
 from ..account.models import User
@@ -68,10 +67,3 @@ def update_gift_cards_search_vector(gift_cards: list[GiftCard]):
         )
 
     GiftCard.objects.bulk_update(gift_cards, ["search_vector", "search_index_dirty"])
-
-
-def search_gift_cards(qs, value):
-    if value:
-        query = SearchQuery(value, search_type="websearch", config="simple")
-        qs = qs.filter(search_vector=query)
-    return qs

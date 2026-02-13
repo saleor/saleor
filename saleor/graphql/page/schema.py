@@ -1,6 +1,6 @@
 import graphene
 
-from ...page.search import search_pages
+from ...core.search import prefix_search
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -9,7 +9,7 @@ from ..core.descriptions import ADDED_IN_321, ADDED_IN_322, DEPRECATED_IN_3X_INP
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import BaseField, FilterConnectionField
-from ..core.utils import from_global_id_or_error
+from ..core.utils import from_global_id_or_error, validate_and_apply_search_rank_sorting
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish, PageTypeBulkDelete
 from .filters import PageFilterInput, PageTypeFilterInput, PageWhereInput
@@ -31,7 +31,7 @@ from .resolvers import (
     resolve_page_types,
     resolve_pages,
 )
-from .sorters import PageSortingInput, PageTypeSortingInput
+from .sorters import PageSortField, PageSortingInput, PageTypeSortingInput
 from .types import Page, PageCountableConnection, PageType, PageTypeCountableConnection
 
 
@@ -115,12 +115,16 @@ class PageQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_pages(_root, info: ResolveInfo, *, channel=None, **kwargs):
+        validate_and_apply_search_rank_sorting(
+            kwargs, PageSortField.RANK, "PageSortingInput", info
+        )
+
         def _resolve_pages(channel_instance):
             qs = resolve_pages(info, channel_slug=channel, channel=channel_instance)
             search = kwargs.get("search") or kwargs.get("filter", {}).get("search")
             if search:
                 qs = ChannelQsContext(
-                    qs=search_pages(qs.qs, search), channel_slug=qs.channel_slug
+                    qs=prefix_search(qs.qs, search), channel_slug=qs.channel_slug
                 )
 
             qs = filter_connection_queryset(

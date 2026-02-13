@@ -2,6 +2,7 @@ import graphene
 from django.db.models import Exists, OuterRef
 from promise import Promise
 
+from ...core.search import prefix_search
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
 from ...product import models
@@ -9,7 +10,6 @@ from ...product.deprecations import (
     DEPRECATION_WARNING_MESSAGE as DEPRECATION_DIGITAL_CONTENT,
 )
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
-from ...product.search import search_products
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
@@ -31,7 +31,7 @@ from ..core.fields import (
 )
 from ..core.tracing import traced_resolver
 from ..core.types import NonNullList
-from ..core.utils import from_global_id_or_error
+from ..core.utils import from_global_id_or_error, validate_and_apply_search_rank_sorting
 from ..core.validators import validate_one_of_args_is_in_query
 from ..shop.resolvers import get_database_connection_name
 from ..translations.mutations import (
@@ -132,6 +132,7 @@ from .sorters import (
     CategorySortingInput,
     CollectionSortingInput,
     ProductOrder,
+    ProductOrderField,
     ProductTypeSortingInput,
     ProductVariantSortingInput,
 )
@@ -149,7 +150,6 @@ from .types import (
     ProductVariant,
     ProductVariantCountableConnection,
 )
-from .utils import check_for_sorting_by_rank
 
 
 class ProductQueries(graphene.ObjectType):
@@ -526,7 +526,9 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     @traced_resolver
     def resolve_products(_root, info: ResolveInfo, *, channel=None, **kwargs):
-        check_for_sorting_by_rank(info, kwargs)
+        validate_and_apply_search_rank_sorting(
+            kwargs, ProductOrderField.RANK, "ProductOrder", info
+        )
         search = kwargs.get("search")
 
         requestor = get_user_or_app_from_context(info.context)
@@ -543,7 +545,7 @@ class ProductQueries(graphene.ObjectType):
             qs = resolve_products(info, requestor, channel_obj, limited_channel_access)
             if search:
                 qs = ChannelQsContext(
-                    qs=search_products(qs.qs, search), channel_slug=channel
+                    qs=prefix_search(qs.qs, search), channel_slug=channel
                 )
             kwargs["channel"] = channel
             qs = filter_connection_queryset(
@@ -645,7 +647,7 @@ class ProductQueries(graphene.ObjectType):
                 requestor=requestor,
             )
             if search:
-                products = search_products(
+                products = prefix_search(
                     models.Product.objects.using(
                         get_database_connection_name(info.context)
                     ),

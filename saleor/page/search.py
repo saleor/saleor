@@ -2,9 +2,8 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from django.conf import settings
-from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db import transaction
-from django.db.models import F, Q, QuerySet, Value
+from django.db.models import Value
 
 from ..attribute.models import Attribute, AttributeValue
 from ..attribute.search import get_search_vectors_for_attribute_values
@@ -210,13 +209,3 @@ def generate_attributes_search_vector_value(
             attribute, values, page_id_to_title_map=page_id_to_title_map, weight="B"
         )
     return search_vectors
-
-
-def search_pages(qs: QuerySet[Page], value: str) -> QuerySet[Page]:
-    if value:
-        query = SearchQuery(value, search_type="websearch", config="simple")
-        lookup = Q(search_vector=query)
-        qs = qs.filter(lookup).annotate(
-            search_rank=SearchRank(F("search_vector"), query)
-        )
-    return qs

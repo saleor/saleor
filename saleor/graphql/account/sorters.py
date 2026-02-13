@@ -11,12 +11,20 @@ class UserSortField(BaseEnum):
     ORDER_COUNT = ["order_count", "email"]
     CREATED_AT = ["date_joined", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "pk"]
+    RANK = ["search_rank", "pk"]
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
 
     @property
     def description(self):
+        descriptions = {
+            UserSortField.RANK.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+                "rank. Note: This option is available only with the `search` filter."
+            ),
+        }
+        if self.name in descriptions:
+            return f"Sort users by {descriptions[self.name]}"
         if self.name in UserSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort users by {sort_name}."

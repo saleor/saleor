@@ -6,7 +6,7 @@ from django.db.models import Exists, OuterRef, Q
 
 from ...account.models import User
 from ...checkout.models import Checkout
-from ...checkout.search.indexing import search_checkouts
+from ...core.search import prefix_search
 from ...payment.models import Payment
 from ..channel.filters import get_currency_from_filter_data
 from ..channel.types import Channel
@@ -99,7 +99,7 @@ def filter_channels(qs, _, values):
 
 
 def filter_checkout_search(qs, _, value):
-    return search_checkouts(qs, value)
+    return prefix_search(qs, value)
 
 
 def filter_checkout_metadata(qs, _, value):

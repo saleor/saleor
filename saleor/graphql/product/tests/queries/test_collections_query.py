@@ -434,9 +434,6 @@ def test_collections_query_return_error_with_sort_by_rank_without_search(
 
     # then
     errors = content["errors"]
-    expected_message = (
-        "Sorting by RANK is available only when using a search filter "
-        "or search argument."
-    )
+    expected_message = "Sorting by RANK is available only when using a search filter."
     assert len(errors) == 1
     assert errors[0]["message"] == expected_message

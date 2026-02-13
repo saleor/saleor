@@ -84,6 +84,81 @@ def test_query_customer_members_with_filter_search(
     assert len(users) == count
 
 
+def test_customers_search_sorted_by_rank_exact_match_prioritized(
+    staff_api_client,
+    permission_manage_users,
+    query_customer_with_filter,
+):
+    # given
+    users = User.objects.bulk_create(
+        [
+            User(
+                email="aaron00@example.net",
+                first_name="John",
+                last_name="Doe",
+                is_staff=False,
+                is_active=True,
+            ),
+            User(
+                email="different@other.net",
+                first_name="Aaron",
+                last_name="Smith",
+                is_staff=False,
+                is_active=True,
+            ),
+            User(
+                email="charlie@example.net",
+                first_name="Charlie",
+                last_name="Brown",
+                is_staff=False,
+                is_active=True,
+            ),
+            User(
+                email="jones@other.net",
+                first_name="Aaronson",
+                last_name="Jones",
+                is_staff=False,
+                is_active=True,
+            ),
+        ]
+    )
+    for user in users:
+        update_user_search_vector(user)
+    User.objects.bulk_update(users, ["search_vector"])
+
+    variables = {
+        "filter": {
+            "search": "aaron",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customers"]
+    assert data["totalCount"] == 3
+
+    returned_ids = [edge["node"]["id"] for edge in data["edges"]]
+    user_email_match_id = graphene.Node.to_global_id("User", users[0].pk)
+    user_exact_name_id = graphene.Node.to_global_id("User", users[1].pk)
+    user_no_match_id = graphene.Node.to_global_id("User", users[2].pk)
+    user_prefix_name_id = graphene.Node.to_global_id("User", users[3].pk)
+
+    # Exact name match "Aaron" should rank highest
+    assert returned_ids[0] == user_exact_name_id
+    # Charlie should not appear
+    assert user_no_match_id not in returned_ids
+    # Both prefix matches should appear
+    assert user_email_match_id in returned_ids
+    assert user_prefix_name_id in returned_ids
+
+
 def test_query_customers_with_filter_by_one_id(
     query_customer_with_filter,
     staff_api_client,
@@ -397,14 +472,17 @@ QUERY_CUSTOMERS_WITH_PAGINATION = """
 """
 
 
-@pytest.fixture
-def customers_for_search(db, address):
+def test_query_customer_members_pagination_with_filter_search(
+    staff_api_client,
+    permission_manage_users,
+):
+    # given
     accounts = User.objects.bulk_create(
         [
             User(
                 first_name="Alan",
-                last_name="Smith",
-                email="asmith@example.com",
+                last_name="Davis",
+                email="adavis@example.com",
                 is_staff=False,
                 is_active=True,
             ),
@@ -431,43 +509,20 @@ def customers_for_search(db, address):
             ),
             User(
                 first_name="Anthony",
-                last_name="Matthews",
-                email="amatthews@test.com",
+                last_name="Davis",
+                email="adavis@test.com",
                 is_staff=False,
                 is_active=True,
             ),
         ]
     )
-    for i, user in enumerate(accounts):
-        if i in (0, 3, 4):
-            user.addresses.set([address])
+    for user in accounts:
         update_user_search_vector(user)
     User.objects.bulk_update(accounts, ["search_vector"])
-    return accounts
 
-
-@pytest.mark.parametrize(
-    ("customer_filter", "expected_names"),
-    [
-        ({"search": "asmith@example.com"}, ["Alan"]),  # email
-        ({"search": "rdavis@test.com"}, ["Robert"]),  # email
-        ({"search": "Davis"}, ["Robert", "Xavier"]),  # last_name
-        ({"search": "WROCŁAW"}, ["Anthony", "Alan"]),  # city
-        ({"search": "PL"}, ["Anthony", "Alan"]),  # country
-    ],
-)
-def test_query_customer_members_pagination_with_filter_search(
-    customer_filter,
-    expected_names,
-    staff_api_client,
-    permission_manage_users,
-    address,
-    staff_user,
-    customers_for_search,
-):
-    # given
+    search_value = "Davis"
     page_size = 2
-    variables = {"first": page_size, "after": None, "filter": customer_filter}
+    variables = {"first": page_size, "after": None, "filter": {"search": search_value}}
     staff_api_client.user.user_permissions.add(permission_manage_users)
 
     # when
@@ -477,8 +532,13 @@ def test_query_customer_members_pagination_with_filter_search(
     )
     content = get_graphql_content(response)
 
-    # thwn
-    users = content["data"]["customers"]["edges"]
-    assert len(users) == len(expected_names)
-    names = {user["node"]["firstName"] for user in users}
-    assert names == set(expected_names)
+    # then
+    customers = content["data"]["customers"]
+    all_names = {edge["node"]["firstName"] for edge in customers["edges"]}
+    # as the search rank will be the same for all instances, the second search field
+    # is `pk` with the default `-` direction for search rank
+    assert all_names == set(
+        User.objects.filter(last_name=search_value)
+        .order_by("-pk")
+        .values_list("first_name", flat=True)[:page_size]
+    )
