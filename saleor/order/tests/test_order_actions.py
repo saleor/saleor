@@ -24,6 +24,7 @@ from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ...webhook.utils import get_webhooks_for_multiple_events
 from .. import (
     FulfillmentStatus,
@@ -353,6 +354,10 @@ def test_handle_fully_paid_order_for_draft_order(
     mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -363,6 +368,7 @@ def test_handle_fully_paid_order_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     customer_user,
@@ -422,6 +428,7 @@ def test_handle_fully_paid_order_triggers_webhooks(
 
     order_deliveries = [order_updated_delivery, order_fully_paid_delivery]
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -654,6 +661,10 @@ def test_cancel_order(
     )
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -662,6 +673,7 @@ def test_cancel_order(
 def test_cancel_order_dont_trigger_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     settings,
@@ -714,6 +726,7 @@ def test_cancel_order_dont_trigger_webhooks(
         order_updated_delivery,
     ]
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -796,6 +809,10 @@ def test_order_refunded_by_app(
     order_refunded_mock.assert_called_once_with(order, webhooks=set())
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -806,6 +823,7 @@ def test_order_refunded_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     settings,
@@ -874,6 +892,7 @@ def test_order_refunded_triggers_webhooks(
         order_refunded_delivery,
     ]
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -915,6 +934,10 @@ def test_order_refunded_triggers_webhooks(
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -925,6 +948,7 @@ def test_order_voided_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     settings,
@@ -968,6 +992,7 @@ def test_order_voided_triggers_webhooks(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": order_updated_delivery.id,
@@ -1006,6 +1031,10 @@ def test_order_voided_triggers_webhooks(
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -1014,6 +1043,7 @@ def test_order_voided_triggers_webhooks(
 def test_order_fulfilled_does_not_trigger_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     fulfilled_order,
     settings,
@@ -1069,6 +1099,7 @@ def test_order_fulfilled_does_not_trigger_webhooks(
         order_fulfilled_delivery,
     ]
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -1083,6 +1114,10 @@ def test_order_fulfilled_does_not_trigger_webhooks(
     assert not mocked_send_webhook_request_sync.called
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1093,6 +1128,7 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     fulfilled_order,
     settings,
@@ -1143,6 +1179,7 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": order_updated_delivery.id,
@@ -1181,6 +1218,10 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1191,6 +1232,7 @@ def test_order_authorized_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     settings,
@@ -1237,6 +1279,7 @@ def test_order_authorized_triggers_webhooks(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": order_updated_delivery.id,
@@ -1275,6 +1318,10 @@ def test_order_authorized_triggers_webhooks(
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1285,6 +1332,7 @@ def test_order_charged_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     settings,
@@ -1350,6 +1398,7 @@ def test_order_charged_triggers_webhooks(
         order_paid_delivery,
     ]
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -1646,6 +1695,10 @@ def test_order_transaction_updated_order_fully_paid(
     order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1656,6 +1709,7 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     transaction_item_generator,
@@ -1734,6 +1788,7 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
         order_paid_delivery,
     ]
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -1775,6 +1830,10 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1785,6 +1844,7 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     transaction_item_generator,
@@ -1839,6 +1899,7 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": order_updated_delivery.id,
@@ -1877,6 +1938,10 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -1887,6 +1952,7 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     transaction_item_generator,
@@ -1961,6 +2027,7 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
         order_refunded_delivery,
     ]
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -2730,6 +2797,10 @@ def test_call_order_events_when_async_webhooks_missing(
     assert not mocked_send_webhook_request_sync.called
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -2740,6 +2811,7 @@ def test_unconfirmed_order_created_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     customer_user,
@@ -2814,6 +2886,7 @@ def test_unconfirmed_order_created_triggers_webhooks(
         order_fully_paid_delivery,
     ]
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -2856,6 +2929,10 @@ def test_unconfirmed_order_created_triggers_webhooks(
     assert customer_user.number_of_orders == user_number_of_orders + 1
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -2866,6 +2943,7 @@ def test_confirmed_order_created_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     customer_user,
@@ -2944,6 +3022,7 @@ def test_confirmed_order_created_triggers_webhooks(
         order_fully_paid_delivery,
     ]
 
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -2962,6 +3041,10 @@ def test_confirmed_order_created_triggers_webhooks(
     assert customer_user.number_of_orders == user_number_of_orders + 1
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -2972,6 +3055,7 @@ def test_order_confirmed_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     customer_user,
@@ -3009,6 +3093,7 @@ def test_order_confirmed_triggers_webhooks(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_CONFIRMED,
     )
+    assert wrapped_generate_deferred_payloads.called
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": order_confirmed_delivery.id,

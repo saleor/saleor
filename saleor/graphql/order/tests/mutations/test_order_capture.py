@@ -14,6 +14,7 @@ from .....payment import ChargeStatus
 from .....payment.models import Payment
 from .....warehouse.models import Allocation
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -172,6 +173,10 @@ def test_order_capture_by_app(
     assert data["totalCaptured"]["amount"] == float(amount)
 
 
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
 @patch("saleor.webhook.transport.synchronous.transport.cache")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
@@ -183,10 +188,12 @@ def test_order_capture_by_app(
         "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
     ]
 )
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_order_capture_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -252,6 +259,29 @@ def test_order_capture_triggers_webhooks(
         order_updated_delivery,
     ]
 
+    wrapped_generate_deferred_payloads.assert_has_calls(
+        [
+            call(
+                kwargs={
+                    "event_delivery_ids": [delivery.id],
+                    "deferred_payload_data": {
+                        "model_name": "order.order",
+                        "object_id": order.pk,
+                        "requestor_model_name": "account.user",
+                        "requestor_object_id": staff_api_client.user.pk,
+                        "request_time": None,
+                    },
+                    "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                    "telemetry_context": ANY,
+                },
+                queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+                MessageGroupId="example.com",
+            )
+            for delivery in order_deliveries
+        ],
+        any_order=True,
+    )
+    assert wrapped_generate_deferred_payloads.call_count == len(order_deliveries)
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
