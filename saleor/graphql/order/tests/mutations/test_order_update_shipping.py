@@ -12,7 +12,6 @@ from .....discount.utils.voucher import (
     create_or_update_voucher_discount_objects_for_order,
 )
 from .....order import OrderStatus
-from .....order.actions import call_order_event
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -670,10 +669,6 @@ def test_order_shipping_update_mutation_properly_recalculate_total(
     assert data["order"]["shippingMethod"] is None
 
 
-@patch(
-    "saleor.graphql.order.mutations.order_update_shipping.call_order_event",
-    wraps=call_order_event,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -682,7 +677,6 @@ def test_order_shipping_update_mutation_properly_recalculate_total(
 def test_order_update_shipping_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -751,13 +745,7 @@ def test_order_update_shipping_triggers_webhooks(
         )
         assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    assert wrapped_call_order_event.called
 
-
-@patch(
-    "saleor.graphql.order.mutations.order_update_shipping.call_order_event",
-    wraps=call_order_event,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -766,7 +754,6 @@ def test_order_update_shipping_triggers_webhooks(
 def test_draft_order_update_shipping_triggers_proper_updated_webhook(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -806,13 +793,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook(
         MessageGroupId="example.com:saleorappadditional",
     )
 
-    assert wrapped_call_order_event.called
 
-
-@patch(
-    "saleor.graphql.order.mutations.order_update_shipping.call_order_event",
-    wraps=call_order_event,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -821,7 +802,6 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook(
 def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_shipping_method(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -859,13 +839,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_sh
         MessageGroupId="example.com:saleorappadditional",
     )
 
-    assert wrapped_call_order_event.called
 
-
-@patch(
-    "saleor.graphql.order.mutations.order_update_shipping.call_order_event",
-    wraps=call_order_event,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -874,7 +848,6 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_sh
 def test_editable_order_update_shipping_triggers_proper_updated_webhook_for_null_shipping_method(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -913,5 +886,3 @@ def test_editable_order_update_shipping_triggers_proper_updated_webhook_for_null
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         MessageGroupId="example.com:saleorappadditional",
     )
-
-    assert wrapped_call_order_event.called

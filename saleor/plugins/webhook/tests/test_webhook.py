@@ -2510,7 +2510,7 @@ def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
 )
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.asynchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_trigger_webhook_async_with_subscription_use_main_db(
     mocked_generate_payload,

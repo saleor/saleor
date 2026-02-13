@@ -27,6 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Scalars `Minute`, `Hour` and `Day` now inherit from `NonNegativeInt`, which mean GraphQL disallows negative values for time units.
 
 ### Webhooks
+For order webhook events, sync webhooks (such as `ORDER_CALCULATE_TAXES` and `ORDER_FILTER_SHIPPING_METHODS`) are no longer pre-fired before sending async webhook events. Sync webhooks are now only triggered when their data is actually requested, improving performance and decoupling async event delivery from sync webhook execution.
 
 ### Other changes
 - Improved page search with search vectors. Pages can now be searched by slug, title, content, attribute values, and page type information.

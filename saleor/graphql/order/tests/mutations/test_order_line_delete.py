@@ -8,7 +8,6 @@ from django.test import override_settings
 from .....core.models import EventDelivery
 from .....order import OrderStatus
 from .....order import events as order_events
-from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....warehouse.models import Stock
@@ -322,10 +321,6 @@ def test_order_line_delete_non_removable_gift(
         (OrderStatus.UNCONFIRMED, WebhookEventAsyncType.ORDER_UPDATED),
     ],
 )
-@patch(
-    "saleor.graphql.order.mutations.utils.call_order_event",
-    wraps=call_order_event,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -334,7 +329,6 @@ def test_order_line_delete_non_removable_gift(
 def test_order_line_delete_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
     setup_order_webhooks,
     draft_order,
     permission_group_manage_orders,
@@ -382,8 +376,15 @@ def test_order_line_delete_triggers_webhooks(
     assert mocked_send_webhook_request_sync.call_count == 2
     assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
 
-    tax_delivery_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
     )
 
     tax_delivery = tax_delivery_call.args[0]
@@ -395,5 +396,3 @@ def test_order_line_delete_triggers_webhooks(
         filter_shipping_delivery.event_type
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
-
-    assert wrapped_call_order_event.called

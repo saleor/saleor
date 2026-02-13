@@ -222,7 +222,6 @@ def trigger_webhook_sync_promise_if_not_cached(
     - Send a synchronous webhook request if cache is expired.
     - Fetch response from cache if it is still valid.
     """
-
     cache_key = generate_cache_key_for_webhook(
         cache_data, webhook.target_url, event_type, webhook.app_id
     )

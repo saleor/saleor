@@ -8,6 +8,7 @@ import pytest
 from measurement.measures import Weight
 from prices import Money
 
+from ....core.prices import quantize_price
 from ....shipping.interface import ShippingMethodData
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.transport.utils import generate_cache_key_for_webhook
@@ -121,6 +122,28 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_empty(
     payload_dict = {"order": {"id": 1, "some_field": "12"}}
     payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
+    expected_cache_key_data = {
+        "order": {
+            "id": 1,
+            "some_field": "12",
+            "base_shipping_price_amount": str(
+                quantize_price(
+                    order_with_lines.base_shipping_price.amount,
+                    order_with_lines.currency,
+                )
+            ),
+            "lines_pricing": [
+                {
+                    "base_unit_price_amount": str(
+                        quantize_price(
+                            line.base_unit_price.amount, order_with_lines.currency
+                        )
+                    ),
+                }
+                for line in order_with_lines.lines.all()
+            ],
+        }
+    }
 
     mocked_cache_get.return_value = None
 
@@ -136,7 +159,7 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_empty(
     assert mocked_webhook.called
 
     expected_cache_key = generate_cache_key_for_webhook(
-        payload_dict,
+        expected_cache_key_data,
         shipping_webhook.target_url,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         shipping_app.id,
@@ -181,6 +204,28 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_payload_is_dif
     payload_dict = {"order": {"id": 1, "some_field": "12"}}
     payload = json.dumps(payload_dict)
     mocked_payload.return_value = payload
+    expected_cache_key_data = {
+        "order": {
+            "id": 1,
+            "some_field": "12",
+            "base_shipping_price_amount": str(
+                quantize_price(
+                    order_with_lines.base_shipping_price.amount,
+                    order_with_lines.currency,
+                )
+            ),
+            "lines_pricing": [
+                {
+                    "base_unit_price_amount": str(
+                        quantize_price(
+                            line.base_unit_price.amount, order_with_lines.currency
+                        )
+                    ),
+                }
+                for line in order_with_lines.lines.all()
+            ],
+        }
+    }
 
     mocked_cache_get.return_value = None
 
@@ -195,7 +240,7 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_payload_is_dif
     assert mocked_webhook.called
 
     expected_cache_key = generate_cache_key_for_webhook(
-        payload_dict,
+        expected_cache_key_data,
         shipping_webhook.target_url,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         shipping_app.id,
