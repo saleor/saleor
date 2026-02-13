@@ -576,7 +576,8 @@ class AppProblemDismissed(graphene.ObjectType):
 
     @staticmethod
     def resolve_user(root: models.AppProblem, info: ResolveInfo):
-        if not root.is_dismissed_by_user() or root.dismissed_by_user_id is None:
+        # Even if use did dismiss, user can be removed, so solely rely on it's reference
+        if not root.dismissed_by_user_id:
             return None
 
         return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
