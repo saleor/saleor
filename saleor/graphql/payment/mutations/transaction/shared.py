@@ -9,25 +9,30 @@ from .....payment.error_codes import (
 )
 from .....payment.interface import PaymentMethodDetails
 from ....core.descriptions import ADDED_IN_322
+from ....core.limited_string import LimitedString
 from ....core.types.base import BaseInputObjectType
 from ....core.validators import validate_one_of_args_is_in_mutation
 
 
 class CardPaymentMethodDetailsInput(BaseInputObjectType):
-    name = graphene.String(
-        description="Name of the payment method used for the transaction. Max length is 256 characters.",
+    name = LimitedString(
+        max_length=256,
+        description="Name of the payment method used for the transaction.",
         required=True,
     )
-    brand = graphene.String(
-        description="Brand of the payment method used for the transaction. Max length is 40 characters.",
+    brand = LimitedString(
+        max_length=40,
+        description="Brand of the payment method used for the transaction.",
         required=False,
     )
-    first_digits = graphene.String(
-        description="First digits of the card used for the transaction. Max length is 4 characters.",
+    first_digits = LimitedString(
+        max_length=4,
+        description="First digits of the card used for the transaction.",
         required=False,
     )
-    last_digits = graphene.String(
-        description="Last digits of the card used for the transaction. Max length is 4 characters.",
+    last_digits = LimitedString(
+        max_length=4,
+        description="Last digits of the card used for the transaction.",
         required=False,
     )
     exp_month = graphene.Int(
@@ -41,7 +46,8 @@ class CardPaymentMethodDetailsInput(BaseInputObjectType):
 
 
 class OtherPaymentMethodDetailsInput(BaseInputObjectType):
-    name = graphene.String(
+    name = LimitedString(
+        max_length=256,
         description="Name of the payment method used for the transaction.",
         required=True,
     )
@@ -73,49 +79,6 @@ def validate_card_payment_method_details_input(
     | type[TransactionUpdateErrorCode],
 ):
     errors = []
-    if len(card_method_details_input.name) > 256:
-        errors.append(
-            {
-                "name": ValidationError(
-                    "The `name` field must be less than 256 characters.",
-                    code=error_code_class.INVALID.value,
-                )
-            }
-        )
-
-    if card_method_details_input.brand and len(card_method_details_input.brand) > 40:
-        errors.append(
-            {
-                "brand": ValidationError(
-                    "The `brand` field must be less than 40 characters.",
-                    code=error_code_class.INVALID.value,
-                )
-            }
-        )
-    if (
-        card_method_details_input.first_digits
-        and len(card_method_details_input.first_digits) > 4
-    ):
-        errors.append(
-            {
-                "first_digits": ValidationError(
-                    "The `firstDigits` field must be less than 4 characters.",
-                    code=error_code_class.INVALID.value,
-                )
-            }
-        )
-    if (
-        card_method_details_input.last_digits
-        and len(card_method_details_input.last_digits) > 4
-    ):
-        errors.append(
-            {
-                "last_digits": ValidationError(
-                    "The `lastDigits` field must be less than 4 characters.",
-                    code=error_code_class.INVALID.value,
-                )
-            }
-        )
     if card_method_details_input.exp_month and (
         card_method_details_input.exp_month < 1
         or card_method_details_input.exp_month > 12
@@ -180,16 +143,6 @@ def validate_payment_method_details_input(
                 payment_method_details_input.card, error_code_class
             )
         )
-    elif payment_method_details_input.other:
-        if len(payment_method_details_input.other.name) > 256:
-            errors.append(
-                {
-                    "name": ValidationError(
-                        "The `name` field must be less than 256 characters.",
-                        code=error_code_class.INVALID.value,
-                    )
-                }
-            )
 
     if errors:
         raise ValidationError({"payment_method_details": errors})

@@ -21347,6 +21347,7 @@ enum ProductErrorCode @doc(category: "Products") {
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
+  MAX_LENGTH
   PREORDER_VARIANT_CANNOT_BE_DEACTIVATED
   INVALID_FILE_TYPE
   UNSUPPORTED_MIME_TYPE
@@ -22101,7 +22102,7 @@ input ProductBulkCreateInput @doc(category: "Products") {
 }
 
 input MediaInput {
-  """Alt text for a product media."""
+  """Alt text for a product media. (maximum 250 characters.)"""
   alt: String
 
   """Represents an image file in a multipart request."""
@@ -22535,7 +22536,7 @@ type ProductMediaCreate @doc(category: "Products") {
 }
 
 input ProductMediaCreateInput @doc(category: "Products") {
-  """Alt text for a product media."""
+  """Alt text for a product media. (maximum 250 characters.)"""
   alt: String
 
   """Represents an image file in a multipart request."""
@@ -22618,7 +22619,7 @@ type ProductMediaUpdate @doc(category: "Products") {
 }
 
 input ProductMediaUpdateInput @doc(category: "Products") {
-  """Alt text for a product media."""
+  """Alt text for a product media. (maximum 250 characters.)"""
   alt: String
 }
 
@@ -23673,22 +23674,22 @@ input PaymentMethodDetailsInput {
 
 input CardPaymentMethodDetailsInput {
   """
-  Name of the payment method used for the transaction. Max length is 256 characters.
+  Name of the payment method used for the transaction. (maximum 256 characters.)
   """
   name: String!
 
   """
-  Brand of the payment method used for the transaction. Max length is 40 characters.
+  Brand of the payment method used for the transaction. (maximum 40 characters.)
   """
   brand: String
 
   """
-  First digits of the card used for the transaction. Max length is 4 characters.
+  First digits of the card used for the transaction. (maximum 4 characters.)
   """
   firstDigits: String
 
   """
-  Last digits of the card used for the transaction. Max length is 4 characters.
+  Last digits of the card used for the transaction. (maximum 4 characters.)
   """
   lastDigits: String
 
@@ -23704,7 +23705,9 @@ input CardPaymentMethodDetailsInput {
 }
 
 input OtherPaymentMethodDetailsInput {
-  """Name of the payment method used for the transaction."""
+  """
+  Name of the payment method used for the transaction. (maximum 256 characters.)
+  """
   name: String!
 }
 
@@ -25762,7 +25765,7 @@ input OrderBulkCreateUserInput @doc(category: "Orders") {
 }
 
 input OrderBulkCreateNoteInput @doc(category: "Orders") {
-  """Note message. Max characters: 255."""
+  """Note message. (maximum 255 characters.)"""
   message: String!
 
   """The date associated with the message."""
