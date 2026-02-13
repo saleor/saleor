@@ -1041,6 +1041,15 @@ ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
     "ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
 )
 
+WEBHOOK_BATCH_CELERY_QUEUE_NAME = os.environ.get(
+    "WEBHOOK_BATCH_CELERY_QUEUE_NAME", None
+)
+if WEBHOOK_BATCH_CELERY_QUEUE_NAME and not WEBHOOK_BATCH_CELERY_QUEUE_NAME.endswith(
+    ".fifo"
+):
+    raise ImproperlyConfigured(
+        "WEBHOOK_BATCH_CELERY_QUEUE_NAME must be a FIFO queue (end with .fifo)"
+    )
 
 # Queue name for execution of collection product_updated events
 COLLECTION_PRODUCT_UPDATED_QUEUE_NAME = os.environ.get(
