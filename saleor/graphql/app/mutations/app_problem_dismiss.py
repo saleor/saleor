@@ -7,8 +7,10 @@ from ....account.models import User
 from ....app.error_codes import (
     AppProblemDismissErrorCode as AppProblemDismissErrorCodeEnum,
 )
+from ....app.lock_objects import app_problem_qs_select_for_update
 from ....app.models import App as AppModel
 from ....app.models import AppProblem
+from ....core.tracing import traced_atomic_transaction
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ...core import ResolveInfo
@@ -215,30 +217,37 @@ class AppProblemDismiss(BaseMutation):
         ids = by_app.get("ids")
         keys = by_app.get("keys")
 
-        # Validate that all provided IDs belong to the caller app
         if ids:
             problem_pks = cls._parse_problem_ids(ids)
-            other_app_problems = AppProblem.objects.filter(pk__in=problem_pks).exclude(
-                app=caller_app
-            )
-            if other_app_problems.exists():
-                raise ValidationError(
-                    {
-                        "ids": ValidationError(
-                            "Cannot dismiss problems belonging to other apps.",
-                            code=AppProblemDismissErrorCodeEnum.INVALID.value,
-                        )
-                    }
-                )
+            with traced_atomic_transaction():
+                # Validate that all provided IDs belong to the caller app
+                other_app_problems = AppProblem.objects.filter(
+                    pk__in=problem_pks
+                ).exclude(app=caller_app)
+                if other_app_problems.exists():
+                    raise ValidationError(
+                        {
+                            "ids": ValidationError(
+                                "Cannot dismiss problems belonging to other apps.",
+                                code=AppProblemDismissErrorCodeEnum.INVALID.value,
+                            )
+                        }
+                    )
 
-        if ids:
-            AppProblem.objects.filter(
-                pk__in=problem_pks, app=caller_app, dismissed=False
-            ).order_by("pk").update(dismissed=True)
+                pks = (
+                    app_problem_qs_select_for_update()
+                    .filter(pk__in=problem_pks, app=caller_app, dismissed=False)
+                    .values_list("pk", flat=True)
+                )
+                AppProblem.objects.filter(pk__in=pks).update(dismissed=True)
         else:
-            AppProblem.objects.filter(
-                key__in=keys, app=caller_app, dismissed=False
-            ).order_by("pk").update(dismissed=True)
+            with traced_atomic_transaction():
+                pks = (
+                    app_problem_qs_select_for_update()
+                    .filter(key__in=keys, app=caller_app, dismissed=False)
+                    .values_list("pk", flat=True)
+                )
+                AppProblem.objects.filter(pk__in=pks).update(dismissed=True)
 
     @classmethod
     def _validate_items_limit(cls, items: list[str], field_name: str) -> None:
@@ -263,13 +272,17 @@ class AppProblemDismiss(BaseMutation):
         requestor = cast(User, get_user_or_app_from_context(info.context))
         problem_pks = cls._parse_problem_ids(ids)
 
-        AppProblem.objects.filter(pk__in=problem_pks, dismissed=False).order_by(
-            "pk"
-        ).update(
-            dismissed=True,
-            dismissed_by_user_email=requestor.email,
-            dismissed_by_user=requestor,
-        )
+        with traced_atomic_transaction():
+            pks = (
+                app_problem_qs_select_for_update()
+                .filter(pk__in=problem_pks, dismissed=False)
+                .values_list("pk", flat=True)
+            )
+            AppProblem.objects.filter(pk__in=pks).update(
+                dismissed=True,
+                dismissed_by_user_email=requestor.email,
+                dismissed_by_user=requestor,
+            )
 
     @classmethod
     def _dismiss_by_keys_for_staff(
@@ -282,13 +295,17 @@ class AppProblemDismiss(BaseMutation):
         requestor = cast(User, get_user_or_app_from_context(info.context))
         target_app = cls.get_node_or_error(info, app_id, field="app", only_type=App)
 
-        AppProblem.objects.filter(
-            app=target_app, key__in=keys, dismissed=False
-        ).order_by("pk").update(
-            dismissed=True,
-            dismissed_by_user_email=requestor.email,
-            dismissed_by_user=requestor,
-        )
+        with traced_atomic_transaction():
+            pks = (
+                app_problem_qs_select_for_update()
+                .filter(app=target_app, key__in=keys, dismissed=False)
+                .values_list("pk", flat=True)
+            )
+            AppProblem.objects.filter(pk__in=pks).update(
+                dismissed=True,
+                dismissed_by_user_email=requestor.email,
+                dismissed_by_user=requestor,
+            )
 
     @classmethod
     def _parse_problem_ids(cls, global_ids: list[str]) -> list[int]:
