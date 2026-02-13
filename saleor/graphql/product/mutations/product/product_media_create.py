@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from .....core.exceptions import UnsupportedMediaProviderException
@@ -124,7 +125,11 @@ class ProductMediaCreate(BaseMutation):
             # In case of images, file is downloaded. Otherwise we keep only
             # URL to remote media.
             with HTTPClient.send_request(
-                "GET", media_url, stream=True, allow_redirects=False
+                "GET",
+                media_url,
+                stream=True,
+                allow_redirects=False,
+                timeout=settings.COMMON_REQUESTS_TIMEOUT,
             ) as image_data:
                 mime_type = get_mime_type(image_data.headers.get("content-type"))
                 if is_image_mimetype(mime_type):
