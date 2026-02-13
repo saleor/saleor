@@ -2,6 +2,7 @@ from typing import Final
 
 import graphene
 
+from ...app import error_codes
 from ...app.types import AppExtensionMount, AppExtensionTarget, AppType
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.enums import to_enum
@@ -73,3 +74,25 @@ AppExtensionTargetEnum: Final[graphene.Enum] = to_enum(
     AppExtensionTarget, description=AppExtensionTarget.__doc__
 )
 AppExtensionTargetEnum.doc_category = DOC_CATEGORY_APPS
+
+
+class AppProblemDismissedBy:
+    APP = "app"
+    USER = "user"
+
+    CHOICES = [
+        (APP, "app"),
+        (USER, "user"),
+    ]
+
+
+AppProblemDismissedByEnum: Final[graphene.Enum] = to_enum(AppProblemDismissedBy)
+AppProblemDismissedByEnum.doc_category = DOC_CATEGORY_APPS
+
+
+AppProblemCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.AppProblemCreateErrorCode
+)
+AppProblemDismissErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.AppProblemDismissErrorCode
+)
