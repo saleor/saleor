@@ -3,12 +3,14 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
 from freezegun import freeze_time
 
 from .....core import EventDeliveryStatus
 from .....graphql.tests.utils import get_graphql_content
 from .....webhook.error_codes import WebhookTriggerErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.models import Webhook
 from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ....tests.utils import assert_no_permission
 from ...subscription_types import WEBHOOK_TYPES_MAP
@@ -30,6 +32,30 @@ WEBHOOK_TRIGGER_MUTATION = """
         }
     }
     """
+
+DRAFT_ORDER_DELETE_SUBSCRIPTION = """
+subscription {
+  event {
+    ... on DraftOrderDeleted {
+      order {
+        id
+      }
+    }
+  }
+}
+"""
+
+
+@pytest.fixture
+def webhook_subscribed_to_draft_delete(webhook_app):
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com/any",
+        subscription_query=DRAFT_ORDER_DELETE_SUBSCRIPTION,
+    )
+    webhook.events.create(event_type=WebhookEventAsyncType.DRAFT_ORDER_DELETED)
+    return webhook
 
 
 @mock.patch(
@@ -140,14 +166,14 @@ def test_webhook_trigger_fail(
     staff_api_client,
     permission_manage_orders,
     order,
-    subscription_order_created_webhook,
+    webhook_subscribed_to_draft_delete,
     webhook_response_failed,
 ):
     # given
     query = WEBHOOK_TRIGGER_MUTATION
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     order_id = graphene.Node.to_global_id("Order", order.id)
-    webhook = subscription_order_created_webhook
+    webhook = webhook_subscribed_to_draft_delete
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
     mock_send_webhook_using_scheme_method.return_value = webhook_response_failed
@@ -163,7 +189,10 @@ def test_webhook_trigger_fail(
     assert data
     assert not data["errors"]
     assert data["delivery"]["status"] == EventDeliveryStatus.FAILED.upper()
-    assert data["delivery"]["eventType"] == WebhookEventAsyncType.ORDER_CREATED.upper()
+    assert (
+        data["delivery"]["eventType"]
+        == WebhookEventAsyncType.DRAFT_ORDER_DELETED.upper()
+    )
     payload = json.loads(data["delivery"]["payload"])
     assert payload["order"]["id"] == order_id
 
@@ -171,12 +200,12 @@ def test_webhook_trigger_fail(
 def test_webhook_trigger_missing_user_permission(
     staff_api_client,
     order,
-    subscription_order_created_webhook,
+    webhook_subscribed_to_draft_delete,
 ):
     # given
     query = WEBHOOK_TRIGGER_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
-    webhook = subscription_order_created_webhook
+    webhook = webhook_subscribed_to_draft_delete
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
     variables = {"webhookId": webhook_id, "objectId": order_id}
@@ -197,14 +226,14 @@ def test_webhook_trigger_missing_user_permission(
 def test_webhook_trigger_staff_user_not_authorized(
     user_api_client,
     order,
-    subscription_order_created_webhook,
+    webhook_subscribed_to_draft_delete,
     permission_manage_orders,
 ):
     # given
     user_api_client.user.user_permissions.add(permission_manage_orders)
     query = WEBHOOK_TRIGGER_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
-    webhook = subscription_order_created_webhook
+    webhook = webhook_subscribed_to_draft_delete
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
     variables = {"webhookId": webhook_id, "objectId": order_id}
@@ -220,13 +249,13 @@ def test_webhook_trigger_missing_subscription_query(
     staff_api_client,
     permission_manage_orders,
     order,
-    subscription_order_created_webhook,
+    webhook_subscribed_to_draft_delete,
 ):
     # given
     query = WEBHOOK_TRIGGER_MUTATION
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     order_id = graphene.Node.to_global_id("Order", order.id)
-    webhook = subscription_order_created_webhook
+    webhook = webhook_subscribed_to_draft_delete
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
     webhook.subscription_query = None
@@ -249,17 +278,17 @@ def test_webhook_trigger_invalid_subscription_query(
     staff_api_client,
     permission_manage_orders,
     order,
-    subscription_order_created_webhook,
+    webhook_subscribed_to_draft_delete,
 ):
     # given
     query = WEBHOOK_TRIGGER_MUTATION
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     order_id = graphene.Node.to_global_id("Order", order.id)
-    webhook = subscription_order_created_webhook
+    webhook = webhook_subscribed_to_draft_delete
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
     webhook.subscription_query = webhook.subscription_query.replace(
-        "OrderCreated", "UndefinedEvent"
+        "DraftOrderDeleted", "UndefinedEvent"
     )
     webhook.save(update_fields=["subscription_query"])
 
@@ -310,13 +339,13 @@ def test_webhook_trigger_object_id_does_not_match_event(
     staff_api_client,
     permission_manage_orders,
     product,
-    subscription_order_created_webhook,
+    webhook_subscribed_to_draft_delete,
 ):
     # given
     query = WEBHOOK_TRIGGER_MUTATION
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     product_id = graphene.Node.to_global_id("Product", product.id)
-    webhook = subscription_order_created_webhook
+    webhook = webhook_subscribed_to_draft_delete
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
     variables = {"webhookId": webhook_id, "objectId": product_id}

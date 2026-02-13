@@ -6,6 +6,7 @@ from unittest import mock
 
 import pytest
 from celery.exceptions import Retry
+from django.test import override_settings
 
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -272,6 +273,7 @@ def test_generate_deferred_payload_model_pk_does_not_exist(
     assert delivery.payload is None
 
 
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
@@ -285,6 +287,7 @@ def test_pass_queue_to_send_webhook_request_async(
     checkout_with_item,
     setup_checkout_webhooks,
     staff_user,
+    settings,
 ):
     # given
     checkout = checkout_with_item
@@ -305,7 +308,10 @@ def test_pass_queue_to_send_webhook_request_async(
 
     # then
     call_kwargs_generate_payloads = mocked_generate_deferred_payloads.call_args.kwargs
-    assert "queue" not in call_kwargs_generate_payloads
+    assert (
+        call_kwargs_generate_payloads["queue"]
+        == settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME
+    )
     assert call_kwargs_generate_payloads["kwargs"]["send_webhook_queue"] == queue
 
     call_kwargs_send_webhook_request = (

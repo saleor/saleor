@@ -357,6 +357,7 @@ def test_checkout_lines_delete_not_associated_with_checkout(
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_lines_delete_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -420,6 +421,7 @@ def test_checkout_lines_delete_triggers_webhooks(
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
         MessageGroupId="example.com",
     )
 
