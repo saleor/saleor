@@ -170,7 +170,7 @@ def resolve_reason_reference_page(
                 field_name: ValidationError(
                     "Invalid reason reference. Must be an ID of a Page with the "
                     "configured PageType.",
-                    code=error_code_enum.GRAPHQL_ERROR.value,
+                    code=error_code_enum.INVALID.value,
                 )
             }
         ) from None

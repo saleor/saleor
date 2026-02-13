@@ -1511,7 +1511,7 @@ def test_fulfillment_return_products_per_line_reason_reference_wrong_page_type(
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "reasonReference"
-    assert errors[0]["code"] == OrderErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["code"] == OrderErrorCode.INVALID.name
     assert (
         errors[0]["message"]
         == "Invalid reason reference. Must be an ID of a Page with the configured "

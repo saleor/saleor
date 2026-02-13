@@ -409,7 +409,7 @@ def test_resolve_reason_reference_page_wrong_page_type(site_settings):
     assert "reason_reference" in error_dict
     assert (
         error_dict["reason_reference"][0].code
-        == TransactionRequestActionErrorCode.GRAPHQL_ERROR.value
+        == TransactionRequestActionErrorCode.INVALID.value
     )
 
 

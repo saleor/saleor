@@ -2759,7 +2759,7 @@ def test_grant_refund_update_with_reason_reference_wrong_page_type_created_by_us
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "reasonReference"
-    assert error["code"] == OrderGrantRefundUpdateErrorCode.GRAPHQL_ERROR.name
+    assert error["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
 
     granted_refund.refresh_from_db()
     assert granted_refund.amount_value == current_amount
@@ -3073,4 +3073,4 @@ def test_grant_refund_update_add_lines_with_wrong_page_type_reason_reference(
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "reasonReference"
-    assert errors[0]["code"] == OrderGrantRefundUpdateErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["code"] == OrderGrantRefundUpdateErrorCode.INVALID.name
