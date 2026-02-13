@@ -54,6 +54,7 @@ def test_creates_app_from_manifest_app_has_all_required_permissions():
 def test_creates_app_from_manifest_sends_token_when_target_url_provided(
     monkeypatch, app_manifest
 ):
+    # given
     mocked_get = Mock(return_value=Mock())
     mocked_get.return_value.json = Mock(return_value=app_manifest)
 
@@ -72,8 +73,10 @@ def test_creates_app_from_manifest_sends_token_when_target_url_provided(
     monkeypatch.setattr(HTTPSession, "request", _side_effect)
     manifest_url = "http://localhost:3000/manifest"
 
+    # when
     call_command("install_app", manifest_url)
 
+    # then
     get_call = call(
         "GET",
         manifest_url,
@@ -101,6 +104,7 @@ def test_creates_app_from_manifest_sends_token_when_target_url_provided(
 def test_creates_app_from_manifest_skips_sending_token_when_target_url_not_provided(
     monkeypatch, app_manifest
 ):
+    # given
     app_manifest.pop("tokenTargetUrl")
 
     mocked_get = Mock(return_value=Mock())
@@ -121,8 +125,10 @@ def test_creates_app_from_manifest_skips_sending_token_when_target_url_not_provi
     monkeypatch.setattr(HTTPSession, "request", _side_effect)
     manifest_url = "http://localhost:3000/manifest"
 
+    # when
     call_command("install_app", manifest_url)
 
+    # then
     app = App.objects.get()
     get_call = call(
         "GET",
