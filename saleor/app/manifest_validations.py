@@ -60,7 +60,10 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
         app_url = manifest_data.get("appUrl")
 
         if not app_url:
-            raise ValidationError("Manifest is invalid, appUrl is missing")
+            raise ValidationError(
+                "Relative extension URL (starting with /) "
+                "must be paired with appUrl in the app manifest"
+            )
     else:
         _clean_app_url(extension_url)
 
