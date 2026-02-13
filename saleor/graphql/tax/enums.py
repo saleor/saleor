@@ -33,3 +33,14 @@ TaxableObjectDiscountTypeEnum: Final[graphene.Enum] = to_enum(
     description="Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.",
 )
 TaxableObjectDiscountTypeEnum.doc_category = DOC_CATEGORY_TAXES
+
+
+class CalculateTaxesDeferIfConditionEnum(graphene.Enum):
+    ADDRESS_MISSING = "ADDRESS_MISSING"
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
+        description = (
+            "Conditions under which a tax webhook delivery should be deferred. "
+            "If any condition evaluates to true, the webhook will not fire."
+        )

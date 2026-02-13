@@ -19,6 +19,7 @@ from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..core.http_client import HTTPClient
 from ..core.utils import build_absolute_uri, get_domain
+from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
 from ..thumbnail import ICON_MIME_TYPES
@@ -274,17 +275,27 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         )
         extension.permissions.set(extension_data.get("permissions", []))
 
-    webhooks = Webhook.objects.bulk_create(
-        Webhook(
-            app=app,
-            name=webhook["name"],
-            is_active=webhook["isActive"],
-            target_url=webhook["targetUrl"],
-            subscription_query=webhook["query"],
-            custom_headers=webhook.get("customHeaders", None),
+    webhook_instances = []
+    for webhook in manifest_data.get("webhooks", []):
+        query = webhook["query"]
+        subscription_query = SubscriptionQuery(query)
+        defer_if_conditions = (
+            subscription_query.get_defer_if_conditions()
+            if subscription_query.is_valid
+            else []
         )
-        for webhook in manifest_data.get("webhooks", [])
-    )
+        webhook_instances.append(
+            Webhook(
+                app=app,
+                name=webhook["name"],
+                is_active=webhook["isActive"],
+                target_url=webhook["targetUrl"],
+                subscription_query=query,
+                custom_headers=webhook.get("customHeaders", None),
+                defer_if_conditions=defer_if_conditions,
+            )
+        )
+    webhooks = Webhook.objects.bulk_create(webhook_instances)
 
     webhook_events = []
     for db_webhook, manifest_webhook in zip(

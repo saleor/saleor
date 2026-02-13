@@ -35,6 +35,11 @@ class Webhook(models.Model):
         default=list,
         size=MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT,
     )
+    defer_if_conditions = ArrayField(
+        models.CharField(max_length=128),
+        blank=True,
+        default=list,
+    )
 
     class Meta:
         ordering = ("pk",)
