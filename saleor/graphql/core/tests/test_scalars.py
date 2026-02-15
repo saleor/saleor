@@ -1,10 +1,12 @@
 from unittest import mock
 
 import pytest
+from measurement.measures import Weight
 
 from ....order.models import Order
 from ....payment.interface import PaymentGatewayData
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
+from ..scalars import WeightScalar
 from ..utils import to_global_id_or_none
 
 QUERY_CHECKOUT = """
@@ -419,3 +421,37 @@ def test_correct_date_time_as_input(
 
     # then
     get_graphql_content(response)
+
+
+# WeightScalar tests
+
+
+def test_weight_scalar_parse_value_valid_dict():
+    value = {"unit": "KG", "value": 10.5}
+    result = WeightScalar.parse_value(value)
+    assert isinstance(result, Weight)
+    assert result.kg == 10.5
+
+
+def test_weight_scalar_parse_value_none_unit():
+    value = {"unit": None, "value": 10.5}
+    result = WeightScalar.parse_value(value)
+    assert result is None
+
+
+def test_weight_scalar_parse_value_none_value():
+    value = {"unit": "KG", "value": None}
+    result = WeightScalar.parse_value(value)
+    assert result is None
+
+
+def test_weight_scalar_parse_value_invalid_unit():
+    value = {"unit": "INVALID", "value": 10.5}
+    result = WeightScalar.parse_value(value)
+    assert result is None
+
+
+def test_weight_scalar_parse_value_invalid_value():
+    value = {"unit": "KG", "value": "invalid"}
+    result = WeightScalar.parse_value(value)
+    assert result is None
