@@ -12979,6 +12979,13 @@ type Shop implements ObjectWithMetadata {
   """
   availableTaxApps: [App!]!
 
+  """
+  When enabled, address fields that are not valid for a given country (according to Google's i18n address data) will be preserved instead of being removed during validation. Validation errors are still returned.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  preserveAllAddressFields: Boolean!
+
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
 
@@ -20955,6 +20962,11 @@ input ShopSettingsInput {
   Warning: never store sensitive information, including financial data such as credit card details.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  When enabled, address fields that are not valid for a given country (according to Google's i18n address data) will be preserved instead of being removed during validation. Validation errors are still returned.
+  """
+  preserveAllAddressFields: Boolean
 
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean @deprecated(reason: "Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.")

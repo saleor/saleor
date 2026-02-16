@@ -91,6 +91,14 @@ class ShopSettingsInput(graphene.InputObjectType):
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
+    preserve_all_address_fields = graphene.Boolean(
+        description=(
+            "When enabled, address fields that are not valid for a given country "
+            "(according to Google's i18n address data) will be preserved instead of "
+            "being removed during validation. Validation errors are still returned."
+        ),
+    )
+
     # deprecated
     include_taxes_in_prices = graphene.Boolean(
         description=(
