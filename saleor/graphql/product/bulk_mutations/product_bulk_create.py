@@ -261,7 +261,30 @@ class ProductBulkCreate(BaseMutation):
         )
 
         slug = cleaned_input.get("slug")
-        if not slug and "name" in cleaned_input:
+        if slug:
+            # Check for duplicates within the current batch
+            if slug in new_slugs:
+                index_error_map[product_index].append(
+                    ProductBulkCreateError(
+                        path="slug",
+                        message=f"Duplicated slug: {slug}.",
+                        code=ProductBulkCreateErrorCode.UNIQUE.value,
+                    )
+                )
+                base_fields_errors_count += 1
+            # Check for duplicates against existing products in the DB
+            elif models.Product.objects.filter(slug=slug).exists():
+                index_error_map[product_index].append(
+                    ProductBulkCreateError(
+                        path="slug",
+                        message=f"Product with slug: {slug} already exists.",
+                        code=ProductBulkCreateErrorCode.UNIQUE.value,
+                    )
+                )
+                base_fields_errors_count += 1
+            else:
+                new_slugs.append(slug)
+        elif "name" in cleaned_input:
             slug = cls.generate_unique_slug(cleaned_input["name"], new_slugs)
             cleaned_input["slug"] = slug
 
