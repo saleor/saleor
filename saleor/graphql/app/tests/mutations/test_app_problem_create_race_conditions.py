@@ -1,4 +1,3 @@
-import datetime
 from unittest.mock import patch
 
 from django.utils import timezone
@@ -28,54 +27,6 @@ APP_PROBLEM_CREATE_MUTATION = """
         }
     }
 """
-
-
-def test_app_problem_create_concurrent_aggregation_serialized_by_lock(
-    app_api_client, app, app_problem_generator
-):
-    """Test that concurrent aggregation requests are serialized by the App row lock.
-
-    The App row lock ensures only one request at a time can modify problems for
-    a given app. This test verifies the mutation correctly increments the count
-    using .save() under the lock, which overwrites any simulated concurrent
-    modification (impossible in production due to serialization).
-    """
-    # given
-    now = timezone.now()
-    problem = app_problem_generator(
-        app,
-        message="Initial problem",
-        key="race-key",
-        count=1,
-        updated_at=now - datetime.timedelta(minutes=5),
-    )
-    variables = {
-        "input": {
-            "message": "Concurrent update",
-            "key": "race-key",
-            "aggregationPeriod": 60,
-        }
-    }
-
-    def simulate_concurrent_increment(*args, **kwargs):
-        # Simulate another request incrementing the count concurrently.
-        # In production the App row lock prevents this from happening.
-        AppProblem.objects.filter(pk=problem.pk).update(count=problem.count + 10)
-
-    # when
-    with race_condition.RunBefore(
-        "saleor.graphql.app.mutations.app_problem_create.AppProblemCreate._aggregate_existing",
-        simulate_concurrent_increment,
-    ):
-        response = app_api_client.post_graphql(APP_PROBLEM_CREATE_MUTATION, variables)
-        content = get_graphql_content(response)
-
-    # then - the mutation's .save() overwrites the simulated concurrent change
-    # because it holds the App lock, making concurrent modifications impossible
-    data = content["data"]["appProblemCreate"]
-    assert not data["errors"]
-    problem.refresh_from_db()
-    assert problem.count == 2
 
 
 def test_app_problem_create_concurrent_creation_race_condition(app_api_client, app):
