@@ -51,7 +51,10 @@ def test_creates_app_from_manifest_app_has_all_required_permissions():
     assert set(app.permissions.all()) == set(expected_permission)
 
 
-def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
+def test_creates_app_from_manifest_sends_token_when_target_url_provided(
+    monkeypatch, app_manifest
+):
+    # given
     mocked_get = Mock(return_value=Mock())
     mocked_get.return_value.json = Mock(return_value=app_manifest)
 
@@ -70,8 +73,10 @@ def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
     monkeypatch.setattr(HTTPSession, "request", _side_effect)
     manifest_url = "http://localhost:3000/manifest"
 
+    # when
     call_command("install_app", manifest_url)
 
+    # then
     get_call = call(
         "GET",
         manifest_url,
@@ -94,6 +99,47 @@ def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
         json={"auth_token": ANY},
         allow_redirects=False,
     )
+
+
+def test_creates_app_from_manifest_skips_sending_token_when_target_url_not_provided(
+    monkeypatch, app_manifest
+):
+    # given
+    app_manifest.pop("tokenTargetUrl")
+
+    mocked_get = Mock(return_value=Mock())
+    mocked_get.return_value.json = Mock(return_value=app_manifest)
+
+    mocked_post = Mock(return_value=Mock())
+    mocked_post.return_value.status_code = 200
+
+    def _side_effect(_self, method, *args, **kwargs):
+        if method == "GET":
+            func = mocked_get
+        elif method == "POST":
+            func = mocked_post
+        else:
+            raise NotImplementedError("Method not implemented", method)
+        return func(method, *args, **kwargs)
+
+    monkeypatch.setattr(HTTPSession, "request", _side_effect)
+    manifest_url = "http://localhost:3000/manifest"
+
+    # when
+    call_command("install_app", manifest_url)
+
+    # then
+    app = App.objects.get()
+    get_call = call(
+        "GET",
+        manifest_url,
+        headers={"Saleor-Schema-Version": schema_version},
+        timeout=ANY,
+        allow_redirects=False,
+    )
+    mocked_get.assert_has_calls([get_call, get_call])
+    assert not mocked_post.called
+    assert app.tokens.count() == 0
 
 
 @pytest.mark.vcr
