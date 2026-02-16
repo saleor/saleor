@@ -299,11 +299,6 @@ class PluginSample(BasePlugin):
     ) -> Optional["TaxData"]:
         return sample_tax_data(checkout_info.checkout)
 
-    def get_taxes_for_order(
-        self, order: "Order", app_identifier, previous_value
-    ) -> Optional["TaxData"]:
-        return sample_tax_data(order)
-
     def sample_not_implemented(self, previous_value):
         return NotImplemented
 

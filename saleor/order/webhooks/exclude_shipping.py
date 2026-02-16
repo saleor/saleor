@@ -10,6 +10,7 @@ from promise import Promise
 from pydantic import ValidationError
 
 from ...core.db.connection import allow_writer
+from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...shipping.interface import ShippingMethodData
 from ...webhook import traced_payload_generator
@@ -31,7 +32,6 @@ from ...webhook.utils import get_webhooks_for_event
 if TYPE_CHECKING:
     from ...account.models import User
     from ...app.models import App
-    from ...checkout.models import Checkout
     from ...order.models import Order
 
 CACHE_EXCLUDED_SHIPPING_TIME = 60 * 3
@@ -83,9 +83,51 @@ def excluded_shipping_methods_for_order(
     )
 
 
-def _get_cache_data_for_exclude_shipping_methods(payload: str) -> dict:
+def _get_cache_data_for_exclude_shipping_methods(order: "Order", payload: str) -> dict:
     payload_dict = json.loads(payload)
-    source_object = payload_dict.get("checkout", payload_dict.get("order", {}))
+    source_object = payload_dict.get("order", {})
+
+    # Drop fields that can be set by tax-app
+    order_fields_to_drop = [
+        "shipping_price_gross_amount",
+        "shipping_price_net_amount",
+        "total_net_amount",
+        "total_gross_amount",
+        "shipping_tax_rate",
+        "undiscounted_total_net_amount",
+        "undiscounted_total_gross_amount",
+    ]
+    line_fields_to_drop = [
+        "undiscounted_unit_price_gross_amount",
+        "undiscounted_unit_price_net_amount",
+        "undiscounted_total_price_net_amount",
+        "undiscounted_total_price_gross_amount",
+        "unit_price_net_amount",
+        "unit_price_gross_amount",
+        "tax_rate",
+        "total_price_net_amount",
+        "total_price_gross_amount",
+    ]
+
+    for field in order_fields_to_drop:
+        source_object.pop(field, None)
+
+    source_object["base_shipping_price_amount"] = str(
+        quantize_price(order.base_shipping_price_amount, order.currency)
+    )
+    source_object["lines_pricing"] = [
+        {
+            "base_unit_price_amount": str(
+                quantize_price(order_line.base_unit_price_amount, order.currency)
+            ),
+        }
+        for order_line in order.lines.all()
+    ]
+
+    lines_list = source_object.get("lines", [])
+    for line in lines_list:
+        for field in line_fields_to_drop:
+            line.pop(field, None)
 
     # drop fields that change between requests but are not relevant for cache key
     source_object.pop("last_change", None)
@@ -98,9 +140,7 @@ def _get_excluded_shipping_methods_or_fetch(
     webhooks: QuerySet,
     event_type: str,
     static_payload: str,
-    subscribable_object: (
-        tuple[Union["Order", "Checkout"], list["ShippingMethodData"]] | None
-    ),
+    subscribable_object: tuple["Order", list["ShippingMethodData"]],
     allow_replica: bool,
     requestor: Union["App", "User", None],
 ) -> Promise[dict[str, list[ExcludedShippingMethod]]]:
@@ -109,10 +149,10 @@ def _get_excluded_shipping_methods_or_fetch(
     The data will be fetched from the cache. If missing it will fetch it from all
     defined webhooks by calling a request to each of them one by one.
     """
-    cache_data = _get_cache_data_for_exclude_shipping_methods(static_payload)
+    order, _ = subscribable_object
+    cache_data = _get_cache_data_for_exclude_shipping_methods(order, static_payload)
     # Gather responses from webhooks
     promised_responses = []
-
     for webhook in webhooks:
         promised_responses.append(
             trigger_webhook_sync_promise_if_not_cached(
@@ -145,9 +185,7 @@ def _get_excluded_shipping_methods_or_fetch(
 def _get_excluded_shipping_data(
     event_type: str,
     static_payload: str,
-    subscribable_object: (
-        tuple[Union["Order", "Checkout"], list["ShippingMethodData"]] | None
-    ),
+    subscribable_object: tuple["Order", list["ShippingMethodData"]],
     allow_replica: bool,
     requestor: Union["App", "User", None],
 ) -> Promise[list[ExcludedShippingMethod]]:

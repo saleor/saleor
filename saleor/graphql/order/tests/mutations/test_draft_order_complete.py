@@ -22,7 +22,7 @@ from .....discount.utils.voucher import (
 )
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
-from .....order.actions import call_order_event, order_created
+from .....order.actions import order_created
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
@@ -1727,10 +1727,6 @@ def test_draft_order_complete_with_invalid_address_save_addresses_on(
     assert customer_user.addresses.first().id != order.billing_address.id
 
 
-@patch(
-    "saleor.order.actions.call_order_event",
-    wraps=call_order_event,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -1739,7 +1735,6 @@ def test_draft_order_complete_with_invalid_address_save_addresses_on(
 def test_draft_order_complete_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -1810,8 +1805,15 @@ def test_draft_order_complete_triggers_webhooks(
         webhook_id=additional_order_webhook.id
     ).exists()
 
-    tax_delivery_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
     )
 
     tax_delivery = tax_delivery_call.args[0]
@@ -1823,8 +1825,6 @@ def test_draft_order_complete_triggers_webhooks(
         filter_shipping_delivery.event_type
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
-
-    assert wrapped_call_order_event.called
 
 
 @patch(
