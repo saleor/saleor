@@ -176,6 +176,45 @@ class AppExtension(models.Model):
     settings = models.JSONField(blank=True, default=dict, db_default={})
 
 
+class AppProblem(models.Model):
+    # Note: When increasing this value, please revise performance. Now dismissing 100 rows is cheap,
+    # but if we increase this number, it can be too heavy and we may need to find more performant way,
+    # e.g. delegate to Celery
+    MAX_PROBLEMS_PER_APP = 100
+
+    app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="problems")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    message = models.CharField(max_length=2048)
+    key = models.CharField(max_length=128)
+    count = models.PositiveIntegerField(default=1)
+    is_critical = models.BooleanField(default=False)
+    dismissed = models.BooleanField(default=False)
+    dismissed_by_user_email = models.EmailField(max_length=256, blank=True, null=True)
+    dismissed_by_user = models.ForeignKey(
+        "account.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def is_dismissed_by_user(self) -> bool:
+        """Check if the problem was dismissed by a user (staff).
+
+        Uses the denormalized ``dismissed_by_user_email`` field instead of the
+        ``dismissed_by_user`` FK because the FK is set to NULL when the user is
+        deleted, whereas the email field is preserved indefinitely.
+
+        Method abstracts the fact that we don't store dedicated "by app" or "by user" field,
+        We have only one needed (email) that is enough to deduct this.
+        """
+        return self.dismissed_by_user_email is not None
+
+
 class AppInstallation(Job):
     uuid = models.UUIDField(unique=True, default=uuid4)
     app_name = models.CharField(max_length=60)
