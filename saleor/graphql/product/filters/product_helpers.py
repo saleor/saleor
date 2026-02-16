@@ -7,6 +7,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from ....channel.models import Channel
+from ....core.search import prefix_search
 from ....product import ProductTypeKind
 from ....product.models import (
     Category,
@@ -16,7 +17,6 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ....product.search import search_products
 from ....warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ...utils import resolve_global_ids_to_primary_keys
 from ...utils.filters import (
@@ -297,7 +297,7 @@ def filter_stock_availability(qs, _, value, channel_slug):
 
 
 def filter_search(qs, _, value):
-    return search_products(qs, value)
+    return prefix_search(qs, value)
 
 
 def filter_gift_card(qs, _, value):

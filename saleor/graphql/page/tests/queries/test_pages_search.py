@@ -1,3 +1,4 @@
+import graphene
 import pytest
 
 from .....attribute.utils import associate_attribute_values_to_instance
@@ -340,3 +341,66 @@ def test_pages_query_with_filter(
     # then
     content = get_graphql_content(response)
     assert content["data"]["pages"]["totalCount"] == count
+
+
+def test_pages_search_sorted_by_rank_exact_match_prioritized(
+    staff_api_client, permission_manage_pages, page_type
+):
+    # given
+    pages = Page.objects.bulk_create(
+        [
+            Page(
+                title="Authoring Guide",
+                slug="authoring-guide",
+                content=dummy_editorjs("How to write content"),
+                page_type=page_type,
+            ),
+            Page(
+                title="Author",
+                slug="author-page",
+                content=dummy_editorjs("About the author"),
+                page_type=page_type,
+            ),
+            Page(
+                title="Contact",
+                slug="contact",
+                content=dummy_editorjs("Contact information"),
+                page_type=page_type,
+            ),
+            Page(
+                title="Authority",
+                slug="authority",
+                content=dummy_editorjs("Authority overview"),
+                page_type=page_type,
+            ),
+        ]
+    )
+    update_pages_search_vector(pages)
+
+    variables = {
+        "filter": {"search": "author"},
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PAGES_WITH_FILTER, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pages"]
+    assert data["totalCount"] == 3
+
+    returned_ids = [edge["node"]["id"] for edge in data["edges"]]
+    expected_ids = [
+        graphene.Node.to_global_id("Page", page.pk)
+        for page in [pages[1], pages[0], pages[3]]
+    ]
+    assert set(returned_ids) == set(expected_ids)
+
+    # Exact title match "Author" should rank highest
+    assert returned_ids[0] == expected_ids[0]
+    # Contact page should not appear
+    assert graphene.Node.to_global_id("Page", pages[2].pk) not in returned_ids
+    # Both prefix matches should appear
+    assert graphene.Node.to_global_id("Page", pages[0].pk) in returned_ids
+    assert graphene.Node.to_global_id("Page", pages[3].pk) in returned_ids

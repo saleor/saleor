@@ -446,6 +446,87 @@ def test_checkouts_query_with_filter_search_by_global_payment_id(
     assert content["data"]["checkouts"]["totalCount"] == 1
 
 
+def test_checkouts_search_exact_match_prioritized(
+    staff_api_client,
+    permission_manage_checkouts,
+    channel_USD,
+):
+    # given
+    user_with_matching_email = User.objects.create(
+        first_name="John",
+        last_name="Doe",
+        email="aaron00@example.net",
+    )
+    user_with_exact_name = User.objects.create(
+        first_name="Aaron",
+        last_name="Smith",
+        email="different@other.net",
+    )
+    user_no_match = User.objects.create(
+        first_name="Charlie",
+        last_name="Brown",
+        email="charlie@example.net",
+    )
+    user_with_prefix_name = User.objects.create(
+        first_name="Aaronson",
+        last_name="Jones",
+        email="jones@other.net",
+    )
+
+    checkouts = Checkout.objects.bulk_create(
+        [
+            Checkout(
+                token=str(uuid.uuid4()),
+                user=user_with_matching_email,
+                channel=channel_USD,
+            ),
+            Checkout(
+                token=str(uuid.uuid4()),
+                user=user_with_exact_name,
+                channel=channel_USD,
+            ),
+            Checkout(
+                token=str(uuid.uuid4()),
+                user=user_no_match,
+                channel=channel_USD,
+            ),
+            Checkout(
+                token=str(uuid.uuid4()),
+                user=user_with_prefix_name,
+                channel=channel_USD,
+            ),
+        ]
+    )
+    update_checkouts_search_vector(checkouts)
+
+    variables = {
+        "filter": {"search": "aaron"},
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkouts"]
+    assert data["totalCount"] == 3
+
+    returned_ids = [edge["node"]["id"] for edge in data["edges"]]
+    checkout_email_match_id = graphene.Node.to_global_id("Checkout", checkouts[0].pk)
+    checkout_exact_name_id = graphene.Node.to_global_id("Checkout", checkouts[1].pk)
+    checkout_no_match_id = graphene.Node.to_global_id("Checkout", checkouts[2].pk)
+    checkout_prefix_name_id = graphene.Node.to_global_id("Checkout", checkouts[3].pk)
+
+    # Exact name match "Aaron" should rank highest
+    assert returned_ids[0] == checkout_exact_name_id
+    # Charlie's checkout should not appear
+    assert checkout_no_match_id not in returned_ids
+    # Both prefix matches should appear after the exact match
+    assert checkout_email_match_id in returned_ids
+    assert checkout_prefix_name_id in returned_ids
+
+
 def test_filtering_checkout_discounted_object_by_transaction_psp_reference(
     checkout_with_item, staff_api_client, permission_manage_checkouts
 ):
