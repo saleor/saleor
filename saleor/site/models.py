@@ -70,6 +70,15 @@ class SiteSettings(ModelWithMetadata):
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
+    preserve_all_address_fields = models.BooleanField(
+        default=False,
+        db_default=False,
+        help_text=(
+            "When enabled, address fields that are not valid for a given country "
+            "(according to Google's i18n address data) will be preserved instead of "
+            "being removed during validation. Validation errors are still returned."
+        ),
+    )
 
     # Duration in minutes
     reserve_stock_duration_anonymous_user = models.IntegerField(blank=True, null=True)
