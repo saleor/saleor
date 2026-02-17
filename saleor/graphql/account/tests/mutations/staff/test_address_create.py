@@ -21,6 +21,7 @@ ADDRESS_CREATE_MUTATION = """
             address {
                 id
                 city
+                countryArea
                 country {
                     code
                 }
@@ -207,3 +208,68 @@ def test_create_address_skip_validation(
     assert new_address.postal_code == wrong_postal_code
     assert new_address.validation_skipped is True
     assert new_address.metadata == {"public": "public_value"}
+
+
+def test_create_address_country_area_cleared_by_default(
+    staff_api_client, customer_user, permission_manage_users, site_settings
+):
+    """Swiss addresses don't use country_area; it should be cleared by default."""
+    # given
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data = {
+        "firstName": "John",
+        "lastName": "Doe",
+        "streetAddress1": "Bahnhofstrasse 1",
+        "city": "Zürich",
+        "postalCode": "8001",
+        "country": "CH",
+        "countryArea": "Zürich",
+    }
+    variables = {"user": user_id, "address": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ADDRESS_CREATE_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressCreate"]
+    assert not data["errors"]
+    assert data["address"]["countryArea"] == ""
+
+
+def test_create_address_country_area_preserved_when_flag_enabled(
+    staff_api_client, customer_user, permission_manage_users, site_settings
+):
+    """When preserve_all_address_fields is True, country_area should be kept."""
+    # given
+    site_settings.preserve_all_address_fields = True
+    site_settings.save(update_fields=["preserve_all_address_fields"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data = {
+        "firstName": "John",
+        "lastName": "Doe",
+        "streetAddress1": "Bahnhofstrasse 1",
+        "city": "Zürich",
+        "postalCode": "8001",
+        "country": "CH",
+        "countryArea": "Zürich",
+    }
+    variables = {"user": user_id, "address": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ADDRESS_CREATE_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressCreate"]
+    assert not data["errors"]
+    assert data["address"]["countryArea"] == address_data["countryArea"]

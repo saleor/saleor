@@ -392,3 +392,51 @@ def test_substitute_invalid_values(country_area_input, country_area_output, is_v
         assert "country_area" in errors
     else:
         assert not errors
+
+
+def test_validate_address_switzerland_preserves_country_area_when_flag_enabled():
+    # given - Switzerland doesn't have country_area in allowed fields
+    data = {
+        "first_name": "John",
+        "last_name": "Doe",
+        "country": "CH",
+        "country_area": "Zurich",
+        "city": "Zurich",
+        "street_address_1": "Bahnhofstrasse 1",
+        "postal_code": "8001",
+    }
+
+    # when
+    form = forms.get_address_form(
+        data, country_code="CH", preserve_all_address_fields=True
+    )
+
+    # then
+    assert form.is_valid()
+    cleaned_data = form.cleaned_data
+    # country_area should be preserved even though it's not in CH allowed fields
+    assert cleaned_data.get("country_area") == data["country_area"]
+
+
+def test_validate_address_switzerland_removes_country_area_when_flag_disabled():
+    # given - Switzerland doesn't have country_area in allowed fields
+    data = {
+        "first_name": "John",
+        "last_name": "Doe",
+        "country": "CH",
+        "country_area": "Zurich",
+        "city": "Zurich",
+        "street_address_1": "Bahnhofstrasse 1",
+        "postal_code": "8001",
+    }
+
+    # when
+    form = forms.get_address_form(
+        data, country_code="CH", preserve_all_address_fields=False
+    )
+
+    # then
+    assert form.is_valid()
+    cleaned_data = form.cleaned_data
+    # country_area should be removed during normalization
+    assert not cleaned_data.get("country_area")
