@@ -30,6 +30,7 @@ MIME_TYPE_TO_PIL_IDENTIFIER = {
     "image/eps": "EPS",
     "image/gif": "GIF",
     "image/jpeg": "JPEG",
+    "image/jpg": "JPEG",
     "image/pcd": "PCD",
     "image/pcx": "PCX",
     "image/png": "PNG",
