@@ -73,11 +73,6 @@ class SiteSettings(ModelWithMetadata):
     preserve_all_address_fields = models.BooleanField(
         default=False,
         db_default=False,
-        help_text=(
-            "When enabled, address fields that are not valid for a given country "
-            "(according to Google's i18n address data) will be preserved instead of "
-            "being removed during validation. Validation errors are still returned."
-        ),
     )
 
     # Duration in minutes
