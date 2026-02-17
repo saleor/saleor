@@ -1259,8 +1259,8 @@ def test_fulfillment_return_products_with_global_reason_and_reason_reference(
         page_type=page_type,
         is_published=True,
     )
-    site_settings.refund_reason_reference_type = page_type
-    site_settings.save(update_fields=["refund_reason_reference_type"])
+    site_settings.return_reason_reference_type = page_type
+    site_settings.save(update_fields=["return_reason_reference_type"])
 
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -1312,8 +1312,8 @@ def test_fulfillment_return_products_staff_omits_reason_reference_when_configure
 ):
     # given - global reasonReference is required for staff when configured
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
-    site_settings.refund_reason_reference_type = page_type
-    site_settings.save(update_fields=["refund_reason_reference_type"])
+    site_settings.return_reason_reference_type = page_type
+    site_settings.save(update_fields=["return_reason_reference_type"])
 
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -1366,8 +1366,8 @@ def test_fulfillment_return_products_with_per_line_reason(
         page_type=page_type,
         is_published=True,
     )
-    site_settings.refund_reason_reference_type = page_type
-    site_settings.save(update_fields=["refund_reason_reference_type"])
+    site_settings.return_reason_reference_type = page_type
+    site_settings.save(update_fields=["return_reason_reference_type"])
 
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -1414,7 +1414,7 @@ def test_fulfillment_return_products_per_line_reason_reference_when_not_configur
     order_with_lines,
     site_settings,
 ):
-    # given - no refund_reason_reference_type configured, providing per-line ref is error
+    # given - no return_reason_reference_type configured, providing per-line ref is error
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
     page = Page.objects.create(
         slug="damaged-product",
@@ -1478,8 +1478,8 @@ def test_fulfillment_return_products_per_line_reason_reference_wrong_page_type(
         page_type=page_type,
         is_published=True,
     )
-    site_settings.refund_reason_reference_type = page_type
-    site_settings.save(update_fields=["refund_reason_reference_type"])
+    site_settings.return_reason_reference_type = page_type
+    site_settings.save(update_fields=["return_reason_reference_type"])
 
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.pk)

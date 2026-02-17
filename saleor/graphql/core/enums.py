@@ -266,6 +266,11 @@ RefundSettingsErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 RefundSettingsErrorCode.doc_category = DOC_CATEGORY_SHOP
 
+ReturnSettingsErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    site_error_codes.ReturnSettingsErrorCode
+)
+ReturnSettingsErrorCode.doc_category = DOC_CATEGORY_SHOP
+
 MetadataErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     core_error_codes.MetadataErrorCode
 )

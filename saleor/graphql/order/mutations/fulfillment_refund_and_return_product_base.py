@@ -98,6 +98,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         cleaned_input,
         whitelisted_statuses,
         site_settings: SiteSettings | None = None,
+        reason_reference_type=None,
     ):
         fulfillment_lines = cls.get_nodes_or_error(
             [line["fulfillment_line_id"] for line in fulfillment_lines_data],
@@ -155,6 +156,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     reason_reference_id=reason_reference_id,
                     site_settings=site_settings,
                     error_code_enum=OrderErrorCode,
+                    reason_reference_type=reason_reference_type,
                 )
                 if per_line_ctx["should_apply"]:
                     reason_reference_instance = resolve_reason_reference_page(
@@ -175,7 +177,9 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         cleaned_input["fulfillment_lines"] = cleaned_fulfillment_lines
 
     @classmethod
-    def clean_lines(cls, lines_data, cleaned_input, site_settings=None):
+    def clean_lines(
+        cls, lines_data, cleaned_input, site_settings=None, reason_reference_type=None
+    ):
         order_lines = cls.get_nodes_or_error(
             [line["order_line_id"] for line in lines_data],
             field="order_lines",
@@ -230,6 +234,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     reason_reference_id=reason_reference_id,
                     site_settings=site_settings,
                     error_code_enum=OrderErrorCode,
+                    reason_reference_type=reason_reference_type,
                 )
                 if per_line_ctx["should_apply"]:
                     reason_reference_instance = resolve_reason_reference_page(

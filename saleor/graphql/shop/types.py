@@ -96,6 +96,21 @@ class RefundSettings(ModelObjectType[site_models.SiteSettings]):
         return root.refund_reason_reference_type
 
 
+class ReturnSettings(ModelObjectType[site_models.SiteSettings]):
+    reason_reference_type = graphene.Field(
+        PageType, description="Model type used for return reasons."
+    )
+
+    class Meta:
+        description = "Return related settings from site settings." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_ORDERS
+        model = site_models.SiteSettings
+
+    @staticmethod
+    def resolve_reason_reference_type(root, info):
+        return root.return_reason_reference_type
+
+
 class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="The gift card expiry type settings.", required=True

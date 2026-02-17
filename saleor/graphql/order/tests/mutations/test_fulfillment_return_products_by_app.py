@@ -14,8 +14,8 @@ def test_fulfillment_return_products_app_omits_reason_reference_when_configured(
 ):
     # given - global reasonReference is always optional for apps
     page_type = PageType.objects.create(name="Refund Reasons", slug="refund-reasons")
-    site_settings.refund_reason_reference_type = page_type
-    site_settings.save(update_fields=["refund_reason_reference_type"])
+    site_settings.return_reason_reference_type = page_type
+    site_settings.save(update_fields=["return_reason_reference_type"])
 
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.pk)

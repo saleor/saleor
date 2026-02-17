@@ -187,6 +187,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
             refund_reference_field_name="reason_reference",
             error_code_enum=OrderErrorCode,
             site_settings=site.settings,
+            reason_reference_type=site.settings.return_reason_reference_type,
         )
 
         reason_reference_instance = None
@@ -212,7 +213,10 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
 
         if order_lines_data:
             cls.clean_lines(
-                order_lines_data, cleaned_input, site_settings=site.settings
+                order_lines_data,
+                cleaned_input,
+                site_settings=site.settings,
+                reason_reference_type=site.settings.return_reason_reference_type,
             )
         if fulfillment_lines_data:
             cls.clean_fulfillment_lines(
@@ -224,6 +228,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
                     FulfillmentStatus.WAITING_FOR_APPROVAL,
                 ],
                 site_settings=site.settings,
+                reason_reference_type=site.settings.return_reason_reference_type,
             )
         return cleaned_input
 

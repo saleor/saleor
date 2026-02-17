@@ -55,8 +55,13 @@ def validate_and_resolve_refund_reason_context(
     refund_reference_field_name: str,
     error_code_enum,
     site_settings: SiteSettings,
+    reason_reference_type=None,
 ):
-    refund_reason_reference_type = site_settings.refund_reason_reference_type
+    refund_reason_reference_type = (
+        reason_reference_type
+        if reason_reference_type is not None
+        else site_settings.refund_reason_reference_type
+    )
 
     is_passing_reason_reference_required: bool = (
         refund_reason_reference_type is not None
@@ -103,13 +108,18 @@ def validate_per_line_reason_reference(
     site_settings: SiteSettings,
     error_code_enum,
     field_name: str = "reason_reference",
+    reason_reference_type=None,
 ):
     """Validate per-line reason reference.
 
     Per-line reason references are always optional (for both staff and apps),
     but when provided the referenced Page must match the configured PageType.
     """
-    refund_reason_reference_type = site_settings.refund_reason_reference_type
+    refund_reason_reference_type = (
+        reason_reference_type
+        if reason_reference_type is not None
+        else site_settings.refund_reason_reference_type
+    )
 
     if not refund_reason_reference_type and reason_reference_id:
         raise ValidationError(
