@@ -446,6 +446,7 @@ def trigger_webhooks_async_for_multiple_objects(
                 "telemetry_context": get_task_context().to_dict(),
             },
             MessageGroupId=message_group_id,
+            queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
         )
 
     def process_deliveries(deliveries_list):
@@ -645,11 +646,11 @@ def _generate_deferred_payloads(
 
     event_payloads = []
     event_payloads_data = []
-    event_deliveries_for_bulk_update = []
 
     dataloaders: dict[str, type[DataLoader]] = {}
     request_map: dict[int, SaleorContext] = {}
 
+    data_promises = []
     for delivery in deliveries:
         event_type = delivery.event_type
         webhook = delivery.webhook
@@ -667,15 +668,18 @@ def _generate_deferred_payloads(
                 dataloaders=dataloaders,
             )
             request_map[webhook.app_id] = request
-        data_promise = generate_payload_promise_from_subscription(
-            event_type=event_type,
-            subscribable_object=subscribable_object,
-            subscription_query=webhook.subscription_query,
-            request=request,
+        data_promises.append(
+            generate_payload_promise_from_subscription(
+                event_type=event_type,
+                subscribable_object=subscribable_object,
+                subscription_query=webhook.subscription_query,
+                request=request,
+            )
         )
 
-        if data_promise:
-            data = data_promise.get()
+    def with_subscription_payload(payloads):
+        event_deliveries_for_bulk_update = []
+        for data, delivery in zip(payloads, deliveries, strict=False):
             if data:
                 data_json = json.dumps({**data})
                 event_payloads_data.append(data_json)
@@ -684,32 +688,36 @@ def _generate_deferred_payloads(
                 delivery.payload = event_payload
                 event_deliveries_for_bulk_update.append(delivery)
 
-    if event_deliveries_for_bulk_update:
-        with allow_writer():
-            with transaction.atomic():
-                EventPayload.objects.bulk_create_with_payload_files(
-                    event_payloads, event_payloads_data
-                )
-                EventDelivery.objects.bulk_update(
-                    event_deliveries_for_bulk_update, ["payload"]
-                )
-    domain = get_domain()
-    for delivery in event_deliveries_for_bulk_update:
-        # Trigger webhook delivery task when the payload is ready.
-        message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
-        # TODO: switch to new `send_webhooks_async_for_app` task when we have
-        # deduplication mechanism in place.
-        send_webhook_request_async.apply_async(
-            kwargs={
-                "event_delivery_id": delivery.pk,
-                "telemetry_context": telemetry_context.to_dict(),
-            },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=send_webhook_queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            MessageGroupId=message_group_id,  # for AWS SQS fair queues
-        )
+        if event_deliveries_for_bulk_update:
+            with allow_writer():
+                with transaction.atomic():
+                    EventPayload.objects.bulk_create_with_payload_files(
+                        event_payloads, event_payloads_data
+                    )
+                    EventDelivery.objects.bulk_update(
+                        event_deliveries_for_bulk_update, ["payload"]
+                    )
+        domain = get_domain()
+        for delivery in event_deliveries_for_bulk_update:
+            # Trigger webhook delivery task when the payload is ready.
+            message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
+            # TODO: switch to new `send_webhooks_async_for_app` task when we have
+            # deduplication mechanism in place.
+            send_webhook_request_async.apply_async(
+                kwargs={
+                    "event_delivery_id": delivery.pk,
+                    "telemetry_context": telemetry_context.to_dict(),
+                },
+                queue=get_queue_name_for_webhook(
+                    delivery.webhook,
+                    default_queue=send_webhook_queue
+                    or settings.WEBHOOK_CELERY_QUEUE_NAME,
+                ),
+                MessageGroupId=message_group_id,  # for AWS SQS fair queues
+            )
+
+    Promise.all(data_promises).then(with_subscription_payload).get()
+    return
 
 
 @app.task(

@@ -369,46 +369,57 @@ class WebhookEventAsyncType:
         ORDER_CREATED: {
             "name": "Order created",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_CONFIRMED: {
             "name": "Order confirmed",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_PAID: {
             "name": "Order paid",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_FULLY_PAID: {
             "name": "Order fully paid",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_REFUNDED: {
             "name": "Order refunded",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_FULLY_REFUNDED: {
             "name": "Order fully refunded",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_UPDATED: {
             "name": "Order updated",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_CANCELLED: {
             "name": "Order cancelled",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_EXPIRED: {
             "name": "Order expired",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_FULFILLED: {
             "name": "Order fulfilled",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_METADATA_UPDATED: {
             "name": "Order metadata updated",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_BULK_CREATED: {
             "name": "Order bulk created",
@@ -417,30 +428,37 @@ class WebhookEventAsyncType:
         FULFILLMENT_CREATED: {
             "name": "Fulfillment created",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         FULFILLMENT_CANCELED: {
             "name": "Fulfillment cancelled",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         FULFILLMENT_APPROVED: {
             "name": "Fulfillment approved",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         FULFILLMENT_METADATA_UPDATED: {
             "name": "Fulfillment metadata updated",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         FULFILLMENT_TRACKING_NUMBER_UPDATED: {
             "name": "Fulfillment tracking number updated.",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         DRAFT_ORDER_CREATED: {
             "name": "Draft order created",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         DRAFT_ORDER_UPDATED: {
             "name": "Draft order updated",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         DRAFT_ORDER_DELETED: {
             "name": "Draft order deleted",

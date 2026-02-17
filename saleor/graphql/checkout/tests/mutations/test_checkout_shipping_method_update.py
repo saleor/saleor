@@ -599,6 +599,7 @@ MUTATION_UPDATE_SHIPPING_METHOD_WITH_ONLY_ID = """
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_shipping_method_update_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -658,6 +659,7 @@ def test_checkout_shipping_method_update_triggers_webhooks(
             "telemetry_context": ANY,
         },
         MessageGroupId="example.com",
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
     )
 
     # Deferred payload covers the async actions
@@ -756,6 +758,7 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
             "telemetry_context": ANY,
         },
         MessageGroupId="example.com",
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
     )
 
     # Deferred payload covers the sync and async actions
