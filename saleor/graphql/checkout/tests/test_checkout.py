@@ -458,10 +458,7 @@ query getCheckout($id: ID) {
 """
 
 
-@mock.patch(
-    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
-)
-@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@mock.patch("saleor.checkout.webhooks.exclude_shipping._get_excluded_shipping_data")
 def test_query_checkout_empty_address_with_shipping_method_without_exclude_webhook(
     mock_excluded_shipping_methods_for_checkout,
     api_client,
@@ -489,7 +486,7 @@ def test_query_checkout_empty_address_with_shipping_method_without_exclude_webho
 
 
 @mock.patch(
-    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_query_checkout_with_address_with_shipping_method_without_exclude_webhook(

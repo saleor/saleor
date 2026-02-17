@@ -98,12 +98,6 @@ class ExternalAccessTokens:
     user: Optional["User"] = None
 
 
-@dataclass
-class ExcludedShippingMethod:
-    id: str
-    reason: str | None
-
-
 class BasePlugin:
     """Abstract class for storing all methods available for any plugin.
 

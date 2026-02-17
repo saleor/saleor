@@ -1,7 +1,6 @@
 import json
 import logging
 from collections import defaultdict
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Union
 
 from django.conf import settings
@@ -12,13 +11,12 @@ from pydantic import ValidationError
 from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
-from ...shipping.interface import ShippingMethodData
+from ...shipping.interface import ExcludedShippingMethod, ShippingMethodData
 from ...webhook import traced_payload_generator
 from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.models import Webhook
 from ...webhook.payloads import (
     generate_order_payload,
-    generate_payload_for_shipping_method,
 )
 from ...webhook.response_schemas.shipping import (
     ExcludedShippingMethodSchema,
@@ -39,10 +37,18 @@ CACHE_EXCLUDED_SHIPPING_TIME = 60 * 3
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class ExcludedShippingMethod:
-    id: str
-    reason: str | None
+def generate_payload_for_shipping_method(method: ShippingMethodData):
+    payload = {
+        "id": method.graphql_id,
+        "price": method.price.amount,
+        "currency": method.price.currency,
+        "name": method.name,
+        "maximum_order_weight": method.maximum_order_weight,
+        "minimum_order_weight": method.minimum_order_weight,
+        "maximum_delivery_days": method.maximum_delivery_days,
+        "minimum_delivery_days": method.minimum_delivery_days,
+    }
+    return payload
 
 
 @allow_writer()

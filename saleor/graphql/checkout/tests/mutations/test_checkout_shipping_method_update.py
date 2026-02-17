@@ -20,9 +20,9 @@ from .....checkout.fetch import (
 from .....checkout.models import CheckoutDelivery
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout
 from .....core.models import EventDelivery
-from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.manager import get_plugins_manager
 from .....shipping import models as shipping_models
+from .....shipping.interface import ExcludedShippingMethod
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -273,7 +273,7 @@ def test_checkout_shipping_method_update_deletes_external_shipping_when_not_vali
 
 
 @mock.patch(
-    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
 )
 def test_checkout_shipping_method_update_excluded_webhook(
     mocked_webhook,

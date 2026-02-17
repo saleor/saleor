@@ -35,7 +35,6 @@ from ..payment import ChargeStatus
 from ..payment.models import Payment, TransactionItem
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product, ProductMedia, ProductVariant
-from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod
 from ..tax.models import TaxClassCountryRate
 from ..thumbnail.models import Thumbnail
@@ -1241,37 +1240,6 @@ def generate_translation_payload(
         translation_data.update(context)
 
     return json.dumps(translation_data)
-
-
-def generate_payload_for_shipping_method(method: ShippingMethodData):
-    payload = {
-        "id": method.graphql_id,
-        "price": method.price.amount,
-        "currency": method.price.currency,
-        "name": method.name,
-        "maximum_order_weight": method.maximum_order_weight,
-        "minimum_order_weight": method.minimum_order_weight,
-        "maximum_delivery_days": method.maximum_delivery_days,
-        "minimum_delivery_days": method.minimum_delivery_days,
-    }
-    return payload
-
-
-@allow_writer()
-@traced_payload_generator
-def generate_excluded_shipping_methods_for_checkout_payload(
-    checkout: "Checkout",
-    available_shipping_methods: list[ShippingMethodData],
-):
-    checkout_data = json.loads(generate_checkout_payload(checkout))[0]
-    payload = {
-        "checkout": checkout_data,
-        "shipping_methods": [
-            generate_payload_for_shipping_method(shipping_method)
-            for shipping_method in available_shipping_methods
-        ],
-    }
-    return json.dumps(payload, cls=CustomJsonEncoder)
 
 
 @allow_writer()

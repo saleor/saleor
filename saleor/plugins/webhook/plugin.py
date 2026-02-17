@@ -69,7 +69,6 @@ from ...webhook.payloads import (
     generate_checkout_payload_for_tax_calculation,
     generate_collection_payload,
     generate_customer_payload,
-    generate_excluded_shipping_methods_for_checkout_payload,
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -114,7 +113,6 @@ from ...webhook.transport.payment import (
 )
 from ...webhook.transport.shipping import (
     get_cache_data_for_shipping_list_methods_for_checkout,
-    get_excluded_shipping_data,
     parse_list_shipping_methods_response,
 )
 from ...webhook.transport.synchronous.transport import (
@@ -131,7 +129,7 @@ from ...webhook.transport.utils import (
     get_sqs_message_group_id,
 )
 from ...webhook.utils import get_webhooks_for_event
-from ..base_plugin import BasePlugin, ExcludedShippingMethod
+from ..base_plugin import BasePlugin
 
 if TYPE_CHECKING:
     from ...account.models import Address, Group, User
@@ -3662,29 +3660,6 @@ class WebhookPlugin(BasePlugin):
         return TaxType(
             code=code,
             description=description,
-        )
-
-    def excluded_shipping_methods_for_checkout(
-        self,
-        checkout: "Checkout",
-        available_shipping_methods: list["ShippingMethodData"],
-        previous_value: list[ExcludedShippingMethod],
-        pregenerated_subscription_payloads: dict | None = None,
-    ) -> list[ExcludedShippingMethod]:
-        if pregenerated_subscription_payloads is None:
-            pregenerated_subscription_payloads = {}
-        generate_function = generate_excluded_shipping_methods_for_checkout_payload
-        payload_function = lambda: generate_function(  # noqa: E731
-            checkout,
-            available_shipping_methods,
-        )
-        return get_excluded_shipping_data(
-            event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-            previous_value=previous_value,
-            payload_fun=payload_function,
-            subscribable_object=(checkout, available_shipping_methods),
-            allow_replica=self.allow_replica,
-            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
 
     def is_event_active(self, event: str, channel: str | None = None):

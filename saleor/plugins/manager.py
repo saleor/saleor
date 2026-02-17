@@ -49,7 +49,7 @@ from ..payment.interface import (
     TransactionSessionResult,
 )
 from ..tax.utils import calculate_tax_rate
-from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
+from .base_plugin import ExternalAccessTokens
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -2863,28 +2863,6 @@ class PluginsManager(PaymentInterface):
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(
             plugin, "external_verify", default_value, data, request
-        )
-
-    def excluded_shipping_methods_for_checkout(
-        self,
-        checkout: "Checkout",
-        channel: "Channel",
-        available_shipping_methods: list["ShippingMethodData"],
-        pregenerated_subscription_payloads: dict | None = None,
-    ) -> list[ExcludedShippingMethod]:
-        default_value: list[ExcludedShippingMethod] = []
-
-        if not available_shipping_methods:
-            return default_value
-        if pregenerated_subscription_payloads is None:
-            pregenerated_subscription_payloads = {}
-        return self.__run_method_on_plugins(
-            "excluded_shipping_methods_for_checkout",
-            default_value,
-            checkout,
-            available_shipping_methods,
-            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
-            channel_slug=channel.slug,
         )
 
     def is_event_active_for_any_plugin(

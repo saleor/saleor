@@ -51,3 +51,9 @@ class ShippingMethodData:
         if self.is_external:
             return self.id
         return graphene.Node.to_global_id("ShippingMethod", self.id)
+
+
+@dataclass
+class ExcludedShippingMethod:
+    id: str
+    reason: str | None

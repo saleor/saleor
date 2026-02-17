@@ -41,7 +41,6 @@ from ...payment.interface import (
     TransactionSessionResult,
 )
 from ...product.models import Product
-from ...shipping.interface import ShippingMethodData
 from ..base_plugin import ExternalAccessTokens
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
@@ -1646,62 +1645,3 @@ def test_manager_skips_external_shipping_with_different_currency_than_checkout_c
     # then
     assert len(shipping_methods) == 1
     assert shipping_methods[0].price.currency == checkout_with_item.currency
-
-
-@mock.patch(
-    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_plugins"
-)
-def test_excluded_shipping_methods_for_checkout_run_webhook_on_existing_shipping_methods(
-    mock__run_method_on_plugins, channel_USD, checkout
-):
-    plugins = [
-        "saleor.plugins.tests.sample_plugins.PluginSample",
-    ]
-
-    manager = PluginsManager(plugins=plugins)
-
-    # given shipping methods contain at least 1 method
-
-    shipping_method = ShippingMethodData(
-        id="123",
-        price=Money(Decimal("10.59"), "USD"),
-    )
-
-    non_empty_shipping_methods = [shipping_method]
-
-    # when manager executes for shipping methods exclusion
-
-    manager.excluded_shipping_methods_for_checkout(
-        checkout, channel_USD, non_empty_shipping_methods
-    )
-
-    # then webhook should be emitted
-
-    mock__run_method_on_plugins.assert_called_once()
-
-
-@mock.patch(
-    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_plugins"
-)
-def test_excluded_shipping_methods_for_checkout_dont_run_webhook_on_missing_shipping_methods(
-    mock__run_method_on_plugins, channel_USD, checkout
-):
-    plugins = [
-        "saleor.plugins.tests.sample_plugins.PluginSample",
-    ]
-
-    manager = PluginsManager(plugins=plugins)
-
-    # given shipping methods are empty
-
-    empty_shipping_methods = []
-
-    # when manager executes for shipping methods exclusion
-
-    manager.excluded_shipping_methods_for_checkout(
-        checkout, channel_USD, empty_shipping_methods
-    )
-
-    # then webhook should not be emitted
-
-    mock__run_method_on_plugins.assert_not_called()
