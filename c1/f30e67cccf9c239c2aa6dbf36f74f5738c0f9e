@@ -1,0 +1,43 @@
+saleor/graphql/webhook/subscription_types.py
+  90548b59fd70151a 54,59,359-385,387-388,2984
+saleor/plugins/webhook/plugin.py
+  90548b59fd70151a 13,461-482
+saleor/webhook/tests/subscription_webhooks/test_create_deliveries_for_subscription.py
+  90548b59fd70151a 447-480
+saleor/webhook/tests/fixtures/subscription_webhooks.py
+  90548b59fd70151a 126-132
+saleor/graphql/webhook/enums.py
+  90548b59fd70151a 63
+saleor/webhook/event_types.py
+  90548b59fd70151a 41,262-265
+saleor/graphql/core/doc_category.py
+  90548b59fd70151a 32
+saleor/webhook/tests/subscription_webhooks/subscription_queries.py
+  90548b59fd70151a 332-352
+saleor/plugins/manager.py
+  90548b59fd70151a 57,1739-1744
+saleor/graphql/app/mutations/app_problem_create.py
+  90548b59fd70151a 24,125,140-141,150-152,154-158
+saleor/graphql/app/tests/mutations/test_app_problem_create.py
+  90548b59fd70151a 1-9,11-13,72-156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "c1f30e67cccf9c239c2aa6dbf36f74f5738c0f9e",
+  "prompts": {
+    "90548b59fd70151a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "367dd1ba-93d3-4b6f-b20c-f3690ae47b58",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 261,
+      "total_deletions": 16,
+      "accepted_lines": 243,
+      "overriden_lines": 1
+    }
+  }
+}
