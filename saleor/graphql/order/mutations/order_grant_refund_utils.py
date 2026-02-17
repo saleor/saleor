@@ -6,7 +6,12 @@ import graphene
 from graphql import GraphQLError
 
 from ....order import models
+from ....site.models import SiteSettings
 from ...core.utils import from_global_id_or_error
+from ...payment.utils import (
+    resolve_reason_reference_page,
+    validate_per_line_reason_reference,
+)
 
 
 def shipping_costs_already_granted(
@@ -75,9 +80,10 @@ def get_input_lines_data(
     lines: list[dict[str, str | int]],
     errors: list[dict[str, str]],
     error_code: str,
-) -> tuple[dict[uuid.UUID, models.OrderGrantedRefundLine], dict[uuid.UUID, str | None]]:
+    site_settings: SiteSettings | None = None,
+    reason_reference_error_code_enum=None,
+) -> dict[uuid.UUID, models.OrderGrantedRefundLine]:
     granted_refund_lines = {}
-    raw_reason_reference_ids: dict[uuid.UUID, str | None] = {}
     for line in lines:
         order_line_id = cast(str, line["id"])
         try:
@@ -92,8 +98,25 @@ def get_input_lines_data(
                 quantity=int(line["quantity"]),
                 reason=reason,
             )
+            if (
+                site_settings
+                and reason_reference_error_code_enum
+                and reason_reference_id is not None
+            ):
+                context = validate_per_line_reason_reference(
+                    reason_reference_id=reason_reference_id,
+                    site_settings=site_settings,
+                    error_code_enum=reason_reference_error_code_enum,
+                )
+                if context["should_apply"]:
+                    granted_refund_line.reason_reference = (
+                        resolve_reason_reference_page(
+                            reason_reference_id,
+                            context["reason_reference_type"].pk,
+                            reason_reference_error_code_enum,
+                        )
+                    )
             granted_refund_lines[uuid_pk] = granted_refund_line
-            raw_reason_reference_ids[uuid_pk] = reason_reference_id
         except (GraphQLError, ValueError) as e:
             errors.append(
                 {
@@ -103,7 +126,7 @@ def get_input_lines_data(
                     "message": str(e),
                 }
             )
-    return granted_refund_lines, raw_reason_reference_ids
+    return granted_refund_lines
 
 
 def assign_order_lines(

@@ -217,9 +217,7 @@ class TransactionRequestAction(BaseMutation):
             site_settings=site.settings,
         )
 
-        refund_reason_reference_type = refund_reason_context[
-            "refund_reason_reference_type"
-        ]
+        reason_reference_type = refund_reason_context["reason_reference_type"]
 
         reason_reference_instance: Page | None = None
 
@@ -240,7 +238,7 @@ class TransactionRequestAction(BaseMutation):
 
             try:
                 reason_reference_instance = Page.objects.get(
-                    pk=reason_reference_pk, page_type=refund_reason_reference_type.pk
+                    pk=reason_reference_pk, page_type=reason_reference_type.pk
                 )
             except Page.DoesNotExist:
                 raise ValidationError(

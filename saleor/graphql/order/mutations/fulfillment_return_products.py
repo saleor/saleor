@@ -47,7 +47,7 @@ class OrderReturnLineInput(BaseInputObjectType):
     reason_reference = graphene.ID(
         description=(
             "ID of a `Page` to reference as reason for returning this line. "
-            "When provided, must match the configured `PageType` in refund settings. "
+            "When provided, must match the configured `PageType` in return reason reference settings. "
             "Always optional for both staff and apps."
         )
         + ADDED_IN_322
@@ -77,7 +77,7 @@ class OrderReturnFulfillmentLineInput(BaseInputObjectType):
     reason_reference = graphene.ID(
         description=(
             "ID of a `Page` to reference as reason for returning this line. "
-            "When provided, must match the configured `PageType` in refund settings. "
+            "When provided, must match the configured `PageType` in return reason reference settings. "
             "Always optional for both staff and apps."
         )
         + ADDED_IN_322
@@ -115,7 +115,7 @@ class OrderReturnProductsInput(BaseInputObjectType):
     reason_reference = graphene.ID(
         description=(
             "ID of a `Page` to reference as reason for the return. "
-            "Required for staff users when refund reason reference type is configured. "
+            "Required for staff users when return reason reference type is configured. "
             "Always optional for apps."
         )
         + ADDED_IN_322
@@ -194,7 +194,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
         if refund_reason_context["should_apply"]:
             reason_reference_instance = resolve_reason_reference_page(
                 str(reason_reference_id),
-                refund_reason_context["refund_reason_reference_type"].pk,
+                refund_reason_context["reason_reference_type"].pk,
                 OrderErrorCode,
             )
 

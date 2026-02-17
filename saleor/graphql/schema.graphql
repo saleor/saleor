@@ -11789,14 +11789,14 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   warehouse: Warehouse
 
   """
-  Reason for the fulfillment action.
+  Reason for the return or refund. Only applicable for fulfillments with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED.
   
   Added in Saleor 3.22.
   """
   reason: String
 
   """
-  Reason Model (Page) reference for this fulfillment.
+  Reason Model (Page) reference for the return or refund. Only applicable for fulfillments with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED.
   
   Added in Saleor 3.22.
   """
@@ -11831,14 +11831,14 @@ type FulfillmentLine implements Node @doc(category: "Orders") {
   orderLine: OrderLine
 
   """
-  Reason for the fulfillment line action.
+  Reason for the return or refund. Only applicable for fulfillments with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED.
   
   Added in Saleor 3.22.
   """
   reason: String
 
   """
-  Reason Model (Page) reference for this fulfillment line.
+  Reason Model (Page) reference for the return or refund. Only applicable for fulfillments with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED.
   
   Added in Saleor 3.22.
   """
@@ -26971,7 +26971,7 @@ input OrderReturnProductsInput @doc(category: "Orders") {
   reason: String
 
   """
-  ID of a `Page` to reference as reason for the return. Required for staff users when refund reason reference type is configured. Always optional for apps.
+  ID of a `Page` to reference as reason for the return. Required for staff users when return reason reference type is configured. Always optional for apps.
   
   Added in Saleor 3.22.
   """
@@ -26996,7 +26996,7 @@ input OrderReturnLineInput @doc(category: "Orders") {
   reason: String
 
   """
-  ID of a `Page` to reference as reason for returning this line. When provided, must match the configured `PageType` in refund settings. Always optional for both staff and apps.
+  ID of a `Page` to reference as reason for returning this line. When provided, must match the configured `PageType` in return reason reference settings. Always optional for both staff and apps.
   
   Added in Saleor 3.22.
   """
@@ -27021,7 +27021,7 @@ input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
   reason: String
 
   """
-  ID of a `Page` to reference as reason for returning this line. When provided, must match the configured `PageType` in refund settings. Always optional for both staff and apps.
+  ID of a `Page` to reference as reason for returning this line. When provided, must match the configured `PageType` in return reason reference settings. Always optional for both staff and apps.
   
   Added in Saleor 3.22.
   """

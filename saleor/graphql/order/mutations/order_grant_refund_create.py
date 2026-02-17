@@ -21,7 +21,6 @@ from ...payment.mutations.transaction.utils import get_transaction_item
 from ...payment.utils import (
     resolve_reason_reference_page,
     validate_and_resolve_refund_reason_context,
-    validate_per_line_reason_reference,
 )
 from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
@@ -138,14 +137,18 @@ class OrderGrantRefundCreate(BaseMutation):
         cls,
         order: models.Order,
         lines: list[dict[str, str | int]],
+        site_settings=None,
     ) -> tuple[
         list[models.OrderGrantedRefundLine],
-        dict,
         list[dict[str, str]] | None,
     ]:
         errors: list[dict[str, str]] = []
-        input_lines_data, raw_reason_reference_ids = get_input_lines_data(
-            lines, errors, OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value
+        input_lines_data = get_input_lines_data(
+            lines,
+            errors,
+            OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value,
+            site_settings=site_settings,
+            reason_reference_error_code_enum=OrderGrantRefundCreateErrorCode,
         )
         assign_order_lines(
             order,
@@ -161,9 +164,9 @@ class OrderGrantRefundCreate(BaseMutation):
         )
 
         if errors:
-            return [], {}, errors
+            return [], errors
 
-        return list(input_lines_data.values()), raw_reason_reference_ids, None
+        return list(input_lines_data.values()), None
 
     @classmethod
     def calculate_amount(
@@ -205,35 +208,6 @@ class OrderGrantRefundCreate(BaseMutation):
             )
 
     @classmethod
-    def _resolve_per_line_reason_references(
-        cls,
-        cleaned_input_lines: list[models.OrderGrantedRefundLine],
-        raw_reason_reference_ids: dict,
-        site_settings,
-    ):
-        """Validate and resolve per-line reason references.
-
-        Per-line reason references are always optional. When provided, they must
-        match the configured PageType. No inheritance from order-level.
-        """
-        for line in cleaned_input_lines:
-            raw_id = raw_reason_reference_ids.get(line.order_line_id)
-            if raw_id is None:
-                continue
-
-            context = validate_per_line_reason_reference(
-                reason_reference_id=raw_id,
-                site_settings=site_settings,
-                error_code_enum=OrderGrantRefundCreateErrorCode,
-            )
-            if context["should_apply"]:
-                line.reason_reference = resolve_reason_reference_page(
-                    raw_id,
-                    context["refund_reason_reference_type"].pk,
-                    OrderGrantRefundCreateErrorCode,
-                )
-
-    @classmethod
     def clean_input(
         cls,
         info: ResolveInfo,
@@ -249,11 +223,12 @@ class OrderGrantRefundCreate(BaseMutation):
 
         cls.validate_input(input)
 
+        site = get_site_promise(info.context).get()
+
         cleaned_input_lines: list[models.OrderGrantedRefundLine] = []
-        raw_reason_reference_ids: dict = {}
         if input_lines:
-            cleaned_input_lines, raw_reason_reference_ids, lines_errors = (
-                cls.clean_input_lines(order, input_lines)
+            cleaned_input_lines, lines_errors = cls.clean_input_lines(
+                order, input_lines, site_settings=site.settings
             )
             if lines_errors:
                 raise ValidationError(
@@ -310,8 +285,6 @@ class OrderGrantRefundCreate(BaseMutation):
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
-        site = get_site_promise(info.context).get()
-
         # Validate order-level reason reference
         refund_reason_context = validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference_id,
@@ -322,23 +295,15 @@ class OrderGrantRefundCreate(BaseMutation):
         )
 
         should_apply = refund_reason_context["should_apply"]
-        refund_reason_reference_type = refund_reason_context[
-            "refund_reason_reference_type"
-        ]
+        reason_reference_type = refund_reason_context["reason_reference_type"]
 
         reason_reference_instance: Page | None = None
 
         if should_apply:
             reason_reference_instance = resolve_reason_reference_page(
                 str(reason_reference_id),
-                refund_reason_reference_type.pk,
+                reason_reference_type.pk,
                 OrderGrantRefundCreateErrorCode,
-            )
-
-        # Validate and resolve per-line reason references
-        if cleaned_input_lines:
-            cls._resolve_per_line_reason_references(
-                cleaned_input_lines, raw_reason_reference_ids, site.settings
             )
 
         return {

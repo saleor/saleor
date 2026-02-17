@@ -6,6 +6,7 @@ from graphql import GraphQLError
 from ...page.models import Page
 from ...payment import models as payment_models
 from ...site.models import SiteSettings
+from ..core.utils import from_global_id_or_error
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -57,22 +58,22 @@ def validate_and_resolve_refund_reason_context(
     site_settings: SiteSettings,
     reason_reference_type=None,
 ):
-    refund_reason_reference_type = (
+    resolved_reason_reference_type = (
         reason_reference_type
         if reason_reference_type is not None
         else site_settings.refund_reason_reference_type
     )
 
     is_passing_reason_reference_required: bool = (
-        refund_reason_reference_type is not None
+        resolved_reason_reference_type is not None
     )
 
-    if not refund_reason_reference_type and reason_reference_id:
+    if not resolved_reason_reference_type and reason_reference_id:
         raise ValidationError(
             {
                 refund_reference_field_name: ValidationError(
                     "Reason reference type is not configured.",
-                    code=error_code_enum.GRAPHQL_ERROR.value,
+                    code=error_code_enum.INVALID.value,
                 )
             }
         ) from None
@@ -92,12 +93,12 @@ def validate_and_resolve_refund_reason_context(
         ) from None
 
     should_apply = bool(
-        reason_reference_id is not None and refund_reason_reference_type
+        reason_reference_id is not None and resolved_reason_reference_type
     )
 
     return {
         "is_passing_reason_reference_required": is_passing_reason_reference_required,
-        "refund_reason_reference_type": refund_reason_reference_type,
+        "reason_reference_type": resolved_reason_reference_type,
         "should_apply": should_apply,
     }
 
@@ -115,35 +116,35 @@ def validate_per_line_reason_reference(
     Per-line reason references are always optional (for both staff and apps),
     but when provided the referenced Page must match the configured PageType.
     """
-    refund_reason_reference_type = (
+    resolved_reason_reference_type = (
         reason_reference_type
         if reason_reference_type is not None
         else site_settings.refund_reason_reference_type
     )
 
-    if not refund_reason_reference_type and reason_reference_id:
+    if not resolved_reason_reference_type and reason_reference_id:
         raise ValidationError(
             {
                 field_name: ValidationError(
                     "Reason reference type is not configured.",
-                    code=error_code_enum.GRAPHQL_ERROR.value,
+                    code=error_code_enum.INVALID.value,
                 )
             }
         ) from None
 
     should_apply = bool(
-        reason_reference_id is not None and refund_reason_reference_type
+        reason_reference_id is not None and resolved_reason_reference_type
     )
 
     return {
-        "refund_reason_reference_type": refund_reason_reference_type,
+        "reason_reference_type": resolved_reason_reference_type,
         "should_apply": should_apply,
     }
 
 
 def resolve_reason_reference_page(
     reason_reference_id: str,
-    refund_reason_reference_type_id: int,
+    reason_reference_type_id: int,
     error_code_enum,
     *,
     field_name: str = "reason_reference",
@@ -153,8 +154,6 @@ def resolve_reason_reference_page(
     The referenced Page must belong to the PageType configured in
     refundReasonReferenceType site setting.
     """
-    from ..core.utils import from_global_id_or_error
-
     try:
         _, reason_reference_pk = from_global_id_or_error(
             reason_reference_id, only_type="Page", raise_error=True
@@ -172,7 +171,7 @@ def resolve_reason_reference_page(
     try:
         return Page.objects.get(
             pk=reason_reference_pk,
-            page_type=refund_reason_reference_type_id,
+            page_type=reason_reference_type_id,
         )
     except Page.DoesNotExist:
         raise ValidationError(

@@ -161,7 +161,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                 if per_line_ctx["should_apply"]:
                     reason_reference_instance = resolve_reason_reference_page(
                         str(reason_reference_id),
-                        per_line_ctx["refund_reason_reference_type"].pk,
+                        per_line_ctx["reason_reference_type"].pk,
                         OrderErrorCode,
                     )
 
@@ -239,7 +239,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                 if per_line_ctx["should_apply"]:
                     reason_reference_instance = resolve_reason_reference_page(
                         str(reason_reference_id),
-                        per_line_ctx["refund_reason_reference_type"].pk,
+                        per_line_ctx["reason_reference_type"].pk,
                         OrderErrorCode,
                     )
 

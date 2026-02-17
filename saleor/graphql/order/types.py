@@ -855,13 +855,16 @@ class FulfillmentLine(
         description="The order line to which the fulfillment line is related.",
     )
     reason = graphene.String(
-        description="Reason for the fulfillment line action." + ADDED_IN_322
+        description="Reason for the return or refund. Only applicable for fulfillments "
+        "with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED."
+        + ADDED_IN_322
     )
     reason_reference = graphene.Field(
         Page,
         required=False,
-        description="Reason Model (Page) reference for this fulfillment line."
-        + ADDED_IN_322,
+        description="Reason Model (Page) reference for the return or refund. "
+        "Only applicable for fulfillments with status: REFUNDED, RETURNED, "
+        "REFUNDED_AND_RETURNED, REPLACED." + ADDED_IN_322,
     )
 
     class Meta:
@@ -944,13 +947,16 @@ class Fulfillment(
         description="Warehouse from fulfillment was fulfilled.",
     )
     reason = graphene.String(
-        description="Reason for the fulfillment action." + ADDED_IN_322
+        description="Reason for the return or refund. Only applicable for fulfillments "
+        "with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED."
+        + ADDED_IN_322
     )
     reason_reference = graphene.Field(
         Page,
         required=False,
-        description="Reason Model (Page) reference for this fulfillment."
-        + ADDED_IN_322,
+        description="Reason Model (Page) reference for the return or refund. "
+        "Only applicable for fulfillments with status: REFUNDED, RETURNED, "
+        "REFUNDED_AND_RETURNED, REPLACED." + ADDED_IN_322,
     )
     shipping_refunded_amount = graphene.Field(
         Money,
