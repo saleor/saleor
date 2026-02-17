@@ -138,6 +138,7 @@ COST_MAP = {
     },
     "App": {
         "extensions": {"complexity": 1},
+        "problems": {"complexity": 1, "multipliers": ["limit"]},
         "tokens": {"complexity": 1},
         "webhooks": {"complexity": 1},
     },

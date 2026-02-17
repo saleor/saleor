@@ -213,3 +213,15 @@ def test_get_filename_from_url_with_query_params_path(mock_token_hex):
 
     # then
     assert result == f"image_{token_hex}.jpg"
+
+
+@pytest.mark.parametrize(
+    ("url", "mimetype", "expected_extension"),
+    [
+        ("http://example.com/image", "image/jpeg", ".jpg"),
+        ("http://example.com/image", "image/png", ".png"),
+        ("http://example.com/image?token=12345/6789", "image/webp", ".webp"),
+    ],
+)
+def test_get_filename_from_url_without_extension(url, mimetype, expected_extension):
+    assert get_filename_from_url(url, mimetype).endswith(expected_extension)

@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from io import BytesIO
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
@@ -983,8 +984,10 @@ def test_product_bulk_create_with_media_image_with_invalid_exif(
     assert len(error_1) == 1
 
 
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
 @pytest.mark.vcr
 def test_product_bulk_create_with_media_with_media_url(
+    mock_HTTPClient,
     staff_api_client,
     product_type,
     category,
@@ -993,6 +996,9 @@ def test_product_bulk_create_with_media_with_media_url(
     media_root,
 ):
     # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="text/html; charset=utf-8")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     description_json_string = json.dumps(description_json)
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
@@ -1077,21 +1083,21 @@ def test_product_bulk_create_with_media_with_media_url(
     )
 
 
-@patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.is_image_url",
-    return_value=False,
-)
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
 @patch(
     "saleor.graphql.product.bulk_mutations.product_bulk_create.get_oembed_data",
 )
 def test_product_bulk_create_with_media_with_media_url_invalid_provider(
     mocked_get_oembed_data,
-    _mocked_is_image_url,
+    mock_HTTPClient,
     staff_api_client,
     product_type,
     permission_manage_products,
 ):
     # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="text/plain")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     mocked_get_oembed_data.side_effect = UnsupportedMediaProviderException()
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1209,9 +1215,7 @@ def test_product_bulk_create_with_media_with_media_url_invalid_image_type(
     assert len(error_1) == 1
 
 
-@patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
-)
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
 def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     mock_HTTPClient,
     staff_api_client,
@@ -1222,7 +1226,7 @@ def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     # given
     mock_response = Mock()
     mock_response.headers = Mock()
-    mock_response.headers.get = Mock(return_value="text/plain")
+    mock_response.headers.get = Mock(return_value="image/not-supported")
     mock_response.raw = Mock()
     mock_response.raw.read = Mock(return_value=b"fake_image_data")
     mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
@@ -1329,6 +1333,56 @@ def test_product_bulk_create_with_media_image_file_is_fetched_only_once(
         assert img.format == "PNG"  # Ensure the image format is PNG
         assert img.size[0] > 0  # Ensure the image has dimensions
         assert img.size[1] > 0  # Ensure the image has dimensions
+
+
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
+def test_product_bulk_create_with_no_extension_media_url(
+    mock_HTTPClient,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="image/png")
+    # generate PNG image content
+    image_content = BytesIO()
+    PIL.Image.new("RGB", size=(100, 100)).save(image_content, format="PNG")
+    image_content = image_content.read()
+    mock_response.content = image_content
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
+    variables = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "category": graphene.Node.to_global_id("Category", category.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "mediaUrl": "https://saleor.io/image-path",
+                }
+            ],
+        },
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        variables={"products": variables},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)["data"]["productBulkCreate"]
+
+    # then
+    assert not content["results"][0]["errors"]
+    # validate image file
+    _, product_id = graphene.Node.from_global_id(content["results"][0]["product"]["id"])
+    product_image = Product.objects.get(id=product_id).media.first()
+    assert product_image.image.name.startswith("products/image-path_")
+    assert product_image.image.name.endswith(".png")
+    with product_image.image.open("rb") as img:
+        assert img.read() == image_content
 
 
 def test_product_bulk_create_with_attributes(

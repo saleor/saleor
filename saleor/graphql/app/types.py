@@ -2,6 +2,7 @@ import base64
 import datetime
 
 import graphene
+from graphql import GraphQLError
 
 from ...app import models
 from ...app.types import AppExtensionHttpMethod, AppExtensionTarget
@@ -9,7 +10,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
 from ...permission.auth_filters import AuthorizationFilters, is_staff_user
-from ...permission.enums import AppPermission
+from ...permission.enums import AccountPermissions, AppPermission
 from ...permission.utils import message_one_of_permissions_required
 from ...thumbnail import PIL_IDENTIFIER_TO_MIME_TYPE
 from ...thumbnail.utils import (
@@ -22,6 +23,7 @@ from ...thumbnail.utils import (
 from ...webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
+from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
@@ -30,7 +32,8 @@ from ..core.dataloaders import DataLoader
 from ..core.descriptions import ADDED_IN_319, ADDED_IN_321, ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.scalars import JSON, DateTime
+from ..core.fields import PermissionsField
+from ..core.scalars import JSON, DateTime, PositiveInt
 from ..core.types import (
     BaseEnum,
     BaseObjectType,
@@ -49,6 +52,7 @@ from ..webhook.types import Webhook
 from .dataloaders import (
     AppByIdLoader,
     AppExtensionByAppIdLoader,
+    AppProblemsByAppIdLoader,
     AppTokensByAppIdLoader,
     ThumbnailByAppIdSizeAndFormatLoader,
     ThumbnailByAppInstallationIdSizeAndFormatLoader,
@@ -57,6 +61,8 @@ from .dataloaders import (
 from .enums import (
     AppExtensionMountEnum,
     AppExtensionTargetEnum,
+    AppProblemDismissedBy,
+    AppProblemDismissedByEnum,
     AppTypeEnum,
     CircuitBreakerState,
     CircuitBreakerStateEnum,
@@ -631,6 +637,107 @@ class AppToken(BaseObjectType):
         return root.token_last_4
 
 
+class AppProblemDismissed(graphene.ObjectType):
+    by = AppProblemDismissedByEnum(
+        required=True,
+        description=(
+            "Whether the problem was dismissed by an App or a User." + ADDED_IN_322
+        ),
+    )
+    user = PermissionsField(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The user who dismissed this problem. "
+            "Null if dismissed by an app or the user was deleted." + ADDED_IN_322
+        ),
+        permissions=[AccountPermissions.MANAGE_STAFF],
+    )
+    user_email = PermissionsField(
+        graphene.String,
+        description=(
+            "Email of the user who dismissed this problem. "
+            "Preserved even if the user is deleted." + ADDED_IN_322
+        ),
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+
+    class Meta:
+        description = "Dismissal information for an app problem." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_APPS
+
+    @staticmethod
+    def resolve_by(root: models.AppProblem, _info: ResolveInfo):
+        if root.is_dismissed_by_user():
+            return AppProblemDismissedBy.USER
+        return AppProblemDismissedBy.APP
+
+    @staticmethod
+    def resolve_user(root: models.AppProblem, info: ResolveInfo):
+        # Even if use did dismiss, user can be removed, so solely rely on it's reference
+        if not root.dismissed_by_user_id:
+            return None
+
+        return UserByUserIdLoader(info.context).load(root.dismissed_by_user_id)
+
+    @staticmethod
+    def resolve_user_email(root: models.AppProblem, _info: ResolveInfo):
+        return root.dismissed_by_user_email
+
+
+class AppProblem(ModelObjectType[models.AppProblem]):
+    id = graphene.GlobalID(
+        required=True,
+        description="The ID of the app problem." + ADDED_IN_322,
+    )
+    created_at = DateTime(
+        required=True,
+        description="The date and time when the problem was created." + ADDED_IN_322,
+    )
+    updated_at = DateTime(
+        required=True,
+        description="The date and time when the problem was last updated."
+        + ADDED_IN_322,
+    )
+    count = graphene.Int(
+        required=True, description="Number of occurrences." + ADDED_IN_322
+    )
+    is_critical = graphene.Boolean(
+        required=True,
+        description="Whether the problem has reached critical threshold."
+        + ADDED_IN_322,
+    )
+    dismissed = PermissionsField(
+        AppProblemDismissed,
+        description=(
+            "Dismissal information. Null if the problem has not been dismissed."
+            + ADDED_IN_322
+        ),
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AppPermission.MANAGE_APPS,
+        ],
+    )
+    message = graphene.String(
+        required=True, description="The problem message." + ADDED_IN_322
+    )
+    key = graphene.String(
+        required=True,
+        description="Key identifying the type of problem." + ADDED_IN_322,
+    )
+
+    class Meta:
+        description = "Represents a problem associated with an app." + ADDED_IN_322
+        doc_category = DOC_CATEGORY_APPS
+        interfaces = [graphene.relay.Node]
+        model = models.AppProblem
+
+    @staticmethod
+    def resolve_dismissed(root: models.AppProblem, _info: ResolveInfo):
+        if not root.dismissed:
+            return None
+        return root
+
+
 @federated_entity("id")
 class App(ModelObjectType[models.App]):
     id = graphene.GlobalID(required=True, description="The ID of the app.")
@@ -692,6 +799,18 @@ class App(ModelObjectType[models.App]):
         description="App's dashboard extensions.",
         required=True,
     )
+    problems = PermissionsField(
+        NonNullList(AppProblem),
+        description="List of problems associated with this app." + ADDED_IN_322,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AppPermission.MANAGE_APPS,
+        ],
+        limit=PositiveInt(
+            description="Limit number of returned problems. Must be between 1 and 100.",
+            required=False,
+        ),
+    )
     brand = graphene.Field(AppBrand, description="App's brand data.")
     breaker_state = CircuitBreakerStateEnum(
         description="Circuit breaker state, if open, sync webhooks operation is disrupted."
@@ -738,6 +857,18 @@ class App(ModelObjectType[models.App]):
     @staticmethod
     def resolve_extensions(root: models.App, info: ResolveInfo):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_problems(root: models.App, info: ResolveInfo, limit: int | None = None):
+        if limit is not None and limit > 100:
+            raise GraphQLError("Limit must be between 1 and 100.")
+
+        promise = AppProblemsByAppIdLoader(info.context).load(root.id)
+
+        if limit is not None:
+            return promise.then(lambda problems: problems[:limit])
+
+        return promise
 
     @staticmethod
     def __resolve_references(roots: list["App"], info: ResolveInfo):
