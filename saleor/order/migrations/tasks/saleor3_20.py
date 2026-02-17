@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import Exists, F, OuterRef, Q, Sum
 
 from ....celeryconf import app
+from ....core.db.connection import allow_writer
 from ....discount.models import OrderDiscount, Voucher
 from ...models import Order, OrderLine, OrderStatus
 from ...utils import update_order_authorize_status, update_order_charge_status
@@ -20,6 +21,7 @@ DUPLICATED_LINES_ORDER_BATCH_SIZE = 200
 
 
 @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+@allow_writer()
 def set_udniscounted_base_shipping_price_on_orders_task():
     qs = Order.objects.filter(undiscounted_base_shipping_price_amount__isnull=True)
     order_ids = list(
@@ -265,6 +267,7 @@ def fix_negative_total_net_for_orders_using_gift_cards_task(start_pk=0):
 
 
 @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+@allow_writer()
 def clean_duplicated_gift_lines_task(created_after=None):
     extra_filter = {}
     if created_after:
