@@ -1,0 +1,55 @@
+saleor/graphql/payment/tests/test_validate_per_line_reason_reference.py
+  7e18b67b3b4c967a 1-81
+saleor/graphql/order/tests/mutations/test_order_grant_refund_update_reason.py
+  7e18b67b3b4c967a 1-705
+saleor/graphql/order/tests/mutations/test_order_grant_refund_create_reason.py
+  7e18b67b3b4c967a 1-607
+saleor/graphql/order/mutations/order_grant_refund_create.py
+  7e18b67b3b4c967a 140,149-151,226-227,231,298,305
+saleor/graphql/order/mutations/fulfillment_return_products.py
+  7e18b67b3b4c967a 50,80,118,197
+saleor/graphql/payment/mutations/transaction/transaction_request_action.py
+  7e18b67b3b4c967a 220,241
+saleor/graphql/order/types.py
+  7e18b67b3b4c967a 858-859,865-867,950-951,957-959
+saleor/graphql/order/tests/mutations/test_order_grant_refund_create_line_reason.py
+  7e18b67b3b4c967a 1-360
+saleor/graphql/payment/tests/test_validate_refund_reason_context.py
+  7e18b67b3b4c967a 4,9,29,55,112,137,164,189-192,220,243-246
+saleor/graphql/payment/utils.py
+  7e18b67b3b4c967a 9,61,68,71,76,96,101,119,125,130,136,140,147,174
+saleor/graphql/order/tests/mutations/test_fulfillment_return_products_reason.py
+  7e18b67b3b4c967a 1-332
+saleor/graphql/order/mutations/order_grant_refund_update.py
+  7e18b67b3b4c967a 243,248-250,291-292,312-313,388,395
+saleor/graphql/order/mutations/fulfillment_refund_and_return_product_base.py
+  7e18b67b3b4c967a 164,242
+saleor/graphql/order/mutations/order_grant_refund_utils.py
+  7e18b67b3b4c967a 9,12,83-84,101-118
+saleor/graphql/order/tests/mutations/test_order_grant_refund_update_line_reason.py
+  7e18b67b3b4c967a 1-292
+saleor/graphql/payment/tests/test_resolve_reason_reference_page.py
+  7e18b67b3b4c967a 1-80
+saleor/graphql/payment/tests/mutations/test_transaction_request_action.py
+  7e18b67b3b4c967a 1567
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "afd8c058de3351fc07cc908c2c59dec43c8831b1",
+  "prompts": {
+    "7e18b67b3b4c967a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3c245dfd-c925-4d43-a661-0e426d26e31e",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 2857,
+      "total_deletions": 153,
+      "accepted_lines": 2828,
+      "overriden_lines": 2
+    }
+  }
+}
