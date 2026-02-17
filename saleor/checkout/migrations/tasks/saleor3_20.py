@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef
 
 from ....celeryconf import app
+from ....core.db.connection import allow_writer
 from ....core.prices import quantize_price
 from ....discount import DiscountType
 from ....discount.models import CheckoutLineDiscount
@@ -21,6 +22,7 @@ DUPLICATED_LINES_CHECKOUT_BATCH_SIZE = 250
 
 
 @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+@allow_writer()
 def propagate_lines_undiscounted_unit_price_task(start_pk=0):
     with transaction.atomic():
         checkout_line_pks = list(
@@ -78,6 +80,7 @@ def propagate_lines_undiscounted_unit_price_task(start_pk=0):
 
 
 @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+@allow_writer()
 def clean_duplicated_gift_lines_task(created_after=None):
     extra_order_filter = {}
     if created_after:
