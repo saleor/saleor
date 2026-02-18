@@ -67,6 +67,7 @@ def test_is_supported_image_mimetype_invalid_mimetype():
     ("content_type", "is_valid"),
     [
         ("image/jpeg", True),
+        ("image/jpg", True),
         ("image/png", True),
         ("image/gif", True),
         ("image/bmp", True),
