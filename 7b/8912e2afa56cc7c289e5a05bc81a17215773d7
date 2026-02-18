@@ -1,0 +1,23 @@
+saleor/graphql/payment/tests/mutations/test_transaction_request_action_reason.py
+  b55875858eae2595 1-9,11-756
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "7b8912e2afa56cc7c289e5a05bc81a17215773d7",
+  "prompts": {
+    "b55875858eae2595": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dcb8210d-33e1-4112-b702-0d03d5bb9950",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 778,
+      "total_deletions": 713,
+      "accepted_lines": 755,
+      "overriden_lines": 1
+    }
+  }
+}
