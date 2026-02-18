@@ -1,0 +1,23 @@
+saleor/graphql/payment/tests/mutations/conftest.py
+  f2ffd3c4562ceb48 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "a03a48dc0708d92c7f5d0b28e88bbbfc5ea73292",
+  "prompts": {
+    "f2ffd3c4562ceb48": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4638ef03-a5f6-4be2-a577-d66e6217db59",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 18,
+      "total_deletions": 15,
+      "accepted_lines": 18,
+      "overriden_lines": 0
+    }
+  }
+}
