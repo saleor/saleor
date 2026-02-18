@@ -4,7 +4,6 @@ from unittest.mock import patch
 import graphene
 import pytest
 
-from .....app.models import App
 from .....order import OrderEvents
 from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
@@ -248,21 +247,6 @@ def test_transaction_request_action_amount_with_lot_of_decimal_places(
         type=TransactionEventType.CHARGE_REQUEST,
         amount_value=round(charge_amount, 2),
     )
-
-
-@pytest.fixture
-def transaction_request_webhook(permission_manage_payments):
-    app = App.objects.create(
-        name="Sample app objects",
-        is_active=True,
-        identifier="saleor.app.payment",
-    )
-    app.permissions.set([permission_manage_payments])
-    webhook = app.webhooks.create(
-        name="Request", is_active=True, target_url="http://localhost:8000/endpoint/"
-    )
-
-    return webhook
 
 
 @pytest.mark.parametrize(
