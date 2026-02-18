@@ -132,6 +132,60 @@ def app_exclude_shipping_for_order(
 
 
 @pytest.fixture
+def app_exclude_shipping_for_checkout(
+    db,
+    permission_manage_orders,
+    permission_manage_checkouts,
+):
+    app = App.objects.create(name="Shipping App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_checkouts)
+
+    webhook = Webhook.objects.create(
+        name="shipping-webhook-1",
+        app=app,
+        target_url="https://shipping-gateway.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(
+                event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                webhook=webhook,
+            ),
+        ]
+    )
+    return app
+
+
+@pytest.fixture
+def second_app_exclude_shipping_for_checkout(
+    db,
+    permission_manage_orders,
+    permission_manage_checkouts,
+):
+    app = App.objects.create(name="Second Shipping App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_checkouts)
+
+    webhook = Webhook.objects.create(
+        name="shipping-webhook-1",
+        app=app,
+        target_url="https://shipping-gateway2.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(
+                event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                webhook=webhook,
+            ),
+        ]
+    )
+    return app
+
+
+@pytest.fixture
 def second_app_exclude_shipping_for_order(
     db,
     permission_manage_orders,

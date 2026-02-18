@@ -6,7 +6,7 @@ from prices import Money
 
 from ..checkout.models import Checkout, CheckoutDelivery
 from ..core.db.connection import allow_writer
-from ..plugins.base_plugin import ExcludedShippingMethod
+from ..shipping.interface import ExcludedShippingMethod
 from ..tax.models import TaxClass
 from .interface import ShippingMethodData
 

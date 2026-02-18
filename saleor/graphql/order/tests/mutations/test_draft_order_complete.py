@@ -29,9 +29,9 @@ from .....order.interface import OrderTaxedPricesData
 from .....order.models import OrderEvent, OrderLine
 from .....payment.model_helpers import get_subtotal
 from .....plugins import PLUGIN_IDENTIFIER_PREFIX
-from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.tests.sample_plugins import PluginSample
 from .....product.models import ProductVariant
+from .....shipping.interface import ExcludedShippingMethod
 from .....tests import race_condition
 from .....warehouse.models import Allocation, PreorderAllocation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock

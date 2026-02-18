@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Union
 from django.conf import settings
 from promise import Promise
 
-from ..shipping.interface import ShippingMethodData
+from ..shipping.interface import ExcludedShippingMethod, ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
     convert_to_shipping_method_data,
@@ -81,7 +81,6 @@ def get_valid_shipping_methods_for_order(
     # and their usage in webhook/transport layer. Until moving them out from the
     # transport, we will have circular imports.
     from .webhooks.exclude_shipping import (
-        ExcludedShippingMethod,
         excluded_shipping_methods_for_order,
     )
 

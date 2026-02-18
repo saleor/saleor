@@ -6,9 +6,8 @@ from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money
 
-from ...plugins.base_plugin import ExcludedShippingMethod
 from ...product.models import ProductChannelListing, ProductVariantChannelListing
-from ...shipping.interface import ShippingMethodData
+from ...shipping.interface import ExcludedShippingMethod, ShippingMethodData
 from ...shipping.models import ShippingMethod
 from ...webhook.transport.shipping_helpers import to_shipping_app_id
 from ..fetch import (
@@ -651,7 +650,7 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_built_in_sh
 
 @freeze_time("2024-05-31 12:00:01")
 @mock.patch(
-    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
 )
 def test_fetch_shipping_methods_for_checkout_with_excluded_built_in_shipping_method(
     mocked_exclude_shipping_methods,
@@ -1069,7 +1068,7 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_external_sh
 
 @freeze_time("2024-05-31 12:00:01")
 @mock.patch(
-    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
 )
 @mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
 def test_fetch_shipping_methods_for_checkout_with_excluded_external_shipping_method(
@@ -1138,6 +1137,7 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
     settings,
 ):
     # given
+    shipping_price_amount = Decimal(10)
     shipping_price_amount = Decimal(10)
 
     available_shipping_method = ShippingMethodData(

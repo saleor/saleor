@@ -12,12 +12,12 @@ from promise import Promise
 
 from ....core.prices import quantize_price
 from ....shipping.interface import ShippingMethodData
-from ....webhook.const import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
 from ....webhook.transport.shipping_helpers import to_shipping_app_id
 from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...webhooks.exclude_shipping import (
+    CACHE_EXCLUDED_SHIPPING_TIME,
     _get_excluded_shipping_methods_from_response,
     excluded_shipping_methods_for_order,
     generate_excluded_shipping_methods_for_order_payload,
