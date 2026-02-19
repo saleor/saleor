@@ -1,0 +1,23 @@
+conftest.py
+  8700bf708fa5216b 98,116,151,153
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "d30a403d04b0d18f77c70c2f711a95ecb4c87ec3",
+  "prompts": {
+    "8700bf708fa5216b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "59c3faff-454f-49d8-8d47-9ae1802c90ac",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 4,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
