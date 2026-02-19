@@ -1,0 +1,25 @@
+saleor/db_snapshot/utils.py
+  adb8576342b4580a 3,13
+.github/workflows/tests-and-linters.yml
+  adb8576342b4580a 67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "f5fbff45a551dc9357a3a03d6a800fa176deb3ba",
+  "prompts": {
+    "adb8576342b4580a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "89069def-ca16-4d06-bcf1-a507335f4fd8",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 2,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}
