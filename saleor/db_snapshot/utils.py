@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -9,7 +10,7 @@ SNAPSHOT_PATH = Path(__file__).parent / "snapshot.sql"
 
 
 def has_snapshot() -> bool:
-    return SNAPSHOT_PATH.exists()
+    return SNAPSHOT_PATH.exists() and shutil.which("psql") is not None
 
 
 def is_database_empty(connection) -> bool:
