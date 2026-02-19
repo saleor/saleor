@@ -1,0 +1,33 @@
+saleor/core/management/commands/migrate_from_snapshot.py
+  6a6525d18306966a 1-53
+saleor/db_snapshot/utils.py
+  6a6525d18306966a 1-59
+.gitattributes
+  6a6525d18306966a 25-27
+conftest.py
+  6a6525d18306966a 11-15,86-88,92-170
+saleor/db_snapshot/__init__.py
+  6a6525d18306966a 1
+saleor/core/management/commands/generate_db_snapshot.py
+  6a6525d18306966a 1-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "97297da546d8f5851b3857e41fd19b276ebae9d0",
+  "prompts": {
+    "6a6525d18306966a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4115bff2-f6a1-4311-a178-6f4666689d1c",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 419,
+      "total_deletions": 46,
+      "accepted_lines": 369,
+      "overriden_lines": 3
+    }
+  }
+}
