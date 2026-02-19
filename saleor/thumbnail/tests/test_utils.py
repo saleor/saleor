@@ -219,6 +219,7 @@ def test_get_filename_from_url_with_query_params_path(mock_token_hex):
     ("url", "mimetype", "expected_extension"),
     [
         ("http://example.com/image", "image/jpeg", ".jpg"),
+        ("http://example.com/image", "image/jpg", ".jpg"),
         ("http://example.com/image", "image/png", ".png"),
         ("http://example.com/image?token=12345/6789", "image/webp", ".webp"),
     ],
