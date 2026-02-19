@@ -22,3 +22,6 @@ CHANGELOG.md merge=union
 
 # Make sure that the schema uses LF line endings
 saleor/graphql/schema.graphql text=auto
+
+# DB snapshot is a large generated file
+saleor/db_snapshot/snapshot.sql binary
