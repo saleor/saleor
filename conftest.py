@@ -95,7 +95,7 @@ if not os.environ.get("PYTEST_DB_URL"):
         ~54 newer ones.
         """
 
-        _original = DatabaseCreation._create_test_db
+        _original = DatabaseCreation._create_test_db  # type: ignore[attr-defined]
 
         def _create_test_db_with_snapshot(self, verbosity, autoclobber, keepdb):
             result = _original(self, verbosity, autoclobber, keepdb)
@@ -113,7 +113,7 @@ if not os.environ.get("PYTEST_DB_URL"):
                 self.connection.settings_dict["NAME"] = old_name
             return result
 
-        DatabaseCreation._create_test_db = _create_test_db_with_snapshot
+        DatabaseCreation._create_test_db = _create_test_db_with_snapshot  # type: ignore[attr-defined]
 
     @pytest.fixture(scope="session")
     def django_db_setup(
@@ -148,9 +148,9 @@ if not os.environ.get("PYTEST_DB_URL"):
             db_cfg = setup_databases(
                 verbosity=request.config.option.verbose,
                 interactive=False,
-                aliases=aliases,
+                aliases=aliases,  # type: ignore[arg-type]
                 serialized_aliases=serialized_aliases,
-                **setup_databases_args,
+                **setup_databases_args,  # type: ignore[arg-type]
             )
 
         yield
