@@ -2478,14 +2478,14 @@ wheels = [
 
 [[package]]
 name = "requests-hardened"
-version = "1.1.1"
+version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/76/fd/e4c407a88ed550fe4f81d6c66ddbb8d31d496058fe1ac018644a89c72d60/requests_hardened-1.1.1.tar.gz", hash = "sha256:42780d5f6d96f82bcc329c5aa203ff3e649f82cf9b7535e915bfe0383e35d4d9", size = 8794, upload-time = "2025-09-05T10:25:25.94Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0d/ab/3206848b4657be7902bb10af5686f71da450d9135340ecd6ee80da718557/requests_hardened-1.2.0.tar.gz", hash = "sha256:24ff13c798a22afc3465c24ff955b003c81f605e2ec30cbdbd40f28389cfca72", size = 7254, upload-time = "2025-09-26T12:20:20.518Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/c8/d9e3b4d2a594340308e1d2feb8610649d0c6368066cb80c1e86f4fb48e7f/requests_hardened-1.1.1-py3-none-any.whl", hash = "sha256:d83e4770db40cc7a9505a81402d800536bdbcf474dc08886574ee054b00c657f", size = 9160, upload-time = "2025-09-05T10:25:24.637Z" },
+    { url = "https://files.pythonhosted.org/packages/8d/0e/b521e2034f0984b3a446009223e8ec67bfae5e3d4a11b0066951d2df6515/requests_hardened-1.2.0-py3-none-any.whl", hash = "sha256:7d70b38bbfdea3f1d27d9149a5967f8c350b3496d232b1d4b031b7d0f2590ba9", size = 9197, upload-time = "2025-09-26T12:20:19.126Z" },
 ]
 
 [[package]]
