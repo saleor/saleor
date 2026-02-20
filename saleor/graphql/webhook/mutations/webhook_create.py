@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
+from ....tax.defer_conditions import validate_defer_if_for_tax_events
 from ....webhook import models
 from ....webhook.const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from ....webhook.error_codes import WebhookErrorCode
@@ -138,6 +139,19 @@ class WebhookCreate(DeprecatedModelMutation, NotifyUserEventValidationMixin):
                     code=WebhookErrorCode.INVALID,
                 )
             cleaned_data["filterable_channel_slugs"] = filterable_channel_slugs
+
+            defer_if_conditions = subscription_query.get_defer_if_conditions()
+            if defer_if_conditions:
+                if not validate_defer_if_for_tax_events(subscription_query.events):
+                    raise_validation_error(
+                        field="query",
+                        message=(
+                            "deferIf conditions are only supported "
+                            "for CalculateTaxes events."
+                        ),
+                        code=WebhookErrorCode.INVALID,
+                    )
+            cleaned_data["defer_if_conditions"] = defer_if_conditions
 
         if headers := cleaned_data.get("custom_headers"):
             try:
