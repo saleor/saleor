@@ -96,6 +96,8 @@ class WeightScalar(graphene.Scalar):
     @staticmethod
     def parse_value(value):
         if isinstance(value, dict):
+            if value.get("value") is None:
+                return None
             weight = Weight(**{value["unit"]: value["value"]})
         else:
             weight = WeightScalar.parse_decimal(value)
