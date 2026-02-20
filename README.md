@@ -194,3 +194,6 @@ Disclaimer: Everything you see here is open and free to use as long as you compl
 #### Crafted with ❤️ by [Saleor Commerce](https://saleor.io)
 
 <hello@saleor.io>
+
+## Quickstart (CLI)
+Consulta **docs/how-to/quickstart-cli.md** para un flujo RO→WO seguro desde terminal.
