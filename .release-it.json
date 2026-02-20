@@ -16,7 +16,7 @@
       "out": [
         {
           "file": "pyproject.toml",
-          "path": "tool.poetry.version"
+          "path": "project.version"
         },
         {
           "file": "./saleor/__init__.py",
