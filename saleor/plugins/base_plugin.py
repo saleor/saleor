@@ -61,7 +61,6 @@ if TYPE_CHECKING:
         ProductType,
         ProductVariant,
     )
-    from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..site.models import SiteSettings
     from ..tax.models import TaxClass
@@ -744,12 +743,6 @@ class BasePlugin:
 
     get_order_shipping_tax_rate: Callable[["Order", Any], Any]
     get_payment_config: Callable[[Any], Any]
-
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    get_shipping_methods_for_checkout: Callable[
-        ["Checkout", list["ShippingMethodData"], Any], list["ShippingMethodData"]
-    ]
 
     get_supported_currencies: Callable[[Any], Any]
 

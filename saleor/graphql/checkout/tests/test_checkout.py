@@ -88,6 +88,33 @@ def expected_gift_card_payment_gateway():
     }
 
 
+SHIPPING_LIST_METHODS_FOR_CHECKOUT_SUBSCRIPTION = """
+subscription{
+  event{
+    ...on ShippingListMethodsForCheckout{
+      checkout{
+        id
+      }
+      shippingMethods{
+        name
+        id
+      }
+    }
+  }
+}
+"""
+
+
+@pytest.fixture
+def subscription_shipping_list_methods_for_checkout_webhook(subscription_webhook):
+    from ....webhook.event_types import WebhookEventSyncType
+
+    return subscription_webhook(
+        SHIPPING_LIST_METHODS_FOR_CHECKOUT_SUBSCRIPTION,
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+
+
 GET_CHECKOUT_PAYMENTS_QUERY = """
 query getCheckoutPayments($id: ID) {
     checkout(id: $id) {
@@ -832,6 +859,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     site_settings,
     shipping_app,
 ):
+    send_webhook_request_sync.return_value = []
     shipping_method = shipping_zone.shipping_methods.first()
     listing = shipping_zone.shipping_methods.first().channel_listings.first()
     expected_shipping_price = Money(10, "USD")
@@ -5326,9 +5354,8 @@ def test_checkout_delivery_returns_none_when_no_delivery_assigned(
 
 @freezegun.freeze_time("2023-01-01 12:00:00")
 @mock.patch(
-    "saleor.plugins.webhook.plugin.WebhookPlugin.get_shipping_methods_for_checkout"
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
 )
-@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_delivery_do_not_trigger_any_webhook_calls(
     mocked_shipping_webhook_fetch,
     user_api_client,
@@ -5370,7 +5397,7 @@ def test_checkout_delivery_do_not_trigger_any_webhook_calls(
 
 
 @mock.patch(
-    "saleor.plugins.webhook.plugin.WebhookPlugin.get_shipping_methods_for_checkout"
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
 )
 def test_checkout_delivery_returns_shipping_when_marked_as_invalid(
     mocked_shipping_webhook_fetch,

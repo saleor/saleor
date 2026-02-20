@@ -73,26 +73,6 @@ subscription{
 """
 
 
-CHECKOUT_SHIPPING_LIST_AND_FILTER = """
-    subscription {
-      event {
-        ... on CheckoutFilterShippingMethods {
-          __typename
-          checkout {
-            id
-          }
-        }
-        ... on ShippingListMethodsForCheckout {
-          __typename
-          checkout {
-            id
-          }
-        }
-      }
-    }
-"""
-
-
 @pytest.fixture
 def subscription_checkout_filter_shipping_methods_webhook(subscription_webhook):
     return subscription_webhook(

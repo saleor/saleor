@@ -1367,7 +1367,9 @@ def test_checkout_lines_add_custom_price_and_catalogue_promotion(
 
 
 @freeze_time("2024-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
 def test_checkout_lines_marks_shipping_methods_as_stale(
     mocked_webhook,
     app_api_client,

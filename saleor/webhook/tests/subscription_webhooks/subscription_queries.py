@@ -3084,23 +3084,6 @@ PAYMENT_LIST_GATEWAYS = """
     """
 
 
-SHIPPING_LIST_METHODS_FOR_CHECKOUT = """
-subscription{
-  event{
-    ...on ShippingListMethodsForCheckout{
-      checkout{
-        id
-      }
-      shippingMethods{
-        name
-        id
-      }
-    }
-  }
-}
-"""
-
-
 INVALID_MULTIPLE_EVENTS = """
     subscription{
       event{
