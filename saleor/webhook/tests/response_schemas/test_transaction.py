@@ -88,6 +88,30 @@ def test_transaction_schema_valid_only_required_fields(data):
 
 
 @pytest.mark.parametrize(
+    "external_url",
+    [
+        "/dashboard/apps/QXBwOjI=/app/transactions/abc123",
+        "/relative/path",
+        "https://example.com/transactions/123",
+    ],
+)
+def test_transaction_schema_with_relative_and_absolute_external_url(external_url):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "externalUrl": external_url,
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+    }
+
+    # when
+    transaction = TransactionBaseSchema.model_validate(data)
+
+    # then
+    assert str(transaction.external_url) == external_url
+
+
+@pytest.mark.parametrize(
     "amount",
     [Decimal("100.50"), 100.50, 100, "100.50"],
 )
