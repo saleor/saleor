@@ -4,7 +4,7 @@ import graphene
 from django.conf import settings
 from django.db.models import Value, prefetch_related_objects
 
-from ..account.search import generate_address_search_vector_value
+from ..account.search import generate_address_search_vector_value, generate_email_vector
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from . import OrderEvents
 
@@ -45,17 +45,10 @@ def prepare_order_search_vector_value(
         ),
     ]
     if order.user_email:
-        search_vectors.append(
-            NoValidationSearchVector(
-                Value(order.user_email), config="simple", weight="A"
-            )
-        )
+        search_vectors.extend(generate_email_vector(order.user_email))
     if order.user:
-        search_vectors.append(
-            NoValidationSearchVector(
-                Value(order.user.email), config="simple", weight="A"
-            )
-        )
+        if order.user.email and order.user.email != order.user_email:
+            search_vectors.extend(generate_email_vector(order.user.email))
         if order.user.first_name:
             search_vectors.append(
                 NoValidationSearchVector(

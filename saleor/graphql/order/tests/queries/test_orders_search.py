@@ -42,6 +42,8 @@ def update_orders_search_vector(orders):
         ("Some other", 1),
         ("translated", 1),
         ("test@mirumee.com", 1),
+        ("example.com", 3),
+        ("mirumee.com", 1),
         ("Leslie", 1),
         ("Wade", 1),
         ("Leslie Wade", 1),
