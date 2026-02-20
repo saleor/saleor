@@ -42,7 +42,7 @@ from ...core.types import (
     SeoInput,
 )
 from ...core.utils import create_file_from_response, get_duplicated_values
-from ...core.validators import clean_seo_fields
+from ...core.validators import clean_seo_fields, validate_string_constraints
 from ...core.validators.file import (
     clean_image_file,
     get_mime_type,
@@ -53,7 +53,6 @@ from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
 from ..types import Product
-from ..utils import ALT_CHAR_LIMIT
 from .product_variant_bulk_create import (
     ProductVariantBulkCreate,
     ProductVariantBulkCreateInput,
@@ -440,7 +439,6 @@ class ProductBulkCreate(BaseMutation):
         for index, media_input in enumerate(media_inputs):
             image = media_input.get("image")
             media_url = media_input.get("media_url")
-            alt = media_input.get("alt")
 
             if not image and not media_url:
                 index_error_map[product_index].append(
@@ -462,15 +460,17 @@ class ProductBulkCreate(BaseMutation):
                 )
                 continue
 
-            if alt and len(alt) > ALT_CHAR_LIMIT:
-                index_error_map[product_index].append(
-                    ProductBulkCreateError(
-                        path=f"media.{index}.alt",
-                        message=f"Alt field exceeds the character "
-                        f"limit of {ALT_CHAR_LIMIT}.",
-                        code=ProductBulkCreateErrorCode.INVALID.value,
+            try:
+                validate_string_constraints(MediaInput, media_input)
+            except ValidationError as exc:
+                for field_name, errors in exc.message_dict.items():
+                    index_error_map[product_index].append(
+                        ProductBulkCreateError(
+                            path=f"media.{index}.{field_name}",
+                            message=errors[0],
+                            code=ProductBulkCreateErrorCode.INVALID.value,
+                        )
                     )
-                )
                 continue
 
             if image:

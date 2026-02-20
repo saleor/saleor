@@ -436,5 +436,5 @@ def test_product_media_create_mutation_alt_character_limit(
     # then
 
     errors = content["data"]["productMediaCreate"]["errors"]
-    assert errors[0]["field"] == "input"
+    assert errors[0]["field"] == "alt"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name

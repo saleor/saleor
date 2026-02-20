@@ -2718,9 +2718,7 @@ def test_order_bulk_create_error_note_exceeds_character_limit(
     assert content["data"]["orderBulkCreate"]["count"] == 1
     assert content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert (
-        error["message"] == f"Note message exceeds character limit: {MAX_NOTE_LENGTH}."
-    )
+    assert "at most 255 characters" in error["message"]
     assert error["path"] == "notes.0.message"
     assert error["code"] == OrderBulkCreateErrorCode.NOTE_LENGTH.name
 
