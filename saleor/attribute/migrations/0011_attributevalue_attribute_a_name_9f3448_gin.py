@@ -14,7 +14,9 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="attributevalue",
             index=django.contrib.postgres.indexes.GinIndex(
-                fields=["name", "slug"], name="attribute_a_name_9f3448_gin"
+                fields=["name", "slug"],
+                name="attribute_a_name_9f3448_gin",
+                opclasses=["gin_trgm_ops"] * 2,
             ),
         ),
     ]

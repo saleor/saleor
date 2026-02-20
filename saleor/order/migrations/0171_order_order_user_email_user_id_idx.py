@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
     operations = [
         AddIndexConcurrently(
             model_name="order",
-            index=django.contrib.postgres.indexes.GinIndex(
+            index=django.contrib.postgres.indexes.BTreeIndex(
                 fields=["user_email", "user_id"], name="order_user_email_user_id_idx"
             ),
         ),

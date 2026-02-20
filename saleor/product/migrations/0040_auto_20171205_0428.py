@@ -12,7 +12,9 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="product",
             index=django.contrib.postgres.indexes.GinIndex(
-                fields=["name", "description"], name="product_pro_name_5bb6fa_gin"
+                fields=["name", "description"],
+                name="product_pro_name_5bb6fa_gin",
+                opclasses=["gin_trgm_ops"] * 2,
             ),
         )
     ]

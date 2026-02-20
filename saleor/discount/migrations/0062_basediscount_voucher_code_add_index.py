@@ -16,19 +16,25 @@ class Migration(migrations.Migration):
         AddIndexConcurrently(
             model_name="orderdiscount",
             index=GinIndex(
-                fields=["voucher_code"], name="orderdiscount_voucher_code_idx"
+                fields=["voucher_code"],
+                name="orderdiscount_voucher_code_idx",
+                opclasses=["gin_trgm_ops"],
             ),
         ),
         AddIndexConcurrently(
             model_name="checkoutlinediscount",
             index=GinIndex(
-                fields=["voucher_code"], name="checklinedisc_voucher_code_idx"
+                fields=["voucher_code"],
+                name="checklinedisc_voucher_code_idx",
+                opclasses=["gin_trgm_ops"],
             ),
         ),
         AddIndexConcurrently(
             model_name="orderlinediscount",
             index=GinIndex(
-                fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"
+                fields=["voucher_code"],
+                name="orderlinedisc_voucher_code_idx",
+                opclasses=["gin_trgm_ops"],
             ),
         ),
     ]

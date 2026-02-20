@@ -395,8 +395,12 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 opclasses=["gin_trgm_ops"],
             ),
             models.Index(fields=["created_at"], name="idx_order_created_at"),
-            GinIndex(fields=["voucher_code"], name="order_voucher_code_idx"),
             GinIndex(
+                fields=["voucher_code"],
+                name="order_voucher_code_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
+            BTreeIndex(
                 fields=["user_email", "user_id"],
                 name="order_user_email_user_id_idx",
             ),

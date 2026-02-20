@@ -173,7 +173,7 @@ class Migration(migrations.Migration):
         # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="transactionitem",
-            index=django.contrib.postgres.indexes.GinIndex(
+            index=django.contrib.postgres.indexes.BTreeIndex(
                 fields=["order_id", "status"], name="payment_tra_order_i_e783c4_gin"
             ),
         ),

@@ -34,6 +34,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Fix GIN indexes created on unsupported field types (varchar, integer, decimal, boolean) causing migration failures on newer PostgreSQL versions - #18341 by @danielalanbates
+
 - Enhanced search functionality across key entities (products, orders, gift cards, checkouts, pages, and users) with advanced query capabilities:
   - Prefix matching: partial word searches (e.g., "coff" matches "coffee")
   - Boolean operators: `AND`, `OR`, and `-` (NOT) for complex queries

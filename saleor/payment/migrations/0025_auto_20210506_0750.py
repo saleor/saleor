@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="payment",
-            index=django.contrib.postgres.indexes.GinIndex(
+            index=django.contrib.postgres.indexes.BTreeIndex(
                 fields=["order_id", "is_active", "charge_status"],
                 name="payment_pay_order_i_f22aa2_gin",
             ),

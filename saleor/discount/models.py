@@ -534,8 +534,15 @@ class OrderDiscount(BaseDiscount):
                 fields=["promotion_rule"], name="orderdiscount_promotion_rule_idx"
             ),
             # Orders searching index
-            GinIndex(fields=["name", "translated_name"]),
-            GinIndex(fields=["voucher_code"], name="orderdiscount_voucher_code_idx"),
+            GinIndex(
+                fields=["name", "translated_name"],
+                opclasses=["gin_trgm_ops"] * 2,
+            ),
+            GinIndex(
+                fields=["voucher_code"],
+                name="orderdiscount_voucher_code_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
         ]
         ordering = ("created_at", "id")
 
@@ -561,7 +568,11 @@ class OrderLineDiscount(BaseDiscount):
             BTreeIndex(
                 fields=["promotion_rule"], name="orderlinedisc_promotion_rule_idx"
             ),
-            GinIndex(fields=["voucher_code"], name="orderlinedisc_voucher_code_idx"),
+            GinIndex(
+                fields=["voucher_code"],
+                name="orderlinedisc_voucher_code_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
         ]
         ordering = ("created_at", "id")
         constraints = [
@@ -585,8 +596,15 @@ class CheckoutDiscount(BaseDiscount):
         indexes = [
             BTreeIndex(fields=["promotion_rule"], name="checkoutdiscount_rule_idx"),
             # Orders searching index
-            GinIndex(fields=["name", "translated_name"]),
-            GinIndex(fields=["voucher_code"], name="checkoutdiscount_voucher_idx"),
+            GinIndex(
+                fields=["name", "translated_name"],
+                opclasses=["gin_trgm_ops"] * 2,
+            ),
+            GinIndex(
+                fields=["voucher_code"],
+                name="checkoutdiscount_voucher_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
         ]
         ordering = ("created_at", "id")
         unique_together = ("checkout_id", "promotion_rule_id")
@@ -613,7 +631,11 @@ class CheckoutLineDiscount(BaseDiscount):
             BTreeIndex(
                 fields=["promotion_rule"], name="checklinedisc_promotion_rule_idx"
             ),
-            GinIndex(fields=["voucher_code"], name="checklinedisc_voucher_code_idx"),
+            GinIndex(
+                fields=["voucher_code"],
+                name="checklinedisc_voucher_code_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
         ]
         ordering = ("created_at", "id")
         constraints = [

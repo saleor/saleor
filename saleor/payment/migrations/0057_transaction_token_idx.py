@@ -18,6 +18,7 @@ class Migration(migrations.Migration):
             index=GinIndex(
                 fields=["token"],
                 name="token_idx",
+                opclasses=["gin_trgm_ops"],
             ),
         ),
     ]

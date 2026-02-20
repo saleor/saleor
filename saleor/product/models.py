@@ -555,7 +555,7 @@ class ProductVariantChannelListing(models.Model):
         unique_together = [["variant", "channel"]]
         ordering = ("pk",)
         indexes = [
-            GinIndex(fields=["price_amount", "channel_id"]),
+            BTreeIndex(fields=["price_amount", "channel_id"]),
         ]
 
 
