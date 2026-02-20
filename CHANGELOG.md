@@ -49,6 +49,8 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Add optional usage telemetry. - #18789 by @wcislo-saleor
 - The app can now be installed without providing a `tokenTargetUrl` in the manifest file.
 
+- Add possability to customize email and password using --superuser_email --superuser_password flags when populating database with example data - #18467
+
 ### Deprecations
 
 - Deprecate the `hasVariants` field on `ProductType`.
