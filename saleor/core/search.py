@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Value
 
+from .utils.text import strip_accents
+
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
@@ -153,6 +155,8 @@ def prefix_search(qs: "QuerySet", value: str) -> "QuerySet":
         # return a original queryset annotated with search_rank=0
         # to allow default RANK sorting
         return qs.annotate(search_rank=Value(0))
+
+    value = strip_accents(value)
 
     parsed_query = parse_search_query(value)
     if not parsed_query:

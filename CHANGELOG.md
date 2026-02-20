@@ -34,20 +34,24 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Fix send order confirmation email to staff - #18342 by @Shaokun-X
+- Validation on `AppExtension` is now removed. Saleor will accept string values for `mount` and `target` from Manifest during App installation and JSON value for `options` field.
+Validation is now performed on the frontend (Dashboard). This change increases velocity of features related to apps and extensions, now Dashboard is only entity that ensures the contract
+- Add optional usage telemetry. - #18789 by @wcislo-saleor
+- The app can now be installed without providing a `tokenTargetUrl` in the manifest file.
+
+#### Search improvements
+
+- Improved page search with search vectors. Pages can now be searched by slug, title, content, attribute values, and page type information.
+- Improve user search. Use search vector functionality to enable searching users by email address, first name, last name, and addresses.
+- Improved checkout search with search vectors. The `search_index_dirty` flag is set whenever indexed checkout data changes, and a background task runs every minute to update search vectors for dirty checkouts, processing the oldest first. Search results are returned in order of best match relevance.
 - Enhanced search functionality across key entities (products, orders, gift cards, checkouts, pages, and users) with advanced query capabilities:
   - Prefix matching: partial word searches (e.g., "coff" matches "coffee")
   - Boolean operators: `AND`, `OR`, and `-` (NOT) for complex queries
   - Exact phrase matching: use quotation marks `" "` for precise searches
+  - Accent-insensitive search: queries automatically normalize diacritical marks, allowing searches to match regardless of accents (e.g., "cafe" matches "café")
   - Relevance-based ranking: exact matches score higher than prefix matches and appear first by default (can be overridden with `sortBy` parameter)
   - New `RANK` sort field available when using search filters to sort by relevance score
-- Improved page search with search vectors. Pages can now be searched by slug, title, content, attribute values, and page type information.
-- Fix send order confirmation email to staff - #18342 by @Shaokun-X
-- Validation on `AppExtension` is now removed. Saleor will accept string values for `mount` and `target` from Manifest during App installation and JSON value for `options` field.
-Validation is now performed on the frontend (Dashboard). This change increases velocity of features related to apps and extensions, now Dashboard is only entity that ensures the contract
-- Improve user search. Use search vector functionality to enable searching users by email address, first name, last name, and addresses.
-- Improved checkout search with search vectors. The `search_index_dirty` flag is set whenever indexed checkout data changes, and a background task runs every minute to update search vectors for dirty checkouts, processing the oldest first. Search results are returned in order of best match relevance.
-- Add optional usage telemetry. - #18789 by @wcislo-saleor
-- The app can now be installed without providing a `tokenTargetUrl` in the manifest file.
 
 ### Deprecations
 
