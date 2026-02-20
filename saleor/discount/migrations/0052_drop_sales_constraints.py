@@ -26,6 +26,7 @@ begin
          select constraint_name
          from information_schema.table_constraints
          where table_name=tab
+         and constraint_type in ('FOREIGN KEY', 'UNIQUE')
       ) loop
          execute concat(
             'ALTER TABLE '||tab||' DROP CONSTRAINT IF EXISTS "'||r.constraint_name||'"'
