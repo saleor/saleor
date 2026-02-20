@@ -185,7 +185,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
     @classmethod
     def get_product(cls, cleaned_input: dict) -> models.Product:
         product = cleaned_input["product"]
-        if not product:
+        if not product or not isinstance(product, models.Product):
             raise ValidationError(
                 {
                     "product": ValidationError(
