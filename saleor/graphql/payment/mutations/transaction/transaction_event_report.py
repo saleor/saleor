@@ -411,6 +411,7 @@ class TransactionEventReport(DeprecatedModelMutation):
                 error_msg = (
                     "The transaction with provided `pspReference` and "
                     "`type` already exists with different amount."
+                    f"Existing value: {existing_event.amount}, New value: {transaction_event.amount}"
                 )
                 error_field = "pspReference"
             elif existing_event:
@@ -423,7 +424,7 @@ class TransactionEventReport(DeprecatedModelMutation):
                 error_code = TransactionEventReportErrorCode.ALREADY_EXISTS.value
                 error_msg = (
                     "Event with `AUTHORIZATION_SUCCESS` already "
-                    "reported for the transaction. Use "
+                    f"reported for the transaction: {transaction.pk}. Use "
                     "`AUTHORIZATION_ADJUSTMENT` to change the "
                     "authorization amount."
                 )
