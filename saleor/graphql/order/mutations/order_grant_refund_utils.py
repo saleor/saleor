@@ -6,7 +6,12 @@ import graphene
 from graphql import GraphQLError
 
 from ....order import models
+from ....site.models import SiteSettings
 from ...core.utils import from_global_id_or_error
+from ...payment.utils import (
+    resolve_reason_reference_page,
+    validate_per_line_reason_reference,
+)
 
 
 def shipping_costs_already_granted(
@@ -75,6 +80,8 @@ def get_input_lines_data(
     lines: list[dict[str, str | int]],
     errors: list[dict[str, str]],
     error_code: str,
+    site_settings: SiteSettings | None = None,
+    reason_reference_error_code_enum=None,
 ) -> dict[uuid.UUID, models.OrderGrantedRefundLine]:
     granted_refund_lines = {}
     for line in lines:
@@ -85,11 +92,31 @@ def get_input_lines_data(
             )
             uuid_pk = uuid.UUID(pk)
             reason = cast(str | None, line.get("reason"))
-            granted_refund_lines[uuid_pk] = models.OrderGrantedRefundLine(
+            reason_reference_id = cast(str | None, line.get("reason_reference"))
+            granted_refund_line = models.OrderGrantedRefundLine(
                 order_line_id=uuid_pk,
                 quantity=int(line["quantity"]),
                 reason=reason,
             )
+            if (
+                site_settings
+                and reason_reference_error_code_enum
+                and reason_reference_id is not None
+            ):
+                context = validate_per_line_reason_reference(
+                    reason_reference_id=reason_reference_id,
+                    site_settings=site_settings,
+                    error_code_enum=reason_reference_error_code_enum,
+                )
+                if context["should_apply"]:
+                    granted_refund_line.reason_reference = (
+                        resolve_reason_reference_page(
+                            reason_reference_id,
+                            context["reason_reference_type"].pk,
+                            reason_reference_error_code_enum,
+                        )
+                    )
+            granted_refund_lines[uuid_pk] = granted_refund_line
         except (GraphQLError, ValueError) as e:
             errors.append(
                 {

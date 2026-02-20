@@ -26,7 +26,7 @@ def test_no_reference_type_configured_no_reference_id_provided(site_settings):
     # Then
     assert result == {
         "is_passing_reason_reference_required": False,
-        "refund_reason_reference_type": None,
+        "reason_reference_type": None,
         "should_apply": False,
     }
 
@@ -109,7 +109,7 @@ def test_reference_type_configured_no_reference_id_app_requestor_success(
     # Then
     assert result == {
         "is_passing_reason_reference_required": True,
-        "refund_reason_reference_type": page_type,
+        "reason_reference_type": page_type,
         "should_apply": False,
     }
 
@@ -134,7 +134,7 @@ def test_reference_type_configured_reference_id_provided_success(site_settings):
     # Then
     assert result == {
         "is_passing_reason_reference_required": True,
-        "refund_reason_reference_type": page_type,
+        "reason_reference_type": page_type,
         "should_apply": True,
     }
 
@@ -161,7 +161,7 @@ def test_reference_type_configured_reference_id_provided_app_requestor_success(
     # Then
     assert result == {
         "is_passing_reason_reference_required": True,
-        "refund_reason_reference_type": page_type,
+        "reason_reference_type": page_type,
         "should_apply": True,
     }
 
@@ -187,6 +187,9 @@ def test_custom_field_name_in_error_message(site_settings):
     assert (
         error_dict[custom_field_name][0].code
         == TransactionRequestActionErrorCode.INVALID.value
+    )
+    assert "Reason reference type is not configured" in str(
+        error_dict[custom_field_name][0]
     )
 
 
@@ -214,6 +217,7 @@ def test_custom_field_name_in_required_error_message(site_settings):
         error_dict[custom_field_name][0].code
         == TransactionRequestActionErrorCode.REQUIRED.value
     )
+    assert "Reason reference is required" in str(error_dict[custom_field_name][0])
 
 
 def test_different_error_code_enum(site_settings):
@@ -237,6 +241,9 @@ def test_different_error_code_enum(site_settings):
     assert (
         error_dict["refundReasonReference"][0].code
         == TransactionRequestRefundForGrantedRefundErrorCode.INVALID.value
+    )
+    assert "Reason reference type is not configured" in str(
+        error_dict["refundReasonReference"][0]
     )
 
 
