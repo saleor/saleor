@@ -172,6 +172,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         cls,
         checkout_info: CheckoutInfo,
         lines: list[CheckoutLineInfo],
+        info: ResolveInfo,
     ):
         """Validate checkout addresses.
 
@@ -196,6 +197,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                         required_check=True,
                         enable_normalization=True,
                         instance=shipping_address,
+                        info=info,
                     )
                 if shipping_address_data != shipping_address.as_data():
                     shipping_address.save()
@@ -218,6 +220,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 required_check=True,
                 enable_normalization=True,
                 instance=billing_address,
+                info=info,
             )
         if billing_address_data != billing_address.as_data():
             billing_address.save()
@@ -313,7 +316,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         try:
-            cls.validate_checkout_addresses(checkout_info, lines)
+            cls.validate_checkout_addresses(checkout_info, lines, info)
         except models.Checkout.DoesNotExist as e:
             order = order_models.Order.objects.get_by_checkout_token(
                 checkout_info.checkout.token

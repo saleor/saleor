@@ -24,6 +24,7 @@ SHOP_SETTINGS_UPDATE_MUTATION = """
                 limitQuantityPerCheckout
                 allowLoginWithoutConfirmation
                 useLegacyUpdateWebhookEmission
+                preserveAllAddressFields
             }
             errors {
                 field
@@ -68,6 +69,7 @@ def test_shop_digital_content_settings_mutation(
     assert site_settings.automatic_fulfillment_digital_products
     assert site_settings.default_digital_max_downloads == max_downloads
     assert site_settings.default_digital_url_valid_days == url_valid_days
+    assert site_settings.preserve_all_address_fields is False
 
 
 def test_shop_settings_mutation(
@@ -305,6 +307,69 @@ def test_shop_customer_set_password_url_update_invalid_url(
     }
     site_settings.refresh_from_db()
     assert not site_settings.customer_set_password_url
+
+
+MUTATION_UPDATE_PRESERVE_ALL_ADDRESS_FIELDS = """
+    mutation updateSettings($input: ShopSettingsInput!) {
+        shopSettingsUpdate(input: $input) {
+            shop {
+                preserveAllAddressFields
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_shop_settings_update_preserve_all_address_fields_enable(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    assert site_settings.preserve_all_address_fields is False
+    variables = {"input": {"preserveAllAddressFields": True}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRESERVE_ALL_ADDRESS_FIELDS,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert not data["errors"]
+    assert data["shop"]["preserveAllAddressFields"] is True
+    site_settings.refresh_from_db()
+    assert site_settings.preserve_all_address_fields is True
+
+
+def test_shop_settings_update_preserve_all_address_fields_disable(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    site_settings.preserve_all_address_fields = True
+    site_settings.save(update_fields=["preserve_all_address_fields"])
+    variables = {"input": {"preserveAllAddressFields": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRESERVE_ALL_ADDRESS_FIELDS,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert not data["errors"]
+    assert data["shop"]["preserveAllAddressFields"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.preserve_all_address_fields is False
 
 
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """
