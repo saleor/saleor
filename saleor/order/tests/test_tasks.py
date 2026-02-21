@@ -668,7 +668,12 @@ def test_delete_expired_orders_task_customer_lines_count_adjusted(
 
 
 def test_bulk_release_voucher_usage_voucher_usage_mismatch(
-    order_list, allocations, channel_USD, voucher_customer
+    order_list,
+    allocations,
+    channel_USD,
+    voucher_customer,
+    customer_user,
+    customer_user2,
 ):
     # We can have mismatch between `voucher.used` and number of order utilizing
     # the voucher. It can happen in following cases:
@@ -707,25 +712,41 @@ def test_bulk_release_voucher_usage_voucher_usage_mismatch(
     now = timezone.now()
     code = voucher_customer.voucher_code
     voucher = code.voucher
-    code.used = 1
+    code.used = 3
     voucher.usage_limit = 3
     code.save(update_fields=["used"])
     voucher.save(update_fields=["usage_limit"])
 
+    third_email = "third@example.com"
+    VoucherCustomer.objects.create(
+        voucher_code=code, customer_email=customer_user2.email
+    )
+    VoucherCustomer.objects.create(voucher_code=code, customer_email=third_email)
+
     order_1 = order_list[0]
+    order_1.user = customer_user
     order_1.status = OrderStatus.UNCONFIRMED
     order_1.created_at = now - datetime.timedelta(minutes=10)
     order_1.voucher_code = code.code
     order_1.save()
 
     order_2 = order_list[1]
+    order_2.user = customer_user2
     order_2.status = OrderStatus.UNCONFIRMED
     order_2.created_at = now - datetime.timedelta(minutes=10)
     order_2.voucher_code = code.code
     order_2.save()
 
+    order_3 = order_list[2]
+    order_3.user = None
+    order_3.user_email = third_email
+    order_3.status = OrderStatus.UNCONFIRMED
+    order_3.created_at = now - datetime.timedelta(minutes=10)
+    order_3.voucher_code = code.code
+    order_3.save()
+
     # when
-    _bulk_release_voucher_usage([order_1.pk, order_2.pk])
+    _bulk_release_voucher_usage([order_1.pk, order_2.pk, order_3.pk])
 
     # then
     code.refresh_from_db()
