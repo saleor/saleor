@@ -28,9 +28,13 @@ begin
          where table_name=tab
          and constraint_type in ('FOREIGN KEY', 'UNIQUE')
       ) loop
-         execute concat(
-            'ALTER TABLE '||tab||' DROP CONSTRAINT IF EXISTS "'||r.constraint_name||'"'
-         );
+         begin
+            execute concat(
+               'ALTER TABLE '||tab||' DROP CONSTRAINT IF EXISTS "'||r.constraint_name||'"'
+            );
+         exception when others then
+            raise notice 'Skipping constraint % on %: %', r.constraint_name, tab, sqlerrm;
+         end;
       end loop;
    end loop;
 end;
