@@ -40,9 +40,6 @@ from ...tax.dataloaders import (
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
 from ...tax.enums import TaxableObjectDiscountTypeEnum
-from ...webhook.dataloaders.pregenerated_payloads_for_checkout_filter_shipping_methods import (
-    PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader,
-)
 from .. import ResolveInfo
 from ..context import SyncWebhookControlContext
 from .common import NonNullList
@@ -353,10 +350,7 @@ class TaxableObject(BaseObjectType):
         if isinstance(root, Checkout):
 
             def calculate_shipping_price(data):
-                checkout_info, lines, excluded_payloads = data
-                checkout_info.pregenerated_payloads_for_excluded_shipping_method = (
-                    excluded_payloads
-                )
+                checkout_info, lines = data
                 price = base_calculations.base_checkout_delivery_price(
                     checkout_info, lines
                 )
@@ -372,14 +366,7 @@ class TaxableObject(BaseObjectType):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 root.token
             )
-            excluded_shipping_methods_payloads_dataloader = (
-                PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(
-                    info.context
-                ).load(root.token)
-            )
-            return Promise.all(
-                [checkout_info, lines, excluded_shipping_methods_payloads_dataloader]
-            ).then(calculate_shipping_price)
+            return Promise.all([checkout_info, lines]).then(calculate_shipping_price)
 
         return root.base_shipping_price
 
@@ -387,11 +374,7 @@ class TaxableObject(BaseObjectType):
     def resolve_discounts(root: Checkout | Order, info: ResolveInfo):
         if isinstance(root, Checkout):
 
-            def calculate_checkout_discounts(data):
-                checkout_info, excluded_payloads = data
-                checkout_info.pregenerated_payloads_for_excluded_shipping_method = (
-                    excluded_payloads
-                )
+            def calculate_checkout_discounts(checkout_info):
                 checkout = checkout_info.checkout
                 discount_name = checkout.discount_name
                 # All order level discounts applicable for checkout, like entire order
@@ -412,20 +395,10 @@ class TaxableObject(BaseObjectType):
                     else []
                 )
 
-            excluded_shipping_methods_payloads_dataloader = (
-                PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(
-                    info.context
-                ).load(root.token)
-            )
             checkout_info_dataloader = CheckoutInfoByCheckoutTokenLoader(
                 info.context
             ).load(root.token)
-            return Promise.all(
-                [
-                    checkout_info_dataloader,
-                    excluded_shipping_methods_payloads_dataloader,
-                ]
-            ).then(calculate_checkout_discounts)
+            return checkout_info_dataloader.then(calculate_checkout_discounts)
 
         discounts = OrderDiscountsByOrderIDLoader(info.context).load(root.id)
         order_lines = OrderLinesByOrderIdLoader(info.context).load(root.id)

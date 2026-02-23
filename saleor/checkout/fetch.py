@@ -130,7 +130,6 @@ class CheckoutInfo:
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
-    pregenerated_payloads_for_excluded_shipping_method: dict | None = None
 
     allow_sync_webhooks: bool = True
 
