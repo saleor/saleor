@@ -209,6 +209,8 @@ class CountryAwareAddressForm(AddressForm):
                 data = normalized_data
                 del data["sorting_code"]
 
+                # applied only when `enable_normalization` is True, as otherwise
+                # the original data are preserved anyway
                 if getattr(self, "preserve_all_address_fields", False):
                     self._restore_non_allowed_fields(data, original_data)
         except i18naddress.InvalidAddressError as exc:
