@@ -429,14 +429,15 @@ def test_permission_group_update_mutation_removing_perm_left_not_manageable_perm
     permission_group_manage_apps,
     permission_group_manage_users,
 ):
-    """Ensure user cannot remove permissions if it left not meanagable perms."""
+    """Ensure user cannot remove permissions if it left not manageable perms."""
+
+    group = permission_group_manage_users
+    group_user = group.user_set.first()
     staff_api_client.user.groups.add(
         permission_group_manage_apps, permission_group_manage_users
     )
-    group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
-    group_user = group.user_set.first()
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {
