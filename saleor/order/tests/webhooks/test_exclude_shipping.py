@@ -12,13 +12,11 @@ from promise import Promise
 
 from ....core.prices import quantize_price
 from ....shipping.interface import ShippingMethodData
+from ....shipping.webhooks.shared import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
-from ....webhook.transport.shipping_helpers import to_shipping_app_id
 from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...webhooks.exclude_shipping import (
-    CACHE_EXCLUDED_SHIPPING_TIME,
-    _get_excluded_shipping_methods_from_response,
     excluded_shipping_methods_for_order,
     generate_excluded_shipping_methods_for_order_payload,
 )
@@ -61,31 +59,7 @@ def available_shipping_methods():
     return methods
 
 
-@mock.patch("saleor.order.webhooks.exclude_shipping._get_excluded_shipping_data")
-def test_excluded_shipping_methods_for_order_run_webhook_when_shipping_methods_provided(
-    mocked_get_excluded_shipping_data, draft_order
-):
-    # given
-    shipping_method = ShippingMethodData(
-        id="123",
-        price=Money(Decimal("10.59"), "USD"),
-    )
-
-    non_empty_shipping_methods = [shipping_method]
-
-    # when
-    excluded_shipping_methods_for_order(
-        order=draft_order,
-        available_shipping_methods=non_empty_shipping_methods,
-        allow_replica=False,
-        requestor=None,
-    ).get()
-
-    # then
-    mocked_get_excluded_shipping_data.assert_called_once()
-
-
-@mock.patch("saleor.order.webhooks.exclude_shipping._get_excluded_shipping_data")
+@mock.patch("saleor.order.webhooks.exclude_shipping.get_excluded_shipping_data")
 def test_excluded_shipping_methods_for_order_dont_run_webhook_on_missing_shipping_methods(
     mocked_get_excluded_shipping_data, draft_order
 ):
@@ -511,65 +485,6 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
             ),
         ]
     )
-
-
-def test_parse_excluded_shipping_methods_response(app):
-    # given
-    external_id = to_shipping_app_id(app, "test-1234")
-    response = {
-        "excluded_methods": [
-            {
-                "id": "",
-            },
-            {
-                "id": "not-an-id",
-            },
-            {
-                "id": graphene.Node.to_global_id("Car", "1"),
-            },
-            {
-                "id": graphene.Node.to_global_id("ShippingMethod", "2"),
-            },
-            {
-                "id": external_id,
-            },
-        ]
-    }
-    webhook = Webhook.objects.create(
-        name="shipping-webhook-1",
-        app=app,
-        target_url="https://shipping-gateway.com/apiv2/",
-    )
-
-    # when
-    excluded_methods = _get_excluded_shipping_methods_from_response(response, webhook)
-
-    # then
-    assert len(excluded_methods) == 2
-    assert excluded_methods[0].id == "2"
-    assert excluded_methods[1].id == external_id
-
-
-def test_parse_excluded_shipping_methods_response_invalid(app):
-    # given
-    response = {
-        "excluded_methods": [
-            {
-                "id": "not-an-id",
-            },
-        ]
-    }
-    webhook = Webhook.objects.create(
-        name="shipping-webhook-1",
-        app=app,
-        target_url="https://shipping-gateway.com/apiv2/",
-    )
-
-    # when
-    excluded_methods = _get_excluded_shipping_methods_from_response(response, webhook)
-
-    # then
-    assert not excluded_methods
 
 
 def test_generate_excluded_shipping_methods_for_order_payload(

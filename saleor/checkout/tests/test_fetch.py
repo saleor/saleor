@@ -5,6 +5,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money
+from promise import Promise
 
 from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ...shipping.interface import ExcludedShippingMethod, ShippingMethodData
@@ -662,12 +663,14 @@ def test_fetch_shipping_methods_for_checkout_with_excluded_built_in_shipping_met
     # given
     unavailable_shipping_method = ShippingMethod.objects.get()
     exclude_reason = "This shipping method is not available."
-    mocked_exclude_shipping_methods.return_value = [
-        ExcludedShippingMethod(
-            id=str(unavailable_shipping_method.id),
-            reason=exclude_reason,
-        )
-    ]
+    mocked_exclude_shipping_methods.return_value = Promise.resolve(
+        [
+            ExcludedShippingMethod(
+                id=str(unavailable_shipping_method.id),
+                reason=exclude_reason,
+            )
+        ]
+    )
 
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -1039,6 +1042,7 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_external_sh
         name="Old External Shipping name",
         price_amount=Decimal(99),
         currency="USD",
+        is_external=True,
     )
     checkout.shipping_address = address
     checkout.delivery_methods_stale_at = timezone.now()
@@ -1104,12 +1108,14 @@ def test_fetch_shipping_methods_for_checkout_with_excluded_external_shipping_met
         },
     )
     exclude_reason = "This shipping method is not available."
-    mocked_exclude_shipping_methods.return_value = [
-        ExcludedShippingMethod(
-            id=str(unavailable_shipping_method.id),
-            reason=exclude_reason,
-        )
-    ]
+    mocked_exclude_shipping_methods.return_value = Promise.resolve(
+        [
+            ExcludedShippingMethod(
+                id=str(unavailable_shipping_method.id),
+                reason=exclude_reason,
+            )
+        ]
+    )
 
     mocked_list_shipping_methods.return_value = [unavailable_shipping_method]
 
@@ -1165,7 +1171,7 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
         },
     )
 
-    mocked_webhook.return_value = [available_shipping_method]
+    mocked_webhook.return_value = Promise.resolve([available_shipping_method])
 
     new_shipping_price_amount = shipping_price_amount + Decimal(99)
     checkout = checkout_with_item

@@ -7,6 +7,7 @@ import graphene
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from promise import Promise
 
 from .....account.models import Address
 from .....checkout.actions import call_checkout_info_event
@@ -289,9 +290,9 @@ def test_checkout_shipping_method_update_excluded_webhook(
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_SHIPPING_METHOD
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
-    mocked_webhook.return_value = [
-        ExcludedShippingMethod(shipping_method.id, webhook_reason)
-    ]
+    mocked_webhook.return_value = Promise.resolve(
+        [ExcludedShippingMethod(shipping_method.id, webhook_reason)]
+    )
 
     # when
     response = staff_api_client.post_graphql(

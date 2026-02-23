@@ -768,8 +768,7 @@ def fetch_shipping_methods_for_checkout(
         available_shipping_methods=all_methods,
         allow_replica=allow_replica,
         requestor=requestor,
-        pregenerated_subscription_payloads=checkout_info.pregenerated_payloads_for_excluded_shipping_method,
-    )
+    ).get()
     initialize_shipping_method_active_status(all_methods, excluded_methods)
 
     checkout_deliveries = {}
