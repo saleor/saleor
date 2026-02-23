@@ -823,7 +823,9 @@ def _assert_external_shipping_method(
 
 
 @freeze_time("2024-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
 def test_fetch_shipping_methods_for_checkout_with_external_shipping_method(
     mocked_webhook,
     checkout_with_item,
@@ -875,7 +877,9 @@ def test_fetch_shipping_methods_for_checkout_with_external_shipping_method(
 
 
 @freeze_time("2024-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
 def test_fetch_shipping_methods_for_checkout_updates_existing_external_shipping_method(
     mocked_webhook,
     checkout_with_item,
@@ -936,7 +940,9 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_external_shipping_
 
 
 @freeze_time("2024-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
 def test_fetch_shipping_methods_for_checkout_removes_non_applicable_external_shipping_method(
     mocked_webhook,
     checkout_with_item,
@@ -998,7 +1004,9 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_external_shi
 
 
 @freeze_time("2024-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
 def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_external_shipping_method(
     mocked_webhook,
     checkout_with_item,
@@ -1070,7 +1078,9 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_external_sh
 @mock.patch(
     "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
 )
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
 def test_fetch_shipping_methods_for_checkout_with_excluded_external_shipping_method(
     mocked_list_shipping_methods,
     mocked_exclude_shipping_methods,
@@ -1127,7 +1137,9 @@ def test_fetch_shipping_methods_for_checkout_with_excluded_external_shipping_met
 
 
 @freeze_time("2024-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
 def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_shipping_method(
     mocked_webhook,
     checkout_with_item,

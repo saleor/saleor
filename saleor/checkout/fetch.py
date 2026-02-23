@@ -555,11 +555,22 @@ def fetch_external_shipping_methods_for_checkout_info(
     checkout_info,
     available_built_in_methods: list[ShippingMethodData],
 ) -> list[ShippingMethodData]:
-    manager = checkout_info.manager
-    return manager.list_shipping_methods_for_checkout(
+    from .webhooks.list_shipping_methods import list_shipping_methods_for_checkout
+
+    allow_replica = not (
+        checkout_info.database_connection_name
+        == settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
+    requestor = (
+        checkout_info.manager.requestor_getter()
+        if checkout_info.manager.requestor_getter
+        else None
+    )
+    return list_shipping_methods_for_checkout(
         checkout=checkout_info.checkout,
-        channel_slug=checkout_info.channel.slug,
         built_in_shipping_methods=available_built_in_methods,
+        allow_replica=allow_replica,
+        requestor=requestor,
     )
 
 

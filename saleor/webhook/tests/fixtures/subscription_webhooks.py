@@ -1302,14 +1302,6 @@ def subscription_payment_list_gateways_webhook(subscription_webhook):
 
 
 @pytest.fixture
-def subscription_shipping_list_methods_for_checkout_webhook(subscription_webhook):
-    return subscription_webhook(
-        queries.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-
-
-@pytest.fixture
 def subscription_thumbnail_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.THUMBNAIL_CREATED,
@@ -1346,14 +1338,4 @@ def subscription_app_status_changed_webhook_removed_app(
         queries.APP_STATUS_CHANGED,
         WebhookEventAsyncType.APP_STATUS_CHANGED,
         app=removed_app,
-    )
-
-
-@pytest.fixture
-def subscription_checkout_shipping_filter_and_list_missing_one_in_definition(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        queries.THUMBNAIL_CREATED,
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
     )
