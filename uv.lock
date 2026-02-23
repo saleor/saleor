@@ -197,18 +197,6 @@ wheels = [
 ]
 
 [[package]]
-name = "beautifulsoup4"
-version = "4.7.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "soupsieve", marker = "platform_python_implementation != 'PyPy'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/80/f2/f6aca7f1b209bb9a7ef069d68813b091c8c3620642b568dac4eb0e507748/beautifulsoup4-4.7.1.tar.gz", hash = "sha256:945065979fb8529dd2f37dbb58f00b661bdbcbebf954f93b32fdf5263ef35348", size = 167065, upload-time = "2019-01-07T00:53:22.191Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/5d/3260694a59df0ec52f8b4883f5d23b130bc237602a1411fa670eae12351e/beautifulsoup4-4.7.1-py3-none-any.whl", hash = "sha256:034740f6cb549b4e932ae1ab975581e6103ac8f942200a0e9759065984391858", size = 94327, upload-time = "2019-01-07T00:53:20.479Z" },
-]
-
-[[package]]
 name = "beautifultable"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -804,15 +792,6 @@ wheels = [
 ]
 
 [[package]]
-name = "draftjs-sanitizer"
-version = "1.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "urllib3", marker = "platform_python_implementation != 'PyPy'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/58/6c/ba91295b18cf371cab6e7f93f2117eea802ab8e1e491f78ab1361575d07a/draftjs-sanitizer-1.0.0.tar.gz", hash = "sha256:4603a9296153cd06d5a1d76a45a1ff0295363516af983d8dde28cafc5cd67583", size = 6149, upload-time = "2019-07-18T13:21:30.597Z" }
-
-[[package]]
 name = "ecdsa"
 version = "0.19.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1134,16 +1113,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/01/ee/02a2c011bdab74c6f
 wheels = [
     { url = "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86", size = 37515, upload-time = "2025-04-24T03:35:24.344Z" },
 ]
-
-[[package]]
-name = "html-to-draftjs"
-version = "1.0.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "beautifulsoup4", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "lxml", marker = "platform_python_implementation != 'PyPy'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/84/0f/e6f3d05e4e23fd1e9de9fb84376e65323c8c7a53bbef97ea4e69fbc93ba6/html-to-draftjs-1.0.1.tar.gz", hash = "sha256:2212acf3b063c17b6dc91875f474159e1f730c1a4e5fbf74f9a66250f7040e9a", size = 6656, upload-time = "2019-07-31T05:54:09.426Z" }
 
 [[package]]
 name = "httptools"
@@ -2599,7 +2568,6 @@ dependencies = [
     { name = "django-phonenumber-field", marker = "platform_python_implementation != 'PyPy'" },
     { name = "django-storages", extra = ["google"], marker = "platform_python_implementation != 'PyPy'" },
     { name = "django-stubs-ext", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "draftjs-sanitizer", marker = "platform_python_implementation != 'PyPy'" },
     { name = "faker", marker = "platform_python_implementation != 'PyPy'" },
     { name = "google-cloud-pubsub", marker = "platform_python_implementation != 'PyPy'" },
     { name = "google-cloud-storage", marker = "platform_python_implementation != 'PyPy'" },
@@ -2607,7 +2575,6 @@ dependencies = [
     { name = "graphene", marker = "platform_python_implementation != 'PyPy'" },
     { name = "graphql-core", marker = "platform_python_implementation != 'PyPy'" },
     { name = "graphql-relay", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "html-to-draftjs", marker = "platform_python_implementation != 'PyPy'" },
     { name = "idna", marker = "platform_python_implementation != 'PyPy'" },
     { name = "kombu", extra = ["sqs"], marker = "platform_python_implementation != 'PyPy'" },
     { name = "lxml", marker = "platform_python_implementation != 'PyPy'" },
@@ -2716,7 +2683,6 @@ requires-dist = [
     { name = "django-phonenumber-field", specifier = ">=4,<9" },
     { name = "django-storages", extras = ["google"], specifier = "~=1.11" },
     { name = "django-stubs-ext", specifier = ">=5.1.3,<6" },
-    { name = "draftjs-sanitizer", specifier = ">=1.0.0,<2" },
     { name = "faker", specifier = ">=26.0.0,<27.0" },
     { name = "google-cloud-pubsub", specifier = ">=1.7,<3.0" },
     { name = "google-cloud-storage", specifier = ">=2.0.0,<3" },
@@ -2724,7 +2690,6 @@ requires-dist = [
     { name = "graphene", specifier = "<3.0" },
     { name = "graphql-core", specifier = ">=2.3.2,<3" },
     { name = "graphql-relay", specifier = ">=2.0.1,<3" },
-    { name = "html-to-draftjs", specifier = ">=1.0.1,<2" },
     { name = "idna", specifier = ">=3.10" },
     { name = "kombu", extras = ["sqs"], specifier = ">=4.6.11,<6.0.0" },
     { name = "lxml", specifier = ">=4.9.3,<5" },
@@ -2876,15 +2841,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f23394729afe52f3bf7adec04bf9ed2c820b39e19299111/sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88", size = 30594, upload-time = "2021-05-16T22:03:42.897Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575, upload-time = "2021-05-16T22:03:41.177Z" },
-]
-
-[[package]]
-name = "soupsieve"
-version = "2.8"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/6d/e6/21ccce3262dd4889aa3332e5a119a3491a95e8f60939870a3a035aabac0d/soupsieve-2.8.tar.gz", hash = "sha256:e2dd4a40a628cb5f28f6d4b0db8800b8f581b65bb380b97de22ba5ca8d72572f", size = 103472, upload-time = "2025-08-27T15:39:51.78Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/14/a0/bb38d3b76b8cae341dad93a2dd83ab7462e6dbcdd84d43f54ee60a8dc167/soupsieve-2.8-py3-none-any.whl", hash = "sha256:0cc76456a30e20f5d7f2e14a98a4ae2ee4e5abdc7c5ea0aafe795f344bc7984c", size = 36679, upload-time = "2025-08-27T15:39:50.179Z" },
 ]
 
 [[package]]
