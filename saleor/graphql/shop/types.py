@@ -370,6 +370,18 @@ class Shop(graphene.ObjectType):
         ],
     )
 
+    preserve_all_address_fields = PermissionsField(
+        graphene.Boolean,
+        description=(
+            "When enabled, address fields that are not valid for a given country "
+            "(according to Google's i18n address data) will be preserved instead of "
+            "being removed during validation. Validation errors are still returned."
+        )
+        + ADDED_IN_322,
+        permissions=[SitePermissions.MANAGE_SETTINGS],
+        required=True,
+    )
+
     # deprecated
     include_taxes_in_prices = graphene.Boolean(
         description="Include taxes in prices.",
@@ -674,6 +686,11 @@ class Shop(graphene.ObjectType):
         return ObjectWithMetadata.resolve_private_metafields(
             site.settings, info, keys=keys
         )
+
+    @staticmethod
+    @load_site_callback
+    def resolve_preserve_all_address_fields(_, _info, site):
+        return site.settings.preserve_all_address_fields
 
     @staticmethod
     @load_site_callback
