@@ -1,4 +1,4 @@
-from ..text import strip_accents
+from ..utils.text import strip_accents
 
 
 def test_strip_accents_removes_diacritics():
