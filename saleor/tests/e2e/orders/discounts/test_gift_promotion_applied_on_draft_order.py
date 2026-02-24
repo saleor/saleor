@@ -10,6 +10,7 @@ from ..utils import (
     draft_order_complete,
     draft_order_create,
     order_lines_create,
+    order_query,
     order_update_shipping,
 )
 
@@ -194,7 +195,12 @@ def test_order_promotion_with_gift_reward_should_be_applied_to_draft_order_with_
     assert order["total"]["tax"]["amount"] == expected_total_tax
 
     # Assert gift line
-    order_lines = order["lines"]
+    # Making separate request, as due to current approach of creating the gift line,
+    # gift line could be visible in second request. It depends on the sequence of calling
+    # dataloaders. If dataloader will have a cache without gift line then it won't be visible in response
+    # for the mutation. This needs to be addressed in separate task: ENG-1227.
+    order_data = order_query(e2e_staff_api_client, order_id)
+    order_lines = order_data["lines"]
     assert len(order_lines) == 2
     gift_line = order_lines[1]
     assert gift_line["totalPrice"]["gross"]["amount"] == 0

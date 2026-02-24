@@ -111,6 +111,9 @@ class AddressForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop("autocomplete_type", None)
         self.enable_normalization = kwargs.pop("enable_normalization", True)
+        self.preserve_all_address_fields = kwargs.pop(
+            "preserve_all_address_fields", False
+        )
         super().__init__(*args, **kwargs)
         # countries order was taken as defined in the model,
         # not being sorted accordingly to the selected language
@@ -175,9 +178,25 @@ class CountryAwareAddressForm(AddressForm):
                     error_msg = "This value is not valid for the address."
                 self.add_error(field, ValidationError(error_msg, code=error_code))
 
+    def _restore_non_allowed_fields(self, data, original_data):
+        """Restore original values for fields not allowed by country validation rules.
+
+        This preserves fields that exist in the original address but are not part
+        of the country's standard address format, preventing data loss during
+        address normalization.
+        """
+        rules = i18naddress.get_validation_rules(
+            {"country_code": data.get("country_code", "")}
+        )
+        for field in i18naddress.KNOWN_FIELDS - rules.allowed_fields:
+            original_value = original_data.get(field)
+            if original_value:
+                data[field] = original_value
+
     def validate_address(self, data):
         try:
             data["country_code"] = data.get("country", "")
+            original_data = dict(data)
 
             street_address_1 = data.get("street_address_1", "")
             street_address_2 = data.get("street_address_2", "")
@@ -189,6 +208,11 @@ class CountryAwareAddressForm(AddressForm):
             if getattr(self, "enable_normalization", True):
                 data = normalized_data
                 del data["sorting_code"]
+
+                # applied only when `enable_normalization` is True, as otherwise
+                # the original data are preserved anyway
+                if getattr(self, "preserve_all_address_fields", False):
+                    self._restore_non_allowed_fields(data, original_data)
         except i18naddress.InvalidAddressError as exc:
             self.add_field_errors(exc.errors)
             self.log_errors()

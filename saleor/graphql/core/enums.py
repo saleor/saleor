@@ -99,9 +99,19 @@ def to_enum(enum_cls, *, type_name=None, **options) -> graphene.Enum:
     return graphene.Enum(type_name, enum_data, **options)
 
 
+def __language_code_enum_description(enum):
+    if not enum:
+        return "Language code enum. It contains all the languages supported by Saleor."
+    for code, name in settings.LANGUAGES:
+        if enum.value == code:
+            return name
+    return None
+
+
 LanguageCodeEnum = graphene.Enum(
     "LanguageCodeEnum",
     [(lang[0].replace("-", "_").upper(), lang[0]) for lang in settings.LANGUAGES],
+    description=__language_code_enum_description,
 )
 
 

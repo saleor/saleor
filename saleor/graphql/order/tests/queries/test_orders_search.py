@@ -42,6 +42,8 @@ def update_orders_search_vector(orders):
         ("Some other", 1),
         ("translated", 1),
         ("test@mirumee.com", 1),
+        ("example.com", 3),
+        ("mirumee.com", 1),
         ("Leslie", 1),
         ("Wade", 1),
         ("Leslie Wade", 1),
@@ -534,3 +536,41 @@ def test_orders_query_with_search_by_external_reference(
     ]
     expected_numbers = [str(order_list[idx].number) for idx in expected_order_idxes]
     assert set(returned_numbers) == set(expected_numbers)
+
+
+def test_orders_search_by_not_searchable_value(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_list,
+):
+    # given
+    update_orders_search_vector(order_list)
+
+    variables = {"search": ":::"}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_SEARCH, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orders"]["edges"]
+
+
+def test_orders_search_by_none_value(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_list,
+):
+    # given
+    update_orders_search_vector(order_list)
+
+    variables = {"search": None}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_SEARCH, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["orders"]["edges"]) == len(order_list)

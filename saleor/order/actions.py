@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Optional, TypedDict
 from uuid import UUID
 
 import graphene
-from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import transaction
 from django.db.models import F
@@ -18,8 +17,6 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.events import (
     call_event,
-    call_event_including_protected_events,
-    webhook_async_event_requires_sync_webhooks_to_trigger,
 )
 from ..giftcard import GiftCardLineData
 from ..order.lock_objects import order_lines_qs_select_for_update
@@ -33,17 +30,15 @@ from ..payment import (
 from ..payment.interface import RefundData
 from ..payment.models import Payment, Transaction, TransactionItem
 from ..plugins.manager import PluginsManager
-from ..shipping.models import ShippingMethodChannelListing
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_orders,
     decrease_stock,
 )
 from ..warehouse.models import Stock
-from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_multiple_events
 from . import (
-    ORDER_EDITABLE_STATUS,
     FulfillmentLineData,
     FulfillmentStatus,
     OrderChargeStatus,
@@ -52,7 +47,6 @@ from . import (
     events,
     utils,
 )
-from .calculations import fetch_order_prices_if_expired
 from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
@@ -71,7 +65,6 @@ from .notifications import (
 )
 from .utils import (
     clean_order_line_quantities,
-    get_valid_shipping_methods_for_order,
     order_line_needs_automatic_fulfillment,
     restock_fulfillment_lines,
     update_order_authorize_data,
@@ -103,28 +96,23 @@ class OrderFulfillmentLineInfo(TypedDict):
 WEBHOOK_EVENTS_FOR_ORDER_FULFILLED = {
     WebhookEventAsyncType.ORDER_FULFILLED,
     WebhookEventAsyncType.ORDER_UPDATED,
-    *WebhookEventSyncType.ORDER_EVENTS,
 }
 
 WEBHOOK_EVENTS_FOR_ORDER_REFUNDED = {
     WebhookEventAsyncType.ORDER_FULLY_REFUNDED,
     WebhookEventAsyncType.ORDER_REFUNDED,
     WebhookEventAsyncType.ORDER_UPDATED,
-    *WebhookEventSyncType.ORDER_EVENTS,
 }
 WEBHOOK_EVENTS_FOR_ORDER_CANCELED = {
     WebhookEventAsyncType.ORDER_CANCELLED,
     WebhookEventAsyncType.ORDER_UPDATED,
-    *WebhookEventSyncType.ORDER_EVENTS,
 }
 WEBHOOK_EVENTS_FOR_FULLY_PAID = {
     WebhookEventAsyncType.ORDER_UPDATED,
     WebhookEventAsyncType.ORDER_FULLY_PAID,
-    *WebhookEventSyncType.ORDER_EVENTS,
 }
 WEBHOOK_EVENTS_FOR_ORDER_AUTHORIZED = {
     WebhookEventAsyncType.ORDER_UPDATED,
-    *WebhookEventSyncType.ORDER_EVENTS,
 }
 
 WEBHOOK_EVENTS_FOR_ORDER_CHARGED = {
@@ -133,7 +121,6 @@ WEBHOOK_EVENTS_FOR_ORDER_CHARGED = {
 
 WEBHOOK_EVENTS_FOR_ORDER_CONFIRMED = {
     WebhookEventAsyncType.ORDER_CONFIRMED,
-    *WebhookEventSyncType.ORDER_EVENTS,
 }
 
 
@@ -157,33 +144,6 @@ ORDER_WEBHOOK_EVENT_MAP = {
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: PluginsManager.draft_order_created.__name__,
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: PluginsManager.draft_order_updated.__name__,
 }
-
-
-def _trigger_order_sync_webhooks(
-    manager: "PluginsManager",
-    order: "Order",
-    webhook_event_map: dict[str, set["Webhook"]],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    if (
-        webhook_event_map.get(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
-        and order.should_refresh_prices
-    ):
-        fetch_order_prices_if_expired(
-            order,
-            manager,
-            database_connection_name=database_connection_name,
-        )
-    if webhook_event_map.get(WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS):
-        shipping_listings = ShippingMethodChannelListing.objects.filter(
-            channel_id=order.channel_id
-        )
-        get_valid_shipping_methods_for_order(
-            order,
-            shipping_listings,
-            manager,
-            database_connection_name=database_connection_name,
-        )
 
 
 def _get_extra_for_order_logger(order: "Order") -> dict:
@@ -287,7 +247,6 @@ def call_order_events(
     manager: "PluginsManager",
     event_names: list[str],
     order: "Order",
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     missing_events = set(event_names).difference(ORDER_WEBHOOK_EVENT_MAP.keys())
@@ -297,44 +256,19 @@ def call_order_events(
         )
 
     if webhook_event_map is None:
-        webhook_event_map = get_webhooks_for_multiple_events(
-            [*event_names, *WebhookEventSyncType.ORDER_EVENTS]
-        )
-
-    any_event_requires_sync_webhooks = any(
-        webhook_async_event_requires_sync_webhooks_to_trigger(
-            event_name,
-            webhook_event_map,
-            possible_sync_events=WebhookEventSyncType.ORDER_EVENTS,
-        )
-        for event_name in event_names
-    )
-
-    should_trigger_sync = (
-        any_event_requires_sync_webhooks
-        and order.status in ORDER_EDITABLE_STATUS
-        and WebhookEventAsyncType.DRAFT_ORDER_DELETED not in event_names
-    )
-    if should_trigger_sync:
-        _trigger_order_sync_webhooks(
-            manager,
-            order,
-            database_connection_name=database_connection_name,
-            webhook_event_map=webhook_event_map,
-        )
+        webhook_event_map = get_webhooks_for_multiple_events(event_names)
 
     for event_name in event_names:
         plugin_manager_method_name = ORDER_WEBHOOK_EVENT_MAP[event_name]
         webhooks = webhook_event_map.get(event_name, set())
         event_func = getattr(manager, plugin_manager_method_name)
-        call_event_including_protected_events(event_func, order, webhooks=webhooks)
+        call_event(event_func, order, webhooks=webhooks)
 
 
 def call_order_event(
     manager: "PluginsManager",
     event_name: str,
     order: "Order",
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     if event_name not in ORDER_WEBHOOK_EVENT_MAP:
@@ -344,34 +278,11 @@ def call_order_event(
     event_func = getattr(manager, plugin_manager_method_name)
 
     if webhook_event_map is None:
-        webhook_event_map = get_webhooks_for_multiple_events(
-            [event_name, *WebhookEventSyncType.ORDER_EVENTS]
-        )
+        webhook_event_map = get_webhooks_for_multiple_events([event_name])
 
     webhooks = webhook_event_map.get(event_name, set())
 
-    if order.status not in ORDER_EDITABLE_STATUS:
-        call_event_including_protected_events(event_func, order, webhooks=webhooks)
-        return
-    if event_name == WebhookEventAsyncType.DRAFT_ORDER_DELETED:
-        call_event_including_protected_events(event_func, order, webhooks=webhooks)
-        return
-
-    if not webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
-    ):
-        call_event_including_protected_events(event_func, order, webhooks=webhooks)
-        return
-
-    _trigger_order_sync_webhooks(
-        manager,
-        order,
-        database_connection_name=database_connection_name,
-        webhook_event_map=webhook_event_map,
-    )
-
-    call_event_including_protected_events(event_func, order, webhooks=webhooks)
-    return
+    call_event(event_func, order, webhooks=webhooks)
 
 
 def order_created(
@@ -809,7 +720,6 @@ def order_transaction_updated(
     if transaction_item.authorized_value != previous_authorized_value:
         webhook_events = {
             WebhookEventAsyncType.ORDER_UPDATED,
-            *WebhookEventSyncType.ORDER_EVENTS,
         }
         order_updated = True
 
@@ -822,7 +732,6 @@ def order_transaction_updated(
     elif transaction_item.charged_value != previous_charged_value:
         order_updated = True
         webhook_events.add(WebhookEventAsyncType.ORDER_UPDATED)
-        webhook_events = webhook_events.union(WebhookEventSyncType.ORDER_EVENTS)
 
     if transaction_item.refunded_value > previous_refunded_value:
         # order_updated False as order_refunded triggers order_updated

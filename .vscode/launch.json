@@ -11,7 +11,7 @@
             "module": "uvicorn",
             "args": [
                 "saleor.asgi:application",
-                "--lifespan=off"
+                "--lifespan=on"
             ]
         },
         {

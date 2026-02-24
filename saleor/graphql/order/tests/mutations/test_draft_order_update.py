@@ -26,6 +26,7 @@ from .....payment.model_helpers import get_subtotal
 from .....shipping.models import ShippingMethod
 from .....tests import race_condition
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ....core.utils import snake_to_camel_case
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...mutations.draft_order_create import DraftOrderInput
@@ -2488,18 +2489,19 @@ def test_draft_order_update_replace_entire_order_voucher_with_shipping_voucher(
 
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_draft_order_update_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     voucher,
     app_api_client,
@@ -2551,6 +2553,22 @@ def test_draft_order_update_triggers_webhooks(
     draft_order_updated_delivery = EventDelivery.objects.get(
         webhook_id=draft_order_updated_webhook.id
     )
+    wrapped_generate_deferred_payloads.assert_called_once_with(
+        kwargs={
+            "event_delivery_ids": [draft_order_updated_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "order.order",
+                "object_id": order.pk,
+                "requestor_model_name": "app.app",
+                "requestor_object_id": app_api_client.app.pk,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
+    )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": draft_order_updated_delivery.id,
@@ -2566,8 +2584,15 @@ def test_draft_order_update_triggers_webhooks(
         webhook_id=draft_order_updated_webhook.id
     ).exists()
 
-    tax_delivery_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
     )
 
     tax_delivery = tax_delivery_call.args[0]
@@ -2580,22 +2605,21 @@ def test_draft_order_update_triggers_webhooks(
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
 
-    assert wrapped_call_order_event.called
-
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     voucher,
     app_api_client,
@@ -2639,6 +2663,22 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     draft_order_updated_delivery = EventDelivery.objects.get(
         webhook_id=draft_order_updated_webhook.id
     )
+    wrapped_generate_deferred_payloads.assert_called_once_with(
+        kwargs={
+            "event_delivery_ids": [draft_order_updated_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "order.order",
+                "object_id": order.pk,
+                "requestor_model_name": "app.app",
+                "requestor_object_id": app_api_client.app.pk,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
+    )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": draft_order_updated_delivery.id,
@@ -2663,8 +2703,6 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
-
-    assert wrapped_call_order_event.called
 
 
 def test_draft_order_update_address_reset_save_address_flag_to_default_value(
@@ -3007,7 +3045,7 @@ def test_draft_order_update_with_voucher_specific_product_and_manual_line_discou
         value_type=DiscountValueType.FIXED,
         value=manual_line_discount_value,
     )
-    fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    fetch_order_prices_if_expired(order, plugins_manager, None, None, True).get()
 
     shipping_price = order.shipping_price.net
     currency = order.currency
@@ -3155,7 +3193,7 @@ def test_draft_order_update_with_voucher_apply_once_per_order_and_manual_line_di
         value_type=DiscountValueType.FIXED,
         value=manual_line_discount_value,
     )
-    fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    fetch_order_prices_if_expired(order, plugins_manager, None, None, True).get()
 
     shipping_price = order.shipping_price.net
     currency = order.currency
@@ -3269,13 +3307,8 @@ def test_draft_order_update_with_voucher_apply_once_per_order_and_manual_line_di
 @patch(
     "saleor.graphql.order.mutations.draft_order_update.update_order_search_vector",
 )
-@patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_draft_order_update_nothing_changed(
-    wrapped_call_order_event,
     mocked_update_order_search_vector,
     setup_order_webhooks,
     staff_api_client,
@@ -3315,9 +3348,6 @@ def test_draft_order_update_nothing_changed(
     # ensure the update fields were empty
     mocked_update_order_search_vector.assert_not_called()
 
-    # confirm that order events were not triggered
-    assert not wrapped_call_order_event.called
-
     # confirm that event delivery was generated for each async webhook.
     assert not EventDelivery.objects.filter(webhook_id=draft_order_updated_webhook.id)
 
@@ -3353,15 +3383,10 @@ def test_draft_order_update_with_language_code(
 
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
-@patch(
     "saleor.graphql.order.mutations.draft_order_update.DraftOrderUpdate._save_order_instance"
 )
 def test_draft_order_update_no_changes(
     save_order_mock,
-    call_event_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
@@ -3448,7 +3473,6 @@ def test_draft_order_update_no_changes(
     assert not content["data"]["draftOrderUpdate"]["errors"]
     order.refresh_from_db()
     save_order_mock.assert_not_called()
-    call_event_mock.assert_not_called()
 
 
 @patch(
@@ -3558,12 +3582,7 @@ def test_draft_order_update_emit_events(
         call_event_mock.reset_mock()
 
 
-@patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
 def test_draft_order_update_address_not_changed_save_flag_changed(
-    call_event_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
@@ -3618,15 +3637,9 @@ def test_draft_order_update_address_not_changed_save_flag_changed(
     order.refresh_from_db()
     assert order.draft_save_billing_address is True
     assert order.draft_save_shipping_address is True
-    call_event_mock.assert_called()
 
 
-@patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
 def test_draft_order_update_address_not_set(
-    call_event_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
@@ -3660,15 +3673,9 @@ def test_draft_order_update_address_not_set(
     order.refresh_from_db()
     assert order.shipping_address
     assert order.billing_address
-    call_event_mock.assert_called()
 
 
-@patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
 def test_draft_order_update_same_shipping_method_no_shipping_price_set(
-    call_event_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
@@ -3706,7 +3713,6 @@ def test_draft_order_update_same_shipping_method_no_shipping_price_set(
     assert not content["data"]["draftOrderUpdate"]["errors"]
     order.refresh_from_db()
     assert order.undiscounted_base_shipping_price_amount != 0
-    call_event_mock.assert_called()
 
 
 def test_draft_order_update_metadata_key_updated_in_meantime(

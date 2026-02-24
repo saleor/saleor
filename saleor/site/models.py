@@ -1,3 +1,4 @@
+import uuid
 from email.headerregistry import Address
 from email.utils import parseaddr
 from typing import Final
@@ -70,6 +71,10 @@ class SiteSettings(ModelWithMetadata):
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
+    preserve_all_address_fields = models.BooleanField(
+        default=False,
+        db_default=False,
+    )
 
     # Duration in minutes
     reserve_stock_duration_anonymous_user = models.IntegerField(blank=True, null=True)
@@ -99,6 +104,14 @@ class SiteSettings(ModelWithMetadata):
     refund_reason_reference_type = models.ForeignKey(
         null=True, blank=True, on_delete=models.SET_NULL, to="page.PageType"
     )
+
+    # usage telemetry
+    instance_id = models.UUIDField(
+        default=uuid.uuid4,
+        null=True,
+        blank=True,
+    )
+    usage_telemetry_reported_at = models.DateTimeField(null=True, blank=True)
 
     # deprecated
     charge_taxes_on_shipping = models.BooleanField(default=True)

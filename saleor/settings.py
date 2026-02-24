@@ -1026,6 +1026,11 @@ UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
 )
 # Queue name for "async webhook" events
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
+
+WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME = os.environ.get(
+    "WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME", None
+)
+
 WEBHOOK_SQS_CELERY_QUEUE_NAME = os.environ.get(
     "WEBHOOK_SQS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
 )
@@ -1209,6 +1214,12 @@ ALLOWED_MIME_TYPES = {
 }
 ALLOWED_MIME_TYPES.update(
     json.loads(os.environ.get("UPLOAD_ADDITIONAL_ALLOWED_MIME_TYPES", "{}"))
+)
+
+# Usage telemetry
+SEND_USAGE_TELEMETRY = get_bool_from_env("SEND_USAGE_TELEMETRY", True)
+SEND_USAGE_TELEMETRY_AFTER_TIMEDELTA = datetime.timedelta(
+    seconds=parse(os.environ.get("SEND_USAGE_TELEMETRY_AFTER_TIMEDELTA", "1 day"))
 )
 
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.

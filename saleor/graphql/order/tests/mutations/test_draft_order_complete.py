@@ -9,6 +9,7 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
+from promise import Promise
 
 from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
@@ -21,20 +22,21 @@ from .....discount.utils.voucher import (
 )
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
-from .....order.actions import call_order_event, order_created
+from .....order.actions import order_created
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
 from .....order.models import OrderEvent, OrderLine
 from .....payment.model_helpers import get_subtotal
 from .....plugins import PLUGIN_IDENTIFIER_PREFIX
-from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.tests.sample_plugins import PluginSample
 from .....product.models import ProductVariant
+from .....shipping.interface import ExcludedShippingMethod
 from .....tests import race_condition
 from .....warehouse.models import Allocation, PreorderAllocation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -786,7 +788,7 @@ def test_draft_order_complete_not_available_shipping_method(
     assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
-@patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+@patch("saleor.order.webhooks.exclude_shipping.excluded_shipping_methods_for_order")
 def test_draft_order_complete_with_excluded_shipping_method(
     mocked_webhook,
     draft_order,
@@ -798,9 +800,9 @@ def test_draft_order_complete_with_excluded_shipping_method(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     webhook_reason = "archives-are-incomplete"
-    mocked_webhook.return_value = [
-        ExcludedShippingMethod(str(shipping_method.id), webhook_reason)
-    ]
+    mocked_webhook.return_value = Promise.resolve(
+        [ExcludedShippingMethod(str(shipping_method.id), webhook_reason)]
+    )
     order = draft_order
     order.status = OrderStatus.DRAFT
     order.shipping_method = shipping_method
@@ -817,7 +819,7 @@ def test_draft_order_complete_with_excluded_shipping_method(
     assert data["errors"][0]["field"] == "shipping"
 
 
-@patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+@patch("saleor.order.webhooks.exclude_shipping.excluded_shipping_methods_for_order")
 def test_draft_order_complete_with_not_excluded_shipping_method(
     mocked_webhook,
     draft_order,
@@ -831,9 +833,9 @@ def test_draft_order_complete_with_not_excluded_shipping_method(
     webhook_reason = "archives-are-incomplete"
     other_shipping_method_id = "1337"
     assert other_shipping_method_id != shipping_method.id
-    mocked_webhook.return_value = [
-        ExcludedShippingMethod(other_shipping_method_id, webhook_reason)
-    ]
+    mocked_webhook.return_value = Promise.resolve(
+        [ExcludedShippingMethod(other_shipping_method_id, webhook_reason)]
+    )
     order = draft_order
     order.status = OrderStatus.DRAFT
     order.shipping_method = shipping_method
@@ -877,8 +879,8 @@ def test_draft_order_complete_builtin_shipping_method_metadata_denormalization(
         shipping_method.metadata = {}
         shipping_method.save()
 
-    with race_condition.RunAfter(
-        "saleor.graphql.order.mutations.draft_order_complete.get_app_promise",
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.draft_order_complete.OrderInfo",
         clear_shipping_metadata,
     ):
         response = staff_api_client.post_graphql(
@@ -1444,7 +1446,9 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
     currency = order.currency
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    fetch_order_prices_if_expired(order, plugins_manager, force_update=True)
+    fetch_order_prices_if_expired(
+        order, plugins_manager, requestor=None, force_update=True
+    ).get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -1541,7 +1545,9 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
     currency = order.currency
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    fetch_order_prices_if_expired(order, plugins_manager, force_update=True)
+    fetch_order_prices_if_expired(
+        order, plugins_manager, requestor=None, force_update=True
+    ).get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -1723,18 +1729,19 @@ def test_draft_order_complete_with_invalid_address_save_addresses_on(
 
 
 @patch(
-    "saleor.order.actions.call_order_event",
-    wraps=call_order_event,
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_draft_order_complete_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -1787,6 +1794,29 @@ def test_draft_order_complete_triggers_webhooks(
         order_updated_delivery,
     ]
 
+    wrapped_generate_deferred_payloads.assert_has_calls(
+        [
+            call(
+                kwargs={
+                    "event_delivery_ids": [delivery.id],
+                    "deferred_payload_data": {
+                        "model_name": "order.order",
+                        "object_id": order.pk,
+                        "requestor_model_name": "account.user",
+                        "requestor_object_id": staff_api_client.user.pk,
+                        "request_time": None,
+                    },
+                    "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                    "telemetry_context": ANY,
+                },
+                queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+                MessageGroupId="example.com",
+            )
+            for delivery in order_deliveries
+        ],
+        any_order=True,
+    )
+    assert wrapped_generate_deferred_payloads.call_count == len(order_deliveries)
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -1805,8 +1835,15 @@ def test_draft_order_complete_triggers_webhooks(
         webhook_id=additional_order_webhook.id
     ).exists()
 
-    tax_delivery_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
     )
 
     tax_delivery = tax_delivery_call.args[0]
@@ -1818,8 +1855,6 @@ def test_draft_order_complete_triggers_webhooks(
         filter_shipping_delivery.event_type
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
-
-    assert wrapped_call_order_event.called
 
 
 @patch(

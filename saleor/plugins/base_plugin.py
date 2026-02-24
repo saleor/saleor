@@ -61,7 +61,6 @@ if TYPE_CHECKING:
         ProductType,
         ProductVariant,
     )
-    from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..site.models import SiteSettings
     from ..tax.models import TaxClass
@@ -96,12 +95,6 @@ class ExternalAccessTokens:
     refresh_token: str | None = None
     csrf_token: str | None = None
     user: Optional["User"] = None
-
-
-@dataclass
-class ExcludedShippingMethod:
-    id: str
-    reason: str | None
 
 
 class BasePlugin:
@@ -734,10 +727,6 @@ class BasePlugin:
         Optional["TaxData"],
     ]
 
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    get_taxes_for_order: Callable[["Order", str, Any], Optional["TaxData"]]
-
     get_client_token: Callable[[Any, Any], Any]
 
     get_order_line_tax_rate: Callable[
@@ -754,12 +743,6 @@ class BasePlugin:
 
     get_order_shipping_tax_rate: Callable[["Order", Any], Any]
     get_payment_config: Callable[[Any], Any]
-
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    get_shipping_methods_for_checkout: Callable[
-        ["Checkout", list["ShippingMethodData"], Any], list["ShippingMethodData"]
-    ]
 
     get_supported_currencies: Callable[[Any], Any]
 

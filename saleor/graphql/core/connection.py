@@ -457,6 +457,24 @@ def slice_connection_iterable(
         edge_type=edge_type or connection_type.Edge,
         pageinfo_type=pageinfo_type or graphene.relay.PageInfo,
     )
+    # This function handles pagination for list-based data (e.g., from dataloaders).
+    # The graphql-relay `connection_from_list_slice` follows the strict Relay
+    # spec where `has_previous_page` is only set when using `last` and
+    # `has_next_page` only when using `first`. Our queryset-based pagination
+    # (`connection_from_queryset_slice` → `_get_page_info`) is more lenient:
+    # it sets `has_previous_page = True` whenever an `after` cursor is present
+    # (forward pagination) and `has_next_page = True` whenever a `before` cursor
+    # is present (backward pagination). Align the list path with the queryset
+    # path so that nested connection fields (e.g., `me { orders }`) behave
+    # consistently with root-level connections.
+    first = args.get("first")
+    last = args.get("last")
+    after = args.get("after")
+    before = args.get("before")
+    if first and after:
+        slice.page_info.has_previous_page = True
+    if last and before:
+        slice.page_info.has_next_page = True
 
     if "total_count" in connection_type._meta.fields:
         slice.total_count = _len

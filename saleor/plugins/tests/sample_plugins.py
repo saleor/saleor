@@ -14,7 +14,6 @@ from ...payment.interface import (
     TransactionSessionData,
     TransactionSessionResult,
 )
-from ...shipping.interface import ShippingMethodData
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
@@ -299,11 +298,6 @@ class PluginSample(BasePlugin):
     ) -> Optional["TaxData"]:
         return sample_tax_data(checkout_info.checkout)
 
-    def get_taxes_for_order(
-        self, order: "Order", app_identifier, previous_value
-    ) -> Optional["TaxData"]:
-        return sample_tax_data(order)
-
     def sample_not_implemented(self, previous_value):
         return NotImplemented
 
@@ -370,27 +364,6 @@ class PluginSample(BasePlugin):
 
     def payment_method_process_tokenization(self, request_data, previous_value):
         return previous_value
-
-    def get_shipping_methods_for_checkout(
-        self,
-        checkout: "Checkout",
-        built_in_shipping_methods: list["ShippingMethodData"],
-        previous_value: Any,
-    ) -> list["ShippingMethodData"]:
-        different_currency = "EUR"
-        assert checkout.currency != different_currency
-        return [
-            ShippingMethodData(
-                id="123",
-                price=Money(Decimal(10), currency=different_currency),
-                name="EUR shipping",
-            ),
-            ShippingMethodData(
-                id="123",
-                price=Money(Decimal(10), currency=checkout.currency),
-                name="Default shipping",
-            ),
-        ]
 
 
 class ChannelPluginSample(PluginSample):

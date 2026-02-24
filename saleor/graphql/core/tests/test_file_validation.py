@@ -11,8 +11,8 @@ from ....product.error_codes import ProductErrorCode
 from ..validators.file import (
     clean_image_file,
     detect_mime_type,
+    get_mime_type,
     is_image_mimetype,
-    is_image_url,
     is_supported_image_mimetype,
     is_valid_image_content_type,
     validate_upload_file,
@@ -67,6 +67,7 @@ def test_is_supported_image_mimetype_invalid_mimetype():
     ("content_type", "is_valid"),
     [
         ("image/jpeg", True),
+        ("image/jpg", True),
         ("image/png", True),
         ("image/gif", True),
         ("image/bmp", True),
@@ -274,29 +275,20 @@ def test_clean_image_file_in_avif_format():
 
 
 @pytest.mark.parametrize(
-    ("url", "is_valid"),
+    ("content_type_header", "expected_mime_type"),
     [
-        ("http://example.com/valid_image.jpg", True),
-        ("https://example.com/valid_image.png", True),
-        ("http://example.com/valid_image.jpeg", True),
-        ("http://example.com/valid_image.gif", True),
-        ("http://example.com/valid_image.bmp", True),
-        ("http://example.com/valid_image.tiff", True),
-        ("http://example.com/valid_image.webp", True),
-        ("https://example.com/valid_image.webp", True),
-        ("http://example.com/valid_image.avif", True),
-        ("http://example.com/invalid_image.pdf", False),
-        ("http://example.com/invalid_image.docx", False),
-        ("http://example.com/invalid_image.exe", False),
-        ("http://example.com/invalid_image.txt", False),
+        (None, None),
+        ("", ""),
+        ("text/html; charset=utf-8", "text/html"),
+        ("text/css; charset=UTF-8", "text/css"),
+        ("image/jpeg", "image/jpeg"),
+        ("  image/png; charset=binary", "image/png"),
+        (" Text/HTML ; Charset=UTF-8 ", "text/html"),
+        ("APPLICATION/JSON;CHARSET=UTF-8", "application/json"),
     ],
 )
-def test_is_image_url(url, is_valid):
-    # when
-    result = is_image_url(url)
-
-    # then
-    assert result is is_valid
+def test_get_mime_type(content_type_header, expected_mime_type):
+    assert get_mime_type(content_type_header) == expected_mime_type
 
 
 @pytest.mark.parametrize(

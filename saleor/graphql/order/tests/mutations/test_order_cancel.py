@@ -7,8 +7,9 @@ from .....core.models import EventDelivery
 from .....giftcard import GiftCardEvents
 from .....giftcard.events import gift_cards_bought_event
 from .....order import OrderStatus
-from .....order.actions import call_order_events, cancel_order
+from .....order.actions import cancel_order
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_ORDER_CANCEL = """
@@ -133,20 +134,21 @@ def test_order_cancel_no_channel_access(
 
 
 @patch(
-    "saleor.order.actions.call_order_events",
-    wraps=call_order_events,
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 @patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
 def test_order_cancel_skip_trigger_webhooks(
     mock_clean_order_cancel,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_events,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -202,6 +204,29 @@ def test_order_cancel_skip_trigger_webhooks(
     assert not tax_delivery
     assert not filter_shipping_delivery
 
+    wrapped_generate_deferred_payloads.assert_has_calls(
+        [
+            call(
+                kwargs={
+                    "event_delivery_ids": [delivery.id],
+                    "deferred_payload_data": {
+                        "model_name": "order.order",
+                        "object_id": order.pk,
+                        "requestor_model_name": "account.user",
+                        "requestor_object_id": staff_api_client.user.pk,
+                        "request_time": None,
+                    },
+                    "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                    "telemetry_context": ANY,
+                },
+                queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+                MessageGroupId="example.com",
+            )
+            for delivery in order_deliveries
+        ],
+        any_order=True,
+    )
+    assert wrapped_generate_deferred_payloads.call_count == len(order_deliveries)
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
@@ -214,4 +239,3 @@ def test_order_cancel_skip_trigger_webhooks(
         any_order=True,
     )
     assert not mocked_send_webhook_request_sync.called
-    assert wrapped_call_order_events.called

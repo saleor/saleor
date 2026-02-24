@@ -1367,7 +1367,9 @@ def test_checkout_lines_add_custom_price_and_catalogue_promotion(
 
 
 @freeze_time("2024-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
 def test_checkout_lines_marks_shipping_methods_as_stale(
     mocked_webhook,
     app_api_client,
@@ -2081,6 +2083,7 @@ mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_lines_add_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -2154,6 +2157,7 @@ def test_checkout_lines_add_triggers_webhooks(
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
         MessageGroupId="example.com",
     )
 

@@ -25,7 +25,7 @@ def test_call_event_cannot_be_used_with_checkout_object(checkout, plugins_manage
 
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_requires_event_in_map():
     # given
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     webhook_event_map = {}
 
     # when & then
@@ -39,7 +39,7 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_requires_event_in
 
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_not_async_event():
     # given
-    event_name = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+    event_name = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     webhook_event_map = {}
 
     # when & then
@@ -51,15 +51,18 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_not_async_event()
 
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_no_webhooks():
     # given
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     webhook_event_map = get_webhooks_for_multiple_events(
-        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+        [
+            WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+            *WebhookEventSyncType.CHECKOUT_EVENTS,
+        ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
     )
 
     # then
@@ -67,21 +70,24 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_no_webhooks(
 
 
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_async_webhook(
-    webhook, permission_manage_orders
+    webhook, permission_manage_checkouts
 ):
     # given
-    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
-    webhook.app.permissions.set([permission_manage_orders])
+    webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_FULLY_PAID)
+    webhook.app.permissions.set([permission_manage_checkouts])
 
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     webhook_event_map = get_webhooks_for_multiple_events(
-        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+        [
+            WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+            *WebhookEventSyncType.CHECKOUT_EVENTS,
+        ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
     )
 
     # then
@@ -89,25 +95,29 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_async_webhoo
 
 
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_sync_webhook_active(
-    webhook, permission_manage_orders, setup_order_webhooks
+    webhook, permission_manage_checkouts, setup_checkout_webhooks
 ):
     # given
     different_event = WebhookEventAsyncType.ORDER_EXPIRED
     (
         tax_webhook,
+        shipping_webhook,
         shipping_filter_webhook,
-        order_created_webhook,
-    ) = setup_order_webhooks(different_event)
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(different_event)
 
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     webhook_event_map = get_webhooks_for_multiple_events(
-        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+        [
+            WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+            *WebhookEventSyncType.CHECKOUT_EVENTS,
+        ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
     )
 
     # then
@@ -115,24 +125,25 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_sync_webhook
 
 
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_webhooks_active(
-    setup_order_webhooks,
+    setup_checkout_webhooks,
 ):
     # given
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     (
         tax_webhook,
+        shipping_webhook,
         shipping_filter_webhook,
-        order_created_webhook,
-    ) = setup_order_webhooks(event_name)
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(event_name)
 
     webhook_event_map = get_webhooks_for_multiple_events(
-        [event_name, *WebhookEventSyncType.ORDER_EVENTS]
+        [event_name, *WebhookEventSyncType.CHECKOUT_EVENTS]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
     )
 
     # then
@@ -141,10 +152,10 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_webhooks_active(
 
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_missing_event_in_map():
     # given
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     webhook_event_map = get_webhooks_for_multiple_events(
         [
-            WebhookEventAsyncType.ORDER_CREATED,
+            WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
         ]
     )
 
@@ -152,12 +163,12 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_missing_event_in_
     with pytest.raises(
         ValueError,
         match=(
-            f"Event {set(WebhookEventSyncType.ORDER_EVENTS)} not found in "
+            f"Event {set(WebhookEventSyncType.CHECKOUT_EVENTS)} not found in "
             "webhook_event_map."
         ),
     ):
         webhook_async_event_requires_sync_webhooks_to_trigger(
-            event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+            event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
         )
 
 
@@ -183,32 +194,36 @@ def test_call_event_including_protected_events(
 
 @pytest.mark.parametrize("subscription_query", ["", None])
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_for_event(
-    setup_order_webhooks, subscription_query, webhook, permission_manage_orders
+    setup_checkout_webhooks, subscription_query, webhook, permission_manage_checkouts
 ):
     # given
     (
         tax_webhook,
+        shipping_webhook,
         shipping_filter_webhook,
-        order_created_webhook,
-    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_FULLY_PAID)
 
-    order_created_webhook.subscription_query = subscription_query
-    order_created_webhook.save(update_fields=["subscription_query"])
+    checkout_created_webhook.subscription_query = subscription_query
+    checkout_created_webhook.save(update_fields=["subscription_query"])
 
-    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
-    webhook.app.permissions.set([permission_manage_orders])
+    webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_FULLY_PAID)
+    webhook.app.permissions.set([permission_manage_checkouts])
     webhook.subscription_query = subscription_query
     webhook.save(update_fields=["subscription_query"])
 
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     webhook_event_map = get_webhooks_for_multiple_events(
-        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+        [
+            WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+            *WebhookEventSyncType.CHECKOUT_EVENTS,
+        ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
     )
 
     # then
@@ -217,29 +232,33 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_f
 
 @pytest.mark.parametrize("subscription_query", ["", None])
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_single_webhook(
-    setup_order_webhooks, subscription_query, webhook, permission_manage_orders
+    setup_checkout_webhooks, subscription_query, webhook, permission_manage_checkouts
 ):
     # given
-    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
-    webhook.app.permissions.set([permission_manage_orders])
+    webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_FULLY_PAID)
+    webhook.app.permissions.set([permission_manage_checkouts])
     webhook.subscription_query = subscription_query
     webhook.save(update_fields=["subscription_query"])
 
     (
         tax_webhook,
+        shipping_webhook,
         shipping_filter_webhook,
-        order_created_webhook,
-    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_FULLY_PAID)
 
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     webhook_event_map = get_webhooks_for_multiple_events(
-        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+        [
+            WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+            *WebhookEventSyncType.CHECKOUT_EVENTS,
+        ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
     )
 
     # then
@@ -248,28 +267,34 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_s
 
 @pytest.mark.parametrize("subscription_query", ["", None])
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_for_async_events(
-    setup_order_webhooks, subscription_query
+    setup_checkout_webhooks, subscription_query
 ):
     # given
     (
         tax_webhook,
+        shipping_webhook,
         shipping_filter_webhook,
-        order_created_webhook,
-    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_FULLY_PAID)
+    shipping_webhook.subscription_query = subscription_query
+    shipping_webhook.save(update_fields=["subscription_query"])
     tax_webhook.subscription_query = subscription_query
     tax_webhook.save(update_fields=["subscription_query"])
     shipping_filter_webhook.subscription_query = subscription_query
     shipping_filter_webhook.save(update_fields=["subscription_query"])
 
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     webhook_event_map = get_webhooks_for_multiple_events(
-        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+        [
+            WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+            *WebhookEventSyncType.CHECKOUT_EVENTS,
+        ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
     )
 
     # then
@@ -278,26 +303,30 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_f
 
 @pytest.mark.parametrize("subscription_query", ["", None])
 def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_for_single_async_event(
-    setup_order_webhooks, subscription_query
+    setup_checkout_webhooks, subscription_query
 ):
     # given
     (
         tax_webhook,
+        shipping_webhook,
         shipping_filter_webhook,
-        order_created_webhook,
-    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_CREATED)
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_FULLY_PAID)
     shipping_filter_webhook.subscription_query = subscription_query
     shipping_filter_webhook.save(update_fields=["subscription_query"])
 
-    event_name = WebhookEventAsyncType.ORDER_CREATED
+    event_name = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     webhook_event_map = get_webhooks_for_multiple_events(
-        [WebhookEventAsyncType.ORDER_CREATED, *WebhookEventSyncType.ORDER_EVENTS]
+        [
+            WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+            *WebhookEventSyncType.CHECKOUT_EVENTS,
+        ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
+        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
     )
 
     # then

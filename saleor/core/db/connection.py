@@ -55,6 +55,20 @@ def allow_writer():
 
 
 @contextmanager
+def allow_writer_for_default_connection(connection_name: str):
+    """Context manager that allows write access when connection points to writer.
+
+    This is a helper context manager that conditionally allows write access based on the
+    given connection name.
+    """
+    if connection_name == settings.DATABASE_CONNECTION_DEFAULT_NAME:
+        with allow_writer():
+            yield
+    else:
+        yield
+
+
+@contextmanager
 def allow_writer_in_context(context: SaleorContext):
     """Context manager that allows write access to the default database connection in a context (SaleorContext).
 
@@ -62,10 +76,7 @@ def allow_writer_in_context(context: SaleorContext):
     database connection name in the given context.
     """
     conn_name = get_database_connection_name(context)
-    if conn_name == settings.DATABASE_CONNECTION_DEFAULT_NAME:
-        with allow_writer():
-            yield
-    else:
+    with allow_writer_for_default_connection(conn_name):
         yield
 
 

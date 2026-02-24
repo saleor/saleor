@@ -3,8 +3,7 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from django.conf import settings
-from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import F, Q, Value, prefetch_related_objects
+from django.db.models import Value, prefetch_related_objects
 
 from ..attribute.models import AssignedProductAttributeValue, AttributeValue
 from ..attribute.search import get_search_vectors_for_attribute_values
@@ -171,13 +170,3 @@ def generate_attributes_search_vector_value_with_assignment(
             attribute, values, weight="B"
         )
     return search_vectors
-
-
-def search_products(qs, value):
-    if value:
-        query = SearchQuery(value, search_type="websearch", config="simple")
-        lookup = Q(search_vector=query)
-        qs = qs.filter(lookup).annotate(
-            search_rank=SearchRank(F("search_vector"), query)
-        )
-    return qs

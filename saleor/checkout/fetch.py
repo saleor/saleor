@@ -555,11 +555,22 @@ def fetch_external_shipping_methods_for_checkout_info(
     checkout_info,
     available_built_in_methods: list[ShippingMethodData],
 ) -> list[ShippingMethodData]:
-    manager = checkout_info.manager
-    return manager.list_shipping_methods_for_checkout(
+    from .webhooks.list_shipping_methods import list_shipping_methods_for_checkout
+
+    allow_replica = not (
+        checkout_info.database_connection_name
+        == settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
+    requestor = (
+        checkout_info.manager.requestor_getter()
+        if checkout_info.manager.requestor_getter
+        else None
+    )
+    return list_shipping_methods_for_checkout(
         checkout=checkout_info.checkout,
-        channel_slug=checkout_info.channel.slug,
         built_in_shipping_methods=available_built_in_methods,
+        allow_replica=allow_replica,
+        requestor=requestor,
     )
 
 
@@ -735,11 +746,29 @@ def fetch_shipping_methods_for_checkout(
     all_methods = list(built_in_shipping_methods_dict.values()) + list(
         external_shipping_methods_dict.values()
     )
-    excluded_methods = checkout_info.manager.excluded_shipping_methods_for_checkout(
+
+    # Circular import caused by the current definition of subscription payloads
+    # and their usage in webhook/transport layer. Until moving them out from the
+    # transport, we will have circular imports.
+    from .webhooks.exclude_shipping import excluded_shipping_methods_for_checkout
+
+    allow_replica = not (
+        checkout_info.database_connection_name
+        == settings.DATABASE_CONNECTION_DEFAULT_NAME
+    )
+
+    requestor = (
+        checkout_info.manager.requestor_getter()
+        if checkout_info.manager.requestor_getter
+        else None
+    )
+
+    excluded_methods = excluded_shipping_methods_for_checkout(
         checkout,
-        checkout_info.channel,
-        all_methods,
-        checkout_info.pregenerated_payloads_for_excluded_shipping_method,
+        available_shipping_methods=all_methods,
+        allow_replica=allow_replica,
+        requestor=requestor,
+        pregenerated_subscription_payloads=checkout_info.pregenerated_payloads_for_excluded_shipping_method,
     )
     initialize_shipping_method_active_status(all_methods, excluded_methods)
 

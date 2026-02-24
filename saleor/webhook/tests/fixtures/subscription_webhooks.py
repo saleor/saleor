@@ -1302,94 +1302,10 @@ def subscription_payment_list_gateways_webhook(subscription_webhook):
 
 
 @pytest.fixture
-def subscription_checkout_filter_shipping_methods_webhook(subscription_webhook):
-    return subscription_webhook(
-        queries.CHECKOUT_FILTER_SHIPPING_METHODS,
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
-
-@pytest.fixture
-def subscription_shipping_list_methods_for_checkout_webhook(subscription_webhook):
-    return subscription_webhook(
-        queries.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-
-
-@pytest.fixture
-def subscription_order_filter_shipping_methods_webhook(subscription_webhook):
-    return subscription_webhook(
-        queries.ORDER_FILTER_SHIPPING_METHODS,
-        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
-
-@pytest.fixture
-def subscription_checkout_filter_shipping_method_webhook_with_shipping_methods(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        queries.CHECKOUT_FILTER_SHIPPING_METHODS_CIRCULAR_SHIPPING_METHODS,
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
-
-@pytest.fixture
-def subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        queries.CHECKOUT_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS,
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
-
-@pytest.fixture
-def subscription_checkout_filter_shipping_method_webhook_with_payment_gateways(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        queries.CHECKOUT_FILTER_SHIPPING_METHODS_AVAILABLE_PAYMENT_GATEWAYS,
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
-
-@pytest.fixture
-def subscription_order_filter_shipping_methods_webhook_with_shipping_methods(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        queries.ORDER_FILTER_SHIPPING_METHODS_CIRCULAR_SHIPPING_METHODS,
-        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
-
-@pytest.fixture
-def subscription_order_filter_shipping_methods_webhook_with_available_ship_methods(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        queries.ORDER_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS,
-        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
-
-@pytest.fixture
 def subscription_thumbnail_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.THUMBNAIL_CREATED,
         WebhookEventAsyncType.THUMBNAIL_CREATED,
-    )
-
-
-@pytest.fixture
-def subscription_calculate_taxes_for_order(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        queries.ORDER_CALCULATE_TAXES,
-        WebhookEventSyncType.ORDER_CALCULATE_TAXES,
     )
 
 
@@ -1422,14 +1338,4 @@ def subscription_app_status_changed_webhook_removed_app(
         queries.APP_STATUS_CHANGED,
         WebhookEventAsyncType.APP_STATUS_CHANGED,
         app=removed_app,
-    )
-
-
-@pytest.fixture
-def subscription_checkout_shipping_filter_and_list_missing_one_in_definition(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        queries.THUMBNAIL_CREATED,
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
     )

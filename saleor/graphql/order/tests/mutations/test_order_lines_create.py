@@ -20,7 +20,6 @@ from .....discount.utils.voucher import (
 )
 from .....order import OrderStatus
 from .....order import events as order_events
-from .....order.actions import call_order_event
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent, OrderLine
@@ -29,6 +28,7 @@ from .....product.utils.variant_prices import update_discounted_prices_for_promo
 from .....product.utils.variants import fetch_variants_for_promotion_rules
 from .....warehouse.models import Allocation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ..utils import assert_proper_webhook_called_once
 
@@ -1294,18 +1294,19 @@ def test_order_lines_create_no_shipping_address(
     ],
 )
 @patch(
-    "saleor.graphql.order.mutations.utils.call_order_event",
-    wraps=call_order_event,
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_order_lines_create_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     order_with_lines,
     permission_group_manage_orders,
@@ -1344,6 +1345,22 @@ def test_order_lines_create_triggers_webhooks(
 
     # confirm that event delivery was generated for each async webhook.
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+    wrapped_generate_deferred_payloads.assert_called_once_with(
+        kwargs={
+            "event_delivery_ids": [order_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "order.order",
+                "object_id": order.pk,
+                "requestor_model_name": "account.user",
+                "requestor_object_id": staff_api_client.user.pk,
+                "request_time": None,
+            },
+            "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
+    )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -1354,8 +1371,15 @@ def test_order_lines_create_triggers_webhooks(
     assert mocked_send_webhook_request_sync.call_count == 2
     assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
 
-    tax_delivery_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
     )
 
     tax_delivery = tax_delivery_call.args[0]
@@ -1367,8 +1391,6 @@ def test_order_lines_create_triggers_webhooks(
         filter_shipping_delivery.event_type
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
-
-    assert wrapped_call_order_event.called
 
 
 def test_order_lines_create_with_catalogue_discount_existing_variant(
@@ -1505,7 +1527,9 @@ def test_order_lines_create_apply_once_per_order_voucher_new_cheapest_line(
     order.voucher_code = voucher.codes.first().code
     order.save(update_fields=["voucher_code", "voucher_id", "status"])
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     line_1, line_2 = lines
     assert line_1.undiscounted_base_unit_price < line_2.undiscounted_base_unit_price
@@ -1704,7 +1728,9 @@ def test_order_lines_create_apply_once_per_order_voucher_existing_variant(
     order.voucher_code = voucher.codes.first().code
     order.save(update_fields=["voucher_code", "voucher_id", "status"])
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     line_1, line_2 = lines
     assert line_1.undiscounted_base_unit_price < line_2.undiscounted_base_unit_price
@@ -1869,7 +1895,9 @@ def test_order_lines_create_specific_product_voucher_existing_variant(
     order.voucher_code = voucher.codes.first().code
     order.save(update_fields=["voucher_code", "voucher_id", "status"])
     create_or_update_voucher_discount_objects_for_order(order)
-    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
 
     line_1, line_2 = lines
     initial_unit_discount = (
