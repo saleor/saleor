@@ -544,6 +544,31 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return self.total_charged - self.total.gross
 
 
+class OrderGiftCardApplication(models.Model):
+    order = models.ForeignKey(
+        Order,
+        related_name="gift_card_applications",
+        on_delete=models.CASCADE,
+    )
+    gift_card = models.ForeignKey(
+        GiftCard,
+        related_name="order_applications",
+        on_delete=models.CASCADE,
+    )
+    amount_used_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    amount_used = MoneyField(
+        amount_field="amount_used_amount", currency_field="currency"
+    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+
+    class Meta:
+        ordering = ("id",)
+        unique_together = [("order", "gift_card")]
+
+
 class OrderLineQueryset(models.QuerySet["OrderLine"]):
     def digital(self):
         """Return lines with digital products."""
