@@ -3,7 +3,7 @@ import logging
 from collections import Counter
 
 from django.conf import settings
-from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
+from django.db.models import Exists, F, Func, OuterRef, Q, Subquery, Value
 from django.db.models.functions import Greatest
 from django.utils import timezone
 
@@ -74,31 +74,25 @@ def _bulk_release_voucher_usage(order_ids):
         .values("count")
         .order_by()
     )
-
     vouchers = Voucher.objects.filter(usage_limit__isnull=False)
     codes = VoucherCode.objects.filter(
         Exists(voucher_orders),
         Exists(vouchers.filter(id=OuterRef("voucher_id"))),
     ).annotate(order_count=Subquery(count_orders))
-
     codes.update(used=Greatest(F("used") - F("order_count"), 0))
 
     orders = Order.objects.filter(id__in=order_ids)
     voucher_codes = VoucherCode.objects.filter(
         Exists(orders.filter(voucher_code=OuterRef("code")))
     )
-    # Only delete voucher customers for orders that have no user associated
-    # as voucher are associated with user's email account
     VoucherCustomer.objects.filter(
         Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),
         Exists(
-            orders.filter(user_email=OuterRef("customer_email"), user_id__isnull=True)
+            orders.filter(
+                Q(user_email=OuterRef("customer_email"), user_id__isnull=True)
+                | Q(user__email=OuterRef("customer_email"))
+            )
         ),
-    ).delete()
-
-    VoucherCustomer.objects.filter(
-        Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),
-        Exists(orders.filter(user__email=OuterRef("customer_email"))),
     ).delete()
 
 
