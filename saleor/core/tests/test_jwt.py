@@ -31,7 +31,7 @@ def test_create_access_token_for_app(
     access_token = create_access_token_for_app(app=app, user=staff_user)
 
     # then
-    decoded_token = jwt_decode(access_token, verify_expiration=False, verify_aud=False)
+    decoded_token = jwt_decode(access_token, verify_aud=False)
     _, decode_app_id = graphene.Node.from_global_id(decoded_token["app"])
     assert decoded_token["permissions"] == ["MANAGE_PRODUCTS"]
     assert set(decoded_token["user_permissions"]) == {"MANAGE_APPS", "MANAGE_PRODUCTS"}
@@ -68,7 +68,7 @@ def test_create_access_token_for_app_extension_staff_user_with_more_permissions(
     )
 
     # then
-    decoded_token = jwt_decode(access_token, verify_expiration=False, verify_aud=False)
+    decoded_token = jwt_decode(access_token, verify_aud=False)
     assert decoded_token["permissions"] == ["MANAGE_PRODUCTS"]
     _, decode_extension_id = graphene.Node.from_global_id(
         decoded_token["app_extension"]
@@ -114,7 +114,7 @@ def test_create_access_token_for_app_extension_with_more_permissions(
     )
 
     # then
-    decoded_token = jwt_decode(access_token, verify_expiration=False)
+    decoded_token = jwt_decode(access_token)
     assert decoded_token["permissions"] == ["MANAGE_PRODUCTS"]
     _, decode_extension_id = graphene.Node.from_global_id(
         decoded_token["app_extension"]

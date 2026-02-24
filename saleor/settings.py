@@ -939,7 +939,6 @@ CACHE_URL = (
 CACHES = {"default": django_cache_url.config()}
 CACHES["default"]["TIMEOUT"] = parse(os.environ.get("CACHE_TIMEOUT", "7 days"))
 
-JWT_EXPIRE = True
 JWT_TTL_ACCESS = datetime.timedelta(
     seconds=parse(os.environ.get("JWT_TTL_ACCESS", "5 minutes"))
 )
