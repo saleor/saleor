@@ -15,16 +15,9 @@ from django.utils import timezone
 from prices import Money
 
 from ....checkout import models
-from ....checkout.actions import call_checkout_info_event
+from ....checkout.delivery_context import is_shipping_required
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
-from ....checkout.utils import (
-    assign_collection_point_to_checkout,
-    assign_shipping_method_to_checkout,
-    invalidate_checkout,
-    is_shipping_required,
-    remove_delivery_method_from_checkout,
-)
+from ....checkout.fetch import CheckoutLineInfo
 from ....core.exceptions import InsufficientStock, PermissionDenied
 from ....discount import DiscountType, DiscountValueType
 from ....discount.interface import DiscountInfo
@@ -37,15 +30,12 @@ from ....discount.utils.promotion import (
 from ....permission.enums import CheckoutPermissions
 from ....product import models as product_models
 from ....product.models import ProductChannelListing, ProductVariant
-from ....warehouse import models as warehouse_models
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
-from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
 
 if TYPE_CHECKING:
-    from ....plugins.manager import PluginsManager
     from ...core.mutations import BaseMutation
 
 
@@ -552,47 +542,3 @@ def _set_checkout_base_subtotal_and_total_on_checkout_creation(
     # delivery method during checkout creation
     checkout.base_total = checkout.base_subtotal
     checkout.save(update_fields=["base_subtotal_amount", "base_total_amount"])
-
-
-def assign_delivery_method_to_checkout(
-    checkout_info: CheckoutInfo,
-    lines_info: list[CheckoutLineInfo],
-    manager: "PluginsManager",
-    delivery_method: models.CheckoutDelivery | warehouse_models.Warehouse | None,
-):
-    fields_to_update = []
-    checkout = checkout_info.checkout
-    with transaction.atomic():
-        if delivery_method is None:
-            fields_to_update = remove_delivery_method_from_checkout(
-                checkout=checkout_info.checkout
-            )
-            checkout_info.collection_point = None
-            checkout_info.assigned_delivery = None
-
-        elif isinstance(delivery_method, models.CheckoutDelivery):
-            fields_to_update = assign_shipping_method_to_checkout(
-                checkout, delivery_method
-            )
-            checkout_info.collection_point = None
-            checkout_info.assigned_delivery = delivery_method
-        elif isinstance(delivery_method, warehouse_models.Warehouse):
-            fields_to_update = assign_collection_point_to_checkout(
-                checkout, delivery_method
-            )
-            checkout_info.shipping_address = checkout.shipping_address
-            checkout_info.assigned_delivery = None
-
-        if not fields_to_update:
-            return
-
-        invalidate_prices_updated_fields = invalidate_checkout(
-            checkout_info, lines_info, manager, save=False
-        )
-        checkout.save(update_fields=fields_to_update + invalidate_prices_updated_fields)
-        call_checkout_info_event(
-            manager,
-            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
-            checkout_info=checkout_info,
-            lines=lines_info,
-        )

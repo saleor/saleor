@@ -4,8 +4,8 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
+from .....checkout.delivery_context import assign_shipping_method_to_checkout
 from .....checkout.models import CheckoutDelivery
-from .....checkout.utils import assign_shipping_method_to_checkout
 from .....webhook.transport.shipping_helpers import to_shipping_app_id
 from ....tests.utils import get_graphql_content
 

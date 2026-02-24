@@ -26,11 +26,11 @@ from ....checkout.checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
+from ....checkout.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....checkout.utils import (
-    PRIVATE_META_APP_SHIPPING_ID,
     add_variant_to_checkout,
     add_voucher_to_checkout,
 )

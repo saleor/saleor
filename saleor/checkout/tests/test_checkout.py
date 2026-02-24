@@ -44,7 +44,6 @@ from ..utils import (
     cancel_active_payments,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    clear_cc_delivery_method,
     get_checkout_metadata,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
@@ -53,54 +52,6 @@ from ..utils import (
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
-
-
-def test_is_valid_delivery_method(
-    checkout_with_item, address, shipping_zone, checkout_delivery
-):
-    checkout = checkout_with_item
-    checkout.shipping_address = address
-    checkout.save()
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.get_delivery_method_info()
-    # no shipping method assigned
-    assert not delivery_method_info.is_valid_delivery_method()
-
-    checkout.assigned_delivery = checkout_delivery(checkout)
-    checkout.save()
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.get_delivery_method_info()
-
-    assert delivery_method_info.is_valid_delivery_method()
-
-    checkout.assigned_delivery.active = False
-    checkout.assigned_delivery.save()
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.get_delivery_method_info()
-
-    assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
-
-
-def test_clear_cc_delivery_method(
-    checkout_with_delivery_method_for_cc,
-):
-    # given
-    assert checkout_with_delivery_method_for_cc.collection_point_id
-
-    manager = get_plugins_manager(allow_replica=False)
-    checkout_info = fetch_checkout_info(
-        checkout_with_delivery_method_for_cc, [], manager
-    )
-
-    # when
-    clear_cc_delivery_method(checkout_info)
-
-    # then
-    checkout_with_delivery_method_for_cc.refresh_from_db()
-    assert not checkout_with_delivery_method_for_cc.collection_point_id
-    assert isinstance(checkout_info.get_delivery_method_info(), DeliveryMethodBase)
 
 
 def test_last_change_update(checkout):

@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from ..utils import (
+from ..delivery_context import (
     assign_collection_point_to_checkout,
     assign_shipping_method_to_checkout,
     remove_delivery_method_from_checkout,

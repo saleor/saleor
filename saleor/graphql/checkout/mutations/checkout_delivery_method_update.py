@@ -3,16 +3,19 @@ from typing import TYPE_CHECKING
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....checkout.delivery_context import (
+    assign_delivery_method_to_checkout,
+    get_or_fetch_checkout_deliveries,
+    is_shipping_required,
+)
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_or_fetch_checkout_deliveries,
 )
 from ....checkout.models import CheckoutDelivery
-from ....checkout.utils import is_shipping_required
 from ....warehouse import models as warehouse_models
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -28,7 +31,6 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .utils import (
     ERROR_DOES_NOT_SHIP,
-    assign_delivery_method_to_checkout,
     get_checkout,
 )
 

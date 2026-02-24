@@ -80,6 +80,7 @@ from .checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
+from .delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
@@ -88,7 +89,6 @@ from .fetch import (
 )
 from .models import Checkout
 from .utils import (
-    PRIVATE_META_APP_SHIPPING_ID,
     calculate_checkout_weight,
     delete_checkouts,
     get_checkout_metadata,
