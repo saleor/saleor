@@ -575,6 +575,91 @@ def test_checkout_billing_address_update_with_disabled_fields_normalization(
     assert billing_address.street_address_1 == address_data["streetAddress1"]
 
 
+@pytest.mark.parametrize("preserve_all_address_fields", [True, False])
+def test_checkout_billing_address_update_with_disabled_normalization_and_preserve_all_fields(
+    checkout_with_items, user_api_client, site_settings, preserve_all_address_fields
+):
+    # given
+    site_settings.preserve_all_address_fields = preserve_all_address_fields
+    site_settings.save(update_fields=["preserve_all_address_fields"])
+
+    address_data = {
+        "firstName": "John",
+        "lastName": "Doe",
+        "streetAddress1": "Bahnhofstrasse 1",
+        "city": "Zürich",
+        "postalCode": "8001",
+        "country": "CH",
+        "countryArea": "Zürich",
+    }
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": address_data,
+        "validationRules": {"enableFieldsNormalization": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    assert checkout_with_items.billing_address
+    billing_address = checkout_with_items.billing_address
+    assert billing_address.city == address_data["city"]
+    assert billing_address.country_area == address_data["countryArea"]
+    assert billing_address.postal_code == address_data["postalCode"]
+    assert billing_address.street_address_1 == address_data["streetAddress1"]
+
+
+def test_checkout_billing_address_update_with_enabled_normalization_and_not_preserve_all_fields(
+    checkout_with_items, user_api_client, site_settings
+):
+    # given
+    site_settings.preserve_all_address_fields = False
+    site_settings.save(update_fields=["preserve_all_address_fields"])
+
+    address_data = {
+        "firstName": "John",
+        "lastName": "Doe",
+        "streetAddress1": "Bahnhofstrasse 1",
+        "city": "Zürich",
+        "postalCode": "8001",
+        "country": "CH",
+        # country area should be cleared during normalization as it's not preserved
+        # and not required for CH addresses
+        "countryArea": "Zürich",
+    }
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": address_data,
+        "validationRules": {"enableFieldsNormalization": True},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    assert checkout_with_items.billing_address
+    billing_address = checkout_with_items.billing_address
+    assert billing_address.city == address_data["city"]
+    assert not billing_address.country_area
+    assert billing_address.postal_code == address_data["postalCode"]
+    assert billing_address.street_address_1 == address_data["streetAddress1"]
+
+
 def test_with_active_problems_flow(
     api_client,
     checkout_with_problems,
