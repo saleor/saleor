@@ -8,24 +8,19 @@ import graphene
 import pytest
 from measurement.measures import Weight
 from prices import Money
+from promise import Promise
 
 from ....graphql.core.utils import to_global_id_or_none
 from ....graphql.tests.utils import get_graphql_content
-from ....graphql.webhook.utils import get_subscription_query_hash
 from ....shipping.interface import ExcludedShippingMethod, ShippingMethodData
 from ....shipping.models import ShippingMethod
+from ....shipping.webhooks.shared import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
-from ....webhook.response_schemas.shipping import logger as schema_logger
-from ....webhook.response_schemas.utils.annotations import logger as annotations_logger
-from ....webhook.transport.shipping_helpers import to_shipping_app_id
 from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...webhooks.exclude_shipping import (
-    CACHE_EXCLUDED_SHIPPING_TIME,
     _generate_excluded_shipping_methods_for_checkout_payload,
     _get_cache_data_for_exclude_shipping_methods,
-    _get_excluded_shipping_methods_from_response,
-    _get_excluded_shipping_methods_or_fetch,
     excluded_shipping_methods_for_checkout,
 )
 
@@ -88,9 +83,9 @@ def test_checkout_deliveries(
     excluded_shipping_method_id = (
         checkout_ready_to_complete.assigned_delivery.shipping_method_id
     )
-    mocked_webhook.return_value = [
-        ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
-    ]
+    mocked_webhook.return_value = Promise.resolve(
+        [ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)]
+    )
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
     response = staff_api_client.post_graphql(
@@ -133,9 +128,9 @@ def test_checkout_available_shipping_methods(
     excluded_shipping_method_id = (
         checkout_ready_to_complete.assigned_delivery.shipping_method_id
     )
-    mocked_webhook.return_value = [
-        ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
-    ]
+    mocked_webhook.return_value = Promise.resolve(
+        [ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)]
+    )
 
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
@@ -160,7 +155,7 @@ def test_checkout_deliveries_webhook_called_once(
     permission_manage_checkouts,
 ):
     # given
-    mocked_webhook.side_effect = [[], AssertionError("called twice.")]
+    mocked_webhook.side_effect = [Promise.resolve([]), AssertionError("called twice.")]
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
     response = staff_api_client.post_graphql(
@@ -193,7 +188,9 @@ def test_get_cache_data_for_exclude_shipping_methods(checkout_with_items):
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
+)
 @mock.patch(
     "saleor.checkout.webhooks.exclude_shipping."
     "_generate_excluded_shipping_methods_for_checkout_payload"
@@ -221,7 +218,7 @@ def test_excluded_shipping_methods_for_checkout_webhook_without_pregenerated_pay
         ]
     }
 
-    mocked_webhook.return_value = webhook_response
+    mocked_webhook.return_value = Promise.resolve(webhook_response)
 
     payload_dict = {"checkout": {"id": 1, "some_field": "12"}}
     payload = json.dumps(payload_dict)
@@ -233,7 +230,7 @@ def test_excluded_shipping_methods_for_checkout_webhook_without_pregenerated_pay
         available_shipping_methods=available_shipping_methods,
         allow_replica=False,
         requestor=None,
-    )
+    ).get()
     # then
     assert len(excluded_methods) == 1
     em = excluded_methods[0]
@@ -242,14 +239,13 @@ def test_excluded_shipping_methods_for_checkout_webhook_without_pregenerated_pay
 
     mocked_webhook.assert_called_once_with(
         WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-        payload,
         shipping_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
-        pregenerated_subscription_payload=None,
     )
     expected_cache_key = generate_cache_key_for_webhook(
         payload_dict,
@@ -266,16 +262,14 @@ def test_excluded_shipping_methods_for_checkout_webhook_without_pregenerated_pay
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
+)
 @mock.patch(
     "saleor.checkout.webhooks.exclude_shipping."
     "_generate_excluded_shipping_methods_for_checkout_payload"
 )
-@mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
-)
-def test_excluded_shipping_methods_for_checkout_webhook_with_subscription_base_pregenerated_payload(
-    mocked_subscription_payload,
+def test_excluded_shipping_methods_for_checkout_webhook_with_subscription(
     mocked_static_payload,
     mocked_webhook,
     mocked_cache_set,
@@ -298,11 +292,9 @@ def test_excluded_shipping_methods_for_checkout_webhook_with_subscription_base_p
         ]
     }
 
-    mocked_webhook.return_value = webhook_response
+    mocked_webhook.return_value = Promise.resolve(webhook_response)
 
     payload_dict = {"checkout": {"id": 1, "some_field": "12"}}
-    query_hash = get_subscription_query_hash(shipping_webhook.subscription_query)
-    pregenerated_payloads = {shipping_app.id: {query_hash: payload_dict}}
     payload = json.dumps(payload_dict)
     mocked_static_payload.return_value = payload
 
@@ -312,8 +304,7 @@ def test_excluded_shipping_methods_for_checkout_webhook_with_subscription_base_p
         available_shipping_methods=available_shipping_methods,
         allow_replica=False,
         requestor=None,
-        pregenerated_subscription_payloads=pregenerated_payloads,
-    )
+    ).get()
     # then
     assert len(excluded_methods) == 1
     em = excluded_methods[0]
@@ -322,14 +313,13 @@ def test_excluded_shipping_methods_for_checkout_webhook_with_subscription_base_p
 
     mocked_webhook.assert_called_once_with(
         WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-        payload,
         shipping_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
-        pregenerated_subscription_payload=payload_dict,
     )
     expected_cache_key = generate_cache_key_for_webhook(
         payload_dict,
@@ -343,11 +333,12 @@ def test_excluded_shipping_methods_for_checkout_webhook_with_subscription_base_p
         webhook_response,
         timeout=CACHE_EXCLUDED_SHIPPING_TIME,
     )
-    mocked_subscription_payload.assert_not_called()
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
+)
 @mock.patch(
     "saleor.checkout.webhooks.exclude_shipping."
     "_generate_excluded_shipping_methods_for_checkout_payload"
@@ -393,7 +384,10 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         ]
     }
 
-    mocked_webhook.side_effect = [first_webhook_response, second_webhook_response]
+    mocked_webhook.side_effect = [
+        Promise.resolve(first_webhook_response),
+        Promise.resolve(second_webhook_response),
+    ]
 
     payload_dict = {"checkout": {"id": 1, "some_field": "12"}}
     payload = json.dumps(payload_dict)
@@ -405,7 +399,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         available_shipping_methods=available_shipping_methods,
         allow_replica=False,
         requestor=None,
-    )
+    ).get()
 
     # then
     assert len(excluded_methods) == 2
@@ -416,25 +410,23 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
     event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
     mocked_webhook.assert_any_call(
         event_type,
-        payload,
         shipping_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
-        pregenerated_subscription_payload=None,
     )
     mocked_webhook.assert_any_call(
         event_type,
-        payload,
         second_shipping_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
-        pregenerated_subscription_payload=None,
     )
     assert mocked_webhook.call_count == 2
 
@@ -467,7 +459,9 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
+)
 @mock.patch(
     "saleor.checkout.webhooks.exclude_shipping."
     "_generate_excluded_shipping_methods_for_checkout_payload"
@@ -521,7 +515,10 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
         ]
     }
 
-    mocked_webhook.side_effect = [first_webhook_response, second_webhook_response]
+    mocked_webhook.side_effect = [
+        Promise.resolve(first_webhook_response),
+        Promise.resolve(second_webhook_response),
+    ]
 
     payload_dict = {"checkout": {"id": 1, "some_field": "12"}}
     payload = json.dumps(payload_dict)
@@ -533,7 +530,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
         available_shipping_methods=available_shipping_methods,
         allow_replica=False,
         requestor=None,
-    )
+    ).get()
 
     # then
     assert len(excluded_methods) == 2
@@ -544,25 +541,23 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
 
     mocked_webhook.assert_any_call(
         event_type,
-        payload,
         first_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
-        pregenerated_subscription_payload=None,
     )
     mocked_webhook.assert_any_call(
         event_type,
-        payload,
         second_webhook,
         False,
+        static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
-        pregenerated_subscription_payload=None,
     )
     assert mocked_webhook.call_count == 2
 
@@ -590,118 +585,6 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
     )
 
 
-@mock.patch(
-    "saleor.checkout.webhooks.exclude_shipping._parse_excluded_shipping_methods"
-)
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
-@mock.patch(
-    "saleor.checkout.webhooks.exclude_shipping._get_excluded_shipping_methods_from_response"
-)
-def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
-    mocked_get_excluded,
-    mocked_webhook_sync_trigger,
-    mocked_parse,
-    app,
-    checkout,
-):
-    # given
-    mocked_webhook_sync_trigger.return_value = ["incorrect_type"]
-    webhook = Webhook.objects.create(
-        name="Simple webhook", app=app, target_url="http://www.example.com/test"
-    )
-    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    webhook.events.create(event_type=event_type)
-    webhooks = Webhook.objects.all()
-
-    # when
-    _get_excluded_shipping_methods_or_fetch(
-        webhooks, event_type, '{"test":"payload"}', checkout, False, None
-    )
-    # then
-    mocked_get_excluded.asssert_not_called()
-    mocked_parse.assert_called_once_with([])
-
-
-@mock.patch.object(annotations_logger, "warning")
-@mock.patch.object(schema_logger, "warning")
-def test_parse_excluded_shipping_methods_response(
-    mocked_schema_logger, mocked_annotations_logger, app
-):
-    # given
-    external_id = to_shipping_app_id(app, "test-1234")
-    response = {
-        "excluded_methods": [
-            {
-                "id": "",
-            },
-            {
-                "id": "not-an-id",
-            },
-            {
-                "id": graphene.Node.to_global_id("Car", "1"),
-            },
-            {
-                "id": graphene.Node.to_global_id("ShippingMethod", "2"),
-            },
-            {
-                "id": external_id,
-            },
-        ]
-    }
-    webhook = Webhook.objects.create(
-        name="shipping-webhook-1",
-        app=app,
-        target_url="https://shipping-gateway.com/apiv2/",
-    )
-
-    # when
-    excluded_methods = _get_excluded_shipping_methods_from_response(response, webhook)
-
-    # then
-    assert len(excluded_methods) == 2
-    assert excluded_methods[0].id == "2"
-    assert excluded_methods[1].id == external_id
-    # 2 warning for each invalid data
-    # warning for malformed id
-    assert mocked_schema_logger.call_count == 3
-    # warning for skipping shipping method
-    assert mocked_annotations_logger.call_count == 3
-
-
-@mock.patch.object(annotations_logger, "warning")
-@mock.patch.object(schema_logger, "warning")
-def test_parse_excluded_shipping_methods_response_invalid(
-    mocked_schema_logger, mocked_annotations_logger, app
-):
-    # given
-    response = {
-        "excluded_methods": [
-            {
-                "id": "not-an-id",
-            },
-        ]
-    }
-    webhook = Webhook.objects.create(
-        name="shipping-webhook-1",
-        app=app,
-        target_url="https://shipping-gateway.com/apiv2/",
-    )
-
-    # when
-    excluded_methods = _get_excluded_shipping_methods_from_response(response, webhook)
-
-    # then
-    assert not excluded_methods
-    assert mocked_schema_logger.call_count == 1
-    assert (
-        "Malformed ShippingMethod id was provided:"
-        in mocked_schema_logger.call_args[0][0]
-    )
-    assert mocked_annotations_logger.call_count == 1
-    error_msg = mocked_annotations_logger.call_args[0][1]
-    assert "Skipping invalid shipping method (FilterShippingMethodsSchema)" in error_msg
-
-
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_excluded_shipping_methods_for_checkout(
     mocked_webhook,
@@ -727,7 +610,7 @@ def test_excluded_shipping_methods_for_checkout(
         available_shipping_methods=available_shipping_methods,
         allow_replica=False,
         requestor=None,
-    )
+    ).get()
 
     # then
     assert len(excluded_methods) == 1

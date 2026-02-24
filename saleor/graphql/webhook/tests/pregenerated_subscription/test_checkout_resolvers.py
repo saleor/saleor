@@ -3,6 +3,7 @@ from unittest import mock
 
 from django.test import override_settings
 from django.utils import timezone
+from promise import Promise
 
 from .....shipping.models import ShippingMethod
 from ....core.utils import to_global_id_or_none
@@ -404,9 +405,11 @@ def test_checkout_line_total_price_use_pregenerated_payload(
 
 
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
+)
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_shipping_methods_use_pregenerated_payload(
     mock_generate_payload,
@@ -439,14 +442,16 @@ def test_shipping_methods_use_pregenerated_payload(
     """
     variables = {"id": checkout_global_id}
 
-    mock_request.return_value = {
-        "excluded_methods": [
-            {
-                "id": shipping_method_global_ids[1],
-                "reason": exclude_msg,
-            },
-        ]
-    }
+    mock_request.return_value = Promise.resolve(
+        {
+            "excluded_methods": [
+                {
+                    "id": shipping_method_global_ids[1],
+                    "reason": exclude_msg,
+                },
+            ]
+        }
+    )
 
     # when
     response = api_client.post_graphql(checkout_shipping_query, variables)
@@ -477,9 +482,11 @@ def test_shipping_methods_use_pregenerated_payload(
 
 
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
+)
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_available_shipping_methods_use_pregenerated_payload(
     mock_generate_payload,
@@ -512,14 +519,16 @@ def test_available_shipping_methods_use_pregenerated_payload(
     """
     variables = {"id": checkout_global_id}
 
-    mock_request.return_value = {
-        "excluded_methods": [
-            {
-                "id": shipping_method_global_ids[1],
-                "reason": exclude_msg,
-            },
-        ]
-    }
+    mock_request.return_value = Promise.resolve(
+        {
+            "excluded_methods": [
+                {
+                    "id": shipping_method_global_ids[1],
+                    "reason": exclude_msg,
+                },
+            ]
+        }
+    )
 
     # when
     response = api_client.post_graphql(checkout_shipping_query, variables)
@@ -541,9 +550,11 @@ def test_available_shipping_methods_use_pregenerated_payload(
 
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
+)
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_shipping_methods_and_taxes_use_pregenerated_payload(
     mock_generate_payload,
@@ -589,14 +600,16 @@ def test_shipping_methods_and_taxes_use_pregenerated_payload(
     """
     variables = {"id": checkout_global_id}
 
-    mock_shipping_request.return_value = {
-        "excluded_methods": [
-            {
-                "id": shipping_method_global_ids[1],
-                "reason": exclude_msg,
-            },
-        ]
-    }
+    mock_shipping_request.return_value = Promise.resolve(
+        {
+            "excluded_methods": [
+                {
+                    "id": shipping_method_global_ids[1],
+                    "reason": exclude_msg,
+                },
+            ]
+        }
+    )
     mock_tax_request.return_value = TAX_DATA_RESPONSE
 
     # when

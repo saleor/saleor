@@ -1,6 +1,7 @@
 from unittest import mock
 
 from django.test import override_settings
+from promise import Promise
 
 from .....shipping.models import ShippingMethod
 from ....core.utils import to_global_id_or_none
@@ -8,9 +9,11 @@ from ....tests.utils import get_graphql_content
 
 
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
 @mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
+)
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_shipping_methods_use_pregenerated_payloads_app_without_subscription(
     mock_generate_payload,
@@ -43,14 +46,16 @@ def test_shipping_methods_use_pregenerated_payloads_app_without_subscription(
     """
     variables = {"id": checkout_global_id}
 
-    mock_request.return_value = {
-        "excluded_methods": [
-            {
-                "id": shipping_method_global_ids[1],
-                "reason": exclude_msg,
-            },
-        ]
-    }
+    mock_request.return_value = Promise.resolve(
+        {
+            "excluded_methods": [
+                {
+                    "id": shipping_method_global_ids[1],
+                    "reason": exclude_msg,
+                },
+            ]
+        }
+    )
 
     # when
     response = api_client.post_graphql(checkout_shipping_query, variables)

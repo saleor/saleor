@@ -9,10 +9,10 @@ from measurement.measures import Weight
 from prices import Money
 
 from ....shipping.interface import ShippingMethodData
+from ....shipping.webhooks.shared import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...webhooks.exclude_shipping import (
-    CACHE_EXCLUDED_SHIPPING_TIME,
     excluded_shipping_methods_for_checkout,
 )
 

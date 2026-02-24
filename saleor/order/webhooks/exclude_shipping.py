@@ -1,29 +1,21 @@
 import json
 import logging
-from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Union
 
-from django.conf import settings
-from django.db.models import QuerySet
 from promise import Promise
-from pydantic import ValidationError
 
 from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...shipping.interface import ExcludedShippingMethod, ShippingMethodData
+from ...shipping.webhooks.shared import (
+    generate_payload_for_shipping_method,
+    get_excluded_shipping_data,
+)
 from ...webhook import traced_payload_generator
 from ...webhook.event_types import WebhookEventSyncType
-from ...webhook.models import Webhook
 from ...webhook.payloads import (
     generate_order_payload,
-)
-from ...webhook.response_schemas.shipping import (
-    ExcludedShippingMethodSchema,
-    FilterShippingMethodsSchema,
-)
-from ...webhook.transport.synchronous.transport import (
-    trigger_webhook_sync_promise_if_not_cached,
 )
 from ...webhook.utils import get_webhooks_for_event
 
@@ -35,20 +27,6 @@ if TYPE_CHECKING:
 CACHE_EXCLUDED_SHIPPING_TIME = 60 * 3
 
 logger = logging.getLogger(__name__)
-
-
-def generate_payload_for_shipping_method(method: ShippingMethodData):
-    payload = {
-        "id": method.graphql_id,
-        "price": method.price.amount,
-        "currency": method.price.currency,
-        "name": method.name,
-        "maximum_order_weight": method.maximum_order_weight,
-        "minimum_order_weight": method.minimum_order_weight,
-        "maximum_delivery_days": method.maximum_delivery_days,
-        "minimum_delivery_days": method.minimum_delivery_days,
-    }
-    return payload
 
 
 @allow_writer()
@@ -77,15 +55,25 @@ def excluded_shipping_methods_for_order(
     if not available_shipping_methods:
         return Promise.resolve([])
 
-    return _get_excluded_shipping_data(
+    webhooks = get_webhooks_for_event(
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+    if not webhooks:
+        return Promise.resolve([])
+
+    static_payload = generate_excluded_shipping_methods_for_order_payload(
+        order,
+        available_shipping_methods,
+    )
+    cache_data = _get_cache_data_for_exclude_shipping_methods(order, static_payload)
+    return get_excluded_shipping_data(
+        webhooks=webhooks,
         event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-        static_payload=generate_excluded_shipping_methods_for_order_payload(
-            order,
-            available_shipping_methods,
-        ),
+        static_payload=static_payload,
         subscribable_object=(order, available_shipping_methods),
         allow_replica=allow_replica,
         requestor=requestor,
+        cache_data=cache_data,
     )
 
 
@@ -140,131 +128,3 @@ def _get_cache_data_for_exclude_shipping_methods(order: "Order", payload: str) -
     source_object.pop("meta", None)
     source_object.pop("shipping_method", None)
     return payload_dict
-
-
-def _get_excluded_shipping_methods_or_fetch(
-    webhooks: QuerySet,
-    event_type: str,
-    static_payload: str,
-    subscribable_object: tuple["Order", list["ShippingMethodData"]],
-    allow_replica: bool,
-    requestor: Union["App", "User", None],
-) -> Promise[dict[str, list[ExcludedShippingMethod]]]:
-    """Return data of all excluded shipping methods.
-
-    The data will be fetched from the cache. If missing it will fetch it from all
-    defined webhooks by calling a request to each of them one by one.
-    """
-    order, _ = subscribable_object
-    cache_data = _get_cache_data_for_exclude_shipping_methods(order, static_payload)
-    # Gather responses from webhooks
-    promised_responses = []
-    for webhook in webhooks:
-        promised_responses.append(
-            trigger_webhook_sync_promise_if_not_cached(
-                event_type=event_type,
-                static_payload=static_payload,
-                webhook=webhook,
-                cache_data=cache_data,
-                allow_replica=allow_replica,
-                subscribable_object=subscribable_object,
-                request_timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-                cache_timeout=CACHE_EXCLUDED_SHIPPING_TIME,
-                requestor=requestor,
-            )
-        )
-
-    def process_responses(
-        responses: list[Any],
-    ) -> dict[str, list[ExcludedShippingMethod]]:
-        excluded_methods: list[ExcludedShippingMethodSchema] = []
-        for response_data, webhook in zip(responses, webhooks, strict=True):
-            if response_data and isinstance(response_data, dict):
-                excluded_methods.extend(
-                    _get_excluded_shipping_methods_from_response(response_data, webhook)
-                )
-        return _parse_excluded_shipping_methods(excluded_methods)
-
-    return Promise.all(promised_responses).then(process_responses)
-
-
-def _get_excluded_shipping_data(
-    event_type: str,
-    static_payload: str,
-    subscribable_object: tuple["Order", list["ShippingMethodData"]],
-    allow_replica: bool,
-    requestor: Union["App", "User", None],
-) -> Promise[list[ExcludedShippingMethod]]:
-    """Exclude not allowed shipping methods by sync webhook.
-
-    Fetch excluded shipping methods from sync webhooks and return them as a list of
-    excluded shipping methods.
-    The function uses a cache_key to reduce the number of
-    requests which we call to the external APIs. In case when we have the same payload
-    in a cache as we're going to send now, we will skip an additional request and use
-    the response fetched from cache.
-    The function will fetch the payload only in the case that we have any defined
-    webhook.
-    """
-    webhooks = get_webhooks_for_event(event_type)
-    if webhooks:
-        promised_excluded_methods_map = _get_excluded_shipping_methods_or_fetch(
-            webhooks,
-            event_type,
-            static_payload,
-            subscribable_object,
-            allow_replica,
-            requestor,
-        )
-    else:
-        promised_excluded_methods_map = Promise.resolve({})
-
-    def merge_excluded_methods_map(
-        excluded_methods_map: dict[str, list[ExcludedShippingMethod]],
-    ) -> list[ExcludedShippingMethod]:
-        # Return a list of excluded methods, unique by id
-        excluded_methods = []
-        for method_id, methods in excluded_methods_map.items():
-            reason = None
-            if reasons := [m.reason for m in methods if m.reason]:
-                reason = " ".join(reasons)
-            excluded_methods.append(ExcludedShippingMethod(id=method_id, reason=reason))
-        return excluded_methods
-
-    return promised_excluded_methods_map.then(merge_excluded_methods_map)
-
-
-def _get_excluded_shipping_methods_from_response(
-    response_data: dict,
-    webhook: "Webhook",
-) -> list[ExcludedShippingMethodSchema]:
-    excluded_methods = []
-    try:
-        filter_methods_schema = FilterShippingMethodsSchema.model_validate(
-            response_data,
-            context={
-                "custom_message": "Skipping invalid shipping method (FilterShippingMethodsSchema)"
-            },
-        )
-        excluded_methods.extend(filter_methods_schema.excluded_methods)
-    except ValidationError:
-        logger.warning(
-            "Skipping invalid response from app %s: %s",
-            str(webhook.app.identifier),
-            response_data,
-        )
-    return excluded_methods
-
-
-def _parse_excluded_shipping_methods(
-    excluded_methods: list[ExcludedShippingMethodSchema],
-) -> dict[str, list[ExcludedShippingMethod]]:
-    """Prepare method_id to excluded methods map."""
-    excluded_methods_map = defaultdict(list)
-    for excluded_method in excluded_methods:
-        method_id = excluded_method.id
-        reason = excluded_method.reason or ""
-        excluded_methods_map[method_id].append(
-            ExcludedShippingMethod(id=method_id, reason=reason)
-        )
-    return excluded_methods_map
