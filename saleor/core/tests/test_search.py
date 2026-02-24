@@ -1,5 +1,4 @@
 import pytest
-from django.contrib.postgres.search import SearchVector
 from django.db.models import Value
 
 from ...account.models import User
@@ -7,6 +6,7 @@ from ...account.search import update_user_search_vector
 from ...checkout.models import Checkout
 from ...checkout.search.indexing import update_checkouts_search_vector
 from ...product.models import Product, ProductChannelListing
+from ..postgres import NoValidationSearchVector
 from ..search import _sanitize_word, parse_search_query, prefix_search
 
 
@@ -211,6 +211,8 @@ def products_for_search(category, product_type, channel_USD):
         ("Coffee Maker", "Best coffee maker"),
         ("Coffeehouse Special", "Special blend for coffeehouses"),
         ("Tea Kettle", "Great for brewing tea"),
+        ("Magnésium B6", "Supplement with magnesium"),
+        ("Crème brûlée", "Classic French dessert"),
     ]:
         product = Product.objects.create(
             name=name,
@@ -219,8 +221,10 @@ def products_for_search(category, product_type, channel_USD):
             product_type=product_type,
             category=category,
             search_vector=(
-                SearchVector(Value(name), config="simple", weight="A")
-                + SearchVector(Value(description), config="simple", weight="C")
+                NoValidationSearchVector(Value(name), config="simple", weight="A")
+                + NoValidationSearchVector(
+                    Value(description), config="simple", weight="C"
+                )
             ),
         )
         ProductChannelListing.objects.create(
@@ -260,7 +264,7 @@ def test_prefix_search_empty_value_returns_all(products_for_search):
     results = prefix_search(Product.objects.all(), "")
 
     # then
-    assert results.count() == 3
+    assert results.count() == 5
 
 
 def test_prefix_search_not_searchable_value_returns_nothing(products_for_search):
@@ -313,6 +317,54 @@ def test_prefix_search_negation(products_for_search):
     assert results.first().name == "Coffee Maker"
 
 
+def test_prefix_search_accent_insensitive_query(products_for_search):
+    # given — product indexed as "Magnésium B6", query without accent
+    qs = Product.objects.all()
+
+    # when
+    results = prefix_search(qs, "Magnesium")
+
+    # then
+    assert results.count() == 1
+    assert results.first().name == "Magnésium B6"
+
+
+def test_prefix_search_accented_query_finds_accented_product(products_for_search):
+    # given — accented query should also match
+    qs = Product.objects.all()
+
+    # when
+    results = prefix_search(qs, "Magnésium")
+
+    # then
+    assert results.count() == 1
+    assert results.first().name == "Magnésium B6"
+
+
+def test_prefix_search_accent_insensitive_partial(products_for_search):
+    # given — partial unaccented prefix
+    qs = Product.objects.all()
+
+    # when
+    results = prefix_search(qs, "crem")
+
+    # then
+    assert results.count() == 1
+    assert results.first().name == "Crème brûlée"
+
+
+def test_prefix_search_accent_insensitive_multiword(products_for_search):
+    # given — mixed accent/unaccented multi-word query
+    qs = Product.objects.all()
+
+    # when
+    results = prefix_search(qs, "creme brulee")
+
+    # then
+    assert results.count() == 1
+    assert results.first().name == "Crème brûlée"
+
+
 @pytest.fixture
 def users_for_search():
     users = []
@@ -320,6 +372,7 @@ def users_for_search():
         ("john.doe@example.com", "John", "Doe"),
         ("johnny.smith@example.com", "Johnny", "Smith"),
         ("jane.doe@example.com", "Jane", "Doe"),
+        ("jose.garcia@example.com", "José", "García"),
     ]:
         user = User.objects.create(email=email, first_name=first, last_name=last)
         update_user_search_vector(user, attach_addresses_data=False)
@@ -344,6 +397,42 @@ def test_prefix_search_users_perfect_match_priority(users_for_search):
     # then – "John" exact match should rank higher than "Johnny"
     assert len(results) == 2
     assert results[0].first_name == "John"
+
+
+def test_prefix_search_users_accent_insensitive(users_for_search):
+    # given — user indexed as "José García", query without accent
+    qs = User.objects.all()
+
+    # when
+    results = prefix_search(qs, "Jose")
+
+    # then
+    assert results.count() == 1
+    assert results.first().first_name == "José"
+
+
+def test_prefix_search_users_accented_query(users_for_search):
+    # given — accented query should also match
+    qs = User.objects.all()
+
+    # when
+    results = prefix_search(qs, "José García")
+
+    # then
+    assert results.count() == 1
+    assert results.first().email == "jose.garcia@example.com"
+
+
+def test_prefix_search_users_partial_accent_insensitive(users_for_search):
+    # given — partial unaccented prefix on last name
+    qs = User.objects.all()
+
+    # when
+    results = prefix_search(qs, "Garci")
+
+    # then
+    assert results.count() == 1
+    assert results.first().last_name == "García"
 
 
 def test_prefix_search_checkout_exact_match_priority(
