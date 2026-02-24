@@ -1,12 +1,17 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import transaction
 
 from ....celeryconf import app
 from ....core.db.connection import allow_writer
+from ....giftcard import GiftCardEvents
+from ....giftcard.models import GiftCardEvent
 from ....product.models import Product, ProductVariant
-from ...models import OrderLine
+from ...models import OrderGiftCardApplication, OrderLine
 
 ORDER_LINE_PRODUCT_ID_BATCH_SIZE = 250
+GIFT_CARD_APPLICATION_BATCH_SIZE = 500
 
 
 @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
@@ -54,3 +59,46 @@ def populate_order_line_product_type_id_task(line_pk=None):
                 to_save.append(line)
             OrderLine.objects.bulk_update(to_save, ["product_type_id"])
         populate_order_line_product_type_id_task.delay(line_pks[-1])
+
+
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+def populate_order_gift_card_applications_task(start_event_pk=None):
+    start_event_pk = start_event_pk or 0
+    events = list(
+        GiftCardEvent.objects.filter(
+            pk__gte=start_event_pk,
+            type=GiftCardEvents.USED_IN_ORDER,
+            order__isnull=False,
+        )
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .order_by("pk")
+        .values("pk", "order_id", "gift_card_id", "parameters")[
+            :GIFT_CARD_APPLICATION_BATCH_SIZE
+        ]
+    )
+    if not events:
+        return
+
+    to_create = []
+    for event in events:
+        balance = event["parameters"].get("balance", {})
+        currency = balance.get("currency")
+        old_balance = balance.get("old_current_balance")
+        current_balance = balance.get("current_balance")
+        if None in (currency, old_balance, current_balance):
+            continue
+        amount_used = Decimal(str(old_balance)) - Decimal(str(current_balance))
+        if amount_used > 0:
+            to_create.append(
+                OrderGiftCardApplication(
+                    order_id=event["order_id"],
+                    gift_card_id=event["gift_card_id"],
+                    amount_used_amount=amount_used,
+                    currency=currency,
+                )
+            )
+
+    with allow_writer():
+        OrderGiftCardApplication.objects.bulk_create(to_create, ignore_conflicts=True)
+
+    populate_order_gift_card_applications_task.delay(events[-1]["pk"] + 1)
