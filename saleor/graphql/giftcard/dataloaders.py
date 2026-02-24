@@ -3,7 +3,7 @@ from uuid import UUID
 
 from ...checkout.models import Checkout
 from ...giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
-from ...order.models import Order
+from ...order.models import Order, OrderGiftCardApplication
 from ..core.dataloaders import DataLoader
 
 
@@ -75,6 +75,27 @@ class GiftCardsByOrderIdLoader(DataLoader[UUID, list[GiftCard]]):
                 gift_cards[getattr(gift_card_order, "giftcard_id")]
             )
         return [cards_map.get(order_id, []) for order_id in keys]
+
+
+class GiftCardApplicationsByOrderIdLoader(DataLoader[UUID, list]):
+    context_key = "gift_card_applications_by_order_id"
+
+    def batch_load(self, keys):
+        applications = OrderGiftCardApplication.objects.using(
+            self.database_connection_name
+        ).filter(order_id__in=keys)
+        application_map = defaultdict(list)
+        for gift_application in applications.iterator(chunk_size=1000):
+            application_map[gift_application.order_id].append(gift_application)
+        return [application_map.get(order_id, []) for order_id in keys]
+
+
+class GiftCardByIdLoader(DataLoader[int, GiftCard]):
+    context_key = "gift_card_by_id"
+
+    def batch_load(self, keys):
+        gift_cards = GiftCard.objects.using(self.database_connection_name).in_bulk(keys)
+        return [gift_cards.get(gift_card_id) for gift_card_id in keys]
 
 
 class GiftCardsByCheckoutIdLoader(DataLoader[UUID, list[GiftCard]]):

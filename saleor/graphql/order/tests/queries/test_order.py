@@ -10,7 +10,7 @@ from .....core.taxes import zero_taxed_money
 from .....discount import DiscountType
 from .....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from .....order.events import transaction_event
-from .....order.models import Order, OrderGrantedRefund
+from .....order.models import Order, OrderGiftCardApplication, OrderGrantedRefund
 from .....order.utils import (
     get_order_country,
     update_order_authorize_data,
@@ -1922,6 +1922,66 @@ def test_order_query_gift_cards(
     assert (
         gift_card.current_balance.amount == gift_card_data["currentBalance"]["amount"]
     )
+
+
+QUERY_ORDER_GIFT_CARDS_APPLIED = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            giftCardsApplied {
+                giftCard {
+                    last4CodeChars
+                }
+                amount {
+                    amount
+                    currency
+                }
+            }
+        }
+    }
+"""
+
+
+def test_order_query_gift_cards_applied(
+    staff_api_client, permission_group_manage_orders, order_with_lines, gift_card
+):
+    # given
+    application = OrderGiftCardApplication.objects.create(
+        order=order_with_lines,
+        gift_card=gift_card,
+        amount_used_amount=Decimal("7.50"),
+        currency="USD",
+    )
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_ORDER_GIFT_CARDS_APPLIED, variables)
+    content = get_graphql_content(response)
+
+    # then
+    applied = content["data"]["order"]["giftCardsApplied"]
+    assert len(applied) == 1
+    assert applied[0]["giftCard"]["last4CodeChars"] == gift_card.display_code
+    assert applied[0]["amount"]["amount"] == float(application.amount_used_amount)
+    assert applied[0]["amount"]["currency"] == application.currency
+
+
+def test_order_query_gift_cards_applied_empty(
+    staff_api_client, permission_group_manage_orders, order_with_lines
+):
+    # given
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_ORDER_GIFT_CARDS_APPLIED, variables)
+    content = get_graphql_content(response)
+
+    # then
+    applied = content["data"]["order"]["giftCardsApplied"]
+    assert applied == []
 
 
 QUERY_ORDER_PRICES = """

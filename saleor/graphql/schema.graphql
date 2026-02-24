@@ -12082,6 +12082,13 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """List of user gift cards."""
   giftCards: [GiftCard!]!
 
+  """
+  List of gift cards applied to this order with the amount used from each.
+  
+  Added in Saleor 3.22.
+  """
+  giftCardsApplied: [GiftCardApplied!]!
+
   """Additional information provided by the customer about the order."""
   customerNote: String!
 
@@ -12889,6 +12896,19 @@ type CreditCard @doc(category: "Payments") {
 
   """Four-digit number representing the card’s expiration year."""
   expYear: Int
+}
+
+"""
+Represents a gift card applied to an order with the amount used.
+
+Added in Saleor 3.22.
+"""
+type GiftCardApplied @doc(category: "Orders") {
+  """Gift card used in the order."""
+  giftCard: GiftCard!
+
+  """Amount of money spent from the gift card."""
+  amount: Money!
 }
 
 """History log of the order."""

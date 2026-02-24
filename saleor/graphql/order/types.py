@@ -107,7 +107,11 @@ from ..discount.dataloaders import (
 )
 from ..discount.enums import DiscountValueTypeEnum
 from ..discount.types import Voucher
-from ..giftcard.dataloaders import GiftCardsByOrderIdLoader
+from ..giftcard.dataloaders import (
+    GiftCardApplicationsByOrderIdLoader,
+    GiftCardByIdLoader,
+    GiftCardsByOrderIdLoader,
+)
 from ..giftcard.types import GiftCard
 from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
@@ -421,6 +425,34 @@ class OrderGrantedRefund(
             .load(root.node.reason_reference_id)
             .then(wrap_page_with_context)
         )
+
+
+class GiftCardApplied(BaseObjectType):
+    gift_card = graphene.Field(
+        GiftCard,
+        required=True,
+        description="Gift card used in the order.",
+    )
+    amount = graphene.Field(
+        Money,
+        required=True,
+        description="Amount of money spent from the gift card.",
+    )
+
+    class Meta:
+        description = (
+            "Represents a gift card applied to an order with the amount used."
+            + ADDED_IN_322
+        )
+        doc_category = DOC_CATEGORY_ORDERS
+
+    @staticmethod
+    def resolve_gift_card(root: models.OrderGiftCardApplication, info):
+        return GiftCardByIdLoader(info.context).load(root.gift_card_id)
+
+    @staticmethod
+    def resolve_amount(root: models.OrderGiftCardApplication, _info):
+        return root.amount_used
 
 
 class OrderDiscount(BaseObjectType):
@@ -1704,6 +1736,14 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     gift_cards = NonNullList(
         GiftCard, description="List of user gift cards.", required=True
     )
+    gift_cards_applied = NonNullList(
+        GiftCardApplied,
+        description=(
+            "List of gift cards applied to this order with the amount used from each."
+            + ADDED_IN_322
+        ),
+        required=True,
+    )
     customer_note = graphene.String(
         required=True,
         description="Additional information provided by the customer about the order.",
@@ -2745,6 +2785,10 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     @staticmethod
     def resolve_gift_cards(root: SyncWebhookControlContext[models.Order], info):
         return GiftCardsByOrderIdLoader(info.context).load(root.node.id)
+
+    @staticmethod
+    def resolve_gift_cards_applied(root: SyncWebhookControlContext[models.Order], info):
+        return GiftCardApplicationsByOrderIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_voucher(root: SyncWebhookControlContext[models.Order], info):
