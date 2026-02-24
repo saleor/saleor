@@ -1967,6 +1967,48 @@ def test_order_query_gift_cards_applied(
     assert applied[0]["amount"]["currency"] == application.currency
 
 
+def test_order_query_gift_cards_applied_multiple(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    gift_card,
+    gift_card_expiry_date,
+):
+    # given
+    app_first = OrderGiftCardApplication.objects.create(
+        order=order_with_lines,
+        gift_card=gift_card,
+        amount_used_amount=Decimal("7.50"),
+        currency="USD",
+    )
+    app_second = OrderGiftCardApplication.objects.create(
+        order=order_with_lines,
+        gift_card=gift_card_expiry_date,
+        amount_used_amount=Decimal("3.00"),
+        currency="USD",
+    )
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_ORDER_GIFT_CARDS_APPLIED, variables)
+    content = get_graphql_content(response)
+
+    # then
+    applied = content["data"]["order"]["giftCardsApplied"]
+    assert len(applied) == 2
+
+    by_last4 = {item["giftCard"]["last4CodeChars"]: item for item in applied}
+    first_item = by_last4[gift_card.display_code]
+    second_item = by_last4[gift_card_expiry_date.display_code]
+
+    assert first_item["amount"]["amount"] == app_first.amount_used_amount
+    assert first_item["amount"]["currency"] == app_first.currency
+    assert second_item["amount"]["amount"] == app_second.amount_used_amount
+    assert second_item["amount"]["currency"] == app_second.currency
+
+
 def test_order_query_gift_cards_applied_empty(
     staff_api_client, permission_group_manage_orders, order_with_lines
 ):

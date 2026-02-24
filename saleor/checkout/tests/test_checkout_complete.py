@@ -781,7 +781,7 @@ def test_create_order_with_gift_card_partial_use(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card_used, type=GiftCardEvents.USED_IN_ORDER
     )
-    application = OrderGiftCardApplication.objects.get(
+    application = OrderGiftCardApplication.objects.filter(
         order=order, gift_card=gift_card_used
     ).first()
     assert application
@@ -853,17 +853,21 @@ def test_create_order_with_many_gift_cards(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
-    app_staff = OrderGiftCardApplication.objects.get(
+    gift_application_1 = OrderGiftCardApplication.objects.filter(
         order=order, gift_card=gift_card_created_by_staff
-    )
+    ).first()
+    assert gift_application_1
     assert (
-        app_staff.amount_used_amount
+        gift_application_1.amount_used_amount
         == gift_card_created_by_staff.initial_balance_amount
     )
-    assert app_staff.currency == gift_card_created_by_staff.currency
-    app_regular = OrderGiftCardApplication.objects.get(order=order, gift_card=gift_card)
-    assert app_regular.amount_used_amount == gift_card.initial_balance_amount
-    assert app_regular.currency == gift_card.currency
+    assert gift_application_1.currency == gift_card_created_by_staff.currency
+    gift_application_2 = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert gift_application_2
+    assert gift_application_2.amount_used_amount == gift_card.initial_balance_amount
+    assert gift_application_2.currency == gift_card.currency
 
 
 @mock.patch("saleor.giftcard.utils.send_gift_card_notification")

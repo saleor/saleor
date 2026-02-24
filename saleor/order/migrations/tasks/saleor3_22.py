@@ -63,15 +63,15 @@ def populate_order_line_product_type_id_task(line_pk=None):
 
 
 @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+@allow_writer()
 def populate_order_gift_card_applications_task(start_event_pk=None):
     start_event_pk = start_event_pk or 0
     events = list(
         GiftCardEvent.objects.filter(
-            pk__gte=start_event_pk,
+            pk__gt=start_event_pk,
             type=GiftCardEvents.USED_IN_ORDER,
             order__isnull=False,
         )
-        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .order_by("pk")
         .values("pk", "order_id", "gift_card_id", "parameters")[
             :GIFT_CARD_APPLICATION_BATCH_SIZE
@@ -99,7 +99,6 @@ def populate_order_gift_card_applications_task(start_event_pk=None):
                 )
             )
 
-    with allow_writer():
-        OrderGiftCardApplication.objects.bulk_create(to_create, ignore_conflicts=True)
+    OrderGiftCardApplication.objects.bulk_create(to_create, ignore_conflicts=True)
 
-    populate_order_gift_card_applications_task.delay(events[-1]["pk"] + 1)
+    populate_order_gift_card_applications_task.delay(events[-1]["pk"])
