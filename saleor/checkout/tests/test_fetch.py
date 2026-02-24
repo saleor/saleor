@@ -851,7 +851,7 @@ def test_fetch_shipping_methods_for_checkout_with_external_shipping_method(
         },
     )
 
-    mocked_webhook.return_value = [available_shipping_method]
+    mocked_webhook.return_value = Promise.resolve([available_shipping_method])
 
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -905,7 +905,7 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_external_shipping_
         },
     )
 
-    mocked_webhook.return_value = [available_shipping_method]
+    mocked_webhook.return_value = Promise.resolve([available_shipping_method])
 
     checkout = checkout_with_item
     checkout.shipping_methods.create(
@@ -969,7 +969,7 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_external_shi
         },
     )
 
-    mocked_webhook.return_value = [available_shipping_method]
+    mocked_webhook.return_value = Promise.resolve([available_shipping_method])
 
     checkout = checkout_with_item
     checkout.shipping_methods.create(
@@ -1033,7 +1033,7 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_external_sh
         },
     )
 
-    mocked_webhook.return_value = [available_shipping_method]
+    mocked_webhook.return_value = Promise.resolve([available_shipping_method])
 
     checkout = checkout_with_item
     expired_app_id = to_shipping_app_id(external_app, "expired-shipping-method-id")
@@ -1117,7 +1117,9 @@ def test_fetch_shipping_methods_for_checkout_with_excluded_external_shipping_met
         ]
     )
 
-    mocked_list_shipping_methods.return_value = [unavailable_shipping_method]
+    mocked_list_shipping_methods.return_value = Promise.resolve(
+        [unavailable_shipping_method]
+    )
 
     checkout = checkout_with_item
     checkout.shipping_address = address
