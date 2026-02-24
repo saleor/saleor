@@ -11,7 +11,8 @@ from ....product.models import Product, ProductVariant
 from ...models import OrderGiftCardApplication, OrderLine
 
 ORDER_LINE_PRODUCT_ID_BATCH_SIZE = 250
-GIFT_CARD_APPLICATION_BATCH_SIZE = 500
+# Processing of single batch take about 0.2s
+GIFT_CARD_APPLICATION_BATCH_SIZE = 2000
 
 
 @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
