@@ -9,6 +9,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 from prices import Money
+from promise import Promise
 
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
@@ -553,7 +554,7 @@ def get_available_built_in_shipping_methods_for_checkout_info(
 def fetch_external_shipping_methods_for_checkout_info(
     checkout_info,
     available_built_in_methods: list[ShippingMethodData],
-) -> list[ShippingMethodData]:
+) -> Promise[list[ShippingMethodData]]:
     from .webhooks.list_shipping_methods import list_shipping_methods_for_checkout
 
     allow_replica = not (
@@ -740,7 +741,7 @@ def fetch_shipping_methods_for_checkout(
         for shipping_method in fetch_external_shipping_methods_for_checkout_info(
             checkout_info=checkout_info,
             available_built_in_methods=list(built_in_shipping_methods_dict.values()),
-        )
+        ).get()
     }
     all_methods = list(built_in_shipping_methods_dict.values()) + list(
         external_shipping_methods_dict.values()

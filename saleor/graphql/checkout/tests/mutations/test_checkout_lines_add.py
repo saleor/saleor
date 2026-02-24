@@ -8,6 +8,7 @@ import pytest
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from promise import Promise
 
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
@@ -1378,7 +1379,7 @@ def test_checkout_lines_marks_shipping_methods_as_stale(
     checkout_delivery,
 ):
     # given
-    mocked_webhook.return_value = []
+    mocked_webhook.return_value = Promise.resolve([])
     checkout = checkout_with_item
     checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save(update_fields=["assigned_delivery"])

@@ -3,6 +3,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Union
 
 from django.conf import settings
+from promise import Promise
 from pydantic import ValidationError
 
 from ...shipping.interface import ShippingMethodData
@@ -10,7 +11,7 @@ from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.payloads import generate_checkout_payload
 from ...webhook.response_schemas.shipping import ListShippingMethodsSchema
 from ...webhook.transport.synchronous.transport import (
-    trigger_webhook_sync_if_not_cached,
+    trigger_webhook_sync_promise_if_not_cached,
 )
 from ...webhook.utils import get_webhooks_for_event
 from ..models import Checkout
@@ -29,17 +30,21 @@ def list_shipping_methods_for_checkout(
     built_in_shipping_methods: list["ShippingMethodData"],
     allow_replica: bool,
     requestor: Union["App", "User", None],
-) -> list["ShippingMethodData"]:
+) -> Promise[list["ShippingMethodData"]]:
     methods: list[ShippingMethodData] = []
     event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
     webhooks = get_webhooks_for_event(event_type)
-    if webhooks:
-        payload = generate_checkout_payload(checkout, requestor)
-        cache_data = _get_cache_data_for_shipping_list_methods_for_checkout(payload)
-        for webhook in webhooks:
-            response_data = trigger_webhook_sync_if_not_cached(
+    if not webhooks:
+        return Promise.resolve(methods)
+
+    promised_responses = []
+    payload = generate_checkout_payload(checkout, requestor)
+    cache_data = _get_cache_data_for_shipping_list_methods_for_checkout(payload)
+    for webhook in webhooks:
+        promised_responses.append(
+            trigger_webhook_sync_promise_if_not_cached(
                 event_type=event_type,
-                payload=payload,
+                static_payload=payload,
                 webhook=webhook,
                 cache_data=cache_data,
                 allow_replica=allow_replica,
@@ -48,13 +53,20 @@ def list_shipping_methods_for_checkout(
                 cache_timeout=CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
                 requestor=requestor,
             )
+        )
 
+    def process_responses(responses: list[Any]):
+        for response_data, webhook in zip(responses, webhooks, strict=True):
             if response_data:
                 shipping_methods = _parse_list_shipping_methods_response(
                     response_data, webhook.app, checkout.currency
                 )
                 methods.extend(shipping_methods)
-    return [method for method in methods if method.price.currency == checkout.currency]
+        return [
+            method for method in methods if method.price.currency == checkout.currency
+        ]
+
+    return Promise.all(promised_responses).then(process_responses)
 
 
 def _parse_list_shipping_methods_response(
