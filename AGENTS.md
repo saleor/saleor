@@ -118,3 +118,44 @@ with traced_atomic_transaction():
 | `select_for_update` | `saleor/payment/lock_objects.py` | Complex read-modify-write |
 | `update_or_create` | `saleor/graphql/attribute/utils/type_handlers.py` | Upsert operations |
 | `traced_atomic_transaction` | `saleor/core/tracing.py` | Multi-operation atomicity |
+
+# Data Migrations
+
+## Marking search indexes as dirty
+
+When adding or changing search vector indexing logic, create a data migration that marks all existing rows as dirty so they get re-indexed.
+
+### Structure
+
+1. **Task file** — place in `saleor/<app>/migrations/tasks/saleor<version>.py`
+2. **Migration file** — place in `saleor/<app>/migrations/<number>_<name>.py`
+
+### Task rules
+
+- Decorate with `@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)` and `@allow_writer()`
+- Process in batches (e.g. 1000 rows) to avoid long-running transactions
+- Use `select_for_update` via the app's `lock_objects` module to lock rows before updating
+- Use the subquery pattern: lock rows first, then filter+update in a separate query:
+  ```python
+  with transaction.atomic():
+      pks = (
+          model_qs_select_for_update()
+          .filter(pk__in=batch_pks)
+          .values_list("pk", flat=True)
+      )
+      Model.objects.filter(pk__in=pks).update(search_index_dirty=True)
+  ```
+- Self-chain with `.delay()` at the end if there are more rows to process
+- Stop chaining when the batch returns no results
+
+### Migration rules
+
+- Use `post_migrate` signal to trigger the celery task after all migrations complete (not inline)
+- Connect to `post_migrate` inside a `RunPython` operation
+- Use `registry.get_app_config("<app>")` as the sender
+- Always provide `migrations.RunPython.noop` as the reverse operation
+
+### Reference example
+
+- Task: `saleor/giftcard/migrations/tasks/saleor3_22.py`
+- Migration: `saleor/giftcard/migrations/0023_mark_gift_cards_search_vector_as_dirty.py`

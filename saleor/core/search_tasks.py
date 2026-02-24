@@ -58,7 +58,7 @@ def set_user_search_document_values(updated_count: int = 0) -> None:
     set_user_search_document_values.delay(updated_count)
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 def set_order_search_document_values(
     update_all: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_REPLICA_NAME,
