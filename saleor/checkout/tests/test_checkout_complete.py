@@ -20,7 +20,7 @@ from ...discount.models import VoucherCustomer
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
-from ...order.models import OrderEvent
+from ...order.models import OrderEvent, OrderGiftCardApplication
 from ...order.notifications import get_default_order_payload
 from ...payment import TransactionKind
 from ...payment.interface import GatewayResponse
@@ -720,6 +720,12 @@ def test_create_order_with_gift_card(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert application
+    assert application.amount_used_amount == gift_card.initial_balance_amount
+    assert application.currency == gift_card.currency
 
 
 def test_create_order_with_gift_card_partial_use(
@@ -775,6 +781,12 @@ def test_create_order_with_gift_card_partial_use(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card_used, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.get(
+        order=order, gift_card=gift_card_used
+    ).first()
+    assert application
+    assert application.amount_used_amount == price_without_gift_card.gross.amount
+    assert application.currency == gift_card_used.currency
 
 
 def test_create_order_with_many_gift_cards(
@@ -841,6 +853,17 @@ def test_create_order_with_many_gift_cards(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    app_staff = OrderGiftCardApplication.objects.get(
+        order=order, gift_card=gift_card_created_by_staff
+    )
+    assert (
+        app_staff.amount_used_amount
+        == gift_card_created_by_staff.initial_balance_amount
+    )
+    assert app_staff.currency == gift_card_created_by_staff.currency
+    app_regular = OrderGiftCardApplication.objects.get(order=order, gift_card=gift_card)
+    assert app_regular.amount_used_amount == gift_card.initial_balance_amount
+    assert app_regular.currency == gift_card.currency
 
 
 @mock.patch("saleor.giftcard.utils.send_gift_card_notification")

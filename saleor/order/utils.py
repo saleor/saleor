@@ -72,7 +72,7 @@ from . import (
 from .base_calculations import base_order_total
 from .error_codes import OrderErrorCode
 from .fetch import OrderLineInfo, fetch_draft_order_lines_info
-from .models import Order, OrderGrantedRefund, OrderLine
+from .models import Order, OrderGiftCardApplication, OrderGrantedRefund, OrderLine
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -496,6 +496,22 @@ def add_gift_cards_to_order(
     ]
     GiftCard.objects.bulk_update(gift_cards_to_update, update_fields)
     gift_card_events.gift_cards_used_in_order_event(balance_data, order, user, app)
+
+    applications = [
+        OrderGiftCardApplication(
+            order=order,
+            gift_card=gift_card,
+            amount_used_amount=Decimal(str(previous_balance))
+            - gift_card.current_balance_amount,
+            currency=gift_card.currency,
+        )
+        for gift_card, previous_balance in balance_data
+        if Decimal(str(previous_balance)) > gift_card.current_balance_amount
+    ]
+    if applications:
+        OrderGiftCardApplication.objects.bulk_create(
+            applications, ignore_conflicts=True
+        )
 
     # Invalidate prices for checkouts attached to gift cards used by this order.
     # This will ensure the checkout status gets recalculcated to accomodate gift cards

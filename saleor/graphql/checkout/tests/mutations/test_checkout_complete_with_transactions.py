@@ -29,7 +29,7 @@ from .....discount.models import (
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderOrigin, OrderStatus
-from .....order.models import Fulfillment, Order
+from .....order.models import Fulfillment, Order, OrderGiftCardApplication
 from .....payment import TransactionEventType
 from .....payment.model_helpers import get_subtotal
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
@@ -1948,6 +1948,12 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert application
+    assert application.amount_used_amount == gift_card.initial_balance_amount
+    assert application.currency == gift_card.currency
     assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
         "Checkout should have been deleted"
     )
@@ -2312,6 +2318,12 @@ def test_checkout_complete_with_entire_order_voucher_paid_with_gift_card_and_tra
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert application
+    assert application.amount_used_amount == gift_card_initial_balance
+    assert application.currency == gift_card.currency
 
 
 @pytest.mark.integration
@@ -2414,6 +2426,12 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert application
+    assert application.amount_used_amount == total_without_gc.gross.amount
+    assert application.currency == gift_card.currency
 
 
 @pytest.mark.parametrize(
@@ -2641,6 +2659,12 @@ def test_checkout_complete_with_voucher_apply_once_per_order_and_gift_card(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert application
+    assert application.amount_used_amount == gift_card_initial_balance
+    assert application.currency == gift_card.currency
 
 
 @pytest.mark.integration
@@ -3180,6 +3204,12 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert application
+    assert application.amount_used_amount == gift_card_initial_balance
+    assert application.currency == gift_card.currency
 
 
 def test_checkout_complete_product_on_promotion(

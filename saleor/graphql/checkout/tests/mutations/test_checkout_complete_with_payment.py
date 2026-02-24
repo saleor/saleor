@@ -23,7 +23,7 @@ from .....discount.models import CheckoutLineDiscount, OrderLineDiscount, Promot
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
-from .....order.models import Fulfillment, Order
+from .....order.models import Fulfillment, Order, OrderGiftCardApplication
 from .....payment import ChargeStatus, PaymentError, TransactionKind
 from .....payment.error_codes import PaymentErrorCode
 from .....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
@@ -1810,6 +1810,12 @@ def test_checkout_complete_with_voucher_paid_with_gift_card_and_payment(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert application
+    assert application.amount_used_amount == gift_card_initial_balance
+    assert application.currency == gift_card.currency
 
 
 @pytest.mark.integration
@@ -1918,6 +1924,12 @@ def test_checkout_complete_with_voucher_paid_by_gift_card(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert application
+    assert application.amount_used_amount == total_without_gc.gross.amount
+    assert application.currency == gift_card.currency
 
 
 @pytest.mark.integration
@@ -2039,6 +2051,12 @@ def test_checkout_complete_free_shipping_voucher_and_gift_card(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
+    application = OrderGiftCardApplication.objects.filter(
+        order=order, gift_card=gift_card
+    ).first()
+    assert application
+    assert application.amount_used_amount == gift_card.initial_balance_amount
+    assert application.currency == gift_card.currency
 
 
 def test_checkout_complete_product_on_promotion(

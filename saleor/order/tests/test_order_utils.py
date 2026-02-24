@@ -17,7 +17,7 @@ from ...plugins.manager import get_plugins_manager
 from .. import OrderGrantedRefundStatus, OrderStatus
 from ..events import OrderEvents
 from ..fetch import OrderLineInfo
-from ..models import Order, OrderEvent
+from ..models import Order, OrderEvent, OrderGiftCardApplication
 from ..utils import (
     add_gift_cards_to_order,
     add_variant_to_order,
@@ -455,6 +455,41 @@ def test_add_gift_cards_to_order_no_checkout_user(
             "old_current_balance": "20.000",
         },
     }
+
+
+def test_add_gift_cards_to_order_creates_gift_card_applications(
+    checkout_with_item, gift_card, gift_card_expiry_date, order, staff_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.email = staff_user.email
+    checkout.user = staff_user
+    checkout.gift_cards.add(gift_card, gift_card_expiry_date)
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    gift_card_1_balance = gift_card.current_balance_amount
+
+    # when
+    total_price = Money(30, gift_card.currency)
+    add_gift_cards_to_order(checkout_info, order, total_price, staff_user, None)
+
+    # then
+    applications = OrderGiftCardApplication.objects.filter(order=order)
+    assert applications.count() == 2
+
+    app_by_card = {a.gift_card_id: a for a in applications}
+
+    gift_card_app = app_by_card[gift_card.pk]
+    assert gift_card_app.amount_used_amount == gift_card_1_balance
+    assert gift_card_app.currency == gift_card.currency
+
+    expiry_card_app = app_by_card[gift_card_expiry_date.pk]
+    assert (
+        expiry_card_app.amount_used_amount == total_price.amount - gift_card_1_balance
+    )
+    assert expiry_card_app.currency == gift_card_expiry_date.currency
 
 
 def test_add_gift_cards_to_order_invalidates_prices_for_other_checkout_attached_to_the_same_gift_card(
