@@ -362,7 +362,6 @@ def collection_product_updated_task(product_ids):
 
 @app.task(
     bind=True,
-    retry_backoff=10,
     retry_kwargs={"max_retries": 3},
 )
 @allow_writer()
@@ -444,4 +443,6 @@ def fetch_product_media_image_task(self, product_media_id: int):
             )
             product_media.delete()
             return
-        raise self.retry(exc=exc) from exc
+        # initial backoff is 10 seconds, next retries follow exponential backoff
+        countdown = 10 * (2**self.request.retries)
+        raise self.retry(exc=exc, countdown=countdown) from exc
