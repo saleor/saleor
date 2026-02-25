@@ -240,7 +240,13 @@ class ProductBulkCreate(BaseMutation):
 
     @classmethod
     def clean_base_fields(
-        cls, cleaned_input, new_slugs, product_index, index_error_map
+        cls,
+        cleaned_input,
+        new_slugs,
+        duplicated_input_slugs,
+        existing_slugs,
+        product_index,
+        index_error_map,
     ):
         base_fields_errors_count = 0
 
@@ -262,8 +268,7 @@ class ProductBulkCreate(BaseMutation):
 
         slug = cleaned_input.get("slug")
         if slug:
-            # Check for duplicates within the current batch
-            if slug in new_slugs:
+            if slug in duplicated_input_slugs:
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
                         path="slug",
@@ -272,8 +277,7 @@ class ProductBulkCreate(BaseMutation):
                     )
                 )
                 base_fields_errors_count += 1
-            # Check for duplicates against existing products in the DB
-            elif models.Product.objects.filter(slug=slug).exists():
+            elif slug in existing_slugs:
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
                         path="slug",
@@ -637,6 +641,8 @@ class ProductBulkCreate(BaseMutation):
         warehouse_global_id_to_instance_map: dict,
         duplicated_sku: set,
         new_slugs: list,
+        duplicated_input_slugs: set,
+        existing_slugs: set,
         product_index: int,
         index_error_map: dict,
     ):
@@ -654,6 +660,8 @@ class ProductBulkCreate(BaseMutation):
         base_fields_errors_count += cls.clean_base_fields(
             cleaned_input,
             new_slugs,
+            duplicated_input_slugs,
+            existing_slugs,
             product_index,
             index_error_map,
         )
@@ -716,6 +724,15 @@ class ProductBulkCreate(BaseMutation):
                 if variant.sku
             ]
         )
+        input_slugs = [
+            product_data.slug for product_data in products_data if product_data.slug
+        ]
+        duplicated_input_slugs = get_duplicated_values(input_slugs)
+        existing_slugs = set(
+            models.Product.objects.filter(slug__in=set(input_slugs)).values_list(
+                "slug", flat=True
+            )
+        )
 
         for product_index, product_data in enumerate(products_data):
             cleaned_input = cls.clean_product_input(
@@ -725,6 +742,8 @@ class ProductBulkCreate(BaseMutation):
                 warehouse_global_id_to_instance_map,
                 duplicated_sku,
                 new_slugs,
+                duplicated_input_slugs,
+                existing_slugs,
                 product_index,
                 index_error_map,
             )

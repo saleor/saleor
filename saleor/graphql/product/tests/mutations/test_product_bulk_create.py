@@ -3301,12 +3301,11 @@ def test_product_bulk_create_with_duplicated_slug_in_batch(
 
     # then
     assert data["count"] == 0
-    # First product should succeed, second should have the duplicate error
-    assert not data["results"][0]["errors"]
-    errors = data["results"][1]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["path"] == "slug"
-    assert errors[0]["code"] == ProductBulkCreateErrorCode.UNIQUE.name
+    for result in data["results"]:
+        errors = result["errors"]
+        assert len(errors) == 1
+        assert errors[0]["path"] == "slug"
+        assert errors[0]["code"] == ProductBulkCreateErrorCode.UNIQUE.name
 
 
 def test_product_bulk_create_with_existing_slug_reject_failed_rows(
