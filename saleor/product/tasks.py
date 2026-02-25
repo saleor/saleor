@@ -386,11 +386,11 @@ def fetch_product_media_image_task(self, product_media_id: int):
         return
 
     if not product_media.external_url:
-        logger.warning(
-            "Product media with id: %s does not have an external URL.",
-            product_media_id,
+        raise ValueError(
+            f"Product media with id: {product_media_id} has neither an external "
+            f"URL nor an image. The object is in an invalid state and cannot be "
+            f"processed."
         )
-        return
 
     try:
         with HTTPClient.send_request(

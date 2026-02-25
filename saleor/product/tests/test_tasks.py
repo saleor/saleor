@@ -376,23 +376,18 @@ def test_fetch_product_media_image_not_found(caplog):
     assert "Cannot find product media" in caplog.text
 
 
-def test_fetch_product_media_image_missing_external_url(
-    product_media_image_not_yet_fetched, caplog
+def test_fetch_product_media_image_missing_external_url_and_image(
+    product_media_image_not_yet_fetched,
 ):
     # given
-    caplog.set_level(logging.WARNING)
     product_media = product_media_image_not_yet_fetched
     product_media.external_url = None
     product_media.save(update_fields=["external_url"])
     assert not product_media.image
 
-    # when
-    fetch_product_media_image_task(product_media.pk)
-
-    # then
-    assert "does not have an external URL" in caplog.text
-    product_media.refresh_from_db()
-    assert not product_media.image
+    # when & then
+    with pytest.raises(ValueError, match="invalid state"):
+        fetch_product_media_image_task(product_media.pk)
 
 
 def test_fetch_product_media_image_wrong_type(product_media_video, caplog):
