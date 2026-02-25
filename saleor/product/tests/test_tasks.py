@@ -490,23 +490,21 @@ def test_fetch_product_media_image_deleted_after_final_retry(
     product_media_id = product_media.pk
     assert not product_media.image
 
+    max_retries = 3
+    assert fetch_product_media_image_task.max_retries == max_retries
+
     # when
-    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+
+    # simulate the state where task is being retried for the third time
+    request = MagicMock(retries=max_retries)
+    with (
+        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
+        patch.object(
+            fetch_product_media_image_task, "request_stack", MagicMock(top=request)
+        ),
+    ):
         mock_http_client.send_request.side_effect = RequestException("Connection error")
-        request = MagicMock(retries=3, called_directly=False)
-        with (
-            patch.object(
-                fetch_product_media_image_task,
-                "max_retries",
-                3,
-            ),
-            patch.object(
-                fetch_product_media_image_task,
-                "request_stack",
-                MagicMock(top=request),
-            ),
-        ):
-            fetch_product_media_image_task.run(product_media_id)
+        fetch_product_media_image_task(product_media_id)
 
     # then
     assert "Removing product media" in caplog.text
