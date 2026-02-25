@@ -12,9 +12,6 @@ from ...core.utils.events import call_event_including_protected_events
 from ...graphql.webhook.dataloaders.pregenerated_payload_for_checkout_tax import (
     PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader,
 )
-from ...graphql.webhook.dataloaders.pregenerated_payloads_for_checkout_filter_shipping_methods import (
-    PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader,
-)
 from ...plugins.manager import get_plugins_manager
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import CheckoutAuthorizeStatus, CheckoutChargeStatus
@@ -1800,11 +1797,6 @@ def test_transaction_amounts_for_checkout_updated_without_price_recalculation_co
     "saleor.graphql.checkout.types.PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader",
     wraps=PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader,
 )
-@patch(
-    "saleor.graphql.checkout.types."
-    "PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader",
-    wraps=PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -1819,7 +1811,6 @@ def test_call_checkout_events_skips_pregenerated_payloads_in_non_deferred_async_
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_pregenerated_tax_payload_loader,
-    mocked_pregenerated_filter_shipping_payload_loader,
     checkout_with_items,
     setup_checkout_webhooks,
     settings,
@@ -1859,5 +1850,4 @@ def test_call_checkout_events_skips_pregenerated_payloads_in_non_deferred_async_
     # should skip the payload when called inside non-deferred webhook processing. This is skipped
     # as all sync webhooks are called inside the mutation.
     assert mocked_pregenerated_tax_payload_loader.called
-    assert mocked_pregenerated_filter_shipping_payload_loader.called
     assert "Subscription did not return a payload." not in caplog.text
