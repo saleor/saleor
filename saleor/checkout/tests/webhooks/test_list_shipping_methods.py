@@ -34,7 +34,7 @@ def test_list_shipping_methods_for_checkout_webhook_response_none(
         [],
         allow_replica=False,
         requestor=None,
-    )
+    ).get()
 
     # then
     assert not response
@@ -61,7 +61,7 @@ def test_list_shipping_methods_for_checkout_set_cache(
     # when
     list_shipping_methods_for_checkout(
         checkout_with_item, [], allow_replica=False, requestor=None
-    )
+    ).get()
 
     # then
     assert mocked_webhook.called
@@ -92,7 +92,7 @@ def test_list_shipping_methods_no_webhook_response_sets_short_term_cache(
     # when
     list_shipping_methods_for_checkout(
         checkout_with_item, [], allow_replica=False, requestor=None
-    )
+    ).get()
 
     # then
     assert mocked_webhook.called
@@ -124,7 +124,7 @@ def test_list_shipping_methods_for_checkout_use_cache(
     # when
     list_shipping_methods_for_checkout(
         checkout_with_item, [], allow_replica=False, requestor=None
-    )
+    ).get()
 
     # then
     assert not mocked_webhook.called
@@ -145,7 +145,7 @@ def test_list_shipping_methods_for_checkout_use_cache_for_empty_list(
     # when
     list_shipping_methods_for_checkout(
         checkout_with_item, [], allow_replica=False, requestor=None
-    )
+    ).get()
 
     # then
     assert not mocked_webhook.called
@@ -197,7 +197,7 @@ def test_checkout_change_invalidates_cache_key(
     )
     list_shipping_methods_for_checkout(
         checkout_with_item, [], allow_replica=False, requestor=None
-    )
+    ).get()
 
     # then
     assert cache_key != new_cache_key
@@ -254,7 +254,7 @@ def test_ignore_selected_fields_on_generating_cache_key(
     )
     list_shipping_methods_for_checkout(
         checkout_with_item, [], allow_replica=False, requestor=None
-    )
+    ).get()
 
     # then
     assert cache_key == new_cache_key
