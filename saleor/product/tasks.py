@@ -9,19 +9,35 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
+from PIL import Image
 
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
+from ..core.http_client import HTTPClient
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
+from ..graphql.core.utils import create_file_from_response
+from ..graphql.core.validators.file import (
+    get_mime_type,
+    is_image_mimetype,
+    is_valid_image_content_type,
+)
 from ..plugins.manager import get_plugins_manager
+from ..product import ProductMediaTypes
+from ..thumbnail.utils import ProcessedImage, get_filename_from_url
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
 from .lock_objects import product_qs_select_for_update
-from .models import Product, ProductChannelListing, ProductType, ProductVariant
+from .models import (
+    Product,
+    ProductChannelListing,
+    ProductMedia,
+    ProductType,
+    ProductVariant,
+)
 from .search import update_products_search_vector
 from .utils.product import mark_products_in_channels_as_dirty
 from .utils.variant_prices import update_discounted_prices_for_promotion
@@ -341,3 +357,83 @@ def collection_product_updated_task(product_ids):
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
     for product in products:
         manager.product_updated(product, webhooks=webhooks)
+
+
+@app.task(
+    bind=True,
+    retry_backoff=10,
+    retry_kwargs={"max_retries": 3},
+)
+@allow_writer()
+def fetch_product_media_image_task(self, product_media_id: int):
+    try:
+        product_media = ProductMedia.objects.get(
+            pk=product_media_id, type=ProductMediaTypes.IMAGE
+        )
+    except ProductMedia.DoesNotExist:
+        logger.warning(
+            "Cannot find product media of type: %s with id: %s.",
+            ProductMediaTypes.IMAGE,
+            product_media_id,
+        )
+        return
+
+    if product_media.image:
+        logger.warning(
+            "Product media with id: %s already has an image.",
+            product_media_id,
+        )
+        return
+
+    if not product_media.external_url:
+        logger.warning(
+            "Product media with id: %s does not have an external URL.",
+            product_media_id,
+        )
+        return
+
+    try:
+        with HTTPClient.send_request(
+            "GET",
+            product_media.external_url,
+            stream=True,
+            allow_redirects=False,
+            timeout=settings.COMMON_REQUESTS_TIMEOUT,
+        ) as image_data:
+            # Check content-type header and validate the value.
+            mime_type = get_mime_type(image_data.headers.get("content-type"))
+            if not is_image_mimetype(mime_type) or not is_valid_image_content_type(
+                mime_type
+            ):
+                raise ValueError(
+                    f"File from product media: {product_media.pk} does not have "
+                    f"valid image content-type: {mime_type}."
+                )
+
+            # Create file.
+            filename = get_filename_from_url(product_media.external_url, mime_type)
+            image = create_file_from_response(image_data, filename)
+
+            # Validate with by getting exif.
+            pil_image_obj = Image.open(image)
+            pil_image_obj.getexif()
+            image.seek(0)
+
+            # Validate by reading MIME type from magic bytes.
+            ProcessedImage.get_image_metadata_from_file(image)
+            image.seek(0)
+
+            product_media.image = image
+            product_media.external_url = None
+            product_media.save(update_fields=["image", "external_url"])
+    except Exception as exc:
+        if self.request.retries >= self.max_retries:
+            logger.warning(
+                "Failed to fetch image for product media with id: %s after %s retries. "
+                "Removing product media.",
+                product_media_id,
+                self.request.retries,
+            )
+            product_media.delete()
+            return
+        raise self.retry(exc=exc) from exc

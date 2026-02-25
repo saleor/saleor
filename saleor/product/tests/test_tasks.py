@@ -1,17 +1,25 @@
 import datetime
 import logging
 from decimal import Decimal
-from unittest.mock import patch
+from io import BytesIO
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.utils import timezone
 from faker import Faker
+from PIL import Image
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
-from ..models import Product, ProductChannelListing, ProductVariantChannelListing
+from ..models import (
+    Product,
+    ProductChannelListing,
+    ProductMedia,
+    ProductVariantChannelListing,
+)
 from ..tasks import (
     _get_preorder_variants_to_clean,
+    fetch_product_media_image_task,
     mark_products_search_vector_as_dirty,
     recalculate_discounted_price_for_products_task,
     update_products_search_vector_task,
@@ -335,3 +343,243 @@ def test_mark_products_search_vector_as_dirty(product_list):
             "search_index_dirty", flat=True
         )
     )
+
+
+def test_fetch_product_media_image_already_has_image(product_media_image, caplog):
+    # given
+    caplog.set_level(logging.WARNING)
+    assert product_media_image.image
+
+    image = product_media_image.image
+
+    # when
+    fetch_product_media_image_task(product_media_image.pk)
+
+    # then
+    assert "already has an image" in caplog.text
+
+    product_media_image.refresh_from_db(fields=["image"])
+    assert product_media_image.image == image
+
+
+def test_fetch_product_media_image_not_found(caplog):
+    # given
+    caplog.set_level(logging.WARNING)
+    non_existent_id = -1
+    assert not ProductMedia.objects.filter(pk=non_existent_id).exists()
+
+    # when
+    fetch_product_media_image_task(non_existent_id)
+
+    # then
+    assert "Cannot find product media" in caplog.text
+
+
+def test_fetch_product_media_image_missing_external_url(
+    product_media_image_not_yet_fetched, caplog
+):
+    # given
+    caplog.set_level(logging.WARNING)
+    product_media = product_media_image_not_yet_fetched
+    product_media.external_url = None
+    product_media.save(update_fields=["external_url"])
+    assert not product_media.image
+
+    # when
+    fetch_product_media_image_task(product_media.pk)
+
+    # then
+    assert "does not have an external URL" in caplog.text
+    product_media.refresh_from_db()
+    assert not product_media.image
+
+
+def test_fetch_product_media_image_wrong_type(product_media_video, caplog):
+    # given
+    caplog.set_level(logging.WARNING)
+    product_media = product_media_video
+    assert not product_media.image
+
+    # when
+    fetch_product_media_image_task(product_media.pk)
+
+    # then
+    assert "Cannot find product media" in caplog.text
+    product_media.refresh_from_db()
+    assert not product_media.image
+
+
+@patch("saleor.product.tasks.HTTPClient")
+def test_fetch_product_media_image_non_image_content_type(
+    mock_http_client, product_media_image_not_yet_fetched, caplog
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    assert product_media.external_url
+    assert not product_media.image
+
+    mock_response = MagicMock()
+    mock_response.headers.get.return_value = "text/plain"
+    mock_http_client.send_request.return_value.__enter__ = MagicMock(
+        return_value=mock_response
+    )
+
+    # when
+    with pytest.raises(ValueError, match="does not have valid image content-type"):
+        fetch_product_media_image_task(product_media.pk)
+
+    # then
+    product_media.refresh_from_db()
+    assert not product_media.image
+
+
+def test_fetch_product_media_image_success(
+    product_media_image_not_yet_fetched, media_root
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    assert product_media.external_url
+    assert not product_media.image
+
+    image_buffer = BytesIO()
+    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
+    image_bytes = image_buffer.getvalue()
+
+    mock_response = MagicMock()
+    mock_response.headers.get.return_value = "image/jpeg"
+    mock_response.content = image_bytes
+
+    # when
+    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+        mock_http_client.send_request.return_value.__enter__ = MagicMock(
+            return_value=mock_response
+        )
+        fetch_product_media_image_task(product_media.pk)
+
+    # then
+    product_media.refresh_from_db()
+    assert product_media.external_url is None
+    assert product_media.image
+
+
+@patch("saleor.product.tasks.HTTPClient")
+def test_fetch_product_media_image_unsupported_image_content_type(
+    mock_http_client, product_media_image_not_yet_fetched
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    assert not product_media.image
+
+    mock_response = MagicMock()
+    mock_response.headers.get.return_value = "image/svg+xml"
+    mock_http_client.send_request.return_value.__enter__ = MagicMock(
+        return_value=mock_response
+    )
+
+    # when
+    with pytest.raises(ValueError, match="does not have valid image content-type"):
+        fetch_product_media_image_task(product_media.pk)
+
+    # then
+    product_media.refresh_from_db()
+    assert not product_media.image
+
+
+def test_fetch_product_media_image_deleted_after_final_retry(
+    product_media_image_not_yet_fetched, caplog
+):
+    # given
+    caplog.set_level(logging.WARNING)
+    product_media = product_media_image_not_yet_fetched
+    product_media_id = product_media.pk
+    assert not product_media.image
+
+    # when
+    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+        mock_http_client.send_request.side_effect = Exception("Connection error")
+        request = MagicMock(retries=3, called_directly=False)
+        with (
+            patch.object(
+                fetch_product_media_image_task,
+                "max_retries",
+                3,
+            ),
+            patch.object(
+                fetch_product_media_image_task,
+                "request_stack",
+                MagicMock(top=request),
+            ),
+        ):
+            fetch_product_media_image_task.run(product_media_id)
+
+    # then
+    assert "Removing product media" in caplog.text
+    assert not ProductMedia.objects.filter(pk=product_media_id).exists()
+
+
+def test_fetch_product_media_image_invalid_exif(product_media_image_not_yet_fetched):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    assert not product_media.image
+
+    image_buffer = BytesIO()
+    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
+    image_bytes = image_buffer.getvalue()
+
+    mock_response = MagicMock()
+    mock_response.headers.get.return_value = "image/jpeg"
+    mock_response.content = image_bytes
+
+    # when
+    with (
+        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
+        patch("saleor.product.tasks.Image.open") as mock_image_open,
+    ):
+        mock_http_client.send_request.return_value.__enter__ = MagicMock(
+            return_value=mock_response
+        )
+        mock_pil_image = MagicMock()
+        mock_pil_image.getexif.side_effect = SyntaxError("Invalid EXIF")
+        mock_image_open.return_value = mock_pil_image
+
+        with pytest.raises(SyntaxError):
+            fetch_product_media_image_task(product_media.pk)
+
+    # then
+    product_media.refresh_from_db()
+    assert not product_media.image
+
+
+def test_fetch_product_media_image_invalid_metadata(
+    product_media_image_not_yet_fetched,
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    assert not product_media.image
+
+    image_buffer = BytesIO()
+    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
+    image_bytes = image_buffer.getvalue()
+
+    mock_response = MagicMock()
+    mock_response.headers.get.return_value = "image/jpeg"
+    mock_response.content = image_bytes
+
+    # when
+    with (
+        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
+        patch(
+            "saleor.product.tasks.ProcessedImage.get_image_metadata_from_file",
+            side_effect=ValueError("Unsupported image MIME type"),
+        ),
+    ):
+        mock_http_client.send_request.return_value.__enter__ = MagicMock(
+            return_value=mock_response
+        )
+
+        with pytest.raises(ValueError, match="Unsupported image MIME type"):
+            fetch_product_media_image_task(product_media.pk)
+
+    # then
+    product_media.refresh_from_db()
+    assert not product_media.image
