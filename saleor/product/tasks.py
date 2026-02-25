@@ -414,13 +414,13 @@ def fetch_product_media_image_task(self, product_media_id: int):
             filename = get_filename_from_url(product_media.external_url, mime_type)
             image = create_file_from_response(image_data, filename)
 
+        # Validate by reading MIME type from magic bytes.
+        ProcessedImage.get_image_metadata_from_file(image)
+        image.seek(0)
+
         # Validate with by getting exif.
         pil_image_obj = Image.open(image)
         pil_image_obj.getexif()
-        image.seek(0)
-
-        # Validate by reading MIME type from magic bytes.
-        ProcessedImage.get_image_metadata_from_file(image)
         image.seek(0)
 
         product_media.image = image
