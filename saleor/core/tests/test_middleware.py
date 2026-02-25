@@ -27,7 +27,6 @@ def test_jwt_refresh_token_middleware(rf, customer_user, settings):
 
 @freeze_time("2020-03-18 12:00:00")
 def test_jwt_refresh_token_middleware_token_without_expire(rf, customer_user, settings):
-    settings.JWT_EXPIRE = True
     payload = jwt_user_payload(
         customer_user,
         JWT_REFRESH_TYPE,

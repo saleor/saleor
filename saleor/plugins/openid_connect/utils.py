@@ -551,7 +551,7 @@ def get_user_from_token(claims: CodeIDToken) -> User:
 
 def is_owner_of_token_valid(token: str, owner: str) -> bool:
     try:
-        payload = jwt_decode(token, verify_expiration=False)
+        payload = jwt_decode(token)
         return payload.get(JWT_OWNER_FIELD, "") == owner
     except Exception:
         return False
@@ -591,7 +591,7 @@ def validate_refresh_token(refresh_token, data):
         )
 
     try:
-        refresh_payload = jwt_decode(refresh_token, verify_expiration=True)
+        refresh_payload = jwt_decode(refresh_token)
     except PyJWTError as e:
         raise ValidationError(
             {

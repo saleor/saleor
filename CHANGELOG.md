@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 Validation is now performed on the frontend (Dashboard). This change increases velocity of features related to apps and extensions, now Dashboard is only entity that ensures the contract
 - Add optional usage telemetry. - #18789 by @wcislo-saleor
 - The app can now be installed without providing a `tokenTargetUrl` in the manifest file.
+- Removed the setting `JWT_EXPIRE` which allowed to configure Saleor to ignore the JWT token expiration. - #18856 by @NyanKiyoshi
 
 #### Search improvements
 
