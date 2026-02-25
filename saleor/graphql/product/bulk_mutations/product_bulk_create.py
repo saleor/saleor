@@ -12,9 +12,14 @@ from text_unidecode import unidecode
 from ....core.exceptions import UnsupportedMediaProviderException
 from ....core.http_client import HTTPClient
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils import prepare_unique_slug
+from ....core.utils import create_file_from_response, prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
-from ....core.utils.validators import get_oembed_data
+from ....core.utils.validators import (
+    get_mime_type,
+    get_oembed_data,
+    is_image_mimetype,
+    is_valid_image_content_type,
+)
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
@@ -41,14 +46,9 @@ from ...core.types import (
     ProductBulkCreateError,
     SeoInput,
 )
-from ...core.utils import create_file_from_response, get_duplicated_values
+from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
-from ...core.validators.file import (
-    clean_image_file,
-    get_mime_type,
-    is_image_mimetype,
-    is_valid_image_content_type,
-)
+from ...core.validators.file import clean_image_file
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput

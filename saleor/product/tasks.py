@@ -17,14 +17,14 @@ from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
 from ..core.http_client import HTTPClient
-from ..discount import PromotionType
-from ..discount.models import Promotion, PromotionRule
-from ..graphql.core.utils import create_file_from_response
-from ..graphql.core.validators.file import (
+from ..core.utils import create_file_from_response
+from ..core.utils.validators import (
     get_mime_type,
     is_image_mimetype,
     is_valid_image_content_type,
 )
+from ..discount import PromotionType
+from ..discount.models import Promotion, PromotionRule
 from ..plugins.manager import get_plugins_manager
 from ..product import ProductMediaTypes
 from ..thumbnail.utils import ProcessedImage, get_filename_from_url

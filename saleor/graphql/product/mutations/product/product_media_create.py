@@ -4,7 +4,13 @@ from django.core.exceptions import ValidationError
 
 from .....core.exceptions import UnsupportedMediaProviderException
 from .....core.http_client import HTTPClient
-from .....core.utils.validators import get_oembed_data
+from .....core.utils import create_file_from_response
+from .....core.utils.validators import (
+    get_mime_type,
+    get_oembed_data,
+    is_image_mimetype,
+    is_valid_image_content_type,
+)
 from .....permission.enums import ProductPermissions
 from .....product import ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
@@ -14,13 +20,7 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
-from ....core.utils import create_file_from_response
-from ....core.validators.file import (
-    clean_image_file,
-    get_mime_type,
-    is_image_mimetype,
-    is_valid_image_content_type,
-)
+from ....core.validators.file import clean_image_file
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 from ...utils import ALT_CHAR_LIMIT

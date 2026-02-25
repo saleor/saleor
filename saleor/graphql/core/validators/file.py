@@ -87,29 +87,11 @@ def detect_mime_type(file_data) -> str:
     return mime_type
 
 
-def get_mime_type(content_type_header: str | None) -> str | None:
-    if content_type_header is None:
-        return None
-    return content_type_header.split(";", maxsplit=1)[0].strip().lower()
-
-
-def is_image_mimetype(mimetype: str | None) -> bool:
-    """Check if mimetype is image."""
-    if mimetype is None:
-        return False
-    return mimetype.startswith("image/")
-
-
 def is_supported_image_mimetype(mimetype: str) -> bool:
     """Check if mimetype is a mimetype that thumbnails support."""
     if mimetype is None:
         return False
     return mimetype in MIME_TYPE_TO_PIL_IDENTIFIER.keys()
-
-
-def is_valid_image_content_type(content_type: str | None) -> bool:
-    """Check if content type is a valid image content type."""
-    return content_type is not None and is_supported_image_mimetype(content_type)
 
 
 def clean_image_file(cleaned_input, img_field_name, error_class):
