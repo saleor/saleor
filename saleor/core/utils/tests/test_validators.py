@@ -36,6 +36,7 @@ def test_is_image_mimetype_invalid_mimetype():
         ("image/tiff", True),
         ("image/webp", True),
         ("image/avif", True),
+        ("image/svg+xml", False),
         ("application/json", False),
         ("text/plain", False),
         ("application/pdf", False),
