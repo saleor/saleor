@@ -6,10 +6,11 @@ from uuid import UUID
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
+from requests import RequestException
 
 from ..attribute.models import Attribute
 from ..celeryconf import app
@@ -414,19 +415,26 @@ def fetch_product_media_image_task(self, product_media_id: int):
             filename = get_filename_from_url(product_media.external_url, mime_type)
             image = create_file_from_response(image_data, filename)
 
-            # Validate with by getting exif.
-            pil_image_obj = Image.open(image)
-            pil_image_obj.getexif()
-            image.seek(0)
+        # Validate with by getting exif.
+        pil_image_obj = Image.open(image)
+        pil_image_obj.getexif()
+        image.seek(0)
 
-            # Validate by reading MIME type from magic bytes.
-            ProcessedImage.get_image_metadata_from_file(image)
-            image.seek(0)
+        # Validate by reading MIME type from magic bytes.
+        ProcessedImage.get_image_metadata_from_file(image)
+        image.seek(0)
 
-            product_media.image = image
-            product_media.external_url = None
-            product_media.save(update_fields=["image", "external_url"])
-    except Exception as exc:
+        product_media.image = image
+        product_media.external_url = None
+        product_media.save(update_fields=["image", "external_url"])
+    except (
+        RequestException,
+        DatabaseError,
+        UnidentifiedImageError,
+        SyntaxError,
+        TypeError,
+        ValueError,
+    ) as exc:
         if self.request.retries >= self.max_retries:
             logger.warning(
                 "Failed to fetch image for product media with id: %s after %s retries. "

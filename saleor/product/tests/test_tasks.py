@@ -8,6 +8,7 @@ import pytest
 from django.utils import timezone
 from faker import Faker
 from PIL import Image
+from requests.exceptions import RequestException
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
@@ -496,7 +497,7 @@ def test_fetch_product_media_image_deleted_after_final_retry(
 
     # when
     with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
-        mock_http_client.send_request.side_effect = Exception("Connection error")
+        mock_http_client.send_request.side_effect = RequestException("Connection error")
         request = MagicMock(retries=3, called_directly=False)
         with (
             patch.object(
