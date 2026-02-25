@@ -19,7 +19,6 @@ from .fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_or_fetch_checkout_deliveries,
 )
 from .models import Checkout
 from .payment_utils import (
@@ -90,6 +89,8 @@ def _trigger_checkout_sync_webhooks(
     webhook_event_map: dict[str, set["Webhook"]],
     address: Optional["Address"] = None,
 ):
+    from .delivery_context import get_or_fetch_checkout_deliveries
+
     get_or_fetch_checkout_deliveries(checkout_info)
     # + timedelta(seconds=10) to confirm that triggered webhooks will still have
     # valid prices. Triggered only when we have active sync tax webhook.

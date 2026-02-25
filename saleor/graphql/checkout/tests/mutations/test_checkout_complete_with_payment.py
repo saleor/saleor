@@ -12,15 +12,17 @@ from django.utils import timezone
 
 from .....account.models import Address
 from .....checkout import calculations
+from .....checkout.delivery_context import (
+    PRIVATE_META_APP_SHIPPING_ID,
+    fetch_shipping_methods_for_checkout,
+    get_or_fetch_checkout_deliveries,
+)
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
-    fetch_shipping_methods_for_checkout,
-    get_or_fetch_checkout_deliveries,
 )
 from .....checkout.models import Checkout, CheckoutDelivery, CheckoutLine
-from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.exceptions import InsufficientStock, InsufficientStockData
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
@@ -6288,7 +6290,7 @@ def test_complete_refreshes_shipping_methods_when_stale(
 
 
 @patch(
-    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    "saleor.checkout.delivery_context.fetch_shipping_methods_for_checkout",
     wraps=fetch_shipping_methods_for_checkout,
 )
 def test_complete_do_not_refresh_shipping_methods_when_not_stale(
@@ -6335,7 +6337,7 @@ def test_complete_do_not_refresh_shipping_methods_when_not_stale(
 
 
 @patch(
-    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    "saleor.checkout.delivery_context.fetch_shipping_methods_for_checkout",
     wraps=fetch_shipping_methods_for_checkout,
 )
 def test_complete_do_not_refresh_shipping_methods_when_cc_is_used(

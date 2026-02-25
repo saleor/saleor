@@ -13,16 +13,19 @@ from prices import TaxedMoney
 from .....account.models import Address
 from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
+from .....checkout.delivery_context import (
+    PRIVATE_META_APP_SHIPPING_ID,
+    fetch_shipping_methods_for_checkout,
+    get_or_fetch_checkout_deliveries,
+)
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
-    fetch_shipping_methods_for_checkout,
-    get_or_fetch_checkout_deliveries,
 )
 from .....checkout.models import Checkout, CheckoutDelivery, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
-from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, add_voucher_to_checkout
+from .....checkout.utils import add_voucher_to_checkout
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
 from .....discount.models import (
@@ -5849,7 +5852,7 @@ def test_checkout_complete_race_condition_on_preparing_checkout(
 
 
 @patch(
-    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    "saleor.checkout.delivery_context.fetch_shipping_methods_for_checkout",
     wraps=fetch_shipping_methods_for_checkout,
 )
 def test_complete_do_not_refresh_shipping_methods_when_not_stale(
@@ -5897,7 +5900,7 @@ def test_complete_do_not_refresh_shipping_methods_when_not_stale(
 
 
 @patch(
-    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    "saleor.checkout.delivery_context.fetch_shipping_methods_for_checkout",
     wraps=fetch_shipping_methods_for_checkout,
 )
 def test_complete_do_not_refresh_shipping_methods_when_cc_is_used(

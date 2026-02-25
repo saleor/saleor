@@ -7,15 +7,17 @@ from ....checkout.checkout_cleaner import (
     validate_checkout_email,
 )
 from ....checkout.complete_checkout import complete_checkout
+from ....checkout.delivery_context import (
+    get_or_fetch_checkout_deliveries,
+    is_shipping_required,
+)
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_or_fetch_checkout_deliveries,
 )
-from ....checkout.utils import is_shipping_required
 from ....order import models as order_models
 from ....permission.enums import AccountPermissions
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType

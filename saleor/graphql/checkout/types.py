@@ -9,8 +9,10 @@ from promise import Promise
 from ...account.models import User
 from ...checkout import calculations, models, problems
 from ...checkout.calculations import fetch_checkout_data
-from ...checkout.fetch import fetch_shipping_methods_for_checkout
-from ...checkout.utils import get_valid_collection_points_for_checkout
+from ...checkout.delivery_context import (
+    fetch_shipping_methods_for_checkout,
+    get_valid_collection_points_for_checkout,
+)
 from ...core.db.connection import allow_writer_in_context
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money

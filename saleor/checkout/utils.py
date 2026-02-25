@@ -20,7 +20,6 @@ from ..core.exceptions import (
     NonExistingCheckoutLines,
     ProductNotPublished,
 )
-from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..core.utils.metadata_manager import (
     MetadataItemCollection,
@@ -56,19 +55,16 @@ from ..giftcard.utils import (
 from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
-from ..shipping.interface import ShippingMethodData
-from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
-from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.availability import check_stock_and_preorder_quantity
-from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
 from . import AddressType, base_calculations, calculations
+from .delivery_context import is_shipping_required
 from .error_codes import CheckoutErrorCode
 from .lock_objects import (
     checkout_lines_qs_select_for_update,
     checkout_qs_select_for_update,
 )
-from .models import Checkout, CheckoutDelivery, CheckoutLine, CheckoutMetadata
+from .models import Checkout, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
     from measurement.measures import Weight
@@ -77,8 +73,6 @@ if TYPE_CHECKING:
     from ..core.pricing.interface import LineInfo
     from ..order.models import OrderLine
     from .fetch import CheckoutInfo, CheckoutLineInfo
-
-PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 
 
 def invalidate_checkout(
@@ -970,101 +964,6 @@ def remove_voucher_from_checkout(checkout: Checkout):
     )
 
 
-def get_valid_internal_shipping_methods_for_checkout_info(
-    checkout_info: "CheckoutInfo",
-    subtotal: "Money",
-) -> list[ShippingMethodData]:
-    if not is_shipping_required(checkout_info.lines):
-        return []
-    if not checkout_info.shipping_address:
-        return []
-
-    country_code = (
-        checkout_info.shipping_address.country.code
-        if checkout_info.shipping_address
-        else None
-    )
-
-    shipping_methods = ShippingMethod.objects.using(
-        checkout_info.database_connection_name
-    ).applicable_shipping_methods_for_instance(
-        checkout_info.checkout,
-        channel_id=checkout_info.checkout.channel_id,
-        price=subtotal,
-        shipping_address=checkout_info.shipping_address,
-        country_code=country_code,
-        lines=checkout_info.lines,
-    )
-
-    shipping_channel_listings = ShippingMethodChannelListing.objects.using(
-        checkout_info.database_connection_name
-    ).filter(
-        channel_id=checkout_info.channel.id,
-        shipping_method_id__in=[method.pk for method in shipping_methods],
-    )
-
-    channel_listings_map = {
-        listing.shipping_method_id: listing for listing in shipping_channel_listings
-    }
-
-    internal_methods: list[ShippingMethodData] = []
-    for method in shipping_methods:
-        listing = channel_listings_map.get(method.pk)
-        if listing:
-            shipping_method_data = convert_to_shipping_method_data(method, listing)
-            internal_methods.append(shipping_method_data)
-
-    return internal_methods
-
-
-def get_valid_collection_points_for_checkout(
-    lines: list["CheckoutLineInfo"],
-    channel_id: int,
-    quantity_check: bool = True,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    """Return a collection of `Warehouse`s that can be used as a collection point.
-
-    Note that `quantity_check=False` should be used, when stocks quantity will
-    be validated in further steps (checkout completion) in order to raise
-    'InsufficientProductStock' error instead of 'InvalidShippingError'.
-    """
-    if not is_shipping_required(lines):
-        return []
-
-    line_ids = [line_info.line.id for line_info in lines]
-    lines = CheckoutLine.objects.using(database_connection_name).filter(id__in=line_ids)
-
-    return (
-        Warehouse.objects.using(
-            database_connection_name
-        ).applicable_for_click_and_collect(lines, channel_id)
-        if quantity_check
-        else Warehouse.objects.using(
-            database_connection_name
-        ).applicable_for_click_and_collect_no_quantity_check(lines, channel_id)
-    )
-
-
-def clear_cc_delivery_method(
-    checkout_info: "CheckoutInfo", save: bool = True
-) -> list[str]:
-    checkout = checkout_info.checkout
-    if checkout.collection_point_id is None:
-        return []
-    updated_fields = remove_click_and_collect_from_checkout(checkout)
-
-    if "collection_point_id" in updated_fields:
-        checkout_info.shipping_address = checkout_info.checkout.shipping_address
-
-    if updated_fields:
-        updated_fields.append("last_change")
-        if save:
-            checkout.safe_update(updated_fields)
-
-    return updated_fields
-
-
 def is_fully_paid(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
@@ -1101,115 +1000,6 @@ def cancel_active_payments(checkout: Checkout) -> list[int]:
 
 def activate_payments(payment_ids: list[int]) -> None:
     Payment.objects.filter(id__in=payment_ids).update(is_active=True)
-
-
-def is_shipping_required(lines: list["CheckoutLineInfo"]):
-    """Check if shipping is required for given checkout lines."""
-    return any(line_info.product_type.is_shipping_required for line_info in lines)
-
-
-def _remove_external_shipping_from_metadata(checkout: Checkout):
-    metadata = get_checkout_metadata(checkout)
-    if not metadata:
-        return
-
-    field_deleted = metadata.delete_value_from_private_metadata(
-        PRIVATE_META_APP_SHIPPING_ID
-    )
-    if field_deleted:
-        metadata.save(update_fields=["private_metadata"])
-
-
-def _remove_undiscounted_base_shipping_price(checkout: Checkout):
-    if checkout.undiscounted_base_shipping_price_amount:
-        checkout.undiscounted_base_shipping_price_amount = Decimal(0)
-        return ["undiscounted_base_shipping_price_amount"]
-    return []
-
-
-def remove_shipping_method_from_checkout(checkout: Checkout) -> list[str]:
-    fields_to_update = []
-    if checkout.assigned_delivery_id:
-        checkout.assigned_delivery_id = None
-        fields_to_update.append("assigned_delivery_id")
-        if checkout.shipping_method_name is not None:
-            checkout.shipping_method_name = None
-            fields_to_update.append("shipping_method_name")
-    return fields_to_update
-
-
-def remove_click_and_collect_from_checkout(checkout: Checkout) -> list[str]:
-    fields_to_update = []
-    if checkout.collection_point_id:
-        checkout.collection_point_id = None
-        fields_to_update.append("collection_point_id")
-        if checkout.shipping_address_id:
-            checkout.shipping_address = None
-            # reset the save_shipping_address flag to the default value
-            checkout.save_shipping_address = True
-            fields_to_update.extend(["shipping_address_id", "save_shipping_address"])
-    return fields_to_update
-
-
-def remove_delivery_method_from_checkout(checkout: Checkout) -> list[str]:
-    fields_to_update = []
-    fields_to_update += _remove_undiscounted_base_shipping_price(checkout)
-    fields_to_update += remove_shipping_method_from_checkout(checkout)
-    fields_to_update += remove_click_and_collect_from_checkout(checkout)
-    return fields_to_update
-
-
-def _assign_undiscounted_base_shipping_price_to_checkout(
-    checkout, checkout_delivery: CheckoutDelivery
-):
-    current_shipping_price = quantize_price(
-        checkout.undiscounted_base_shipping_price, checkout.currency
-    )
-    new_shipping_price = quantize_price(checkout_delivery.price, checkout.currency)
-    if current_shipping_price != new_shipping_price:
-        checkout.undiscounted_base_shipping_price_amount = new_shipping_price.amount
-        return ["undiscounted_base_shipping_price_amount"]
-    return []
-
-
-def assign_shipping_method_to_checkout(
-    checkout: Checkout, checkout_delivery: CheckoutDelivery
-) -> list[str]:
-    fields_to_update = []
-    fields_to_update += remove_click_and_collect_from_checkout(checkout)
-    fields_to_update += _assign_undiscounted_base_shipping_price_to_checkout(
-        checkout, checkout_delivery
-    )
-    if checkout.assigned_delivery_id != checkout_delivery.id:
-        checkout.assigned_delivery = checkout_delivery
-        fields_to_update.append("assigned_delivery_id")
-
-    # make sure that we don't have obsolete data for shipping methods stored in
-    # private metadata
-    _remove_external_shipping_from_metadata(checkout=checkout)
-
-    if checkout.shipping_method_name != checkout_delivery.name:
-        checkout.shipping_method_name = checkout_delivery.name
-        fields_to_update.append("shipping_method_name")
-
-    return fields_to_update
-
-
-def assign_collection_point_to_checkout(
-    checkout, collection_point: Warehouse
-) -> list[str]:
-    fields_to_update = []
-    fields_to_update += _remove_undiscounted_base_shipping_price(checkout)
-    fields_to_update += remove_shipping_method_from_checkout(checkout)
-    if checkout.collection_point_id != collection_point.id:
-        checkout.collection_point_id = collection_point.id
-        fields_to_update.append("collection_point_id")
-    if checkout.shipping_address != collection_point.address:
-        checkout.shipping_address = collection_point.address.get_copy()
-        checkout.save_shipping_address = False
-        fields_to_update.extend(["shipping_address_id", "save_shipping_address"])
-
-    return fields_to_update
 
 
 @allow_writer()

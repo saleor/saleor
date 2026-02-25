@@ -3,14 +3,16 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
+from ....checkout.delivery_context import (
+    get_or_fetch_checkout_deliveries,
+    is_shipping_required,
+)
 from ....checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_or_fetch_checkout_deliveries,
 )
-from ....checkout.utils import is_shipping_required
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.taxes import TaxDataError
 from ....discount.models import NotApplicable

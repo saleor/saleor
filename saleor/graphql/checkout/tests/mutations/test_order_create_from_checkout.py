@@ -13,16 +13,18 @@ from prices import Money, TaxedMoney
 
 from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
+from .....checkout.delivery_context import (
+    PRIVATE_META_APP_SHIPPING_ID,
+    fetch_shipping_methods_for_checkout,
+    get_or_fetch_checkout_deliveries,
+)
 from .....checkout.error_codes import OrderCreateFromCheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
-    fetch_shipping_methods_for_checkout,
-    get_or_fetch_checkout_deliveries,
 )
 from .....checkout.models import Checkout, CheckoutDelivery, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
-from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.taxes import TaxDataError, TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
 from .....discount.models import CheckoutLineDiscount, OrderLineDiscount
@@ -2921,7 +2923,7 @@ def test_order_from_checkout_refreshes_shipping_methods_when_stale(
 
 @freeze_time("2023-01-01 12:00:00")
 @patch(
-    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    "saleor.checkout.delivery_context.fetch_shipping_methods_for_checkout",
     wraps=fetch_shipping_methods_for_checkout,
 )
 def test_order_from_checkout_do_not_refresh_shipping_methods_when_not_stale(

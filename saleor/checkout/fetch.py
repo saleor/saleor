@@ -2,20 +2,15 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from decimal import Decimal
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 from django.conf import settings
-from django.db.models import Q
-from django.utils import timezone
 from prices import Money
-from promise import Promise
 
-from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.pricing.interface import LineInfo
 from ..core.taxes import zero_money
-from ..core.tracing import traced_atomic_transaction
 from ..discount import VoucherType
 from ..discount.interface import (
     VariantPromotionRuleInfo,
@@ -25,12 +20,14 @@ from ..discount.interface import (
 from ..shipping.interface import ShippingMethodData
 from ..shipping.utils import (
     convert_checkout_delivery_to_shipping_method_data,
-    convert_shipping_method_data_to_checkout_delivery,
-    initialize_shipping_method_active_status,
 )
-from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
-from .lock_objects import checkout_qs_select_for_update
+from .delivery_context import (
+    CollectionPointInfo,
+    DeliveryMethodBase,
+    ShippingMethodInfo,
+    get_valid_collection_points_for_checkout,
+)
 from .models import Checkout, CheckoutDelivery, CheckoutLine
 
 if TYPE_CHECKING:
@@ -136,15 +133,13 @@ class CheckoutInfo:
 
     @cached_property
     def valid_pick_up_points(self) -> Iterable["Warehouse"]:
-        from .utils import get_valid_collection_points_for_checkout
-
         return list(
             get_valid_collection_points_for_checkout(
                 self.lines, self.channel.id, quantity_check=False
             )
         )
 
-    def get_delivery_method_info(self) -> "DeliveryMethodBase":
+    def get_delivery_method_info(self) -> DeliveryMethodBase:
         delivery_method: ShippingMethodData | Warehouse | None = None
 
         if assigned_sm := self.assigned_delivery:
@@ -171,137 +166,6 @@ class CheckoutInfo:
         if self.user:
             return self.user.email
         return None
-
-
-@dataclass(frozen=True)
-class DeliveryMethodBase:
-    delivery_method: Union["ShippingMethodData", "Warehouse"] | None = None
-    shipping_address: Optional["Address"] = None
-    store_as_customer_address: bool = False
-
-    @property
-    def warehouse_pk(self) -> UUID | None:
-        pass
-
-    @property
-    def delivery_method_order_field(self) -> dict:
-        return {"shipping_method": self.delivery_method}
-
-    @property
-    def is_local_collection_point(self) -> bool:
-        return False
-
-    @property
-    def delivery_method_name(self) -> dict[str, str | None]:
-        return {"shipping_method_name": None}
-
-    def get_warehouse_filter_lookup(self) -> dict[str, Any]:
-        return {}
-
-    def is_valid_delivery_method(self) -> bool:
-        return False
-
-    def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
-        return False
-
-    def is_delivery_method_set(self) -> bool:
-        return bool(self.delivery_method)
-
-    def get_details_for_conversion_to_order(self) -> dict[str, Any]:
-        return {"shipping_method_name": None}
-
-
-@dataclass(frozen=True)
-class ShippingMethodInfo(DeliveryMethodBase):
-    delivery_method: "ShippingMethodData"
-    shipping_address: Optional["Address"]
-    store_as_customer_address: bool = True
-
-    @property
-    def delivery_method_name(self) -> dict[str, str | None]:
-        return {"shipping_method_name": str(self.delivery_method.name)}
-
-    @property
-    def delivery_method_order_field(self) -> dict:
-        if not self.delivery_method.is_external:
-            return {"shipping_method_id": int(self.delivery_method.id)}
-        return {}
-
-    def is_valid_delivery_method(self) -> bool:
-        return bool(self.shipping_address)
-
-    def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
-        return self.delivery_method.active
-
-    def get_details_for_conversion_to_order(self) -> dict[str, str | int | None]:
-        details: dict[str, str | int | None] = {
-            "shipping_method_name": str(self.delivery_method.name)
-        }
-        if not self.delivery_method.is_external:
-            details["shipping_method_id"] = int(self.delivery_method.id)
-
-        if self.delivery_method.tax_class:
-            details["shipping_tax_class_id"] = self.delivery_method.tax_class.id
-            details["shipping_tax_class_name"] = str(
-                self.delivery_method.tax_class.name
-            )
-            details["shipping_tax_class_private_metadata"] = (
-                self.delivery_method.tax_class.private_metadata
-            )
-            details["shipping_tax_class_metadata"] = (
-                self.delivery_method.tax_class.metadata
-            )
-        return details
-
-
-@dataclass(frozen=True)
-class CollectionPointInfo(DeliveryMethodBase):
-    delivery_method: "Warehouse"
-    shipping_address: Optional["Address"]
-
-    @property
-    def warehouse_pk(self):
-        return self.delivery_method.pk
-
-    @property
-    def delivery_method_order_field(self) -> dict:
-        return {"collection_point": self.delivery_method}
-
-    @property
-    def is_local_collection_point(self):
-        return (
-            self.delivery_method.click_and_collect_option
-            == WarehouseClickAndCollectOption.LOCAL_STOCK
-        )
-
-    @property
-    def delivery_method_name(self) -> dict[str, str | None]:
-        return {"collection_point_name": str(self.delivery_method)}
-
-    def get_warehouse_filter_lookup(self) -> dict[str, Any]:
-        return (
-            {"warehouse_id": self.delivery_method.pk}
-            if self.is_local_collection_point
-            else {}
-        )
-
-    def is_valid_delivery_method(self) -> bool:
-        return (
-            self.shipping_address is not None
-            and self.shipping_address == self.delivery_method.address
-        )
-
-    def is_method_in_valid_methods(self, checkout_info) -> bool:
-        valid_delivery_methods = checkout_info.valid_pick_up_points
-        return bool(
-            valid_delivery_methods and self.delivery_method in valid_delivery_methods
-        )
-
-    def get_details_for_conversion_to_order(self) -> dict[str, Any]:
-        return {
-            "collection_point_name": str(self.delivery_method),
-            "collection_point": self.delivery_method,
-        }
 
 
 def fetch_checkout_lines(
@@ -514,66 +378,6 @@ def fetch_checkout_info(
     return checkout_info
 
 
-def get_available_built_in_shipping_methods_for_checkout_info(
-    checkout_info: "CheckoutInfo",
-) -> list["ShippingMethodData"]:
-    from . import base_calculations
-    from .utils import get_valid_internal_shipping_methods_for_checkout_info
-
-    lines = checkout_info.lines
-
-    subtotal = base_calculations.base_checkout_subtotal(
-        lines,
-        checkout_info.channel,
-        checkout_info.checkout.currency,
-    )
-
-    # if a voucher is applied to shipping, we don't want to subtract the discount amount
-    # as some methods based on shipping price may become unavailable,
-    # for example, method on which the discount was applied
-    is_shipping_voucher = (
-        checkout_info.voucher and checkout_info.voucher.type == VoucherType.SHIPPING
-    )
-
-    is_voucher_for_specific_product = (
-        checkout_info.voucher
-        and checkout_info.voucher.type == VoucherType.SPECIFIC_PRODUCT
-    )
-
-    if not is_shipping_voucher and not is_voucher_for_specific_product:
-        subtotal -= checkout_info.checkout.discount
-
-    valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout_info(
-        checkout_info,
-        subtotal,
-    )
-
-    return valid_shipping_methods
-
-
-def fetch_external_shipping_methods_for_checkout_info(
-    checkout_info,
-    available_built_in_methods: list[ShippingMethodData],
-) -> Promise[list[ShippingMethodData]]:
-    from .webhooks.list_shipping_methods import list_shipping_methods_for_checkout
-
-    allow_replica = not (
-        checkout_info.database_connection_name
-        == settings.DATABASE_CONNECTION_DEFAULT_NAME
-    )
-    requestor = (
-        checkout_info.manager.requestor_getter()
-        if checkout_info.manager.requestor_getter
-        else None
-    )
-    return list_shipping_methods_for_checkout(
-        checkout=checkout_info.checkout,
-        built_in_shipping_methods=available_built_in_methods,
-        allow_replica=allow_replica,
-        requestor=requestor,
-    )
-
-
 def find_checkout_line_info(
     lines: list["CheckoutLineInfo"],
     line_id: "UUID",
@@ -583,268 +387,3 @@ def find_checkout_line_info(
     The return value represents the updated version of checkout_line_info parameter.
     """
     return next(line_info for line_info in lines if line_info.line.pk == line_id)
-
-
-def _get_refreshed_assigned_delivery_data(
-    assigned_delivery: CheckoutDelivery | None,
-    built_in_shipping_methods_dict: dict[int, ShippingMethodData],
-    external_shipping_methods_dict: dict[str, ShippingMethodData],
-) -> ShippingMethodData | None:
-    """Get refreshed shipping method data for assigned delivery.
-
-    Returns the updated ShippingMethodData for the assigned delivery method,
-    or None if the assigned delivery is no longer valid.
-    """
-    if not assigned_delivery:
-        return None
-
-    if external_shipping_method_id := assigned_delivery.external_shipping_method_id:
-        return external_shipping_methods_dict.get(external_shipping_method_id)
-
-    if built_in_shipping_method_id := assigned_delivery.built_in_shipping_method_id:
-        return built_in_shipping_methods_dict.get(built_in_shipping_method_id)
-
-    return None
-
-
-def _refresh_checkout_deliveries(
-    checkout: "Checkout",
-    assigned_delivery: CheckoutDelivery | None,
-    checkout_deliveries: list["CheckoutDelivery"],
-    built_in_shipping_methods_dict: dict[int, ShippingMethodData],
-    external_shipping_methods_dict: dict[str, ShippingMethodData],
-):
-    """Refresh checkout deliveries assigned to the checkout.
-
-    It updates the `CheckoutDelivery` instances associated with the checkout, based
-    on the shipping methods available for the checkout.
-    The non-available shipping methods are removed from the DB, except for the currently
-    assigned delivery method, which is always preserved even if it's no longer valid.
-    """
-    exclude_from_delete = Q(
-        built_in_shipping_method_id__in=list(built_in_shipping_methods_dict.keys())
-    ) | Q(external_shipping_method_id__in=list(external_shipping_methods_dict.keys()))
-
-    if assigned_delivery:
-        # Always preserve the assigned delivery even if it's no longer available
-        exclude_from_delete |= Q(pk=assigned_delivery.pk)
-
-        refreshed_delivery_method = _get_refreshed_assigned_delivery_data(
-            assigned_delivery,
-            built_in_shipping_methods_dict,
-            external_shipping_methods_dict,
-        )
-
-        # Missing refreshed delivery method means that assigned
-        # delivery is no more valid.
-        if not refreshed_delivery_method:
-            assigned_delivery.is_valid = False
-            assigned_delivery.save(update_fields=["is_valid"])
-
-    CheckoutDelivery.objects.filter(
-        checkout_id=checkout.pk,
-    ).exclude(exclude_from_delete).delete()
-
-    if checkout_deliveries:
-        CheckoutDelivery.objects.bulk_create(
-            checkout_deliveries,
-            update_conflicts=True,
-            unique_fields=[
-                "checkout_id",
-                "external_shipping_method_id",
-                "built_in_shipping_method_id",
-                "is_valid",
-            ],
-            update_fields=[
-                "name",
-                "description",
-                "price_amount",
-                "currency",
-                "maximum_delivery_days",
-                "minimum_delivery_days",
-                "metadata",
-                "private_metadata",
-                "active",
-                "message",
-                "updated_at",
-                "is_valid",
-                "is_external",
-                "tax_class_id",
-                "tax_class_name",
-                "tax_class_metadata",
-                "tax_class_private_metadata",
-            ],
-        )
-
-
-def _refreshed_assigned_delivery_has_impact_on_prices(
-    assigned_delivery: CheckoutDelivery | None,
-    built_in_shipping_methods_dict: dict[int, ShippingMethodData],
-    external_shipping_methods_dict: dict[str, ShippingMethodData],
-) -> bool:
-    """Check if refreshed assigned delivery impacts checkout prices.
-
-    If the assigned delivery method has changed in a way that affects pricing,
-    such as a change in tax class, price or marking as invalid, this function
-    returns True. Otherwise, it doesn't impact prices and returns False.
-    """
-    if not assigned_delivery:
-        return False
-
-    refreshed_delivery_method = _get_refreshed_assigned_delivery_data(
-        assigned_delivery,
-        built_in_shipping_methods_dict,
-        external_shipping_methods_dict,
-    )
-
-    if not refreshed_delivery_method:
-        return True
-
-    refreshed_tax_class_id = (
-        refreshed_delivery_method.tax_class.id
-        if refreshed_delivery_method.tax_class
-        else None
-    )
-    # Different tax class can impact on prices
-    if refreshed_tax_class_id != assigned_delivery.tax_class_id:
-        return True
-
-    # Different price means that assigned delivery is invalid
-    if refreshed_delivery_method.price != assigned_delivery.price:
-        return True
-
-    return False
-
-
-@allow_writer()
-def fetch_shipping_methods_for_checkout(
-    checkout_info: "CheckoutInfo",
-) -> list[CheckoutDelivery]:
-    """Fetch shipping methods for the checkout.
-
-    Fetches all available shipping methods, both built-in and external, for the given
-    checkout. Each method is returned as a CheckoutDelivery instance. Existing
-    shipping methods in the database are updated or removed as needed, while the
-    checkout's currently assigned shipping method (`assigned_delivery`) is
-    always preserved, even if it is no longer available.
-    """
-    checkout = checkout_info.checkout
-
-    built_in_shipping_methods_dict: dict[int, ShippingMethodData] = {
-        int(shipping_method.id): shipping_method
-        for shipping_method in get_available_built_in_shipping_methods_for_checkout_info(
-            checkout_info=checkout_info
-        )
-    }
-    external_shipping_methods_dict: dict[str, ShippingMethodData] = {
-        shipping_method.id: shipping_method
-        for shipping_method in fetch_external_shipping_methods_for_checkout_info(
-            checkout_info=checkout_info,
-            available_built_in_methods=list(built_in_shipping_methods_dict.values()),
-        ).get()
-    }
-    all_methods = list(built_in_shipping_methods_dict.values()) + list(
-        external_shipping_methods_dict.values()
-    )
-
-    # Circular import caused by the current definition of subscription payloads
-    # and their usage in webhook/transport layer. Until moving them out from the
-    # transport, we will have circular imports.
-    from .webhooks.exclude_shipping import excluded_shipping_methods_for_checkout
-
-    allow_replica = not (
-        checkout_info.database_connection_name
-        == settings.DATABASE_CONNECTION_DEFAULT_NAME
-    )
-
-    requestor = (
-        checkout_info.manager.requestor_getter()
-        if checkout_info.manager.requestor_getter
-        else None
-    )
-
-    excluded_methods = excluded_shipping_methods_for_checkout(
-        checkout,
-        available_shipping_methods=all_methods,
-        allow_replica=allow_replica,
-        requestor=requestor,
-    ).get()
-    initialize_shipping_method_active_status(all_methods, excluded_methods)
-
-    checkout_deliveries = {}
-
-    for shipping_method_data in all_methods:
-        checkout_delivery_method = convert_shipping_method_data_to_checkout_delivery(
-            shipping_method_data, checkout
-        )
-        checkout_deliveries[shipping_method_data.id] = checkout_delivery_method
-
-    with traced_atomic_transaction():
-        locked_checkout = (
-            checkout_qs_select_for_update().filter(token=checkout.token).first()
-        )
-        if not locked_checkout:
-            return []
-        if locked_checkout.assigned_delivery_id != checkout.assigned_delivery_id:
-            return []
-
-        assigned_delivery = checkout.assigned_delivery
-
-        checkout.delivery_methods_stale_at = (
-            timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
-        )
-        checkout.save(update_fields=["delivery_methods_stale_at"])
-
-        _refresh_checkout_deliveries(
-            checkout=locked_checkout,
-            assigned_delivery=assigned_delivery,
-            checkout_deliveries=list(checkout_deliveries.values()),
-            built_in_shipping_methods_dict=built_in_shipping_methods_dict,
-            external_shipping_methods_dict=external_shipping_methods_dict,
-        )
-
-        if _refreshed_assigned_delivery_has_impact_on_prices(
-            assigned_delivery,
-            built_in_shipping_methods_dict,
-            external_shipping_methods_dict,
-        ):
-            from .utils import invalidate_checkout
-
-            invalidate_checkout(
-                checkout_info=checkout_info,
-                lines=checkout_info.lines,
-                manager=checkout_info.manager,
-                recalculate_discount=True,
-                save=True,
-            )
-
-    if checkout_deliveries:
-        return list(
-            CheckoutDelivery.objects.filter(
-                checkout_id=checkout.pk,
-                is_valid=True,
-            )
-        )
-    return []
-
-
-def get_or_fetch_checkout_deliveries(
-    checkout_info: "CheckoutInfo",
-) -> list[CheckoutDelivery]:
-    """Get or fetch shipping methods for the checkout.
-
-    If the checkout's shipping methods are stale or missing, fetch and update them.
-    Otherwise, return the existing valid shipping methods.
-    """
-    checkout = checkout_info.checkout
-    if (
-        checkout.delivery_methods_stale_at is None
-        or checkout.delivery_methods_stale_at <= timezone.now()
-    ):
-        return fetch_shipping_methods_for_checkout(checkout_info)
-    return list(
-        CheckoutDelivery.objects.filter(
-            checkout_id=checkout.pk,
-            is_valid=True,
-        )
-    )

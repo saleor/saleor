@@ -75,7 +75,7 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
     indirect=("delivery_method",),
 )
 @patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_not_applicable_delivery_method(
@@ -125,7 +125,7 @@ def test_checkout_delivery_method_update_not_applicable_delivery_method(
     indirect=("delivery_method",),
 )
 @patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update(
@@ -219,7 +219,7 @@ def test_checkout_delivery_method_update_when_line_without_channel_listing(
     indirect=("delivery_method",),
 )
 @patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_missing_checkout_metadata_when_not_applicable_method(
@@ -270,7 +270,7 @@ def test_checkout_delivery_method_update_missing_checkout_metadata_when_not_appl
     indirect=("delivery_method",),
 )
 @patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_checkout_without_metadata(
@@ -901,7 +901,7 @@ MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_ID = """
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -997,7 +997,7 @@ def test_checkout_delivery_method_update_triggers_webhooks(
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -1081,7 +1081,7 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -1191,11 +1191,11 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -1261,11 +1261,11 @@ def test_checkout_delivery_method_update_from_cc_to_external_shipping(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_cc_to_none(
@@ -1306,11 +1306,11 @@ def test_checkout_delivery_method_update_from_cc_to_none(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_cc_to_built_in_shipping(
@@ -1358,11 +1358,11 @@ def test_checkout_delivery_method_update_from_cc_to_built_in_shipping(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_cc_to_the_same_cc(
@@ -1412,11 +1412,11 @@ def test_checkout_delivery_method_update_from_cc_to_the_same_cc(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_cc_to_different_cc(
@@ -1474,11 +1474,11 @@ def test_checkout_delivery_method_update_from_cc_to_different_cc(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_external_shipping_to_cc(
@@ -1538,11 +1538,11 @@ def test_checkout_delivery_method_update_from_external_shipping_to_cc(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_external_shipping_to_built_in_shipping(
@@ -1584,17 +1584,19 @@ def test_checkout_delivery_method_update_from_external_shipping_to_built_in_ship
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is True
 
-    mocked_invalidate_checkout.assert_called_once()
+    # mark as invalid when assigned_delivery is not available
+    # mark as invalid when new assigned_delivery is assigned
+    assert mocked_invalidate_checkout.call_count == 2
     mocked_call_checkout_info_event.assert_called_once()
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_external_shipping_to_different_external(
@@ -1652,16 +1654,18 @@ def test_checkout_delivery_method_update_from_external_shipping_to_different_ext
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is True
 
-    mocked_invalidate_checkout.assert_called_once()
+    # mark as invalid when assigned_delivery is not available
+    # mark as invalid when new assigned_delivery is assigned
+    assert mocked_invalidate_checkout.call_count == 2
     mocked_call_checkout_info_event.assert_called_once()
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_external_shipping_to_none(
@@ -1702,12 +1706,12 @@ def test_checkout_delivery_method_update_from_external_shipping_to_none(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_external_shipping_to_the_same_external(
@@ -1784,11 +1788,11 @@ def test_checkout_delivery_method_update_from_external_shipping_to_the_same_exte
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_built_in_shipping_to_cc(
@@ -1847,12 +1851,12 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_cc(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_built_in_shipping_to_external_shipping(
@@ -1916,11 +1920,11 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_external_ship
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_built_in_shipping_to_differnt_built_in(
@@ -1968,11 +1972,11 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_differnt_buil
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_built_in_shipping_to_the_same_shipping(
@@ -2024,11 +2028,11 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_the_same_ship
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    "saleor.checkout.actions.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @mock.patch(
-    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    "saleor.checkout.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_delivery_method_update_from_built_in_shipping_to_none(

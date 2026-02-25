@@ -16,7 +16,8 @@ from ..discount import VoucherType
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
-    from .fetch import CheckoutInfo, CheckoutLineInfo, ShippingMethodInfo
+    from .delivery_context import ShippingMethodInfo
+    from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
 def calculate_base_line_unit_price(
@@ -116,7 +117,7 @@ def base_checkout_undiscounted_delivery_price(
     lines: list["CheckoutLineInfo"] | None = None,
 ) -> Money:
     """Calculate base (untaxed) undiscounted price for any kind of delivery method."""
-    from .fetch import ShippingMethodInfo
+    from .delivery_context import ShippingMethodInfo
 
     delivery_method_info = checkout_info.get_delivery_method_info()
     currency = checkout_info.checkout.currency
@@ -140,7 +141,7 @@ def calculate_base_price_for_shipping_method(
     shipping_method = shipping_method_info.delivery_method
 
     if lines is not None and all(isinstance(line, CheckoutLineInfo) for line in lines):
-        from .utils import is_shipping_required
+        from .delivery_context import is_shipping_required
 
         shipping_required = is_shipping_required(lines)
     else:

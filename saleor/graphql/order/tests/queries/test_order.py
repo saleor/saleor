@@ -4,7 +4,7 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
-from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
+from .....checkout.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
 from .....discount import DiscountType
