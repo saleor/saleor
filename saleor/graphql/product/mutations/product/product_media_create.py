@@ -111,7 +111,7 @@ class ProductMediaCreate(BaseMutation):
             qs=models.Product.objects.all(),
         )
 
-        alt = input.get("alt", "")
+        alt = input.get("alt") or ""
         media_url = input.get("media_url")
         media = None
         if img_data := input.get("image"):
