@@ -173,6 +173,7 @@ populatedb.help = """
 Populates database with sample data and creates admin user with credentials:
 - email: admin@example.com
 - password: admin
+With --superuser_email and --superuser_password arguments you can customize admin user credentials.
 """
 
 test.cmd="pytest --reuse-db"

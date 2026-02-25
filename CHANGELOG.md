@@ -54,6 +54,8 @@ Validation is now performed on the frontend (Dashboard). This change increases v
   - Relevance-based ranking: exact matches score higher than prefix matches and appear first by default (can be overridden with `sortBy` parameter)
   - New `RANK` sort field available when using search filters to sort by relevance score
 
+- Add possability to customize email and password using --superuser_email --superuser_password flags when populating database with example data - #18467
+
 ### Deprecations
 
 - Deprecate the `hasVariants` field on `ProductType`.
