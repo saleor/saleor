@@ -458,11 +458,6 @@ def test_fetch_product_media_image_success(
     Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
     image_bytes = image_buffer.getvalue()
 
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.headers.get.return_value = "image/jpeg"
-    mock_response.content = image_bytes
-
     # when
     with mock_http_response_for_product_task(
         status_code=200, content_type="image/jpeg", content=image_bytes
