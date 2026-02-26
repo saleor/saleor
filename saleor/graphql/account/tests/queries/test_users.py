@@ -1,5 +1,7 @@
 import graphene
 
+from .....order import OrderStatus
+from .....order.models import Order
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 
@@ -101,3 +103,72 @@ def test_who_can_see_user(
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content["data"]["customers"]["totalCount"] == 1
+
+
+USER_ORDERS_WHERE_QUERY = """
+    query User($id: ID!, $where: OrderWhereInput) {
+        user(id: $id) {
+            orderswithFilter: orders(first: 10, where: $where) {
+                totalCount
+                edges {
+                    node {
+                        id
+                        number
+                    }
+                }
+            }
+            orderNoFilter: orders(first: 10) {
+                totalCount
+                edges {
+                    node {
+                        id
+                        number
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_orders_where_filter_and_unfiltered_in_single_query(
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_group_manage_orders,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order_list[0].user = customer_user
+    order_list[0].status = OrderStatus.UNCONFIRMED
+    order_list[1].user = customer_user
+    order_list[1].status = OrderStatus.UNFULFILLED
+    order_list[2].user = customer_user
+    order_list[2].status = OrderStatus.UNFULFILLED
+    Order.objects.bulk_update(order_list, ["user", "status"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {
+        "id": user_id,
+        "where": {"status": {"eq": OrderStatus.UNCONFIRMED.upper()}},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(USER_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    user_data = content["data"]["user"]
+
+    filtered_orders = user_data["orderswithFilter"]
+    assert filtered_orders["totalCount"] == 1
+    assert filtered_orders["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", order_list[0].pk
+    )
+
+    unfiltered_orders = user_data["orderNoFilter"]
+    assert unfiltered_orders["totalCount"] == 3
+    returned_ids = {edge["node"]["id"] for edge in unfiltered_orders["edges"]}
+    assert returned_ids == {
+        graphene.Node.to_global_id("Order", order.pk) for order in order_list
+    }

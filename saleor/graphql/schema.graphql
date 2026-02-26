@@ -3433,6 +3433,13 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   List of user's orders. The query will not initiate any external requests, including filtering available shipping methods, or performing external tax calculations. Requires one of the following permissions: MANAGE_STAFF, OWNER.
   """
   orders(
+    """
+    Where filtering options for orders.
+    
+    Added in Saleor 3.22.
+    """
+    where: OrderWhereInput
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -13723,6 +13730,331 @@ type OrderCountableEdge @doc(category: "Orders") {
   cursor: String!
 }
 
+input OrderWhereInput @doc(category: "Orders") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
+  ids: [ID!]
+
+  """Filter by order number."""
+  number: IntFilterInput
+
+  """Filter by channel."""
+  channelId: GlobalIDFilterInput
+
+  """Filter order by created at date."""
+  createdAt: DateTimeRangeInput
+
+  """Filter order by updated at date."""
+  updatedAt: DateTimeRangeInput
+
+  """Filter by user."""
+  user: GlobalIDFilterInput
+
+  """Filter by user email."""
+  userEmail: StringFilterInput
+
+  """Filter by authorize status."""
+  authorizeStatus: OrderAuthorizeStatusEnumFilterInput
+
+  """Filter by charge status."""
+  chargeStatus: OrderChargeStatusEnumFilterInput
+
+  """Filter by order status."""
+  status: OrderStatusEnumFilterInput
+
+  """Filter by checkout token."""
+  checkoutToken: UUIDFilterInput
+
+  """Filter by checkout id."""
+  checkoutId: GlobalIDFilterInput
+
+  """
+  Filter by whether the order uses the click and collect delivery method.
+  """
+  isClickAndCollect: Boolean
+
+  """Filter based on whether a gift card was used in the order."""
+  isGiftCardUsed: Boolean
+
+  """Filter based on whether the order includes a gift card purchase."""
+  isGiftCardBought: Boolean
+
+  """Filter by voucher code used in the order."""
+  voucherCode: StringFilterInput
+
+  """Filter by whether the order has any invoices."""
+  hasInvoices: Boolean
+
+  """
+  Filter by invoice data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  invoices: [InvoiceFilterInput!]
+
+  """Filter by whether the order has any fulfillments."""
+  hasFulfillments: Boolean
+
+  """
+  Filter by fulfillment data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  fulfillments: [FulfillmentFilterInput!]
+
+  """
+  Filter by line items associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  lines: [LinesFilterInput!]
+
+  """Filter by number of lines in the order."""
+  linesCount: IntFilterInput
+
+  """
+  Filter by transaction data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  transactions: [TransactionFilterInput!]
+
+  """Filter by total gross amount of the order."""
+  totalGross: PriceFilterInput
+
+  """Filter by total net amount of the order."""
+  totalNet: PriceFilterInput
+
+  """Filter by the product type of related order lines."""
+  productTypeId: GlobalIDFilterInput
+
+  """
+  Filter by order events. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  events: [OrderEventFilterInput!]
+
+  """Filter by billing address of the order."""
+  billingAddress: AddressFilterInput
+
+  """Filter by shipping address of the order."""
+  shippingAddress: AddressFilterInput
+
+  """List of conditions that must be met."""
+  AND: [OrderWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [OrderWhereInput!]
+}
+
+"""
+Allows filtering based on metadata key/value pairs.
+
+        Examples:
+        - `{key: "size"}`
+          Matches objects where the metadata key "size" exists, regardless of its value.
+        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
+          Matches objects where the metadata key "color" is set to either "blue" or "green".
+        - `{key: "status", value: {eq: "active"}}`
+          Matches objects where the metadata key "status" is set to "active".
+"""
+input MetadataFilterInput {
+  """
+  Key to filter by. If not other fields provided - checking the existence of the key in metadata.
+  """
+  key: String!
+
+  """Value to filter by."""
+  value: MetadataValueFilterInput
+}
+
+"""Define the filtering options for metadata value fields."""
+input MetadataValueFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
+}
+
+"""Define the filtering options for integer fields."""
+input IntFilterInput {
+  """The value equal to."""
+  eq: Int
+
+  """The value included in."""
+  oneOf: [Int!]
+
+  """The value in range."""
+  range: IntRangeInput
+}
+
+"""Filter by authorize status."""
+input OrderAuthorizeStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: OrderAuthorizeStatusEnum
+
+  """The value included in."""
+  oneOf: [OrderAuthorizeStatusEnum!]
+}
+
+"""Filter by charge status."""
+input OrderChargeStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: OrderChargeStatusEnum
+
+  """The value included in."""
+  oneOf: [OrderChargeStatusEnum!]
+}
+
+"""Filter by order status."""
+input OrderStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: OrderStatus
+
+  """The value included in."""
+  oneOf: [OrderStatus!]
+}
+
+"""Define the filtering options for string fields."""
+input UUIDFilterInput {
+  """The value equal to."""
+  eq: UUID
+
+  """The value included in."""
+  oneOf: [UUID!]
+}
+
+"""Filter input for invoices."""
+input InvoiceFilterInput @doc(category: "Orders") {
+  """Filter invoices by creation date."""
+  createdAt: DateTimeRangeInput
+}
+
+"""Filter input for order fulfillments data."""
+input FulfillmentFilterInput @doc(category: "Orders") {
+  """Filter by fulfillment status."""
+  status: FulfillmentStatusEnumFilterInput
+
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
+
+  """Filter by fulfillment warehouse."""
+  warehouse: FulfillmentWarehouseFilterInput
+}
+
+"""Filter by fulfillment status."""
+input FulfillmentStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: FulfillmentStatus
+
+  """The value included in."""
+  oneOf: [FulfillmentStatus!]
+}
+
+"""Filter input for fulfillment warehouses."""
+input FulfillmentWarehouseFilterInput @doc(category: "Orders") {
+  """Filter fulfillments by warehouse ID."""
+  id: GlobalIDFilterInput
+
+  """Filter fulfillments by warehouse slug."""
+  slug: StringFilterInput
+
+  """Filter fulfillments by warehouse external reference."""
+  externalReference: StringFilterInput
+}
+
+"""Filter input for order lines data."""
+input LinesFilterInput @doc(category: "Orders") {
+  """Filter by metadata fields of order lines."""
+  metadata: MetadataFilterInput
+}
+
+"""Filter input for transactions."""
+input TransactionFilterInput @doc(category: "Orders") {
+  """Filter by payment method details used to pay for the order."""
+  paymentMethodDetails: PaymentMethodDetailsFilterInput
+
+  """
+  Filter by PSP reference of transactions.
+  
+  Added in Saleor 3.22.
+  """
+  pspReference: StringFilterInput
+
+  """Filter by metadata fields of transactions."""
+  metadata: MetadataFilterInput
+}
+
+input PaymentMethodDetailsFilterInput {
+  """Filter by payment method type used to pay for the order."""
+  type: PaymentMethodTypeEnumFilterInput
+
+  """
+  Filter by card details used to pay for the order. Skips `type` filter if provided.
+  """
+  card: PaymentMethodDetailsCardFilterInput
+}
+
+input PaymentMethodTypeEnumFilterInput {
+  """The value equal to."""
+  eq: PaymentMethodTypeEnum
+
+  """The value included in."""
+  oneOf: [PaymentMethodTypeEnum!]
+}
+
+"""
+Represents possible payment method types.
+
+    The following types are possible:
+    CARD - represents a card payment method.
+    OTHER - represents any payment method that is not a card payment.
+"""
+enum PaymentMethodTypeEnum @doc(category: "Payments") {
+  CARD
+  OTHER
+}
+
+input PaymentMethodDetailsCardFilterInput {
+  """Filter by payment method brand used to pay for the order."""
+  brand: StringFilterInput
+}
+
+input PriceFilterInput {
+  """The currency of the price to filter by."""
+  currency: String
+
+  """The amount of the price to filter by."""
+  amount: DecimalFilterInput!
+}
+
+"""Filter input for order events data."""
+input OrderEventFilterInput @doc(category: "Orders") {
+  """Filter order events by date."""
+  date: DateTimeRangeInput
+
+  """Filter order events by type."""
+  type: OrderEventTypeEnumFilterInput
+}
+
+input OrderEventTypeEnumFilterInput {
+  """The value equal to."""
+  eq: OrderEventsEnum
+
+  """The value included in."""
+  oneOf: [OrderEventsEnum!]
+}
+
+"""Filtering options for addresses."""
+input AddressFilterInput @doc(category: "Users") {
+  phoneNumber: StringFilterInput
+  country: CountryCodeEnumFilterInput
+}
+
+"""Filter by country code."""
+input CountryCodeEnumFilterInput @doc(category: "Users") {
+  """The value equal to."""
+  eq: CountryCode
+
+  """The value included in."""
+  oneOf: [CountryCode!]
+
+  """The value not included in."""
+  notOneOf: [CountryCode!]
+}
+
 """Represents user's permissions."""
 type UserPermission @doc(category: "Users") {
   """Internal code for permission."""
@@ -15494,36 +15826,6 @@ input PageWhereInput @doc(category: "Pages") {
   OR: [PageWhereInput!]
 }
 
-"""
-Allows filtering based on metadata key/value pairs.
-
-        Examples:
-        - `{key: "size"}`
-          Matches objects where the metadata key "size" exists, regardless of its value.
-        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
-          Matches objects where the metadata key "color" is set to either "blue" or "green".
-        - `{key: "status", value: {eq: "active"}}`
-          Matches objects where the metadata key "status" is set to "active".
-"""
-input MetadataFilterInput {
-  """
-  Key to filter by. If not other fields provided - checking the existence of the key in metadata.
-  """
-  key: String!
-
-  """Value to filter by."""
-  value: MetadataValueFilterInput
-}
-
-"""Define the filtering options for metadata value fields."""
-input MetadataValueFilterInput {
-  """The value equal to."""
-  eq: String
-
-  """The value included in."""
-  oneOf: [String!]
-}
-
 type PageTypeCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -15651,301 +15953,6 @@ enum OrderStatusFilter @doc(category: "Orders") {
   PARTIALLY_FULFILLED
   FULFILLED
   CANCELED
-}
-
-input OrderWhereInput @doc(category: "Orders") {
-  """Filter by metadata fields."""
-  metadata: MetadataFilterInput
-  ids: [ID!]
-
-  """Filter by order number."""
-  number: IntFilterInput
-
-  """Filter by channel."""
-  channelId: GlobalIDFilterInput
-
-  """Filter order by created at date."""
-  createdAt: DateTimeRangeInput
-
-  """Filter order by updated at date."""
-  updatedAt: DateTimeRangeInput
-
-  """Filter by user."""
-  user: GlobalIDFilterInput
-
-  """Filter by user email."""
-  userEmail: StringFilterInput
-
-  """Filter by authorize status."""
-  authorizeStatus: OrderAuthorizeStatusEnumFilterInput
-
-  """Filter by charge status."""
-  chargeStatus: OrderChargeStatusEnumFilterInput
-
-  """Filter by order status."""
-  status: OrderStatusEnumFilterInput
-
-  """Filter by checkout token."""
-  checkoutToken: UUIDFilterInput
-
-  """Filter by checkout id."""
-  checkoutId: GlobalIDFilterInput
-
-  """
-  Filter by whether the order uses the click and collect delivery method.
-  """
-  isClickAndCollect: Boolean
-
-  """Filter based on whether a gift card was used in the order."""
-  isGiftCardUsed: Boolean
-
-  """Filter based on whether the order includes a gift card purchase."""
-  isGiftCardBought: Boolean
-
-  """Filter by voucher code used in the order."""
-  voucherCode: StringFilterInput
-
-  """Filter by whether the order has any invoices."""
-  hasInvoices: Boolean
-
-  """
-  Filter by invoice data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
-  """
-  invoices: [InvoiceFilterInput!]
-
-  """Filter by whether the order has any fulfillments."""
-  hasFulfillments: Boolean
-
-  """
-  Filter by fulfillment data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
-  """
-  fulfillments: [FulfillmentFilterInput!]
-
-  """
-  Filter by line items associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
-  """
-  lines: [LinesFilterInput!]
-
-  """Filter by number of lines in the order."""
-  linesCount: IntFilterInput
-
-  """
-  Filter by transaction data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
-  """
-  transactions: [TransactionFilterInput!]
-
-  """Filter by total gross amount of the order."""
-  totalGross: PriceFilterInput
-
-  """Filter by total net amount of the order."""
-  totalNet: PriceFilterInput
-
-  """Filter by the product type of related order lines."""
-  productTypeId: GlobalIDFilterInput
-
-  """
-  Filter by order events. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
-  """
-  events: [OrderEventFilterInput!]
-
-  """Filter by billing address of the order."""
-  billingAddress: AddressFilterInput
-
-  """Filter by shipping address of the order."""
-  shippingAddress: AddressFilterInput
-
-  """List of conditions that must be met."""
-  AND: [OrderWhereInput!]
-
-  """A list of conditions of which at least one must be met."""
-  OR: [OrderWhereInput!]
-}
-
-"""Define the filtering options for integer fields."""
-input IntFilterInput {
-  """The value equal to."""
-  eq: Int
-
-  """The value included in."""
-  oneOf: [Int!]
-
-  """The value in range."""
-  range: IntRangeInput
-}
-
-"""Filter by authorize status."""
-input OrderAuthorizeStatusEnumFilterInput @doc(category: "Orders") {
-  """The value equal to."""
-  eq: OrderAuthorizeStatusEnum
-
-  """The value included in."""
-  oneOf: [OrderAuthorizeStatusEnum!]
-}
-
-"""Filter by charge status."""
-input OrderChargeStatusEnumFilterInput @doc(category: "Orders") {
-  """The value equal to."""
-  eq: OrderChargeStatusEnum
-
-  """The value included in."""
-  oneOf: [OrderChargeStatusEnum!]
-}
-
-"""Filter by order status."""
-input OrderStatusEnumFilterInput @doc(category: "Orders") {
-  """The value equal to."""
-  eq: OrderStatus
-
-  """The value included in."""
-  oneOf: [OrderStatus!]
-}
-
-"""Define the filtering options for string fields."""
-input UUIDFilterInput {
-  """The value equal to."""
-  eq: UUID
-
-  """The value included in."""
-  oneOf: [UUID!]
-}
-
-"""Filter input for invoices."""
-input InvoiceFilterInput @doc(category: "Orders") {
-  """Filter invoices by creation date."""
-  createdAt: DateTimeRangeInput
-}
-
-"""Filter input for order fulfillments data."""
-input FulfillmentFilterInput @doc(category: "Orders") {
-  """Filter by fulfillment status."""
-  status: FulfillmentStatusEnumFilterInput
-
-  """Filter by metadata fields."""
-  metadata: MetadataFilterInput
-
-  """Filter by fulfillment warehouse."""
-  warehouse: FulfillmentWarehouseFilterInput
-}
-
-"""Filter by fulfillment status."""
-input FulfillmentStatusEnumFilterInput @doc(category: "Orders") {
-  """The value equal to."""
-  eq: FulfillmentStatus
-
-  """The value included in."""
-  oneOf: [FulfillmentStatus!]
-}
-
-"""Filter input for fulfillment warehouses."""
-input FulfillmentWarehouseFilterInput @doc(category: "Orders") {
-  """Filter fulfillments by warehouse ID."""
-  id: GlobalIDFilterInput
-
-  """Filter fulfillments by warehouse slug."""
-  slug: StringFilterInput
-
-  """Filter fulfillments by warehouse external reference."""
-  externalReference: StringFilterInput
-}
-
-"""Filter input for order lines data."""
-input LinesFilterInput @doc(category: "Orders") {
-  """Filter by metadata fields of order lines."""
-  metadata: MetadataFilterInput
-}
-
-"""Filter input for transactions."""
-input TransactionFilterInput @doc(category: "Orders") {
-  """Filter by payment method details used to pay for the order."""
-  paymentMethodDetails: PaymentMethodDetailsFilterInput
-
-  """
-  Filter by PSP reference of transactions.
-  
-  Added in Saleor 3.22.
-  """
-  pspReference: StringFilterInput
-
-  """Filter by metadata fields of transactions."""
-  metadata: MetadataFilterInput
-}
-
-input PaymentMethodDetailsFilterInput {
-  """Filter by payment method type used to pay for the order."""
-  type: PaymentMethodTypeEnumFilterInput
-
-  """
-  Filter by card details used to pay for the order. Skips `type` filter if provided.
-  """
-  card: PaymentMethodDetailsCardFilterInput
-}
-
-input PaymentMethodTypeEnumFilterInput {
-  """The value equal to."""
-  eq: PaymentMethodTypeEnum
-
-  """The value included in."""
-  oneOf: [PaymentMethodTypeEnum!]
-}
-
-"""
-Represents possible payment method types.
-
-    The following types are possible:
-    CARD - represents a card payment method.
-    OTHER - represents any payment method that is not a card payment.
-"""
-enum PaymentMethodTypeEnum @doc(category: "Payments") {
-  CARD
-  OTHER
-}
-
-input PaymentMethodDetailsCardFilterInput {
-  """Filter by payment method brand used to pay for the order."""
-  brand: StringFilterInput
-}
-
-input PriceFilterInput {
-  """The currency of the price to filter by."""
-  currency: String
-
-  """The amount of the price to filter by."""
-  amount: DecimalFilterInput!
-}
-
-"""Filter input for order events data."""
-input OrderEventFilterInput @doc(category: "Orders") {
-  """Filter order events by date."""
-  date: DateTimeRangeInput
-
-  """Filter order events by type."""
-  type: OrderEventTypeEnumFilterInput
-}
-
-input OrderEventTypeEnumFilterInput {
-  """The value equal to."""
-  eq: OrderEventsEnum
-
-  """The value included in."""
-  oneOf: [OrderEventsEnum!]
-}
-
-"""Filtering options for addresses."""
-input AddressFilterInput @doc(category: "Users") {
-  phoneNumber: StringFilterInput
-  country: CountryCodeEnumFilterInput
-}
-
-"""Filter by country code."""
-input CountryCodeEnumFilterInput @doc(category: "Users") {
-  """The value equal to."""
-  eq: CountryCode
-
-  """The value included in."""
-  oneOf: [CountryCode!]
-
-  """The value not included in."""
-  notOneOf: [CountryCode!]
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
