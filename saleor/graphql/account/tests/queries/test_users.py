@@ -106,7 +106,7 @@ def test_who_can_see_user(
 
 
 USER_ORDERS_WHERE_QUERY = """
-    query User($id: ID!, $where: OrderWhereInput) {
+    query User($id: ID!, $where: CustomerOrderWhereInput) {
         user(id: $id) {
             orderswithFilter: orders(first: 10, where: $where) {
                 totalCount
