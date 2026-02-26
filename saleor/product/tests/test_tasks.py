@@ -1,5 +1,6 @@
 import datetime
 import logging
+from contextlib import contextmanager
 from decimal import Decimal
 from io import BytesIO
 from unittest.mock import MagicMock, patch
@@ -30,6 +31,23 @@ from ..tasks import (
 )
 from ..utils.tasks_utils import UnhandledException
 from ..utils.variants import fetch_variants_for_promotion_rules
+
+
+@contextmanager
+def mock_http_response_for_product_task(
+    status_code=200, content_type=None, content=None
+):
+    """Patch HTTPClient.send_request to return a response with the given attributes."""
+    mock_response = MagicMock()
+    mock_response.status_code = status_code
+    mock_response.headers.get.return_value = content_type
+    mock_response.content = content
+
+    with patch("saleor.product.tasks.HTTPClient") as mock_client:
+        mock_client.send_request.return_value.__enter__ = MagicMock(
+            return_value=mock_response
+        )
+        yield mock_client
 
 
 @patch(
@@ -407,9 +425,7 @@ def test_fetch_product_media_image_wrong_type(product_media_video, caplog):
     assert not product_media.image
 
 
-@patch("saleor.product.tasks.HTTPClient")
 def test_fetch_product_media_image_non_image_content_type(
-    mock_http_client,
     product_media_image_not_yet_fetched,
     caplog,
 ):
@@ -418,15 +434,11 @@ def test_fetch_product_media_image_non_image_content_type(
     assert product_media.external_url
     assert not product_media.image
 
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.headers.get.return_value = "text/plain"
-    mock_http_client.send_request.return_value.__enter__ = MagicMock(
-        return_value=mock_response
-    )
-
     # when
-    fetch_product_media_image_task(product_media.pk)
+    with mock_http_response_for_product_task(
+        status_code=200, content_type="text/plain"
+    ):
+        fetch_product_media_image_task(product_media.pk)
 
     # then
     assert "does not have valid image content-type" in caplog.text
@@ -452,10 +464,9 @@ def test_fetch_product_media_image_success(
     mock_response.content = image_bytes
 
     # when
-    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
-        mock_http_client.send_request.return_value.__enter__ = MagicMock(
-            return_value=mock_response
-        )
+    with mock_http_response_for_product_task(
+        status_code=200, content_type="image/jpeg", content=image_bytes
+    ):
         fetch_product_media_image_task(product_media.pk)
 
     # then
@@ -464,9 +475,7 @@ def test_fetch_product_media_image_success(
     assert product_media.image
 
 
-@patch("saleor.product.tasks.HTTPClient")
 def test_fetch_product_media_image_unsupported_image_content_type(
-    mock_http_client,
     product_media_image_not_yet_fetched,
     caplog,
 ):
@@ -474,15 +483,11 @@ def test_fetch_product_media_image_unsupported_image_content_type(
     product_media = product_media_image_not_yet_fetched
     assert not product_media.image
 
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.headers.get.return_value = "image/svg+xml"
-    mock_http_client.send_request.return_value.__enter__ = MagicMock(
-        return_value=mock_response
-    )
-
     # when
-    fetch_product_media_image_task(product_media.pk)
+    with mock_http_response_for_product_task(
+        status_code=200, content_type="image/svg+xml"
+    ):
+        fetch_product_media_image_task(product_media.pk)
 
     # then
     assert "does not have valid image content-type" in caplog.text
@@ -490,9 +495,7 @@ def test_fetch_product_media_image_unsupported_image_content_type(
     assert not product_media.image
 
 
-@patch("saleor.product.tasks.HTTPClient")
 def test_fetch_product_media_image_request_exception(
-    mock_http_client,
     product_media_image_not_yet_fetched,
     caplog,
 ):
@@ -503,9 +506,7 @@ def test_fetch_product_media_image_request_exception(
     assert not product_media.image
 
     # when
-    with (
-        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
-    ):
+    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
         mock_http_client.send_request.side_effect = RequestException(
             "Connection timeout"
         )
@@ -559,19 +560,13 @@ def test_fetch_product_media_image_invalid_exif(
     Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
     image_bytes = image_buffer.getvalue()
 
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.headers.get.return_value = "image/jpeg"
-    mock_response.content = image_bytes
-
     # when
     with (
-        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
+        mock_http_response_for_product_task(
+            status_code=200, content_type="image/jpeg", content=image_bytes
+        ),
         patch("saleor.product.utils.tasks_utils.Image.open") as mock_image_open,
     ):
-        mock_http_client.send_request.return_value.__enter__ = MagicMock(
-            return_value=mock_response
-        )
         mock_pil_image = MagicMock()
         mock_pil_image.getexif.side_effect = SyntaxError("Invalid EXIF")
         mock_image_open.return_value = mock_pil_image
@@ -592,27 +587,10 @@ def test_fetch_product_media_image_invalid_metadata(
     product_media = product_media_image_not_yet_fetched
     assert not product_media.image
 
-    image_buffer = BytesIO()
-    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
-    image_bytes = image_buffer.getvalue()
-
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.headers.get.return_value = "image/jpeg"
-    mock_response.content = image_bytes
-
     # when
-    with (
-        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
-        patch(
-            "saleor.product.utils.tasks_utils.ProcessedImage.get_image_metadata_from_file",
-            side_effect=ValueError("Unsupported image MIME type"),
-        ),
+    with mock_http_response_for_product_task(
+        status_code=200, content_type="image/jpeg", content=b"not an image"
     ):
-        mock_http_client.send_request.return_value.__enter__ = MagicMock(
-            return_value=mock_response
-        )
-
         fetch_product_media_image_task(product_media.pk)
 
     # then
@@ -629,16 +607,8 @@ def test_fetch_product_media_image_server_error_triggers_retry(
     # given
     product_media = product_media_image_not_yet_fetched
 
-    mock_response = MagicMock()
-    mock_response.status_code = status_code
-
     # when & then
-    with (
-        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
-    ):
-        mock_http_client.send_request.return_value.__enter__ = MagicMock(
-            return_value=mock_response
-        )
+    with mock_http_response_for_product_task(status_code=status_code):
         with pytest.raises(RetryableError):
             fetch_product_media_image_task(product_media.pk)
 
@@ -657,14 +627,8 @@ def test_fetch_product_media_image_client_error_does_not_retry(
     # given
     product_media = product_media_image_not_yet_fetched
 
-    mock_response = MagicMock()
-    mock_response.status_code = status_code
-
     # when
-    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
-        mock_http_client.send_request.return_value.__enter__ = MagicMock(
-            return_value=mock_response
-        )
+    with mock_http_response_for_product_task(status_code=status_code):
         fetch_product_media_image_task(product_media.pk)
 
     # then
