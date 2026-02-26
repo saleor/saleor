@@ -567,7 +567,7 @@ def test_fetch_product_media_image_invalid_exif(
     # when
     with (
         patch("saleor.product.tasks.HTTPClient") as mock_http_client,
-        patch("saleor.product.tasks.Image.open") as mock_image_open,
+        patch("saleor.product.utils.tasks_utils.Image.open") as mock_image_open,
     ):
         mock_http_client.send_request.return_value.__enter__ = MagicMock(
             return_value=mock_response
@@ -605,7 +605,7 @@ def test_fetch_product_media_image_invalid_metadata(
     with (
         patch("saleor.product.tasks.HTTPClient") as mock_http_client,
         patch(
-            "saleor.product.tasks.ProcessedImage.get_image_metadata_from_file",
+            "saleor.product.utils.tasks_utils.ProcessedImage.get_image_metadata_from_file",
             side_effect=ValueError("Unsupported image MIME type"),
         ),
     ):

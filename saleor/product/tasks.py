@@ -8,9 +8,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
-from django.db.utils import DatabaseError
 from django.utils import timezone
-from PIL import Image, UnidentifiedImageError
 from requests import RequestException
 
 from ..attribute.models import Attribute
@@ -18,17 +16,10 @@ from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
 from ..core.http_client import HTTPClient
-from ..core.utils import create_file_from_response
-from ..core.utils.validators import (
-    get_mime_type,
-    is_image_mimetype,
-    is_valid_image_content_type,
-)
+from ..core.utils.validators import get_mime_type
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
 from ..plugins.manager import get_plugins_manager
-from ..product import ProductMediaTypes
-from ..thumbnail.utils import ProcessedImage, get_filename_from_url
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
@@ -36,12 +27,24 @@ from .lock_objects import product_qs_select_for_update
 from .models import (
     Product,
     ProductChannelListing,
-    ProductMedia,
     ProductType,
     ProductVariant,
 )
 from .search import update_products_search_vector
 from .utils.product import mark_products_in_channels_as_dirty
+from .utils.tasks_utils import (
+    NonRetryableError,
+    RetryableError,
+    create_image,
+    get_product_media,
+    update_product_media,
+    validate_content_type_header,
+    validate_image_exif,
+    validate_image_mime_type,
+    validate_product_media_external_url,
+    validate_product_media_image,
+    validate_status_code,
+)
 from .utils.variant_prices import update_discounted_prices_for_promotion
 from .utils.variants import (
     fetch_variants_for_promotion_rules,
@@ -359,103 +362,6 @@ def collection_product_updated_task(product_ids):
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
     for product in products:
         manager.product_updated(product, webhooks=webhooks)
-
-
-class RetryableError(Exception):
-    pass
-
-
-class NonRetryableError(Exception):
-    def __init__(self, msg, reraise=False) -> None:
-        super().__init__(msg)
-        self.reraise = reraise
-
-
-def get_product_media(product_media_id: int):
-    try:
-        return ProductMedia.objects.get(
-            pk=product_media_id, type=ProductMediaTypes.IMAGE
-        )
-    except ProductMedia.DoesNotExist as exc:
-        raise NonRetryableError(
-            f"Cannot find product media of type: {ProductMediaTypes.IMAGE} with id: {product_media_id}."
-        ) from exc
-
-
-def validate_product_media_image(product_media: ProductMedia):
-    if product_media.image:
-        raise NonRetryableError(
-            f"Product media with id: {product_media.pk} already has an image."
-        )
-
-
-def validate_product_media_external_url(product_media: ProductMedia):
-    if not product_media.external_url:
-        raise NonRetryableError(
-            f"Product media with id: {product_media.pk} has neither an external "
-            f"URL nor an image. The object is in an invalid state and cannot be "
-            f"processed.",
-            reraise=True,
-        )
-
-
-def validate_status_code(status_code):
-    if status_code >= 500:
-        raise RetryableError(f"Server error (HTTP status: {status_code}).")
-
-    if status_code < 200 or status_code > 400:
-        raise NonRetryableError(
-            f"Informational or client error happened (HTTP status: {status_code})"
-        )
-
-
-def validate_content_type_header(product_media, mime_type):
-    if not is_image_mimetype(mime_type) or not is_valid_image_content_type(mime_type):
-        raise NonRetryableError(
-            f"File from product media: {product_media.pk} does not have "
-            f"valid image content-type: {mime_type}."
-        )
-
-
-def create_image(product_media, mime_type, response):
-    filename = get_filename_from_url(product_media.external_url, mime_type)
-    return create_file_from_response(response, filename)
-
-
-def validate_image_mime_type(image):
-    try:
-        # Validate by reading MIME type from magic bytes.
-        ProcessedImage.get_image_metadata_from_file(image)
-    except ValueError as exc:
-        raise NonRetryableError(exc) from exc
-    finally:
-        image.seek(0)
-
-
-def validate_image_exif(image):
-    try:
-        # Validate with by getting exif.
-        pil_image_obj = Image.open(image)
-        pil_image_obj.getexif()
-    except (
-        FileNotFoundError,
-        ValueError,
-        TypeError,
-        SyntaxError,
-        UnidentifiedImageError,
-    ) as exc:
-        raise NonRetryableError(exc) from exc
-    finally:
-        image.seek(0)
-
-
-def update_product_media(product_media, image):
-    try:
-        product_media.image = image
-        product_media.external_url = None
-        product_media.save(update_fields=["image", "external_url"])
-    except DatabaseError as exc:
-        raise RetryableError(exc) from exc
 
 
 @app.task(
