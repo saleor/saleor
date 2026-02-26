@@ -440,7 +440,8 @@ class ProductBulkCreate(BaseMutation):
         for index, media_input in enumerate(media_inputs):
             image = media_input.get("image")
             media_url = media_input.get("media_url")
-            alt = media_input["alt"] = media_input.get("alt") or ""
+            alt = media_input.get("alt") or ""
+            media_input["alt"] = alt
 
             if not image and not media_url:
                 index_error_map[product_index].append(
