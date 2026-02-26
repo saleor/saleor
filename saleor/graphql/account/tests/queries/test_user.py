@@ -1346,3 +1346,114 @@ def test_query_customer_stored_payment_methods(
     content = get_graphql_content(response)
 
     assert content["data"]["user"]["storedPaymentMethods"] == []
+
+
+USER_ORDERS_WHERE_QUERY = """
+    query User($id: ID!, $where: OrderWhereInput!) {
+        user(id: $id) {
+            orders(first: 10, where: $where) {
+                totalCount
+                edges {
+                    node {
+                        id
+                        number
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_orders_where_filter_by_status_staff(
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_group_manage_orders,
+    permission_manage_users,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    permission_group_manage_orders.permissions.add(permission_manage_users)
+
+    order_list[0].user = customer_user
+    order_list[0].status = OrderStatus.UNCONFIRMED
+    order_list[1].user = customer_user
+    order_list[1].status = OrderStatus.UNFULFILLED
+    order_list[2].user = customer_user
+    order_list[2].status = OrderStatus.UNFULFILLED
+    Order.objects.bulk_update(order_list, ["user", "status"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {
+        "id": user_id,
+        "where": {"status": {"eq": OrderStatus.UNCONFIRMED.upper()}},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(USER_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["user"]["orders"]
+    assert orders_data["totalCount"] == 1
+    assert orders_data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", order_list[0].pk
+    )
+
+
+def test_user_orders_where_filter_staff_sees_draft_orders(
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_group_manage_orders,
+    permission_manage_users,
+):
+    # given - staff with MANAGE_ORDERS can see draft orders in where filter results
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    permission_group_manage_orders.permissions.add(permission_manage_users)
+
+    order_list[0].user = customer_user
+    order_list[0].status = OrderStatus.DRAFT
+    order_list[1].user = customer_user
+    order_list[1].status = OrderStatus.UNFULFILLED
+    Order.objects.bulk_update(order_list[:2], ["user", "status"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {
+        "id": user_id,
+        "where": {"status": {"eq": OrderStatus.DRAFT.upper()}},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(USER_ORDERS_WHERE_QUERY, variables)
+
+    # then - staff can see draft orders
+    content = get_graphql_content(response)
+    orders_data = content["data"]["user"]["orders"]
+    assert orders_data["totalCount"] == 1
+    assert orders_data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", order_list[0].pk
+    )
+
+
+def test_user_orders_where_filter_no_permission(
+    user_api_client,
+    customer_user2,
+    order_list,
+):
+    # given - a user trying to query another user's orders
+    order_list[0].user = customer_user2
+    Order.objects.bulk_update(order_list[:1], ["user"])
+
+    user_id = graphene.Node.to_global_id("User", customer_user2.pk)
+    variables = {
+        "id": user_id,
+        "where": {},
+    }
+
+    # when
+    response = user_api_client.post_graphql(USER_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    assert_no_permission(response)
