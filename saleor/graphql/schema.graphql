@@ -11513,9 +11513,9 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   product: Product
 
   """
-  List of events associated with the gift card.
+  List of events associated with the gift card. Requires MANAGE_GIFT_CARD permission to access all events. Users with MANAGE_ORDERS permission can access only USED_IN_ORDER events.
   
-  Requires one of the following permissions: MANAGE_GIFT_CARD.
+  Requires one of the following permissions: MANAGE_GIFT_CARD, MANAGE_ORDERS.
   """
   events(
     """Filtering options for gift card events."""
