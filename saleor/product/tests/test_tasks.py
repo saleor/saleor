@@ -20,6 +20,7 @@ from ..models import (
 )
 from ..tasks import (
     NonRetryableError,
+    RetryableError,
     _get_preorder_variants_to_clean,
     fetch_product_media_image_task,
     mark_products_search_vector_as_dirty,
@@ -418,6 +419,7 @@ def test_fetch_product_media_image_non_image_content_type(
     assert not product_media.image
 
     mock_response = MagicMock()
+    mock_response.status_code = 200
     mock_response.headers.get.return_value = "text/plain"
     mock_http_client.send_request.return_value.__enter__ = MagicMock(
         return_value=mock_response
@@ -445,6 +447,7 @@ def test_fetch_product_media_image_success(
     image_bytes = image_buffer.getvalue()
 
     mock_response = MagicMock()
+    mock_response.status_code = 200
     mock_response.headers.get.return_value = "image/jpeg"
     mock_response.content = image_bytes
 
@@ -472,6 +475,7 @@ def test_fetch_product_media_image_unsupported_image_content_type(
     assert not product_media.image
 
     mock_response = MagicMock()
+    mock_response.status_code = 200
     mock_response.headers.get.return_value = "image/svg+xml"
     mock_http_client.send_request.return_value.__enter__ = MagicMock(
         return_value=mock_response
@@ -556,6 +560,7 @@ def test_fetch_product_media_image_invalid_exif(
     image_bytes = image_buffer.getvalue()
 
     mock_response = MagicMock()
+    mock_response.status_code = 200
     mock_response.headers.get.return_value = "image/jpeg"
     mock_response.content = image_bytes
 
@@ -592,6 +597,7 @@ def test_fetch_product_media_image_invalid_metadata(
     image_bytes = image_buffer.getvalue()
 
     mock_response = MagicMock()
+    mock_response.status_code = 200
     mock_response.headers.get.return_value = "image/jpeg"
     mock_response.content = image_bytes
 
@@ -613,3 +619,56 @@ def test_fetch_product_media_image_invalid_metadata(
     assert "Unsupported image MIME type" in caplog.text
     product_media.refresh_from_db()
     assert not product_media.image
+
+
+@pytest.mark.parametrize("status_code", [500, 502, 503])
+def test_fetch_product_media_image_server_error_triggers_retry(
+    product_media_image_not_yet_fetched,
+    status_code,
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+
+    mock_response = MagicMock()
+    mock_response.status_code = status_code
+
+    # when & then
+    with (
+        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
+    ):
+        mock_http_client.send_request.return_value.__enter__ = MagicMock(
+            return_value=mock_response
+        )
+        with pytest.raises(RetryableError):
+            fetch_product_media_image_task(product_media.pk)
+
+    # then
+    product_media.refresh_from_db()
+    assert not product_media.image
+    assert product_media.external_url
+
+
+@pytest.mark.parametrize("status_code", [100, 199, 401, 404, 499])
+def test_fetch_product_media_image_client_error_does_not_retry(
+    product_media_image_not_yet_fetched,
+    caplog,
+    status_code,
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+
+    mock_response = MagicMock()
+    mock_response.status_code = status_code
+
+    # when
+    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+        mock_http_client.send_request.return_value.__enter__ = MagicMock(
+            return_value=mock_response
+        )
+        fetch_product_media_image_task(product_media.pk)
+
+    # then
+    assert f"HTTP status: {status_code}" in caplog.text
+    product_media.refresh_from_db()
+    assert not product_media.image
+    assert product_media.external_url

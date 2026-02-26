@@ -399,6 +399,16 @@ def validate_product_media_external_url(product_media: ProductMedia):
         )
 
 
+def validate_status_code(status_code):
+    if status_code >= 500:
+        raise RetryableError(f"Server error (HTTP status: {status_code}).")
+
+    if status_code < 200 or status_code > 400:
+        raise NonRetryableError(
+            f"Informational or client error happened (HTTP status: {status_code})"
+        )
+
+
 def validate_content_type_header(product_media, mime_type):
     if not is_image_mimetype(mime_type) or not is_valid_image_content_type(mime_type):
         raise NonRetryableError(
@@ -466,6 +476,7 @@ def fetch_product_media_image_task(self, product_media_id: int):
             allow_redirects=False,
             timeout=settings.COMMON_REQUESTS_TIMEOUT,
         ) as response:
+            validate_status_code(response.status_code)
             mime_type = get_mime_type(response.headers.get("content-type"))
             validate_content_type_header(product_media, mime_type)
             image = create_image(product_media, mime_type, response)
