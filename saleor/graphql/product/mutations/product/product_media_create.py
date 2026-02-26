@@ -1,6 +1,8 @@
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from requests import RequestException
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....core.exceptions import UnsupportedMediaProviderException
 from .....core.http_client import HTTPClient
@@ -124,31 +126,45 @@ class ProductMediaCreate(BaseMutation):
             # Remote URLs can point to the images or oembed data.
             # In case of images, file is downloaded. Otherwise we keep only
             # URL to remote media.
-            with HTTPClient.send_request(
-                "GET",
-                media_url,
-                stream=True,
-                allow_redirects=False,
-                timeout=settings.COMMON_REQUESTS_TIMEOUT,
-            ) as image_data:
-                mime_type = get_mime_type(image_data.headers.get("content-type"))
-                if is_image_mimetype(mime_type):
-                    if not is_valid_image_content_type(mime_type):
-                        raise ValidationError(
-                            {
-                                "media_url": ValidationError(
-                                    "Invalid file type.",
-                                    code=ProductErrorCode.INVALID.value,
-                                )
-                            }
+            try:
+                with HTTPClient.send_request(
+                    "GET",
+                    media_url,
+                    stream=True,
+                    allow_redirects=False,
+                    timeout=settings.COMMON_REQUESTS_TIMEOUT,
+                ) as image_data:
+                    mime_type = get_mime_type(image_data.headers.get("content-type"))
+                    if is_image_mimetype(mime_type):
+                        if not is_valid_image_content_type(mime_type):
+                            raise ValidationError(
+                                {
+                                    "media_url": ValidationError(
+                                        "Invalid file type.",
+                                        code=ProductErrorCode.INVALID.value,
+                                    )
+                                }
+                            )
+                        filename = get_filename_from_url(media_url, mime_type)
+                        image_file = create_file_from_response(image_data, filename)
+                        media = product.media.create(
+                            image=image_file,
+                            alt=alt,
+                            type=ProductMediaTypes.IMAGE,
                         )
-                    filename = get_filename_from_url(media_url, mime_type)
-                    image_file = create_file_from_response(image_data, filename)
-                    media = product.media.create(
-                        image=image_file,
-                        alt=alt,
-                        type=ProductMediaTypes.IMAGE,
-                    )
+            except RequestException as exc:
+                if isinstance(exc, InvalidIPAddress):
+                    message = "Invalid IP address"
+                else:
+                    message = str(exc)
+                raise ValidationError(
+                    {
+                        "media_url": ValidationError(
+                            f"Error raised during the attempt to download media: {message}",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                ) from exc
             if media is None:
                 try:
                     oembed_data, media_type = get_oembed_data(

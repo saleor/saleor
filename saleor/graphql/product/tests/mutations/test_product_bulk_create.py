@@ -8,6 +8,9 @@ from uuid import uuid4
 import graphene
 import PIL
 import pytest
+from requests import RequestException
+from requests.exceptions import InvalidSchema
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
@@ -1144,6 +1147,59 @@ def test_product_bulk_create_with_media_with_media_url_invalid_provider(
     assert errors[0]["path"] == "media.0.mediaUrl"
     assert errors[0]["message"] == "Unsupported media provider or incorrect URL."
     assert len(errors) == 1
+
+
+@pytest.mark.parametrize(
+    ("exception", "error_message"),
+    [
+        (RequestException("Connection refused"), "Connection refused"),
+        (InvalidIPAddress("10.0.0.1"), "Invalid IP address"),
+        (InvalidSchema("No adapters found for url"), "No adapters found for url"),
+    ],
+)
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
+def test_product_bulk_create_with_media_url_request_exception(
+    mock_HTTPClient,
+    exception,
+    error_message,
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    mock_HTTPClient.send_request.side_effect = exception
+    products = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "alt": "some media",
+                    "mediaUrl": "https://www.example.com/image.jpg",
+                }
+            ],
+        },
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    assert len(data["results"][0]["errors"]) == 1
+    error = data["results"][0]["errors"][0]
+    assert error["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error["path"] == "media.0.mediaUrl"
+    assert (
+        error["message"]
+        == f"Error raised during the attempt to download media: {error_message}"
+    )
 
 
 @patch(

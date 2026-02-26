@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
+from requests import RequestException
+from requests_hardened.ip_filter import InvalidIPAddress
 from text_unidecode import unidecode
 
 from ....core.exceptions import UnsupportedMediaProviderException
@@ -472,71 +474,73 @@ class ProductBulkCreate(BaseMutation):
                     )
                 )
                 continue
-
-            if image:
-                media_input["image"] = info.context.FILES.get(image)
-                try:
+            try:
+                if image:
+                    media_input["image"] = info.context.FILES.get(image)
                     media_input["image"] = clean_image_file(
                         media_input, "image", ProductBulkCreateErrorCode
                     )
-                    media_to_create.append(media_input)
-                except ValidationError as exc:
-                    cls.add_indexes_to_errors(
-                        product_index, exc, index_error_map, f"media.{index}"
-                    )
-                    continue
-            elif media_url:
-                with HTTPClient.send_request(
-                    "GET",
-                    media_url,
-                    stream=True,
-                    allow_redirects=False,
-                    timeout=settings.COMMON_REQUESTS_TIMEOUT,
-                ) as image_data:
-                    mime_type = get_mime_type(image_data.headers.get("content-type"))
-                    if is_image_mimetype(mime_type):
-                        if is_valid_image_content_type(mime_type):
-                            filename = get_filename_from_url(media_url, mime_type)
-                            image_file = create_file_from_response(image_data, filename)
-                            media_input["image"] = image_file
-                            media_to_create.append(media_input)
-                        else:
-                            validation_error = ValidationError(
-                                {
-                                    "media_url": ValidationError(
-                                        "Invalid file type.",
-                                        code=ProductBulkCreateErrorCode.INVALID.value,
+                elif media_url:
+                    try:
+                        with HTTPClient.send_request(
+                            "GET",
+                            media_url,
+                            stream=True,
+                            allow_redirects=False,
+                            timeout=settings.COMMON_REQUESTS_TIMEOUT,
+                        ) as image_data:
+                            mime_type = get_mime_type(
+                                image_data.headers.get("content-type")
+                            )
+                            if is_image_mimetype(mime_type):
+                                if not is_valid_image_content_type(mime_type):
+                                    raise ValidationError(
+                                        {
+                                            "media_url": ValidationError(
+                                                "Invalid file type.",
+                                                code=ProductBulkCreateErrorCode.INVALID.value,
+                                            )
+                                        }
                                     )
-                                }
-                            )
-                            cls.add_indexes_to_errors(
-                                product_index,
-                                validation_error,
-                                index_error_map,
-                                f"media.{index}",
-                            )
-                        continue
-                try:
-                    oembed_data, supported_media_type = get_oembed_data(media_url)
-                    oembed_data["supported_media_type"] = supported_media_type
-                except UnsupportedMediaProviderException as exc:
-                    validation_error = ValidationError(
-                        {
-                            "media_url": ValidationError(
-                                exc.message,
-                                code=ProductBulkCreateErrorCode.UNSUPPORTED_MEDIA_PROVIDER.value,
-                            )
-                        }
-                    )
-                    cls.add_indexes_to_errors(
-                        product_index,
-                        validation_error,
-                        index_error_map,
-                        f"media.{index}",
-                    )
-                    continue
-                media_input["oembed_data"] = oembed_data
-                media_to_create.append(media_input)
+                                filename = get_filename_from_url(media_url, mime_type)
+                                image_file = create_file_from_response(
+                                    image_data, filename
+                                )
+                                media_input["image"] = image_file
+                                media_to_create.append(media_input)
+                                continue
+                    except RequestException as exc:
+                        if isinstance(exc, InvalidIPAddress):
+                            message = "Invalid IP address"
+                        else:
+                            message = str(exc)
+                        raise ValidationError(
+                            {
+                                "media_url": ValidationError(
+                                    f"Error raised during the attempt to download media: {message}",
+                                    code=ProductBulkCreateErrorCode.INVALID.value,
+                                )
+                            }
+                        ) from exc
+                    try:
+                        oembed_data, supported_media_type = get_oembed_data(media_url)
+                        oembed_data["supported_media_type"] = supported_media_type
+                        media_input["oembed_data"] = oembed_data
+                    except UnsupportedMediaProviderException as exc:
+                        raise ValidationError(
+                            {
+                                "media_url": ValidationError(
+                                    exc.message,
+                                    code=ProductBulkCreateErrorCode.UNSUPPORTED_MEDIA_PROVIDER.value,
+                                )
+                            }
+                        ) from exc
+            except ValidationError as exc:
+                cls.add_indexes_to_errors(
+                    product_index, exc, index_error_map, f"media.{index}"
+                )
+                continue
+            media_to_create.append(media_input)
 
         return media_to_create
 

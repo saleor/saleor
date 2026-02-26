@@ -8,6 +8,9 @@ import PIL
 import pytest
 from django.conf import settings
 from PIL import Image
+from requests import RequestException
+from requests.exceptions import InvalidSchema
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
 from .....product import ProductMediaTypes
@@ -38,6 +41,7 @@ PRODUCT_MEDIA_CREATE_QUERY = """
             errors {
                 code
                 field
+                message
             }
         }
     }
@@ -438,3 +442,47 @@ def test_product_media_create_mutation_alt_character_limit(
     errors = content["data"]["productMediaCreate"]["errors"]
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
+
+
+@pytest.mark.parametrize(
+    ("exception", "error_message"),
+    [
+        (RequestException("Connection refused"), "Connection refused"),
+        (InvalidIPAddress("10.0.0.1"), "Invalid IP address"),
+        (InvalidSchema("No adapters found for url"), "No adapters found for url"),
+    ],
+)
+@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
+def test_product_media_create_mutation_request_exception(
+    mock_HTTPClient,
+    exception,
+    error_message,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    mock_HTTPClient.send_request.side_effect = exception
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://www.example.com/image.jpg",
+        "alt": "some media",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_CREATE_QUERY,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["productMediaCreate"]["errors"]) == 1
+    error = content["data"]["productMediaCreate"]["errors"][0]
+    assert error["code"] == ProductErrorCode.INVALID.name
+    assert error["field"] == "mediaUrl"
+    assert (
+        error["message"]
+        == f"Error raised during the attempt to download media: {error_message}"
+    )
