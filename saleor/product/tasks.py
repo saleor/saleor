@@ -365,6 +365,7 @@ def collection_product_updated_task(product_ids):
 
 
 @app.task(
+    queue=settings.FETCH_IMAGES_QUEUE_NAME,
     bind=True,
     retry_kwargs={"max_retries": 3},
 )
