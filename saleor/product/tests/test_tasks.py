@@ -19,6 +19,7 @@ from ..models import (
     ProductVariantChannelListing,
 )
 from ..tasks import (
+    NonRetryableError,
     _get_preorder_variants_to_clean,
     fetch_product_media_image_task,
     mark_products_search_vector_as_dirty,
@@ -386,7 +387,7 @@ def test_fetch_product_media_image_missing_external_url_and_image(
     assert not product_media.image
 
     # when & then
-    with pytest.raises(ValueError, match="invalid state"):
+    with pytest.raises(NonRetryableError, match="invalid state"):
         fetch_product_media_image_task(product_media.pk)
 
 
@@ -407,7 +408,9 @@ def test_fetch_product_media_image_wrong_type(product_media_video, caplog):
 
 @patch("saleor.product.tasks.HTTPClient")
 def test_fetch_product_media_image_non_image_content_type(
-    mock_http_client, product_media_image_not_yet_fetched, caplog
+    mock_http_client,
+    product_media_image_not_yet_fetched,
+    caplog,
 ):
     # given
     product_media = product_media_image_not_yet_fetched
@@ -421,10 +424,10 @@ def test_fetch_product_media_image_non_image_content_type(
     )
 
     # when
-    with pytest.raises(ValueError, match="does not have valid image content-type"):
-        fetch_product_media_image_task(product_media.pk)
+    fetch_product_media_image_task(product_media.pk)
 
     # then
+    assert "does not have valid image content-type" in caplog.text
     product_media.refresh_from_db()
     assert not product_media.image
 
@@ -460,7 +463,9 @@ def test_fetch_product_media_image_success(
 
 @patch("saleor.product.tasks.HTTPClient")
 def test_fetch_product_media_image_unsupported_image_content_type(
-    mock_http_client, product_media_image_not_yet_fetched
+    mock_http_client,
+    product_media_image_not_yet_fetched,
+    caplog,
 ):
     # given
     product_media = product_media_image_not_yet_fetched
@@ -473,12 +478,40 @@ def test_fetch_product_media_image_unsupported_image_content_type(
     )
 
     # when
-    with pytest.raises(ValueError, match="does not have valid image content-type"):
+    fetch_product_media_image_task(product_media.pk)
+
+    # then
+    assert "does not have valid image content-type" in caplog.text
+    product_media.refresh_from_db()
+    assert not product_media.image
+
+
+@patch("saleor.product.tasks.HTTPClient")
+def test_fetch_product_media_image_request_exception(
+    mock_http_client,
+    product_media_image_not_yet_fetched,
+    caplog,
+):
+    # given
+    caplog.set_level(logging.WARNING)
+    product_media = product_media_image_not_yet_fetched
+    assert product_media.external_url
+    assert not product_media.image
+
+    # when
+    with (
+        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
+    ):
+        mock_http_client.send_request.side_effect = RequestException(
+            "Connection timeout"
+        )
         fetch_product_media_image_task(product_media.pk)
 
     # then
+    assert "Connection timeout" in caplog.text
     product_media.refresh_from_db()
     assert not product_media.image
+    assert product_media.external_url
 
 
 def test_fetch_product_media_image_deleted_after_final_retry(
@@ -487,7 +520,6 @@ def test_fetch_product_media_image_deleted_after_final_retry(
     # given
     caplog.set_level(logging.WARNING)
     product_media = product_media_image_not_yet_fetched
-    product_media_id = product_media.pk
     assert not product_media.image
 
     max_retries = 3
@@ -503,15 +535,18 @@ def test_fetch_product_media_image_deleted_after_final_retry(
             fetch_product_media_image_task, "request_stack", MagicMock(top=request)
         ),
     ):
-        mock_http_client.send_request.side_effect = RequestException("Connection error")
-        fetch_product_media_image_task(product_media_id)
+        mock_http_client.send_request.side_effect = ConnectionError("Connection error")
+        fetch_product_media_image_task(product_media.pk)
 
     # then
     assert "Removing product media" in caplog.text
-    assert not ProductMedia.objects.filter(pk=product_media_id).exists()
+    assert not ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
-def test_fetch_product_media_image_invalid_exif(product_media_image_not_yet_fetched):
+def test_fetch_product_media_image_invalid_exif(
+    product_media_image_not_yet_fetched,
+    caplog,
+):
     # given
     product_media = product_media_image_not_yet_fetched
     assert not product_media.image
@@ -536,16 +571,17 @@ def test_fetch_product_media_image_invalid_exif(product_media_image_not_yet_fetc
         mock_pil_image.getexif.side_effect = SyntaxError("Invalid EXIF")
         mock_image_open.return_value = mock_pil_image
 
-        with pytest.raises(SyntaxError):
-            fetch_product_media_image_task(product_media.pk)
+        fetch_product_media_image_task(product_media.pk)
 
     # then
+    assert "Invalid EXIF" in caplog.text
     product_media.refresh_from_db()
     assert not product_media.image
 
 
 def test_fetch_product_media_image_invalid_metadata(
     product_media_image_not_yet_fetched,
+    caplog,
 ):
     # given
     product_media = product_media_image_not_yet_fetched
@@ -571,9 +607,9 @@ def test_fetch_product_media_image_invalid_metadata(
             return_value=mock_response
         )
 
-        with pytest.raises(ValueError, match="Unsupported image MIME type"):
-            fetch_product_media_image_task(product_media.pk)
+        fetch_product_media_image_task(product_media.pk)
 
     # then
+    assert "Unsupported image MIME type" in caplog.text
     product_media.refresh_from_db()
     assert not product_media.image

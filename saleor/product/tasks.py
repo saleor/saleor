@@ -6,8 +6,9 @@ from uuid import UUID
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DatabaseError, transaction
+from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
+from django.db.utils import DatabaseError
 from django.utils import timezone
 from PIL import Image, UnidentifiedImageError
 from requests import RequestException
@@ -360,6 +361,93 @@ def collection_product_updated_task(product_ids):
         manager.product_updated(product, webhooks=webhooks)
 
 
+class RetryableError(Exception):
+    pass
+
+
+class NonRetryableError(Exception):
+    def __init__(self, msg, reraise=False) -> None:
+        super().__init__(msg)
+        self.reraise = reraise
+
+
+def get_product_media(product_media_id: int):
+    try:
+        return ProductMedia.objects.get(
+            pk=product_media_id, type=ProductMediaTypes.IMAGE
+        )
+    except ProductMedia.DoesNotExist as exc:
+        raise NonRetryableError(
+            f"Cannot find product media of type: {ProductMediaTypes.IMAGE} with id: {product_media_id}."
+        ) from exc
+
+
+def validate_product_media_image(product_media: ProductMedia):
+    if product_media.image:
+        raise NonRetryableError(
+            f"Product media with id: {product_media.pk} already has an image."
+        )
+
+
+def validate_product_media_external_url(product_media: ProductMedia):
+    if not product_media.external_url:
+        raise NonRetryableError(
+            f"Product media with id: {product_media.pk} has neither an external "
+            f"URL nor an image. The object is in an invalid state and cannot be "
+            f"processed.",
+            reraise=True,
+        )
+
+
+def validate_content_type_header(product_media, mime_type):
+    if not is_image_mimetype(mime_type) or not is_valid_image_content_type(mime_type):
+        raise NonRetryableError(
+            f"File from product media: {product_media.pk} does not have "
+            f"valid image content-type: {mime_type}."
+        )
+
+
+def create_image(product_media, mime_type, response):
+    filename = get_filename_from_url(product_media.external_url, mime_type)
+    return create_file_from_response(response, filename)
+
+
+def validate_image_mime_type(image):
+    try:
+        # Validate by reading MIME type from magic bytes.
+        ProcessedImage.get_image_metadata_from_file(image)
+    except ValueError as exc:
+        raise NonRetryableError(exc) from exc
+    finally:
+        image.seek(0)
+
+
+def validate_image_exif(image):
+    try:
+        # Validate with by getting exif.
+        pil_image_obj = Image.open(image)
+        pil_image_obj.getexif()
+    except (
+        FileNotFoundError,
+        ValueError,
+        TypeError,
+        SyntaxError,
+        UnidentifiedImageError,
+    ) as exc:
+        raise NonRetryableError(exc) from exc
+    finally:
+        image.seek(0)
+
+
+def update_product_media(product_media, image):
+    try:
+        product_media.image = image
+        product_media.external_url = None
+        product_media.save(update_fields=["image", "external_url"])
+    except DatabaseError as exc:
+        raise RetryableError(exc) from exc
+
+
 @app.task(
     bind=True,
     retry_kwargs={"max_retries": 3},
@@ -367,73 +455,31 @@ def collection_product_updated_task(product_ids):
 @allow_writer()
 def fetch_product_media_image_task(self, product_media_id: int):
     try:
-        product_media = ProductMedia.objects.get(
-            pk=product_media_id, type=ProductMediaTypes.IMAGE
-        )
-    except ProductMedia.DoesNotExist:
-        logger.warning(
-            "Cannot find product media of type: %s with id: %s.",
-            ProductMediaTypes.IMAGE,
-            product_media_id,
-        )
-        return
+        product_media = get_product_media(product_media_id)
+        validate_product_media_image(product_media)
+        validate_product_media_external_url(product_media)
 
-    if product_media.image:
-        logger.warning(
-            "Product media with id: %s already has an image.",
-            product_media_id,
-        )
-        return
-
-    if not product_media.external_url:
-        raise ValueError(
-            f"Product media with id: {product_media_id} has neither an external "
-            f"URL nor an image. The object is in an invalid state and cannot be "
-            f"processed."
-        )
-
-    try:
         with HTTPClient.send_request(
             "GET",
             product_media.external_url,
             stream=True,
             allow_redirects=False,
             timeout=settings.COMMON_REQUESTS_TIMEOUT,
-        ) as image_data:
-            # Check content-type header and validate the value.
-            mime_type = get_mime_type(image_data.headers.get("content-type"))
-            if not is_image_mimetype(mime_type) or not is_valid_image_content_type(
-                mime_type
-            ):
-                raise ValueError(
-                    f"File from product media: {product_media.pk} does not have "
-                    f"valid image content-type: {mime_type}."
-                )
+        ) as response:
+            mime_type = get_mime_type(response.headers.get("content-type"))
+            validate_content_type_header(product_media, mime_type)
+            image = create_image(product_media, mime_type, response)
 
-            # Create file.
-            filename = get_filename_from_url(product_media.external_url, mime_type)
-            image = create_file_from_response(image_data, filename)
+        validate_image_mime_type(image)
+        validate_image_exif(image)
+        update_product_media(product_media, image)
+    except (NonRetryableError, RequestException) as exc:
+        if getattr(exc, "reraise", False):
+            raise exc
 
-        # Validate by reading MIME type from magic bytes.
-        ProcessedImage.get_image_metadata_from_file(image)
-        image.seek(0)
-
-        # Validate with by getting exif.
-        pil_image_obj = Image.open(image)
-        pil_image_obj.getexif()
-        image.seek(0)
-
-        product_media.image = image
-        product_media.external_url = None
-        product_media.save(update_fields=["image", "external_url"])
-    except (
-        RequestException,
-        DatabaseError,
-        UnidentifiedImageError,
-        SyntaxError,
-        TypeError,
-        ValueError,
-    ) as exc:
+        logger.warning(exc)
+        return
+    except (RetryableError, ConnectionError) as exc:
         if self.request.retries >= self.max_retries:
             logger.warning(
                 "Failed to fetch image for product media with id: %s after %s retries. "
