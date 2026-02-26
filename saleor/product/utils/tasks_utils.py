@@ -1,6 +1,6 @@
 from typing import IO
 
-from django.db.utils import DatabaseError
+from django.db.utils import OperationalError
 from PIL import Image, UnidentifiedImageError
 
 from ...core.utils import create_file_from_response
@@ -109,5 +109,5 @@ def update_product_media(product_media, image):
         product_media.image = image
         product_media.external_url = None
         product_media.save(update_fields=["image", "external_url"])
-    except DatabaseError as exc:
+    except OperationalError as exc:
         raise RetryableError(exc) from exc
