@@ -51,13 +51,13 @@ def call_checkout_event(
         raise ValueError(f"Event {event_name} not found in CHECKOUT_WEBHOOK_EVENT_MAP.")
 
     webhook_event_map = get_webhooks_for_multiple_events(
-        [event_name, *WebhookEventSyncType.CHECKOUT_EVENTS]
+        [event_name, WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
     webhooks = webhook_event_map.get(event_name, set())
     if not webhook_async_event_requires_sync_webhooks_to_trigger(
         event_name,
         webhook_event_map,
-        possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
+        possible_sync_events=[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES],
     ):
         plugin_manager_method_name = CHECKOUT_WEBHOOK_EVENT_MAP[event_name]
         event_func = getattr(manager, plugin_manager_method_name)
@@ -89,9 +89,6 @@ def _trigger_checkout_sync_webhooks(
     webhook_event_map: dict[str, set["Webhook"]],
     address: Optional["Address"] = None,
 ):
-    from .delivery_context import get_or_fetch_checkout_deliveries
-
-    get_or_fetch_checkout_deliveries(checkout_info)
     # + timedelta(seconds=10) to confirm that triggered webhooks will still have
     # valid prices. Triggered only when we have active sync tax webhook.
     if webhook_event_map.get(
@@ -119,13 +116,13 @@ def call_checkout_events(
         )
 
     webhook_event_map = get_webhooks_for_multiple_events(
-        [*event_names, *WebhookEventSyncType.CHECKOUT_EVENTS]
+        [*event_names, WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
     any_event_requires_sync_webhooks = any(
         webhook_async_event_requires_sync_webhooks_to_trigger(
             event_name,
             webhook_event_map,
-            possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
+            possible_sync_events=[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES],
         )
         for event_name in event_names
     )
@@ -160,7 +157,7 @@ def call_checkout_info_event(
     checkout = checkout_info.checkout
     if webhook_event_map is None:
         webhook_event_map = get_webhooks_for_multiple_events(
-            [event_name, *WebhookEventSyncType.CHECKOUT_EVENTS]
+            [event_name, WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
         )
     if event_name not in CHECKOUT_WEBHOOK_EVENT_MAP:
         raise ValueError(f"Event {event_name} not found in CHECKOUT_WEBHOOK_EVENT_MAP.")
@@ -175,7 +172,7 @@ def call_checkout_info_event(
     if not webhook_async_event_requires_sync_webhooks_to_trigger(
         event_name,
         webhook_event_map,
-        possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
+        possible_sync_events=[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES],
     ):
         call_event_including_protected_events(event_func, checkout, webhooks=webhooks)
         return

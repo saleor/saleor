@@ -86,7 +86,7 @@ def _get_excluded_shipping_methods_or_fetch(
     allow_replica: bool,
     requestor: Union["App", "User", None],
     cache_data: dict,
-) -> "Promise[dict[str, list[ExcludedShippingMethod]]]":
+) -> Promise[dict[str, list[ExcludedShippingMethod]]]:
     """Return data of all excluded shipping methods.
 
     The data will be fetched from the cache. If missing it will fetch it from all
@@ -130,7 +130,7 @@ def get_excluded_shipping_data(
     allow_replica: bool,
     requestor: Union["App", "User", None],
     cache_data: dict,
-) -> "Promise[list[ExcludedShippingMethod]]":
+) -> Promise[list[ExcludedShippingMethod]]:
     """Exclude not allowed shipping methods by sync webhook.
 
     Fetch excluded shipping methods from sync webhooks and return them as a list of

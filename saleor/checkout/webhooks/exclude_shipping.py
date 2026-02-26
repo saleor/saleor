@@ -31,7 +31,7 @@ def excluded_shipping_methods_for_checkout(
     available_shipping_methods: list["ShippingMethodData"],
     allow_replica: bool,
     requestor: Union["App", "User", None],
-) -> "Promise[list[ExcludedShippingMethod]]":
+) -> Promise[list[ExcludedShippingMethod]]:
     if not available_shipping_methods:
         return Promise.resolve([])
 

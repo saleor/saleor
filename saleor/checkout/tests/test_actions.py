@@ -577,8 +577,20 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
         webhook_id=checkout_created_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
+    )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
     )
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
@@ -672,9 +684,17 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
         webhook_id=checkout_created_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
     )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
+    )
+
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
     assert (
@@ -919,9 +939,22 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
         webhook_id=checkout_created_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
     )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
+    )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
+    )
+
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
     assert (
@@ -1025,9 +1058,17 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
         webhook_id=checkout_created_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
     )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
+    )
+
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
     assert (
@@ -1243,8 +1284,20 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
         webhook_id=checkout_fully_paid_webhook.id
     ).exists()
 
-    tax_delivery_call, shipping_methods_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
+    )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
     )
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
@@ -1360,9 +1413,22 @@ def test_transaction_amounts_for_checkout_fully_authorized_triggers_sync_webhook
         webhook_id=checkout_fully_authorized_webhook.id
     ).exists()
 
-    tax_delivery_call, shipping_methods_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
     )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
+    )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
+    )
+
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
     assert (
@@ -1501,9 +1567,22 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
         webhook_id=checkout_created_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
     )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
+    )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
+    )
+
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
     assert (
@@ -1604,8 +1683,15 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
         webhook_id=checkout_created_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
     )
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id

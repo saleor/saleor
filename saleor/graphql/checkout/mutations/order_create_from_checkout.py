@@ -1,6 +1,10 @@
+from typing import Union
+
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....account.models import User
+from ....app.models import App
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
 from ....checkout.delivery_context import (
@@ -162,10 +166,14 @@ class OrderCreateFromCheckout(BaseMutation):
         checkout_lines: list[CheckoutLineInfo],
         unavailable_variant_pks: list[int],
         manager,
+        requestor: Union["App", "User", None],
     ):
-        if is_shipping_required(checkout_lines) and checkout_info.assigned_delivery:
+        if (
+            is_shipping_required(checkout_lines)
+            and checkout_info.checkout.assigned_delivery
+        ):
             # Refresh stale shipping if needed
-            get_or_fetch_checkout_deliveries(checkout_info)
+            get_or_fetch_checkout_deliveries(checkout_info, requestor=requestor).get()
         validate_checkout(
             checkout_info=checkout_info,
             lines=checkout_lines,
@@ -209,10 +217,16 @@ class OrderCreateFromCheckout(BaseMutation):
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
-        cls.validate_checkout(
-            checkout_info, checkout_lines, unavailable_variant_pks, manager
-        )
         app = get_app_promise(info.context).get()
+        requestor = app or user
+
+        cls.validate_checkout(
+            checkout_info,
+            checkout_lines,
+            unavailable_variant_pks,
+            manager,
+            requestor=requestor,
+        )
         try:
             order = create_order_from_checkout(
                 checkout_info=checkout_info,

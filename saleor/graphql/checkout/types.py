@@ -1,16 +1,13 @@
-import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
 import graphene
-from django.utils import timezone
 from promise import Promise
 
 from ...account.models import User
 from ...checkout import calculations, models, problems
 from ...checkout.calculations import fetch_checkout_data
 from ...checkout.delivery_context import (
-    fetch_shipping_methods_for_checkout,
     get_valid_collection_points_for_checkout,
 )
 from ...core.db.connection import allow_writer_in_context
@@ -104,7 +101,7 @@ from .dataloaders import (
     TransactionItemsByCheckoutIDLoader,
 )
 from .dataloaders.checkout_delivery import (
-    CheckoutDeliveriesOnlyValidByCheckoutIdLoader,
+    CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader,
     CheckoutDeliveryByIdLoader,
 )
 from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
@@ -659,108 +656,25 @@ class Delivery(graphene.ObjectType):
         return convert_checkout_delivery_to_shipping_method_data(root)
 
 
-def _should_load_denormalized_checkout_deliveries(
-    checkout_context: SyncWebhookControlContext[models.Checkout],
-):
-    return not checkout_context.allow_sync_webhooks or (
-        checkout_context.node.delivery_methods_stale_at
-        and checkout_context.node.delivery_methods_stale_at > timezone.now()
-    )
-
-
-def _load_denormalized_checkout_deliveries(checkout_pk: uuid.UUID, info: ResolveInfo):
-    return (
-        CheckoutDeliveriesOnlyValidByCheckoutIdLoader(info.context)
-        .load(checkout_pk)
-        .then(
-            lambda shipping_methods: [
-                convert_checkout_delivery_to_shipping_method_data(sm)
-                for sm in shipping_methods
-            ]
-        )
-    )
-
-
-def _resolve_checkout_deliveries(
-    root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
-):
-    checkout = root.node
-
-    def with_checkout_info(checkout_info):
-        if _should_load_denormalized_checkout_deliveries(root):
-            return _load_denormalized_checkout_deliveries(checkout.pk, info)
-
-        checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
-        shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
-        checkout.delivery_methods_stale_at = (
-            checkout_info.checkout.delivery_methods_stale_at
-        )
-        CheckoutDeliveriesOnlyValidByCheckoutIdLoader(info.context).prime(
-            checkout.pk, shipping_methods
-        )
-        return [
-            convert_checkout_delivery_to_shipping_method_data(sm)
-            for sm in shipping_methods
-        ]
-
-    if _should_load_denormalized_checkout_deliveries(root):
-        return _load_denormalized_checkout_deliveries(checkout.pk, info)
-
-    return (
-        CheckoutInfoByCheckoutTokenLoader(info.context)
-        .load(root.node.token)
-        .then(with_checkout_info)
-    )
-
-
 def _resolve_checkout_delivery(
     root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
-) -> Promise[ShippingMethodData | None] | None:
+) -> Promise[ShippingMethodData | None]:
     checkout = root.node
 
     assigned_delivery_id = checkout.assigned_delivery_id
     if not assigned_delivery_id:
-        return None
+        return Promise.resolve(None)
 
-    if (
-        checkout.delivery_methods_stale_at
-        and checkout.delivery_methods_stale_at > timezone.now()
-    ) or not root.allow_sync_webhooks:
-        return (
-            CheckoutDeliveryByIdLoader(info.context)
-            .load(assigned_delivery_id)
-            .then(
-                lambda sm: (
-                    convert_checkout_delivery_to_shipping_method_data(sm)
-                    if sm.is_valid and sm.active
-                    else None
-                )
-            )
-        )
-
-    def with_checkout_info(checkout_info):
-        checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
-        shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
-        root.node.delivery_methods_stale_at = (
-            checkout_info.checkout.delivery_methods_stale_at
-        )
-        CheckoutDeliveriesOnlyValidByCheckoutIdLoader(info.context).prime(
-            checkout.pk, shipping_methods
-        )
-        CheckoutInfoByCheckoutTokenLoader(info.context).clear(root.node.token)
-
-        for sm in shipping_methods:
-            if sm.id == assigned_delivery_id:
-                CheckoutDeliveryByIdLoader(info.context).prime(assigned_delivery_id, sm)
-                return convert_checkout_delivery_to_shipping_method_data(sm)
-
-        CheckoutDeliveryByIdLoader(info.context).clear(assigned_delivery_id)
+    def get_shipping_method(deliveries: list[DeliveryMethod]):
+        for delivery in deliveries:
+            if delivery.id == assigned_delivery_id:
+                return convert_checkout_delivery_to_shipping_method_data(delivery)
         return None
 
     return (
-        CheckoutInfoByCheckoutTokenLoader(info.context)
-        .load(root.node.token)
-        .then(with_checkout_info)
+        CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader(info.context)
+        .load((checkout.pk, root.allow_sync_webhooks))
+        .then(get_shipping_method)
     )
 
 
@@ -1154,7 +1068,17 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     def resolve_shipping_methods(
         root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
     ):
-        return _resolve_checkout_deliveries(root, info)
+        return (
+            CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader(info.context)
+            .load((root.node.pk, root.allow_sync_webhooks))
+            .then(
+                lambda deliveries: [
+                    convert_checkout_delivery_to_shipping_method_data(delivery)
+                    for delivery in deliveries
+                    if delivery.is_valid
+                ]
+            )
+        )
 
     @staticmethod
     def resolve_delivery_method(
@@ -1294,8 +1218,16 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     def resolve_available_shipping_methods(
         root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
     ):
-        return _resolve_checkout_deliveries(root, info).then(
-            lambda methods: [method for method in methods if method.active]
+        return (
+            CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader(info.context)
+            .load((root.node.pk, root.allow_sync_webhooks))
+            .then(
+                lambda deliveries: [
+                    convert_checkout_delivery_to_shipping_method_data(delivery)
+                    for delivery in deliveries
+                    if (delivery.is_valid and delivery.active)
+                ]
+            )
         )
 
     @staticmethod
