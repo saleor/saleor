@@ -3222,3 +3222,136 @@ def test_product_bulk_create_with_media_incorrect_alt(
     assert error_2[0]["path"] == "media.0.alt"
     assert len(error_2) == 1
     assert data["count"] == 0
+
+
+def test_product_bulk_create_with_existing_slug(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    product,
+):
+    """Test that providing a slug that already exists in the DB returns an error."""
+    # given
+    existing_slug = product.slug
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": "New Product",
+            "slug": existing_slug,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["path"] == "slug"
+    assert errors[0]["code"] == ProductBulkCreateErrorCode.UNIQUE.name
+
+
+def test_product_bulk_create_with_duplicated_slug_in_batch(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+):
+    """Test that providing duplicate slugs within the same batch returns an error."""
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    duplicated_slug = "same-slug"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": "Product 1",
+            "slug": duplicated_slug,
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": "Product 2",
+            "slug": duplicated_slug,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    for result in data["results"]:
+        errors = result["errors"]
+        assert len(errors) == 1
+        assert errors[0]["path"] == "slug"
+        assert errors[0]["code"] == ProductBulkCreateErrorCode.UNIQUE.name
+
+
+def test_product_bulk_create_with_existing_slug_reject_failed_rows(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    product,
+):
+    """Test errorPolicy REJECT_FAILED_ROWS: valid product is created, invalid is rejected."""
+    # given
+    existing_slug = product.slug
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": "Valid Product",
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": "Invalid Product",
+            "slug": existing_slug,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {
+            "products": products,
+            "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.value,
+        },
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    assert data["results"][0]["product"] is not None
+    errors = data["results"][1]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductBulkCreateErrorCode.UNIQUE.name
+    assert data["results"][1]["product"] is None
