@@ -1,3 +1,5 @@
+from typing import IO
+
 from django.db.utils import DatabaseError
 from PIL import Image, UnidentifiedImageError
 
@@ -16,6 +18,14 @@ class NonRetryableError(Exception):
     def __init__(self, msg, reraise=False) -> None:
         super().__init__(msg)
         self.reraise = reraise
+
+
+class UnhandledException(Exception):
+    """The point of this exception is to not get handled.
+
+    This will be thrown in cases where crash is intentional, in order to indicate a
+    greater problem that has occurred.
+    """
 
 
 def get_product_media(product_media_id: int):
@@ -38,11 +48,10 @@ def validate_product_media_image(product_media: ProductMedia):
 
 def validate_product_media_external_url(product_media: ProductMedia):
     if not product_media.external_url:
-        raise NonRetryableError(
+        raise UnhandledException(
             f"Product media with id: {product_media.pk} has neither an external "
             f"URL nor an image. The object is in an invalid state and cannot be "
             f"processed.",
-            reraise=True,
         )
 
 
@@ -50,7 +59,7 @@ def validate_status_code(status_code):
     if status_code >= 500:
         raise RetryableError(f"Server error (HTTP status: {status_code}).")
 
-    if status_code < 200 or status_code > 400:
+    if status_code < 200 or status_code >= 300:
         raise NonRetryableError(
             f"Informational or client error happened (HTTP status: {status_code})"
         )
@@ -69,7 +78,7 @@ def create_image(product_media, mime_type, response):
     return create_file_from_response(response, filename)
 
 
-def validate_image_mime_type(image):
+def validate_image_mime_type(image: IO[bytes]):
     try:
         # Validate by reading MIME type from magic bytes.
         ProcessedImage.get_image_metadata_from_file(image)
@@ -79,13 +88,12 @@ def validate_image_mime_type(image):
         image.seek(0)
 
 
-def validate_image_exif(image):
+def validate_image_exif(image: IO[bytes]):
     try:
         # Validate with by getting exif.
         pil_image_obj = Image.open(image)
         pil_image_obj.getexif()
     except (
-        FileNotFoundError,
         ValueError,
         TypeError,
         SyntaxError,

@@ -391,9 +391,6 @@ def fetch_product_media_image_task(self, product_media_id: int):
         validate_image_exif(image)
         update_product_media(product_media, image)
     except (NonRetryableError, RequestException) as exc:
-        if getattr(exc, "reraise", False):
-            raise exc
-
         logger.warning(exc)
         return
     except (RetryableError, ConnectionError) as exc:

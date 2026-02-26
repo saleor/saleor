@@ -19,7 +19,6 @@ from ..models import (
     ProductVariantChannelListing,
 )
 from ..tasks import (
-    NonRetryableError,
     RetryableError,
     _get_preorder_variants_to_clean,
     fetch_product_media_image_task,
@@ -29,6 +28,7 @@ from ..tasks import (
     update_variant_relations_for_active_promotion_rules_task,
     update_variants_names,
 )
+from ..utils.tasks_utils import UnhandledException
 from ..utils.variants import fetch_variants_for_promotion_rules
 
 
@@ -388,7 +388,7 @@ def test_fetch_product_media_image_missing_external_url_and_image(
     assert not product_media.image
 
     # when & then
-    with pytest.raises(NonRetryableError, match="invalid state"):
+    with pytest.raises(UnhandledException, match="invalid state"):
         fetch_product_media_image_task(product_media.pk)
 
 
@@ -648,7 +648,7 @@ def test_fetch_product_media_image_server_error_triggers_retry(
     assert product_media.external_url
 
 
-@pytest.mark.parametrize("status_code", [100, 199, 401, 404, 499])
+@pytest.mark.parametrize("status_code", [100, 199, 300, 301, 401, 404, 499])
 def test_fetch_product_media_image_client_error_does_not_retry(
     product_media_image_not_yet_fetched,
     caplog,
