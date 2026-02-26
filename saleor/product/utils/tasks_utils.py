@@ -4,7 +4,7 @@ from django.db.utils import OperationalError
 from PIL import Image, UnidentifiedImageError
 
 from ...core.utils import create_file_from_response
-from ...core.utils.validators import is_image_mimetype, is_valid_image_content_type
+from ...core.utils.validators import is_valid_image_content_type
 from ...product import ProductMediaTypes
 from ...thumbnail.utils import ProcessedImage, get_filename_from_url
 from ..models import ProductMedia
@@ -15,9 +15,7 @@ class RetryableError(Exception):
 
 
 class NonRetryableError(Exception):
-    def __init__(self, msg, reraise=False) -> None:
-        super().__init__(msg)
-        self.reraise = reraise
+    pass
 
 
 class UnhandledException(Exception):
@@ -66,7 +64,7 @@ def validate_status_code(status_code):
 
 
 def validate_content_type_header(product_media, mime_type):
-    if not is_image_mimetype(mime_type) or not is_valid_image_content_type(mime_type):
+    if not is_valid_image_content_type(mime_type):
         raise NonRetryableError(
             f"File from product media: {product_media.pk} does not have "
             f"valid image content-type: {mime_type}."
@@ -90,7 +88,7 @@ def validate_image_mime_type(image: IO[bytes]):
 
 def validate_image_exif(image: IO[bytes]):
     try:
-        # Validate with by getting exif.
+        # Validate by getting exif.
         pil_image_obj = Image.open(image)
         pil_image_obj.getexif()
     except (

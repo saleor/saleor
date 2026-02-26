@@ -3,13 +3,13 @@ from collections import defaultdict
 from collections.abc import Iterable
 from uuid import UUID
 
+import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
-from requests import RequestException
 
 from ..attribute.models import Attribute
 from ..celeryconf import app
@@ -391,10 +391,7 @@ def fetch_product_media_image_task(self, product_media_id: int):
         validate_image_mime_type(image)
         validate_image_exif(image)
         update_product_media(product_media, image)
-    except (NonRetryableError, RequestException) as exc:
-        logger.warning(exc)
-        return
-    except (RetryableError, ConnectionError) as exc:
+    except (RetryableError, requests.ConnectionError, ConnectionError) as exc:
         if self.request.retries >= self.max_retries:
             logger.warning(
                 "Failed to fetch image for product media with id: %s after %s retries. "
@@ -407,3 +404,6 @@ def fetch_product_media_image_task(self, product_media_id: int):
         # initial backoff is 10 seconds, next retries follow exponential backoff
         countdown = 10 * (2**self.request.retries)
         raise self.retry(exc=exc, countdown=countdown) from exc
+    except (NonRetryableError, requests.RequestException) as exc:
+        logger.warning(exc)
+        return
