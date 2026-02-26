@@ -442,8 +442,7 @@ def test_fetch_product_media_image_non_image_content_type(
 
     # then
     assert "does not have valid image content-type" in caplog.text
-    product_media.refresh_from_db()
-    assert not product_media.image
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
 
 
 def test_fetch_product_media_image_success(
@@ -486,8 +485,7 @@ def test_fetch_product_media_image_unsupported_image_content_type(
 
     # then
     assert "does not have valid image content-type" in caplog.text
-    product_media.refresh_from_db()
-    assert not product_media.image
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
 
 
 def test_fetch_product_media_image_request_exception(
@@ -509,9 +507,7 @@ def test_fetch_product_media_image_request_exception(
 
     # then
     assert "Connection timeout" in caplog.text
-    product_media.refresh_from_db()
-    assert not product_media.image
-    assert product_media.external_url
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
 
 
 def test_fetch_product_media_image_deleted_after_final_retry(
@@ -570,8 +566,7 @@ def test_fetch_product_media_image_invalid_exif(
 
     # then
     assert "Invalid EXIF" in caplog.text
-    product_media.refresh_from_db()
-    assert not product_media.image
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
 
 
 def test_fetch_product_media_image_invalid_metadata(
@@ -590,8 +585,7 @@ def test_fetch_product_media_image_invalid_metadata(
 
     # then
     assert "Unsupported image MIME type" in caplog.text
-    product_media.refresh_from_db()
-    assert not product_media.image
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
 
 
 @pytest.mark.parametrize("status_code", [500, 502, 503])
@@ -628,6 +622,4 @@ def test_fetch_product_media_image_client_error_does_not_retry(
 
     # then
     assert f"HTTP status: {status_code}" in caplog.text
-    product_media.refresh_from_db()
-    assert not product_media.image
-    assert product_media.external_url
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False

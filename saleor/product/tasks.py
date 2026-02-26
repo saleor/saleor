@@ -375,7 +375,11 @@ def fetch_product_media_image_task(self, product_media_id: int):
         product_media = get_product_media(product_media_id)
         validate_product_media_image(product_media)
         validate_product_media_external_url(product_media)
+    except NonRetryableError as exc:
+        logger.warning(exc)
+        return
 
+    try:
         with HTTPClient.send_request(
             "GET",
             product_media.external_url,
@@ -398,12 +402,21 @@ def fetch_product_media_image_task(self, product_media_id: int):
                 "Removing product media.",
                 product_media_id,
                 self.request.retries,
+                exc_info=True,
             )
+
             product_media.delete()
             return
+
         # initial backoff is 10 seconds, next retries follow exponential backoff
         countdown = 10 * (2**self.request.retries)
         raise self.retry(exc=exc, countdown=countdown) from exc
-    except (NonRetryableError, requests.RequestException) as exc:
-        logger.warning(exc)
+    except (NonRetryableError, requests.RequestException):
+        logger.warning(
+            "Failed to fetch image for product media with id: %s. "
+            "Removing product media.",
+            product_media_id,
+            exc_info=True,
+        )
+        product_media.delete()
         return
