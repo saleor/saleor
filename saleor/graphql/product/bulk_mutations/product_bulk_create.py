@@ -440,6 +440,7 @@ class ProductBulkCreate(BaseMutation):
         for index, media_input in enumerate(media_inputs):
             image = media_input.get("image")
             media_url = media_input.get("media_url")
+            # Replace null alt value with an empty string to satisfy DB constraints
             alt = media_input.get("alt") or ""
             media_input["alt"] = alt
 
