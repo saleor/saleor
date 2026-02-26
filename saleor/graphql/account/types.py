@@ -58,7 +58,7 @@ from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_n
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader, OrdersByUserLoader
-from ..order.filters import OrderWhereInput
+from ..order.filters import CustomerOrderWhereInput
 from ..payment.types import StoredPaymentMethod
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -411,7 +411,7 @@ class User(ModelObjectType[models.User]):
     )
     orders = FilterConnectionField(
         "saleor.graphql.order.types.OrderCountableConnection",
-        where=OrderWhereInput(
+        where=CustomerOrderWhereInput(
             description="Where filtering options for orders." + ADDED_IN_322
         ),
         description=(

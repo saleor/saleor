@@ -730,7 +730,7 @@ def test_me_orders_pagination_has_previous_page(user_api_client, order_list):
 
 
 ME_ORDERS_WHERE_QUERY = """
-    query Me($where: OrderWhereInput!) {
+    query Me($where: CustomerOrderWhereInput!) {
         me {
             orders(first: 10, where: $where) {
                 totalCount

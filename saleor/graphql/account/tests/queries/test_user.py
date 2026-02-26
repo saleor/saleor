@@ -1349,7 +1349,7 @@ def test_query_customer_stored_payment_methods(
 
 
 USER_ORDERS_WHERE_QUERY = """
-    query User($id: ID!, $where: OrderWhereInput!) {
+    query User($id: ID!, $where: CustomerOrderWhereInput!) {
         user(id: $id) {
             orders(first: 10, where: $where) {
                 totalCount
