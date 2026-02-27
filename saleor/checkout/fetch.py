@@ -28,7 +28,7 @@ from .delivery_context import (
     ShippingMethodInfo,
     get_valid_collection_points_for_checkout,
 )
-from .models import Checkout, CheckoutDelivery, CheckoutLine
+from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -123,7 +123,6 @@ class CheckoutInfo:
     tax_configuration: "TaxConfiguration"
     discounts: list["CheckoutDiscount"]
     lines: list[CheckoutLineInfo]
-    assigned_delivery: CheckoutDelivery | None = None
     collection_point: Optional["Warehouse"] = None
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
@@ -142,7 +141,7 @@ class CheckoutInfo:
     def get_delivery_method_info(self) -> DeliveryMethodBase:
         delivery_method: ShippingMethodData | Warehouse | None = None
 
-        if assigned_sm := self.assigned_delivery:
+        if assigned_sm := self.checkout.assigned_delivery:
             delivery_method = convert_checkout_delivery_to_shipping_method_data(
                 assigned_sm
             )
@@ -369,7 +368,6 @@ def fetch_checkout_info(
         discounts=list(checkout.discounts.all()),
         lines=lines,
         manager=manager,
-        assigned_delivery=checkout.assigned_delivery,
         collection_point=checkout.collection_point,
         voucher=voucher,
         voucher_code=voucher_code,

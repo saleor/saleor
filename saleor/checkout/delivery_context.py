@@ -10,11 +10,13 @@ from django.utils import timezone
 from prices import Money
 from promise import Promise
 
-from ..core.db.connection import allow_writer
+from ..core.db.connection import (
+    allow_writer,
+)
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount import VoucherType
-from ..shipping.interface import ShippingMethodData
+from ..shipping.interface import ExcludedShippingMethod, ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
     convert_shipping_method_data_to_checkout_delivery,
@@ -29,7 +31,8 @@ from .lock_objects import checkout_qs_select_for_update
 from .models import Checkout, CheckoutDelivery, CheckoutLine
 
 if TYPE_CHECKING:
-    from ..account.models import Address
+    from ..account.models import Address, User
+    from ..app.models import App
     from ..plugins.manager import PluginsManager
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
@@ -539,10 +542,10 @@ def _refreshed_assigned_delivery_has_impact_on_prices(
     return False
 
 
-@allow_writer()
 def fetch_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
-) -> list[CheckoutDelivery]:
+    requestor: Union["App", "User", None],
+) -> Promise[list[CheckoutDelivery]]:
     """Fetch shipping methods for the checkout.
 
     Fetches all available shipping methods, both built-in and external, for the given
@@ -559,101 +562,106 @@ def fetch_shipping_methods_for_checkout(
             checkout_info=checkout_info
         )
     }
-    external_shipping_methods_dict: dict[str, ShippingMethodData] = {
-        shipping_method.id: shipping_method
-        for shipping_method in fetch_external_shipping_methods_for_checkout_info(
-            checkout_info=checkout_info,
-            available_built_in_methods=list(built_in_shipping_methods_dict.values()),
-        ).get()
-    }
-    all_methods = list(built_in_shipping_methods_dict.values()) + list(
-        external_shipping_methods_dict.values()
-    )
 
-    # Circular import caused by the current definition of subscription payloads
-    # and their usage in webhook/transport layer. Until moving them out from the
-    # transport, we will have circular imports.
-    from .webhooks.exclude_shipping import excluded_shipping_methods_for_checkout
+    def with_external_methods(external_shipping_methods: list[ShippingMethodData]):
+        external_shipping_methods_dict: dict[str, ShippingMethodData] = {
+            shipping_method.id: shipping_method
+            for shipping_method in external_shipping_methods
+        }
+        all_methods = list(built_in_shipping_methods_dict.values()) + list(
+            external_shipping_methods_dict.values()
+        )
+        # Circular import caused by the current definition of subscription payloads
+        # and their usage in webhook/transport layer. Until moving them out from the
+        # transport, we will have circular imports.
+        from .webhooks.exclude_shipping import excluded_shipping_methods_for_checkout
 
-    allow_replica = not (
-        checkout_info.database_connection_name
-        == settings.DATABASE_CONNECTION_DEFAULT_NAME
-    )
+        allow_replica = not (
+            checkout_info.database_connection_name
+            == settings.DATABASE_CONNECTION_DEFAULT_NAME
+        )
 
-    requestor = (
-        checkout_info.manager.requestor_getter()
-        if checkout_info.manager.requestor_getter
-        else None
-    )
+        @allow_writer()
+        def with_excluded_methods(excluded_methods: list[ExcludedShippingMethod]):
+            initialize_shipping_method_active_status(all_methods, excluded_methods)
+            checkout_deliveries = {}
 
-    excluded_methods = excluded_shipping_methods_for_checkout(
-        checkout,
-        available_shipping_methods=all_methods,
-        allow_replica=allow_replica,
+            for shipping_method_data in all_methods:
+                checkout_delivery_method = (
+                    convert_shipping_method_data_to_checkout_delivery(
+                        shipping_method_data, checkout
+                    )
+                )
+                checkout_deliveries[shipping_method_data.id] = checkout_delivery_method
+
+            with traced_atomic_transaction():
+                locked_checkout = (
+                    checkout_qs_select_for_update().filter(token=checkout.token).first()
+                )
+                if not locked_checkout:
+                    return []
+                if (
+                    locked_checkout.assigned_delivery_id
+                    != checkout.assigned_delivery_id
+                ):
+                    return []
+
+                assigned_delivery = checkout.assigned_delivery
+
+                checkout.delivery_methods_stale_at = (
+                    timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
+                )
+                checkout.save(update_fields=["delivery_methods_stale_at"])
+
+                _refresh_checkout_deliveries(
+                    checkout=locked_checkout,
+                    assigned_delivery=assigned_delivery,
+                    checkout_deliveries=list(checkout_deliveries.values()),
+                    built_in_shipping_methods_dict=built_in_shipping_methods_dict,
+                    external_shipping_methods_dict=external_shipping_methods_dict,
+                )
+
+                if _refreshed_assigned_delivery_has_impact_on_prices(
+                    assigned_delivery,
+                    built_in_shipping_methods_dict,
+                    external_shipping_methods_dict,
+                ):
+                    from .utils import invalidate_checkout
+
+                    invalidate_checkout(
+                        checkout_info=checkout_info,
+                        lines=checkout_info.lines,
+                        manager=checkout_info.manager,
+                        recalculate_discount=True,
+                        save=True,
+                    )
+            if checkout_deliveries:
+                return list(
+                    CheckoutDelivery.objects.filter(
+                        checkout_id=checkout.pk,
+                        is_valid=True,
+                    )
+                )
+            return []
+
+        return excluded_shipping_methods_for_checkout(
+            checkout,
+            available_shipping_methods=all_methods,
+            allow_replica=allow_replica,
+            requestor=requestor,
+        ).then(with_excluded_methods)
+
+    return fetch_external_shipping_methods_for_checkout_info(
+        checkout_info=checkout_info,
+        available_built_in_methods=list(built_in_shipping_methods_dict.values()),
         requestor=requestor,
-    ).get()
-    initialize_shipping_method_active_status(all_methods, excluded_methods)
-
-    checkout_deliveries = {}
-
-    for shipping_method_data in all_methods:
-        checkout_delivery_method = convert_shipping_method_data_to_checkout_delivery(
-            shipping_method_data, checkout
-        )
-        checkout_deliveries[shipping_method_data.id] = checkout_delivery_method
-
-    with traced_atomic_transaction():
-        locked_checkout = (
-            checkout_qs_select_for_update().filter(token=checkout.token).first()
-        )
-        if not locked_checkout:
-            return []
-        if locked_checkout.assigned_delivery_id != checkout.assigned_delivery_id:
-            return []
-
-        assigned_delivery = checkout.assigned_delivery
-
-        checkout.delivery_methods_stale_at = (
-            timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
-        )
-        checkout.save(update_fields=["delivery_methods_stale_at"])
-
-        _refresh_checkout_deliveries(
-            checkout=locked_checkout,
-            assigned_delivery=assigned_delivery,
-            checkout_deliveries=list(checkout_deliveries.values()),
-            built_in_shipping_methods_dict=built_in_shipping_methods_dict,
-            external_shipping_methods_dict=external_shipping_methods_dict,
-        )
-
-        if _refreshed_assigned_delivery_has_impact_on_prices(
-            assigned_delivery,
-            built_in_shipping_methods_dict,
-            external_shipping_methods_dict,
-        ):
-            from .utils import invalidate_checkout
-
-            invalidate_checkout(
-                checkout_info=checkout_info,
-                lines=checkout_info.lines,
-                manager=checkout_info.manager,
-                recalculate_discount=True,
-                save=True,
-            )
-
-    if checkout_deliveries:
-        return list(
-            CheckoutDelivery.objects.filter(
-                checkout_id=checkout.pk,
-                is_valid=True,
-            )
-        )
-    return []
+    ).then(with_external_methods)
 
 
 def fetch_external_shipping_methods_for_checkout_info(
     checkout_info,
     available_built_in_methods: list[ShippingMethodData],
+    requestor: Union["App", "User", None],
 ) -> Promise[list[ShippingMethodData]]:
     from .webhooks.list_shipping_methods import list_shipping_methods_for_checkout
 
@@ -661,11 +669,7 @@ def fetch_external_shipping_methods_for_checkout_info(
         checkout_info.database_connection_name
         == settings.DATABASE_CONNECTION_DEFAULT_NAME
     )
-    requestor = (
-        checkout_info.manager.requestor_getter()
-        if checkout_info.manager.requestor_getter
-        else None
-    )
+
     return list_shipping_methods_for_checkout(
         checkout=checkout_info.checkout,
         built_in_shipping_methods=available_built_in_methods,
@@ -676,7 +680,9 @@ def fetch_external_shipping_methods_for_checkout_info(
 
 def get_or_fetch_checkout_deliveries(
     checkout_info: "CheckoutInfo",
-) -> list[CheckoutDelivery]:
+    requestor: Union["App", "User", None],
+    allow_sync_webhooks: bool = True,
+) -> Promise[list[CheckoutDelivery]]:
     """Get or fetch shipping methods for the checkout.
 
     If the checkout's shipping methods are stale or missing, fetch and update them.
@@ -686,12 +692,16 @@ def get_or_fetch_checkout_deliveries(
     if (
         checkout.delivery_methods_stale_at is None
         or checkout.delivery_methods_stale_at <= timezone.now()
-    ):
-        return fetch_shipping_methods_for_checkout(checkout_info)
-    return list(
-        CheckoutDelivery.objects.filter(
-            checkout_id=checkout.pk,
-            is_valid=True,
+    ) and allow_sync_webhooks:
+        return fetch_shipping_methods_for_checkout(checkout_info, requestor=requestor)
+    return Promise.resolve(
+        list(
+            CheckoutDelivery.objects.using(
+                checkout_info.database_connection_name
+            ).filter(
+                checkout_id=checkout.pk,
+                is_valid=True,
+            )
         )
     )
 
@@ -710,20 +720,16 @@ def assign_delivery_method_to_checkout(
                 checkout=checkout_info.checkout
             )
             checkout_info.collection_point = None
-            checkout_info.assigned_delivery = None
-
         elif isinstance(delivery_method, CheckoutDelivery):
             fields_to_update = assign_shipping_method_to_checkout(
                 checkout, delivery_method
             )
             checkout_info.collection_point = None
-            checkout_info.assigned_delivery = delivery_method
         elif isinstance(delivery_method, Warehouse):
             fields_to_update = assign_collection_point_to_checkout(
                 checkout, delivery_method
             )
             checkout_info.shipping_address = checkout.shipping_address
-            checkout_info.assigned_delivery = None
 
         if not fields_to_update:
             return

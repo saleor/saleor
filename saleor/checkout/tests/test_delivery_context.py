@@ -112,7 +112,9 @@ def test_fetch_shipping_methods_for_checkout_with_built_in_shipping_method(
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     # Confirm that new shipping method was created
@@ -191,7 +193,9 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_built_in_shipping_
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     # Confirm that we updated the shipping method instead of creating a new one
@@ -235,7 +239,9 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_built_in_shi
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     assert CheckoutDelivery.objects.count() == 1
@@ -280,7 +286,9 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_built_in_sh
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     assert CheckoutDelivery.objects.count() == 2
@@ -336,7 +344,9 @@ def test_fetch_shipping_methods_for_checkout_with_excluded_built_in_shipping_met
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     assert len(shipping_methods) == 1
@@ -384,7 +394,7 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_built_in_ship
     )
 
     # when
-    fetch_shipping_methods_for_checkout(checkout_info)
+    fetch_shipping_methods_for_checkout(checkout_info, requestor=None)
 
     # then
     checkout.refresh_from_db()
@@ -437,7 +447,7 @@ def test_fetch_shipping_methods_for_checkout_with_changed_tax_class_of_built_in_
     )
 
     # when
-    fetch_shipping_methods_for_checkout(checkout_info)
+    fetch_shipping_methods_for_checkout(checkout_info, requestor=None)
 
     # then
     checkout.refresh_from_db()
@@ -519,7 +529,9 @@ def test_fetch_shipping_methods_for_checkout_with_external_shipping_method(
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     # Confirms that new shipping method was created
@@ -582,7 +594,9 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_external_shipping_
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     assert len(shipping_methods) == 1
@@ -646,7 +660,9 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_external_shi
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     assert len(shipping_methods) == 1
@@ -711,7 +727,9 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_external_sh
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     assert CheckoutDelivery.objects.count() == 2
@@ -787,7 +805,9 @@ def test_fetch_shipping_methods_for_checkout_with_excluded_external_shipping_met
     )
 
     # when
-    shipping_methods = fetch_shipping_methods_for_checkout(checkout_info)
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
 
     # then
     assert len(shipping_methods) == 1
@@ -852,7 +872,7 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
     )
 
     # when
-    fetch_shipping_methods_for_checkout(checkout_info)
+    fetch_shipping_methods_for_checkout(checkout_info, requestor=None)
 
     # then
     checkout.refresh_from_db()

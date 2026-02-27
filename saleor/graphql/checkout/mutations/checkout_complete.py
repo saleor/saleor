@@ -1,6 +1,10 @@
+from typing import Union
+
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....account.models import User
+from ....app.models import App
 from ....checkout import AddressType, models
 from ....checkout.checkout_cleaner import (
     clean_checkout_shipping,
@@ -176,6 +180,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         checkout_info: CheckoutInfo,
         lines: list[CheckoutLineInfo],
         info: ResolveInfo,
+        requestor: Union["App", "User", None],
     ):
         """Validate checkout addresses.
 
@@ -189,9 +194,11 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         billing_address = checkout_info.billing_address
 
         if is_shipping_required(lines):
-            if checkout_info.assigned_delivery:
+            if checkout_info.checkout.assigned_delivery:
                 # Refresh stale shipping if needed
-                get_or_fetch_checkout_deliveries(checkout_info)
+                get_or_fetch_checkout_deliveries(
+                    checkout_info, requestor=requestor
+                ).get()
             clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
             if shipping_address:
                 shipping_address_data = shipping_address.as_data()
@@ -321,8 +328,11 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             )
         checkout_info = fetch_checkout_info(checkout, lines, manager)
 
+        requestor = get_user_or_app_from_context(info.context)
         try:
-            cls.validate_checkout_addresses(checkout_info, lines, info)
+            cls.validate_checkout_addresses(
+                checkout_info, lines, info, requestor=requestor
+            )
         except models.Checkout.DoesNotExist as e:
             order = order_models.Order.objects.get_by_checkout_token(
                 checkout_info.checkout.token
@@ -342,7 +352,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 }
             ) from e
 
-        requestor = get_user_or_app_from_context(info.context)
         if requestor and requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
             # Allow impersonating user and process a checkout by using user details
             # assigned to checkout.

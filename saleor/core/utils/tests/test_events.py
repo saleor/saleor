@@ -55,14 +55,14 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_no_webhooks(
     webhook_event_map = get_webhooks_for_multiple_events(
         [
             WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
-            *WebhookEventSyncType.CHECKOUT_EVENTS,
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
+        event_name, webhook_event_map, [WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
 
     # then
@@ -80,14 +80,14 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_async_webhoo
     webhook_event_map = get_webhooks_for_multiple_events(
         [
             WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
-            *WebhookEventSyncType.CHECKOUT_EVENTS,
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
+        event_name, webhook_event_map, [WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
 
     # then
@@ -110,14 +110,14 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_when_sync_webhook
     webhook_event_map = get_webhooks_for_multiple_events(
         [
             WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
-            *WebhookEventSyncType.CHECKOUT_EVENTS,
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
+        event_name, webhook_event_map, [WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
 
     # then
@@ -137,13 +137,13 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_webhooks_active(
     ) = setup_checkout_webhooks(event_name)
 
     webhook_event_map = get_webhooks_for_multiple_events(
-        [event_name, *WebhookEventSyncType.CHECKOUT_EVENTS]
+        [event_name, WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
+        event_name, webhook_event_map, [WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
 
     # then
@@ -158,17 +158,17 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_missing_event_in_
             WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
         ]
     )
+    expected_failure_events = {WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES}
 
     # when & then
     with pytest.raises(
         ValueError,
-        match=(
-            f"Event {set(WebhookEventSyncType.CHECKOUT_EVENTS)} not found in "
-            "webhook_event_map."
-        ),
+        match=(f"Event {expected_failure_events} not found in webhook_event_map."),
     ):
         webhook_async_event_requires_sync_webhooks_to_trigger(
-            event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
+            event_name,
+            webhook_event_map,
+            [WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES],
         )
 
 
@@ -216,14 +216,14 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_f
     webhook_event_map = get_webhooks_for_multiple_events(
         [
             WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
-            *WebhookEventSyncType.CHECKOUT_EVENTS,
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
+        event_name, webhook_event_map, [WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
 
     # then
@@ -251,14 +251,14 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_s
     webhook_event_map = get_webhooks_for_multiple_events(
         [
             WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
-            *WebhookEventSyncType.CHECKOUT_EVENTS,
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
+        event_name, webhook_event_map, [WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
 
     # then
@@ -287,14 +287,14 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_f
     webhook_event_map = get_webhooks_for_multiple_events(
         [
             WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
-            *WebhookEventSyncType.CHECKOUT_EVENTS,
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
+        event_name, webhook_event_map, [WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
 
     # then
@@ -319,14 +319,14 @@ def test_webhook_async_event_requires_sync_webhooks_to_trigger_no_subscription_f
     webhook_event_map = get_webhooks_for_multiple_events(
         [
             WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
-            *WebhookEventSyncType.CHECKOUT_EVENTS,
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         ]
     )
 
     # when
 
     should_trigger = webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.CHECKOUT_EVENTS
+        event_name, webhook_event_map, [WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     )
 
     # then
