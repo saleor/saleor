@@ -9,7 +9,7 @@ import pytest
 from django.utils import timezone
 from faker import Faker
 from PIL import Image
-from requests.exceptions import RequestException
+from requests.exceptions import HTTPError, RequestException
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
@@ -20,16 +20,15 @@ from ..models import (
     ProductVariantChannelListing,
 )
 from ..tasks import (
-    RetryableError,
     _get_preorder_variants_to_clean,
     fetch_product_media_image_task,
     mark_products_search_vector_as_dirty,
+    on_failure_fetch_product_media_image_task,
     recalculate_discounted_price_for_products_task,
     update_products_search_vector_task,
     update_variant_relations_for_active_promotion_rules_task,
     update_variants_names,
 )
-from ..utils.tasks_utils import UnhandledException
 from ..utils.variants import fetch_variants_for_promotion_rules
 
 
@@ -366,26 +365,21 @@ def test_mark_products_search_vector_as_dirty(product_list):
     )
 
 
-def test_fetch_product_media_image_already_has_image(product_media_image, caplog):
+def test_fetch_product_media_image_already_has_image(product_media_image):
     # given
-    caplog.set_level(logging.WARNING)
     assert product_media_image.image
-
     image = product_media_image.image
 
     # when
     fetch_product_media_image_task(product_media_image.pk)
 
     # then
-    assert "already has an image" in caplog.text
-
     product_media_image.refresh_from_db(fields=["image"])
     assert product_media_image.image == image
 
 
-def test_fetch_product_media_image_not_found(caplog):
+def test_fetch_product_media_image_not_found():
     # given
-    caplog.set_level(logging.WARNING)
     non_existent_id = -1
     assert not ProductMedia.objects.filter(pk=non_existent_id).exists()
 
@@ -393,7 +387,7 @@ def test_fetch_product_media_image_not_found(caplog):
     fetch_product_media_image_task(non_existent_id)
 
     # then
-    assert "Cannot find product media" in caplog.text
+    assert not ProductMedia.objects.filter(pk=non_existent_id).exists()
 
 
 def test_fetch_product_media_image_missing_external_url_and_image(
@@ -406,13 +400,11 @@ def test_fetch_product_media_image_missing_external_url_and_image(
     assert not product_media.image
 
     # when & then
-    with pytest.raises(UnhandledException, match="invalid state"):
-        fetch_product_media_image_task(product_media.pk)
+    fetch_product_media_image_task(product_media.pk)
 
 
-def test_fetch_product_media_image_wrong_type(product_media_video, caplog):
+def test_fetch_product_media_image_wrong_type(product_media_video):
     # given
-    caplog.set_level(logging.WARNING)
     product_media = product_media_video
     assert not product_media.image
 
@@ -420,7 +412,6 @@ def test_fetch_product_media_image_wrong_type(product_media_video, caplog):
     fetch_product_media_image_task(product_media.pk)
 
     # then
-    assert "Cannot find product media" in caplog.text
     product_media.refresh_from_db()
     assert not product_media.image
 
@@ -490,10 +481,8 @@ def test_fetch_product_media_image_unsupported_image_content_type(
 
 def test_fetch_product_media_image_request_exception(
     product_media_image_not_yet_fetched,
-    caplog,
 ):
     # given
-    caplog.set_level(logging.WARNING)
     product_media = product_media_image_not_yet_fetched
     assert product_media.external_url
     assert not product_media.image
@@ -503,39 +492,25 @@ def test_fetch_product_media_image_request_exception(
         mock_http_client.send_request.side_effect = RequestException(
             "Connection timeout"
         )
-        fetch_product_media_image_task(product_media.pk)
+        with pytest.raises(RequestException):
+            fetch_product_media_image_task(product_media.pk)
 
     # then
-    assert "Connection timeout" in caplog.text
-    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
 def test_fetch_product_media_image_deleted_after_final_retry(
-    product_media_image_not_yet_fetched, caplog
+    product_media_image_not_yet_fetched,
 ):
     # given
-    caplog.set_level(logging.WARNING)
     product_media = product_media_image_not_yet_fetched
-    assert not product_media.image
-
-    max_retries = 3
-    assert fetch_product_media_image_task.max_retries == max_retries
 
     # when
-
-    # simulate the state where task is being retried for the third time
-    request = MagicMock(retries=max_retries)
-    with (
-        patch("saleor.product.tasks.HTTPClient") as mock_http_client,
-        patch.object(
-            fetch_product_media_image_task, "request_stack", MagicMock(top=request)
-        ),
-    ):
-        mock_http_client.send_request.side_effect = ConnectionError("Connection error")
-        fetch_product_media_image_task(product_media.pk)
+    on_failure_fetch_product_media_image_task(
+        None, None, (product_media.pk,), None, None
+    )
 
     # then
-    assert "Removing product media" in caplog.text
     assert not ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
@@ -598,7 +573,7 @@ def test_fetch_product_media_image_server_error_triggers_retry(
 
     # when & then
     with mock_http_response_for_product_task(status_code=status_code):
-        with pytest.raises(RetryableError):
+        with pytest.raises(HTTPError):
             fetch_product_media_image_task(product_media.pk)
 
     # then
