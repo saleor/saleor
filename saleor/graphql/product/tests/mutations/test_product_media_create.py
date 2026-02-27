@@ -438,3 +438,57 @@ def test_product_media_create_mutation_alt_character_limit(
     errors = content["data"]["productMediaCreate"]["errors"]
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
+
+
+def test_product_media_create_when_alt_is_null(
+    staff_api_client, product, permission_manage_products, media_root
+):
+    # given
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": None,
+        "image": image_name,
+    }
+
+    # when
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)["data"]["productMediaCreate"]
+
+    # then
+    assert not content["errors"]
+    assert content["product"]["media"][0]["alt"] == ""
+
+
+@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
+def test_product_media_create_with_media_url_when_alt_is_null(
+    mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
+):
+    # given
+    image_file, _ = create_image()
+    mock_response = Mock()
+    mock_response.headers.get.return_value = image_file.content_type
+    mock_response.content = image_file.read()
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://saleor.io/image-path",
+        "alt": None,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_CREATE_QUERY,
+        variables=variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)["data"]["productMediaCreate"]
+
+    # then
+    assert not content["errors"]
+    assert content["product"]["media"][0]["alt"] == ""
