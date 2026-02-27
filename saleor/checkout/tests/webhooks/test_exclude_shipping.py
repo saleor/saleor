@@ -157,6 +157,7 @@ def test_checkout_deliveries_webhook_called_once(
     # given
     mocked_webhook.side_effect = [Promise.resolve([]), AssertionError("called twice.")]
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+
     # when
     response = staff_api_client.post_graphql(
         CHECKOUT_QUERY_SHIPPING_METHOD,
@@ -164,6 +165,7 @@ def test_checkout_deliveries_webhook_called_once(
     )
     content = get_graphql_content(response)
     checkout_data = content["data"]["checkout"]
+
     # then
     expected_count = ShippingMethod.objects.count()
     assert len(checkout_data["availableShippingMethods"]) == expected_count

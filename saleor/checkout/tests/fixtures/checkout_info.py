@@ -27,7 +27,6 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         tax_configuration=channel.tax_configuration,
-        assigned_delivery=checkout.assigned_delivery,
         discounts=[],
         manager=manager,
         lines=lines,

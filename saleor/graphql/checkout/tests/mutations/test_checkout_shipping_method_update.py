@@ -97,7 +97,7 @@ def test_checkout_shipping_method_update(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mock_get_or_fetch_checkout_deliveries.assert_called_once_with(
-        checkout_info,
+        checkout_info, requestor=staff_api_client.user
     )
     errors = data["errors"]
     assert not errors
@@ -150,7 +150,7 @@ def test_checkout_shipping_method_update_not_valid_shipping_method(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mock_get_or_fetch_checkout_deliveries.assert_called_once_with(
-        checkout_info,
+        checkout_info, requestor=staff_api_client.user
     )
     errors = data["errors"]
     assert len(errors) == 1
