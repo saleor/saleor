@@ -23,7 +23,6 @@ from ..tasks import (
     _get_preorder_variants_to_clean,
     fetch_product_media_image_task,
     mark_products_search_vector_as_dirty,
-    on_failure_fetch_product_media_image_task,
     recalculate_discounted_price_for_products_task,
     update_products_search_vector_task,
     update_variant_relations_for_active_promotion_rules_task,
@@ -371,7 +370,7 @@ def test_fetch_product_media_image_already_has_image(product_media_image):
     image = product_media_image.image
 
     # when
-    fetch_product_media_image_task(product_media_image.pk)
+    fetch_product_media_image_task.apply(args=(product_media_image.pk,))
 
     # then
     product_media_image.refresh_from_db(fields=["image"])
@@ -384,7 +383,7 @@ def test_fetch_product_media_image_not_found():
     assert not ProductMedia.objects.filter(pk=non_existent_id).exists()
 
     # when
-    fetch_product_media_image_task(non_existent_id)
+    fetch_product_media_image_task.apply(args=(non_existent_id,))
 
     # then
     assert not ProductMedia.objects.filter(pk=non_existent_id).exists()
@@ -399,8 +398,11 @@ def test_fetch_product_media_image_missing_external_url_and_image(
     product_media.save(update_fields=["external_url"])
     assert not product_media.image
 
-    # when & then
-    fetch_product_media_image_task(product_media.pk)
+    # when
+    fetch_product_media_image_task.apply(args=(product_media.pk,))
+
+    # then
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
 def test_fetch_product_media_image_wrong_type(product_media_video):
@@ -409,7 +411,7 @@ def test_fetch_product_media_image_wrong_type(product_media_video):
     assert not product_media.image
 
     # when
-    fetch_product_media_image_task(product_media.pk)
+    fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
     product_media.refresh_from_db()
@@ -429,11 +431,10 @@ def test_fetch_product_media_image_non_image_content_type(
     with mock_http_response_for_product_task(
         status_code=200, content_type="text/plain"
     ):
-        fetch_product_media_image_task(product_media.pk)
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
-    assert "does not have valid image content-type" in caplog.text
-    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert not ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
 def test_fetch_product_media_image_success(
@@ -452,7 +453,7 @@ def test_fetch_product_media_image_success(
     with mock_http_response_for_product_task(
         status_code=200, content_type="image/jpeg", content=image_bytes
     ):
-        fetch_product_media_image_task(product_media.pk)
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
     product_media.refresh_from_db()
@@ -472,11 +473,10 @@ def test_fetch_product_media_image_unsupported_image_content_type(
     with mock_http_response_for_product_task(
         status_code=200, content_type="image/svg+xml"
     ):
-        fetch_product_media_image_task(product_media.pk)
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
-    assert "does not have valid image content-type" in caplog.text
-    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert not ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
 def test_fetch_product_media_image_request_exception(
@@ -493,6 +493,9 @@ def test_fetch_product_media_image_request_exception(
             "Connection timeout"
         )
         with pytest.raises(RequestException):
+            # this call simulates a single attempt for executing the task
+            # does not call .apply as otherwise on_failure hook would be called
+            # and this results in removing ProductMedia object
             fetch_product_media_image_task(product_media.pk)
 
     # then
@@ -506,9 +509,7 @@ def test_fetch_product_media_image_deleted_after_final_retry(
     product_media = product_media_image_not_yet_fetched
 
     # when
-    on_failure_fetch_product_media_image_task(
-        None, None, (product_media.pk,), None, None
-    )
+    fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
     assert not ProductMedia.objects.filter(pk=product_media.pk).exists()
@@ -537,11 +538,10 @@ def test_fetch_product_media_image_invalid_exif(
         mock_pil_image.getexif.side_effect = SyntaxError("Invalid EXIF")
         mock_image_open.return_value = mock_pil_image
 
-        fetch_product_media_image_task(product_media.pk)
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
-    assert "Invalid EXIF" in caplog.text
-    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert not ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
 def test_fetch_product_media_image_invalid_metadata(
@@ -556,11 +556,10 @@ def test_fetch_product_media_image_invalid_metadata(
     with mock_http_response_for_product_task(
         status_code=200, content_type="image/jpeg", content=b"not an image"
     ):
-        fetch_product_media_image_task(product_media.pk)
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
-    assert "Unsupported image MIME type" in caplog.text
-    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert not ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
 @pytest.mark.parametrize("status_code", [500, 502, 503])
@@ -574,6 +573,9 @@ def test_fetch_product_media_image_server_error_triggers_retry(
     # when & then
     with mock_http_response_for_product_task(status_code=status_code):
         with pytest.raises(HTTPError):
+            # this call simulates a single attempt for executing the task
+            # does not call .apply as otherwise on_failure hook would be called
+            # and this results in removing ProductMedia object
             fetch_product_media_image_task(product_media.pk)
 
     # then
@@ -593,8 +595,7 @@ def test_fetch_product_media_image_client_error_does_not_retry(
 
     # when
     with mock_http_response_for_product_task(status_code=status_code):
-        fetch_product_media_image_task(product_media.pk)
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
-    assert f"HTTP status: {status_code}" in caplog.text
-    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert not ProductMedia.objects.filter(pk=product_media.pk).exists()

@@ -361,7 +361,7 @@ def collection_product_updated_task(product_ids):
         manager.product_updated(product, webhooks=webhooks)
 
 
-def on_failure_fetch_product_media_image_task(exc, task_id, args, kwargs, einfo):
+def on_failure_fetch_product_media_image_task(self, exc, task_id, args, kwargs, einfo):
     product_media_id = args[0]
     logger.warning(
         "Failed to fetch image for product media with id: %s. Removing product media.",
