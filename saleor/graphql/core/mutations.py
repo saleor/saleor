@@ -51,6 +51,7 @@ from .types import (
     Upload,
     UploadError,
 )
+from .types.base import BaseInputObjectType
 from .utils import (
     WebhookEventInfo,
     ext_ref_to_global_id_or_error,
@@ -59,6 +60,7 @@ from .utils import (
     snake_to_camel_case,
 )
 from .utils.error_codes import get_error_code_from_error
+from .validators import validate_string_constraints
 from .validators.file import validate_upload_file
 
 MISSING_NODE_ERROR_MESSAGE_PREFIX = "Couldn't resolve to a node:"
@@ -514,6 +516,65 @@ class BaseMutation(graphene.Mutation):
         return one_of_permissions_or_auth_filter_required(context, all_permissions)
 
     @classmethod
+    def _validate_input_string_constraints(cls, data):
+        """Validate LimitedString constraints on all input type arguments.
+
+        Inspects the mutation's Arguments to find BaseInputObjectType arguments
+        and recursively validates their string constraints. Top-level list
+        arguments are skipped — bulk mutations handle per-item validation.
+        """
+
+        if not hasattr(cls._meta, "arguments") or not cls._meta.arguments:
+            return
+
+        for arg_name, arg in cls._meta.arguments.items():
+            if arg_name not in data or data[arg_name] is None:
+                continue
+
+            # Skip list arguments (bulk mutations handle per-item validation)
+            if isinstance(arg, graphene.List):
+                continue
+
+            # The argument value is an unmounted type; type(arg) is the class
+            arg_cls = type(arg)
+            if issubclass(arg_cls, BaseInputObjectType):
+                cls._validate_string_constraints_recursive(arg_cls, data[arg_name])
+
+    @classmethod
+    def _validate_string_constraints_recursive(cls, input_cls, data):
+        """Recursively validate LimitedString constraints on an input type."""
+
+        if data is None:
+            return
+
+        validate_string_constraints(input_cls, data)
+
+        for field_name, field_item in input_cls._meta.fields.items():
+            if field_name not in data or data[field_name] is None:
+                continue
+
+            field_type = field_item.type
+            is_list = False
+            while hasattr(field_type, "of_type"):
+                if isinstance(field_type, graphene.List):
+                    is_list = True
+                field_type = field_type.of_type
+
+            if not (
+                isinstance(field_type, type)
+                and issubclass(field_type, BaseInputObjectType)
+            ):
+                continue
+
+            nested_data = data[field_name]
+            if is_list:
+                for item in nested_data:
+                    if item is not None:
+                        cls._validate_string_constraints_recursive(field_type, item)
+            else:
+                cls._validate_string_constraints_recursive(field_type, nested_data)
+
+    @classmethod
     @allow_writer()
     def mutate(cls, root, info: ResolveInfo, **data):
         disallow_replica_in_context(info.context)
@@ -523,6 +584,7 @@ class BaseMutation(graphene.Mutation):
             raise PermissionDenied(permissions=cls._meta.permissions)
 
         try:
+            cls._validate_input_string_constraints(data)
             response = cls.perform_mutation(root, info, **data)
             if response.errors is None:
                 response.errors = []
@@ -715,6 +777,10 @@ class DeprecatedModelMutation(BaseMutation):
 
         if not input_cls:
             input_cls = getattr(cls.Arguments, "input")
+
+        # Validate string length constraints from LimitedString fields
+        validate_string_constraints(input_cls, data)
+
         cleaned_input = {}
 
         for field_name, field_item in input_cls._meta.fields.items():

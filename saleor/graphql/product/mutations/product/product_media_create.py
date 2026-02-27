@@ -12,6 +12,7 @@ from .....thumbnail.utils import get_filename_from_url
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
+from ....core.limited_string import LimitedString
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
 from ....core.utils import create_file_from_response
@@ -23,11 +24,10 @@ from ....core.validators.file import (
 )
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
-from ...utils import ALT_CHAR_LIMIT
 
 
 class ProductMediaCreateInput(BaseInputObjectType):
-    alt = graphene.String(description="Alt text for a product media.")
+    alt = LimitedString(max_length=250, description="Alt text for a product media.")
     image = Upload(
         required=False, description="Represents an image file in a multipart request."
     )
@@ -67,7 +67,6 @@ class ProductMediaCreate(BaseMutation):
     def validate_input(cls, data):
         image = data.get("image")
         media_url = data.get("media_url")
-        alt = data.get("alt")
 
         if not image and not media_url:
             raise ValidationError(
@@ -84,16 +83,6 @@ class ProductMediaCreate(BaseMutation):
                     "input": ValidationError(
                         "Either image or external URL is required.",
                         code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    )
-                }
-            )
-
-        if alt and len(alt) > ALT_CHAR_LIMIT:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        f"Alt field exceeds the character limit of {ALT_CHAR_LIMIT}.",
-                        code=ProductErrorCode.INVALID.value,
                     )
                 }
             )

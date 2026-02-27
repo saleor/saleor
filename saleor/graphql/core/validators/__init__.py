@@ -227,3 +227,31 @@ def validate_limit_of_list_input(
         raise ValidationError(
             f"The maximum number of items in {field_name} is {limit}."
         )
+
+
+def validate_string_constraints(input_cls, data):
+    """Validate string length constraints defined via LimitedString fields."""
+    constraints = getattr(input_cls, "_string_constraints", None)
+    if not constraints:
+        return
+    errors = {}
+    for field_name, (min_length, max_length) in constraints.items():
+        if field_name not in data or data[field_name] is None:
+            continue
+        value = data[field_name]
+        if not isinstance(value, str):
+            continue
+        if min_length is not None and len(value) < min_length:
+            errors[field_name] = ValidationError(
+                "This value must be at least %(min_length)d characters long.",
+                code="min_length",
+                params={"min_length": min_length},
+            )
+        elif max_length is not None and len(value) > max_length:
+            errors[field_name] = ValidationError(
+                "This value must be at most %(max_length)d characters long.",
+                code="max_length",
+                params={"max_length": max_length},
+            )
+    if errors:
+        raise ValidationError(errors)
