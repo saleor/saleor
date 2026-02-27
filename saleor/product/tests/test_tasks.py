@@ -509,7 +509,12 @@ def test_fetch_product_media_image_deleted_after_final_retry(
     product_media = product_media_image_not_yet_fetched
 
     # when
-    fetch_product_media_image_task.apply(args=(product_media.pk,))
+    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+        mock_http_client.send_request.side_effect = RequestException(
+            "Connection timeout"
+        )
+        # mind that .apply will execute retries and as well as hooks (like on_failure hook)
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
     assert not ProductMedia.objects.filter(pk=product_media.pk).exists()

@@ -10,8 +10,6 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
 
-from saleor.product import ProductMediaTypes
-
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
@@ -21,6 +19,7 @@ from ..core.utils.validators import get_mime_type
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
 from ..plugins.manager import get_plugins_manager
+from ..product import ProductMediaTypes
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
@@ -410,6 +409,11 @@ def fetch_product_media_image_task(product_media_id: int):
         )
         return
 
+    # Removing this try-catch and leaving all the work to `on_failure` hook may be
+    # tempting although it is necessary.
+    # For example `requests.exceptions.InvalidSchema` is both IOError and ValueError.
+    # Invalid schema error it not retryable error (it will not fix itself with another
+    # try) therefore it has to be caught and task should not be retried.
     try:
         with HTTPClient.send_request(
             "GET",
