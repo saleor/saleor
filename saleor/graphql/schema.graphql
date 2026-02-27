@@ -267,6 +267,11 @@ type Query {
   refundSettings: RefundSettings! @doc(category: "Shop")
 
   """
+  Returns related settings. Returns `ReturnSettings` configuration, global for the entire shop.
+  """
+  returnSettings: ReturnSettings! @doc(category: "Shop")
+
+  """
   Look up a shipping zone by ID.
   
   Requires one of the following permissions: MANAGE_SHIPPING.
@@ -12291,6 +12296,20 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Warehouse from fulfillment was fulfilled."""
   warehouse: Warehouse
 
+  """
+  Reason for the return or refund. Only applicable for fulfillments with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  Reason Model (Page) reference for the return or refund. Only applicable for fulfillments with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
+
   """Amount of refunded shipping price."""
   shippingRefundedAmount: Money
 
@@ -12318,6 +12337,20 @@ type FulfillmentLine implements Node @doc(category: "Orders") {
 
   """The order line to which the fulfillment line is related."""
   orderLine: OrderLine
+
+  """
+  Reason for the return or refund. Only applicable for fulfillments with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  Reason Model (Page) reference for the return or refund. Only applicable for fulfillments with status: REFUNDED, RETURNED, REFUNDED_AND_RETURNED, REPLACED.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 }
 
 """Represents order line of particular order."""
@@ -12561,6 +12594,215 @@ enum OrderDiscountType @doc(category: "Discounts") {
   MANUAL
   PROMOTION
   ORDER_PROMOTION
+}
+
+"""
+A static page that can be manually added by a shop operator through the dashboard.
+"""
+type Page implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Pages") {
+  """ID of the page."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """
+  Get a single attribute attached to page by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to this page.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
+
+  """Title of the page for SEO."""
+  seoTitle: String
+
+  """Description of the page for SEO."""
+  seoDescription: String
+
+  """Title of the page."""
+  title: String!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+  publicationDate: Date @deprecated(reason: "Use the `publishedAt` field to fetch the publication date.")
+
+  """The page publication date."""
+  publishedAt: DateTime
+
+  """Determines if the page is published."""
+  isPublished: Boolean!
+
+  """Slug of the page."""
+  slug: String!
+
+  """Determines the type of page"""
+  pageType: PageType!
+
+  """Date and time at which page was created."""
+  created: DateTime!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString! @deprecated(reason: "Use the `content` field instead.")
+
+  """Returns translated page fields for the given language code."""
+  translation(
+    """A language code to return the translation for page."""
+    languageCode: LanguageCodeEnum!
+  ): PageTranslation
+
+  """Get a single attribute attached to page by attribute slug."""
+  attribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): SelectedAttribute @deprecated(reason: "Use `assignedAttribute` field instead.")
+
+  """List of attributes assigned to this page."""
+  attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
+}
+
+"""Represents page translations."""
+type PageTranslation implements Node @doc(category: "Pages") {
+  """The ID of the page translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated SEO title."""
+  seoTitle: String
+
+  """Translated SEO description."""
+  seoDescription: String
+
+  """
+  Translated page slug.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
+  """Translated page title."""
+  title: String
+
+  """
+  Translated content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+
+  """
+  Translated description of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
+
+  """Represents the page fields to translate."""
+  translatableContent: PageTranslatableContent
+}
+
+"""
+Represents page's original translatable fields and related translations.
+"""
+type PageTranslatableContent implements Node @doc(category: "Pages") {
+  """The ID of the page translatable content."""
+  id: ID!
+
+  """The ID of the page to translate."""
+  pageId: ID!
+
+  """SEO title to translate."""
+  seoTitle: String
+
+  """SEO description to translate."""
+  seoDescription: String
+
+  """
+  Slug to translate.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
+  """Page title to translate."""
+  title: String!
+
+  """
+  Content of the page to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
+
+  """Returns translated page fields for the given language code."""
+  translation(
+    """A language code to return the translation for page."""
+    languageCode: LanguageCodeEnum!
+  ): PageTranslation
+
+  """
+  A static page that can be manually added by a shop operator through the dashboard.
+  """
+  page: Page @deprecated(reason: "Get model fields from the root level queries.")
+
+  """List of page content attribute values that can be translated."""
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 enum OrderAction @doc(category: "Payments") {
@@ -13254,215 +13496,6 @@ type OrderGrantedRefund @doc(category: "Orders") {
   transaction: TransactionItem
 }
 
-"""
-A static page that can be manually added by a shop operator through the dashboard.
-"""
-type Page implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Pages") {
-  """ID of the page."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """
-  Get a single attribute attached to page by attribute slug.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): AssignedAttribute
-
-  """
-  List of attributes assigned to this page.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttributes(
-    """Maximum number of attributes to return. Default is 100."""
-    limit: PositiveInt = 100
-  ): [AssignedAttribute!]!
-
-  """Title of the page for SEO."""
-  seoTitle: String
-
-  """Description of the page for SEO."""
-  seoDescription: String
-
-  """Title of the page."""
-  title: String!
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-  publicationDate: Date @deprecated(reason: "Use the `publishedAt` field to fetch the publication date.")
-
-  """The page publication date."""
-  publishedAt: DateTime
-
-  """Determines if the page is published."""
-  isPublished: Boolean!
-
-  """Slug of the page."""
-  slug: String!
-
-  """Determines the type of page"""
-  pageType: PageType!
-
-  """Date and time at which page was created."""
-  created: DateTime!
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString! @deprecated(reason: "Use the `content` field instead.")
-
-  """Returns translated page fields for the given language code."""
-  translation(
-    """A language code to return the translation for page."""
-    languageCode: LanguageCodeEnum!
-  ): PageTranslation
-
-  """Get a single attribute attached to page by attribute slug."""
-  attribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): SelectedAttribute @deprecated(reason: "Use `assignedAttribute` field instead.")
-
-  """List of attributes assigned to this page."""
-  attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
-}
-
-"""Represents page translations."""
-type PageTranslation implements Node @doc(category: "Pages") {
-  """The ID of the page translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated SEO title."""
-  seoTitle: String
-
-  """Translated SEO description."""
-  seoDescription: String
-
-  """
-  Translated page slug.
-  
-  Added in Saleor 3.21.
-  """
-  slug: String
-
-  """Translated page title."""
-  title: String
-
-  """
-  Translated content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-
-  """
-  Translated description of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
-
-  """Represents the page fields to translate."""
-  translatableContent: PageTranslatableContent
-}
-
-"""
-Represents page's original translatable fields and related translations.
-"""
-type PageTranslatableContent implements Node @doc(category: "Pages") {
-  """The ID of the page translatable content."""
-  id: ID!
-
-  """The ID of the page to translate."""
-  pageId: ID!
-
-  """SEO title to translate."""
-  seoTitle: String
-
-  """SEO description to translate."""
-  seoDescription: String
-
-  """
-  Slug to translate.
-  
-  Added in Saleor 3.21.
-  """
-  slug: String
-
-  """Page title to translate."""
-  title: String!
-
-  """
-  Content of the page to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
-
-  """Returns translated page fields for the given language code."""
-  translation(
-    """A language code to return the translation for page."""
-    languageCode: LanguageCodeEnum!
-  ): PageTranslation
-
-  """
-  A static page that can be manually added by a shop operator through the dashboard.
-  """
-  page: Page @deprecated(reason: "Get model fields from the root level queries.")
-
-  """List of page content attribute values that can be translated."""
-  attributeValues: [AttributeValueTranslatableContent!]!
-}
-
 """Represents granted refund line."""
 type OrderGrantedRefundLine {
   id: ID!
@@ -13475,6 +13508,13 @@ type OrderGrantedRefundLine {
 
   """Reason for refunding the line."""
   reason: String
+
+  """
+  Reason Model (Page) reference for this refund line.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 }
 
 """
@@ -15356,6 +15396,16 @@ Added in Saleor 3.22.
 """
 type RefundSettings @doc(category: "Orders") {
   """Model type used for refund reasons."""
+  reasonReferenceType: PageType
+}
+
+"""
+Return related settings from site settings.
+
+Added in Saleor 3.22.
+"""
+type ReturnSettings @doc(category: "Orders") {
+  """Model type used for return reasons."""
   reasonReferenceType: PageType
 }
 
@@ -17828,6 +17878,27 @@ type Mutation {
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
   refundReasonReferenceClear: RefundReasonReferenceTypeClear @doc(category: "Orders")
+
+  """
+  Update return settings across all channels.
+  
+  Added in Saleor 3.22. 
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  returnSettingsUpdate(
+    """Fields required to update return settings."""
+    input: ReturnSettingsUpdateInput!
+  ): ReturnSettingsUpdate @doc(category: "Shop")
+
+  """
+  Updates ReturnSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to return mutations is no longer accepted and will raise error.
+  
+  Added in Saleor 3.22. 
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  returnReasonReferenceClear: ReturnReasonReferenceTypeClear @doc(category: "Orders")
 
   """
   Manage shipping method's availability in channels. 
@@ -23357,6 +23428,75 @@ type RefundReasonReferenceTypeClearError @doc(category: "Shop") {
 }
 
 """
+Update return settings across all channels.
+
+Added in Saleor 3.22. 
+
+Requires one of the following permissions: MANAGE_SETTINGS.
+"""
+type ReturnSettingsUpdate @doc(category: "Shop") {
+  """Return settings."""
+  returnSettings: ReturnSettings!
+  returnSettingsErrors: [ReturnSettingsUpdateError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ReturnSettingsUpdateError!]!
+}
+
+type ReturnSettingsUpdateError @doc(category: "Shop") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """Failed to update Return Settings"""
+  code: ReturnSettingsErrorCode!
+}
+
+enum ReturnSettingsErrorCode @doc(category: "Shop") {
+  INVALID
+  REQUIRED
+  GRAPHQL_ERROR
+}
+
+input ReturnSettingsUpdateInput @doc(category: "Shop") {
+  """
+  The ID of a model type, that will be used to reference return reasons. All models with of this type will be accepted as return reasons. 
+  
+  Added in Saleor 3.22.
+  """
+  returnReasonReferenceType: ID!
+}
+
+"""
+Updates ReturnSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to return mutations is no longer accepted and will raise error.
+
+Added in Saleor 3.22. 
+
+Requires one of the following permissions: MANAGE_SETTINGS.
+"""
+type ReturnReasonReferenceTypeClear @doc(category: "Orders") {
+  """Return settings."""
+  returnSettings: ReturnSettings!
+  returnSettingsErrors: [ReturnReasonReferenceTypeClearError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ReturnReasonReferenceTypeClearError!]!
+}
+
+type ReturnReasonReferenceTypeClearError @doc(category: "Shop") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """Failed to clear return reason reference type"""
+  code: ReturnSettingsErrorCode!
+}
+
+"""
 Manage shipping method's availability in channels. 
 
 Requires one of the following permissions: MANAGE_SHIPPING.
@@ -27429,6 +27569,20 @@ input OrderReturnProductsInput @doc(category: "Orders") {
 
   """If true, Saleor will call refund action for all lines."""
   refund: Boolean = false
+
+  """
+  Global reason for the return.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  ID of a `Page` to reference as reason for the return. Required for staff users when return reason reference type is configured. Always optional for apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 input OrderReturnLineInput @doc(category: "Orders") {
@@ -27440,6 +27594,20 @@ input OrderReturnLineInput @doc(category: "Orders") {
 
   """Determines, if the line should be added to replace order."""
   replace: Boolean = false
+
+  """
+  Reason for returning the line.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  ID of a `Page` to reference as reason for returning this line. When provided, must match the configured `PageType` in return reason reference settings. Always optional for both staff and apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
@@ -27451,6 +27619,20 @@ input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
 
   """Determines, if the line should be added to replace order."""
   replace: Boolean = false
+
+  """
+  Reason for returning the line.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  ID of a `Page` to reference as reason for returning this line. When provided, must match the configured `PageType` in return reason reference settings. Always optional for both staff and apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 """
@@ -27555,6 +27737,13 @@ input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
 
   """Reason of the granted refund for the line."""
   reason: String
+
+  """
+  ID of a `Page` to reference as reason for this line. When provided, must match the configured `PageType` in refund settings. Always optional for both staff and apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 """
@@ -27665,6 +27854,13 @@ input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {
 
   """Reason of the granted refund for the line."""
   reason: String
+
+  """
+  ID of a `Page` to reference as reason for this line. When provided, must match the configured `PageType` in refund settings. Always optional for both staff and apps.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 """

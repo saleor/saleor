@@ -20,3 +20,9 @@ class RefundSettingsErrorCode(Enum):
     INVALID = "invalid"
     REQUIRED = "required"
     GRAPHQL_ERROR = "graphql_error"
+
+
+class ReturnSettingsErrorCode(Enum):
+    INVALID = "invalid"
+    REQUIRED = "required"
+    GRAPHQL_ERROR = "graphql_error"

@@ -101,7 +101,20 @@ class SiteSettings(ModelWithMetadata):
 
     # refund settings
     refund_reason_reference_type = models.ForeignKey(
-        null=True, blank=True, on_delete=models.SET_NULL, to="page.PageType"
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        to="page.PageType",
+        related_name="+",
+    )
+
+    # return settings
+    return_reason_reference_type = models.ForeignKey(
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        to="page.PageType",
+        related_name="+",
     )
 
     # deprecated
