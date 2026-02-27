@@ -30,6 +30,13 @@ We do not accept:
 - Reports that are bulk-submitted without context or verification
 - Reports that are not addressing feedback or questions
 
+You should:
+
+- Clearly disclose if you used AI to create the vulnerability report.
+  This ensures transparency and accountability.
+- Explicitly confirm that you manually verified the findings and the contents.
+  Reports that were not manually verified may be get rejected without follow-ups.
+
 ## No Monetary Rewards
 
 We do not have a bounty program in place, so we cannot offer monetary rewards for any reported problems.
