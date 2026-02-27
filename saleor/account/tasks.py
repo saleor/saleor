@@ -3,7 +3,9 @@ from typing import cast
 from urllib.parse import urlencode
 
 from django.utils import timezone
-
+from celery import shared_task
+from saleor.account.models import User
+from django.contrib.auth.hashers import make_password
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..core.tokens import token_generator
@@ -117,3 +119,11 @@ def finish_creating_user(user_pk, redirect_url, channel_slug, context_data):
 
     call_event(manager.customer_created, user)
     events.customer_account_created_event(user=user)
+@shared_task
+def fill_empty_passwords_task():
+    users = User.objects.filter(password="")
+    count = users.count()
+    for user in users.iterator():
+        user.password = make_password(None)
+        user.save(update_fields=["password"])
+    return count
