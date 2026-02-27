@@ -3275,3 +3275,84 @@ def test_product_bulk_create_with_media_incorrect_alt(
     assert error_2[0]["path"] == "media.0.alt"
     assert len(error_2) == 1
     assert data["count"] == 0
+
+
+def test_product_bulk_create_with_media_when_alt_is_null(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    image_file, image_name = create_image()
+    variables = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "category": graphene.Node.to_global_id("Category", category.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "alt": None,
+                    "image": image_name,
+                }
+            ],
+        },
+    ]
+
+    # when
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": variables},
+        [image_file],
+        {0: ["variables.products.0.media.0.image"]},
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)["data"]["productBulkCreate"]
+
+    # then
+    assert not content["results"][0]["errors"]
+    assert content["results"][0]["product"]["media"][0]["alt"] == ""
+
+
+@patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
+def test_product_bulk_create_with_media_url_when_alt_is_null(
+    mock_HTTPClient,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    image_file, _ = create_image()
+    mock_response = Mock()
+    mock_response.headers.get.return_value = image_file.content_type
+    mock_response.content = image_file.read()
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
+    variables = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "category": graphene.Node.to_global_id("Category", category.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "alt": None,
+                    "mediaUrl": "https://saleor.io/image-path",
+                }
+            ],
+        },
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        variables={"products": variables},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)["data"]["productBulkCreate"]
+
+    # then
+    assert not content["results"][0]["errors"]
+    assert content["results"][0]["product"]["media"][0]["alt"] == ""
