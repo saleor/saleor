@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "Cameron.vscode-pytest",
+        "charliermarsh.ruff",
+        "editorconfig.editorconfig",
+        "github.vscode-pull-request-github",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "streetsidesoftware.code-spell-checker"
+    ]
+}
