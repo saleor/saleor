@@ -2544,7 +2544,7 @@ wheels = [
 
 [[package]]
 name = "saleor"
-version = "3.22.38"
+version = "3.22.39"
 source = { virtual = "." }
 dependencies = [
     { name = "adyen", marker = "platform_python_implementation != 'PyPy'" },
