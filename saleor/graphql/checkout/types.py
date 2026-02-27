@@ -101,7 +101,7 @@ from .dataloaders import (
     TransactionItemsByCheckoutIDLoader,
 )
 from .dataloaders.checkout_delivery import (
-    CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader,
+    CheckoutDeliveriesOnlyValidByCheckoutIdAndWebhookSyncLoader,
     CheckoutDeliveryByIdLoader,
 )
 from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
@@ -665,14 +665,14 @@ def _resolve_checkout_delivery(
     if not assigned_delivery_id:
         return Promise.resolve(None)
 
-    def get_shipping_method(deliveries: list[DeliveryMethod]):
+    def get_shipping_method(deliveries: list[models.CheckoutDelivery]):
         for delivery in deliveries:
             if delivery.id == assigned_delivery_id:
                 return convert_checkout_delivery_to_shipping_method_data(delivery)
         return None
 
     return (
-        CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader(info.context)
+        CheckoutDeliveriesOnlyValidByCheckoutIdAndWebhookSyncLoader(info.context)
         .load((checkout.pk, root.allow_sync_webhooks))
         .then(get_shipping_method)
     )
@@ -1069,13 +1069,12 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
     ):
         return (
-            CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader(info.context)
+            CheckoutDeliveriesOnlyValidByCheckoutIdAndWebhookSyncLoader(info.context)
             .load((root.node.pk, root.allow_sync_webhooks))
             .then(
                 lambda deliveries: [
                     convert_checkout_delivery_to_shipping_method_data(delivery)
                     for delivery in deliveries
-                    if delivery.is_valid
                 ]
             )
         )
@@ -1219,13 +1218,13 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
     ):
         return (
-            CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader(info.context)
+            CheckoutDeliveriesOnlyValidByCheckoutIdAndWebhookSyncLoader(info.context)
             .load((root.node.pk, root.allow_sync_webhooks))
             .then(
                 lambda deliveries: [
                     convert_checkout_delivery_to_shipping_method_data(delivery)
                     for delivery in deliveries
-                    if (delivery.is_valid and delivery.active)
+                    if delivery.active
                 ]
             )
         )

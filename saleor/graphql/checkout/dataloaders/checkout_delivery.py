@@ -21,10 +21,12 @@ class CheckoutDeliveryByIdLoader(DataLoader[UUID, CheckoutDelivery]):
         return [shipping_methods.get(key) for key in keys]
 
 
-class CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader(
+class CheckoutDeliveriesOnlyValidByCheckoutIdAndWebhookSyncLoader(
     DataLoader[tuple[UUID, bool], list[CheckoutDelivery]]
 ):
-    context_key = "checkout_deliveries_by_checkout_id_and_webhook_sync_loader"
+    context_key = (
+        "checkout_deliveries_only_valid_by_checkout_id_and_webhook_sync_loader"
+    )
 
     def batch_load(self, keys):
         requestor = get_user_or_app_from_context(self.context)
@@ -34,7 +36,7 @@ class CheckoutDeliveriesByCheckoutIdAndWebhookSyncLoader(
 
         def refresh_delivery_dataloader(
             deliveries: list[list[CheckoutDelivery]],
-        ):
+        ) -> list[list[CheckoutDelivery]]:
             for delivery in chain.from_iterable(deliveries):
                 CheckoutDeliveryByIdLoader(self.context).clear(delivery.id)
                 CheckoutDeliveryByIdLoader(self.context).prime(delivery.id, delivery)
