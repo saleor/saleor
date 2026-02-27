@@ -3433,6 +3433,13 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   List of user's orders. The query will not initiate any external requests, including filtering available shipping methods, or performing external tax calculations. Requires one of the following permissions: MANAGE_STAFF, OWNER.
   """
   orders(
+    """
+    Where filtering options for orders.
+    
+    Added in Saleor 3.22.
+    """
+    where: CustomerOrderWhereInput
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -13723,6 +13730,169 @@ type OrderCountableEdge @doc(category: "Orders") {
   cursor: String!
 }
 
+input CustomerOrderWhereInput @doc(category: "Orders") {
+  ids: [ID!]
+
+  """Filter by order number."""
+  number: IntFilterInput
+
+  """Filter by channel."""
+  channelId: GlobalIDFilterInput
+
+  """Filter order by created at date."""
+  createdAt: DateTimeRangeInput
+
+  """Filter order by updated at date."""
+  updatedAt: DateTimeRangeInput
+
+  """Filter by user email."""
+  userEmail: StringFilterInput
+
+  """Filter by authorize status."""
+  authorizeStatus: OrderAuthorizeStatusEnumFilterInput
+
+  """Filter by charge status."""
+  chargeStatus: OrderChargeStatusEnumFilterInput
+
+  """Filter by order status."""
+  status: OrderStatusEnumFilterInput
+
+  """Filter by checkout token."""
+  checkoutToken: UUIDFilterInput
+
+  """Filter by checkout id."""
+  checkoutId: GlobalIDFilterInput
+
+  """
+  Filter by whether the order uses the click and collect delivery method.
+  """
+  isClickAndCollect: Boolean
+
+  """Filter based on whether a gift card was used in the order."""
+  isGiftCardUsed: Boolean
+
+  """Filter based on whether the order includes a gift card purchase."""
+  isGiftCardBought: Boolean
+
+  """Filter by voucher code used in the order."""
+  voucherCode: StringFilterInput
+
+  """Filter by whether the order has any invoices."""
+  hasInvoices: Boolean
+
+  """
+  Filter by invoice data associated with the order. Each list item represents conditions that must be satisfied by a single object. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  invoices: [InvoiceFilterInput!]
+
+  """Filter by whether the order has any fulfillments."""
+  hasFulfillments: Boolean
+
+  """Filter by number of lines in the order."""
+  linesCount: IntFilterInput
+
+  """Filter by total gross amount of the order."""
+  totalGross: PriceFilterInput
+
+  """Filter by total net amount of the order."""
+  totalNet: PriceFilterInput
+
+  """Filter by the product type of related order lines."""
+  productTypeId: GlobalIDFilterInput
+
+  """Filter by billing address of the order."""
+  billingAddress: AddressFilterInput
+
+  """Filter by shipping address of the order."""
+  shippingAddress: AddressFilterInput
+
+  """List of conditions that must be met."""
+  AND: [CustomerOrderWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CustomerOrderWhereInput!]
+}
+
+"""Define the filtering options for integer fields."""
+input IntFilterInput {
+  """The value equal to."""
+  eq: Int
+
+  """The value included in."""
+  oneOf: [Int!]
+
+  """The value in range."""
+  range: IntRangeInput
+}
+
+"""Filter by authorize status."""
+input OrderAuthorizeStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: OrderAuthorizeStatusEnum
+
+  """The value included in."""
+  oneOf: [OrderAuthorizeStatusEnum!]
+}
+
+"""Filter by charge status."""
+input OrderChargeStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: OrderChargeStatusEnum
+
+  """The value included in."""
+  oneOf: [OrderChargeStatusEnum!]
+}
+
+"""Filter by order status."""
+input OrderStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: OrderStatus
+
+  """The value included in."""
+  oneOf: [OrderStatus!]
+}
+
+"""Define the filtering options for string fields."""
+input UUIDFilterInput {
+  """The value equal to."""
+  eq: UUID
+
+  """The value included in."""
+  oneOf: [UUID!]
+}
+
+"""Filter input for invoices."""
+input InvoiceFilterInput @doc(category: "Orders") {
+  """Filter invoices by creation date."""
+  createdAt: DateTimeRangeInput
+}
+
+input PriceFilterInput {
+  """The currency of the price to filter by."""
+  currency: String
+
+  """The amount of the price to filter by."""
+  amount: DecimalFilterInput!
+}
+
+"""Filtering options for addresses."""
+input AddressFilterInput @doc(category: "Users") {
+  phoneNumber: StringFilterInput
+  country: CountryCodeEnumFilterInput
+}
+
+"""Filter by country code."""
+input CountryCodeEnumFilterInput @doc(category: "Users") {
+  """The value equal to."""
+  eq: CountryCode
+
+  """The value included in."""
+  oneOf: [CountryCode!]
+
+  """The value not included in."""
+  notOneOf: [CountryCode!]
+}
+
 """Represents user's permissions."""
 type UserPermission @doc(category: "Users") {
   """Internal code for permission."""
@@ -15761,60 +15931,6 @@ input OrderWhereInput @doc(category: "Orders") {
   OR: [OrderWhereInput!]
 }
 
-"""Define the filtering options for integer fields."""
-input IntFilterInput {
-  """The value equal to."""
-  eq: Int
-
-  """The value included in."""
-  oneOf: [Int!]
-
-  """The value in range."""
-  range: IntRangeInput
-}
-
-"""Filter by authorize status."""
-input OrderAuthorizeStatusEnumFilterInput @doc(category: "Orders") {
-  """The value equal to."""
-  eq: OrderAuthorizeStatusEnum
-
-  """The value included in."""
-  oneOf: [OrderAuthorizeStatusEnum!]
-}
-
-"""Filter by charge status."""
-input OrderChargeStatusEnumFilterInput @doc(category: "Orders") {
-  """The value equal to."""
-  eq: OrderChargeStatusEnum
-
-  """The value included in."""
-  oneOf: [OrderChargeStatusEnum!]
-}
-
-"""Filter by order status."""
-input OrderStatusEnumFilterInput @doc(category: "Orders") {
-  """The value equal to."""
-  eq: OrderStatus
-
-  """The value included in."""
-  oneOf: [OrderStatus!]
-}
-
-"""Define the filtering options for string fields."""
-input UUIDFilterInput {
-  """The value equal to."""
-  eq: UUID
-
-  """The value included in."""
-  oneOf: [UUID!]
-}
-
-"""Filter input for invoices."""
-input InvoiceFilterInput @doc(category: "Orders") {
-  """Filter invoices by creation date."""
-  createdAt: DateTimeRangeInput
-}
-
 """Filter input for order fulfillments data."""
 input FulfillmentFilterInput @doc(category: "Orders") {
   """Filter by fulfillment status."""
@@ -15905,14 +16021,6 @@ input PaymentMethodDetailsCardFilterInput {
   brand: StringFilterInput
 }
 
-input PriceFilterInput {
-  """The currency of the price to filter by."""
-  currency: String
-
-  """The amount of the price to filter by."""
-  amount: DecimalFilterInput!
-}
-
 """Filter input for order events data."""
 input OrderEventFilterInput @doc(category: "Orders") {
   """Filter order events by date."""
@@ -15928,24 +16036,6 @@ input OrderEventTypeEnumFilterInput {
 
   """The value included in."""
   oneOf: [OrderEventsEnum!]
-}
-
-"""Filtering options for addresses."""
-input AddressFilterInput @doc(category: "Users") {
-  phoneNumber: StringFilterInput
-  country: CountryCodeEnumFilterInput
-}
-
-"""Filter by country code."""
-input CountryCodeEnumFilterInput @doc(category: "Users") {
-  """The value equal to."""
-  eq: CountryCode
-
-  """The value included in."""
-  oneOf: [CountryCode!]
-
-  """The value not included in."""
-  notOneOf: [CountryCode!]
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {

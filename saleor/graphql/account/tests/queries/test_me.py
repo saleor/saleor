@@ -8,7 +8,7 @@ from django.utils import timezone
 from .....checkout.calculations import _fetch_checkout_prices_if_expired
 from .....checkout.fetch import fetch_checkout_lines
 from .....order import OrderStatus
-from .....order.models import FulfillmentStatus
+from .....order.models import FulfillmentStatus, Order
 from .....payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
@@ -727,3 +727,110 @@ def test_me_orders_pagination_has_previous_page(user_api_client, order_list):
     page_info = content["data"]["me"]["orders"]["pageInfo"]
     assert page_info["hasPreviousPage"] is True
     assert page_info["hasNextPage"] is True
+
+
+ME_ORDERS_WHERE_QUERY = """
+    query Me($where: CustomerOrderWhereInput!) {
+        me {
+            orders(first: 10, where: $where) {
+                totalCount
+                edges {
+                    node {
+                        id
+                        number
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_me_orders_where_filter_by_ids(user_api_client, order_list):
+    # given
+    user = user_api_client.user
+    for order in order_list:
+        order.user = user
+    Order.objects.bulk_update(order_list, ["user"])
+
+    target_orders = order_list[:2]
+    ids = [graphene.Node.to_global_id("Order", order.pk) for order in target_orders]
+    variables = {"where": {"ids": ids}}
+
+    # when
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    assert orders_data["totalCount"] == 2
+    returned_ids = {edge["node"]["id"] for edge in orders_data["edges"]}
+    assert returned_ids == {
+        graphene.Node.to_global_id("Order", o.pk) for o in target_orders
+    }
+
+
+def test_me_orders_where_filter_by_status(user_api_client, order_list):
+    # given
+    user = user_api_client.user
+    order_list[0].user = user
+    order_list[0].status = OrderStatus.UNCONFIRMED
+    order_list[1].user = user
+    order_list[1].status = OrderStatus.UNFULFILLED
+    order_list[2].user = user
+    order_list[2].status = OrderStatus.UNFULFILLED
+    Order.objects.bulk_update(order_list, ["user", "status"])
+
+    variables = {"where": {"status": {"eq": OrderStatus.UNCONFIRMED.upper()}}}
+
+    # when
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    assert orders_data["totalCount"] == 1
+    assert orders_data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", order_list[0].pk
+    )
+
+
+def test_me_orders_where_filter_excludes_draft_orders(user_api_client, order_list):
+    # given - owner has a draft order and a non-draft order
+    user = user_api_client.user
+    order_list[0].user = user
+    order_list[0].status = OrderStatus.UNFULFILLED
+    order_list[1].user = user
+    order_list[1].status = OrderStatus.DRAFT
+    Order.objects.bulk_update(order_list[:2], ["user", "status"])
+
+    # when - user queries their own orders with no filter
+    variables = {"where": {}}
+
+    # then - draft order is excluded for the owner
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    returned_ids = {edge["node"]["id"] for edge in orders_data["edges"]}
+    assert graphene.Node.to_global_id("Order", order_list[0].pk) in returned_ids
+    assert graphene.Node.to_global_id("Order", order_list[1].pk) not in returned_ids
+
+
+def test_me_orders_where_filter_by_number(user_api_client, order_list):
+    # given
+    user = user_api_client.user
+    for order in order_list:
+        order.user = user
+    Order.objects.bulk_update(order_list, ["user"])
+
+    target_order = order_list[0]
+    variables = {"where": {"number": {"eq": str(target_order.number)}}}
+
+    # when
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    assert orders_data["totalCount"] == 1
+    assert orders_data["edges"][0]["node"]["number"] == str(target_order.number)
