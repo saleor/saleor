@@ -585,3 +585,77 @@ def test_get_taxes_for_checkout_with_app_identifier_empty_response(
     # when & then
     with pytest.raises(TaxDataError):
         plugin.get_taxes_for_checkout(checkout_info, [], app_identifier, None)
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_get_taxes_for_checkout_with_defer_condition_skips_webhook(
+    mock_request,
+    webhook_plugin,
+    checkout,
+    tax_app,
+):
+    # given
+    plugin = webhook_plugin()
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
+    webhook = tax_app.webhooks.get(name="tax-webhook-1")
+    webhook.defer_if_conditions = ["ADDRESS_MISSING"]
+    webhook.save(update_fields=["defer_if_conditions"])
+
+    # Ensure checkout has no shipping address (triggering the ADDRESS_MISSING condition)
+    checkout.shipping_address = None
+    checkout.save(update_fields=["shipping_address"])
+
+    app_identifier = tax_app.identifier
+
+    # when
+    tax_data = plugin.get_taxes_for_checkout(checkout_info, [], app_identifier, None)
+
+    # then
+    mock_request.assert_not_called()
+    assert tax_data is None
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+)
+def test_get_taxes_for_checkout_with_defer_condition_not_met_calls_webhook(
+    mock_generate_payload,
+    mock_request,
+    webhook_plugin,
+    tax_data_response_factory,
+    checkout_with_item,
+    address,
+    tax_app,
+):
+    # given
+    checkout = checkout_with_item
+    lines_count = checkout.lines.count()
+    tax_response = tax_data_response_factory(lines_length=lines_count)
+    subscription_query = "subscription{event{... on CalculateTaxes{taxBase{currency}}}}"
+    expected_payload = {"taxBase": {"currency": "USD"}}
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
+    mock_request.return_value = tax_response
+    mock_generate_payload.return_value = expected_payload
+    plugin = webhook_plugin()
+    webhook = tax_app.webhooks.get(name="tax-webhook-1")
+    webhook.defer_if_conditions = ["ADDRESS_MISSING"]
+    webhook.subscription_query = subscription_query
+    webhook.save(update_fields=["defer_if_conditions", "subscription_query"])
+
+    # Ensure checkout has a shipping address
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+
+    app_identifier = tax_app.identifier
+
+    # when
+    tax_data = plugin.get_taxes_for_checkout(checkout_info, [], app_identifier, None)
+
+    # then
+    mock_request.assert_called_once()
+    assert tax_data == parse_tax_data(tax_response, lines_count)

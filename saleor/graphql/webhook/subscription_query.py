@@ -17,6 +17,21 @@ from graphql.language.ast import (
 from ...webhook.error_codes import WebhookErrorCode
 
 
+def _extract_list_argument_values(value) -> list[str]:
+    """Extract string values from a GraphQL AST argument node.
+
+    Handles both ListValue ([A, B]) and single-value coercion (A → [A]),
+    matching GraphQL's runtime list coercion behavior.
+    """
+    # ListValue node has a "values" attribute
+    if hasattr(value, "values"):
+        return [v.value for v in value.values]
+    # Single value (e.g. EnumValue, StringValue) — coerce to a one-element list
+    if hasattr(value, "value"):
+        return [value.value]
+    return []
+
+
 class IsFragment(Flag):
     TRUE = True
     FALSE = False
@@ -57,12 +72,28 @@ class SubscriptionQuery:
             return []
         channels = []
         for arg in selection.arguments:
-            argument_name = arg.name.value
-            argument_values = getattr(arg.value, "values", [])
-            if argument_name == "channels":
-                channels = [value.value for value in argument_values]
+            if arg.name.value == "channels":
+                channels = _extract_list_argument_values(arg.value)
                 break
         return channels
+
+    def get_defer_if_conditions(self) -> list[str]:
+        """Get deferIf conditions from the subscription query.
+
+        Looks for a deferIf argument on any top-level subscription field
+        (e.g. calculateTaxes(deferIf: [ADDRESS_MISSING])).
+        """
+        if not self.is_valid:
+            return []
+        subscription = self._get_subscription(self.ast)
+        subscription = cast(OperationDefinition, subscription)
+
+        for selection in subscription.selection_set.selections:
+            if selection.arguments:
+                for arg in selection.arguments:
+                    if arg.name.value == "deferIf":
+                        return _extract_list_argument_values(arg.value)
+        return []
 
     def _check_if_invalid_top_field_selection(self, subscription: OperationDefinition):
         """Check if subscription selects only one top field.

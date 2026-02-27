@@ -684,6 +684,103 @@ def test_get_filterable_channel_slugs_with_empty_filters():
     assert result == []
 
 
+SUBSCRIPTION_CALCULATE_TAXES_WITH_DEFER_IF_LIST = """
+subscription {
+  calculateTaxes(deferIf: [ADDRESS_MISSING]) {
+    taxBase {
+      currency
+    }
+  }
+}
+"""
+
+SUBSCRIPTION_CALCULATE_TAXES_WITH_DEFER_IF_SINGLE = """
+subscription {
+  calculateTaxes(deferIf: ADDRESS_MISSING) {
+    taxBase {
+      currency
+    }
+  }
+}
+"""
+
+SUBSCRIPTION_CALCULATE_TAXES_WITHOUT_DEFER_IF = """
+subscription {
+  calculateTaxes {
+    taxBase {
+      currency
+    }
+  }
+}
+"""
+
+
+def test_get_defer_if_conditions_with_list_argument():
+    # given
+    subscription_query = SubscriptionQuery(
+        SUBSCRIPTION_CALCULATE_TAXES_WITH_DEFER_IF_LIST
+    )
+
+    # when
+    result = subscription_query.get_defer_if_conditions()
+
+    # then
+    assert subscription_query.is_valid
+    assert result == ["ADDRESS_MISSING"]
+
+
+def test_get_defer_if_conditions_with_single_value_coercion():
+    # given
+    subscription_query = SubscriptionQuery(
+        SUBSCRIPTION_CALCULATE_TAXES_WITH_DEFER_IF_SINGLE
+    )
+
+    # when
+    result = subscription_query.get_defer_if_conditions()
+
+    # then
+    assert subscription_query.is_valid
+    assert result == ["ADDRESS_MISSING"]
+
+
+def test_get_defer_if_conditions_without_defer_if_argument():
+    # given
+    subscription_query = SubscriptionQuery(
+        SUBSCRIPTION_CALCULATE_TAXES_WITHOUT_DEFER_IF
+    )
+
+    # when
+    result = subscription_query.get_defer_if_conditions()
+
+    # then
+    assert subscription_query.is_valid
+    assert result == []
+
+
+def test_get_defer_if_conditions_for_non_tax_subscription():
+    # given
+    subscription_query = SubscriptionQuery(SUBSCRIPTION_FILTERABLE_ORDER_CREATED)
+
+    # when
+    result = subscription_query.get_defer_if_conditions()
+
+    # then
+    assert subscription_query.is_valid
+    assert result == []
+
+
+def test_get_defer_if_conditions_for_invalid_query():
+    # given
+    subscription_query = SubscriptionQuery("invalid query")
+
+    # when
+    result = subscription_query.get_defer_if_conditions()
+
+    # then
+    assert not subscription_query.is_valid
+    assert result == []
+
+
 def test_get_filterable_channel_slugs_for_non_filterable_query():
     # given
     query = """

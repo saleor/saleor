@@ -34,6 +34,7 @@ from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
     recalculate_refundable_for_checkout,
 )
+from ....tax.defer_conditions import should_defer_webhook
 from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
@@ -403,6 +404,10 @@ def trigger_taxes_all_webhooks_sync(
     is_sync_event = event_type in WebhookEventSyncType.ALL
 
     for webhook in webhooks:
+        if webhook.defer_if_conditions:
+            if should_defer_webhook(webhook.defer_if_conditions, subscribable_object):
+                continue
+
         if webhook.subscription_query:
             request_context = request_map.get(webhook.app_id)
             if not request_context:
