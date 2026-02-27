@@ -702,7 +702,7 @@ class User(ModelObjectType[models.User]):
                     qs = qs.non_draft()
                 # Return only orders from channels that the user has access to.
                 # The app has access to all channels.
-                if root != user_or_app and accessible_channels is not None:
+                if root != requester and accessible_channels is not None:
                     channel_ids = [channel.id for channel in accessible_channels]
                     qs = qs.filter(channel_id__in=channel_ids)
                 qs = filter_connection_queryset(
