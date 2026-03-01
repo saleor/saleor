@@ -22,7 +22,7 @@ services:
       - 9000:80
 
   db:
-    image: library/postgres:15-alpine
+    image: docker.io/library/postgres:15-alpine
     ports:
       - 5432:5432
     restart: unless-stopped
@@ -33,7 +33,7 @@ services:
       - POSTGRES_PASSWORD=saleor
 
   cache:
-    image: valkey/valkey:8.1-alpine
+    image: docker.io/valkey/valkey:8.1-alpine
     restart: unless-stopped
     volumes:
       - saleor-cache:/data
@@ -41,7 +41,7 @@ services:
       - 6379:6379
 
   mailpit:
-    image: axllent/mailpit
+    image: docker.io/axllent/mailpit
     ports:
       - 1025:1025 # SMTP Server
       - 8025:8025 # Mailpit UI
