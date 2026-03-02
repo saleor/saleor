@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     from ...app.models import App
     from ...order.models import Order
 
-CACHE_EXCLUDED_SHIPPING_TIME = 60 * 3
 
 logger = logging.getLogger(__name__)
 
