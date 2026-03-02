@@ -1,8 +1,12 @@
 import graphene
+from django.core.exceptions import ValidationError
+from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import ValidationError as PydanticValidationError
 
 from ....app import models
-from ....app.manifest_validations import clean_manifest_url
+from ....app.error_codes import AppErrorCode
 from ....app.tasks import install_app_task
+from ....app.validators import AppURLValidator
 from ....permission.enums import AppPermission, get_permissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core.doc_category import DOC_CATEGORY_APPS
@@ -11,9 +15,29 @@ from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AppError, BaseInputObjectType, NonNullList
 from ...core.utils import WebhookEventInfo
 from ...decorators import staff_member_required
+from ...error import pydantic_to_validation_error
 from ...utils import get_user_or_app_from_context
 from ..types import AppInstallation
 from ..utils import ensure_can_manage_permissions
+
+
+class AppInstallInputSchema(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    app_name: str | None = None
+    manifest_url: str
+    activate_after_installation: bool = True
+    permissions: list = []
+
+    @field_validator("manifest_url")
+    @classmethod
+    def validate_manifest_url(cls, v: str) -> str:
+        url_validator = AppURLValidator()
+        try:
+            url_validator(v)
+        except (ValidationError, AttributeError) as e:
+            raise ValueError("Enter a valid URL.") from e
+        return v
 
 
 class AppInstallInput(BaseInputObjectType):
@@ -60,8 +84,13 @@ class AppInstall(DeprecatedModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, **kwargs):
-        manifest_url = data.get("manifest_url")
-        clean_manifest_url(manifest_url)
+        try:
+            AppInstallInputSchema.model_validate(dict(data))
+        except PydanticValidationError as exc:
+            raise pydantic_to_validation_error(
+                exc, error_code=AppErrorCode.INVALID.value
+            ) from exc
+
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         # clean and prepare permissions

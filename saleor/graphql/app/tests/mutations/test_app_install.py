@@ -191,3 +191,78 @@ def test_install_app_mutation_with_the_same_identifier_twice(
         "identifier: "
         "['App with the same identifier is already installed: Sample app objects']"
     )
+
+
+def test_install_app_mutation_with_invalid_manifest_url_returns_error(
+    permission_manage_apps,
+    staff_api_client,
+    staff_user,
+):
+    # given
+    staff_user.user_permissions.set([permission_manage_apps])
+    variables = {
+        "app_name": "New external integration",
+        "manifest_url": "not-a-valid-url",
+        "permissions": [],
+    }
+
+    # when
+    data = _mutate_app_install(staff_api_client, variables)
+
+    # then
+    errors = data["errors"]
+    assert not data["appInstallation"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "manifestUrl"
+    assert error["code"] == AppErrorCode.INVALID.name
+
+
+def test_install_app_mutation_with_null_manifest_url_returns_error(
+    permission_manage_apps,
+    staff_api_client,
+    staff_user,
+):
+    # given
+    staff_user.user_permissions.set([permission_manage_apps])
+    variables = {
+        "app_name": "New external integration",
+        "manifest_url": None,
+        "permissions": [],
+    }
+
+    # when
+    data = _mutate_app_install(staff_api_client, variables)
+
+    # then
+    errors = data["errors"]
+    assert not data["appInstallation"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "manifestUrl"
+    assert error["code"] == AppErrorCode.INVALID.name
+
+
+def test_install_app_mutation_with_null_permissions_returns_error(
+    permission_manage_apps,
+    staff_api_client,
+    staff_user,
+):
+    # given - null permissions would previously cause TypeError: 'NoneType' object
+    # is not iterable in ensure_can_manage_permissions, the Pydantic model catches it
+    staff_user.user_permissions.set([permission_manage_apps])
+    variables = {
+        "manifest_url": "http://localhost:3000/manifest",
+        "permissions": None,
+    }
+
+    # when
+    data = _mutate_app_install(staff_api_client, variables)
+
+    # then
+    errors = data["errors"]
+    assert not data["appInstallation"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "permissions"
+    assert error["code"] == AppErrorCode.INVALID.name
