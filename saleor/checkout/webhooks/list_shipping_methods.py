@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import TYPE_CHECKING, Any, Union
 
@@ -10,9 +9,7 @@ from ...shipping.interface import ShippingMethodData
 from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.payloads import generate_checkout_payload
 from ...webhook.response_schemas.shipping import ListShippingMethodsSchema
-from ...webhook.transport.synchronous.transport import (
-    trigger_webhook_sync_promise_if_not_cached,
-)
+from ...webhook.transport.synchronous.transport import trigger_webhook_sync_promise
 from ...webhook.utils import get_webhooks_for_event
 from ..models import Checkout
 
@@ -21,8 +18,6 @@ if TYPE_CHECKING:
     from ...app.models import App
 
 logger = logging.getLogger(__name__)
-
-CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT = 3600 * 12
 
 
 def list_shipping_methods_for_checkout(
@@ -39,18 +34,15 @@ def list_shipping_methods_for_checkout(
 
     promised_responses = []
     payload = generate_checkout_payload(checkout, requestor)
-    cache_data = _get_cache_data_for_shipping_list_methods_for_checkout(payload)
     for webhook in webhooks:
         promised_responses.append(
-            trigger_webhook_sync_promise_if_not_cached(
+            trigger_webhook_sync_promise(
                 event_type=event_type,
                 static_payload=payload,
                 webhook=webhook,
-                cache_data=cache_data,
                 allow_replica=allow_replica,
                 subscribable_object=(checkout, built_in_shipping_methods),
-                request_timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-                cache_timeout=CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                timeout=settings.WEBHOOK_SYNC_TIMEOUT,
                 requestor=requestor,
             )
         )
@@ -97,16 +89,3 @@ def _parse_list_shipping_methods_response(
         )
         for shipping_method in list_shipping_method_model.root
     ]
-
-
-def _get_cache_data_for_shipping_list_methods_for_checkout(payload: str) -> dict:
-    key_data = json.loads(payload)
-
-    # drop fields that change between requests but are not relevant for cache key
-    key_data[0].pop("last_change")
-    key_data[0].pop("meta")
-    # Drop the external_app_shipping_id from the cache key as it should not have an
-    # impact on cache invalidation
-    if "external_app_shipping_id" in key_data[0].get("private_metadata", {}):
-        del key_data[0]["private_metadata"]["external_app_shipping_id"]
-    return key_data
