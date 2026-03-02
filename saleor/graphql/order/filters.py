@@ -36,7 +36,6 @@ from ..core.filters.where_filters import (
     MetadataWhereBase,
     ObjectTypeWhereFilter,
     OperationObjectTypeWhereFilter,
-    WhereFilterSet,
     filter_where_metadata,
 )
 from ..core.filters.where_input import (
@@ -832,7 +831,7 @@ def filter_where_fulfillments(qs, _, value):
     return filter_fulfillments(qs, value)
 
 
-class CustomerOrderWhere(WhereFilterSet):
+class CustomerOrderWhere(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Order"))
     number = OperationObjectTypeWhereFilter(
         input_class=IntFilterInput,
