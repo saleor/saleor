@@ -8,6 +8,7 @@ from uuid import uuid4
 import graphene
 import PIL
 import pytest
+from measurement.measures import Weight
 
 from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
@@ -2187,39 +2188,75 @@ def test_product_bulk_create_with_variants(
     size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
     non_existent_attr_value = "The cake is a lie"
 
+    track_inventory_prod_1 = True
+    weight_prod_1 = 2.5
+    quantity_limit_prod_1 = 5
+    metadata_key = "md key"
+    metadata_value_prod_1 = "md value prod 1"
+    private_metadata_key = "private md key"
+    private_metadata_value_prod_1 = "private md value prod 1"
     sku_1 = str(uuid4())[:12]
     variant_1_name = "new-variant-1-name"
+    ext_ref_1 = "ext-ref-variant-1"
 
     sku_2 = str(uuid4())[:12]
     variant_2_name = "new-variant-2-name"
+    ext_ref_2 = "ext-ref-variant-2"
 
     sku_3 = str(uuid4())[:12]
     variant_3_name = "new-variant-3-name"
+    track_inventory_variant_3 = False
+    weight_variant_3 = 3.0
+    quantity_limit_variant_3 = 10
+    metadata_value_variant_3 = "md value variant 3"
+    private_metadata_value_variant_3 = "private md value variant 3"
+    ext_ref_3 = "ext-ref-variant-3"
 
     variants_prod_1 = [
         {
             "sku": sku_1,
-            "weight": 2.5,
-            "trackInventory": True,
+            "weight": weight_prod_1,
+            "trackInventory": track_inventory_prod_1,
             "name": variant_1_name,
             "attributes": [{"id": size_attr_id, "values": [non_existent_attr_value]}],
+            "quantityLimitPerCustomer": quantity_limit_prod_1,
+            "externalReference": ext_ref_1,
+            "metadata": [{"key": metadata_key, "value": metadata_value_prod_1}],
+            "privateMetadata": [
+                {"key": private_metadata_key, "value": private_metadata_value_prod_1}
+            ],
         },
         {
             "sku": sku_2,
-            "weight": 2.5,
-            "trackInventory": True,
+            "weight": weight_prod_1,
+            "trackInventory": track_inventory_prod_1,
             "name": variant_2_name,
             "attributes": [{"id": size_attr_id, "values": [non_existent_attr_value]}],
+            "quantityLimitPerCustomer": quantity_limit_prod_1,
+            "externalReference": ext_ref_2,
+            "metadata": [{"key": metadata_key, "value": metadata_value_prod_1}],
+            "privateMetadata": [
+                {"key": private_metadata_key, "value": private_metadata_value_prod_1}
+            ],
         },
     ]
 
     variants_prod_2 = [
         {
             "sku": sku_3,
-            "weight": 2.5,
-            "trackInventory": True,
+            "weight": weight_variant_3,
+            "trackInventory": track_inventory_variant_3,
             "name": variant_3_name,
             "attributes": [{"id": size_attr_id, "values": [non_existent_attr_value]}],
+            "quantityLimitPerCustomer": quantity_limit_variant_3,
+            "externalReference": ext_ref_3,
+            "metadata": [{"key": metadata_key, "value": metadata_value_variant_3}],
+            "privateMetadata": [
+                {
+                    "key": private_metadata_key,
+                    "value": private_metadata_value_variant_3,
+                }
+            ],
         }
     ]
 
@@ -2272,6 +2309,14 @@ def test_product_bulk_create_with_variants(
     for variant in product_1_variants:
         assert variant.name in [variant_1_name, variant_2_name]
         assert variant.sku in [sku_1, sku_2]
+        assert variant.track_inventory == track_inventory_prod_1
+        assert variant.weight == Weight(kg=weight_prod_1)
+        assert variant.quantity_limit_per_customer == quantity_limit_prod_1
+        assert variant.external_reference in [ext_ref_1, ext_ref_2]
+        assert variant.metadata == {metadata_key: metadata_value_prod_1}
+        assert variant.private_metadata == {
+            private_metadata_key: private_metadata_value_prod_1
+        }
         attribute_assignment = variant.attributes.first()
         assert variant.attributes.count() == 1
         assert attribute_assignment.attribute == size_attribute
@@ -2280,6 +2325,14 @@ def test_product_bulk_create_with_variants(
     for variant in product_2_variants:
         assert variant.name == variant_3_name
         assert variant.sku == sku_3
+        assert variant.track_inventory == track_inventory_variant_3
+        assert variant.weight == Weight(kg=weight_variant_3)
+        assert variant.quantity_limit_per_customer == quantity_limit_variant_3
+        assert variant.external_reference == ext_ref_3
+        assert variant.metadata == {metadata_key: metadata_value_variant_3}
+        assert variant.private_metadata == {
+            private_metadata_key: private_metadata_value_variant_3
+        }
         attribute_assignment = variant.attributes.first()
         assert variant.attributes.count() == 1
         assert attribute_assignment.attribute == size_attribute
