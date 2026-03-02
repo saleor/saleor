@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex
 from django.db import models
@@ -16,6 +18,7 @@ from . import (
     PurchaseOrderEvents,
     PurchaseOrderItemAdjustmentReason,
     PurchaseOrderItemStatus,
+    PurchaseOrderStatus,
     ReceiptStatus,
 )
 
@@ -65,8 +68,57 @@ class PurchaseOrder(models.Model):
         related_name="destination_purchase_orders",
     )
 
+    name = models.CharField(max_length=255, blank=True, default="")
+    currency = models.CharField(max_length=3, blank=True, default="")
+
+    status = models.CharField(
+        max_length=32,
+        choices=PurchaseOrderStatus.CHOICES,
+        default=PurchaseOrderStatus.DRAFT,
+    )
+
+    auto_reallocate_variants = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class PurchaseOrderRequestedAllocation(models.Model):
+    """PORA for short. The allocations we want to confirm for this purchase order.
+
+    We may not be able to confirm the entire allocation. Should only exist when PO has
+    draft state.
+
+    In order to confirm orders stock must move, via a PO, to an owned warehouse. We know
+    how much stock a warehouse should confirm to an order by looking at the Allocations on
+    the Order (which must be in the unconfirmed state).
+
+    On confirmation we will only confirm stock from these Allocations, FIFO by order line
+    creation time:
+        for poi in PurchaseOrderItem:
+            allocation_candidates = (
+                PurchaseOrderRequestedAllocation.objects
+                .filter(purchase_order=my_po)
+                .order_by("allocation__order_line__created_at")
+            )
+            for pora in allocation_candidates:
+                allocate_as_much_as_possible(pora)
+                if poi exhausted: break
+    """
+
+    purchase_order = models.ForeignKey(
+        PurchaseOrder,
+        on_delete=models.CASCADE,
+        related_name="requested_allocations",
+    )
+    allocation = models.ForeignKey(
+        "warehouse.Allocation",
+        on_delete=models.CASCADE,
+        related_name="purchase_order_requested_allocations",
+    )
+
+    class Meta:
+        unique_together = [["purchase_order", "allocation"]]
 
 
 class PurchaseOrderItemQuerySet(models.QuerySet):
@@ -180,13 +232,13 @@ class PurchaseOrderItem(models.Model):
         """
         from django.db.models import Sum
 
-        if self.quantity_ordered == 0:
+        if self.quantity_ordered == 0 or self.total_price_amount is None:
             return 0
 
         base_unit_price = self.total_price_amount / self.quantity_ordered
 
         # Adjust COST only for supplier credits/charges (affects_payable)
-        payable_adjustment = (
+        payable_adjustment = Decimal(
             self.adjustments.filter(
                 affects_payable=True, processed_at__isnull=False
             ).aggregate(total=Sum("quantity_change"))["total"]
@@ -216,11 +268,15 @@ class PurchaseOrderItem(models.Model):
     total_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        help_text="Total invoice amount for this POI (quantity × unit price)",
+        null=True,
+        blank=True,
+        help_text="Total invoice amount. Null until set from price list.",
     )
 
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        null=True,
+        blank=True,
     )
 
     shipment = models.ForeignKey(
@@ -231,7 +287,7 @@ class PurchaseOrderItem(models.Model):
         blank=True,
     )
 
-    country_of_origin = CountryField()
+    country_of_origin = CountryField(null=True, blank=True)
 
     status = models.CharField(
         max_length=32,
@@ -352,7 +408,7 @@ class PurchaseOrderItemAdjustment(models.Model):
         poi = self.purchase_order_item
         original_unit_price = (
             poi.total_price_amount / poi.quantity_ordered
-            if poi.quantity_ordered > 0
+            if poi.quantity_ordered > 0 and poi.total_price_amount is not None
             else 0
         )
         return self.quantity_change * original_unit_price

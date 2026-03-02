@@ -440,6 +440,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         ),
     )
     deposit_threshold_met_override = models.BooleanField(default=False)
+    allow_variant_reallocation = models.BooleanField(default=True)
     xero_deposit_prepayment_id = models.CharField(
         max_length=36,
         null=True,

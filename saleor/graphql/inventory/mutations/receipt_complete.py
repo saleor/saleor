@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....inventory.error_codes import ReceiptErrorCode
 from ....inventory.models import Receipt as ReceiptModel
-from ....inventory.stock_management import complete_receipt
+from ....inventory.receipt_workflow import complete_receipt
 from ....permission.enums import WarehousePermissions
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -19,11 +19,6 @@ class ReceiptComplete(BaseMutation):
     receipt = graphene.Field(
         Receipt,
         description="The completed receipt.",
-    )
-    adjustments_created = graphene.List(
-        graphene.NonNull(PurchaseOrderItemAdjustment),
-        description="Adjustments that were automatically processed.",
-        required=True,
     )
     adjustments_pending = graphene.List(
         graphene.NonNull(PurchaseOrderItemAdjustment),
@@ -91,7 +86,6 @@ class ReceiptComplete(BaseMutation):
 
         return ReceiptComplete(
             receipt=result["receipt"],
-            adjustments_created=result["adjustments_created"],
             adjustments_pending=result["adjustments_pending"],
             discrepancies=result["discrepancies"],
         )

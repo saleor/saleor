@@ -9,7 +9,7 @@ from ...shipping import IncoTerm, ShipmentType
 from ...warehouse.models import Allocation, Stock
 from .. import PurchaseOrderItemStatus
 from ..exceptions import InvalidPurchaseOrderItemStatus
-from ..models import PurchaseOrderItem
+from ..models import PurchaseOrderItem, PurchaseOrderRequestedAllocation
 from ..stock_management import confirm_purchase_order_item
 
 
@@ -119,6 +119,9 @@ def test_confirm_poi_with_existing_allocations(
         shipment=shipment,
         country_of_origin="US",
         status=PurchaseOrderItemStatus.DRAFT,
+    )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=allocation
     )
 
     # when - confirm POI
@@ -249,7 +252,9 @@ def test_confirm_poi_verifies_source_stock_state(
         quantity_allocated=5,
     )
 
-    Allocation.objects.create(order_line=order_line, stock=source, quantity_allocated=5)
+    allocation = Allocation.objects.create(
+        order_line=order_line, stock=source, quantity_allocated=5
+    )
 
     from ...shipping.models import Shipment
 
@@ -273,6 +278,9 @@ def test_confirm_poi_verifies_source_stock_state(
         shipment=shipment,
         country_of_origin="US",
         status=PurchaseOrderItemStatus.DRAFT,
+    )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=allocation
     )
 
     # when - confirm POI
@@ -326,7 +334,7 @@ def test_confirm_poi_with_split_allocation(
         is_gift_card=False,
     )
 
-    Allocation.objects.create(
+    allocation = Allocation.objects.create(
         order_line=order_line, stock=source, quantity_allocated=10
     )
 
@@ -354,6 +362,9 @@ def test_confirm_poi_with_split_allocation(
         shipment=shipment,
         country_of_origin="US",
         status=PurchaseOrderItemStatus.DRAFT,
+    )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=allocation
     )
 
     # when - confirm POI
@@ -500,6 +511,15 @@ def test_confirm_poi_with_multiple_allocations_fifo(
         country_of_origin="US",
         status=PurchaseOrderItemStatus.DRAFT,
     )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=alloc1
+    )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=alloc2
+    )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=alloc3
+    )
 
     # when - confirm POI
     confirm_purchase_order_item(poi)
@@ -590,6 +610,9 @@ def test_confirm_poi_auto_confirms_order(
         shipment=shipment,
         country_of_origin="US",
         status=PurchaseOrderItemStatus.DRAFT,
+    )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=allocation
     )
 
     # Verify order cannot be confirmed before POI confirmation
@@ -735,7 +758,9 @@ def test_confirm_poi_auto_confirm_sends_order_confirmed_email(
         is_gift_card=False,
     )
 
-    Allocation.objects.create(order_line=order_line, stock=source, quantity_allocated=5)
+    allocation = Allocation.objects.create(
+        order_line=order_line, stock=source, quantity_allocated=5
+    )
 
     shipment = Shipment.objects.create(
         source=nonowned_warehouse.address,
@@ -759,6 +784,9 @@ def test_confirm_poi_auto_confirm_sends_order_confirmed_email(
         country_of_origin="US",
         status=PurchaseOrderItemStatus.DRAFT,
     )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=allocation
+    )
 
     # when
     with patch("saleor.plugins.manager.PluginsManager.notify") as mock_notify:
@@ -776,3 +804,231 @@ def test_confirm_poi_auto_confirm_sends_order_confirmed_email(
             if call.args and call.args[0] == NotifyEventType.ORDER_CONFIRMED
         ]
         assert len(order_confirmed_calls) == 1
+
+
+def test_confirm_poi_without_pora_leaves_allocation_at_source(
+    variant, order_line, nonowned_warehouse, owned_warehouse, purchase_order
+):
+    """Allocation with no PORA is not moved during POI confirmation.
+
+    Stock moves to the destination warehouse, but the allocation stays at the
+    source — no AllocationSource is created.
+    """
+    from ...order import OrderStatus
+    from ...warehouse.models import AllocationSource
+
+    # given
+    order = order_line.order
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
+    source = Stock.objects.create(
+        product_variant=variant,
+        warehouse=nonowned_warehouse,
+        quantity=10,
+        quantity_allocated=5,
+    )
+    allocation = Allocation.objects.create(
+        order_line=order_line, stock=source, quantity_allocated=5
+    )
+
+    from ...shipping.models import Shipment
+
+    shipment = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-123",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST-CARRIER",
+        inco_term=IncoTerm.DDP,
+        arrived_at=timezone.now(),
+    )
+    poi = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant,
+        quantity_ordered=10,
+        quantity_allocated=0,
+        total_price_amount=100.0,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.DRAFT,
+    )
+    # No PORA created — the allocation is intentionally unlinked
+
+    # when
+    confirm_purchase_order_item(poi)
+
+    # then — stock moved to owned warehouse
+    destination = Stock.objects.get(warehouse=owned_warehouse, product_variant=variant)
+    assert destination.quantity == 10
+
+    # allocation still at source, untouched
+    allocation.refresh_from_db()
+    assert allocation.stock == source
+    assert allocation.quantity_allocated == 5
+
+    # source quantity_allocated unchanged (allocation didn't move)
+    source.refresh_from_db()
+    assert source.quantity_allocated == 5
+
+    # no AllocationSource created for this POI
+    assert not AllocationSource.objects.filter(purchase_order_item=poi).exists()
+
+
+def test_confirm_poi_partial_poras_only_moves_pora_linked_allocations(
+    variant, nonowned_warehouse, owned_warehouse, purchase_order, channel_USD
+):
+    """With two allocations but only one PORA, only the linked allocation moves."""
+    from ...order import OrderStatus
+    from ...order.models import Order, OrderLine
+    from ...warehouse.models import AllocationSource
+
+    # given — two separate orders/allocations at source
+    source = Stock.objects.create(
+        product_variant=variant,
+        warehouse=nonowned_warehouse,
+        quantity=0,
+        quantity_allocated=8,  # 5 + 3
+    )
+
+    order_a = Order.objects.create(
+        channel=channel_USD,
+        billing_address=purchase_order.source_warehouse.address,
+        shipping_address=purchase_order.source_warehouse.address,
+        status=OrderStatus.UNCONFIRMED,
+        lines_count=1,
+    )
+    line_a = OrderLine.objects.create(
+        order=order_a,
+        variant=variant,
+        quantity=5,
+        unit_price_gross_amount=10,
+        unit_price_net_amount=10,
+        total_price_gross_amount=50,
+        total_price_net_amount=50,
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+    alloc_a = Allocation.objects.create(
+        order_line=line_a, stock=source, quantity_allocated=5
+    )
+
+    order_b = Order.objects.create(
+        channel=channel_USD,
+        billing_address=purchase_order.source_warehouse.address,
+        shipping_address=purchase_order.source_warehouse.address,
+        status=OrderStatus.UNCONFIRMED,
+        lines_count=1,
+    )
+    line_b = OrderLine.objects.create(
+        order=order_b,
+        variant=variant,
+        quantity=3,
+        unit_price_gross_amount=10,
+        unit_price_net_amount=10,
+        total_price_gross_amount=30,
+        total_price_net_amount=30,
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+    alloc_b = Allocation.objects.create(
+        order_line=line_b, stock=source, quantity_allocated=3
+    )
+
+    from ...shipping.models import Shipment
+
+    shipment = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-123",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST-CARRIER",
+        inco_term=IncoTerm.DDP,
+        arrived_at=timezone.now(),
+    )
+    poi = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant,
+        quantity_ordered=8,
+        quantity_allocated=0,
+        total_price_amount=80.0,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.DRAFT,
+    )
+    # Only link alloc_a — alloc_b has no PORA
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=alloc_a
+    )
+
+    # when
+    confirm_purchase_order_item(poi)
+
+    # then — alloc_a moved to destination with AllocationSource
+    destination = Stock.objects.get(warehouse=owned_warehouse, product_variant=variant)
+    alloc_a.refresh_from_db()
+    assert alloc_a.stock == destination
+    assert AllocationSource.objects.filter(allocation=alloc_a).exists()
+
+    # alloc_b untouched — still at source, no AllocationSource
+    alloc_b.refresh_from_db()
+    assert alloc_b.stock == source
+    assert not AllocationSource.objects.filter(allocation=alloc_b).exists()
+
+    source.refresh_from_db()
+    assert source.quantity_allocated == 3  # only alloc_b remains
+
+
+def test_add_order_to_purchase_order_creates_poras_with_null_fields(
+    variant, order_line, nonowned_warehouse, owned_warehouse, purchase_order
+):
+    """add_order_to_purchase_order creates POIs with null price fields and PORAs."""
+    from ...order import OrderStatus
+    from ..stock_management import add_order_to_purchase_order
+
+    # given
+    order = order_line.order
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
+    order_line.quantity = 7
+    order_line.save(update_fields=["quantity"])
+
+    Stock.objects.create(
+        product_variant=variant,
+        warehouse=nonowned_warehouse,
+        quantity=50,
+        quantity_allocated=7,
+    )
+    Allocation.objects.create(
+        order_line=order_line,
+        stock=Stock.objects.get(warehouse=nonowned_warehouse, product_variant=variant),
+        quantity_allocated=7,
+    )
+
+    # when
+    poras = add_order_to_purchase_order(order, purchase_order)
+
+    # then — one PORA returned
+    assert len(poras) == 1
+
+    # POI created with null price fields (not yet from price list)
+    poi = PurchaseOrderItem.objects.get(order=purchase_order, product_variant=variant)
+    assert poi.total_price_amount is None
+    assert poi.currency is None
+    assert poi.country_of_origin == ""  # CountryField returns empty string for null
+    assert poi.quantity_ordered == 7
+    assert poi.status == PurchaseOrderItemStatus.DRAFT
+
+    # PORA links PO to the allocation
+    pora = poras[0]
+    assert pora.purchase_order == purchase_order
+    assert pora.allocation.order_line == order_line

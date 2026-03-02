@@ -63,6 +63,10 @@ class OrderUpdateInput(BaseInputObjectType):
         required=False,
         description=(f"Order language code.{ADDED_IN_321}"),
     )
+    allow_variant_reallocation = graphene.Boolean(
+        required=False,
+        description="Whether variants may be substituted during PO receipt reallocation.",
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS

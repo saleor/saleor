@@ -43,6 +43,7 @@ from .models import (
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
+    from ..inventory.models import PurchaseOrderItem
     from ..order.models import Order
 
 
@@ -124,53 +125,53 @@ def can_confirm_order(order: "Order") -> bool:
     return has_allocations and not violations
 
 
-def _allocate_sources_incremental(allocation: Allocation, quantity: int):
+def _allocate_sources_incremental(
+    allocation: Allocation,
+    quantity: int,
+    poi: "PurchaseOrderItem | None" = None,
+):
     """Allocate sources for an incremental quantity added to existing allocation.
-
-    Required to confirm a purchase order.
-
-    Similar to allocate_sources() but only allocates the specified quantity,
-    not the full allocation.quantity_allocated.
-
 
     Args:
         allocation: The existing Allocation to add sources to.
         quantity: The incremental quantity to allocate.
+        poi: If provided, pin the source to this specific POI rather than searching
+             via FIFO. Use this during PO confirmation where the batch is known.
+             When None (floor stock), falls back to FIFO across available POIs.
 
     Raises:
-        InsufficientStock: If there are not enough POI batches. This should
-        never happen - it means our invariant on Stock.quantity matching sum of
-        available POI is broken.
+        InsufficientStock: If there are not enough POI batches.
 
     """
     from ..inventory import PurchaseOrderItemStatus
     from ..inventory.models import PurchaseOrderItem
 
-    # Get active POIs for this stock, prioritising RECEIVED over CONFIRMED so that
-    # goods already physically in the warehouse are sourced before in-transit stock.
-    # Within each status group, use FIFO order (confirmation date, then creation date).
-    # NOTE: Cannot use annotate_available_quantity() with select_for_update()
-    # because PostgreSQL doesn't allow FOR UPDATE with GROUP BY clause
-    pois = (
-        PurchaseOrderItem.objects.filter(
-            order__destination_warehouse=allocation.stock.warehouse,
-            product_variant=allocation.stock.product_variant,
-            status__in=PurchaseOrderItemStatus.ACTIVE_STATUSES,
-            quantity_ordered__gt=F("quantity_allocated"),
-        )
-        .select_for_update()
-        .annotate(
-            status_priority=Case(
-                When(
-                    status=PurchaseOrderItemStatus.RECEIVED,
-                    then=Value(0),
-                ),
-                default=Value(1),
-                output_field=IntegerField(),
+    if poi is not None:
+        pois = PurchaseOrderItem.objects.select_for_update().filter(pk=poi.pk)
+    else:
+        # Floor stock path: FIFO across available POIs, RECEIVED before CONFIRMED.
+        # NOTE: Cannot use annotate_available_quantity() with select_for_update()
+        # because PostgreSQL doesn't allow FOR UPDATE with GROUP BY clause.
+        pois = (
+            PurchaseOrderItem.objects.filter(
+                order__destination_warehouse=allocation.stock.warehouse,
+                product_variant=allocation.stock.product_variant,
+                status__in=PurchaseOrderItemStatus.ACTIVE_STATUSES,
+                quantity_ordered__gt=F("quantity_allocated"),
             )
+            .select_for_update()
+            .annotate(
+                status_priority=Case(
+                    When(
+                        status=PurchaseOrderItemStatus.RECEIVED,
+                        then=Value(0),
+                    ),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by("status_priority", "confirmed_at", "created_at")
         )
-        .order_by("status_priority", "confirmed_at", "created_at")
-    )
 
     remaining = quantity
     sources_to_update = {}  # POI ID -> AllocationSource
@@ -245,6 +246,8 @@ def allocate_sources(allocation: Allocation):
 
     Wrapper around _allocate_sources_incremental that allocates sources for
     the entire allocation.quantity_allocated using FIFO ordering of POIs.
+
+    This is only used for free stock in an owned warehouse - confirming POs and moving stock from nonowned -> owned uses the PORA system.
 
     Args:
         allocation: The Allocation to create sources for (must be owned warehouse).

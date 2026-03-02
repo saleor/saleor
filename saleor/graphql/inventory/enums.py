@@ -3,7 +3,11 @@ from typing import Final
 import graphene
 
 from ...graphql.core.enums import to_enum
-from ...inventory import PurchaseOrderItemAdjustmentReason, PurchaseOrderItemStatus
+from ...inventory import (
+    PurchaseOrderItemAdjustmentReason,
+    PurchaseOrderItemStatus,
+    PurchaseOrderStatus,
+)
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 
 PurchaseOrderItemStatusEnum: Final[graphene.Enum] = to_enum(
@@ -15,6 +19,11 @@ PurchaseOrderItemAdjustmentReasonEnum: Final[graphene.Enum] = to_enum(
     PurchaseOrderItemAdjustmentReason, type_name="PurchaseOrderItemAdjustmentReasonEnum"
 )
 PurchaseOrderItemAdjustmentReasonEnum.doc_category = DOC_CATEGORY_PRODUCTS
+
+PurchaseOrderStatusEnum: Final[graphene.Enum] = to_enum(
+    PurchaseOrderStatus, type_name="PurchaseOrderStatusEnum"
+)
+PurchaseOrderStatusEnum.doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class PurchaseOrderItemAdjustmentStatusEnum(graphene.Enum):

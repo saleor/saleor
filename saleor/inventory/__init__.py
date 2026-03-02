@@ -1,3 +1,19 @@
+class PurchaseOrderStatus:
+    """Status of a purchase order through its lifecycle."""
+
+    DRAFT = "draft"  # Being built; stock has not moved; PORAs may exist
+    CONFIRMED = "confirmed"  # Committed to supplier; stock moved to owned warehouse
+    PARTIALLY_RECEIVED = "partially_received"  # Some shipments arrived, not all
+    RECEIVED = "received"  # All goods physically arrived; all receipts completed
+
+    CHOICES = [
+        (DRAFT, "Draft"),
+        (CONFIRMED, "Confirmed"),
+        (PARTIALLY_RECEIVED, "Partially Received"),
+        (RECEIVED, "Received"),
+    ]
+
+
 class PurchaseOrderItemStatus:
     """Status of a purchase order item through its lifecycle."""
 
@@ -5,17 +21,23 @@ class PurchaseOrderItemStatus:
     CONFIRMED = "confirmed"  # Ordered from supplier, in transit
     RECEIVED = "received"  # Physically arrived in the warehouse
     CANCELLED = "cancelled"  # Cancelled
+    REQUIRES_ATTENTION = "requires_attention"
 
     CHOICES = [
         (DRAFT, "Draft"),
         (CONFIRMED, "Confirmed"),
         (RECEIVED, "Received"),
         (CANCELLED, "Cancelled"),
+        (REQUIRES_ATTENTION, "Requires Attention"),
     ]
 
     # Statuses that contribute to available inventory for allocation
     # Used when querying POIs for allocating sources to orders
     ACTIVE_STATUSES = [CONFIRMED, RECEIVED]
+
+    # Statuses where stock is physically in the warehouse (for invariant checks)
+    # Includes REQUIRES_ATTENTION because the stock is there, just unresolved
+    STOCK_PRESENT_STATUSES = [CONFIRMED, RECEIVED, REQUIRES_ATTENTION]
 
 
 class PurchaseOrderItemAdjustmentReason:

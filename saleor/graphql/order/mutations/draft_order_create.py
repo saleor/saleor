@@ -191,6 +191,10 @@ class DraftOrderInput(BaseInputObjectType):
         required=False,
         description="Bank account number for the selected Xero bank account.",
     )
+    allow_variant_reallocation = graphene.Boolean(
+        required=False,
+        description="Whether variants may be substituted during PO receipt reallocation. Defaults to True.",
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS

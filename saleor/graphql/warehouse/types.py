@@ -25,7 +25,11 @@ from ..core.types import (
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import ProductVariantByIdLoader
 from ..site.dataloaders import load_site_callback
-from .dataloaders import StocksByWarehouseIdLoader, WarehouseByIdLoader
+from .dataloaders import (
+    AllocationSourcesByAllocationIdLoader,
+    StocksByWarehouseIdLoader,
+    WarehouseByIdLoader,
+)
 from .enums import WarehouseClickAndCollectOptionEnum
 
 
@@ -290,6 +294,35 @@ class StockCountableConnection(CountableConnection):
         node = Stock
 
 
+class AllocationSourceType(ModelObjectType[models.AllocationSource]):
+    id = graphene.GlobalID(
+        required=True, description="The ID of the allocation source."
+    )
+    purchase_order_item = graphene.Field(
+        "saleor.graphql.inventory.types.PurchaseOrderItem",
+        required=True,
+        description="The purchase order item (batch) this allocation draws from.",
+    )
+    quantity = graphene.Int(
+        required=True,
+        description="Quantity allocated from this purchase order item.",
+    )
+
+    class Meta:
+        description = "Tracks which purchase order item batch an allocation draws from."
+        doc_category = DOC_CATEGORY_PRODUCTS
+        model = models.AllocationSource
+        interfaces = [graphene.relay.Node]
+
+    @staticmethod
+    def resolve_purchase_order_item(root, info: ResolveInfo):
+        from ..inventory.dataloaders import PurchaseOrderItemByIdLoader
+
+        return PurchaseOrderItemByIdLoader(info.context).load(
+            root.purchase_order_item_id
+        )
+
+
 class Allocation(BaseObjectType):
     id = graphene.GlobalID(required=True, description="The ID of allocation.")
     quantity = PermissionsField(
@@ -305,6 +338,14 @@ class Allocation(BaseObjectType):
         Warehouse,
         required=True,
         description="The warehouse were items were allocated.",
+        permissions=[
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
+    )
+    allocation_sources = PermissionsField(
+        NonNullList(AllocationSourceType),
+        description="Sources tracking which PO item batches this allocation draws from.",
         permissions=[
             ProductPermissions.MANAGE_PRODUCTS,
             OrderPermissions.MANAGE_ORDERS,
@@ -331,3 +372,7 @@ class Allocation(BaseObjectType):
     @staticmethod
     def resolve_quantity(root, _info: ResolveInfo):
         return root.quantity_allocated
+
+    @staticmethod
+    def resolve_allocation_sources(root, info: ResolveInfo):
+        return AllocationSourcesByAllocationIdLoader(info.context).load(root.pk)

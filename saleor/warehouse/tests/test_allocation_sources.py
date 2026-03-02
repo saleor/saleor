@@ -552,12 +552,12 @@ def test_allocate_sources_prefers_received_poi_over_confirmed(
 
     from ...inventory import PurchaseOrderItemStatus
     from ...inventory.models import PurchaseOrderItem
-    from ...inventory.stock_management import (
+    from ...inventory.receipt_workflow import (
         complete_receipt,
-        confirm_purchase_order_item,
         receive_item,
         start_receipt,
     )
+    from ...inventory.stock_management import confirm_purchase_order_item
     from ...shipping import IncoTerm, ShipmentType
     from ...shipping.models import Shipment
     from ..stock_utils import get_received_quantity_for_order_line

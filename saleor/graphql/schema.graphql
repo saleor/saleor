@@ -1286,6 +1286,16 @@ type Query {
   ): PurchaseOrderItemAdjustment @doc(category: "Products")
 
   """
+  Product-level discrepancy view for a completed receipt. Returns per-variant breakdown and affected orders for each product with unresolved POIAs.
+  
+  Requires one of the following permissions: MANAGE_STOCK.
+  """
+  productDiscrepancies(
+    """ID of the completed receipt."""
+    receiptId: ID!
+  ): [ProductDiscrepancy!] @doc(category: "Products")
+
+  """
   Look up a gift card by ID.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
@@ -11604,6 +11614,9 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   depositThresholdMetOverride: Boolean!
 
+  """Whether variants may be substituted during PO receipt reallocation."""
+  allowVariantReallocation: Boolean!
+
   """Date and time when deposit threshold was met."""
   depositPaidAt: DateTime
 
@@ -11826,6 +11839,13 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   totalRemainingGrant: Money!
+
+  """
+  Purchase orders linked to this order via requested allocations.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
+  linkedPurchaseOrders: [PurchaseOrder!]
 }
 
 enum OrderStatus @doc(category: "Orders") {
@@ -12208,6 +12228,105 @@ type Allocation implements Node @doc(category: "Products") {
   Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
   """
   warehouse: Warehouse!
+
+  """
+  Sources tracking which PO item batches this allocation draws from.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
+  allocationSources: [AllocationSourceType!]
+}
+
+"""Tracks which purchase order item batch an allocation draws from."""
+type AllocationSourceType implements Node @doc(category: "Products") {
+  """The ID of the allocation source."""
+  id: ID!
+
+  """The purchase order item (batch) this allocation draws from."""
+  purchaseOrderItem: PurchaseOrderItem!
+
+  """Quantity allocated from this purchase order item."""
+  quantity: Int!
+}
+
+"""Represents a line item in a purchase order."""
+type PurchaseOrderItem implements Node {
+  """The ID of the purchase order item."""
+  id: ID!
+
+  """Parent purchase order."""
+  purchaseOrder: PurchaseOrder!
+
+  """Product variant ordered."""
+  productVariant: ProductVariant!
+
+  """Quantity ordered."""
+  quantityOrdered: Int!
+
+  """Total quantity received across all receipt lines."""
+  quantityReceived: Int!
+
+  """
+  Unit cost (buy price). Null for items added from orders before pricing.
+  """
+  unitPrice: Money
+
+  """Country of origin (ISO 2-letter code)."""
+  countryOfOrigin: String
+
+  """Status of this purchase order item."""
+  status: PurchaseOrderItemStatusEnum!
+}
+
+"""Represents a purchase order from a supplier."""
+type PurchaseOrder implements Node {
+  """The ID of the purchase order."""
+  id: ID!
+
+  """Name of the purchase order."""
+  name: String!
+
+  """Supplier warehouse (non-owned)."""
+  supplierWarehouse: Warehouse!
+
+  """Destination warehouse (owned)."""
+  destinationWarehouse: Warehouse!
+
+  """Current status of the purchase order."""
+  status: PurchaseOrderStatusEnum!
+
+  """Items in this purchase order."""
+  items: [PurchaseOrderItem]!
+
+  """Default currency for this purchase order."""
+  currency: String!
+
+  """Whether variants are automatically reallocated on receipt."""
+  autoReallocateVariants: Boolean!
+
+  """Whether any orders are linked to this PO via requested allocations."""
+  hasLinkedOrders: Boolean!
+
+  """Orders linked to this PO via requested allocations."""
+  linkedOrders: [Order!]!
+
+  """When the purchase order was created."""
+  createdAt: DateTime!
+}
+
+enum PurchaseOrderStatusEnum @doc(category: "Products") {
+  DRAFT
+  CONFIRMED
+  PARTIALLY_RECEIVED
+  RECEIVED
+}
+
+enum PurchaseOrderItemStatusEnum @doc(category: "Products") {
+  DRAFT
+  CONFIRMED
+  RECEIVED
+  CANCELLED
+  REQUIRES_ATTENTION
 }
 
 """Represent the discount applied to order line."""
@@ -12468,55 +12587,6 @@ enum InvoiceType @doc(category: "Orders") {
 enum ShipmentTypeEnum @doc(category: "Shipping") {
   INBOUND
   OUTBOUND
-}
-
-"""Represents a line item in a purchase order."""
-type PurchaseOrderItem implements Node {
-  """The ID of the purchase order item."""
-  id: ID!
-
-  """Parent purchase order."""
-  purchaseOrder: PurchaseOrder!
-
-  """Product variant ordered."""
-  productVariant: ProductVariant!
-
-  """Quantity ordered."""
-  quantityOrdered: Int!
-
-  """Total quantity received across all receipt lines."""
-  quantityReceived: Int!
-
-  """Unit cost (buy price)."""
-  unitPrice: Money!
-
-  """Country of origin (ISO 2-letter code)."""
-  countryOfOrigin: String!
-
-  """Status of this purchase order item."""
-  status: PurchaseOrderItemStatusEnum!
-}
-
-"""Represents a purchase order from a supplier."""
-type PurchaseOrder implements Node {
-  """The ID of the purchase order."""
-  id: ID!
-
-  """Supplier warehouse (non-owned)."""
-  supplierWarehouse: Warehouse!
-
-  """Destination warehouse (owned)."""
-  destinationWarehouse: Warehouse!
-
-  """Items in this purchase order."""
-  items: [PurchaseOrderItem]!
-}
-
-enum PurchaseOrderItemStatusEnum @doc(category: "Products") {
-  DRAFT
-  CONFIRMED
-  RECEIVED
-  CANCELLED
 }
 
 """Represents a goods receipt for an inbound shipment."""
@@ -13085,6 +13155,7 @@ enum OrderErrorCode @doc(category: "Orders") {
   CANNOT_REFUND
   CANNOT_FULFILL_UNPAID_ORDER
   CANNOT_FULFILL_UNRECEIVED_STOCK
+  CANNOT_FULFILL_POI_REQUIRES_ATTENTION
   CAPTURE_INACTIVE_PAYMENT
   GIFT_CARD_LINE
   NOT_EDITABLE
@@ -14953,6 +15024,50 @@ enum PurchaseOrderItemAdjustmentReasonEnum @doc(category: "Products") {
 enum PurchaseOrderItemAdjustmentStatusEnum {
   PENDING
   PROCESSED
+}
+
+type ProductDiscrepancy {
+  """The product with discrepancies."""
+  product: Product!
+
+  """Per-variant breakdown of ordered vs received."""
+  variants: [VariantDiscrepancy!]!
+
+  """Orders currently allocated from these POIs."""
+  affectedOrders: [AffectedOrderInfo!]!
+
+  """Total units short across all variants (absolute value)."""
+  totalShortage: Int!
+}
+
+type VariantDiscrepancy {
+  """The product variant."""
+  variant: ProductVariant!
+
+  """Quantity originally ordered."""
+  quantityOrdered: Int!
+
+  """Quantity actually received."""
+  quantityReceived: Int!
+
+  """Difference (received - ordered). Negative means shortage."""
+  delta: Int!
+}
+
+type AffectedOrderInfo {
+  """The affected order."""
+  order: Order!
+
+  """Current allocations for this order."""
+  allocations: [OrderAllocationInfo!]!
+}
+
+type OrderAllocationInfo {
+  """Product variant allocated."""
+  variant: ProductVariant!
+
+  """Quantity allocated."""
+  quantity: Int!
 }
 
 input GiftCardSortingInput @doc(category: "Gift cards") {
@@ -19077,6 +19192,25 @@ type Mutation {
   ): PurchaseOrderCreate
 
   """
+  Updates a draft purchase order. 
+  
+  Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+  """
+  updatePurchaseOrder(
+    """Whether variants are automatically reallocated on receipt."""
+    autoReallocateVariants: Boolean
+
+    """Default currency for the purchase order (3-letter code)."""
+    currency: String
+
+    """ID of the purchase order."""
+    id: ID!
+
+    """New name for the purchase order."""
+    name: String
+  ): PurchaseOrderUpdate @doc(category: "Products")
+
+  """
   Confirms a purchase order with the supplier. 
   
   Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
@@ -19095,6 +19229,89 @@ type Mutation {
     """ID of the purchase order to delete."""
     id: ID!
   ): PurchaseOrderDelete @doc(category: "Products")
+
+  """
+  Links an order's allocations to a draft purchase order, creating PurchaseOrderRequestedAllocations and POIs as needed. 
+  
+  Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+  """
+  addOrderToPurchaseOrder(
+    """ID of the order to link."""
+    orderId: ID!
+
+    """ID of the draft purchase order."""
+    purchaseOrderId: ID!
+  ): AddOrderToPurchaseOrder @doc(category: "Products")
+
+  """
+  Removes an order's linkage from a draft purchase order, deleting PORAs and reducing POI quantities accordingly. 
+  
+  Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+  """
+  removeOrderFromPurchaseOrder(
+    """ID of the order to unlink."""
+    orderId: ID!
+
+    """ID of the draft purchase order."""
+    purchaseOrderId: ID!
+  ): RemoveOrderFromPurchaseOrder @doc(category: "Products")
+
+  """
+  Adds an item to a draft purchase order. 
+  
+  Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+  """
+  addPurchaseOrderItem(
+    """ISO 2-letter country code."""
+    countryOfOrigin: String
+
+    """Currency code (e.g., GBP, USD)."""
+    currency: String
+
+    """ID of the draft purchase order."""
+    purchaseOrderId: ID!
+
+    """Quantity to order."""
+    quantityOrdered: Int!
+
+    """Unit cost (buy price)."""
+    unitPriceAmount: PositiveDecimal
+
+    """Product variant to add."""
+    variantId: ID!
+  ): AddPurchaseOrderItem @doc(category: "Products")
+
+  """
+  Updates an item on a draft purchase order. 
+  
+  Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+  """
+  updatePurchaseOrderItem(
+    """ISO 2-letter country code."""
+    countryOfOrigin: String
+
+    """Currency code (e.g., GBP, USD)."""
+    currency: String
+
+    """ID of the purchase order item."""
+    id: ID!
+
+    """New quantity ordered."""
+    quantityOrdered: Int
+
+    """New unit cost (buy price)."""
+    unitPriceAmount: PositiveDecimal
+  ): UpdatePurchaseOrderItem @doc(category: "Products")
+
+  """
+  Removes an item from a draft purchase order. 
+  
+  Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+  """
+  removePurchaseOrderItem(
+    """ID of the purchase order item to remove."""
+    id: ID!
+  ): RemovePurchaseOrderItem @doc(category: "Products")
 
   """
   Start receiving goods from an inbound shipment. 
@@ -19154,6 +19371,27 @@ type Mutation {
     """ID of the receipt line to delete."""
     receiptLineId: ID!
   ): ReceiptLineDelete @doc(category: "Products")
+
+  """
+  Resolve pending purchase order item adjustments for a product. Allows removing allocations (shorting orders) or substituting variants. Marks all pending POIAs as processed. 
+  
+  Requires one of the following permissions: MANAGE_STOCK.
+  """
+  resolveProductDiscrepancy(
+    """Whether the supplier owes credit for this discrepancy."""
+    affectsPayable: Boolean!
+
+    """ID of the product to resolve."""
+    productId: ID!
+
+    """ID of the completed receipt."""
+    receiptId: ID!
+
+    """
+    Desired allocation end-state. Each entry specifies an order, variant, and quantity. Omitted (order, variant) pairs are removed.
+    """
+    resolutions: [OrderResolutionInput!]!
+  ): ResolveProductDiscrepancy @doc(category: "Products")
 
   """
   Activate a gift card. 
@@ -26644,6 +26882,11 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """Bank account number for the selected Xero bank account."""
   xeroBankAccountNumber: String
 
+  """
+  Whether variants may be substituted during PO receipt reallocation. Defaults to True.
+  """
+  allowVariantReallocation: Boolean
+
   """Variant line input consisting of variant ID and quantity of products."""
   lines: [OrderLineCreateInput!]
 }
@@ -26810,6 +27053,11 @@ input DraftOrderInput @doc(category: "Orders") {
 
   """Bank account number for the selected Xero bank account."""
   xeroBankAccountNumber: String
+
+  """
+  Whether variants may be substituted during PO receipt reallocation. Defaults to True.
+  """
+  allowVariantReallocation: Boolean
 }
 
 """
@@ -27628,6 +27876,9 @@ input OrderUpdateInput @doc(category: "Orders") {
   Added in Saleor 3.21.
   """
   languageCode: LanguageCodeEnum
+
+  """Whether variants may be substituted during PO receipt reallocation."""
+  allowVariantReallocation: Boolean
 }
 
 """
@@ -28666,8 +28917,16 @@ input PurchaseOrderCreateInput @doc(category: "Products") {
   """Destination warehouse (must be owned warehouse)."""
   destinationWarehouseId: ID!
 
-  """Line items to order."""
-  items: [PurchaseOrderItemInput!]!
+  """Optional name for the purchase order."""
+  name: String
+
+  """Line items to order. Can be empty for draft creation."""
+  items: [PurchaseOrderItemInput!]
+
+  """
+  Whether variants are automatically reallocated on receipt. Defaults to True.
+  """
+  autoReallocateVariants: Boolean
 
   """Public metadata (e.g., supplier PO number)."""
   metadata: [MetadataInput!]
@@ -28690,7 +28949,19 @@ input PurchaseOrderItemInput @doc(category: "Products") {
   currency: String!
 
   """ISO 2-letter country code for customs/duties."""
-  countryOfOrigin: String!
+  countryOfOrigin: String
+}
+
+"""
+Updates a draft purchase order. 
+
+Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+"""
+type PurchaseOrderUpdate @doc(category: "Products") {
+  """The updated purchase order."""
+  purchaseOrder: PurchaseOrder
+  purchaseOrderErrors: [PurchaseOrderError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [PurchaseOrderError!]!
 }
 
 """
@@ -28714,6 +28985,66 @@ type PurchaseOrderDelete @doc(category: "Products") {
   purchaseOrderErrors: [PurchaseOrderError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [PurchaseOrderError!]!
   purchaseOrder: PurchaseOrder
+}
+
+"""
+Links an order's allocations to a draft purchase order, creating PurchaseOrderRequestedAllocations and POIs as needed. 
+
+Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+"""
+type AddOrderToPurchaseOrder @doc(category: "Products") {
+  """The updated purchase order."""
+  purchaseOrder: PurchaseOrder
+  purchaseOrderErrors: [PurchaseOrderError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [PurchaseOrderError!]!
+}
+
+"""
+Removes an order's linkage from a draft purchase order, deleting PORAs and reducing POI quantities accordingly. 
+
+Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+"""
+type RemoveOrderFromPurchaseOrder @doc(category: "Products") {
+  """The updated purchase order."""
+  purchaseOrder: PurchaseOrder
+  purchaseOrderErrors: [PurchaseOrderError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [PurchaseOrderError!]!
+}
+
+"""
+Adds an item to a draft purchase order. 
+
+Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+"""
+type AddPurchaseOrderItem @doc(category: "Products") {
+  """The updated purchase order."""
+  purchaseOrder: PurchaseOrder
+  purchaseOrderErrors: [PurchaseOrderError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [PurchaseOrderError!]!
+}
+
+"""
+Updates an item on a draft purchase order. 
+
+Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+"""
+type UpdatePurchaseOrderItem @doc(category: "Products") {
+  """The parent purchase order."""
+  purchaseOrder: PurchaseOrder
+  purchaseOrderErrors: [PurchaseOrderError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [PurchaseOrderError!]!
+}
+
+"""
+Removes an item from a draft purchase order. 
+
+Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
+"""
+type RemovePurchaseOrderItem @doc(category: "Products") {
+  """The parent purchase order."""
+  purchaseOrder: PurchaseOrder
+  purchaseOrderErrors: [PurchaseOrderError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [PurchaseOrderError!]!
 }
 
 """
@@ -28776,9 +29107,6 @@ type ReceiptComplete @doc(category: "Products") {
   """The completed receipt."""
   receipt: Receipt
 
-  """Adjustments that were automatically processed."""
-  adjustmentsCreated: [PurchaseOrderItemAdjustment!]!
-
   """Adjustments requiring manual review."""
   adjustmentsPending: [PurchaseOrderItemAdjustment!]!
 
@@ -28806,6 +29134,29 @@ Requires one of the following permissions: MANAGE_STOCK.
 type ReceiptLineDelete @doc(category: "Products") {
   receiptErrors: [ReceiptError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ReceiptError!]!
+}
+
+"""
+Resolve pending purchase order item adjustments for a product. Allows removing allocations (shorting orders) or substituting variants. Marks all pending POIAs as processed. 
+
+Requires one of the following permissions: MANAGE_STOCK.
+"""
+type ResolveProductDiscrepancy @doc(category: "Products") {
+  """The resolved adjustments."""
+  adjustments: [PurchaseOrderItemAdjustment!]!
+  receiptErrors: [ReceiptError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ReceiptError!]!
+}
+
+input OrderResolutionInput @doc(category: "Products") {
+  """ID of the order to allocate to."""
+  orderId: ID!
+
+  """ID of the product variant to allocate."""
+  variantId: ID!
+
+  """Quantity to allocate."""
+  quantity: Int!
 }
 
 """

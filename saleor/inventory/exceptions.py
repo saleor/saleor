@@ -136,3 +136,7 @@ class ReceiptLineNotInProgress(Exception):
             f"receipt {self.receipt.id} is {self.status}. "
             f"Only lines from in-progress receipts can be deleted."
         )
+
+
+class CannotReallocateVariants(Exception):
+    """Raised when attempts to reallocate fail."""

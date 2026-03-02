@@ -10,6 +10,7 @@ class OrderErrorCode(Enum):
     CANNOT_REFUND = "cannot_refund"
     CANNOT_FULFILL_UNPAID_ORDER = "cannot_fulfill_unpaid_order"
     CANNOT_FULFILL_UNRECEIVED_STOCK = "cannot_fulfill_unreceived_stock"
+    CANNOT_FULFILL_POI_REQUIRES_ATTENTION = "cannot_fulfill_poi_requires_attention"
     CAPTURE_INACTIVE_PAYMENT = "capture_inactive_payment"
     GIFT_CARD_LINE = "gift_card_line"
     NOT_EDITABLE = "not_editable"

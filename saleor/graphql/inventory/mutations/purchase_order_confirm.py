@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ....inventory import PurchaseOrderItemStatus, events, models
+from ....inventory import PurchaseOrderStatus, events, models
 from ....inventory.error_codes import PurchaseOrderErrorCode
 from ....inventory.stock_management import confirm_purchase_order_item
 from ....permission.enums import WarehousePermissions
@@ -65,18 +65,11 @@ class PurchaseOrderConfirm(BaseMutation):
                 }
             ) from None
 
-        # Validate all items are in DRAFT status
-        non_draft_items = [
-            item
-            for item in purchase_order.items.all()
-            if item.status != PurchaseOrderItemStatus.DRAFT
-        ]
-        if non_draft_items:
-            statuses = ", ".join({item.status for item in non_draft_items})
+        if purchase_order.status != PurchaseOrderStatus.DRAFT:
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        f"All items must be in DRAFT status. Found items with status: {statuses}",
+                        f"Purchase order is already {purchase_order.status}.",
                         code=PurchaseOrderErrorCode.GRAPHQL_ERROR.value,
                     )
                 }
@@ -87,6 +80,9 @@ class PurchaseOrderConfirm(BaseMutation):
             with transaction.atomic():
                 for item in purchase_order.items.all():
                     confirm_purchase_order_item(item, user=info.context.user, app=app)
+
+                purchase_order.status = PurchaseOrderStatus.CONFIRMED
+                purchase_order.save(update_fields=["status", "updated_at"])
 
                 # Log the event for audit trail
                 events.purchase_order_confirmed_event(

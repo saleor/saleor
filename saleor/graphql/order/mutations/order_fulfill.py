@@ -244,6 +244,31 @@ class OrderFulfill(BaseMutation):
                     )
 
     @classmethod
+    def check_poi_requires_attention(cls, order_lines):
+        from ....inventory import PurchaseOrderItemStatus
+        from ....warehouse.models import AllocationSource
+
+        for order_line in order_lines:
+            poi_requires_attention = AllocationSource.objects.filter(
+                allocation__order_line=order_line,
+                purchase_order_item__status=PurchaseOrderItemStatus.REQUIRES_ATTENTION,
+            ).exists()
+            if poi_requires_attention:
+                order_line_global_id = graphene.Node.to_global_id(
+                    "OrderLine", order_line.pk
+                )
+                raise ValidationError(
+                    {
+                        "order_line_id": ValidationError(
+                            "Cannot fulfill order line: an associated purchase order "
+                            "item requires attention.",
+                            code=OrderErrorCode.CANNOT_FULFILL_POI_REQUIRES_ATTENTION.value,
+                            params={"order_lines": [order_line_global_id]},
+                        )
+                    }
+                )
+
+    @classmethod
     def clean_input(cls, info: ResolveInfo, order, data, site):
         if not order.is_fully_paid() and (
             site.settings.fulfillment_auto_approve
@@ -291,6 +316,7 @@ class OrderFulfill(BaseMutation):
         )
 
         cls.clean_lines(order_lines, quantities_for_lines)
+        cls.check_poi_requires_attention(order_lines)
 
         if site.settings.fulfillment_auto_approve:
             cls.check_lines_for_preorder(order_lines)

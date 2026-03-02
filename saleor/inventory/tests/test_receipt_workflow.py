@@ -5,21 +5,26 @@ from django.utils import timezone
 
 from ...order import FulfillmentStatus, OrderStatus
 from ...order.models import Fulfillment
-from ...warehouse.models import Allocation, Stock
-from .. import ReceiptStatus
+from ...warehouse.models import Allocation, AllocationSource, Stock
+from .. import PurchaseOrderItemStatus, ReceiptStatus
 from ..exceptions import (
     ReceiptLineNotInProgress,
     ReceiptNotInProgress,
 )
-from ..models import PurchaseOrderItem, Receipt, ReceiptLine
-from ..stock_management import (
+from ..models import (
+    PurchaseOrderItem,
+    PurchaseOrderRequestedAllocation,
+    Receipt,
+    ReceiptLine,
+)
+from ..receipt_workflow import (
     complete_receipt,
-    confirm_purchase_order_item,
     delete_receipt,
     delete_receipt_line,
     receive_item,
     start_receipt,
 )
+from ..stock_management import confirm_purchase_order_item
 
 # Tests for start_receipt function
 
@@ -150,7 +155,6 @@ def test_completes_receipt_with_no_discrepancies(
     purchase_order_item.quantity_ordered = 100
     purchase_order_item.save()
 
-    # Create receipt line to simulate receiving 100 items
     receipt_line_factory(
         receipt=receipt,
         purchase_order_item=purchase_order_item,
@@ -163,7 +167,7 @@ def test_completes_receipt_with_no_discrepancies(
 
     # then: no adjustments created
     assert result["discrepancies"] == 0
-    assert len(result["adjustments_created"]) == 0
+    assert "adjustments_created" not in result
     assert len(result["adjustments_pending"]) == 0
 
     # and: receipt is completed
@@ -180,14 +184,13 @@ def test_completes_receipt_with_no_discrepancies(
     assert receipt.shipment.arrived_at is not None
 
 
-def test_creates_adjustment_for_delivery_short(
+def test_creates_pending_poia_for_delivery_short(
     receipt, purchase_order_item, staff_user, receipt_line_factory
 ):
-    # given: received less than ordered
+    # given: received less than ordered (single-variant shortage)
     purchase_order_item.quantity_ordered = 100
     purchase_order_item.save()
 
-    # Create receipt line to simulate receiving 98 items (shortage of 2)
     receipt_line_factory(
         receipt=receipt,
         purchase_order_item=purchase_order_item,
@@ -198,25 +201,29 @@ def test_creates_adjustment_for_delivery_short(
     # when: completing the receipt
     result = complete_receipt(receipt, user=staff_user)
 
-    # then: adjustment created for shortage
+    # then: POIA created as pending (needs manual resolution)
     assert result["discrepancies"] == 1
-    assert len(result["adjustments_created"]) == 1
+    assert len(result["adjustments_pending"]) == 1
+    assert "adjustments_created" not in result
 
-    adjustment = result["adjustments_created"][0]
+    adjustment = result["adjustments_pending"][0]
     assert adjustment.quantity_change == -2
     assert adjustment.reason == "delivery_short"
     assert adjustment.affects_payable is True
-    assert adjustment.processed_at is not None  # Auto-processed
+    assert adjustment.processed_at is None
+
+    # and: POI marked as requires attention
+    purchase_order_item.refresh_from_db()
+    assert purchase_order_item.status == PurchaseOrderItemStatus.REQUIRES_ATTENTION
 
 
-def test_creates_adjustment_for_overage(
+def test_overage_creates_pending_poia(
     receipt, purchase_order_item, staff_user, receipt_line_factory
 ):
     # given: received more than ordered
     purchase_order_item.quantity_ordered = 100
     purchase_order_item.save()
 
-    # Create receipt line to simulate receiving 105 items (overage of 5)
     receipt_line_factory(
         receipt=receipt,
         purchase_order_item=purchase_order_item,
@@ -227,73 +234,33 @@ def test_creates_adjustment_for_overage(
     # when: completing the receipt
     result = complete_receipt(receipt, user=staff_user)
 
-    # then: adjustment created for overage
-    assert result["discrepancies"] == 1
-    adjustment = result["adjustments_created"][0]
-    assert adjustment.quantity_change == 5
-    assert adjustment.reason == "cycle_count_pos"
-    assert adjustment.affects_payable is False
-
-
-def test_handles_adjustment_affecting_confirmed_orders(
-    receipt, purchase_order_item, staff_user, mocker, receipt_line_factory
-):
-    # given: a shortage that would affect confirmed orders
-    purchase_order_item.quantity_ordered = 100
-    purchase_order_item.save()
-
-    # Create receipt line to simulate receiving 90 items (shortage of 10)
-    receipt_line_factory(
-        receipt=receipt,
-        purchase_order_item=purchase_order_item,
-        quantity_received=90,
-        received_by=staff_user,
-    )
-
-    # and: process_adjustment will raise AdjustmentRequiresManualResolution
-    from ...inventory.exceptions import AdjustmentRequiresManualResolution
-
-    _mock_process = mocker.patch(
-        "saleor.inventory.stock_management.process_adjustment",
-        side_effect=AdjustmentRequiresManualResolution(
-            adjustment=mocker.Mock(), order_numbers=[1234]
-        ),
-    )
-
-    # when: completing the receipt
-    result = complete_receipt(receipt, user=staff_user)
-
-    # then: adjustment created but NOT processed
+    # then: POIA created for the overage
     assert result["discrepancies"] == 1
     assert len(result["adjustments_pending"]) == 1
-    assert len(result["adjustments_created"]) == 0
 
     adjustment = result["adjustments_pending"][0]
+    assert adjustment.quantity_change == 5
+    assert adjustment.reason == "cycle_count_pos"
+    assert adjustment.affects_payable is True
     assert adjustment.processed_at is None
+
+    # and: POI marked as requires attention
+    purchase_order_item.refresh_from_db()
+    assert purchase_order_item.status == PurchaseOrderItemStatus.REQUIRES_ATTENTION
 
 
 def test_sends_notification_for_pending_adjustments(
     receipt, purchase_order_item, staff_user, mocker, receipt_line_factory
 ):
-    # given: a shortage affecting confirmed orders
+    # given: a shortage
     purchase_order_item.quantity_ordered = 100
     purchase_order_item.save()
 
-    # Create receipt line to simulate receiving 90 items (shortage of 10)
     receipt_line_factory(
         receipt=receipt,
         purchase_order_item=purchase_order_item,
         quantity_received=90,
         received_by=staff_user,
-    )
-
-    from ...inventory.exceptions import AdjustmentRequiresManualResolution
-
-    mocker.patch(
-        "saleor.inventory.stock_management.process_adjustment",
-        side_effect=AdjustmentRequiresManualResolution(
-            adjustment=mocker.Mock(), order_numbers=[1234]
-        ),
     )
 
     # and: a plugin manager
@@ -302,7 +269,7 @@ def test_sends_notification_for_pending_adjustments(
     # when: completing the receipt
     complete_receipt(receipt, user=staff_user, manager=mock_manager)
 
-    # then: notification sent
+    # then: notification sent for pending adjustments
     mock_manager.notify.assert_called_once()
     call_args = mock_manager.notify.call_args
     assert call_args[0][0] == "pending_adjustments"
@@ -314,7 +281,7 @@ def test_error_when_completing_receipt_not_in_progress(receipt, staff_user):
     receipt.save()
 
     # when/then: trying to complete again raises error
-    with pytest.raises(ValueError, match="not in progress"):
+    with pytest.raises(ReceiptNotInProgress):
         complete_receipt(receipt, user=staff_user)
 
 
@@ -424,7 +391,7 @@ def order_with_poi_and_receipt(
     shipment,
     staff_user,
 ):
-    """Scenario: UNCONFIRMED order → POI confirmed → in-progress receipt.
+    """Scenario: UNCONFIRMED order -> POI confirmed -> in-progress receipt.
 
     Sets up an order with an allocation at nonowned_warehouse and a POI linked
     to the shipment. POI is NOT yet confirmed - the test controls that step.
@@ -458,7 +425,7 @@ def order_with_poi_and_receipt(
         defaults={"quantity": 100, "quantity_allocated": 0},
     )
 
-    Allocation.objects.create(
+    allocation = Allocation.objects.create(
         order_line=line,
         stock=source_stock,
         quantity_allocated=5,
@@ -474,6 +441,10 @@ def order_with_poi_and_receipt(
         currency="USD",
         shipment=shipment,
         country_of_origin="US",
+    )
+
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=poi.order, allocation=allocation
     )
 
     receipt = Receipt.objects.create(
@@ -549,3 +520,278 @@ def test_complete_receipt_with_no_linked_orders_creates_no_fulfillments(
 
     # then: no fulfillments since no orders are linked to this stock
     assert Fulfillment.objects.count() == 0
+
+
+def test_complete_receipt_updates_quantity_ordered_after_balanced_reallocation(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    product,
+    channel_USD,
+    staff_user,
+):
+    """When total received == ordered but variant mix differs, reallocation succeeds.
+
+    Variant reallocation should succeed AND quantity_ordered on each POI should be
+    updated to match quantity_received. No POIAs should be created.
+    """
+    from decimal import Decimal
+
+    from ...order import OrderStatus
+    from ...order.models import Order, OrderLine
+    from ...product.models import ProductVariant, ProductVariantChannelListing
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    # given - two variants of the same product
+    variant_s = ProductVariant.objects.create(product=product, sku="REALLOC-S")
+    variant_m = ProductVariant.objects.create(product=product, sku="REALLOC-M")
+    for v in [variant_s, variant_m]:
+        ProductVariantChannelListing.objects.create(
+            variant=v,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            discounted_price_amount=Decimal(10),
+            cost_price_amount=Decimal(1),
+            currency=channel_USD.currency_code,
+        )
+
+    # given - stock at both warehouses
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_s,
+        quantity=1000,
+        quantity_allocated=0,
+    )
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_m,
+        quantity=1000,
+        quantity_allocated=0,
+    )
+    stock_s = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_s,
+        quantity=10,
+        quantity_allocated=0,
+    )
+    stock_m = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_m,
+        quantity=10,
+        quantity_allocated=0,
+    )
+
+    # given - a shipment and two confirmed POIs: 6×S and 4×M (10 total)
+    ship = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-REALLOC",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    poi_s = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=6,
+        total_price_amount=Decimal("60.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    poi_m = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_m,
+        quantity_ordered=4,
+        total_price_amount=Decimal("40.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # given - one order with allocation sources: 6×S + 4×M = 10 total
+    addr = purchase_order.source_warehouse.address
+    order_a = Order.objects.create(
+        channel=channel_USD,
+        billing_address=addr,
+        shipping_address=addr,
+        status=OrderStatus.UNCONFIRMED,
+        lines_count=2,
+    )
+    line_a_s = OrderLine.objects.create(
+        order=order_a,
+        variant=variant_s,
+        quantity=6,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("60.00"),
+        total_price_net_amount=Decimal("60.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+    line_a_m = OrderLine.objects.create(
+        order=order_a,
+        variant=variant_m,
+        quantity=4,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("40.00"),
+        total_price_net_amount=Decimal("40.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+
+    # Wire up allocations + allocation sources
+    alloc_s = Allocation.objects.create(
+        order_line=line_a_s,
+        stock=stock_s,
+        quantity_allocated=6,
+    )
+    stock_s.quantity_allocated = 6
+    stock_s.save()
+    poi_s.quantity_allocated = 6
+    poi_s.save()
+    AllocationSource.objects.create(
+        purchase_order_item=poi_s,
+        allocation=alloc_s,
+        quantity=6,
+    )
+
+    alloc_m = Allocation.objects.create(
+        order_line=line_a_m,
+        stock=stock_m,
+        quantity_allocated=4,
+    )
+    stock_m.quantity_allocated = 4
+    stock_m.save()
+    poi_m.quantity_allocated = 4
+    poi_m.save()
+    AllocationSource.objects.create(
+        purchase_order_item=poi_m,
+        allocation=alloc_m,
+        quantity=4,
+    )
+
+    # given - receipt with swapped quantities: 4×S and 6×M (still 10 total)
+    receipt = Receipt.objects.create(
+        shipment=ship,
+        status=ReceiptStatus.IN_PROGRESS,
+        created_by=staff_user,
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt,
+        purchase_order_item=poi_s,
+        quantity_received=4,
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt,
+        purchase_order_item=poi_m,
+        quantity_received=6,
+    )
+
+    # when
+    result = complete_receipt(receipt, user=staff_user)
+
+    # then - no POIAs since product-level totals balance
+    assert result["adjustments_pending"] == []
+
+    # then - quantity_ordered updated to match received
+    poi_s.refresh_from_db()
+    poi_m.refresh_from_db()
+    assert poi_s.quantity_ordered == 4
+    assert poi_m.quantity_ordered == 6
+
+    # then - both POIs marked as received, not requires_attention
+    assert poi_s.status == PurchaseOrderItemStatus.RECEIVED
+    assert poi_m.status == PurchaseOrderItemStatus.RECEIVED
+
+
+# Tests for receive_item FIFO with multiple POIs per variant
+
+
+def test_receive_item_fifo_fills_first_poi(
+    receipt,
+    purchase_order,
+    variant,
+    shipment,
+    staff_user,
+):
+    # given: two POIs for the same variant, ordered by pk
+    poi_a = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant,
+        quantity_ordered=30,
+        total_price_amount=300,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant,
+        quantity_ordered=20,
+        total_price_amount=200,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="CN",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # when: receiving 10 units
+    line = receive_item(receipt, variant, quantity=10, user=staff_user)
+
+    # then: goes to first POI (FIFO)
+    assert line.purchase_order_item == poi_a
+
+
+def test_receive_item_fifo_overflows_to_second_poi(
+    receipt,
+    purchase_order,
+    variant,
+    shipment,
+    staff_user,
+    receipt_line_factory,
+):
+    # given: two POIs, first is already full
+    poi_a = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant,
+        quantity_ordered=10,
+        total_price_amount=100,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    poi_b = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant,
+        quantity_ordered=20,
+        total_price_amount=200,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="CN",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # fill first POI to capacity
+    receipt_line_factory(
+        receipt=receipt,
+        purchase_order_item=poi_a,
+        quantity_received=10,
+        received_by=staff_user,
+    )
+
+    # when: receiving more
+    line = receive_item(receipt, variant, quantity=5, user=staff_user)
+
+    # then: overflows to second POI
+    assert line.purchase_order_item == poi_b

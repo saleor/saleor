@@ -3484,6 +3484,7 @@ def test_draft_order_update_no_changes(
         "xeroBankAccountCode": "BANK123",
         "xeroBankAccountSortCode": "12-34-56",
         "xeroBankAccountNumber": "12345678",
+        "allowVariantReallocation": True,
     }
     assert set(input_fields) == set(input.keys())
 
@@ -3590,6 +3591,7 @@ def test_draft_order_update_emit_events(
         "xeroBankAccountCode": "BANK123",
         "xeroBankAccountSortCode": "12-34-56",
         "xeroBankAccountNumber": "12345678",
+        "allowVariantReallocation": False,
     }
     assert set(input_fields) == set(input.keys())
 

@@ -26,6 +26,7 @@ from ...meta.mutations.utils import update_metadata, update_private_metadata
 from ..utils import get_shipping_method_availability_error
 
 DRAFT_ORDER_UPDATE_FIELDS = {
+    "allow_variant_reallocation",
     "base_shipping_price_amount",
     "billing_address",
     "channel",
@@ -70,6 +71,7 @@ SHIPPING_METHOD_UPDATE_FIELDS = {
 }
 
 ORDER_UPDATE_FIELDS = {
+    "allow_variant_reallocation",
     "billing_address",
     "external_reference",
     "language_code",

@@ -3,6 +3,7 @@ import pytest
 from ...order import OrderStatus
 from ...order.models import Fulfillment
 from ...warehouse.models import Allocation
+from ..models import PurchaseOrderRequestedAllocation
 from ..stock_management import confirm_purchase_order_item
 
 
@@ -86,11 +87,18 @@ def test_confirm_poi_does_not_create_fulfillments(
         product_variant=line.variant,
         quantity_ordered=5,
         total_price_amount=50.0,
+        currency="USD",
+        country_of_origin="US",
     )
 
     purchase_order.source_warehouse = warehouse_for_cc
     purchase_order.destination_warehouse = warehouse
     purchase_order.save()
+
+    allocation = Allocation.objects.get(order_line=line)
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=allocation
+    )
 
     assert order.status == OrderStatus.UNCONFIRMED
     assert Fulfillment.objects.filter(order=order).count() == 0
@@ -197,10 +205,10 @@ def test_confirm_poi_auto_confirms_order_without_creating_fulfillments(
         defaults={"quantity": 0, "quantity_allocated": 0},
     )
 
-    Allocation.objects.create(
+    alloc1 = Allocation.objects.create(
         order_line=line1, stock=source_stock1, quantity_allocated=3
     )
-    Allocation.objects.create(
+    alloc2 = Allocation.objects.create(
         order_line=line2, stock=source_stock2, quantity_allocated=2
     )
 
@@ -217,6 +225,11 @@ def test_confirm_poi_auto_confirms_order_without_creating_fulfillments(
         product_variant=variant1,
         quantity_ordered=3,
         total_price_amount=30.0,
+        currency="USD",
+        country_of_origin="US",
+    )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=po1, allocation=alloc1
     )
 
     poi2 = PurchaseOrderItem.objects.create(
@@ -224,6 +237,11 @@ def test_confirm_poi_auto_confirms_order_without_creating_fulfillments(
         product_variant=variant2,
         quantity_ordered=2,
         total_price_amount=40.0,
+        currency="USD",
+        country_of_origin="US",
+    )
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=po2, allocation=alloc2
     )
 
     # when - confirm both POIs
@@ -291,11 +309,18 @@ def test_confirm_poi_does_not_create_fulfillments_if_not_all_inventory_ready(
         product_variant=line1.variant,
         quantity_ordered=5,
         total_price_amount=50.0,
+        currency="USD",
+        country_of_origin="US",
     )
 
     purchase_order.source_warehouse = warehouse_for_cc
     purchase_order.destination_warehouse = warehouse
     purchase_order.save()
+
+    line1_alloc = Allocation.objects.get(order_line=line1)
+    PurchaseOrderRequestedAllocation.objects.create(
+        purchase_order=purchase_order, allocation=line1_alloc
+    )
 
     # when
     confirm_purchase_order_item(poi1, user=staff_user)

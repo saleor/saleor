@@ -1092,6 +1092,7 @@ def test_order_update_no_changes(
         "metadata": [{"key": key, "value": value}],
         "privateMetadata": [{"key": key, "value": value}],
         "languageCode": "PL",
+        "allowVariantReallocation": True,
     }
     assert set(input_fields) == set(input.keys())
 
@@ -1152,6 +1153,7 @@ def test_order_update_emit_events(
         "userEmail": "new_" + order.user_email,
         "externalReference": order.external_reference + "_new",
         "languageCode": "PL",
+        "allowVariantReallocation": False,
     }
     assert set(input_fields) == set(input.keys())
 
