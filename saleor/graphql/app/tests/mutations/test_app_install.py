@@ -215,7 +215,7 @@ def test_install_app_mutation_with_invalid_manifest_url_returns_error(
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "manifestUrl"
-    assert error["code"] == AppErrorCode.INVALID.name
+    assert error["code"] == AppErrorCode.INVALID_URL_FORMAT.name
 
 
 def test_install_app_mutation_with_null_manifest_url_returns_error(
@@ -248,8 +248,7 @@ def test_install_app_mutation_with_null_permissions_returns_error(
     staff_api_client,
     staff_user,
 ):
-    # given - null permissions would previously cause TypeError: 'NoneType' object
-    # is not iterable in ensure_can_manage_permissions, the Pydantic model catches it
+    # given
     staff_user.user_permissions.set([permission_manage_apps])
     variables = {
         "manifest_url": "http://localhost:3000/manifest",

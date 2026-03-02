@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from pydantic import BaseModel, ConfigDict, field_validator
 from pydantic import ValidationError as PydanticValidationError
+from pydantic_core import PydanticCustomError
 
 from ....app import models
 from ....app.error_codes import AppErrorCode
@@ -22,7 +23,7 @@ from ..utils import ensure_can_manage_permissions
 
 
 class AppInstallInputSchema(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(frozen=True)
 
     app_name: str | None = None
     manifest_url: str
@@ -36,7 +37,11 @@ class AppInstallInputSchema(BaseModel):
         try:
             url_validator(v)
         except (ValidationError, AttributeError) as e:
-            raise ValueError("Enter a valid URL.") from e
+            raise PydanticCustomError(
+                AppErrorCode.INVALID_URL_FORMAT.value,
+                "Enter a valid URL.",
+                {"error_code": AppErrorCode.INVALID_URL_FORMAT.value},
+            ) from e
         return v
 
 
@@ -88,7 +93,7 @@ class AppInstall(DeprecatedModelMutation):
             AppInstallInputSchema.model_validate(dict(data))
         except PydanticValidationError as exc:
             raise pydantic_to_validation_error(
-                exc, error_code=AppErrorCode.INVALID.value
+                exc, default_error_code=AppErrorCode.INVALID.value
             ) from exc
 
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
