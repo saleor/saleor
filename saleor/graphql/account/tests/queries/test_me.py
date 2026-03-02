@@ -834,3 +834,28 @@ def test_me_orders_where_filter_by_number(user_api_client, order_list):
     orders_data = content["data"]["me"]["orders"]
     assert orders_data["totalCount"] == 1
     assert orders_data["edges"][0]["node"]["number"] == str(target_order.number)
+
+
+def test_me_orders_where_filter_by_metadata(user_api_client, order_list):
+    # given
+    user = user_api_client.user
+    order_list[0].user = user
+    order_list[0].metadata = {"key": "value"}
+    order_list[1].user = user
+    order_list[1].metadata = {"key": "other_value"}
+    order_list[2].user = user
+    order_list[2].metadata = {}
+    Order.objects.bulk_update(order_list, ["user", "metadata"])
+
+    variables = {"where": {"metadata": {"key": "key", "value": {"eq": "value"}}}}
+
+    # when
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    assert orders_data["totalCount"] == 1
+    assert orders_data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", order_list[0].pk
+    )
