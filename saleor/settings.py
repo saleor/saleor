@@ -1061,6 +1061,8 @@ DATA_MIGRATIONS_TASKS_QUEUE_NAME = os.environ.get(
     "DATA_MIGRATIONS_TASKS_QUEUE_NAME", None
 )
 
+FETCH_IMAGES_QUEUE_NAME = os.environ.get("FETCH_IMAGES_QUEUE_NAME", None)
+
 # Lock time for request password reset mutation per user (seconds)
 RESET_PASSWORD_LOCK_TIME = parse(
     os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
