@@ -218,7 +218,7 @@ def test_install_app_mutation_with_invalid_manifest_url_returns_error(
     assert error["code"] == AppErrorCode.INVALID_URL_FORMAT.name
 
 
-def test_install_app_mutation_with_null_manifest_url_returns_error(
+def test_install_app_mutation_with_empty_manifest_url_returns_error(
     permission_manage_apps,
     staff_api_client,
     staff_user,
