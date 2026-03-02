@@ -116,7 +116,7 @@ class AppProblemCreate(BaseMutation):
             validated = AppProblemCreateValidatedInput(**input_data)
         except PydanticValidationError as exc:
             raise pydantic_to_validation_error(
-                exc, error_code=AppProblemCreateErrorCodeEnum.INVALID.value
+                exc, default_error_code=AppProblemCreateErrorCodeEnum.INVALID.value
             ) from exc
 
         now = timezone.now()
