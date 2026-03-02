@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....inventory.error_codes import ReceiptErrorCode
-from ....inventory.stock_management import start_receipt
+from ....inventory.receipt_workflow import start_receipt
 from ....permission.enums import WarehousePermissions
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS

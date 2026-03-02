@@ -61,7 +61,7 @@ def calculate_expected_stock_quantity(warehouse, variant):
     pois = PurchaseOrderItem.objects.filter(
         order__destination_warehouse=warehouse,
         product_variant=variant,
-        status__in=PurchaseOrderItemStatus.ACTIVE_STATUSES,
+        status__in=PurchaseOrderItemStatus.STOCK_PRESENT_STATUSES,
     )
 
     total = 0
@@ -91,7 +91,7 @@ def calculate_expected_available_quantity(warehouse, variant):
     pois = PurchaseOrderItem.objects.filter(
         order__destination_warehouse=warehouse,
         product_variant=variant,
-        status__in=PurchaseOrderItemStatus.ACTIVE_STATUSES,
+        status__in=PurchaseOrderItemStatus.STOCK_PRESENT_STATUSES,
     ).annotate_available_quantity()
 
     return sum(poi.available_quantity for poi in pois)
@@ -106,7 +106,7 @@ def calculate_expected_poi_allocated(warehouse, variant):
     pois = PurchaseOrderItem.objects.filter(
         order__destination_warehouse=warehouse,
         product_variant=variant,
-        status__in=PurchaseOrderItemStatus.ACTIVE_STATUSES,
+        status__in=PurchaseOrderItemStatus.STOCK_PRESENT_STATUSES,
     )
 
     return sum(poi.quantity_allocated for poi in pois)
@@ -148,7 +148,7 @@ def assert_stock_poi_invariant(warehouse, variant):
     pois = PurchaseOrderItem.objects.filter(
         order__destination_warehouse=warehouse,
         product_variant=variant,
-        status__in=PurchaseOrderItemStatus.ACTIVE_STATUSES,
+        status__in=PurchaseOrderItemStatus.STOCK_PRESENT_STATUSES,
     )
 
     poi_debug = []
@@ -2140,10 +2140,8 @@ def test_invariant_after_delivery_shortage_with_processed_adjustment(
     6. Invariant should hold
     """
     from ...inventory.models import Receipt, ReceiptLine
-    from ...inventory.stock_management import (
-        complete_receipt,
-        confirm_purchase_order_item,
-    )
+    from ...inventory.receipt_workflow import complete_receipt
+    from ...inventory.stock_management import confirm_purchase_order_item
     from ...shipping.models import Shipment
 
     # given - source stock
@@ -2201,26 +2199,23 @@ def test_invariant_after_delivery_shortage_with_processed_adjustment(
     # Complete receipt (creates and processes adjustment)
     result = complete_receipt(receipt, user=staff_user)
 
-    # then - adjustment created and processed
+    # then - pending POIA created (not auto-processed)
     assert result["discrepancies"] == 1
-    assert len(result["adjustments_created"]) == 1
+    assert len(result["adjustments_pending"]) == 1
 
-    adjustment = result["adjustments_created"][0]
+    adjustment = result["adjustments_pending"][0]
     assert adjustment.quantity_change == -10
-    assert adjustment.processed_at is not None
+    assert adjustment.processed_at is None
 
-    # Stock.quantity updated to reflect shortage
+    # Stock.quantity NOT yet updated (pending resolution)
     stock.refresh_from_db()
-    assert stock.quantity == 90  # 100 - 10
+    assert stock.quantity == 100
 
     # POI shows correct values
     poi.refresh_from_db()
     assert poi.quantity_ordered == 100
     assert poi.quantity_received == 90  # Audit trail
-    assert poi.status == PurchaseOrderItemStatus.RECEIVED
-
-    # Invariant should hold: Stock.quantity = quantity_ordered + adjustments = 100 - 10 = 90
-    assert_stock_poi_invariant(owned_warehouse, variant)
+    assert poi.status == PurchaseOrderItemStatus.REQUIRES_ATTENTION
 
 
 def test_invariant_after_overage_with_processed_adjustment(
@@ -2243,10 +2238,8 @@ def test_invariant_after_overage_with_processed_adjustment(
     6. Invariant should hold
     """
     from ...inventory.models import Receipt, ReceiptLine
-    from ...inventory.stock_management import (
-        complete_receipt,
-        confirm_purchase_order_item,
-    )
+    from ...inventory.receipt_workflow import complete_receipt
+    from ...inventory.stock_management import confirm_purchase_order_item
     from ...shipping.models import Shipment
 
     # given - source stock
@@ -2301,21 +2294,21 @@ def test_invariant_after_overage_with_processed_adjustment(
     # Complete receipt
     result = complete_receipt(receipt, user=staff_user)
 
-    # then - adjustment created and processed
+    # then - pending POIA created (not auto-processed)
     assert result["discrepancies"] == 1
-    adjustment = result["adjustments_created"][0]
+    adjustment = result["adjustments_pending"][0]
     assert adjustment.quantity_change == 10
-    assert adjustment.processed_at is not None
+    assert adjustment.processed_at is None
 
-    # Stock updated
+    # Stock NOT yet updated (pending resolution)
     stock.refresh_from_db()
-    assert stock.quantity == 110  # 100 + 10
+    assert stock.quantity == 100
 
     # POI shows correct values
     poi.refresh_from_db()
     assert poi.quantity_ordered == 100
     assert poi.quantity_received == 110  # Audit trail
-    assert poi.status == PurchaseOrderItemStatus.RECEIVED
+    assert poi.status == PurchaseOrderItemStatus.REQUIRES_ATTENTION
 
     # Invariant: Stock.quantity = quantity_ordered + adjustments = 100 + 10 = 110
     assert_stock_poi_invariant(owned_warehouse, variant)
@@ -2340,10 +2333,8 @@ def test_invariant_with_mixed_pois_some_with_processed_adjustments(
     Expected Stock.quantity = 100 + (50-2) + (75+5) = 228
     """
     from ...inventory.models import Receipt, ReceiptLine
-    from ...inventory.stock_management import (
-        complete_receipt,
-        confirm_purchase_order_item,
-    )
+    from ...inventory.receipt_workflow import complete_receipt
+    from ...inventory.stock_management import confirm_purchase_order_item
     from ...shipping.models import Shipment
 
     # given - source stock
@@ -2420,9 +2411,9 @@ def test_invariant_with_mixed_pois_some_with_processed_adjustments(
     )
     complete_receipt(receipt2, user=staff_user)
 
-    # Check after second POI
+    # Check after second POI — stock unchanged (POIA pending, not processed)
     stock.refresh_from_db()
-    assert stock.quantity == 148  # 100 + (50-2)
+    assert stock.quantity == 150  # 100 + 50 (POI confirmed qty, no adjustment yet)
     assert_stock_poi_invariant(owned_warehouse, variant)
 
     # POI 3: Overage (75 ordered, 80 received, +5 adjustment)
@@ -2456,9 +2447,9 @@ def test_invariant_with_mixed_pois_some_with_processed_adjustments(
     )
     complete_receipt(receipt3, user=staff_user)
 
-    # Final check: Stock.quantity = 100 + (50-2) + (75+5) = 228
+    # Final check: Stock.quantity = 100 + 50 + 75 = 225 (no adjustments processed)
     stock.refresh_from_db()
-    assert stock.quantity == 228
+    assert stock.quantity == 225
 
     # Verify each POI
     poi1.refresh_from_db()
@@ -2467,18 +2458,18 @@ def test_invariant_with_mixed_pois_some_with_processed_adjustments(
 
     assert poi1.quantity_ordered == 100
     assert poi1.quantity_received == 100
-    assert (
-        poi1.adjustments.filter(processed_at__isnull=False).count() == 0
-    )  # No adjustment
+    assert poi1.status == PurchaseOrderItemStatus.RECEIVED
 
     assert poi2.quantity_ordered == 50
     assert poi2.quantity_received == 48
-    adj2 = poi2.adjustments.filter(processed_at__isnull=False).first()
+    assert poi2.status == PurchaseOrderItemStatus.REQUIRES_ATTENTION
+    adj2 = poi2.adjustments.filter(processed_at__isnull=True).first()
     assert adj2.quantity_change == -2
 
     assert poi3.quantity_ordered == 75
     assert poi3.quantity_received == 80
-    adj3 = poi3.adjustments.filter(processed_at__isnull=False).first()
+    assert poi3.status == PurchaseOrderItemStatus.REQUIRES_ATTENTION
+    adj3 = poi3.adjustments.filter(processed_at__isnull=True).first()
     assert adj3.quantity_change == 5
 
     # Final invariant check

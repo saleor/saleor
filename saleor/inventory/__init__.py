@@ -28,12 +28,16 @@ class PurchaseOrderItemStatus:
         (CONFIRMED, "Confirmed"),
         (RECEIVED, "Received"),
         (CANCELLED, "Cancelled"),
-        (REQUIRES_ATTENTION, "requires_attention"),
+        (REQUIRES_ATTENTION, "Requires Attention"),
     ]
 
     # Statuses that contribute to available inventory for allocation
     # Used when querying POIs for allocating sources to orders
     ACTIVE_STATUSES = [CONFIRMED, RECEIVED]
+
+    # Statuses where stock is physically in the warehouse (for invariant checks)
+    # Includes REQUIRES_ATTENTION because the stock is there, just unresolved
+    STOCK_PRESENT_STATUSES = [CONFIRMED, RECEIVED, REQUIRES_ATTENTION]
 
 
 class PurchaseOrderItemAdjustmentReason:

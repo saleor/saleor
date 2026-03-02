@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....inventory.error_codes import ReceiptErrorCode
 from ....inventory.exceptions import ReceiptNotInProgress
 from ....inventory.models import Receipt as ReceiptModel
-from ....inventory.stock_management import receive_item
+from ....inventory.receipt_workflow import receive_item
 from ....permission.enums import WarehousePermissions
 from ....product.models import ProductVariant
 from ...core import ResolveInfo

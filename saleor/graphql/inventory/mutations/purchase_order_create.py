@@ -96,13 +96,13 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
             )
 
         # Validate items
-        items = data.get("items", [])
+        items = data.get("items") or []
         if not items:
             errors["items"] = ValidationError(
                 "At least one item is required.",
                 code=PurchaseOrderErrorCode.REQUIRED.value,
             )
-        else:
+        if items:
             cleaned_items = []
 
             for idx, item in enumerate(items):
@@ -174,7 +174,7 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
                         code=PurchaseOrderErrorCode.REQUIRED.value,
                     )
 
-                # Validate country of origin
+                # Validate country of origin (optional)
                 country_code = item.get("country_of_origin")
                 if country_code:
                     if country_code.upper() not in dict(countries):
@@ -184,11 +184,6 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
                         )
                     else:
                         cleaned_item["country_of_origin"] = country_code.upper()
-                else:
-                    item_errors["country_of_origin"] = ValidationError(
-                        "This field is required.",
-                        code=PurchaseOrderErrorCode.REQUIRED.value,
-                    )
 
                 if item_errors:
                     # Flatten nested errors: items[0].field instead of items[0]: {field: error}
@@ -214,6 +209,8 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
             # Save the purchase order instance with warehouses
             instance.source_warehouse = cleaned_input["source_warehouse"]
             instance.destination_warehouse = cleaned_input["destination_warehouse"]
+            if "name" in cleaned_input:
+                instance.name = cleaned_input["name"]
             if "auto_reallocate_variants" in cleaned_input:
                 instance.auto_reallocate_variants = cleaned_input[
                     "auto_reallocate_variants"

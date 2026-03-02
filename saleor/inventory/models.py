@@ -68,6 +68,9 @@ class PurchaseOrder(models.Model):
         related_name="destination_purchase_orders",
     )
 
+    name = models.CharField(max_length=255, blank=True, default="")
+    currency = models.CharField(max_length=3, blank=True, default="")
+
     status = models.CharField(
         max_length=32,
         choices=PurchaseOrderStatus.CHOICES,

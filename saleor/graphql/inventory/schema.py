@@ -7,14 +7,21 @@ from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from .mutations import (
+    AddOrderToPurchaseOrder,
+    AddPurchaseOrderItem,
     PurchaseOrderConfirm,
     PurchaseOrderCreate,
     PurchaseOrderDelete,
+    PurchaseOrderUpdate,
     ReceiptComplete,
     ReceiptDelete,
     ReceiptLineDelete,
     ReceiptReceiveItem,
     ReceiptStart,
+    RemoveOrderFromPurchaseOrder,
+    RemovePurchaseOrderItem,
+    ResolveProductDiscrepancy,
+    UpdatePurchaseOrderItem,
 )
 from .resolvers import (
     resolve_purchase_order,
@@ -23,6 +30,7 @@ from .resolvers import (
     resolve_receipts,
 )
 from .types import (
+    ProductDiscrepancy,
     PurchaseOrder,
     PurchaseOrderCountableConnection,
     PurchaseOrderItemAdjustment,
@@ -100,6 +108,23 @@ class InventoryQueries(graphene.ObjectType):
         ],
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
+    product_discrepancies = PermissionsField(
+        graphene.List(graphene.NonNull(ProductDiscrepancy)),
+        receipt_id=graphene.Argument(
+            graphene.ID,
+            description="ID of the completed receipt.",
+            required=True,
+        ),
+        description=(
+            "Product-level discrepancy view for a completed receipt. "
+            "Returns per-variant breakdown and affected orders for each "
+            "product with unresolved POIAs."
+        ),
+        permissions=[
+            WarehousePermissions.MANAGE_STOCK,
+        ],
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
 
     @staticmethod
     def resolve_purchase_order(root, info: ResolveInfo, *, id):
@@ -156,11 +181,28 @@ class InventoryQueries(graphene.ObjectType):
         _, pk = from_global_id_or_error(id, PurchaseOrderItemAdjustment)
         return PurchaseOrderItemAdjustment.objects.filter(pk=pk).first()
 
+    @staticmethod
+    def resolve_product_discrepancies(root, info: ResolveInfo, *, receipt_id):
+        from ...inventory.models import Receipt as ReceiptModel
+        from ...inventory.receipt_workflow import get_product_discrepancies
+
+        _, pk = from_global_id_or_error(receipt_id, "Receipt")
+        receipt = ReceiptModel.objects.filter(pk=pk).first()
+        if not receipt:
+            return []
+        return get_product_discrepancies(receipt)
+
 
 class InventoryMutations(graphene.ObjectType):
     create_purchase_order = PurchaseOrderCreate.Field()
+    update_purchase_order = PurchaseOrderUpdate.Field()
     confirm_purchase_order = PurchaseOrderConfirm.Field()
     delete_purchase_order = PurchaseOrderDelete.Field()
+    add_order_to_purchase_order = AddOrderToPurchaseOrder.Field()
+    remove_order_from_purchase_order = RemoveOrderFromPurchaseOrder.Field()
+    add_purchase_order_item = AddPurchaseOrderItem.Field()
+    update_purchase_order_item = UpdatePurchaseOrderItem.Field()
+    remove_purchase_order_item = RemovePurchaseOrderItem.Field()
 
     # Receipt workflow mutations
     start_receipt = ReceiptStart.Field()
@@ -168,3 +210,6 @@ class InventoryMutations(graphene.ObjectType):
     complete_receipt = ReceiptComplete.Field()
     delete_receipt = ReceiptDelete.Field()
     delete_receipt_line = ReceiptLineDelete.Field()
+
+    # POIA resolution
+    resolve_product_discrepancy = ResolveProductDiscrepancy.Field()

@@ -7,7 +7,6 @@ from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..warehouse.models import Allocation, AllocationSource, Stock
 from . import PurchaseOrderItemStatus
 from .events import (
-    adjustment_created_event,
     adjustment_processed_event,
     purchase_order_item_confirmed_event,
 )
@@ -15,10 +14,7 @@ from .exceptions import (
     AdjustmentAffectsFulfilledOrders,
     AdjustmentAffectsPaidOrders,
     AdjustmentAlreadyProcessed,
-    AdjustmentRequiresManualResolution,
     InvalidPurchaseOrderItemStatus,
-    ReceiptLineNotInProgress,
-    ReceiptNotInProgress,
 )
 from .models import (
     PurchaseOrder,
@@ -42,13 +38,27 @@ def add_allocation_to_draft_purchase_order_item(
 
     po = poi.order
 
-    assert po.status == PurchaseOrderStatus.DRAFT
-    assert a.stock.warehouse_id == po.source_warehouse_id
-    assert a.stock.product_variant_id == poi.product_variant_id
-    assert a.order_line.order.status == OrderStatus.UNCONFIRMED
-    assert not PurchaseOrderRequestedAllocation.objects.filter(
+    if po.status != PurchaseOrderStatus.DRAFT:
+        raise InvalidPurchaseOrderItemStatus(poi, PurchaseOrderStatus.DRAFT)
+    if a.stock.warehouse_id != po.source_warehouse_id:
+        raise ValueError(
+            f"Allocation stock warehouse {a.stock.warehouse_id} does not match "
+            f"PO source warehouse {po.source_warehouse_id}"
+        )
+    if a.stock.product_variant_id != poi.product_variant_id:
+        raise ValueError(
+            f"Allocation variant {a.stock.product_variant_id} does not match "
+            f"POI variant {poi.product_variant_id}"
+        )
+    if a.order_line.order.status != OrderStatus.UNCONFIRMED:
+        raise ValueError(
+            f"Order {a.order_line.order.pk} must be UNCONFIRMED, "
+            f"got {a.order_line.order.status}"
+        )
+    if PurchaseOrderRequestedAllocation.objects.filter(
         purchase_order=po, allocation=a
-    ).exists()
+    ).exists():
+        raise ValueError(f"Allocation {a.pk} is already a PORA on PO {po.pk}")
 
     if PurchaseOrderRequestedAllocation.objects.filter(allocation=a).exists():
         import warnings
@@ -72,32 +82,70 @@ def add_order_to_purchase_order(
     from ..order import OrderStatus
     from . import PurchaseOrderStatus
 
-    assert po.status == PurchaseOrderStatus.DRAFT
-    assert order.status == OrderStatus.UNCONFIRMED
+    if po.status != PurchaseOrderStatus.DRAFT:
+        raise ValueError(f"PurchaseOrder {po.pk} must be DRAFT, got {po.status}")
+    if order.status != OrderStatus.UNCONFIRMED:
+        raise ValueError(f"Order {order.pk} must be UNCONFIRMED, got {order.status}")
 
-    allocations = Allocation.objects.filter(
-        order_line__order=order,
-        stock__warehouse=po.source_warehouse,
-    ).select_related("order_line", "stock")
+    allocations = list(
+        Allocation.objects.filter(
+            order_line__order=order,
+            stock__warehouse=po.source_warehouse,
+        ).select_related("order_line", "stock")
+    )
+
+    if not allocations:
+        raise ValueError(
+            f"Order {order.pk} has no allocations at warehouse {po.source_warehouse_id}"
+        )
 
     poras = []
     for allocation in allocations:
-        poi, _ = PurchaseOrderItem.objects.get_or_create(
+        poi = PurchaseOrderItem.objects.filter(
             order=po,
             product_variant=allocation.stock.product_variant,
-            defaults={
-                "quantity_ordered": 0,
-                "total_price_amount": None,
-                "currency": None,
-                "country_of_origin": None,
-                "status": PurchaseOrderItemStatus.DRAFT,
-            },
-        )
+        ).first()
+        if poi is None:
+            poi = PurchaseOrderItem.objects.create(
+                order=po,
+                product_variant=allocation.stock.product_variant,
+                quantity_ordered=0,
+                status=PurchaseOrderItemStatus.DRAFT,
+            )
         poi.quantity_ordered += allocation.quantity_allocated
         poi.save(update_fields=["quantity_ordered"])
         poras.append(add_allocation_to_draft_purchase_order_item(allocation, poi))
 
     return poras
+
+
+@transaction.atomic
+def remove_order_from_purchase_order(order, po: PurchaseOrder) -> None:
+    """Remove an order's linkage from a draft PO, reversing add_order_to_purchase_order."""
+    from . import PurchaseOrderStatus
+
+    if po.status != PurchaseOrderStatus.DRAFT:
+        raise ValueError(f"PO {po.pk} must be DRAFT, got {po.status}")
+
+    poras = PurchaseOrderRequestedAllocation.objects.filter(
+        purchase_order=po,
+        allocation__order_line__order=order,
+    ).select_related("allocation__stock")
+
+    for pora in poras:
+        qty = pora.allocation.quantity_allocated
+        poi = PurchaseOrderItem.objects.filter(
+            order=po,
+            product_variant_id=pora.allocation.stock.product_variant_id,
+        ).first()
+        if poi:
+            poi.quantity_ordered = max(0, poi.quantity_ordered - qty)
+            if poi.quantity_ordered == 0:
+                poi.delete()
+            else:
+                poi.save(update_fields=["quantity_ordered"])
+
+    poras.delete()
 
 
 @transaction.atomic
@@ -123,11 +171,9 @@ def confirm_purchase_order_item(poi: PurchaseOrderItem, user=None, app=None):
     if poi.status != PurchaseOrderItemStatus.DRAFT:
         raise InvalidPurchaseOrderItemStatus(poi, PurchaseOrderItemStatus.DRAFT)
 
-    if not (
-        poi.currency and poi.country_of_origin and poi.total_price_amount is not None
-    ):
+    if not (poi.currency and poi.total_price_amount is not None):
         raise ValueError(
-            f"POI {poi.pk} must have currency, country_of_origin, and total_price_amount set before confirmation"
+            f"POI {poi.pk} must have currency and total_price_amount set before confirmation"
         )
 
     # Get source and destination (locked via select_for_update)
@@ -150,14 +196,23 @@ def confirm_purchase_order_item(poi: PurchaseOrderItem, user=None, app=None):
         )
     )
 
-    # maintain the draft invariants
-    assert poi.quantity_allocated == 0
-    assert poi.quantity_fulfilled == 0
+    if poi.quantity_allocated != 0:
+        raise ValueError(
+            f"POI {poi.pk} has quantity_allocated={poi.quantity_allocated}, expected 0"
+        )
+    if poi.quantity_fulfilled != 0:
+        raise ValueError(
+            f"POI {poi.pk} has quantity_fulfilled={poi.quantity_fulfilled}, expected 0"
+        )
 
     quantity = poi.quantity_ordered
 
-    assert not source.warehouse.is_owned
-    assert destination.warehouse.is_owned
+    if source.warehouse.is_owned:
+        raise ValueError(f"Source warehouse {source.warehouse.pk} must not be owned")
+    if not destination.warehouse.is_owned:
+        raise ValueError(
+            f"Destination warehouse {destination.warehouse.pk} must be owned"
+        )
     if quantity > source.quantity + source.quantity_allocated:
         raise ValueError(
             f"Insufficient stock at source: need {quantity}, "
@@ -457,368 +512,3 @@ def process_adjustment(
     )
 
     return adjustment
-
-
-# Receipt workflow functions
-
-
-@transaction.atomic
-def start_receipt(shipment, user=None):
-    """Create a new Receipt for receiving an inbound shipment.
-
-    Args:
-        shipment: Shipment being received
-        user: User starting the receipt (warehouse staff)
-
-    Returns:
-        Receipt instance
-
-    Raises:
-        ValueError: If shipment already has a receipt or is already received
-
-    """
-    from ..shipping import ShipmentType
-    from .models import Receipt
-
-    if shipment.shipment_type != ShipmentType.INBOUND:
-        raise ValueError(
-            f"Cannot start receipt for {shipment.shipment_type} shipment. "
-            "Only inbound shipments can be received."
-        )
-
-    if shipment.arrived_at is not None:
-        raise ValueError(f"Shipment {shipment.id} already marked as received")
-
-    if hasattr(shipment, "receipt"):
-        existing = shipment.receipt
-        if existing.status == "in_progress":
-            return existing
-        raise ValueError(f"Shipment {shipment.id} already has a receipt")
-
-    receipt = Receipt.objects.create(
-        shipment=shipment,
-        created_by=user,
-    )
-
-    return receipt
-
-
-@transaction.atomic
-def receive_item(receipt, product_variant, quantity, user=None, notes=""):
-    """Add a received item to a receipt.
-
-    Scans/records an item during receiving. Updates POI.quantity_received
-    and creates a ReceiptLine for audit trail.
-
-    Args:
-        receipt: Receipt to add item to
-        product_variant: ProductVariant being received
-        quantity: Quantity received
-        user: User who scanned/recorded the item
-        notes: Optional notes about this specific item
-
-    Returns:
-        ReceiptLine instance
-
-    Raises:
-        ReceiptNotInProgress: If receipt is not in progress
-        ValueError: If variant not in shipment
-
-    """
-    from . import ReceiptStatus
-    from .models import ReceiptLine
-
-    if receipt.status != ReceiptStatus.IN_PROGRESS:
-        raise ReceiptNotInProgress(receipt)
-
-    try:
-        poi = PurchaseOrderItem.objects.select_for_update().get(
-            shipment=receipt.shipment,
-            product_variant=product_variant,
-        )
-    except PurchaseOrderItem.DoesNotExist:
-        raise ValueError(
-            f"Product variant {product_variant.sku} not found in "
-            f"shipment {receipt.shipment.id}"
-        ) from None
-
-    # Create receipt line (quantity_received will be automatically calculated from receipt lines)
-    receipt_line = ReceiptLine.objects.create(
-        receipt=receipt,
-        purchase_order_item=poi,
-        quantity_received=quantity,
-        received_by=user,
-        notes=notes,
-    )
-
-    return receipt_line
-
-
-@transaction.atomic
-def complete_receipt(receipt, user=None, manager=None):
-    """Complete a receipt and process any discrepancies.
-
-    Finalizes the receiving process:
-    1. Compares quantity_received vs quantity_ordered for each POI
-    2. Perform variant reallocation on all valid orders so as to minimize changes
-    2. Creates PurchaseOrderItemAdjustments for discrepancies
-    3. Processes adjustments (updates stock, handles allocations)
-    4. Marks shipment as arrived
-    5. Updates POI status to RECEIVED
-    6. Marks receipt as completed
-
-    If adjustments affect confirmed orders, creates the adjustments but
-    doesn't process them immediately. Instead, emails staff to manually
-    process them.
-
-    Args:
-        receipt: Receipt to complete
-        user: User completing the receipt
-        manager: PluginsManager for sending notifications (optional)
-
-    Returns:
-        dict with summary: {
-            'receipt': Receipt,
-            'adjustments_created': [PurchaseOrderItemAdjustment, ...],
-            'adjustments_pending': [PurchaseOrderItemAdjustment, ...],
-            'items_received': int,
-            'discrepancies': int,
-        }
-
-    Raises:
-        ValueError: If receipt is not in progress
-
-    Reallocation:
-    1. Remove all orderlines where we have variant expected <= variant received.
-    2. Use Hamiltons method to reallocate surplus
-
-    """
-    from ..core.notify import AdminNotifyEvent, NotifyHandler
-    from . import (
-        PurchaseOrderItemAdjustmentReason,
-        PurchaseOrderItemStatus,
-        PurchaseOrderStatus,
-        ReceiptStatus,
-    )
-    from .models import PurchaseOrder, PurchaseOrderItemAdjustment
-
-    # Validate receipt status
-    if receipt.status != ReceiptStatus.IN_PROGRESS:
-        raise ValueError(f"Receipt {receipt.id} is not in progress")
-
-    shipment = receipt.shipment
-    pois = PurchaseOrderItem.objects.select_for_update().filter(shipment=shipment)
-
-    adjustments_created = []
-    adjustments_pending = []
-    discrepancies = 0
-
-    # Check each POI for discrepancies
-    for poi in pois:
-        discrepancy = poi.quantity_received - poi.quantity_ordered
-
-        if discrepancy != 0:
-            discrepancies += 1
-
-            # Determine reason and whether it affects payable
-            if discrepancy < 0:
-                # Delivery short - supplier should credit us
-                reason = PurchaseOrderItemAdjustmentReason.DELIVERY_SHORT
-                affects_payable = True
-            else:
-                # Received more than ordered - rare but possible
-                reason = PurchaseOrderItemAdjustmentReason.CYCLE_COUNT_POSITIVE
-                affects_payable = False
-
-            # Create adjustment
-            adjustment = PurchaseOrderItemAdjustment.objects.create(
-                purchase_order_item=poi,
-                quantity_change=discrepancy,
-                reason=reason,
-                affects_payable=affects_payable,
-                notes=f"Auto-created during receipt completion (Receipt #{receipt.id})",
-                created_by=user,
-            )
-
-            # Log adjustment creation for audit trail
-            adjustment_created_event(
-                adjustment=adjustment,
-                user=user,
-            )
-
-            # Try to process the adjustment immediately
-            try:
-                process_adjustment(adjustment, user=user)
-                adjustments_created.append(adjustment)
-            except AdjustmentRequiresManualResolution:
-                # Can't auto-process - requires manual resolution
-                # Leave unprocessed and notify staff
-                adjustments_pending.append(adjustment)
-
-        # Update POI status to RECEIVED
-        poi.status = PurchaseOrderItemStatus.RECEIVED
-        poi.save(update_fields=["status", "updated_at"])
-
-    # Mark shipment as arrived
-    if shipment.arrived_at is None:
-        shipment.arrived_at = timezone.now()
-        shipment.save(update_fields=["arrived_at"])
-
-    # Complete the receipt
-    receipt.status = ReceiptStatus.COMPLETED
-    receipt.completed_at = timezone.now()
-    receipt.completed_by = user
-    receipt.save(update_fields=["status", "completed_at", "completed_by"])
-
-    # Transition PO status based on how many items are now received.
-    # A PO can span multiple shipments, so RECEIVED only when the last one arrives.
-    po_ids = list({poi.order_id for poi in pois})
-    for po in PurchaseOrder.objects.filter(pk__in=po_ids).select_for_update():
-        unreceived = po.items.exclude(status=PurchaseOrderItemStatus.RECEIVED)
-        if not unreceived.exists():
-            new_status = PurchaseOrderStatus.RECEIVED
-        else:
-            new_status = PurchaseOrderStatus.PARTIALLY_RECEIVED
-        if po.status != new_status:
-            po.status = new_status
-            po.save(update_fields=["status", "updated_at"])
-
-    # Create fulfillments for UNFULFILLED orders whose stock has now physically arrived.
-    # Skip if there are pending adjustments: unresolved shortages mean the order state
-    # is still uncertain and fulfillments must wait for manual resolution first.
-    if not adjustments_pending:
-        _create_fulfillments_for_shipment(shipment=shipment, user=user, manager=manager)
-
-    # If there are pending adjustments, notify staff
-    if adjustments_pending and manager:
-
-        def generate_payload():
-            return {
-                "receipt_id": receipt.id,
-                "shipment_id": shipment.id,
-                "count": len(adjustments_pending),
-                "adjustments": [
-                    {
-                        "id": adj.id,
-                        "poi_id": adj.purchase_order_item.id,
-                        "variant_sku": adj.purchase_order_item.product_variant.sku,
-                        "quantity_change": adj.quantity_change,
-                        "reason": adj.get_reason_display(),
-                    }
-                    for adj in adjustments_pending
-                ],
-            }
-
-        handler = NotifyHandler(generate_payload)
-        manager.notify(
-            AdminNotifyEvent.PENDING_ADJUSTMENTS,
-            payload_func=handler.payload,
-        )
-
-    return {
-        "receipt": receipt,
-        "adjustments_created": adjustments_created,
-        "adjustments_pending": adjustments_pending,
-        "items_received": len(pois),
-        "discrepancies": discrepancies,
-    }
-
-
-def _create_fulfillments_for_shipment(shipment, user, manager):
-    from collections import defaultdict
-
-    from django.contrib.sites.models import Site
-
-    from ..order import OrderStatus
-    from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
-    from ..order.models import Order
-    from ..plugins.manager import get_plugins_manager
-    from ..warehouse.models import Allocation
-
-    fulfill_manager = manager or get_plugins_manager(allow_replica=False)
-    site_settings = Site.objects.get_current().settings
-
-    orders_to_fulfill = Order.objects.filter(
-        lines__allocations__allocation_sources__purchase_order_item__shipment=shipment,
-        status=OrderStatus.UNFULFILLED,
-    ).distinct()
-
-    for order in orders_to_fulfill:
-        allocations = Allocation.objects.filter(order_line__order=order).select_related(
-            "stock__warehouse", "order_line"
-        )
-
-        warehouse_groups: dict = defaultdict(list)
-        for allocation in allocations:
-            warehouse_groups[allocation.stock.warehouse_id].append(allocation)
-
-        fulfillment_lines_for_warehouses = {
-            warehouse_pk: [
-                OrderFulfillmentLineInfo(
-                    order_line=alloc.order_line,
-                    quantity=alloc.quantity_allocated,
-                )
-                for alloc in alloc_list
-            ]
-            for warehouse_pk, alloc_list in warehouse_groups.items()
-        }
-
-        create_fulfillments(
-            user=user,
-            app=None,
-            order=order,
-            fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
-            manager=fulfill_manager,
-            site_settings=site_settings,
-            notify_customer=False,
-            auto_approved=False,
-            tracking_url="",
-        )
-
-
-@transaction.atomic
-def delete_receipt(receipt):
-    """Delete a draft receipt and revert any quantity updates.
-
-    Only allows deleting receipts that are still IN_PROGRESS.
-    Reverts POI.quantity_received for all items in the receipt.
-
-    Args:
-        receipt: Receipt to delete
-
-    Raises:
-        ReceiptNotInProgress: If receipt is already completed
-
-    """
-    from . import ReceiptStatus
-
-    # Only allow deleting in-progress receipts
-    if receipt.status != ReceiptStatus.IN_PROGRESS:
-        raise ReceiptNotInProgress(receipt)
-
-    # Delete the receipt (cascade will delete lines, quantity_received auto-recalculates)
-    receipt.delete()
-
-
-@transaction.atomic
-def delete_receipt_line(receipt_line):
-    """Delete a receipt line and revert quantity update.
-
-    Use when an item was scanned by mistake during receiving.
-    Only works if receipt is still IN_PROGRESS.
-
-    Args:
-        receipt_line: ReceiptLine to delete
-
-    Raises:
-        ReceiptLineNotInProgress: If receipt is not in progress
-
-    """
-    from . import ReceiptStatus
-
-    # Only allow deleting lines from in-progress receipts
-    if receipt_line.receipt.status != ReceiptStatus.IN_PROGRESS:
-        raise ReceiptLineNotInProgress(receipt_line)
-
-    # Delete the line (quantity_received auto-recalculates from remaining lines)
-    receipt_line.delete()

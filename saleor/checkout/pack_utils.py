@@ -2,6 +2,8 @@
 
 from typing import TYPE_CHECKING
 
+from ..core.utils.apportionment import hamilton
+
 if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..product.models import Product, ProductVariant
@@ -52,24 +54,5 @@ def get_pack_for_product(
         return []
 
     actual_pack_size = min(pack_size, total_stock)
-
-    allocations = {}
-    remainders = {}
-    allocated_so_far = 0
-
-    for variant, stock in variant_stock.items():
-        quota = actual_pack_size * (stock / total_stock)
-        integer_part = int(quota)
-        remainder = quota - integer_part
-
-        allocations[variant] = integer_part
-        remainders[variant] = remainder
-        allocated_so_far += integer_part
-
-    remaining = actual_pack_size - allocated_so_far
-    sorted_by_remainder = sorted(remainders.items(), key=lambda x: x[1], reverse=True)
-
-    for variant, _ in sorted_by_remainder[:remaining]:
-        allocations[variant] += 1
-
+    allocations = hamilton(variant_stock, actual_pack_size)
     return [(variant, qty) for variant, qty in allocations.items() if qty > 0]

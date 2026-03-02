@@ -22,6 +22,10 @@ from .enums import (
 
 class PurchaseOrder(ModelObjectType[models.PurchaseOrder]):
     id = graphene.GlobalID(required=True, description="The ID of the purchase order.")
+    name = graphene.String(
+        required=True,
+        description="Name of the purchase order.",
+    )
     supplier_warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse",
         required=True,
@@ -43,9 +47,30 @@ class PurchaseOrder(ModelObjectType[models.PurchaseOrder]):
         description="Items in this purchase order.",
     )
 
+    currency = graphene.String(
+        required=True,
+        description="Default currency for this purchase order.",
+    )
+
     auto_reallocate_variants = graphene.Boolean(
         required=True,
         description="Whether variants are automatically reallocated on receipt.",
+    )
+
+    has_linked_orders = graphene.Boolean(
+        required=True,
+        description="Whether any orders are linked to this PO via requested allocations.",
+    )
+
+    linked_orders = graphene.List(
+        graphene.NonNull("saleor.graphql.order.types.Order"),
+        required=True,
+        description="Orders linked to this PO via requested allocations.",
+    )
+
+    created_at = DateTime(
+        required=True,
+        description="When the purchase order was created.",
     )
 
     class Meta:
@@ -60,6 +85,23 @@ class PurchaseOrder(ModelObjectType[models.PurchaseOrder]):
     @staticmethod
     def resolve_destination_warehouse(root, info: ResolveInfo):
         return WarehouseByIdLoader(info.context).load(root.destination_warehouse_id)
+
+    @staticmethod
+    def resolve_has_linked_orders(root, info: ResolveInfo):
+        return root.requested_allocations.exists()
+
+    @staticmethod
+    def resolve_linked_orders(root, info: ResolveInfo):
+        from ...order.models import Order
+        from ..core.context import SyncWebhookControlContext
+
+        orders = Order.objects.filter(
+            lines__allocations__purchase_order_requested_allocations__purchase_order=root,
+        ).distinct()
+        return [
+            SyncWebhookControlContext(node=order, allow_sync_webhooks=False)
+            for order in orders
+        ]
 
     @staticmethod
     def resolve_items(root, info: ResolveInfo):
@@ -84,7 +126,8 @@ class PurchaseOrderItem(ModelObjectType[models.PurchaseOrderItem]):
     )
 
     unit_price = graphene.Field(
-        Money, required=True, description="Unit cost (buy price)."
+        Money,
+        description="Unit cost (buy price). Null for items added from orders before pricing.",
     )
     country_of_origin = graphene.String(
         description="Country of origin (ISO 2-letter code)."
@@ -112,7 +155,8 @@ class PurchaseOrderItem(ModelObjectType[models.PurchaseOrderItem]):
 
     @staticmethod
     def resolve_unit_price(root: models.PurchaseOrderItem, info: ResolveInfo):
-        """Return unit price from model property (prices.Money object)."""
+        if root.currency is None or root.total_price_amount is None:
+            return None
         return root.unit_price
 
 
@@ -170,7 +214,6 @@ class PurchaseOrderItemInput(BaseInputObjectType):
         required=True, description="Currency code (e.g., GBP, USD)."
     )
     country_of_origin = graphene.String(
-        required=True,
         description="ISO 2-letter country code for customs/duties.",
     )
 
@@ -187,10 +230,12 @@ class PurchaseOrderCreateInput(BaseInputObjectType):
         required=True,
         description="Destination warehouse (must be owned warehouse).",
     )
+    name = graphene.String(
+        description="Optional name for the purchase order.",
+    )
     items = NonNullList(
         PurchaseOrderItemInput,
-        required=True,
-        description="Line items to order.",
+        description="Line items to order. Can be empty for draft creation.",
     )
     auto_reallocate_variants = graphene.Boolean(
         description="Whether variants are automatically reallocated on receipt. Defaults to True.",
@@ -382,3 +427,93 @@ class Receipt(ModelObjectType[models.Receipt]):
 class ReceiptCountableConnection(CountableConnection):
     class Meta:
         node = Receipt
+
+
+# Product discrepancy types (for POIA resolution UI)
+
+
+class VariantDiscrepancy(graphene.ObjectType):
+    variant = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant",
+        required=True,
+        description="The product variant.",
+    )
+    quantity_ordered = graphene.Int(
+        required=True, description="Quantity originally ordered."
+    )
+    quantity_received = graphene.Int(
+        required=True, description="Quantity actually received."
+    )
+    delta = graphene.Int(
+        required=True,
+        description="Difference (received - ordered). Negative means shortage.",
+    )
+
+    @staticmethod
+    def resolve_variant(root, info):
+        from ..core.context import ChannelContext
+
+        return ChannelContext(node=root["variant"], channel_slug=None)
+
+
+class OrderAllocationInfo(graphene.ObjectType):
+    variant = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant",
+        required=True,
+        description="Product variant allocated.",
+    )
+    quantity = graphene.Int(required=True, description="Quantity allocated.")
+
+    @staticmethod
+    def resolve_variant(root, info):
+        from ..core.context import ChannelContext
+
+        return ChannelContext(node=root["variant"], channel_slug=None)
+
+
+class AffectedOrderInfo(graphene.ObjectType):
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        required=True,
+        description="The affected order.",
+    )
+    allocations = graphene.List(
+        graphene.NonNull(OrderAllocationInfo),
+        required=True,
+        description="Current allocations for this order.",
+    )
+
+    @staticmethod
+    def resolve_order(root, info):
+        from ..core.context import SyncWebhookControlContext
+
+        return SyncWebhookControlContext(node=root["order"], allow_sync_webhooks=False)
+
+
+class ProductDiscrepancy(graphene.ObjectType):
+    product = graphene.Field(
+        "saleor.graphql.product.types.Product",
+        required=True,
+        description="The product with discrepancies.",
+    )
+
+    @staticmethod
+    def resolve_product(root, info):
+        from ..core.context import ChannelContext
+
+        return ChannelContext(node=root["product"], channel_slug=None)
+
+    variants = graphene.List(
+        graphene.NonNull(VariantDiscrepancy),
+        required=True,
+        description="Per-variant breakdown of ordered vs received.",
+    )
+    affected_orders = graphene.List(
+        graphene.NonNull(AffectedOrderInfo),
+        required=True,
+        description="Orders currently allocated from these POIs.",
+    )
+    total_shortage = graphene.Int(
+        required=True,
+        description="Total units short across all variants (absolute value).",
+    )
