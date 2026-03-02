@@ -409,33 +409,18 @@ def fetch_product_media_image_task(product_media_id: int):
         )
         return
 
-    # Removing this try-catch and leaving all the work to `on_failure` hook may be
-    # tempting although it is necessary.
-    # For example `requests.exceptions.InvalidSchema` is both IOError and ValueError.
-    # Invalid schema error it not retryable error (it will not fix itself with another
-    # try) therefore it has to be caught and task should not be retried.
-    try:
-        with HTTPClient.send_request(
-            "GET",
-            product_media.external_url,
-            stream=True,
-            allow_redirects=False,
-            timeout=settings.COMMON_REQUESTS_TIMEOUT,
-        ) as response:
-            validate_status_code(response.status_code)
-            mime_type = get_mime_type(response.headers.get("content-type"))
-            validate_content_type_header(product_media, mime_type)
-            image = create_image(product_media, mime_type, response)
+    with HTTPClient.send_request(
+        "GET",
+        product_media.external_url,
+        stream=True,
+        allow_redirects=False,
+        timeout=settings.COMMON_REQUESTS_TIMEOUT,
+    ) as response:
+        validate_status_code(response.status_code)
+        mime_type = get_mime_type(response.headers.get("content-type"))
+        validate_content_type_header(product_media, mime_type)
+        image = create_image(product_media, mime_type, response)
 
-        validate_image_mime_type(image)
-        validate_image_exif(image)
-        update_product_media(product_media, image)
-    except ValueError:
-        logger.warning(
-            "Failed to fetch image for product media with id: %s. "
-            "Removing product media.",
-            product_media_id,
-            exc_info=True,
-        )
-        product_media.delete()
-        return
+    validate_image_mime_type(image)
+    validate_image_exif(image)
+    update_product_media(product_media, image)

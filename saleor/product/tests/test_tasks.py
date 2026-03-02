@@ -9,7 +9,7 @@ import pytest
 from django.utils import timezone
 from faker import Faker
 from PIL import Image
-from requests.exceptions import HTTPError, RequestException
+from requests.exceptions import HTTPError, InvalidSchema, RequestException
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
@@ -500,6 +500,42 @@ def test_fetch_product_media_image_request_exception(
 
     # then
     assert ProductMedia.objects.filter(pk=product_media.pk).exists()
+
+
+def test_fetch_product_media_image_invalid_schema_exception(
+    product_media_image_not_yet_fetched,
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    assert product_media.external_url
+    assert not product_media.image
+
+    # when
+    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+        mock_http_client.send_request.side_effect = InvalidSchema()
+        with pytest.raises(InvalidSchema):
+            # this call simulates a single attempt for executing the task
+            fetch_product_media_image_task(product_media.pk)
+
+    # then
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists()
+
+
+def test_fetch_product_media_image_invalid_schema_exception_on_failure_handler(
+    product_media_image_not_yet_fetched,
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    assert product_media.external_url
+    assert not product_media.image
+
+    # when
+    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+        mock_http_client.send_request.side_effect = InvalidSchema()
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
+
+    # then
+    assert not ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
 def test_fetch_product_media_image_deleted_after_final_retry(
