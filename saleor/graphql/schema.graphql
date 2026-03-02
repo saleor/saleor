@@ -11839,6 +11839,13 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   totalRemainingGrant: Money!
+
+  """
+  Purchase orders linked to this order via requested allocations.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
+  linkedPurchaseOrders: [PurchaseOrder!]
 }
 
 enum OrderStatus @doc(category: "Orders") {
@@ -12221,6 +12228,105 @@ type Allocation implements Node @doc(category: "Products") {
   Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
   """
   warehouse: Warehouse!
+
+  """
+  Sources tracking which PO item batches this allocation draws from.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
+  allocationSources: [AllocationSourceType!]
+}
+
+"""Tracks which purchase order item batch an allocation draws from."""
+type AllocationSourceType implements Node @doc(category: "Products") {
+  """The ID of the allocation source."""
+  id: ID!
+
+  """The purchase order item (batch) this allocation draws from."""
+  purchaseOrderItem: PurchaseOrderItem!
+
+  """Quantity allocated from this purchase order item."""
+  quantity: Int!
+}
+
+"""Represents a line item in a purchase order."""
+type PurchaseOrderItem implements Node {
+  """The ID of the purchase order item."""
+  id: ID!
+
+  """Parent purchase order."""
+  purchaseOrder: PurchaseOrder!
+
+  """Product variant ordered."""
+  productVariant: ProductVariant!
+
+  """Quantity ordered."""
+  quantityOrdered: Int!
+
+  """Total quantity received across all receipt lines."""
+  quantityReceived: Int!
+
+  """
+  Unit cost (buy price). Null for items added from orders before pricing.
+  """
+  unitPrice: Money
+
+  """Country of origin (ISO 2-letter code)."""
+  countryOfOrigin: String
+
+  """Status of this purchase order item."""
+  status: PurchaseOrderItemStatusEnum!
+}
+
+"""Represents a purchase order from a supplier."""
+type PurchaseOrder implements Node {
+  """The ID of the purchase order."""
+  id: ID!
+
+  """Name of the purchase order."""
+  name: String!
+
+  """Supplier warehouse (non-owned)."""
+  supplierWarehouse: Warehouse!
+
+  """Destination warehouse (owned)."""
+  destinationWarehouse: Warehouse!
+
+  """Current status of the purchase order."""
+  status: PurchaseOrderStatusEnum!
+
+  """Items in this purchase order."""
+  items: [PurchaseOrderItem]!
+
+  """Default currency for this purchase order."""
+  currency: String!
+
+  """Whether variants are automatically reallocated on receipt."""
+  autoReallocateVariants: Boolean!
+
+  """Whether any orders are linked to this PO via requested allocations."""
+  hasLinkedOrders: Boolean!
+
+  """Orders linked to this PO via requested allocations."""
+  linkedOrders: [Order!]!
+
+  """When the purchase order was created."""
+  createdAt: DateTime!
+}
+
+enum PurchaseOrderStatusEnum @doc(category: "Products") {
+  DRAFT
+  CONFIRMED
+  PARTIALLY_RECEIVED
+  RECEIVED
+}
+
+enum PurchaseOrderItemStatusEnum @doc(category: "Products") {
+  DRAFT
+  CONFIRMED
+  RECEIVED
+  CANCELLED
+  REQUIRES_ATTENTION
 }
 
 """Represent the discount applied to order line."""
@@ -12481,86 +12587,6 @@ enum InvoiceType @doc(category: "Orders") {
 enum ShipmentTypeEnum @doc(category: "Shipping") {
   INBOUND
   OUTBOUND
-}
-
-"""Represents a line item in a purchase order."""
-type PurchaseOrderItem implements Node {
-  """The ID of the purchase order item."""
-  id: ID!
-
-  """Parent purchase order."""
-  purchaseOrder: PurchaseOrder!
-
-  """Product variant ordered."""
-  productVariant: ProductVariant!
-
-  """Quantity ordered."""
-  quantityOrdered: Int!
-
-  """Total quantity received across all receipt lines."""
-  quantityReceived: Int!
-
-  """
-  Unit cost (buy price). Null for items added from orders before pricing.
-  """
-  unitPrice: Money
-
-  """Country of origin (ISO 2-letter code)."""
-  countryOfOrigin: String
-
-  """Status of this purchase order item."""
-  status: PurchaseOrderItemStatusEnum!
-}
-
-"""Represents a purchase order from a supplier."""
-type PurchaseOrder implements Node {
-  """The ID of the purchase order."""
-  id: ID!
-
-  """Name of the purchase order."""
-  name: String!
-
-  """Supplier warehouse (non-owned)."""
-  supplierWarehouse: Warehouse!
-
-  """Destination warehouse (owned)."""
-  destinationWarehouse: Warehouse!
-
-  """Current status of the purchase order."""
-  status: PurchaseOrderStatusEnum!
-
-  """Items in this purchase order."""
-  items: [PurchaseOrderItem]!
-
-  """Default currency for this purchase order."""
-  currency: String!
-
-  """Whether variants are automatically reallocated on receipt."""
-  autoReallocateVariants: Boolean!
-
-  """Whether any orders are linked to this PO via requested allocations."""
-  hasLinkedOrders: Boolean!
-
-  """Orders linked to this PO via requested allocations."""
-  linkedOrders: [Order!]!
-
-  """When the purchase order was created."""
-  createdAt: DateTime!
-}
-
-enum PurchaseOrderStatusEnum @doc(category: "Products") {
-  DRAFT
-  CONFIRMED
-  PARTIALLY_RECEIVED
-  RECEIVED
-}
-
-enum PurchaseOrderItemStatusEnum @doc(category: "Products") {
-  DRAFT
-  CONFIRMED
-  RECEIVED
-  CANCELLED
-  REQUIRES_ATTENTION
 }
 
 """Represents a goods receipt for an inbound shipment."""

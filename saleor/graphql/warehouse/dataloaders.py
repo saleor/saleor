@@ -16,6 +16,7 @@ from ...channel.models import Channel
 from ...product.models import ProductVariantChannelListing
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import (
+    AllocationSource,
     ChannelWarehouse,
     PreorderReservation,
     Reservation,
@@ -755,3 +756,16 @@ class StocksByProductVariantIdLoader(DataLoader):
             stocks_by_variant_id[stock.product_variant_id].append(stock)
 
         return [stocks_by_variant_id[key] for key in keys]
+
+
+class AllocationSourcesByAllocationIdLoader(DataLoader):
+    context_key = "allocation_sources_by_allocation_id"
+
+    def batch_load(self, keys):
+        sources = AllocationSource.objects.using(self.database_connection_name).filter(
+            allocation_id__in=keys
+        )
+        sources_by_allocation = defaultdict(list)
+        for source in sources:
+            sources_by_allocation[source.allocation_id].append(source)
+        return [sources_by_allocation[key] for key in keys]

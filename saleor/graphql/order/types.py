@@ -2197,6 +2197,15 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )
 
+    linked_purchase_orders = PermissionsField(
+        NonNullList("saleor.graphql.inventory.types.PurchaseOrder"),
+        description="Purchase orders linked to this order via requested allocations.",
+        permissions=[
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
+    )
+
     class Meta:
         default_resolver = (
             SyncWebhookControlContextModelObjectType.resolver_with_context
@@ -3489,6 +3498,14 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         root: SyncWebhookControlContext[models.Order], _info
     ):
         return root.node.allow_variant_reallocation
+
+    @staticmethod
+    def resolve_linked_purchase_orders(
+        root: SyncWebhookControlContext[models.Order], info
+    ):
+        from ..inventory.dataloaders import PurchaseOrdersByOrderIdLoader
+
+        return PurchaseOrdersByOrderIdLoader(info.context).load(root.node.pk)
 
     @staticmethod
     def __resolve_references(roots: list["Order"], info):
