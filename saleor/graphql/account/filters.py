@@ -36,7 +36,6 @@ from ..utils.filters import (
     filter_where_by_value_field,
     filter_where_range_field_with_conditions,
 )
-from . import types as account_types
 from .enums import CountryCodeEnum, StaffMemberStatus
 
 
@@ -251,20 +250,28 @@ class CustomerWhereInput(WhereInputObjectType):
 
 class PermissionGroupFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method=filter_search)
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id(account_types.Group))
+    ids = GlobalIDMultipleChoiceFilter(method="filter_ids")
+
+    @staticmethod
+    def filter_ids(qs, _, value):
+        from . import types as account_types
+
+        return filter_by_id(account_types.Group)(qs, _, value)
 
 
 class StaffUserFilter(django_filters.FilterSet):
     status = EnumFilter(input_class=StaffMemberStatus, method=filter_staff_status)
     search = django_filters.CharFilter(method=filter_user_search)
-    ids = GlobalIDMultipleChoiceFilter(
-        method=filter_by_id(
-            account_types.User,
-        )
-    )
+    ids = GlobalIDMultipleChoiceFilter(method="filter_ids")
     # TODO - Figure out after permission types
     # department = ObjectTypeFilter
 
     class Meta:
         model = User
         fields = ["status", "search"]
+
+    @staticmethod
+    def filter_ids(qs, _, value):
+        from . import types as account_types
+
+        return filter_by_id(account_types.User)(qs, _, value)
