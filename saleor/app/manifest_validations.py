@@ -5,12 +5,14 @@ from collections.abc import Iterable
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
+from pydantic import ValidationError as PydanticValidationError
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
 from .. import __version__
 from ..giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from ..graphql.core.utils import str_to_enum
+from ..graphql.error import pydantic_to_validation_error
 from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (
     get_permissions,
@@ -21,9 +23,10 @@ from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
+from .manifest_schema import ManifestSchema
 from .models import App
 from .types import DEFAULT_APP_TARGET
-from .validators import AppURLValidator, brand_validator
+from .validators import AppURLValidator
 
 logger = logging.getLogger(__name__)
 
@@ -97,20 +100,14 @@ def _clean_permissions(
 
 
 def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
-    errors: T_ERRORS = defaultdict(list)
-
-    _validate_required_fields(manifest_data, errors)
-
     try:
-        if token_target_url := manifest_data.get("tokenTargetUrl"):
-            _clean_app_url(token_target_url)
-    except (ValidationError, AttributeError):
-        errors["tokenTargetUrl"].append(
-            ValidationError(
-                "Incorrect format.",
-                code=AppErrorCode.INVALID_URL_FORMAT.value,
-            )
-        )
+        ManifestSchema.model_validate(manifest_data)
+    except PydanticValidationError as exc:
+        raise pydantic_to_validation_error(
+            exc, default_error_code=AppErrorCode.INVALID.value
+        ) from exc
+
+    errors: T_ERRORS = defaultdict(list)
 
     try:
         manifest_data["requiredSaleorVersion"] = _clean_required_saleor_version(
@@ -118,16 +115,6 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         )
     except ValidationError as e:
         errors["requiredSaleorVersion"].append(e)
-
-    try:
-        manifest_data["author"] = _clean_author(manifest_data.get("author"))
-    except ValidationError as e:
-        errors["author"].append(e)
-
-    try:
-        brand_validator(manifest_data.get("brand"))
-    except ValidationError as e:
-        errors["brand"].append(e)
 
     saleor_permissions = get_permissions().annotate(
         formatted_codename=Concat("content_type__app_label", Value("."), "codename")
@@ -295,42 +282,6 @@ def _clean_webhooks(manifest_data, errors):
                 )
 
 
-def _validate_required_fields(manifest_data, errors):
-    manifest_required_fields = {"id", "version", "name"}
-    extension_required_fields = {"label", "url", "mount"}
-    webhook_required_fields = {"name", "targetUrl", "query"}
-
-    if manifest_missing_fields := manifest_required_fields.difference(manifest_data):
-        for missing_field in manifest_missing_fields:
-            errors[missing_field].append(
-                ValidationError("Field required.", code=AppErrorCode.REQUIRED.value)
-            )
-
-    app_extensions_data = manifest_data.get("extensions", [])
-    for extension in app_extensions_data:
-        extension_fields = set(extension.keys())
-        if missing_fields := extension_required_fields.difference(extension_fields):
-            errors["extensions"].append(
-                ValidationError(
-                    "Missing required fields for app extension: "
-                    f"{', '.join(missing_fields)}.",
-                    code=AppErrorCode.REQUIRED.value,
-                )
-            )
-
-    webhooks = manifest_data.get("webhooks", [])
-    for webhook in webhooks:
-        webhook_fields = set(webhook.keys())
-        if missing_fields := webhook_required_fields.difference(webhook_fields):
-            errors["webhooks"].append(
-                ValidationError(
-                    f"Missing required fields for webhook: "
-                    f"{', '.join(missing_fields)}.",
-                    code=AppErrorCode.REQUIRED.value,
-                )
-            )
-
-
 def _parse_version(version_str: str) -> Version:
     return Version(version_str)
 
@@ -353,14 +304,3 @@ def _clean_required_saleor_version(
         msg = f"Saleor version {saleor_version} is not supported by the app."
         raise ValidationError(msg, code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value)
     return {"constraint": required_version, "satisfied": satisfied}
-
-
-def _clean_author(author) -> str | None:
-    if author is None:
-        return None
-    if isinstance(author, str):
-        if clean := author.strip():
-            return clean
-    raise ValidationError(
-        "Incorrect value for field: author", code=AppErrorCode.INVALID.value
-    )

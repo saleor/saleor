@@ -10,13 +10,17 @@ def pydantic_to_validation_error(
 
     Each pydantic error can carry a per-error code by raising
     PydanticCustomError with ``{"error_code": ...}`` in its context dict.
-    Falls back to the default ``error_code`` for built-in constraint errors.
+    Falls back to ``"required"`` for missing-field errors, and to
+    ``default_error_code`` for all other built-in constraint errors.
     """
     errors: dict[str, ValidationError] = {}
 
     for error in exc.errors():
         field = str(error["loc"][0]) if error["loc"] else "input"
-        code = error.get("ctx", {}).get("error_code", default_error_code)
+        if error.get("type") == "missing":
+            code = "required"
+        else:
+            code = error.get("ctx", {}).get("error_code", default_error_code)
         errors[field] = ValidationError(
             error["msg"],
             code=code,

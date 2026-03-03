@@ -7,7 +7,6 @@ from ...app.validators import (
 )
 from ..error_codes import AppErrorCode
 from ..manifest_validations import (
-    _clean_author,
     _clean_extension_url,
     _clean_required_saleor_version,
     _parse_version,
@@ -65,13 +64,6 @@ def test_clean_required_saleor_version_raise_for_saleor_version():
     with pytest.raises(ValidationError) as error:
         _clean_required_saleor_version("^3.13", True, "3.12.1")
     assert error.value.code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
-
-
-@pytest.mark.parametrize(
-    ("author", "cleaned"), [(None, None), (" Acme Ltd ", "Acme Ltd")]
-)
-def test_clean_author(author, cleaned):
-    assert _clean_author(author) == cleaned
 
 
 def test_brand_validator_required_fields():

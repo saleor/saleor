@@ -331,7 +331,7 @@ def test_app_fetch_manifest_missing_fields(
     assert errors[0] == {
         "code": "REQUIRED",
         "field": missing_field,
-        "message": "Field required.",
+        "message": "Field required",
     }
 
 
@@ -379,7 +379,7 @@ def test_app_fetch_manifest_missing_extension_fields(
     assert errors[0] == {
         "code": "REQUIRED",
         "field": "extensions",
-        "message": f"Missing required fields for app extension: {missing_field}.",
+        "message": "Field required",
     }
 
 
