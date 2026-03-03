@@ -8,7 +8,12 @@ from ...core.anonymize import obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...giftcard import GiftCardEvents, models
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import AccountPermissions, AppPermission, GiftcardPermissions
+from ...permission.enums import (
+    AccountPermissions,
+    AppPermission,
+    GiftcardPermissions,
+    OrderPermissions,
+)
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import (
     check_is_owner_or_has_one_of_perms,
@@ -302,10 +307,17 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         filter=GiftCardEventFilterInput(
             description="Filtering options for gift card events."
         ),
-        description="List of events associated with the gift card.",
+        description=(
+            "List of events associated with the gift card. Requires "
+            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name} permission to access all "
+            "events. Users with "
+            f"{OrderPermissions.MANAGE_ORDERS.name} permission can access only "
+            f"{GiftCardEvents.USED_IN_ORDER.upper()} events."
+        ),
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
+            OrderPermissions.MANAGE_ORDERS,
         ],
     )
     tags = PermissionsField(
@@ -478,6 +490,13 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     @staticmethod
     def resolve_events(root: models.GiftCard, info, **kwargs):
         def filter_events(events):
+            requestor = get_user_or_app_from_context(info.context)
+            has_manage_gift_card = requestor and requestor.has_perm(
+                GiftcardPermissions.MANAGE_GIFT_CARD
+            )
+            if not has_manage_gift_card:
+                events = filter_events_by_type(events, GiftCardEvents.USED_IN_ORDER)
+
             event_filter = kwargs.get("filter", {})
             if event_type_value := event_filter.get("type"):
                 events = filter_events_by_type(events, event_type_value)
