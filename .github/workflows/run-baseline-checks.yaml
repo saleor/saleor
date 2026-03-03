@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "22 13 * * mon" # Every Monday at 13:22
 
+permissions: {}
+
 jobs:
   run-all:
+    permissions:
+      contents: read
     uses: saleor/saleor-internal-actions/.github/workflows/run-baseline-checks.yaml@feat/add-baseline-checks
