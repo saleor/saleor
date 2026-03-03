@@ -15,7 +15,7 @@ from ..tasks import (
 )
 
 
-@mock.patch("saleor.plugins.email_common.send_mail")
+@mock.patch("saleor.plugins.email_common.EmailMultiAlternatives")
 def test_send_staff_password_reset_email_task_default_template(
     mocked_send_mail, email_dict_config, customer_user
 ):
@@ -81,7 +81,7 @@ def test_send_staff_password_reset_email_task_custom_template(
     )
 
 
-@mock.patch("saleor.plugins.email_common.send_mail")
+@mock.patch("saleor.plugins.email_common.EmailMultiAlternatives")
 def test_send_set_staff_password_email_task_default_template(
     mocked_send_mail, email_dict_config, customer_user
 ):
@@ -147,7 +147,7 @@ def test_send_set_staff_password_email_task_custom_template(
     )
 
 
-@mock.patch("saleor.plugins.email_common.send_mail")
+@mock.patch("saleor.plugins.email_common.EmailMultiAlternatives")
 def test_send_email_with_link_to_download_file_task_default_template(
     mocked_send_mail, email_dict_config, customer_user, user_export_file
 ):
@@ -222,7 +222,7 @@ def test_send_email_with_link_to_download_file_task_custom_template(
     ).exists()
 
 
-@mock.patch("saleor.plugins.email_common.send_mail")
+@mock.patch("saleor.plugins.email_common.EmailMultiAlternatives")
 def test_send_export_failed_email_task_default_template(
     mocked_send_mail, email_dict_config, user_export_file
 ):
@@ -292,7 +292,7 @@ def test_send_export_failed_email_task_custom_template(
     )
 
 
-@mock.patch("saleor.plugins.email_common.send_mail")
+@mock.patch("saleor.plugins.email_common.EmailMultiAlternatives")
 def test_send_staff_order_confirmation_email_task_default_template(
     mocked_send_mail, email_dict_config, order_with_lines
 ):
