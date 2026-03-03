@@ -13731,6 +13731,8 @@ type OrderCountableEdge @doc(category: "Orders") {
 }
 
 input CustomerOrderWhereInput @doc(category: "Orders") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
   ids: [ID!]
 
   """Filter by order number."""
@@ -13811,6 +13813,36 @@ input CustomerOrderWhereInput @doc(category: "Orders") {
 
   """A list of conditions of which at least one must be met."""
   OR: [CustomerOrderWhereInput!]
+}
+
+"""
+Allows filtering based on metadata key/value pairs.
+
+        Examples:
+        - `{key: "size"}`
+          Matches objects where the metadata key "size" exists, regardless of its value.
+        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
+          Matches objects where the metadata key "color" is set to either "blue" or "green".
+        - `{key: "status", value: {eq: "active"}}`
+          Matches objects where the metadata key "status" is set to "active".
+"""
+input MetadataFilterInput {
+  """
+  Key to filter by. If not other fields provided - checking the existence of the key in metadata.
+  """
+  key: String!
+
+  """Value to filter by."""
+  value: MetadataValueFilterInput
+}
+
+"""Define the filtering options for metadata value fields."""
+input MetadataValueFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
 }
 
 """Define the filtering options for integer fields."""
@@ -15662,36 +15694,6 @@ input PageWhereInput @doc(category: "Pages") {
 
   """A list of conditions of which at least one must be met."""
   OR: [PageWhereInput!]
-}
-
-"""
-Allows filtering based on metadata key/value pairs.
-
-        Examples:
-        - `{key: "size"}`
-          Matches objects where the metadata key "size" exists, regardless of its value.
-        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
-          Matches objects where the metadata key "color" is set to either "blue" or "green".
-        - `{key: "status", value: {eq: "active"}}`
-          Matches objects where the metadata key "status" is set to "active".
-"""
-input MetadataFilterInput {
-  """
-  Key to filter by. If not other fields provided - checking the existence of the key in metadata.
-  """
-  key: String!
-
-  """Value to filter by."""
-  value: MetadataValueFilterInput
-}
-
-"""Define the filtering options for metadata value fields."""
-input MetadataValueFilterInput {
-  """The value equal to."""
-  eq: String
-
-  """The value included in."""
-  oneOf: [String!]
 }
 
 type PageTypeCountableConnection @doc(category: "Pages") {
