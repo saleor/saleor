@@ -71,6 +71,20 @@ class ManifestWebhookSchema(BaseModel):
     sync_events: list[str] = []
     custom_headers: dict | None = None
 
+    @field_validator("target_url")
+    @classmethod
+    def validate_target_url(cls, v: str) -> str:
+        url_validator = AppURLValidator(schemes=["http", "https", "awssqs", "gcpubsub"])
+        try:
+            url_validator(v)
+        except (DjangoValidationError, AttributeError) as e:
+            raise PydanticCustomError(
+                AppErrorCode.INVALID_URL_FORMAT.value,
+                "Invalid target url.",
+                {"error_code": AppErrorCode.INVALID_URL_FORMAT.value},
+            ) from e
+        return v
+
 
 class ManifestSchema(BaseModel):
     model_config = _CAMEL_CONFIG

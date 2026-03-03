@@ -100,6 +100,7 @@ def _clean_permissions(
 
 
 def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
+    # Structural validation: required fields, field types, URL formats, brand logo.
     try:
         ManifestSchema.model_validate(manifest_data)
     except PydanticValidationError as exc:
@@ -212,19 +213,8 @@ def _clean_webhooks(manifest_data, errors):
         str_to_enum(e_type[0]): e_type[0] for e_type in WebhookEventSyncType.CHOICES
     }
 
-    target_url_validator = AppURLValidator(
-        schemes=["http", "https", "awssqs", "gcpubsub"]
-    )
-
     for webhook in webhooks:
         webhook["isActive"] = webhook.get("isActive", True)
-        if not isinstance(webhook["isActive"], bool):
-            errors["webhooks"].append(
-                ValidationError(
-                    "Incorrect value for field: isActive.",
-                    code=AppErrorCode.INVALID.value,
-                )
-            )
 
         webhook["events"] = []
         for e_type in webhook.get("asyncEvents", []):
@@ -259,16 +249,6 @@ def _clean_webhooks(manifest_data, errors):
 
         if not webhook["events"]:
             webhook["events"] = subscription_query.events
-
-        try:
-            target_url_validator(webhook["targetUrl"])
-        except ValidationError:
-            errors["webhooks"].append(
-                ValidationError(
-                    "Invalid target url.",
-                    code=AppErrorCode.INVALID_URL_FORMAT.value,
-                )
-            )
 
         if custom_headers := webhook.get("customHeaders"):
             try:
