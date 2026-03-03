@@ -1,0 +1,45 @@
+saleor/graphql/order/types.py
+  95656b3bc2a29511 244-249,273-277,827-835,860-868,905-913,1012-1021
+saleor/graphql/shop/types.py
+  95656b3bc2a29511 99-114
+saleor/graphql/shop/mutations/return_reason_reference_type_clear.py
+  95656b3bc2a29511 1-31
+saleor/graphql/core/types/common.py
+  95656b3bc2a29511 72,375-392
+saleor/graphql/order/mutations/order_grant_refund_create.py
+  95656b3bc2a29511 60-63
+saleor/graphql/core/enums.py
+  95656b3bc2a29511 269-273
+saleor/graphql/order/mutations/fulfillment_return_products.py
+  95656b3bc2a29511 13,38-44,64-70,100-106
+saleor/graphql/shop/schema.py
+  95656b3bc2a29511 21-22,31,65-71,104-107,130-131
+saleor/graphql/order/mutations/order_grant_refund_update.py
+  95656b3bc2a29511 67-70
+saleor/graphql/shop/mutations/__init__.py
+  95656b3bc2a29511 5-6,20-21
+saleor/site/error_codes.py
+  95656b3bc2a29511 23-28
+saleor/graphql/shop/mutations/return_settings_update.py
+  95656b3bc2a29511 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "4e87374e137198133563cbaa9cafefb93e2a6c46",
+  "prompts": {
+    "95656b3bc2a29511": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f4350656-8d5b-4229-a9c7-a20e4239fdaa",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 228,
+      "total_deletions": 1,
+      "accepted_lines": 225,
+      "overriden_lines": 0
+    }
+  }
+}
