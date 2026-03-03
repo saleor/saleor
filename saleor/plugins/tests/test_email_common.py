@@ -163,8 +163,8 @@ def test_get_plain_text_message_for_email(html_message, expected_output):
     "saleor.plugins.email_common.get_plain_text_message_for_email",
     wraps=get_plain_text_message_for_email,
 )
-@patch("saleor.plugins.email_common.send_mail")
-def test_send_email(mocked_send_mail, mocked_get_plain_text):
+@patch("saleor.plugins.email_common.EmailMultiAlternatives")
+def test_send_email(mocked_email_cls, mocked_get_plain_text):
     # given
     sender_address = "dummy@localhost.com"
     sender_name = "dummy"
@@ -180,11 +180,15 @@ def test_send_email(mocked_send_mail, mocked_get_plain_text):
 
     # then
     mocked_get_plain_text.assert_called_once_with(email_content)
-    mocked_send_mail.assert_called_once_with(
-        email_subject,
-        email_plain_text,
-        f"{sender_name} <{sender_address}>",
-        recipment_list,
-        html_message=email_content,
+    mocked_email_cls.assert_called_once_with(
+        subject=email_subject,
+        body=email_plain_text,
+        from_email=f"{sender_name} <{sender_address}>",
+        to=recipment_list,
+        bcc=ANY,
         connection=ANY,
     )
+    mocked_email_cls.return_value.attach_alternative.assert_called_once_with(
+        email_content, "text/html"
+    )
+    mocked_email_cls.return_value.send.assert_called_once()
