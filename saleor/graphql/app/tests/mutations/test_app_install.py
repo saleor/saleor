@@ -191,3 +191,24 @@ def test_install_app_mutation_with_the_same_identifier_twice(
         "identifier: "
         "['App with the same identifier is already installed: Sample app objects']"
     )
+
+
+def test_install_app_mutation_with_null_permissions(
+    permission_manage_apps,
+    staff_api_client,
+    staff_user,
+):
+    # given
+    staff_user.user_permissions.set([permission_manage_apps])
+    variables = {
+        "app_name": "test app",
+        "manifest_url": "http://localhost:3000/manifest",
+        "permissions": None,
+    }
+
+    # when
+    data = _mutate_app_install(staff_api_client, variables)
+
+    # then
+    assert data["appInstallation"]
+    assert not data["errors"]
