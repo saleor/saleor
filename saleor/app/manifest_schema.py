@@ -78,17 +78,16 @@ class ManifestSchema(BaseModel):
     id: str
     name: str
     version: str
+    about: str | None = None
+    permissions: list[str] = []
     app_url: str | None = None
+    token_target_url: str | None = None
+    data_privacy_url: str | None = None
     homepage_url: str | None = None
     support_url: str | None = None
-    configuration_url: str | None = None
-    data_privacy_url: str | None = None
-    data_privacy: str | None = None
-    token_target_url: str | None = None
+    audience: str | None = None
     required_saleor_version: str | None = None
     author: str | None = None
-    audience: str | None = None
-    permissions: list[str] = []
     brand: ManifestBrandSchema | None = None
     extensions: list[ManifestExtensionSchema] = []
     webhooks: list[ManifestWebhookSchema] = []

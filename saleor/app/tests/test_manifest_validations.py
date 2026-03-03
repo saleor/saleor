@@ -271,3 +271,23 @@ def test_manifest_schema_extra_fields_ignored():
 
     # then
     assert schema.id == MINIMAL_MANIFEST["id"]
+
+
+def test_manifest_schema_deprecated_fields_accepted():
+    # given — deprecated fields are excluded from schema but must not cause a
+    # validation error, and must remain accessible in the original dict so that
+    # downstream code (installation_utils, app_fetch_manifest) can still read them
+    data_privacy = "We do not store your data."
+    configuration_url = "https://example.com/config"
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "dataPrivacy": data_privacy,
+        "configurationUrl": configuration_url,
+    }
+
+    # when
+    ManifestSchema.model_validate(manifest_data)
+
+    # then — original dict is untouched; downstream readers can still access the values
+    assert manifest_data["dataPrivacy"] == data_privacy
+    assert manifest_data["configurationUrl"] == configuration_url
