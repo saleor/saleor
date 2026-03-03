@@ -116,6 +116,7 @@ uv run poe populatedb
 
 > [!NOTE]
 > `populatedb` populates database with example data and creates an admin account for `admin@example.com` with the password set to `admin`.*
+> You can customize email and password using --superuser_email --superuser_password flags
 
 To build `schema.graphql` file:
 
