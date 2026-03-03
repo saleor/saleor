@@ -16,9 +16,9 @@ def test_manifest_schema_valid_minimal():
     schema = ManifestSchema.model_validate(MINIMAL_MANIFEST)
 
     # then
-    assert schema.id == "app.example"
-    assert schema.name == "My App"
-    assert schema.version == "1.0.0"
+    assert schema.id == MINIMAL_MANIFEST["id"]
+    assert schema.name == MINIMAL_MANIFEST["name"]
+    assert schema.version == MINIMAL_MANIFEST["version"]
 
 
 def test_manifest_schema_missing_required_fields():
@@ -236,7 +236,7 @@ def test_manifest_schema_webhook_is_active_defaults_to_true():
     assert schema.webhooks[0].is_active is True
 
 
-def test_manifest_schema_camelcase_keys_accepted():
+def test_manifest_schema_full_input():
     # given
     manifest_data = {
         "id": "app.example",
@@ -252,10 +252,10 @@ def test_manifest_schema_camelcase_keys_accepted():
     schema = ManifestSchema.model_validate(manifest_data)
 
     # then
-    assert schema.token_target_url == "https://example.com/token"
-    assert schema.app_url == "https://example.com"
-    assert schema.homepage_url == "https://example.com"
-    assert schema.support_url == "https://example.com/support"
+    assert schema.token_target_url == manifest_data["tokenTargetUrl"]
+    assert schema.app_url == manifest_data["appUrl"]
+    assert schema.homepage_url == manifest_data["homepageUrl"]
+    assert schema.support_url == manifest_data["supportUrl"]
 
 
 def test_manifest_schema_extra_fields_ignored():
@@ -270,4 +270,4 @@ def test_manifest_schema_extra_fields_ignored():
     schema = ManifestSchema.model_validate(manifest_data)
 
     # then
-    assert schema.id == "app.example"
+    assert schema.id == MINIMAL_MANIFEST["id"]
