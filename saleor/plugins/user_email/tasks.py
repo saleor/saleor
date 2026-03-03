@@ -2,6 +2,7 @@ import logging
 from email.headerregistry import Address
 
 import pybars
+from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.core.mail.backends.smtp import EmailBackend
 
@@ -243,6 +244,7 @@ def send_fulfillment_confirmation_email_task(
         body=plain_text,
         from_email=from_email,
         to=[recipient_email],
+        bcc=settings.EMAIL_BCC or None,
         connection=backend,
     )
     email.attach_alternative(html_message, "text/html")
@@ -417,6 +419,7 @@ def send_proforma_fulfillment_confirmation_email_task(
         body=plain_text,
         from_email=from_email,
         to=[recipient_email],
+        bcc=settings.EMAIL_BCC or None,
         connection=backend,
     )
     email.attach_alternative(html_message, "text/html")

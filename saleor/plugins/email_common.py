@@ -15,7 +15,7 @@ from babel.core import Locale
 from babel.numbers import format_currency
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.core.mail.backends.smtp import EmailBackend
 from django.core.validators import EmailValidator
 from lxml import etree
@@ -236,14 +236,21 @@ def send_email(
     }
     message = template(context, helpers=helpers)
     subject_message = subject_template(context, helpers)
-    send_mail(
-        subject_message,
-        get_plain_text_message_for_email(message),
-        from_email,
-        recipient_list,
-        html_message=message,
+    plain_text = get_plain_text_message_for_email(message)
+
+    bcc = settings.EMAIL_BCC or None
+    logger.debug("Sending email to %s with BCC %s", recipient_list, bcc)
+
+    email = EmailMultiAlternatives(
+        subject=subject_message,
+        body=plain_text,
+        from_email=from_email,
+        to=recipient_list,
+        bcc=bcc,
         connection=email_backend,
     )
+    email.attach_alternative(message, "text/html")
+    email.send()
 
 
 def validate_email_config(config: EmailConfig):

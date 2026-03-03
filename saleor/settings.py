@@ -212,6 +212,10 @@ DEFAULT_FROM_EMAIL: str = os.environ.get(
     "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@example.com"
 )
 
+EMAIL_BCC: list[str] = [
+    addr.strip() for addr in os.environ.get("EMAIL_BCC", "").split(",") if addr.strip()
+]
+
 MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "media")
 MEDIA_URL: str = os.environ.get("MEDIA_URL", "/media/")
 
