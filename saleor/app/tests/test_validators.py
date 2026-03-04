@@ -14,6 +14,7 @@ from ..manifest_validations import (
     _clean_extensions,
     _clean_required_saleor_version,
     _parse_version,
+    _validate_required_fields,
 )
 from ..types import AppExtensionTarget
 from ..validators import brand_validator
@@ -482,3 +483,21 @@ def test_widget_target_available_mounts_invalid(mount, app_manifest):
 
     # Then
     assert "extensions" in errors
+
+
+def test_validate_required_fields_extensions_as_none():
+    # given
+    manifest_data = {
+        "id": "app.id",
+        "version": "1.0.0",
+        "name": "Test App",
+        "tokenTargetUrl": "http://localhost:3000/token",
+        "extensions": None,
+    }
+    errors = {}
+
+    # when
+    _validate_required_fields(manifest_data, errors)
+
+    # then
+    assert not errors
