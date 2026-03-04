@@ -24,6 +24,7 @@ from ..discount import DiscountType
 from ..graphql.core.utils import to_global_id_or_none
 from ..product import ProductMediaTypes
 from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
+from ..shipping import IncoTerm
 from ..site.models import SiteSettings
 from ..thumbnail import THUMBNAIL_SIZES
 from ..thumbnail.utils import get_image_or_proxy_url
@@ -416,6 +417,8 @@ def get_default_order_payload(
             "lines": get_lines_payload(lines, attribute_data),
             "billing_address": get_address_payload(order.billing_address),
             "shipping_address": get_address_payload(order.shipping_address),
+            "show_shipping_address": order.inco_term
+            not in IncoTerm.COLLECTION_INCO_TERMS,
             "shipping_method_name": order.shipping_method_name,
             "collection_point_name": order.collection_point_name,
             "deposit_required": order.deposit_required,
