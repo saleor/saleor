@@ -29,7 +29,10 @@ from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
 from ...core.utils import WebhookEventInfo
-from ...core.validators import validate_variants_available_in_channel
+from ...core.validators import (
+    validate_price_precision,
+    validate_variants_available_in_channel,
+)
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
@@ -255,6 +258,14 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         app = get_app_promise(info.context).get()
         site = get_site_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
+        for line in lines:
+            price = line.get("price")
+            if price is not None:
+                try:
+                    validate_price_precision(price, channel.currency_code)
+                except ValidationError as error:
+                    error.code = CheckoutErrorCode.INVALID.value
+                    raise ValidationError({"price": error}) from error
         variant_ids = [line["variant_id"] for line in lines]
         variants = cls.get_nodes_or_error(
             variant_ids,

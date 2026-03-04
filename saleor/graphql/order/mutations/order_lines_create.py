@@ -27,6 +27,7 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
+from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...tax.types import TaxClass as TaxClassType
@@ -196,6 +197,15 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         variants_rule_map = get_variant_rule_info_map(
             variant_pks, order.channel_id, order.language_code
         )
+
+        for input_line in input:
+            custom_price = input_line.get("price")
+            if custom_price is not None:
+                try:
+                    validate_price_precision(custom_price, order.currency)
+                except ValidationError as error:
+                    error.code = OrderErrorCode.INVALID.value
+                    raise ValidationError({"price": error}) from error
 
         lines_to_add = cls.validate_lines(
             info, input, existing_lines_info, variants_rule_map

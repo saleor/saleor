@@ -22,7 +22,10 @@ from ...core.mutations import MISSING_NODE_ERROR_MESSAGE_PREFIX, BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.utils import WebhookEventInfo
-from ...core.validators import validate_variants_available_in_channel
+from ...core.validators import (
+    validate_price_precision,
+    validate_variants_available_in_channel,
+)
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
@@ -226,6 +229,14 @@ class CheckoutLinesAdd(BaseMutation):
         cls._validate_lines_metadata(lines)
 
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
+        for line in lines:
+            price = line.get("price")
+            if price is not None:
+                try:
+                    validate_price_precision(price, checkout.currency)
+                except ValidationError as error:
+                    error.code = CheckoutErrorCode.INVALID.value
+                    raise ValidationError({"price": error}) from error
         manager = get_plugin_manager_promise(info.context).get()
         variants = cls._get_variants_from_lines_input(lines)
         checkout_info = fetch_checkout_info(checkout, [], manager)

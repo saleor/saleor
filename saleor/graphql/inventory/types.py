@@ -154,6 +154,12 @@ class PurchaseOrderItem(ModelObjectType[models.PurchaseOrderItem]):
         )
 
     @staticmethod
+    def resolve_country_of_origin(root: models.PurchaseOrderItem, info: ResolveInfo):
+        if root.country_of_origin:
+            return str(root.country_of_origin)
+        return None
+
+    @staticmethod
     def resolve_unit_price(root: models.PurchaseOrderItem, info: ResolveInfo):
         if root.currency is None or root.total_price_amount is None:
             return None

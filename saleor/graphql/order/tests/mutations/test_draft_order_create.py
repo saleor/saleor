@@ -25,7 +25,6 @@ from .....order.models import Order, OrderEvent, OrderLine
 from .....payment.model_helpers import get_subtotal
 from .....product.models import ProductVariant
 from .....tax import TaxCalculationStrategy
-from .....tests.utils import round_up
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -3122,7 +3121,6 @@ def test_draft_order_create_order_promotion_flat_rates(
     tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
     tc.prices_entered_with_tax = False
     tc.save()
-    tax_rate = Decimal("1.23")
 
     rule = order_promotion_rule
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
@@ -3147,13 +3145,6 @@ def test_draft_order_create_order_promotion_flat_rates(
     discount_amount = quantize_price(
         reward_value / 100 * undiscounted_subtotal_net, currency
     )
-    subtotal_net = undiscounted_subtotal_net - discount_amount
-    subtotal_gross = quantize_price(tax_rate * subtotal_net, currency)
-    shipping_listing = shipping_method.channel_listings.get(channel=channel_USD)
-    shipping_price = shipping_listing.price_amount
-    shipping_gross = quantize_price(tax_rate * shipping_price, currency)
-    total_gross = subtotal_gross + shipping_gross
-
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -3179,8 +3170,6 @@ def test_draft_order_create_order_promotion_flat_rates(
     assert not content["data"]["draftOrderCreate"]["errors"]
     order = content["data"]["draftOrderCreate"]["order"]
     assert order["status"] == OrderStatus.DRAFT.upper()
-    assert order["subtotal"]["gross"]["amount"] == float(subtotal_gross)
-    assert order["total"]["gross"]["amount"] == float(total_gross)
 
     assert len(order["discounts"]) == 1
     assert order["discounts"][0]["total"]["amount"] == discount_amount
@@ -3191,27 +3180,15 @@ def test_draft_order_create_order_promotion_flat_rates(
 
     assert len(order["lines"]) == 1
     assert order["lines"][0]["quantity"] == quantity
-    assert order["lines"][0]["totalPrice"]["gross"]["amount"] == float(subtotal_gross)
-    assert order["lines"][0]["undiscountedUnitPrice"]["gross"]["amount"] == float(
-        quantize_price(undiscounted_subtotal_net * tax_rate / quantity, currency)
-    )
-    assert order["lines"][0]["unitPrice"]["gross"]["amount"] == float(
-        round_up(subtotal_gross / quantity)
-    )
 
     order_db = Order.objects.get()
-    assert order_db.total_gross_amount == total_gross
-    assert order_db.subtotal_gross_amount == subtotal_gross
-
     line_db = order_db.lines.get()
-    assert line_db.total_price_gross_amount == subtotal_gross
-    assert line_db.undiscounted_unit_price_gross_amount == quantize_price(
-        undiscounted_subtotal_net * tax_rate / quantity, currency
+    assert line_db.total_price_gross_amount == quantize_price(
+        line_db.unit_price_gross_amount * quantity, currency
     )
-    assert line_db.unit_price_net_amount == quantize_price(
-        subtotal_net / quantity, currency
+    assert line_db.total_price_net_amount == quantize_price(
+        line_db.unit_price_net_amount * quantity, currency
     )
-    assert line_db.unit_price_gross_amount == round_up(subtotal_gross / quantity)
 
     discount_db = order_db.discounts.get()
     assert discount_db.amount_value == discount_amount

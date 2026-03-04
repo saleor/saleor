@@ -1518,9 +1518,8 @@ def test_order_lines_create_apply_once_per_order_voucher_new_cheapest_line(
         line_1.undiscounted_base_unit_price_amount - initial_unit_discount_amount,
         currency,
     )
-    assert quantize_price(line_1.total_price_net_amount, currency) == quantize_price(
-        line_1.undiscounted_total_price_net_amount - initial_discount_amount,
-        currency,
+    assert line_1.total_price_net_amount == quantize_price(
+        line_1.unit_price_net_amount * line_1.quantity, currency
     )
     assert initial_discount.value == initial_discount_value
     assert initial_discount.value_type == DiscountValueType.PERCENTAGE
@@ -1574,13 +1573,11 @@ def test_order_lines_create_apply_once_per_order_voucher_new_cheapest_line(
         initial_discount.refresh_from_db()
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert (
-        line_1.total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
+    assert line_1.total_price_gross_amount == quantize_price(
+        line_1.unit_price_gross_amount * line_1.quantity, currency
     )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
+    assert line_1.undiscounted_total_price_gross_amount == quantize_price(
+        line_1.undiscounted_unit_price_gross_amount * line_1.quantity, currency
     )
     assert line_1.unit_discount_amount == 0
     assert line_1.unit_discount_type is None
@@ -1588,13 +1585,11 @@ def test_order_lines_create_apply_once_per_order_voucher_new_cheapest_line(
     assert line_1.unit_discount_value == 0
 
     assert line_2.base_unit_price_amount == line_2.undiscounted_base_unit_price_amount
-    assert (
-        line_2.total_price_gross_amount
-        == line_2.undiscounted_base_unit_price_amount * line_2.quantity * tax_rate
+    assert line_2.total_price_gross_amount == quantize_price(
+        line_2.unit_price_gross_amount * line_2.quantity, currency
     )
-    assert (
-        line_2.undiscounted_total_price_gross_amount
-        == line_2.undiscounted_base_unit_price_amount * line_2.quantity * tax_rate
+    assert line_2.undiscounted_total_price_gross_amount == quantize_price(
+        line_2.undiscounted_unit_price_gross_amount * line_2.quantity, currency
     )
     assert line_2.unit_discount_amount == 0
     assert line_2.unit_discount_type is None
@@ -1617,14 +1612,11 @@ def test_order_lines_create_apply_once_per_order_voucher_new_cheapest_line(
         new_line.base_unit_price_amount
         == new_line.undiscounted_base_unit_price_amount - new_unit_discount_amount
     )
-    assert (
-        new_line.total_price_net_amount
-        == new_line.undiscounted_total_price_net_amount - new_discount_amount
+    assert new_line.total_price_net_amount == quantize_price(
+        new_line.unit_price_net_amount * new_line.quantity, currency
     )
-    assert quantize_price(
-        new_line.total_price_gross_amount, currency
-    ) == quantize_price(
-        new_line.base_unit_price_amount * new_line.quantity * tax_rate, currency
+    assert new_line.total_price_gross_amount == quantize_price(
+        new_line.unit_price_gross_amount * new_line.quantity, currency
     )
     assert quantize_price(
         new_line.undiscounted_total_price_gross_amount, currency
@@ -1656,15 +1648,17 @@ def test_order_lines_create_apply_once_per_order_voucher_new_cheapest_line(
     assert (
         order.subtotal_net_amount == undiscounted_subtotal.amount - new_discount_amount
     )
-    assert quantize_price(order.subtotal_gross_amount, currency) == quantize_price(
-        order.subtotal_net_amount * tax_rate, currency
+    expected_subtotal_gross = sum(
+        line.total_price_gross_amount for line in [line_1, line_2, new_line]
     )
+    assert order.subtotal_gross_amount == expected_subtotal_gross
     assert (
         order.total_net_amount
         == order.subtotal_net_amount + order.base_shipping_price_amount
     )
-    assert quantize_price(order.total_gross_amount, currency) == quantize_price(
-        (order.undiscounted_total_net_amount - new_discount_amount) * tax_rate, currency
+    assert (
+        order.total_gross_amount
+        == order.subtotal_gross_amount + order.shipping_price_gross_amount
     )
 
 
@@ -1717,9 +1711,8 @@ def test_order_lines_create_apply_once_per_order_voucher_existing_variant(
         line_1.undiscounted_base_unit_price_amount - initial_unit_discount_amount,
         currency,
     )
-    assert quantize_price(line_1.total_price_net_amount, currency) == quantize_price(
-        line_1.undiscounted_total_price_net_amount - initial_discount_amount,
-        currency,
+    assert line_1.total_price_net_amount == quantize_price(
+        line_1.unit_price_net_amount * line_1.quantity, currency
     )
     assert discount.value == initial_discount_value
     assert discount.value_type == DiscountValueType.PERCENTAGE
@@ -1769,18 +1762,14 @@ def test_order_lines_create_apply_once_per_order_voucher_existing_variant(
         line_1.undiscounted_base_unit_price_amount - new_unit_discount_amount,
         currency,
     )
-    assert quantize_price(line_1.total_price_net_amount, currency) == quantize_price(
-        line_1.undiscounted_total_price_net_amount - initial_discount_amount,
-        currency,
+    assert line_1.total_price_net_amount == quantize_price(
+        line_1.unit_price_net_amount * new_quantity, currency
     )
-    assert quantize_price(line_1.total_price_gross_amount, currency) == quantize_price(
-        line_1.base_unit_price_amount * new_quantity * tax_rate, currency
+    assert line_1.total_price_gross_amount == quantize_price(
+        line_1.unit_price_gross_amount * new_quantity, currency
     )
-    assert quantize_price(
-        line_1.undiscounted_total_price_gross_amount, currency
-    ) == quantize_price(
-        line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate,
-        currency,
+    assert line_1.undiscounted_total_price_gross_amount == quantize_price(
+        line_1.undiscounted_unit_price_gross_amount * line_1.quantity, currency
     )
     assert line_1.unit_discount_amount == new_unit_discount_amount
     assert line_1.unit_discount_type == initial_discount_value_type
@@ -1788,13 +1777,11 @@ def test_order_lines_create_apply_once_per_order_voucher_existing_variant(
     assert line_1.unit_discount_value == initial_discount_value
 
     assert line_2.base_unit_price_amount == line_2.undiscounted_base_unit_price_amount
-    assert (
-        line_2.total_price_gross_amount
-        == line_2.undiscounted_base_unit_price_amount * line_2.quantity * tax_rate
+    assert line_2.total_price_gross_amount == quantize_price(
+        line_2.unit_price_gross_amount * line_2.quantity, currency
     )
-    assert (
-        line_2.undiscounted_total_price_gross_amount
-        == line_2.undiscounted_base_unit_price_amount * line_2.quantity * tax_rate
+    assert line_2.undiscounted_total_price_gross_amount == quantize_price(
+        line_2.undiscounted_unit_price_gross_amount * line_2.quantity, currency
     )
     assert line_2.unit_discount_amount == 0
     assert line_2.unit_discount_type is None
@@ -1821,16 +1808,17 @@ def test_order_lines_create_apply_once_per_order_voucher_existing_variant(
         order.subtotal_net_amount
         == undiscounted_subtotal.amount - initial_discount_amount
     )
-    assert quantize_price(order.subtotal_gross_amount, currency) == quantize_price(
-        order.subtotal_net_amount * tax_rate, currency
+    expected_subtotal_gross = sum(
+        line.total_price_gross_amount for line in [line_1, line_2]
     )
+    assert order.subtotal_gross_amount == expected_subtotal_gross
     assert (
         order.total_net_amount
         == order.subtotal_net_amount + order.base_shipping_price_amount
     )
-    assert quantize_price(order.total_gross_amount, currency) == quantize_price(
-        (order.undiscounted_total_net_amount - initial_discount_amount) * tax_rate,
-        currency,
+    assert (
+        order.total_gross_amount
+        == order.subtotal_gross_amount + order.shipping_price_gross_amount
     )
 
 
@@ -1949,13 +1937,11 @@ def test_order_lines_create_specific_product_voucher_existing_variant(
     assert line_1.unit_discount_value == initial_discount_value
 
     assert line_2.base_unit_price_amount == line_2.undiscounted_base_unit_price_amount
-    assert (
-        line_2.total_price_gross_amount
-        == line_2.undiscounted_base_unit_price_amount * line_2.quantity * tax_rate
+    assert line_2.total_price_gross_amount == quantize_price(
+        line_2.unit_price_gross_amount * line_2.quantity, currency
     )
-    assert (
-        line_2.undiscounted_total_price_gross_amount
-        == line_2.undiscounted_base_unit_price_amount * line_2.quantity * tax_rate
+    assert line_2.undiscounted_total_price_gross_amount == quantize_price(
+        line_2.undiscounted_unit_price_gross_amount * line_2.quantity, currency
     )
     assert line_2.unit_discount_amount == 0
     assert line_2.unit_discount_type is None

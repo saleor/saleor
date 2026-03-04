@@ -38,6 +38,7 @@ from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...core.utils import from_global_id_or_error
+from ...core.validators import validate_price_precision
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
@@ -415,6 +416,12 @@ class DraftOrderCreate(
             variant_data = variants_data[variant_id]
             variant = variant_data.variant
             custom_price = line.get("price", None)
+            if custom_price is not None:
+                try:
+                    validate_price_precision(custom_price, channel.currency_code)
+                except ValidationError as error:
+                    error.code = OrderErrorCode.INVALID.value
+                    raise ValidationError({"price": error}) from error
 
             tax_class_id = line.get("tax_class", None)
             tax_class: TaxClass | None = None

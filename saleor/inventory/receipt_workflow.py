@@ -110,6 +110,48 @@ def receive_item(receipt, product_variant, quantity, user=None, notes=""):
     return receipt_line
 
 
+@transaction.atomic
+def update_receipt_lines(receipt, lines_data, user=None):
+    """Upsert receipt lines by purchase order item.
+
+    Each entry in lines_data is a dict with:
+      - purchase_order_item_id: ID of the PurchaseOrderItem
+      - quantity: absolute quantity received (0 = delete the line)
+
+    Creates, updates, or deletes ReceiptLines as needed.
+    """
+    from . import ReceiptStatus
+
+    if receipt.status != ReceiptStatus.IN_PROGRESS:
+        raise ReceiptNotInProgress(receipt)
+
+    for line_data in lines_data:
+        poi_id = line_data["purchase_order_item_id"]
+        quantity = line_data["quantity"]
+
+        existing = ReceiptLine.objects.filter(
+            receipt=receipt,
+            purchase_order_item_id=poi_id,
+        ).first()
+
+        if quantity <= 0:
+            if existing:
+                existing.delete()
+        elif existing:
+            existing.quantity_received = quantity
+            existing.received_by = user
+            existing.save(update_fields=["quantity_received", "received_by"])
+        else:
+            ReceiptLine.objects.create(
+                receipt=receipt,
+                purchase_order_item_id=poi_id,
+                quantity_received=quantity,
+                received_by=user,
+            )
+
+    return receipt
+
+
 def _remove_allocation_source(
     ass: AllocationSource,
     *,
