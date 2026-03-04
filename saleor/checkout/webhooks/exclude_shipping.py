@@ -45,7 +45,6 @@ def excluded_shipping_methods_for_checkout(
         checkout,
         available_shipping_methods,
     )
-    cache_data = _get_cache_data_for_exclude_shipping_methods(static_payload)
     return get_excluded_shipping_data(
         webhooks=webhooks,
         event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
@@ -53,7 +52,10 @@ def excluded_shipping_methods_for_checkout(
         subscribable_object=(checkout, available_shipping_methods),
         allow_replica=allow_replica,
         requestor=requestor,
-        cache_data=cache_data,
+        # Set cache to None as Checkout doesn't use cache flow anymore
+        # This field will be fully dropped after moving Order to new
+        # flow.
+        cache_data=None,
     )
 
 
@@ -72,14 +74,3 @@ def _generate_excluded_shipping_methods_for_checkout_payload(
         ],
     }
     return json.dumps(payload, cls=CustomJsonEncoder)
-
-
-def _get_cache_data_for_exclude_shipping_methods(payload: str) -> dict:
-    payload_dict = json.loads(payload)
-    source_object = payload_dict.get("checkout", payload_dict.get("order", {}))
-
-    # drop fields that change between requests but are not relevant for cache key
-    source_object.pop("last_change", None)
-    source_object.pop("meta", None)
-    source_object.pop("shipping_method", None)
-    return payload_dict

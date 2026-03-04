@@ -13,6 +13,7 @@ from ...webhook.response_schemas.shipping import (
     FilterShippingMethodsSchema,
 )
 from ...webhook.transport.synchronous.transport import (
+    trigger_webhook_sync_promise,
     trigger_webhook_sync_promise_if_not_cached,
 )
 from ..interface import ExcludedShippingMethod, ShippingMethodData
@@ -85,17 +86,24 @@ def _get_excluded_shipping_methods_or_fetch(
     subscribable_object: "tuple[Order | Checkout, list[ShippingMethodData]]",
     allow_replica: bool,
     requestor: Union["App", "User", None],
-    cache_data: dict,
+    cache_data: dict | None,
 ) -> Promise[dict[str, list[ExcludedShippingMethod]]]:
     """Return data of all excluded shipping methods.
 
-    The data will be fetched from the cache. If missing it will fetch it from all
-    defined webhooks by calling a request to each of them one by one.
+    The data will be fetched from the cache if present and cache_data was provided.
+    If missing it will fetch it from all defined webhooks by calling a request to
+    each of them one by one.
     """
     promised_responses = []
     for webhook in webhooks:
-        promised_responses.append(
-            trigger_webhook_sync_promise_if_not_cached(
+        # The approach for Order and Checkout is the same, except that
+        # Checkout does not need a cache anymore as all deliveries and their
+        # data are denormalized. The same flow will be introduced for the Order
+        # but for now we use cache_data as a indicator to decide if we want to
+        # use the cache approach. This will be fully dropped after introducing
+        # denormalized deliveries for Order.
+        if cache_data is not None:
+            response_promise = trigger_webhook_sync_promise_if_not_cached(
                 event_type=event_type,
                 static_payload=static_payload,
                 webhook=webhook,
@@ -106,7 +114,17 @@ def _get_excluded_shipping_methods_or_fetch(
                 cache_timeout=CACHE_EXCLUDED_SHIPPING_TIME,
                 requestor=requestor,
             )
-        )
+        else:
+            response_promise = trigger_webhook_sync_promise(
+                event_type=event_type,
+                static_payload=static_payload,
+                webhook=webhook,
+                allow_replica=allow_replica,
+                subscribable_object=subscribable_object,
+                requestor=requestor,
+                timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+            )
+        promised_responses.append(response_promise)
 
     def process_responses(
         responses: list[Any],
@@ -129,13 +147,13 @@ def get_excluded_shipping_data(
     subscribable_object: "tuple[Order | Checkout, list[ShippingMethodData]]",
     allow_replica: bool,
     requestor: Union["App", "User", None],
-    cache_data: dict,
+    cache_data: dict | None,
 ) -> Promise[list[ExcludedShippingMethod]]:
     """Exclude not allowed shipping methods by sync webhook.
 
     Fetch excluded shipping methods from sync webhooks and return them as a list of
     excluded shipping methods.
-    The function uses a cache_key to reduce the number of
+    When cache_data is provided, the function uses it to built cache and reduce the number of
     requests which we call to the external APIs. In case when we have the same payload
     in a cache as we're going to send now, we will skip an additional request and use
     the response fetched from cache.

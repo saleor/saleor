@@ -2,7 +2,6 @@ import json
 import uuid
 from decimal import Decimal
 from unittest import mock
-from unittest.mock import call
 
 import graphene
 import pytest
@@ -14,13 +13,9 @@ from ....graphql.core.utils import to_global_id_or_none
 from ....graphql.tests.utils import get_graphql_content
 from ....shipping.interface import ExcludedShippingMethod, ShippingMethodData
 from ....shipping.models import ShippingMethod
-from ....shipping.webhooks.shared import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
-from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...webhooks.exclude_shipping import (
-    _generate_excluded_shipping_methods_for_checkout_payload,
-    _get_cache_data_for_exclude_shipping_methods,
     excluded_shipping_methods_for_checkout,
 )
 
@@ -173,26 +168,7 @@ def test_checkout_deliveries_webhook_called_once(
     assert mocked_webhook.called
 
 
-def test_get_cache_data_for_exclude_shipping_methods(checkout_with_items):
-    # given
-    payload_str = _generate_excluded_shipping_methods_for_checkout_payload(
-        checkout_with_items, []
-    )
-    assert "last_change" in payload_str
-    assert "meta" in payload_str
-
-    # when
-    cache_data = _get_cache_data_for_exclude_shipping_methods(payload_str)
-
-    # then
-    assert "last_change" not in cache_data
-    assert "meta" not in cache_data
-
-
-@mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch(
-    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
-)
+@mock.patch("saleor.shipping.webhooks.shared.trigger_webhook_sync_promise")
 @mock.patch(
     "saleor.checkout.webhooks.exclude_shipping."
     "_generate_excluded_shipping_methods_for_checkout_payload"
@@ -200,7 +176,6 @@ def test_get_cache_data_for_exclude_shipping_methods(checkout_with_items):
 def test_excluded_shipping_methods_for_checkout_webhook_with_subscription(
     mocked_static_payload,
     mocked_webhook,
-    mocked_cache_set,
     checkout_with_items,
     available_shipping_methods,
     exclude_shipping_app_with_subscription,
@@ -240,33 +215,17 @@ def test_excluded_shipping_methods_for_checkout_webhook_with_subscription(
     assert webhook_reason in em.reason
 
     mocked_webhook.assert_called_once_with(
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-        shipping_webhook,
-        False,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        webhook=shipping_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-        request=None,
         requestor=None,
     )
-    expected_cache_key = generate_cache_key_for_webhook(
-        payload_dict,
-        shipping_webhook.target_url,
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-        shipping_app.id,
-    )
-
-    mocked_cache_set.assert_called_once_with(
-        expected_cache_key,
-        webhook_response,
-        timeout=CACHE_EXCLUDED_SHIPPING_TIME,
-    )
 
 
-@mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch(
-    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
-)
+@mock.patch("saleor.shipping.webhooks.shared.trigger_webhook_sync_promise")
 @mock.patch(
     "saleor.checkout.webhooks.exclude_shipping."
     "_generate_excluded_shipping_methods_for_checkout_payload"
@@ -274,7 +233,6 @@ def test_excluded_shipping_methods_for_checkout_webhook_with_subscription(
 def test_multiple_app_with_excluded_shipping_methods_for_checkout(
     mocked_payload,
     mocked_webhook,
-    mocked_cache_set,
     checkout_with_items,
     available_shipping_methods,
     app_exclude_shipping_for_checkout,
@@ -337,59 +295,27 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
     assert webhook_second_reason in em.reason
     event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
     mocked_webhook.assert_any_call(
-        event_type,
-        shipping_webhook,
-        False,
+        event_type=event_type,
+        webhook=shipping_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-        request=None,
         requestor=None,
     )
     mocked_webhook.assert_any_call(
-        event_type,
-        second_shipping_webhook,
-        False,
+        event_type=event_type,
+        webhook=second_shipping_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-        request=None,
         requestor=None,
     )
     assert mocked_webhook.call_count == 2
 
-    expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
-        payload_dict, shipping_webhook.target_url, event_type, shipping_app.id
-    )
-    expected_cache_for_second_webhook_key = generate_cache_key_for_webhook(
-        payload_dict,
-        second_shipping_webhook.target_url,
-        event_type,
-        second_shipping_app.id,
-    )
 
-    assert expected_cache_for_first_webhook_key != expected_cache_for_second_webhook_key
-
-    mocked_cache_set.assert_has_calls(
-        [
-            call(
-                expected_cache_for_first_webhook_key,
-                first_webhook_response,
-                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
-            ),
-            call(
-                expected_cache_for_second_webhook_key,
-                second_webhook_response,
-                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
-            ),
-        ]
-    )
-
-
-@mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
-@mock.patch(
-    "saleor.webhook.transport.synchronous.transport.trigger_webhook_sync_promise"
-)
+@mock.patch("saleor.shipping.webhooks.shared.trigger_webhook_sync_promise")
 @mock.patch(
     "saleor.checkout.webhooks.exclude_shipping."
     "_generate_excluded_shipping_methods_for_checkout_payload"
@@ -397,7 +323,6 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
 def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_checkout(
     mocked_payload,
     mocked_webhook,
-    mocked_cache_set,
     checkout_with_items,
     available_shipping_methods,
     app_exclude_shipping_for_checkout,
@@ -468,49 +393,24 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
     assert webhook_second_reason in em.reason
 
     mocked_webhook.assert_any_call(
-        event_type,
-        first_webhook,
-        False,
+        event_type=event_type,
+        webhook=first_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-        request=None,
         requestor=None,
     )
     mocked_webhook.assert_any_call(
-        event_type,
-        second_webhook,
-        False,
+        event_type=event_type,
+        webhook=second_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(checkout_with_items, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-        request=None,
         requestor=None,
     )
     assert mocked_webhook.call_count == 2
-
-    expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
-        payload_dict, first_webhook.target_url, event_type, shipping_app.id
-    )
-    expected_cache_for_second_webhook_key = generate_cache_key_for_webhook(
-        payload_dict, second_webhook.target_url, event_type, shipping_app.id
-    )
-    assert expected_cache_for_first_webhook_key != expected_cache_for_second_webhook_key
-
-    mocked_cache_set.assert_has_calls(
-        [
-            call(
-                expected_cache_for_first_webhook_key,
-                first_webhook_response,
-                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
-            ),
-            call(
-                expected_cache_for_second_webhook_key,
-                second_webhook_response,
-                timeout=CACHE_EXCLUDED_SHIPPING_TIME,
-            ),
-        ]
-    )
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
