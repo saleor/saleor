@@ -146,7 +146,7 @@ def test_creates_app_from_manifest_skips_sending_token_when_target_url_not_provi
 def test_creates_app_from_manifest_installation_failed():
     manifest_url = "http://localhost:3000/manifest-wrong"
 
-    with pytest.raises(ValidationError, match="Incorrect format."):
+    with pytest.raises(ValidationError, match="Invalid target url."):
         call_command("install_app", manifest_url)
 
     app_job = AppInstallation.objects.get()

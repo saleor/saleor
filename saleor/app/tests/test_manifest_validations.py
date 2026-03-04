@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError as PydanticValidationError
 
 from ..error_codes import AppErrorCode
-from ..manifest_schema import ManifestSchema
+from ..manifest_schema import ICON_MIME_TYPES, ManifestSchema
 
 MINIMAL_MANIFEST = {
     "id": "app.example",
@@ -150,6 +150,7 @@ def test_manifest_schema_brand_invalid_url():
 
 def test_manifest_schema_brand_invalid_mime_type():
     # given
+    assert "image/jpeg" not in ICON_MIME_TYPES
     manifest_data = {
         **MINIMAL_MANIFEST,
         "brand": {"logo": {"default": "https://example.com/logo.jpg"}},

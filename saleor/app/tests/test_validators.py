@@ -11,7 +11,6 @@ from ..manifest_validations import (
     _clean_required_saleor_version,
     _parse_version,
 )
-from ..validators import brand_validator
 
 
 def test_validate_url():
@@ -64,26 +63,6 @@ def test_clean_required_saleor_version_raise_for_saleor_version():
     with pytest.raises(ValidationError) as error:
         _clean_required_saleor_version("^3.13", True, "3.12.1")
     assert error.value.code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
-
-
-def test_brand_validator_required_fields():
-    with pytest.raises(ValidationError) as error:
-        brand_validator({"logo": {}})
-    assert error.value.code == AppErrorCode.REQUIRED.value
-
-
-@pytest.mark.parametrize(
-    "url",
-    [
-        "example.com/logo.png",
-        "https://exmple.com/logo",
-        "https://exmple.com/logo.jpg",
-    ],
-)
-def test_brand_validator_with_invalid_logo_url(url):
-    with pytest.raises(ValidationError) as error:
-        brand_validator({"logo": {"default": url}})
-    assert error.value.code == AppErrorCode.INVALID_URL_FORMAT.value
 
 
 def test_new_tab_relative_url_without_app_url(app_manifest):

@@ -118,7 +118,7 @@ class ManifestSchema(BaseModel):
         except (DjangoValidationError, AttributeError) as e:
             raise PydanticCustomError(
                 AppErrorCode.INVALID_URL_FORMAT.value,
-                "Incorrect format.",
+                "Invalid target url.",
                 {"error_code": AppErrorCode.INVALID_URL_FORMAT.value},
             ) from e
         return v
@@ -128,9 +128,8 @@ class ManifestSchema(BaseModel):
     def validate_author(cls, v: str | None) -> str | None:
         if v is None:
             return None
-        if isinstance(v, str):
-            if clean := v.strip():
-                return clean
+        if clean := v.strip():
+            return clean
         raise PydanticCustomError(
             AppErrorCode.INVALID.value,
             "Incorrect value for field: author",
