@@ -522,6 +522,199 @@ def test_complete_receipt_with_no_linked_orders_creates_no_fulfillments(
     assert Fulfillment.objects.count() == 0
 
 
+def test_variant_reallocation_adjusts_stock_quantity(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    product,
+    channel_USD,
+    staff_user,
+):
+    """Stock.quantity must be adjusted when reallocation moves entitlement across variants.
+
+    Regression: reallocation updated Stock.quantity_allocated but not Stock.quantity,
+    causing available_quantity to go negative and blocking fulfillment approval with
+    InsufficientStock.
+
+    Scenario: PO orders 6×S + 4×M (10 total). Receipt receives 4×S + 6×M.
+    Reallocation succeeds (totals match). After reallocation:
+      - stock_s.quantity should decrease by 2 (6→4)
+      - stock_m.quantity should increase by 2 (4→6)
+      - available_quantity (quantity - quantity_allocated) must be >= 0 for both
+    """
+    from decimal import Decimal
+
+    from ...order import OrderStatus
+    from ...order.models import Order, OrderLine
+    from ...product.models import ProductVariant, ProductVariantChannelListing
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    # given - two variants of the same product
+    variant_s = ProductVariant.objects.create(product=product, sku="STOCKFIX-S")
+    variant_m = ProductVariant.objects.create(product=product, sku="STOCKFIX-M")
+    for v in [variant_s, variant_m]:
+        ProductVariantChannelListing.objects.create(
+            variant=v,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            discounted_price_amount=Decimal(10),
+            cost_price_amount=Decimal(1),
+            currency=channel_USD.currency_code,
+        )
+
+    # given - stock at destination warehouse matching PO quantities
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_s,
+        quantity=1000,
+        quantity_allocated=0,
+    )
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_m,
+        quantity=1000,
+        quantity_allocated=0,
+    )
+    stock_s = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_s,
+        quantity=6,
+        quantity_allocated=0,
+    )
+    stock_m = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_m,
+        quantity=4,
+        quantity_allocated=0,
+    )
+
+    # given - shipment and POIs: 6×S + 4×M
+    ship = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-STOCKFIX",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    poi_s = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=6,
+        total_price_amount=Decimal("60.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    poi_m = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_m,
+        quantity_ordered=4,
+        total_price_amount=Decimal("40.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # given - order with allocations: 6×S + 4×M
+    addr = purchase_order.source_warehouse.address
+    order_a = Order.objects.create(
+        channel=channel_USD,
+        billing_address=addr,
+        shipping_address=addr,
+        status=OrderStatus.UNCONFIRMED,
+        lines_count=2,
+    )
+    line_a_s = OrderLine.objects.create(
+        order=order_a,
+        variant=variant_s,
+        quantity=6,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("60.00"),
+        total_price_net_amount=Decimal("60.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+    line_a_m = OrderLine.objects.create(
+        order=order_a,
+        variant=variant_m,
+        quantity=4,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("40.00"),
+        total_price_net_amount=Decimal("40.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+
+    alloc_s = Allocation.objects.create(
+        order_line=line_a_s, stock=stock_s, quantity_allocated=6
+    )
+    stock_s.quantity_allocated = 6
+    stock_s.save()
+    poi_s.quantity_allocated = 6
+    poi_s.save()
+    AllocationSource.objects.create(
+        purchase_order_item=poi_s, allocation=alloc_s, quantity=6
+    )
+
+    alloc_m = Allocation.objects.create(
+        order_line=line_a_m, stock=stock_m, quantity_allocated=4
+    )
+    stock_m.quantity_allocated = 4
+    stock_m.save()
+    poi_m.quantity_allocated = 4
+    poi_m.save()
+    AllocationSource.objects.create(
+        purchase_order_item=poi_m, allocation=alloc_m, quantity=4
+    )
+
+    # given - receipt with swapped quantities: 4×S + 6×M
+    receipt = Receipt.objects.create(
+        shipment=ship,
+        status=ReceiptStatus.IN_PROGRESS,
+        created_by=staff_user,
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt, purchase_order_item=poi_s, quantity_received=4
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt, purchase_order_item=poi_m, quantity_received=6
+    )
+
+    # when
+    result = complete_receipt(receipt, user=staff_user)
+
+    # then - reallocation succeeded, no POIAs
+    assert result["adjustments_pending"] == []
+
+    # then - Stock.quantity adjusted to match what was actually received
+    stock_s.refresh_from_db()
+    stock_m.refresh_from_db()
+    assert stock_s.quantity == 4, (
+        f"stock_s.quantity should be 4 (received 4, not 6), got {stock_s.quantity}"
+    )
+    assert stock_m.quantity == 6, (
+        f"stock_m.quantity should be 6 (received 6, not 4), got {stock_m.quantity}"
+    )
+
+    # then - available_quantity must not be negative
+    assert stock_s.quantity >= stock_s.quantity_allocated, (
+        f"stock_s over-allocated: qty={stock_s.quantity} alloc={stock_s.quantity_allocated}"
+    )
+    assert stock_m.quantity >= stock_m.quantity_allocated, (
+        f"stock_m over-allocated: qty={stock_m.quantity} alloc={stock_m.quantity_allocated}"
+    )
+
+
 def test_complete_receipt_updates_quantity_ordered_after_balanced_reallocation(
     purchase_order,
     owned_warehouse,
