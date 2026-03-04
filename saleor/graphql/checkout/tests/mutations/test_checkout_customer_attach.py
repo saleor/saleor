@@ -6,7 +6,7 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....account.models import User
+from .....account.tests.fixtures.user import dangerously_create_test_user
 from .....checkout.actions import call_checkout_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....core.models import EventDelivery
@@ -257,7 +257,7 @@ def test_checkout_customer_attach_user_to_checkout_with_user(
 """
 
     default_address = address.get_copy()
-    second_user = User.objects.create_user(
+    second_user = dangerously_create_test_user(
         "test2@example.com",
         "password",
         default_billing_address=default_address,

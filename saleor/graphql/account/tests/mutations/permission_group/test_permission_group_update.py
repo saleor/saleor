@@ -6,7 +6,8 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from ......account.error_codes import PermissionGroupErrorCode
-from ......account.models import Group, User
+from ......account.models import Group
+from ......account.tests.fixtures.user import dangerously_create_test_user
 from ......channel.models import Channel
 from ......core.utils.json_serializer import CustomJsonEncoder
 from ......permission.enums import AccountPermissions, AppPermission, OrderPermissions
@@ -1175,7 +1176,7 @@ def test_permission_group_update_mutation_out_of_scope_users(
     permission_manage_products,
 ):
     staff_user = staff_users[0]
-    staff_user3 = User.objects.create_user(
+    staff_user3 = dangerously_create_test_user(
         email="staff3_test@example.com",
         password="password",
         is_staff=True,
