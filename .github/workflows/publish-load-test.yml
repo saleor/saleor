@@ -39,10 +39,30 @@ jobs:
     needs:
       - publish
     steps:
+      - name: Get Token
+        id: get-token
+        uses: saleor/saleor-internal-actions/request-vault-token@eb0c692da7bf13f5e1a82c17488b24c514dd10a1 # v1.10.0
+        with:
+          vault-url: ${{ secrets.VAULT_URL }}
+          vault-jwt: ${{ secrets.VAULT_JWT }}
+
       - name: Trigger load test deployment
+        env:
+          BRANCH: ${{ github.event.pull_request.base.ref }}
+          VERSION: ${{ needs.publish.outputs.version }}
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
         run: |
-          curl -f -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
-            https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
-            -d "{\"event_type\":\"deploy-load-test\",\"client_payload\":{\"version\":\"${{ needs.publish.outputs.version }}\",\"branch\":\"${{ github.event.pull_request.base.ref }}\"}}"
+          payload=$(
+              jq --arg version "$VERSION" --arg branch "$BRANCH" --null-input '
+                {
+                  "event_type": "deploy-load-test",
+                  "client_payload": {
+                    "branch": $branch,  
+                    "version": $version
+                  }
+                }
+              '
+          )
+
+          gh api /repos/saleor/saleor-multitenant/dispatches --input - <<< "$payload"
+
