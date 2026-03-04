@@ -187,10 +187,10 @@ def test_create_purchase_order_destination_warehouse_must_be_owned(
     assert PurchaseOrder.objects.count() == 0
 
 
-def test_create_purchase_order_at_least_one_item_required(
+def test_create_purchase_order_without_items(
     staff_api_client, permission_manage_purchase_orders, warehouse, supplier_warehouse
 ):
-    """At least one item is required."""
+    """Draft purchase order can be created without items."""
     # given
     variables = {
         "input": {
@@ -200,7 +200,6 @@ def test_create_purchase_order_at_least_one_item_required(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
-            "items": [],
         }
     }
 
@@ -214,11 +213,56 @@ def test_create_purchase_order_at_least_one_item_required(
     # then
     content = get_graphql_content(response)
     data = content["data"]["createPurchaseOrder"]
-    errors = data["purchaseOrderErrors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == PurchaseOrderErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "items"
-    assert PurchaseOrder.objects.count() == 0
+    assert not data["purchaseOrderErrors"]
+    assert PurchaseOrder.objects.count() == 1
+    assert PurchaseOrderItem.objects.count() == 0
+
+
+def test_create_purchase_order_items_without_price(
+    staff_api_client,
+    permission_manage_purchase_orders,
+    variant,
+    warehouse,
+    supplier_warehouse,
+):
+    """Items can be created without unit price or currency for draft POs."""
+    # given
+    variables = {
+        "input": {
+            "sourceWarehouseId": graphene.Node.to_global_id(
+                "Warehouse", supplier_warehouse.id
+            ),
+            "destinationWarehouseId": graphene.Node.to_global_id(
+                "Warehouse", warehouse.id
+            ),
+            "items": [
+                {
+                    "variantId": graphene.Node.to_global_id(
+                        "ProductVariant", variant.id
+                    ),
+                    "quantityOrdered": 50,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_PURCHASE_ORDER,
+        variables=variables,
+        permissions=[permission_manage_purchase_orders],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["createPurchaseOrder"]
+    assert not data["purchaseOrderErrors"]
+    assert PurchaseOrder.objects.count() == 1
+
+    item = PurchaseOrderItem.objects.first()
+    assert item.quantity_ordered == 50
+    assert item.total_price_amount is None
+    assert item.currency is None
 
 
 def test_create_purchase_order_quantity_must_be_positive(

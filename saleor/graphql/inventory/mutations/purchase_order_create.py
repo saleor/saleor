@@ -95,13 +95,8 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
                 code=PurchaseOrderErrorCode.REQUIRED.value,
             )
 
-        # Validate items
+        # Validate items (optional for draft creation)
         items = data.get("items") or []
-        if not items:
-            errors["items"] = ValidationError(
-                "At least one item is required.",
-                code=PurchaseOrderErrorCode.REQUIRED.value,
-            )
         if items:
             cleaned_items = []
 
@@ -142,7 +137,7 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
                         code=PurchaseOrderErrorCode.REQUIRED.value,
                     )
 
-                # Validate unit price
+                # Validate unit price (optional)
                 unit_price = item.get("unit_price_amount")
                 if unit_price is not None:
                     if unit_price <= 0:
@@ -152,13 +147,8 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
                         )
                     else:
                         cleaned_item["unit_price_amount"] = unit_price
-                else:
-                    item_errors["unit_price_amount"] = ValidationError(
-                        "This field is required.",
-                        code=PurchaseOrderErrorCode.REQUIRED.value,
-                    )
 
-                # Validate currency (basic 3-letter code check)
+                # Validate currency (optional, basic 3-letter code check)
                 currency = item.get("currency")
                 if currency:
                     if not (len(currency) == 3 and currency.isalpha()):
@@ -168,11 +158,6 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
                         )
                     else:
                         cleaned_item["currency"] = currency.upper()
-                else:
-                    item_errors["currency"] = ValidationError(
-                        "This field is required.",
-                        code=PurchaseOrderErrorCode.REQUIRED.value,
-                    )
 
                 # Validate country of origin (optional)
                 country_code = item.get("country_of_origin")
@@ -220,9 +205,11 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
             # Create purchase order items
             items = cleaned_input.get("items", [])
             for item_data in items:
-                # Calculate total_price_amount from unit price * quantity
+                unit_price = item_data.get("unit_price_amount")
                 total_price = (
-                    item_data["unit_price_amount"] * item_data["quantity_ordered"]
+                    unit_price * item_data["quantity_ordered"]
+                    if unit_price is not None
+                    else None
                 )
 
                 models.PurchaseOrderItem.objects.create(
@@ -230,8 +217,8 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
                     product_variant=item_data["product_variant"],
                     quantity_ordered=item_data["quantity_ordered"],
                     total_price_amount=total_price,
-                    currency=item_data["currency"],
-                    country_of_origin=item_data["country_of_origin"],
+                    currency=item_data.get("currency"),
+                    country_of_origin=item_data.get("country_of_origin"),
                     status=PurchaseOrderItemStatus.DRAFT,
                 )
 
