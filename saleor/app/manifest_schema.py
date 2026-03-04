@@ -6,6 +6,7 @@ from pydantic.alias_generators import to_camel
 from pydantic_core import PydanticCustomError
 
 from ..thumbnail import ICON_MIME_TYPES
+from ..webhook.response_schemas.utils.annotations import DefaultIfNone
 from .error_codes import AppErrorCode
 from .types import DEFAULT_APP_TARGET
 from .validators import AppURLValidator, image_url_validator
@@ -103,8 +104,8 @@ class ManifestSchema(BaseModel):
     required_saleor_version: str | None = None
     author: str | None = None
     brand: ManifestBrandSchema | None = None
-    extensions: list[ManifestExtensionSchema] = []
-    webhooks: list[ManifestWebhookSchema] = []
+    extensions: DefaultIfNone[list[ManifestExtensionSchema]] = []
+    webhooks: DefaultIfNone[list[ManifestWebhookSchema]] = []
 
     @field_validator("token_target_url")
     @classmethod

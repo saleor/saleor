@@ -180,6 +180,34 @@ def test_manifest_schema_brand_valid_png():
     assert schema.brand.logo.default == "https://example.com/logo.png"
 
 
+def test_manifest_schema_extensions_null_defaults_to_empty_list():
+    # given
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": None,
+    }
+
+    # when
+    schema = ManifestSchema.model_validate(manifest_data)
+
+    # then
+    assert schema.extensions == []
+
+
+def test_manifest_schema_webhooks_null_defaults_to_empty_list():
+    # given
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": None,
+    }
+
+    # when
+    schema = ManifestSchema.model_validate(manifest_data)
+
+    # then
+    assert schema.webhooks == []
+
+
 def test_manifest_schema_extension_missing_required_fields():
     # given
     manifest_data = {
