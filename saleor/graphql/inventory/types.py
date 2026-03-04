@@ -208,10 +208,10 @@ class PurchaseOrderItemInput(BaseInputObjectType):
         required=True, description="Quantity to order from supplier."
     )
     unit_price_amount = PositiveDecimal(
-        required=True, description="Unit cost (buy price)."
+        description="Unit cost (buy price). Optional for draft creation."
     )
     currency = graphene.String(
-        required=True, description="Currency code (e.g., GBP, USD)."
+        description="Currency code (e.g., GBP, USD). Optional for draft creation."
     )
     country_of_origin = graphene.String(
         description="ISO 2-letter country code for customs/duties.",

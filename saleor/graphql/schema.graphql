@@ -28942,11 +28942,11 @@ input PurchaseOrderItemInput @doc(category: "Products") {
   """Quantity to order from supplier."""
   quantityOrdered: Int!
 
-  """Unit cost (buy price)."""
-  unitPriceAmount: PositiveDecimal!
+  """Unit cost (buy price). Optional for draft creation."""
+  unitPriceAmount: PositiveDecimal
 
-  """Currency code (e.g., GBP, USD)."""
-  currency: String!
+  """Currency code (e.g., GBP, USD). Optional for draft creation."""
+  currency: String
 
   """ISO 2-letter country code for customs/duties."""
   countryOfOrigin: String
