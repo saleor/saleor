@@ -324,7 +324,7 @@ def _clean_extensions(manifest_data, app_permissions, errors):
 
 
 def _clean_webhooks(manifest_data, errors):
-    webhooks = manifest_data.get("webhooks", [])
+    webhooks = manifest_data.get("webhooks") or []
 
     async_types = {
         str_to_enum(e_type[0]): e_type[0] for e_type in WebhookEventAsyncType.CHOICES
@@ -426,7 +426,7 @@ def _validate_required_fields(manifest_data, errors):
                 )
             )
 
-    webhooks = manifest_data.get("webhooks", [])
+    webhooks = manifest_data.get("webhooks") or []
     for webhook in webhooks:
         webhook_fields = set(webhook.keys())
         if missing_fields := webhook_required_fields.difference(webhook_fields):
