@@ -72,6 +72,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 ),
             ),
             WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
                 type=WebhookEventAsyncType.CHECKOUT_UPDATED,
                 description="A checkout was updated.",
             ),
