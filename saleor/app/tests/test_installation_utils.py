@@ -678,7 +678,9 @@ def test_install_app_with_webhook_incorrect_is_active_value(
 
     error_dict = excinfo.value.error_dict
     assert "webhooks" in error_dict
-    assert error_dict["webhooks"][0].message == "Incorrect value for field: isActive."
+    assert error_dict["webhooks"][0].message == (
+        "Input should be a valid boolean, unable to interpret input"
+    )
 
 
 def test_install_app_webhook_incorrect_query(
