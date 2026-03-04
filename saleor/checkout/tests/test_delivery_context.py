@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 from unittest import mock
 
@@ -9,6 +10,7 @@ from promise import Promise
 
 from ...shipping.interface import ExcludedShippingMethod, ShippingMethodData
 from ...shipping.models import ShippingMethod
+from ...shipping.utils import convert_shipping_method_data_to_checkout_delivery
 from ...webhook.transport.shipping_helpers import to_shipping_app_id
 from ..delivery_context import (
     DeliveryMethodBase,
@@ -832,7 +834,6 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
 ):
     # given
     shipping_price_amount = Decimal(10)
-    shipping_price_amount = Decimal(10)
 
     available_shipping_method = ShippingMethodData(
         id=to_shipping_app_id(app, "external-shipping-method-id"),
@@ -884,6 +885,547 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
 
     # The assigned shipping method has updated price
     assert assigned_delivery.price_amount == new_shipping_price_amount
+
+
+@mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
+def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_none(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    checkout_with_item,
+    plugins_manager,
+    address,
+):
+    # given
+    mocked_exclude_shipping_methods.return_value = Promise.resolve([])
+    mocked_list_shipping_methods.return_value = Promise.resolve([])
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = None
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.save()
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None, overwrite_assigned_delivery=False
+    ).get()
+
+    # then
+    assert len(shipping_methods) == 1
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery is None
+
+
+@mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
+def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_invalid_and_refreshed_is_none(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    checkout_with_item,
+    plugins_manager,
+    address,
+    settings,
+    checkout_delivery,
+    external_app,
+):
+    # given
+    mocked_exclude_shipping_methods.return_value = Promise.resolve([])
+    mocked_list_shipping_methods.return_value = Promise.resolve([])
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    assigned_delivery = checkout.shipping_methods.create(
+        external_shipping_method_id=to_shipping_app_id(
+            external_app, "expired-shipping-method-id"
+        ),
+        name="Old External Shipping name",
+        price_amount=Decimal(99),
+        currency="USD",
+        is_external=True,
+        is_valid=False,
+    )
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.assigned_delivery = assigned_delivery
+
+    checkout.save()
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None, overwrite_assigned_delivery=False
+    ).get()
+
+    # then
+    assert CheckoutDelivery.objects.count() == 2
+    assert len(shipping_methods) == 1
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+    assigned_delivery.refresh_from_db()
+    assert not assigned_delivery.is_valid
+
+
+@mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
+def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_valid_and_refreshed_is_none(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    checkout_with_item,
+    plugins_manager,
+    address,
+    settings,
+    external_app,
+):
+    # given
+    mocked_exclude_shipping_methods.return_value = Promise.resolve([])
+    mocked_list_shipping_methods.return_value = Promise.resolve([])
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    assigned_delivery = checkout.shipping_methods.create(
+        external_shipping_method_id=to_shipping_app_id(
+            external_app, "expired-shipping-method-id"
+        ),
+        name="Old External Shipping name",
+        price_amount=Decimal(99),
+        currency="USD",
+        is_external=True,
+        is_valid=True,
+    )
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None, overwrite_assigned_delivery=False
+    ).get()
+
+    # then
+    assert CheckoutDelivery.objects.count() == 2
+    assert len(shipping_methods) == 1
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+    assigned_delivery.refresh_from_db()
+    assert not assigned_delivery.is_valid
+
+
+@mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
+def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_valid_and_refreshed_unchanged(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    checkout_with_item,
+    plugins_manager,
+    address,
+    settings,
+    app,
+):
+    # given
+    shipping_price_amount = Decimal(10)
+
+    available_shipping_method = ShippingMethodData(
+        id=to_shipping_app_id(app, "external-shipping-method-id"),
+        price=Money(shipping_price_amount, checkout_with_item.currency),
+        active=True,
+        name="External Shipping",
+        description="External Shipping Description",
+        maximum_delivery_days=10,
+        minimum_delivery_days=5,
+        metadata={
+            "key": "value",
+        },
+    )
+
+    mocked_exclude_shipping_methods.return_value = Promise.resolve([])
+    mocked_list_shipping_methods.return_value = Promise.resolve(
+        [available_shipping_method]
+    )
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    assigned_delivery = convert_shipping_method_data_to_checkout_delivery(
+        available_shipping_method, checkout
+    )
+    assigned_delivery.is_valid = True
+    assigned_delivery.save()
+
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None, overwrite_assigned_delivery=False
+    ).get()
+
+    # then
+    assert CheckoutDelivery.objects.count() == 2
+    assert len(shipping_methods) == 2
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+    assigned_delivery.refresh_from_db()
+    assert assigned_delivery.is_valid
+
+
+@mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
+def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_invalid_and_refreshed_unchanged(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    checkout_with_item,
+    plugins_manager,
+    address,
+    settings,
+    app,
+):
+    # given
+    shipping_price_amount = Decimal(10)
+
+    available_shipping_method = ShippingMethodData(
+        id=to_shipping_app_id(app, "external-shipping-method-id"),
+        price=Money(shipping_price_amount, checkout_with_item.currency),
+        active=True,
+        name="External Shipping",
+        description="External Shipping Description",
+        maximum_delivery_days=10,
+        minimum_delivery_days=5,
+        metadata={
+            "key": "value",
+        },
+    )
+
+    mocked_exclude_shipping_methods.return_value = Promise.resolve([])
+    mocked_list_shipping_methods.return_value = Promise.resolve(
+        [available_shipping_method]
+    )
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    assigned_delivery = convert_shipping_method_data_to_checkout_delivery(
+        available_shipping_method, checkout
+    )
+    assigned_delivery.is_valid = False
+    assigned_delivery.save()
+
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None, overwrite_assigned_delivery=False
+    ).get()
+
+    # then
+    # Invalid assigned delivery should be converted to valid
+    # The assigned delivery's ID should be the same as previously
+    assert CheckoutDelivery.objects.count() == 2
+    assert len(shipping_methods) == 2
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+    assigned_delivery.refresh_from_db()
+    assert assigned_delivery.is_valid
+
+
+@mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
+def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_valid_and_refreshed_changed(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    checkout_with_item,
+    plugins_manager,
+    address,
+    settings,
+    app,
+):
+    # given
+    shipping_price_amount = Money(Decimal(10), checkout_with_item.currency)
+    changed_shipping_price_amount = Money(Decimal(11), checkout_with_item.currency)
+
+    available_shipping_method = ShippingMethodData(
+        id=to_shipping_app_id(app, "external-shipping-method-id"),
+        price=shipping_price_amount,
+        active=True,
+        name="External Shipping",
+        description="External Shipping Description",
+        maximum_delivery_days=10,
+        minimum_delivery_days=5,
+        metadata={
+            "key": "value",
+        },
+    )
+    assigned_delivery = convert_shipping_method_data_to_checkout_delivery(
+        available_shipping_method, checkout_with_item
+    )
+    assigned_delivery.is_valid = True
+    assigned_delivery.save()
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    changed_shipping_method = available_shipping_method
+    changed_shipping_method.price = changed_shipping_price_amount
+    changed_shipping_method.name = "Modified"
+
+    mocked_exclude_shipping_methods.return_value = Promise.resolve([])
+    mocked_list_shipping_methods.return_value = Promise.resolve(
+        [changed_shipping_method]
+    )
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None, overwrite_assigned_delivery=False
+    ).get()
+
+    # then
+    deliveries = CheckoutDelivery.objects.filter(
+        external_shipping_method_id=assigned_delivery.external_shipping_method_id
+    )
+    assert len(deliveries) == 2
+
+    assigned_delivery.refresh_from_db()
+    assert not assigned_delivery.is_valid
+    assert assigned_delivery.price == shipping_price_amount
+    refreshed_delivery = next(
+        delivery for delivery in deliveries if delivery.id != assigned_delivery.id
+    )
+    assert refreshed_delivery.price == changed_shipping_price_amount
+    assert (
+        refreshed_delivery.external_shipping_method_id
+        == assigned_delivery.external_shipping_method_id
+    )
+    assert refreshed_delivery.is_valid
+
+    assert len(shipping_methods) == 2
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+
+
+@mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
+def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_invalid_and_refreshed_changed(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    checkout_with_item,
+    plugins_manager,
+    address,
+    settings,
+    app,
+):
+    # given
+    shipping_price_amount = Money(Decimal(10), checkout_with_item.currency)
+    changed_shipping_price_amount = Money(Decimal(11), checkout_with_item.currency)
+
+    available_shipping_method = ShippingMethodData(
+        id=to_shipping_app_id(app, "external-shipping-method-id"),
+        price=shipping_price_amount,
+        active=True,
+        name="External Shipping",
+        description="External Shipping Description",
+        maximum_delivery_days=10,
+        minimum_delivery_days=5,
+        metadata={
+            "key": "value",
+        },
+    )
+    assigned_delivery = convert_shipping_method_data_to_checkout_delivery(
+        available_shipping_method, checkout_with_item
+    )
+    assigned_delivery.is_valid = False
+    assigned_delivery.save()
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    changed_shipping_method = available_shipping_method
+    changed_shipping_method.price = changed_shipping_price_amount
+    changed_shipping_method.name = "Modified"
+
+    mocked_exclude_shipping_methods.return_value = Promise.resolve([])
+    mocked_list_shipping_methods.return_value = Promise.resolve(
+        [changed_shipping_method]
+    )
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None, overwrite_assigned_delivery=False
+    ).get()
+
+    # then
+    deliveries = CheckoutDelivery.objects.filter(
+        external_shipping_method_id=assigned_delivery.external_shipping_method_id
+    )
+    assert len(deliveries) == 2
+
+    assigned_delivery.refresh_from_db()
+    assert not assigned_delivery.is_valid
+    assert assigned_delivery.price == shipping_price_amount
+    refreshed_delivery = next(
+        delivery for delivery in deliveries if delivery.id != assigned_delivery.id
+    )
+    assert refreshed_delivery.price == changed_shipping_price_amount
+    assert refreshed_delivery.is_valid
+
+    assert len(shipping_methods) == 2
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+
+
+@mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
+def test_fetch_shipping_methods_for_checkout_with_preserve_when_refreshed_is_changed_to_match_assigned(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    checkout_with_item,
+    plugins_manager,
+    address,
+    settings,
+    app,
+):
+    # given
+    shipping_price_amount = Decimal(10)
+
+    available_shipping_method = ShippingMethodData(
+        id=to_shipping_app_id(app, "external-shipping-method-id"),
+        price=Money(shipping_price_amount, checkout_with_item.currency),
+        active=True,
+        name="External Shipping",
+        description="External Shipping Description",
+        maximum_delivery_days=10,
+        minimum_delivery_days=5,
+        metadata={
+            "key": "value",
+        },
+    )
+
+    mocked_exclude_shipping_methods.return_value = Promise.resolve([])
+    mocked_list_shipping_methods.return_value = Promise.resolve(
+        [available_shipping_method]
+    )
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    assigned_delivery = convert_shipping_method_data_to_checkout_delivery(
+        available_shipping_method, checkout
+    )
+    assigned_delivery.is_valid = False
+    assigned_delivery.save()
+
+    CheckoutDelivery.objects.create(
+        checkout=checkout,
+        external_shipping_method_id=assigned_delivery.external_shipping_method_id,
+        built_in_shipping_method_id=None,
+        name="Modified",
+        price_amount=Decimal(11),
+        currency=checkout.currency,
+        is_valid=True,
+        is_external=True,
+    )
+
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None, overwrite_assigned_delivery=False
+    ).get()
+
+    # then
+    deliveries = CheckoutDelivery.objects.filter(
+        external_shipping_method_id=assigned_delivery.external_shipping_method_id
+    )
+    assert len(deliveries) == 1
+
+    assigned_delivery.refresh_from_db()
+    assert assigned_delivery.is_valid
+
+    assert len(shipping_methods) == 2
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
 
 
 def test_assign_delivery_method_to_checkout_delivery_method_to_none(

@@ -39,6 +39,7 @@ from ..enums import (
     CheckoutErrorCode,
     CollectionErrorCode,
     CustomerBulkUpdateErrorCode,
+    DeliveryOptionsCalculateErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
     ExternalNotificationTriggerErrorCode,
@@ -608,6 +609,15 @@ class ShippingError(Error):
         graphene.ID,
         description="List of channels IDs which causes the error.",
         required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
+
+
+class DeliveryOptionsCalculateError(Error):
+    code = DeliveryOptionsCalculateErrorCode(
+        description="The error code.", required=True
     )
 
     class Meta:

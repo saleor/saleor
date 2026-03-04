@@ -17784,6 +17784,20 @@ type Mutation {
   refundReasonReferenceClear: RefundReasonReferenceTypeClear @doc(category: "Orders")
 
   """
+  Calculates available delivery options for a checkout. Triggers `SHIPPING_LIST_METHODS_FOR_CHECKOUT` and `CHECKOUT_FILTER_SHIPPING_METHODS` webhooks.
+  
+  Added in Saleor 3.23.
+  
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered to fetch external shipping methods.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Triggered to filter shipping methods.
+  """
+  deliveryOptionsCalculate(
+    """The ID of the checkout."""
+    id: ID!
+  ): DeliveryOptionsCalculate @doc(category: "Shipping") @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
+
+  """
   Manage shipping method's availability in channels. 
   
   Requires one of the following permissions: MANAGE_SHIPPING.
@@ -23306,6 +23320,40 @@ type RefundReasonReferenceTypeClearError @doc(category: "Shop") {
 
   """Failed to clear refund reason reference type"""
   code: RefundSettingsErrorCode!
+}
+
+"""
+Calculates available delivery options for a checkout. Triggers `SHIPPING_LIST_METHODS_FOR_CHECKOUT` and `CHECKOUT_FILTER_SHIPPING_METHODS` webhooks.
+
+Added in Saleor 3.23.
+
+Triggers the following webhook events:
+- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered to fetch external shipping methods.
+- CHECKOUT_FILTER_SHIPPING_METHODS (sync): Triggered to filter shipping methods.
+"""
+type DeliveryOptionsCalculate @doc(category: "Shipping") @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) {
+  """List of the available deliveries."""
+  deliveries: [Delivery!]!
+  errors: [DeliveryOptionsCalculateError!]!
+}
+
+type DeliveryOptionsCalculateError @doc(category: "Shipping") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: DeliveryOptionsCalculateErrorCode!
+}
+
+enum DeliveryOptionsCalculateErrorCode @doc(category: "Shipping") {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INVALID
 }
 
 """

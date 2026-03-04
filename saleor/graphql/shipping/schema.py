@@ -21,6 +21,7 @@ from .mutations import (
     ShippingZoneDelete,
     ShippingZoneUpdate,
 )
+from .mutations.delivery_options_calculate import DeliveryOptionsCalculate
 from .mutations.shipping_method_channel_listing_update import (
     ShippingMethodChannelListingUpdate,
 )
@@ -78,6 +79,7 @@ class ShippingQueries(graphene.ObjectType):
 
 
 class ShippingMutations(graphene.ObjectType):
+    delivery_options_calculate = DeliveryOptionsCalculate.Field()
     shipping_method_channel_listing_update = ShippingMethodChannelListingUpdate.Field()
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()

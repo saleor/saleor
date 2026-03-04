@@ -419,6 +419,11 @@ ShippingErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 ShippingErrorCode.doc_category = DOC_CATEGORY_SHIPPING
 
+DeliveryOptionsCalculateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    shipping_error_codes.DeliveryOptionsCalculateErrorCode
+)
+DeliveryOptionsCalculateErrorCode.doc_category = DOC_CATEGORY_SHIPPING
+
 StockErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     warehouse_error_codes.StockErrorCode
 )
