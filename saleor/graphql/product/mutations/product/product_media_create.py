@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 
 from .....core.exceptions import UnsupportedMediaProviderException
 from .....core.http_client import HTTPClient
-from .....core.utils import create_file_from_response
 from .....core.utils.validators import (
     get_mime_type,
     get_oembed_data,
@@ -14,7 +13,7 @@ from .....core.utils.validators import (
 from .....permission.enums import ProductPermissions
 from .....product import ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
-from .....thumbnail.utils import get_filename_from_url
+from .....product.tasks import fetch_product_media_image_task
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -122,8 +121,8 @@ class ProductMediaCreate(BaseMutation):
             )
         if media_url:
             # Remote URLs can point to the images or oembed data.
-            # In case of images, file is downloaded. Otherwise we keep only
-            # URL to remote media.
+            # In case of images, the image is fetched asynchronously by a task.
+            # Otherwise we keep only URL to remote media.
             with HTTPClient.send_request(
                 "GET",
                 media_url,
@@ -142,13 +141,12 @@ class ProductMediaCreate(BaseMutation):
                                 )
                             }
                         )
-                    filename = get_filename_from_url(media_url, mime_type)
-                    image_file = create_file_from_response(image_data, filename)
                     media = product.media.create(
-                        image=image_file,
+                        external_url=media_url,
                         alt=alt,
                         type=ProductMediaTypes.IMAGE,
                     )
+                    fetch_product_media_image_task.delay(media.pk)
             if media is None:
                 try:
                     oembed_data, media_type = get_oembed_data(
