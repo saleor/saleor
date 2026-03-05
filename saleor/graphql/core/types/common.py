@@ -69,6 +69,7 @@ from ..enums import (
     ProductVariantBulkErrorCode,
     ProductVariantTranslateErrorCode,
     RefundSettingsErrorCode,
+    ReturnSettingsErrorCode,
     SendConfirmationEmailErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
@@ -365,6 +366,24 @@ class RefundSettingsUpdateError(Error):
 class RefundReasonReferenceTypeClearError(Error):
     code = RefundSettingsErrorCode(
         description="Failed to clear refund reason reference type", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
+
+
+class ReturnSettingsUpdateError(Error):
+    code = ReturnSettingsErrorCode(
+        description="Failed to update Return Settings", required=True
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
+
+
+class ReturnReasonReferenceTypeClearError(Error):
+    code = ReturnSettingsErrorCode(
+        description="Failed to clear return reason reference type", required=True
     )
 
     class Meta:
