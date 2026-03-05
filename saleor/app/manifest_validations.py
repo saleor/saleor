@@ -292,7 +292,7 @@ def _validate_mounts_for_widget(mount: str):
 
 
 def _clean_extensions(manifest_data, app_permissions, errors):
-    extensions = manifest_data.get("extensions", [])
+    extensions = manifest_data.get("extensions") or []
 
     for extension in extensions:
         if "target" not in extension:
@@ -324,7 +324,7 @@ def _clean_extensions(manifest_data, app_permissions, errors):
 
 
 def _clean_webhooks(manifest_data, errors):
-    webhooks = manifest_data.get("webhooks", [])
+    webhooks = manifest_data.get("webhooks") or []
 
     async_types = {
         str_to_enum(e_type[0]): e_type[0] for e_type in WebhookEventAsyncType.CHOICES
@@ -414,7 +414,7 @@ def _validate_required_fields(manifest_data, errors):
                 ValidationError("Field required.", code=AppErrorCode.REQUIRED.value)
             )
 
-    app_extensions_data = manifest_data.get("extensions", [])
+    app_extensions_data = manifest_data.get("extensions") or []
     for extension in app_extensions_data:
         extension_fields = set(extension.keys())
         if missing_fields := extension_required_fields.difference(extension_fields):
@@ -426,7 +426,7 @@ def _validate_required_fields(manifest_data, errors):
                 )
             )
 
-    webhooks = manifest_data.get("webhooks", [])
+    webhooks = manifest_data.get("webhooks") or []
     for webhook in webhooks:
         webhook_fields = set(webhook.keys())
         if missing_fields := webhook_required_fields.difference(webhook_fields):

@@ -13,7 +13,9 @@ from ..manifest_validations import (
     _clean_extension_url,
     _clean_extensions,
     _clean_required_saleor_version,
+    _clean_webhooks,
     _parse_version,
+    _validate_required_fields,
 )
 from ..types import AppExtensionTarget
 from ..validators import brand_validator
@@ -482,3 +484,63 @@ def test_widget_target_available_mounts_invalid(mount, app_manifest):
 
     # Then
     assert "extensions" in errors
+
+
+def test_clean_extensions_as_none(app_manifest):
+    # given
+    app_manifest["extensions"] = None
+    errors = {}
+
+    # when
+    _clean_extensions(app_manifest, [], errors)
+
+    # then
+    assert "extensions" not in errors
+
+
+def test_clean_webhooks_as_none(app_manifest):
+    # given
+    app_manifest["webhooks"] = None
+    errors = {}
+
+    # when
+    _clean_webhooks(app_manifest, errors)
+
+    # then
+    assert "webhooks" not in errors
+
+
+def test_validate_required_fields_extensions_as_none():
+    # given
+    manifest_data = {
+        "id": "app.id",
+        "version": "1.0.0",
+        "name": "Test App",
+        "tokenTargetUrl": "http://localhost:3000/token",
+        "extensions": None,
+    }
+    errors = {}
+
+    # when
+    _validate_required_fields(manifest_data, errors)
+
+    # then
+    assert not errors
+
+
+def test_validate_required_fields_webhooks_as_none():
+    # given
+    manifest_data = {
+        "id": "app.id",
+        "version": "1.0.0",
+        "name": "Test App",
+        "tokenTargetUrl": "http://localhost:3000/token",
+        "webhooks": None,
+    }
+    errors = {}
+
+    # when
+    _validate_required_fields(manifest_data, errors)
+
+    # then
+    assert not errors
