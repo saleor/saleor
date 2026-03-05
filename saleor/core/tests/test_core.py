@@ -6,9 +6,10 @@ from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
+from django.utils.crypto import get_random_string
 
 from ...account.models import Address, User
-from ...account.utils import create_superuser
+from ...account.tests.fixtures.user import dangerously_get_or_create_superuser
 from ...attribute.models import AttributeValue
 from ...channel.models import Channel
 from ...discount.models import (
@@ -68,16 +69,19 @@ def test_get_client_ip(ip_address, expected_ip):
 
 
 def test_create_superuser(db, client, media_root):
-    credentials = {"email": "admin@example.com", "password": "admin"}
+    credentials = {
+        "email": "admin@example.com",
+        "password": get_random_string(length=50),
+    }
     # Test admin creation
     assert User.objects.all().count() == 0
-    create_superuser(credentials)
+    dangerously_get_or_create_superuser(**credentials)
     assert User.objects.all().count() == 1
     admin = User.objects.all().first()
     assert admin.is_superuser
     assert not admin.avatar
     # Test duplicating
-    create_superuser(credentials)
+    dangerously_get_or_create_superuser(**credentials)
     assert User.objects.all().count() == 1
 
 
@@ -107,7 +111,7 @@ def test_create_channels_with_default_channel_slug(db):
 
 def test_create_fake_user(db):
     assert User.objects.all().count() == 0
-    random_data.create_fake_user("password")
+    random_data.create_fake_user(get_random_string(length=50))
     assert User.objects.all().count() == 1
     user = User.objects.all().first()
     assert not user.is_superuser
@@ -115,7 +119,7 @@ def test_create_fake_user(db):
 
 def test_create_fake_users(db):
     how_many = 5
-    for _ in random_data.create_users("password", how_many):
+    for _ in random_data.create_users(get_random_string(length=50), how_many):
         pass
     assert User.objects.all().count() == 5
 
@@ -135,7 +139,7 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
         pass
     for _ in random_data.create_shipping_zones():
         pass
-    for _ in random_data.create_users("password", 3):
+    for _ in random_data.create_users(get_random_string(length=50), 3):
         pass
     for _ in random_data.create_page_type():
         pass

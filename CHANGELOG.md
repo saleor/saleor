@@ -20,6 +20,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
   Make sure to adapt your GraphQL queries if you use the `_entities` query.
 - Mutations `channelCreate` and `channelUpdate` now raise GraphQL errors instead `INVALID` when negative `MINUTE`/`HOUR`/`DAY` values are passed.
+- `AppInstallInput` for `appInstall` mutation now requires `appName` and `manifestUrl` fields in the schema, matching the validation that was always enforced by the mutation logic.
 
 ### GraphQL API
 
@@ -40,6 +41,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Add optional usage telemetry. - #18789 by @wcislo-saleor
 - The app can now be installed without providing a `tokenTargetUrl` in the manifest file.
 - Removed the setting `JWT_EXPIRE` which allowed to configure Saleor to ignore the JWT token expiration. - #18856 by @NyanKiyoshi
+- Removed support for custom `User` DB models in `./manage.py createsuperuser` command. - #18890 by @NyanKiyoshi
 
 #### Search improvements
 

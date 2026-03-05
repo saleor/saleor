@@ -32145,10 +32145,10 @@ type AppInstall @doc(category: "Apps") {
 
 input AppInstallInput @doc(category: "Apps") {
   """Name of the app to install."""
-  appName: String
+  appName: String!
 
   """URL to app's manifest in JSON format."""
-  manifestUrl: String
+  manifestUrl: String!
 
   """Determine if app will be set active or not."""
   activateAfterInstallation: Boolean = true

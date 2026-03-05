@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 import graphene
 from django.conf import settings
+from django.contrib.auth import password_validation
 from django.core.files import File
 from django.db import connection
 from django.db.models import F
@@ -27,6 +28,7 @@ from ...account.models import Address, Group, User
 from ...account.search import (
     update_user_search_vector,
 )
+from ...account.tests.fixtures.user import dangerously_create_test_user
 from ...account.utils import store_user_address
 from ...app.models import App
 from ...attribute.models import (
@@ -557,6 +559,7 @@ def create_fake_user(user_password, save=True, generate_id=False):
     )
 
     if save:
+        password_validation.validate_password(user_password, user)
         user.set_password(user_password)
         user.save()
         user.addresses.add(address)
@@ -1169,7 +1172,7 @@ def _create_staff_user(staff_password, email=None, superuser=False):
     if staff_user:
         return staff_user
 
-    staff_user = User.objects.create_user(
+    staff_user = dangerously_create_test_user(
         first_name=first_name,
         last_name=last_name,
         email=email,

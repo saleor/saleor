@@ -4,7 +4,7 @@ from freezegun import freeze_time
 
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
-from ......account.models import User
+from ......account.tests.fixtures.user import dangerously_create_test_user
 from ......core.tokens import token_generator
 from .....core.utils import str_to_enum
 from .....tests.utils import get_graphql_content
@@ -38,7 +38,7 @@ def test_set_password(mocked_cache, user_api_client, setup_mock_for_cache):
     # given
     setup_mock_for_cache({}, mocked_cache)
 
-    customer_user = User.objects.create_user(
+    customer_user = dangerously_create_test_user(
         email="testSetPassword1@example.com", password="old-password"
     )
     token = token_generator.make_token(customer_user)
@@ -74,7 +74,7 @@ def test_set_password_confirm_user_and_match_orders(
     # given
     setup_mock_for_cache({}, mocked_cache)
 
-    customer_user = User.objects.create_user(
+    customer_user = dangerously_create_test_user(
         email="testSetPassword2@example.com",
         password="old-password",
         is_confirmed=False,

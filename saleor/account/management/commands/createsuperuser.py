@@ -8,12 +8,14 @@ import getpass
 import os
 import sys
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
 from django.core.management.base import BaseCommand, CommandError
 from django.db import DEFAULT_DB_ALIAS
 from django.utils.text import capfirst
+
+from ...models import User
+from ...tests.fixtures.user import dangerously_get_or_create_superuser
 
 
 class NotRunningInTTYException(Exception):
@@ -30,14 +32,11 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.UserModel = get_user_model()
-        self.username_field = self.UserModel._meta.get_field(
-            self.UserModel.USERNAME_FIELD
-        )
+        self.username_field = User._meta.get_field(User.USERNAME_FIELD)
 
     def add_arguments(self, parser):
         parser.add_argument(
-            f"--{self.UserModel.USERNAME_FIELD}",
+            f"--{User.USERNAME_FIELD}",
             help="Specifies the login for the superuser.",
         )
         parser.add_argument(
@@ -47,7 +46,7 @@ class Command(BaseCommand):
             dest="interactive",
             help=(
                 "Tells Django to NOT prompt the user for input of any kind. "
-                f"You must use --{self.UserModel.USERNAME_FIELD} with --noinput, along "
+                f"You must use --{User.USERNAME_FIELD} with --noinput, along "
                 "with an option for any other required field. Superusers created with "
                 "--noinput will not be able to log in until they're given a valid "
                 "password."
@@ -58,8 +57,8 @@ class Command(BaseCommand):
             default=DEFAULT_DB_ALIAS,
             help='Specifies the database to use. Default is "default".',
         )
-        for field_name in self.UserModel.REQUIRED_FIELDS:
-            field = self.UserModel._meta.get_field(field_name)
+        for field_name in User.REQUIRED_FIELDS:
+            field = User._meta.get_field(field_name)
             if field.many_to_many:
                 if (
                     field.remote_field.through
@@ -88,12 +87,12 @@ class Command(BaseCommand):
         return super().execute(*args, **options)
 
     def handle(self, *args, **options):
-        username = options[self.UserModel.USERNAME_FIELD]
+        username = options[User.USERNAME_FIELD]
         database = options["database"]
         user_data = {}
         verbose_field_name = self.username_field.verbose_name
         try:
-            self.UserModel._meta.get_field(PASSWORD_FIELD)
+            User._meta.get_field(PASSWORD_FIELD)
         except exceptions.FieldDoesNotExist:
             pass
         else:
@@ -134,15 +133,15 @@ class Command(BaseCommand):
                             self.stderr.write(error_msg)
                             username = None
                             continue
-                user_data[self.UserModel.USERNAME_FIELD] = username
-                fake_user_data[self.UserModel.USERNAME_FIELD] = (
+                user_data[User.USERNAME_FIELD] = username
+                fake_user_data[User.USERNAME_FIELD] = (
                     self.username_field.remote_field.model(username)
                     if self.username_field.remote_field
                     else username
                 )
                 # Prompt for required fields.
-                for field_name in self.UserModel.REQUIRED_FIELDS:
-                    field = self.UserModel._meta.get_field(field_name)
+                for field_name in User.REQUIRED_FIELDS:
+                    field = User._meta.get_field(field_name)
                     user_data[field_name] = options[field_name]
                     while user_data[field_name] is None:
                         message = self._get_input_message(field)
@@ -178,7 +177,7 @@ class Command(BaseCommand):
                         # Don't validate blank passwords.
                         continue
                     try:
-                        validate_password(password2, self.UserModel(**fake_user_data))
+                        validate_password(password2, User(**fake_user_data))
                     except exceptions.ValidationError as err:
                         self.stderr.write("\n".join(err.messages))
                         response = input(
@@ -199,11 +198,11 @@ class Command(BaseCommand):
                 # options.
                 if username is None:
                     username = os.environ.get(
-                        "DJANGO_SUPERUSER_" + self.UserModel.USERNAME_FIELD.upper()
+                        "DJANGO_SUPERUSER_" + User.USERNAME_FIELD.upper()
                     )
                 if username is None:
                     raise CommandError(
-                        f"You must use --{self.UserModel.USERNAME_FIELD} with --noinput."
+                        f"You must use --{User.USERNAME_FIELD} with --noinput."
                     )
                 error_msg = self._validate_username(
                     username, verbose_field_name, database
@@ -211,22 +210,25 @@ class Command(BaseCommand):
                 if error_msg:
                     raise CommandError(error_msg)
 
-                user_data[self.UserModel.USERNAME_FIELD] = username
-                for field_name in self.UserModel.REQUIRED_FIELDS:
+                user_data[User.USERNAME_FIELD] = username
+                for field_name in User.REQUIRED_FIELDS:
                     env_var = "DJANGO_SUPERUSER_" + field_name.upper()
                     value = options[field_name] or os.environ.get(env_var)
                     if not value:
                         raise CommandError(
                             f"You must use --{field_name} with --noinput."
                         )
-                    field = self.UserModel._meta.get_field(field_name)
+                    field = User._meta.get_field(field_name)
                     user_data[field_name] = field.clean(value, None)
 
-            self.UserModel._default_manager.db_manager(database).create_superuser(
-                **user_data
-            )
-            if options["verbosity"] >= 1:
+            _superuser, created = dangerously_get_or_create_superuser(**user_data)
+            if created:
                 self.stdout.write("Superuser created successfully.")
+            else:
+                self.stderr.write(
+                    "The operation was aborted: user already exists in database."
+                )
+                sys.exit(1)
         except KeyboardInterrupt:
             self.stderr.write("\nOperation cancelled.")
             sys.exit(1)
@@ -269,10 +271,8 @@ class Command(BaseCommand):
         """Validate username. If invalid, return a string error message."""
         if self.username_field.unique:
             try:
-                self.UserModel._default_manager.db_manager(database).get_by_natural_key(
-                    username
-                )
-            except self.UserModel.DoesNotExist:
+                User._default_manager.db_manager(database).get_by_natural_key(username)
+            except User.DoesNotExist:
                 pass
             else:
                 return f"Error: That {verbose_field_name} is already taken."
