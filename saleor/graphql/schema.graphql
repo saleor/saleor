@@ -15182,6 +15182,15 @@ type Shop implements ObjectWithMetadata {
   """
   preserveAllAddressFields: Boolean!
 
+  """
+  Controls whether password-based authentication is allowed.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  passwordLoginMode: PasswordLoginModeEnum!
+
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
 
@@ -15283,6 +15292,21 @@ type Limits {
 
   """Defines the number of warehouses."""
   warehouses: Int
+}
+
+"""
+Controls whether password-based authentication is allowed.
+
+    ENABLED - any user can log in with a password. This is the default behavior.
+    CUSTOMERS_ONLY - only customer users can log in with a password.
+        If a staff user logs in with a password, they will be treated as a customer
+        — the issued token will not contain any staff permissions.
+    DISABLED - no user can log in with a password. The tokenCreate mutation returns an error.
+"""
+enum PasswordLoginModeEnum @doc(category: "Authentication") {
+  ENABLED
+  CUSTOMERS_ONLY
+  DISABLED
 }
 
 """Gift card related settings from site settings."""
@@ -23087,6 +23111,13 @@ input ShopSettingsInput {
   Added in Saleor 3.22.
   """
   preserveAllAddressFields: Boolean
+
+  """
+  Controls whether password-based authentication is allowed.
+  
+  Added in Saleor 3.23.
+  """
+  passwordLoginMode: PasswordLoginModeEnum
 
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean @deprecated(reason: "Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.")
