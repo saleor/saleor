@@ -57,7 +57,7 @@ jobs:
                 {
                   "event_type": "deploy-load-test",
                   "client_payload": {
-                    "branch": $branch,  
+                    "branch": $branch,
                     "version": $version
                   }
                 }
@@ -65,4 +65,3 @@ jobs:
           )
 
           gh api /repos/saleor/saleor-multitenant/dispatches --input - <<< "$payload"
-
