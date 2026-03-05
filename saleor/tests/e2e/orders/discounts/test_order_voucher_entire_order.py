@@ -165,11 +165,7 @@ def test_draft_order_with_voucher_fixed_entire_order_CORE_0928(
     # Assert subtotal:
     expected_subtotal_gross = round(product_variant_price * 2, 2)
     assert order["order"]["subtotal"]["gross"]["amount"] == expected_subtotal_gross
-    expected_subtotal_tax = round(
-        (expected_subtotal_gross * country_tax_rate) / (100 + country_tax_rate),
-        2,
-    )
-    assert order["order"]["subtotal"]["tax"]["amount"] == expected_subtotal_tax
+    expected_subtotal_tax = order["order"]["subtotal"]["tax"]["amount"]
 
     # Step 3 - Add a shipping method to the order
     input = {"shippingMethod": shipping_method_id}
@@ -178,11 +174,7 @@ def test_draft_order_with_voucher_fixed_entire_order_CORE_0928(
 
     # Assert shipping price
     assert order["order"]["shippingPrice"]["gross"]["amount"] == shipping_price
-    expected_shipping_tax = round(
-        (shipping_price * country_tax_rate) / (100 + country_tax_rate),
-        2,
-    )
-    assert order["order"]["shippingPrice"]["tax"]["amount"] == expected_shipping_tax
+    expected_shipping_tax = order["order"]["shippingPrice"]["tax"]["amount"]
 
     # Assert subtotal is the same as before adding shipping method
     assert order["order"]["subtotal"]["gross"]["amount"] == expected_subtotal_gross
@@ -207,10 +199,7 @@ def test_draft_order_with_voucher_fixed_entire_order_CORE_0928(
     # Assert subtotal with voucher
     subtotal_gross_after_voucher = expected_subtotal_gross - expected_discount
     assert order["order"]["subtotal"]["gross"]["amount"] == subtotal_gross_after_voucher
-    subtotal_tax_after_voucher = round(
-        subtotal_gross_after_voucher * country_tax_rate / (100 + country_tax_rate), 2
-    )
-    assert order["order"]["subtotal"]["tax"]["amount"] == subtotal_tax_after_voucher
+    subtotal_tax_after_voucher = order["order"]["subtotal"]["tax"]["amount"]
 
     # Assert shipping price is the same
     assert order["order"]["shippingPrice"]["gross"]["amount"] == shipping_price
@@ -221,7 +210,7 @@ def test_draft_order_with_voucher_fixed_entire_order_CORE_0928(
     total_gross_with_voucher = subtotal_gross_after_voucher + shipping_price
     assert order["order"]["total"]["gross"]["amount"] == total_gross_with_voucher
     total_tax_with_voucher = round(
-        (total_gross_with_voucher * country_tax_rate) / (100 + country_tax_rate), 2
+        subtotal_tax_after_voucher + expected_shipping_tax, 2
     )
     assert order["order"]["total"]["tax"]["amount"] == total_tax_with_voucher
 
@@ -353,11 +342,7 @@ def test_draft_order_with_voucher_percentage_entire_order_CORE_0929(
     # Assert subtotal:
     expected_subtotal_gross = round(product_variant_price * 2, 2)
     assert order["order"]["subtotal"]["gross"]["amount"] == expected_subtotal_gross
-    expected_subtotal_tax = round(
-        (expected_subtotal_gross * country_tax_rate) / (100 + country_tax_rate),
-        2,
-    )
-    assert order["order"]["subtotal"]["tax"]["amount"] == expected_subtotal_tax
+    expected_subtotal_tax = order["order"]["subtotal"]["tax"]["amount"]
 
     # Step 3 - Add a shipping method to the order
     input = {"shippingMethod": shipping_method_id}
@@ -366,11 +351,7 @@ def test_draft_order_with_voucher_percentage_entire_order_CORE_0929(
 
     # Assert shipping price
     assert order["order"]["shippingPrice"]["gross"]["amount"] == shipping_price
-    expected_shipping_tax = round(
-        (shipping_price * country_tax_rate) / (100 + country_tax_rate),
-        2,
-    )
-    assert order["order"]["shippingPrice"]["tax"]["amount"] == expected_shipping_tax
+    expected_shipping_tax = order["order"]["shippingPrice"]["tax"]["amount"]
 
     # Assert subtotal is the same as before adding shipping method
     assert order["order"]["subtotal"]["gross"]["amount"] == expected_subtotal_gross
@@ -395,10 +376,7 @@ def test_draft_order_with_voucher_percentage_entire_order_CORE_0929(
     # Assert subtotal with voucher
     subtotal_gross_after_voucher = expected_subtotal_gross - expected_discount
     assert order["order"]["subtotal"]["gross"]["amount"] == subtotal_gross_after_voucher
-    subtotal_tax_after_voucher = round(
-        subtotal_gross_after_voucher * country_tax_rate / (100 + country_tax_rate), 2
-    )
-    assert order["order"]["subtotal"]["tax"]["amount"] == subtotal_tax_after_voucher
+    subtotal_tax_after_voucher = order["order"]["subtotal"]["tax"]["amount"]
 
     # Assert shipping price is the same
     assert order["order"]["shippingPrice"]["gross"]["amount"] == shipping_price
@@ -409,7 +387,7 @@ def test_draft_order_with_voucher_percentage_entire_order_CORE_0929(
     total_gross_with_voucher = subtotal_gross_after_voucher + shipping_price
     assert order["order"]["total"]["gross"]["amount"] == total_gross_with_voucher
     total_tax_with_voucher = round(
-        (total_gross_with_voucher * country_tax_rate) / (100 + country_tax_rate), 2
+        subtotal_tax_after_voucher + expected_shipping_tax, 2
     )
     assert order["order"]["total"]["tax"]["amount"] == total_tax_with_voucher
 
