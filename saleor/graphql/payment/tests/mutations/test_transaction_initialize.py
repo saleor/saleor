@@ -17,10 +17,14 @@ from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core.prices import Money, quantize_price
-from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
+from .....giftcard.const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+)
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderStatus
 from .....order.models import Order
 from .....payment import (
+    PaymentMethodType,
     TransactionAction,
     TransactionEventType,
     TransactionItemIdempotencyUniqueError,
@@ -3499,6 +3503,11 @@ def test_for_checkout_with_gift_card_payment_gateway(
         expected_message=f"Gift card (ending: {gift_card_created_by_staff.display_code}).",
         available_actions=[TransactionAction.CANCEL],
     )
+
+    transaction = checkout.payment_transactions.last()
+    assert transaction.payment_method_type == PaymentMethodType.GIFT_CARD
+    assert transaction.payment_method_name == GIFT_CARD_PAYMENT_GATEWAY_NAME
+    assert transaction.gift_card_display_code == gift_card_created_by_staff.display_code
 
 
 @mock.patch("saleor.giftcard.gateway.uuid4")

@@ -110,6 +110,10 @@ TRANSACTION_QUERY = """
                 ...on OtherPaymentMethodDetails{
                     name
                 }
+                ...on SaleorGiftcardPaymentMethodDetails{
+                    name
+                    code
+                }
             }
         }
     }
@@ -983,6 +987,74 @@ def test_transaction_query_by_staff_with_payment_method_other(
     data = content["data"]["transaction"]
     assert data["paymentMethodDetails"]["__typename"] == "OtherPaymentMethodDetails"
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
+
+
+def test_transaction_query_by_app_with_payment_method_gift_card(
+    app_api_client, transaction_item_created_by_app, permission_manage_payments, app
+):
+    # given
+    expected_display_code = "ABCD"
+    expected_payment_method_name = "Gift Card Payment Gateway"
+
+    transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
+    transaction_item_created_by_app.payment_method_name = expected_payment_method_name
+    transaction_item_created_by_app.gift_card_display_code = expected_display_code
+    transaction_item_created_by_app.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_QUERY, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transaction"]
+    assert (
+        data["paymentMethodDetails"]["__typename"]
+        == "SaleorGiftcardPaymentMethodDetails"
+    )
+    assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
+    assert data["paymentMethodDetails"]["code"] == expected_display_code
+
+
+def test_transaction_query_by_staff_with_payment_method_gift_card(
+    staff_api_client, transaction_item_created_by_app, permission_manage_payments
+):
+    # given
+    expected_display_code = "WXYZ"
+    expected_payment_method_name = "Gift Card Payment Gateway"
+
+    transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
+    transaction_item_created_by_app.payment_method_name = expected_payment_method_name
+    transaction_item_created_by_app.gift_card_display_code = expected_display_code
+    transaction_item_created_by_app.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        TRANSACTION_QUERY, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transaction"]
+    assert (
+        data["paymentMethodDetails"]["__typename"]
+        == "SaleorGiftcardPaymentMethodDetails"
+    )
+    assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
+    assert data["paymentMethodDetails"]["code"] == expected_display_code
 
 
 def test_transaction_event_with_reason_reference(

@@ -7,7 +7,7 @@ from graphene import relay
 from promise import Promise
 
 from ...core.exceptions import PermissionDenied
-from ...graphql.core.descriptions import ADDED_IN_322
+from ...graphql.core.descriptions import ADDED_IN_322, ADDED_IN_323
 from ...payment import PaymentMethodType, models
 from ...payment.interface import PaymentMethodData
 from ...permission.enums import OrderPermissions
@@ -476,6 +476,8 @@ class PaymentMethodDetails(graphene.Interface):
     def resolve_type(cls, instance, info: graphene.ResolveInfo):
         if instance.payment_method_type == PaymentMethodType.CARD:
             return CardPaymentMethodDetails
+        if instance.payment_method_type == PaymentMethodType.GIFT_CARD:
+            return SaleorGiftcardPaymentMethodDetails
         return OtherPaymentMethodDetails
 
     @staticmethod
@@ -536,6 +538,25 @@ class OtherPaymentMethodDetails(BaseObjectType):
             "Represents a payment method used for a transaction." + ADDED_IN_322
         )
         interfaces = [PaymentMethodDetails]
+
+
+class SaleorGiftcardPaymentMethodDetails(BaseObjectType):
+    name = graphene.String(required=True, description="Name of the payment method.")
+    code = graphene.String(
+        required=True,
+        description="Last 4 characters of the gift card code." + ADDED_IN_323,
+    )
+
+    class Meta:
+        description = (
+            "Represents a Saleor gift card payment method. "
+            "Set by Saleor when a gift card is used as a payment method." + ADDED_IN_323
+        )
+        interfaces = [PaymentMethodDetails]
+
+    @staticmethod
+    def resolve_code(root: models.TransactionItem, _info):
+        return root.gift_card_display_code or ""
 
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):

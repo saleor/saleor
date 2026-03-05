@@ -13,7 +13,7 @@ from ..graphql.payment.mutations.transaction.utils import (
     create_transaction_event_requested,
 )
 from ..order.models import Order
-from ..payment import TransactionAction, TransactionEventType
+from ..payment import PaymentMethodType, TransactionAction, TransactionEventType
 from ..payment.interface import (
     TransactionSessionData,
     TransactionSessionResult,
@@ -22,7 +22,7 @@ from ..payment.models import TransactionEvent, TransactionItem
 from ..payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
 )
-from .const import GIFT_CARD_PAYMENT_GATEWAY_ID
+from .const import GIFT_CARD_PAYMENT_GATEWAY_ID, GIFT_CARD_PAYMENT_GATEWAY_NAME
 from .models import GiftCard
 
 
@@ -147,12 +147,23 @@ def attach_gift_card_to_transaction(
     transaction_session_data: "TransactionSessionData",
     gift_card: GiftCard | None,
 ):
-    """Attach gift card to a transaction."""
+    """Attach gift card to a transaction and set payment method details."""
     if not gift_card:
         return
 
-    transaction_session_data.transaction.gift_card = gift_card
-    transaction_session_data.transaction.save(update_fields=["gift_card"])
+    transaction = transaction_session_data.transaction
+    transaction.gift_card = gift_card
+    transaction.payment_method_type = PaymentMethodType.GIFT_CARD
+    transaction.payment_method_name = GIFT_CARD_PAYMENT_GATEWAY_NAME
+    transaction.gift_card_display_code = gift_card.display_code
+    transaction.save(
+        update_fields=[
+            "gift_card",
+            "payment_method_type",
+            "payment_method_name",
+            "gift_card_display_code",
+        ]
+    )
 
 
 def detach_gift_card_from_previous_checkout_transactions(
