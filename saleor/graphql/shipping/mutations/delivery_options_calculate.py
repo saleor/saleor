@@ -29,9 +29,7 @@ class DeliveryOptionsCalculate(BaseMutation):
 
     class Meta:
         description = (
-            "Calculates available delivery options for a checkout. "
-            "Triggers `SHIPPING_LIST_METHODS_FOR_CHECKOUT` and "
-            "`CHECKOUT_FILTER_SHIPPING_METHODS` webhooks." + ADDED_IN_323
+            "Calculates available delivery options for a checkout." + ADDED_IN_323
         )
         doc_category = DOC_CATEGORY_SHIPPING
         error_type_class = DeliveryOptionsCalculateError

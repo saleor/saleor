@@ -95,11 +95,11 @@ def test_fetches_external_shipping_methods(
     # given
     checkout = checkout_with_item
     ShippingMethod.objects.all().delete()
-
+    expected_name = "External Shipping"
     available_shipping_method = ShippingMethodData(
         id=to_shipping_app_id(app, "external-id"),
         price=Money(Decimal(10), checkout.currency),
-        name="External Shipping",
+        name=expected_name,
         description="External Shipping Description",
         active=True,
         maximum_delivery_days=10,
@@ -121,9 +121,13 @@ def test_fetches_external_shipping_methods(
     data = content["data"]["deliveryOptionsCalculate"]
 
     # then
+    delivery = CheckoutDelivery.objects.get()
     assert not data["errors"]
     assert len(data["deliveries"]) == 1
-    assert data["deliveries"][0]["shippingMethod"]["name"] == "External Shipping"
+    assert data["deliveries"][0]["shippingMethod"]["name"] == expected_name
+    assert data["deliveries"][0]["id"] == graphene.Node.to_global_id(
+        "CheckoutDelivery", delivery.pk
+    )
 
 
 @mock.patch(
@@ -133,9 +137,9 @@ def test_fetches_external_shipping_methods(
 @mock.patch(
     "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
 )
-def test_triggers_filter_shipping_webhooks(
+def test_excluded_shipping_methods_called_for_checkout(
     mocked_list_shipping_methods,
-    mocked_exclude_shipping_methods,
+    mocked_excluded_shipping_methods_for_checkout,
     api_client,
     checkout_with_item,
     address,
@@ -169,7 +173,7 @@ def test_triggers_filter_shipping_webhooks(
 
     # then
     assert not data["errors"]
-    mocked_exclude_shipping_methods.assert_called_once()
+    mocked_excluded_shipping_methods_for_checkout.assert_called_once()
 
 
 @mock.patch(

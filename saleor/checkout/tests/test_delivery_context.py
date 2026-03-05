@@ -947,7 +947,7 @@ def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_inva
     mocked_list_shipping_methods.return_value = Promise.resolve([])
 
     checkout = checkout_with_item
-    checkout.shipping_address = address
+
     assigned_delivery = checkout.shipping_methods.create(
         external_shipping_method_id=to_shipping_app_id(
             external_app, "expired-shipping-method-id"
@@ -1003,7 +1003,7 @@ def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_vali
     mocked_list_shipping_methods.return_value = Promise.resolve([])
 
     checkout = checkout_with_item
-    checkout.shipping_address = address
+
     assigned_delivery = checkout.shipping_methods.create(
         external_shipping_method_id=to_shipping_app_id(
             external_app, "expired-shipping-method-id"
@@ -1143,7 +1143,6 @@ def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_inva
     )
 
     checkout = checkout_with_item
-    checkout.shipping_address = address
     assigned_delivery = convert_shipping_method_data_to_checkout_delivery(
         available_shipping_method, checkout
     )
@@ -1214,7 +1213,6 @@ def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_vali
     assigned_delivery.save()
 
     checkout = checkout_with_item
-    checkout.shipping_address = address
     checkout.shipping_address = address
     checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
     checkout.assigned_delivery = assigned_delivery

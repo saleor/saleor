@@ -17784,7 +17784,7 @@ type Mutation {
   refundReasonReferenceClear: RefundReasonReferenceTypeClear @doc(category: "Orders")
 
   """
-  Calculates available delivery options for a checkout. Triggers `SHIPPING_LIST_METHODS_FOR_CHECKOUT` and `CHECKOUT_FILTER_SHIPPING_METHODS` webhooks.
+  Calculates available delivery options for a checkout.
   
   Added in Saleor 3.23.
   
@@ -23323,7 +23323,7 @@ type RefundReasonReferenceTypeClearError @doc(category: "Shop") {
 }
 
 """
-Calculates available delivery options for a checkout. Triggers `SHIPPING_LIST_METHODS_FOR_CHECKOUT` and `CHECKOUT_FILTER_SHIPPING_METHODS` webhooks.
+Calculates available delivery options for a checkout.
 
 Added in Saleor 3.23.
 

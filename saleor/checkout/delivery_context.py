@@ -377,25 +377,23 @@ def clear_cc_delivery_method(
     return updated_fields
 
 
-def is_delivery_unchanged(
-    assigned_delivery: CheckoutDelivery,
-    delivery_method: CheckoutDelivery,
+def is_delivery_changed(
+    first: CheckoutDelivery,
+    second: CheckoutDelivery,
 ) -> bool:
     return (
-        assigned_delivery.name == delivery_method.name
-        and assigned_delivery.price == delivery_method.price
-        and assigned_delivery.tax_class_id == delivery_method.tax_class_id
-        and assigned_delivery.maximum_delivery_days
-        == delivery_method.maximum_delivery_days
-        and assigned_delivery.minimum_delivery_days
-        == delivery_method.minimum_delivery_days
+        first.name != second.name
+        or first.price != second.price
+        or first.tax_class_id != second.tax_class_id
+        or first.maximum_delivery_days != second.maximum_delivery_days
+        or first.minimum_delivery_days != second.minimum_delivery_days
     )
 
 
 def _overwrite_assigned_delivery(
     checkout_info: "CheckoutInfo",
     assigned_delivery: CheckoutDelivery | None,
-    refreshed_delivery_method: CheckoutDelivery | None,
+    refreshed_delivery: CheckoutDelivery | None,
 ):
     """Overwrite assigned delivery.
 
@@ -410,13 +408,13 @@ def _overwrite_assigned_delivery(
 
     # Update current assigned delivery with new details or set
     # is_valid:False
-    if refreshed_delivery_method:
-        _create_or_update_checkout_deliveries([refreshed_delivery_method])
+    if refreshed_delivery:
+        _create_or_update_checkout_deliveries([refreshed_delivery])
     else:
         _invalidate_assigned_delivery(assigned_delivery)
 
     if _refreshed_assigned_delivery_has_impact_on_prices(
-        assigned_delivery, refreshed_delivery_method
+        assigned_delivery, refreshed_delivery
     ):
         from .utils import invalidate_checkout
 
@@ -455,7 +453,7 @@ def _invalidate_assigned_delivery(assigned_delivery: CheckoutDelivery):
 def _preserve_assigned_delivery(
     checkout: Checkout,
     assigned_delivery: CheckoutDelivery | None,
-    refreshed_delivery_method: CheckoutDelivery | None,
+    refreshed_delivery: CheckoutDelivery | None,
 ):
     """Preserve assigned delivery.
 
@@ -466,25 +464,24 @@ def _preserve_assigned_delivery(
         return
 
     # If refreshed is missing, mark assigned as invalid
-    if not refreshed_delivery_method:
+    if not refreshed_delivery:
         _invalidate_assigned_delivery(assigned_delivery)
         return
 
-    delivery_unchanged = is_delivery_unchanged(
-        assigned_delivery=assigned_delivery,
-        delivery_method=refreshed_delivery_method,
-    )
-    if delivery_unchanged and assigned_delivery.is_valid:
+    delivery_changed = is_delivery_changed(assigned_delivery, refreshed_delivery)
+    if not delivery_changed and assigned_delivery.is_valid:
         return
 
-    if delivery_unchanged and not assigned_delivery.is_valid:
+    if not delivery_changed and not assigned_delivery.is_valid:
         _restore_assigned_delivery_as_valid(
             checkout=checkout,
             assigned_delivery=assigned_delivery,
         )
-    if not delivery_unchanged and assigned_delivery.is_valid:
+    if delivery_changed and assigned_delivery.is_valid:
         _invalidate_assigned_delivery(assigned_delivery)
-        _create_or_update_checkout_deliveries([refreshed_delivery_method])
+        # this call ensures the update happens atomically as part of
+        # preserving the assigned delivery.
+        _create_or_update_checkout_deliveries([refreshed_delivery])
 
 
 def _refresh_checkout_deliveries(
@@ -585,7 +582,7 @@ def get_available_built_in_shipping_methods_for_checkout_info(
 
 def _refreshed_assigned_delivery_has_impact_on_prices(
     assigned_delivery: CheckoutDelivery,
-    refreshed_delivery_method: CheckoutDelivery | None,
+    refreshed_delivery: CheckoutDelivery | None,
 ) -> bool:
     """Check if refreshed assigned delivery impacts checkout prices.
 
@@ -594,15 +591,15 @@ def _refreshed_assigned_delivery_has_impact_on_prices(
     returns True. Otherwise, it doesn't impact prices and returns False.
     """
 
-    if not refreshed_delivery_method:
+    if not refreshed_delivery:
         return True
 
     # Different tax class can impact on prices
-    if refreshed_delivery_method.tax_class_id != assigned_delivery.tax_class_id:
+    if refreshed_delivery.tax_class_id != assigned_delivery.tax_class_id:
         return True
 
     # Different price means that assigned delivery is invalid
-    if refreshed_delivery_method.price != assigned_delivery.price:
+    if refreshed_delivery.price != assigned_delivery.price:
         return True
 
     return False
@@ -694,13 +691,13 @@ def fetch_shipping_methods_for_checkout(
                     _overwrite_assigned_delivery(
                         checkout_info=checkout_info,
                         assigned_delivery=assigned_delivery,
-                        refreshed_delivery_method=refreshed_assigned,
+                        refreshed_delivery=refreshed_assigned,
                     )
                 else:
                     _preserve_assigned_delivery(
                         checkout=checkout,
                         assigned_delivery=assigned_delivery,
-                        refreshed_delivery_method=refreshed_assigned,
+                        refreshed_delivery=refreshed_assigned,
                     )
                 _refresh_checkout_deliveries(
                     checkout=locked_checkout,
