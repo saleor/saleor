@@ -267,6 +267,11 @@ type Query {
   refundSettings: RefundSettings! @doc(category: "Shop")
 
   """
+  Returns related settings. Returns `ReturnSettings` configuration, global for the entire shop.
+  """
+  returnSettings: ReturnSettings! @doc(category: "Shop")
+
+  """
   Look up a shipping zone by ID.
   
   Requires one of the following permissions: MANAGE_SHIPPING.
@@ -307,6 +312,39 @@ type Query {
     """
     last: Int
   ): ShippingZoneCountableConnection @doc(category: "Shipping")
+
+  """
+  Look up digital content by ID.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  digitalContent(
+    """ID of the digital content."""
+    id: ID!
+  ): DigitalContent @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
+
+  """
+  List of digital content.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  digitalContents(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): DigitalContentCountableConnection @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
 
   """List of the shop's categories."""
   categories(
@@ -652,13 +690,6 @@ type Query {
   transactions(
     """Where filtering options for transactions."""
     where: TransactionWhereInput
-
-    """
-    Sort transactions.
-    
-    Added in Saleor 3.23.
-    """
-    sortBy: TransactionSortingInput
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -1664,7 +1695,7 @@ type Query {
     """External ID of the user."""
     externalReference: String
   ): User @doc(category: "Users")
-  _entities(representations: [_Any!]!): [_Entity]
+  _entities(representations: [_Any]): [_Entity]
   _service: _Service
 }
 
@@ -2051,35 +2082,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
-
-  """
-  A product variant becomes out of stock across all non click-and-collect warehouses in a channel. 
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  """
-  PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
-
-  """
-  A product variant becomes available again across non click-and-collect warehouses in a channel. 
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  """
-  PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL
-
-  """
-  A product variant becomes out of stock across all click-and-collect warehouses in a channel. 
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  """
-  PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
-
-  """
-  A product variant becomes available again across click-and-collect warehouses in a channel. 
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  """
-  PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
-  PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -2656,35 +2658,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
 
-  """
-  A product variant becomes out of stock across all non click-and-collect warehouses in a channel. 
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  """
-  PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
-
-  """
-  A product variant becomes available again across non click-and-collect warehouses in a channel. 
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  """
-  PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL
-
-  """
-  A product variant becomes out of stock across all click-and-collect warehouses in a channel. 
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  """
-  PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
-
-  """
-  A product variant becomes available again across click-and-collect warehouses in a channel. 
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  """
-  PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
-  PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
-
   """A new checkout is created."""
   CHECKOUT_CREATED
 
@@ -3097,22 +3070,28 @@ type AppExtension implements Node @doc(category: "Apps") {
   """URL of a view where extension's iframe is placed."""
   url: String!
 
+  """Place where given extension will be mounted."""
+  mount: AppExtensionMountEnum! @deprecated(reason: "Use `mountName` instead.")
+
+  """Type of way how app extension will be opened."""
+  target: AppExtensionTargetEnum! @deprecated(reason: "Use `targetName` instead.")
+
   """
-  Name of the extension mount point in the dashboard. Value returned in UPPERCASE.
+  Name of the extension mount point in the dashboard. Replaces `mount`
   
   Added in Saleor 3.22.
   """
   mountName: String!
 
   """
-  Name of the extension target in the dashboard. Value returned in UPPERCASE.
+  Name of the extension target in the dashboard. Replaces `target`
   
   Added in Saleor 3.22.
   """
   targetName: String!
 
   """
-  App extension settings.
+  App extension settings. Replaces `options` field.
   
   Added in Saleor 3.22.
   """
@@ -3123,9 +3102,114 @@ type AppExtension implements Node @doc(category: "Apps") {
 
   """JWT token used to authenticate by third-party app extension."""
   accessToken: String
+
+  """
+  App extension options.
+  
+  Added in Saleor 3.22.
+  """
+  options: AppExtensionPossibleOptions @deprecated(reason: "Use `settings` field instead.")
+}
+
+"""All places where app extension can be mounted."""
+enum AppExtensionMountEnum @doc(category: "Apps") {
+  CATEGORY_OVERVIEW_CREATE
+  CATEGORY_OVERVIEW_MORE_ACTIONS
+  CATEGORY_DETAILS_MORE_ACTIONS
+  COLLECTION_OVERVIEW_CREATE
+  COLLECTION_OVERVIEW_MORE_ACTIONS
+  COLLECTION_DETAILS_MORE_ACTIONS
+  COLLECTION_DETAILS_WIDGETS
+  GIFT_CARD_OVERVIEW_CREATE
+  GIFT_CARD_OVERVIEW_MORE_ACTIONS
+  GIFT_CARD_DETAILS_MORE_ACTIONS
+  GIFT_CARD_DETAILS_WIDGETS
+  CUSTOMER_OVERVIEW_CREATE
+  CUSTOMER_OVERVIEW_MORE_ACTIONS
+  CUSTOMER_DETAILS_MORE_ACTIONS
+  CUSTOMER_DETAILS_WIDGETS
+  PRODUCT_OVERVIEW_CREATE
+  PRODUCT_OVERVIEW_MORE_ACTIONS
+  PRODUCT_DETAILS_MORE_ACTIONS
+  PRODUCT_DETAILS_WIDGETS
+  NAVIGATION_CATALOG
+  NAVIGATION_ORDERS
+  NAVIGATION_CUSTOMERS
+  NAVIGATION_DISCOUNTS
+  NAVIGATION_TRANSLATIONS
+  NAVIGATION_PAGES
+  ORDER_DETAILS_MORE_ACTIONS
+  ORDER_OVERVIEW_CREATE
+  ORDER_OVERVIEW_MORE_ACTIONS
+  ORDER_DETAILS_WIDGETS
+  DRAFT_ORDER_DETAILS_MORE_ACTIONS
+  DRAFT_ORDER_OVERVIEW_CREATE
+  DRAFT_ORDER_OVERVIEW_MORE_ACTIONS
+  DRAFT_ORDER_DETAILS_WIDGETS
+  DISCOUNT_DETAILS_MORE_ACTIONS
+  DISCOUNT_OVERVIEW_CREATE
+  DISCOUNT_OVERVIEW_MORE_ACTIONS
+  VOUCHER_DETAILS_MORE_ACTIONS
+  VOUCHER_OVERVIEW_CREATE
+  VOUCHER_OVERVIEW_MORE_ACTIONS
+  VOUCHER_DETAILS_WIDGETS
+  PAGE_DETAILS_MORE_ACTIONS
+  PAGE_OVERVIEW_CREATE
+  PAGE_OVERVIEW_MORE_ACTIONS
+  PAGE_TYPE_OVERVIEW_CREATE
+  PAGE_TYPE_OVERVIEW_MORE_ACTIONS
+  PAGE_TYPE_DETAILS_MORE_ACTIONS
+  MENU_OVERVIEW_CREATE
+  MENU_OVERVIEW_MORE_ACTIONS
+  MENU_DETAILS_MORE_ACTIONS
+  TRANSLATIONS_MORE_ACTIONS
+}
+
+"""
+All available ways of opening an app extension.
+
+    POPUP - app's extension will be mounted as a popup window
+    APP_PAGE - redirect to app's page
+"""
+enum AppExtensionTargetEnum @doc(category: "Apps") {
+  POPUP
+  APP_PAGE
+  NEW_TAB
+  WIDGET
 }
 
 scalar JSON
+
+union AppExtensionPossibleOptions = AppExtensionOptionsWidget | AppExtensionOptionsNewTab
+
+"""Represents the options for an app extension."""
+type AppExtensionOptionsWidget @doc(category: "Apps") {
+  """Options for displaying a Widget"""
+  widgetTarget: WidgetTargetOptions @deprecated(reason: "Use `settings` field directly.")
+}
+
+"""Represents the WIDGET target options for an app extension."""
+type WidgetTargetOptions @doc(category: "Apps") {
+  """HTTP method for Widget target (GET or POST)"""
+  method: HttpMethod! @deprecated(reason: "Use `settings` field directly.")
+}
+
+enum HttpMethod {
+  POST
+  GET
+}
+
+"""Represents the options for an app extension."""
+type AppExtensionOptionsNewTab @doc(category: "Apps") {
+  """Options controlling behavior of the NEW_TAB extension target"""
+  newTabTarget: NewTabTargetOptions @deprecated(reason: "Use `settings` field directly.")
+}
+
+"""Represents the NEW_TAB target options for an app extension."""
+type NewTabTargetOptions @doc(category: "Apps") {
+  """HTTP method for New Tab target (GET or POST)"""
+  method: HttpMethod! @deprecated(reason: "Use `settings` field directly.")
+}
 
 """
 Represents a problem associated with an app.
@@ -3713,20 +3797,13 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   shippingPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """
-  The delivery method selected for this checkout.
-  
-  Added in Saleor 3.23.
-  """
-  delivery: Delivery
-
-  """
   The shipping method related with checkout.
   
   Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
-  shippingMethod: ShippingMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `delivery` instead.")
+  shippingMethod: ShippingMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `deliveryMethod` instead.")
 
   """
   The delivery method selected for this checkout.
@@ -3735,7 +3812,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
-  deliveryMethod: DeliveryMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `delivery` instead.")
+  deliveryMethod: DeliveryMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
 
   """
   The price of the checkout before shipping, with taxes included.
@@ -6881,9 +6958,9 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   """
   isAvailable(
     """
-    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration. When `Shop.useLegacyShippingZoneStockAvailability` is disabled, this argument is ignored — stock availability is determined by the direct warehouse-channel link instead of shipping zones.
+    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
     """
-    address: AddressInput @deprecated
+    address: AddressInput
   ): Boolean
 
   """A type of tax. Assigned by enabled tax gateway"""
@@ -7098,13 +7175,13 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   ): [ReferenceType!]
 
   """Name of an attribute displayed in the interface."""
-  name: String!
+  name: String
 
   """Internal representation of an attribute name."""
-  slug: String!
+  slug: String
 
   """The attribute type."""
-  type: AttributeTypeEnum!
+  type: AttributeTypeEnum
 
   """The unit of attribute values."""
   unit: MeasurementUnitsEnum
@@ -7309,15 +7386,13 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   slug: String!
 
   """Whether the product type has variants."""
-  hasVariants: Boolean! @deprecated(reason: "This is a leftover from the past Simple/Configurable product distinction. Products can have multiple variants regardless of this setting. ")
+  hasVariants: Boolean!
 
   """Whether shipping is required for this product type."""
   isShippingRequired: Boolean!
 
-  """
-  Whether the product type is digital - doesn't have any effect, it's present for backward-compatibility.
-  """
-  isDigital: Boolean! @deprecated(reason: "Will be removed in v3.24.0, use metadata or attributes instead.")
+  """Whether the product type is digital."""
+  isDigital: Boolean!
 
   """Weight of the product type."""
   weight: Weight
@@ -8817,15 +8892,22 @@ type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes 
   ): ProductVariantTranslation
 
   """
+  Digital content for the product variant.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  digitalContent: DigitalContent
+
+  """
   Stocks for the product variant.
   
   Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
   """
   stocks(
     """
-    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration. When `Shop.useLegacyShippingZoneStockAvailability` is disabled, this argument is ignored — stock availability is determined by the direct warehouse-channel link instead of shipping zones.
+    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
     """
-    address: AddressInput @deprecated
+    address: AddressInput
 
     """Two-letter ISO 3166-1 country code."""
     countryCode: CountryCode @deprecated(reason: "Use `address` argument instead.")
@@ -8836,9 +8918,9 @@ type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes 
   """
   quantityAvailable(
     """
-    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration. When `Shop.useLegacyShippingZoneStockAvailability` is disabled, this argument is ignored — stock availability is determined by the direct warehouse-channel link instead of shipping zones.
+    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
     """
-    address: AddressInput @deprecated
+    address: AddressInput
 
     """
     Two-letter ISO 3166-1 country code. When provided, the exact quantity from a warehouse operating in shipping zones that contain this country will be returned. Otherwise, it will return the maximum quantity from all shipping zones.
@@ -8874,9 +8956,7 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   costPrice: Money
 
   """
-  Previous price of the variant in channel. Useful for providing promotion information required by customer protection laws such as EU Omnibus directive.
-  
-   Warning: This field is not updated automatically. Use Channel Listings mutation to update it manually.
+  Prior price of the variant used for discount calculations.
   
   Added in Saleor 3.21.
   """
@@ -9928,6 +10008,86 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
+"""Represents digital content associated with a product variant."""
+type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the digital content."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Default settings indicator for digital content."""
+  useDefaultSettings: Boolean!
+
+  """Indicator for automatic fulfillment of digital content."""
+  automaticFulfillment: Boolean!
+
+  """File associated with digital content."""
+  contentFile: String!
+
+  """Maximum number of allowed downloads for the digital content."""
+  maxDownloads: Int
+
+  """Number of days the URL for the digital content remains valid."""
+  urlValidDays: Int
+
+  """List of URLs for the digital variant."""
+  urls: [DigitalContentUrl!]
+
+  """Product variant assigned to digital content."""
+  productVariant: ProductVariant!
+}
+
+"""Represents a URL for digital content."""
+type DigitalContentUrl implements Node @doc(category: "Products") {
+  """The ID of the digital content URL."""
+  id: ID!
+
+  """Digital content associated with the URL."""
+  content: DigitalContent!
+
+  """Date and time when the digital content URL was created."""
+  created: DateTime!
+
+  """Number of times digital content has been downloaded."""
+  downloadNum: Int!
+
+  """URL for digital content."""
+  url: String
+
+  """UUID of digital content."""
+  token: UUID!
+}
+
+scalar UUID
+
 """Represents stock."""
 type Stock implements Node @doc(category: "Products") {
   """The ID of stock."""
@@ -10604,10 +10764,10 @@ type ShippingMethod implements Node & ObjectWithMetadata @doc(category: "Shippin
   price: Money!
 
   """Maximum order price for this shipping method."""
-  maximumOrderPrice: Money @deprecated
+  maximumOrderPrice: Money
 
   """Minimal order price for this shipping method."""
-  minimumOrderPrice: Money @deprecated
+  minimumOrderPrice: Money
 
   """Describes if this shipping method is active and can be selected."""
   active: Boolean!
@@ -10750,13 +10910,6 @@ type CheckoutSettings {
   Added in Saleor 3.22.
   """
   automaticCompletionCutOffDate: DateTime
-
-  """
-  Default to `true`. Determines whether gift cards can be attached to a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards is deprecated.
-  
-  Added in Saleor 3.23.
-  """
-  allowLegacyGiftCardUse: Boolean!
 }
 
 """Represents the channel-specific payment settings."""
@@ -11372,7 +11525,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   product: Product
 
   """
-  List of events associated with the gift card. Requires MANAGE_GIFT_CARD permission to access all events. Users with MANAGE_ORDERS permission can access only USED_IN_ORDER and REFUNDED_IN_ORDER events.
+  List of events associated with the gift card. Requires MANAGE_GIFT_CARD permission to access all events. Users with MANAGE_ORDERS permission can access only USED_IN_ORDER events.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD, MANAGE_ORDERS.
   """
@@ -11466,7 +11619,6 @@ enum GiftCardEventsEnum @doc(category: "Gift cards") {
   RESENT
   NOTE_ADDED
   USED_IN_ORDER
-  REFUNDED_IN_ORDER
 }
 
 type GiftCardEventBalance @doc(category: "Gift cards") {
@@ -11616,24 +11768,9 @@ type CheckoutLineProblemVariantNotAvailable @doc(category: "Checkout") {
 }
 
 """
-Represents a delivery option for the checkout.
-
-Added in Saleor 3.23.
-"""
-type Delivery {
-  """The ID of the delivery."""
-  id: ID!
-
-  """Shipping method represented by the delivery."""
-  shippingMethod: ShippingMethod
-}
-
-"""
 Represents a delivery method chosen for the checkout. `Warehouse` type is used when checkout is marked as "click and collect" and `ShippingMethod` otherwise.
 """
 union DeliveryMethod = Warehouse | ShippingMethod
-
-scalar UUID
 
 """Represents a payment transaction."""
 type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Payments") {
@@ -12164,6 +12301,20 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """Total refunded amount assigned to this fulfillment."""
   totalRefundedAmount: Money
+
+  """
+  Reason for returning this fulfillment.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  Reason Model (Page) reference for this fulfillment.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 }
 
 enum FulfillmentStatus @doc(category: "Orders") {
@@ -12186,6 +12337,20 @@ type FulfillmentLine implements Node @doc(category: "Orders") {
 
   """The order line to which the fulfillment line is related."""
   orderLine: OrderLine
+
+  """
+  Reason for returning this fulfillment line.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  Reason Model (Page) reference for this fulfillment line.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 }
 
 """Represents order line of particular order."""
@@ -12246,6 +12411,7 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """Rate of tax applied on product variant."""
   taxRate: Float!
+  digitalContentUrl: DigitalContentUrl
   thumbnail(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -12428,6 +12594,215 @@ enum OrderDiscountType @doc(category: "Discounts") {
   MANUAL
   PROMOTION
   ORDER_PROMOTION
+}
+
+"""
+A static page that can be manually added by a shop operator through the dashboard.
+"""
+type Page implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Pages") {
+  """ID of the page."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """
+  Get a single attribute attached to page by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to this page.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
+
+  """Title of the page for SEO."""
+  seoTitle: String
+
+  """Description of the page for SEO."""
+  seoDescription: String
+
+  """Title of the page."""
+  title: String!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+  publicationDate: Date @deprecated(reason: "Use the `publishedAt` field to fetch the publication date.")
+
+  """The page publication date."""
+  publishedAt: DateTime
+
+  """Determines if the page is published."""
+  isPublished: Boolean!
+
+  """Slug of the page."""
+  slug: String!
+
+  """Determines the type of page"""
+  pageType: PageType!
+
+  """Date and time at which page was created."""
+  created: DateTime!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString! @deprecated(reason: "Use the `content` field instead.")
+
+  """Returns translated page fields for the given language code."""
+  translation(
+    """A language code to return the translation for page."""
+    languageCode: LanguageCodeEnum!
+  ): PageTranslation
+
+  """Get a single attribute attached to page by attribute slug."""
+  attribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): SelectedAttribute @deprecated(reason: "Use `assignedAttribute` field instead.")
+
+  """List of attributes assigned to this page."""
+  attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
+}
+
+"""Represents page translations."""
+type PageTranslation implements Node @doc(category: "Pages") {
+  """The ID of the page translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated SEO title."""
+  seoTitle: String
+
+  """Translated SEO description."""
+  seoDescription: String
+
+  """
+  Translated page slug.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
+  """Translated page title."""
+  title: String
+
+  """
+  Translated content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+
+  """
+  Translated description of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
+
+  """Represents the page fields to translate."""
+  translatableContent: PageTranslatableContent
+}
+
+"""
+Represents page's original translatable fields and related translations.
+"""
+type PageTranslatableContent implements Node @doc(category: "Pages") {
+  """The ID of the page translatable content."""
+  id: ID!
+
+  """The ID of the page to translate."""
+  pageId: ID!
+
+  """SEO title to translate."""
+  seoTitle: String
+
+  """SEO description to translate."""
+  seoDescription: String
+
+  """
+  Slug to translate.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
+  """Page title to translate."""
+  title: String!
+
+  """
+  Content of the page to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
+
+  """Returns translated page fields for the given language code."""
+  translation(
+    """A language code to return the translation for page."""
+    languageCode: LanguageCodeEnum!
+  ): PageTranslation
+
+  """
+  A static page that can be manually added by a shop operator through the dashboard.
+  """
+  page: Page @deprecated(reason: "Get model fields from the root level queries.")
+
+  """List of page content attribute values that can be translated."""
+  attributeValues: [AttributeValueTranslatableContent!]!
 }
 
 enum OrderAction @doc(category: "Payments") {
@@ -12697,6 +13072,9 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
 
   """The details of the card used for this payment."""
   creditCard: CreditCard
+
+  """Informs whether this is a partial payment."""
+  partial: Boolean! @deprecated(reason: "This field is reserved for the Adyen Gateway plugin. For other gateways, its value is always `false`. This field will be removed in 3.23 along with the plugin.")
 
   """PSP reference of the payment."""
   pspReference: String
@@ -13118,215 +13496,6 @@ type OrderGrantedRefund @doc(category: "Orders") {
   transaction: TransactionItem
 }
 
-"""
-A static page that can be manually added by a shop operator through the dashboard.
-"""
-type Page implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Pages") {
-  """ID of the page."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """
-  Get a single attribute attached to page by attribute slug.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): AssignedAttribute
-
-  """
-  List of attributes assigned to this page.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttributes(
-    """Maximum number of attributes to return. Default is 100."""
-    limit: PositiveInt = 100
-  ): [AssignedAttribute!]!
-
-  """Title of the page for SEO."""
-  seoTitle: String
-
-  """Description of the page for SEO."""
-  seoDescription: String
-
-  """Title of the page."""
-  title: String!
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-  publicationDate: Date @deprecated(reason: "Use the `publishedAt` field to fetch the publication date.")
-
-  """The page publication date."""
-  publishedAt: DateTime
-
-  """Determines if the page is published."""
-  isPublished: Boolean!
-
-  """Slug of the page."""
-  slug: String!
-
-  """Determines the type of page"""
-  pageType: PageType!
-
-  """Date and time at which page was created."""
-  created: DateTime!
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString! @deprecated(reason: "Use the `content` field instead.")
-
-  """Returns translated page fields for the given language code."""
-  translation(
-    """A language code to return the translation for page."""
-    languageCode: LanguageCodeEnum!
-  ): PageTranslation
-
-  """Get a single attribute attached to page by attribute slug."""
-  attribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): SelectedAttribute @deprecated(reason: "Use `assignedAttribute` field instead.")
-
-  """List of attributes assigned to this page."""
-  attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
-}
-
-"""Represents page translations."""
-type PageTranslation implements Node @doc(category: "Pages") {
-  """The ID of the page translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated SEO title."""
-  seoTitle: String
-
-  """Translated SEO description."""
-  seoDescription: String
-
-  """
-  Translated page slug.
-  
-  Added in Saleor 3.21.
-  """
-  slug: String
-
-  """Translated page title."""
-  title: String
-
-  """
-  Translated content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-
-  """
-  Translated description of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
-
-  """Represents the page fields to translate."""
-  translatableContent: PageTranslatableContent
-}
-
-"""
-Represents page's original translatable fields and related translations.
-"""
-type PageTranslatableContent implements Node @doc(category: "Pages") {
-  """The ID of the page translatable content."""
-  id: ID!
-
-  """The ID of the page to translate."""
-  pageId: ID!
-
-  """SEO title to translate."""
-  seoTitle: String
-
-  """SEO description to translate."""
-  seoDescription: String
-
-  """
-  Slug to translate.
-  
-  Added in Saleor 3.21.
-  """
-  slug: String
-
-  """Page title to translate."""
-  title: String!
-
-  """
-  Content of the page to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString @deprecated(reason: "Use the `content` field instead.")
-
-  """Returns translated page fields for the given language code."""
-  translation(
-    """A language code to return the translation for page."""
-    languageCode: LanguageCodeEnum!
-  ): PageTranslation
-
-  """
-  A static page that can be manually added by a shop operator through the dashboard.
-  """
-  page: Page @deprecated(reason: "Get model fields from the root level queries.")
-
-  """List of page content attribute values that can be translated."""
-  attributeValues: [AttributeValueTranslatableContent!]!
-}
-
 """Represents granted refund line."""
 type OrderGrantedRefundLine {
   id: ID!
@@ -13339,6 +13508,13 @@ type OrderGrantedRefundLine {
 
   """Reason for refunding the line."""
   reason: String
+
+  """
+  Reason Model (Page) reference for this refund line.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: Page
 }
 
 """
@@ -13541,25 +13717,7 @@ enum TokenizedPaymentFlowEnum @doc(category: "Payments") {
 }
 
 """Represents an problem in the checkout."""
-union CheckoutProblem = CheckoutProblemDeliveryMethodStale | CheckoutProblemDeliveryMethodInvalid | CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
-
-"""
-Indicates that the delivery methods are stale.
-
-Added in Saleor 3.23.
-"""
-type CheckoutProblemDeliveryMethodStale @doc(category: "Checkout") {
-  delivery: Delivery!
-}
-
-"""
-Indicates that the selected delivery method is invalid.
-
-Added in Saleor 3.23.
-"""
-type CheckoutProblemDeliveryMethodInvalid @doc(category: "Checkout") {
-  delivery: Delivery!
-}
+union CheckoutProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 
 type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
@@ -13877,6 +14035,9 @@ type CustomerEvent implements Node @doc(category: "Users") {
 
   """The concerned order."""
   order: Order
+
+  """The concerned order line."""
+  orderLine: OrderLine
 }
 
 enum CustomerEventsEnum @doc(category: "Users") {
@@ -14203,11 +14364,6 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
   PRODUCT_VARIANT_STOCK_UPDATED
-  PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
-  PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL
-  PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
-  PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
-  PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   CHECKOUT_FULLY_AUTHORIZED
@@ -15030,6 +15186,13 @@ type Shop implements ObjectWithMetadata {
   ): ShopTranslation
 
   """
+  Enable automatic fulfillment for all digital products.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  automaticFulfillmentDigitalProducts: Boolean
+
+  """
   Default number of minutes stock will be reserved for anonymous checkout or null when stock reservation is disabled.
   
   Requires one of the following permissions: MANAGE_SETTINGS.
@@ -15049,6 +15212,20 @@ type Shop implements ObjectWithMetadata {
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
   limitQuantityPerCheckout: Int
+
+  """
+  Default number of max downloads per digital content URL.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  defaultDigitalMaxDownloads: Int
+
+  """
+  Default number of days which digital content URL will be valid.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  defaultDigitalUrlValidDays: Int
 
   """Company address."""
   companyAddress: Address
@@ -15112,13 +15289,6 @@ type Shop implements ObjectWithMetadata {
   """
   preserveAllAddressFields: Boolean!
 
-  """
-  Controls whether password-based authentication is allowed.
-  
-  Added in Saleor 3.23.
-  """
-  passwordLoginMode: PasswordLoginModeEnum!
-
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
 
@@ -15127,13 +15297,6 @@ type Shop implements ObjectWithMetadata {
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean! @deprecated(reason: "Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
-
-  """
-  When enabled, stock availability is filtered by shipping zones and the destination address (legacy behavior). When disabled, stock availability is determined only by the direct warehouse-channel link, ignoring shipping zones.
-  
-  Added in Saleor 3.23.
-  """
-  useLegacyShippingZoneStockAvailability: Boolean!
 
   """
   Use legacy update webhook emission. When enabled, update webhooks (e.g. `customerUpdated`,`productVariantUpdated`) are sent even when only metadata changes. When disabled, update webhooks are not sent for metadata-only changes; only metadata-specific webhooks (e.g., `customerMetadataUpdated`, `productVariantMetadataUpdated`) are sent.
@@ -15229,21 +15392,6 @@ type Limits {
   warehouses: Int
 }
 
-"""
-Controls whether password-based authentication is allowed.
-
-    ENABLED - any user can log in with a password. This is the default behavior.
-    CUSTOMERS_ONLY - only customer users can log in with a password.
-        If a staff user logs in with a password, they will be treated as a customer
-        — the issued token will not contain any staff permissions.
-    DISABLED - no user can log in with a password.
-"""
-enum PasswordLoginModeEnum @doc(category: "Authentication") {
-  ENABLED
-  CUSTOMERS_ONLY
-  DISABLED
-}
-
 """Gift card related settings from site settings."""
 type GiftCardSettings @doc(category: "Gift cards") {
   """The gift card expiry type settings."""
@@ -15283,9 +15431,41 @@ type RefundSettings @doc(category: "Orders") {
   reasonReferenceType: PageType
 }
 
+"""
+Return related settings from site settings.
+
+Added in Saleor 3.22.
+"""
+type ReturnSettings @doc(category: "Orders") {
+  """
+  Model type used for return reasons.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReferenceType: PageType
+}
+
 input ShippingZoneFilterInput @doc(category: "Shipping") {
   search: String
   channels: [ID!]
+}
+
+"""A connection to a list of digital content items."""
+type DigitalContentCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [DigitalContentCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type DigitalContentCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: DigitalContent!
+
+  """A cursor for use in pagination."""
+  cursor: String!
 }
 
 input CategoryFilterInput @doc(category: "Products") {
@@ -15400,9 +15580,7 @@ enum CollectionSortField @doc(category: "Products") {
 
 input ProductTypeFilterInput @doc(category: "Products") {
   search: String
-
-  """"""
-  configurable: ProductTypeConfigurable @deprecated(reason: "The field has no effect on the API behavior. This is a leftover from the past Simple/Configurable product distinction. Products can have multiple variants regardless of this setting.")
+  configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
   metadata: [MetadataFilter!]
   kind: ProductTypeKindEnum
@@ -15416,7 +15594,7 @@ enum ProductTypeConfigurable @doc(category: "Products") {
 }
 
 enum ProductTypeEnum @doc(category: "Products") {
-  DIGITAL @deprecated(reason: "DIGITAL will removed in Saleor 3.24.0, use metadata or attributes instead.")
+  DIGITAL
   SHIPPABLE
 }
 
@@ -15433,7 +15611,7 @@ enum ProductTypeSortField @doc(category: "Products") {
   NAME
 
   """Sort products by type."""
-  DIGITAL @deprecated(reason: "DIGITAL will removed in Saleor 3.24.0. Use SHIPPING_REQUIRED instead.")
+  DIGITAL
 
   """Sort products by shipping."""
   SHIPPING_REQUIRED
@@ -15488,85 +15666,11 @@ input TransactionWhereInput @doc(category: "Payments") {
   """Filter by app identifier."""
   appIdentifier: StringFilterInput
 
-  """
-  Filter transactions by created at date.
-  
-  Added in Saleor 3.23.
-  """
-  createdAt: DateTimeRangeInput
-
-  """
-  Filter transactions by modified at date.
-  
-  Added in Saleor 3.23.
-  """
-  modifiedAt: DateTimeRangeInput
-
-  """
-  Filter by transaction events. Each list item represents conditions that must be satisfied by a single event. The filter matches transactions that have related events meeting all specified groups of conditions.
-  
-  Added in Saleor 3.23.
-  """
-  events: [TransactionEventFilterInput!]
-
   """List of conditions that must be met."""
   AND: [TransactionWhereInput!]
 
   """A list of conditions of which at least one must be met."""
   OR: [TransactionWhereInput!]
-}
-
-"""
-Filter input for transaction events data.
-
-Added in Saleor 3.23.
-"""
-input TransactionEventFilterInput @doc(category: "Payments") {
-  """
-  Filter transaction events by created at date.
-  
-  Added in Saleor 3.23.
-  """
-  createdAt: DateTimeRangeInput
-
-  """
-  Filter transaction events by type.
-  
-  Added in Saleor 3.23.
-  """
-  type: TransactionEventTypeEnumFilterInput
-}
-
-input TransactionEventTypeEnumFilterInput @doc(category: "Payments") {
-  """The value equal to."""
-  eq: TransactionEventTypeEnum
-
-  """The value included in."""
-  oneOf: [TransactionEventTypeEnum!]
-}
-
-input TransactionSortingInput @doc(category: "Payments") {
-  """Specifies the direction in which to sort transactions."""
-  direction: OrderDirection!
-
-  """Sort transactions by the selected field."""
-  field: TransactionSortField!
-}
-
-enum TransactionSortField @doc(category: "Payments") {
-  """
-  Sort transactions by creation date. 
-  
-  Added in Saleor 3.23.
-  """
-  CREATED_AT
-
-  """
-  Sort transactions by modification date. 
-  
-  Added in Saleor 3.23.
-  """
-  MODIFIED_AT
 }
 
 type PageCountableConnection @doc(category: "Pages") {
@@ -15615,11 +15719,6 @@ enum PageSortField @doc(category: "Pages") {
 
   """Sort pages by creation date."""
   CREATED_AT
-
-  """
-  Sort pages by rank. Note: This option is available only with the `search` filter.
-  """
-  RANK
 }
 
 input PageFilterInput @doc(category: "Pages") {
@@ -15967,12 +16066,10 @@ Represents possible payment method types.
     The following types are possible:
     CARD - represents a card payment method.
     OTHER - represents any payment method that is not a card payment.
-    GIFT_CARD - represents a gift card payment method.
 """
 enum PaymentMethodTypeEnum @doc(category: "Payments") {
   CARD
   OTHER
-  GIFT_CARD
 }
 
 input PaymentMethodDetailsCardFilterInput {
@@ -16177,11 +16274,6 @@ enum GiftCardSortField @doc(category: "Gift cards") {
 
   """Sort gift cards by created at."""
   CREATED_AT
-
-  """
-  Sort gift cards by rank. Note: This option is available only with the `search` filter.
-  """
-  RANK
 }
 
 input GiftCardFilterInput @doc(category: "Gift cards") {
@@ -17015,11 +17107,6 @@ enum CheckoutSortField @doc(category: "Checkout") {
 
   """Sort checkouts by payment."""
   PAYMENT
-
-  """
-  Sort checkouts by rank. Note: This option is available only with the `search` filter.
-  """
-  RANK
 }
 
 input CheckoutFilterInput @doc(category: "Checkout") {
@@ -17173,6 +17260,12 @@ type AppExtensionCountableEdge @doc(category: "Apps") {
 }
 
 input AppExtensionFilterInput @doc(category: "Apps") {
+  """DEPRECATED: Use `mountName` instead."""
+  mount: [AppExtensionMountEnum!] @deprecated
+
+  """DEPRECATED: Use `targetName` instead."""
+  target: AppExtensionTargetEnum @deprecated
+
   """
   Plain-text mount name (case insensitive)
   
@@ -17380,11 +17473,6 @@ enum UserSortField @doc(category: "Users") {
 
   """Sort users by last modified at."""
   LAST_MODIFIED_AT
-
-  """
-  Sort users by rank. Note: This option is available only with the `search` filter.
-  """
-  RANK
 }
 
 type GroupCountableConnection @doc(category: "Users") {
@@ -17538,21 +17626,11 @@ type Mutation {
   Deletes selected warehouse. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
-  
-  Triggers the following webhook events:
-  - WAREHOUSE_DELETED (async): A warehouse is deleted.
-  - PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock is removed together with the deleted warehouse.
-  - PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  - PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
   """
   deleteWarehouse(
     """ID of a warehouse to delete."""
     id: ID!
-  ): WarehouseDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [WAREHOUSE_DELETED, PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: [])
+  ): WarehouseDelete @doc(category: "Products")
 
   """
   Add shipping zone to given warehouse. 
@@ -17808,18 +17886,25 @@ type Mutation {
   refundReasonReferenceClear: RefundReasonReferenceTypeClear @doc(category: "Orders")
 
   """
-  Calculates available delivery options for a checkout.
+  Update return settings across all channels.
   
-  Added in Saleor 3.23.
+  Added in Saleor 3.22. 
   
-  Triggers the following webhook events:
-  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered to fetch external shipping methods.
-  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Triggered to filter shipping methods.
+  Requires one of the following permissions: MANAGE_SETTINGS.
   """
-  deliveryOptionsCalculate(
-    """The ID of the checkout."""
-    id: ID!
-  ): DeliveryOptionsCalculate @doc(category: "Shipping") @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
+  returnSettingsUpdate(
+    """Fields required to update return settings."""
+    input: ReturnSettingsUpdateInput!
+  ): ReturnSettingsUpdate @doc(category: "Shop")
+
+  """
+  Updates ReturnSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to return mutations is no longer accepted and will raise error.
+  
+  Added in Saleor 3.22. 
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  returnReasonReferenceClear: ReturnReasonReferenceTypeClear @doc(category: "Orders")
 
   """
   Manage shipping method's availability in channels. 
@@ -18429,6 +18514,52 @@ type Mutation {
   ): ProductReorderAttributeValues @doc(category: "Products")
 
   """
+  Create new digital content. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  digitalContentCreate(
+    """Fields required to create a digital content."""
+    input: DigitalContentUploadInput!
+
+    """ID of a product variant to upload digital content."""
+    variantId: ID!
+  ): DigitalContentCreate @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
+
+  """
+  Remove digital content assigned to given variant. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  digitalContentDelete(
+    """ID of a product variant with digital content to remove."""
+    variantId: ID!
+  ): DigitalContentDelete @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
+
+  """
+  Updates digital content. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  digitalContentUpdate(
+    """Fields required to update a digital content."""
+    input: DigitalContentInput!
+
+    """ID of a product variant with digital content to update."""
+    variantId: ID!
+  ): DigitalContentUpdate @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
+
+  """
+  Generate new URL to digital content. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  digitalContentUrlCreate(
+    """Fields required to create a new url."""
+    input: DigitalContentUrlCreateInput!
+  ): DigitalContentUrlCreate @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
+
+  """
   Creates a new variant for a product. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -18503,15 +18634,6 @@ type Mutation {
   Creates stocks for product variant. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
-  
-  Triggers the following webhook events:
-  - PRODUCT_VARIANT_BACK_IN_STOCK (async): A product variant stock is created in a warehouse.
-  - PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL (async): A product variant is back in stock in a channel (non click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  - PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is back in stock in a channel (click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
   """
   productVariantStocksCreate(
     """Input list of stocks to create."""
@@ -18519,21 +18641,12 @@ type Mutation {
 
     """ID of a product variant for which stocks will be created."""
     variantId: ID!
-  ): ProductVariantStocksCreate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_BACK_IN_STOCK, PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL, PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: [])
+  ): ProductVariantStocksCreate @doc(category: "Products")
 
   """
   Deletes stocks from product variant. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
-  
-  Triggers the following webhook events:
-  - PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock is deleted from a warehouse.
-  - PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  - PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
   """
   productVariantStocksDelete(
     """SKU of product variant for which stocks will be deleted."""
@@ -18544,29 +18657,12 @@ type Mutation {
 
     """Input list of warehouse IDs."""
     warehouseIds: [ID!]
-  ): ProductVariantStocksDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: [])
+  ): ProductVariantStocksDelete @doc(category: "Products")
 
   """
   Updates stocks for product variant. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
-  
-  Triggers the following webhook events:
-  - PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock is updated.
-  - PRODUCT_VARIANT_BACK_IN_STOCK (async): A product variant stock transitioned from no availability to available quantity.
-  - PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock transitioned from available quantity to no availability.
-  - PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL (async): A product variant is back in stock in a channel (non click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  - PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  - PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is back in stock in a channel (click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  - PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
-  
-  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
   """
   productVariantStocksUpdate(
     """SKU of product variant for which stocks will be updated."""
@@ -18577,7 +18673,7 @@ type Mutation {
 
     """ID of a product variant for which stocks will be updated."""
     variantId: ID
-  ): ProductVariantStocksUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED, PRODUCT_VARIANT_BACK_IN_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: [])
+  ): ProductVariantStocksUpdate @doc(category: "Products")
 
   """
   Updates an existing variant for product. 
@@ -20564,7 +20660,7 @@ type Mutation {
   exportProducts(
     """Fields required to export product data."""
     input: ExportProductsInput!
-  ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, PRODUCT_EXPORT_COMPLETED], syncEvents: []) @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
+  ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, PRODUCT_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Export gift cards to csv file. 
@@ -20578,12 +20674,14 @@ type Mutation {
   exportGiftCards(
     """Fields required to export gift cards data."""
     input: ExportGiftCardsInput!
-  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: []) @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
+  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, GIFT_CARD_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Export voucher codes to csv/xlsx file.
   
-  Added in Saleor 3.18. 
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
@@ -20593,7 +20691,7 @@ type Mutation {
   exportVoucherCodes(
     """Fields required to export voucher codes."""
     input: ExportVoucherCodesInput!
-  ): ExportVoucherCodes @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODE_EXPORT_COMPLETED], syncEvents: []) @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
+  ): ExportVoucherCodes @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CODE_EXPORT_COMPLETED], syncEvents: [])
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -20778,22 +20876,6 @@ type Mutation {
   ): CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
-  Deletes a checkout.
-  
-  Added in Saleor 3.23. 
-  
-  Requires one of the following permissions: MANAGE_CHECKOUTS.
-  """
-  checkoutDelete(
-    """
-    The checkout's ID.
-    
-    Added in Saleor 3.23.
-    """
-    id: ID!
-  ): CheckoutDelete @doc(category: "Checkout")
-
-  """
   Updates email address in the existing checkout object.
   
   Triggers the following webhook events:
@@ -20967,7 +21049,6 @@ type Mutation {
   
   Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout shipping method with the external one.
-  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutShippingMethodUpdate(
@@ -20982,22 +21063,17 @@ type Mutation {
 
     """Checkout token."""
     token: UUID @deprecated(reason: "Use `id` instead.")
-  ): CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `checkoutDeliveryMethodUpdate` instead.")
+  ): CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT]) @deprecated(reason: "Use `checkoutDeliveryMethodUpdate` instead.")
 
   """
   Updates the delivery method (shipping method or pick up point) of the checkout. Updates the checkout shipping_address for click and collect delivery for a warehouse address. 
   
   Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout delivery method with the external one.
-  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutDeliveryMethodUpdate(
-    """
-    Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID or `CheckoutDelivery` ID).
-    
-    DEPRECATED: Usage of `ShippingMethod` ID is deprecated. Use CheckoutDelivery ID instead.
-    """
+    """Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID)."""
     deliveryMethodId: ID
 
     """The checkout's ID."""
@@ -21005,7 +21081,7 @@ type Mutation {
 
     """Checkout token."""
     token: UUID @deprecated(reason: "Use `id` instead.")
-  ): CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
+  ): CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT])
 
   """
   Updates language code in the existing checkout.
@@ -22490,18 +22566,8 @@ input WarehouseUpdateInput @doc(category: "Products") {
 Deletes selected warehouse. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
-
-Triggers the following webhook events:
-- WAREHOUSE_DELETED (async): A warehouse is deleted.
-- PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock is removed together with the deleted warehouse.
-- PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-- PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
 """
-type WarehouseDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [WAREHOUSE_DELETED, PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: []) {
+type WarehouseDelete @doc(category: "Products") {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
@@ -22981,7 +23047,6 @@ enum ShopErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
-  PASSWORD_AUTH_RESTRICTION
 }
 
 input StaffNotificationRecipientInput {
@@ -23067,11 +23132,20 @@ input ShopSettingsInput {
   """Default weight unit."""
   defaultWeightUnit: WeightUnitsEnum
 
+  """Enable automatic fulfillment for all digital products."""
+  automaticFulfillmentDigitalProducts: Boolean
+
   """Enable automatic approval of all new fulfillments."""
   fulfillmentAutoApprove: Boolean
 
   """Enable ability to approve fulfillments which are unpaid."""
   fulfillmentAllowUnpaid: Boolean
+
+  """Default number of max downloads per digital content URL."""
+  defaultDigitalMaxDownloads: Int
+
+  """Default number of days which digital content URL will be valid."""
+  defaultDigitalUrlValidDays: Int
 
   """Default email sender's name."""
   defaultMailSenderName: String
@@ -23123,20 +23197,6 @@ input ShopSettingsInput {
   Added in Saleor 3.22.
   """
   preserveAllAddressFields: Boolean
-
-  """
-  Controls whether password-based authentication is allowed.
-  
-  Added in Saleor 3.23.
-  """
-  passwordLoginMode: PasswordLoginModeEnum
-
-  """
-  When enabled, stock availability is filtered by shipping zones and the destination address (legacy behavior). When disabled, stock availability is determined only by the direct warehouse-channel link, ignoring shipping zones.
-  
-  Added in Saleor 3.23.
-  """
-  useLegacyShippingZoneStockAvailability: Boolean
 
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean @deprecated(reason: "Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.")
@@ -23313,7 +23373,7 @@ Requires one of the following permissions: MANAGE_SETTINGS.
 """
 type RefundSettingsUpdate @doc(category: "Shop") {
   """Refund settings."""
-  refundSettings: RefundSettings
+  refundSettings: RefundSettings!
   refundSettingsErrors: [RefundSettingsUpdateError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [RefundSettingsUpdateError!]!
 }
@@ -23374,21 +23434,20 @@ type RefundReasonReferenceTypeClearError @doc(category: "Shop") {
 }
 
 """
-Calculates available delivery options for a checkout.
+Update return settings across all channels.
 
-Added in Saleor 3.23.
+Added in Saleor 3.22. 
 
-Triggers the following webhook events:
-- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered to fetch external shipping methods.
-- CHECKOUT_FILTER_SHIPPING_METHODS (sync): Triggered to filter shipping methods.
+Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type DeliveryOptionsCalculate @doc(category: "Shipping") @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) {
-  """List of the available deliveries."""
-  deliveries: [Delivery!]!
-  errors: [DeliveryOptionsCalculateError!]!
+type ReturnSettingsUpdate @doc(category: "Shop") {
+  """Return settings."""
+  returnSettings: ReturnSettings!
+  returnSettingsErrors: [ReturnSettingsUpdateError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ReturnSettingsUpdateError!]!
 }
 
-type DeliveryOptionsCalculateError @doc(category: "Shipping") {
+type ReturnSettingsUpdateError @doc(category: "Shop") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -23397,14 +23456,50 @@ type DeliveryOptionsCalculateError @doc(category: "Shipping") {
   """The error message."""
   message: String
 
-  """The error code."""
-  code: DeliveryOptionsCalculateErrorCode!
+  """Failed to update Return Settings"""
+  code: ReturnSettingsErrorCode!
 }
 
-enum DeliveryOptionsCalculateErrorCode @doc(category: "Shipping") {
-  GRAPHQL_ERROR
-  NOT_FOUND
+enum ReturnSettingsErrorCode @doc(category: "Shop") {
   INVALID
+  REQUIRED
+  GRAPHQL_ERROR
+}
+
+input ReturnSettingsUpdateInput @doc(category: "Shop") {
+  """
+  The ID of a model type, that will be used to reference return reasons. All models of this type will be accepted as return reasons. 
+  
+  Added in Saleor 3.22.
+  """
+  returnReasonReferenceType: ID!
+}
+
+"""
+Updates ReturnSettings. The `Page` (Model) Type will be cleared from `reasonReferenceType`. When it's cleared, passing reason reference to return mutations is no longer accepted and will raise error.
+
+Added in Saleor 3.22. 
+
+Requires one of the following permissions: MANAGE_SETTINGS.
+"""
+type ReturnReasonReferenceTypeClear @doc(category: "Orders") {
+  """Return settings."""
+  returnSettings: ReturnSettings!
+  returnSettingsErrors: [ReturnReasonReferenceTypeClearError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ReturnReasonReferenceTypeClearError!]!
+}
+
+type ReturnReasonReferenceTypeClearError @doc(category: "Shop") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """Failed to clear return reason reference type"""
+  code: ReturnSettingsErrorCode!
 }
 
 """
@@ -23767,13 +23862,13 @@ enum ProductErrorCode @doc(category: "Products") {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  VARIANT_NO_DIGITAL_CONTENT
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
   PREORDER_VARIANT_CANNOT_BE_DEACTIVATED
   INVALID_FILE_TYPE
   UNSUPPORTED_MIME_TYPE
-  FILE_SIZE_LIMIT_EXCEEDED
 }
 
 input ProductAttributeAssignInput @doc(category: "Products") {
@@ -23984,8 +24079,7 @@ enum CollectionErrorCode @doc(category: "Products") {
   NOT_FOUND
   REQUIRED
   UNIQUE
-  CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT @deprecated(reason: "Products without variants can now be assigned to collections. This error will never be returned.")
-  FILE_SIZE_LIMIT_EXCEEDED
+  CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
 }
 
 """
@@ -24450,7 +24544,6 @@ enum ProductBulkCreateErrorCode @doc(category: "Products") {
   UNIQUE
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
-  FILE_SIZE_LIMIT_EXCEEDED
 }
 
 input ProductBulkCreateInput @doc(category: "Products") {
@@ -25072,7 +25165,7 @@ input ProductTypeInput @doc(category: "Products") {
   """
   Determines if product of this type has multiple variants. This option mainly simplifies product management in the dashboard. There is always at least one variant created under the hood.
   """
-  hasVariants: Boolean @deprecated(reason: "The field has no effect on the API behavior. This is a leftover from the past Simple/Configurable product distinction. Products can have multiple variants regardless of this setting.")
+  hasVariants: Boolean
 
   """List of attributes shared among all product variants."""
   productAttributes: [ID!]
@@ -25085,9 +25178,7 @@ input ProductTypeInput @doc(category: "Products") {
   """Determines if shipping is required for products of this variant."""
   isShippingRequired: Boolean
 
-  """
-  Determines if products are digital - doesn't have any effect, it's present for backward-compatibility.
-  """
+  """Determines if products are digital."""
   isDigital: Boolean
 
   """Weight of the ProductType items."""
@@ -25158,6 +25249,124 @@ type ProductReorderAttributeValues @doc(category: "Products") {
   product: Product
   productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ProductError!]!
+}
+
+"""
+Create new digital content. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type DigitalContentCreate @doc(category: "Products") {
+  variant: ProductVariant
+  content: DigitalContent
+  productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ProductError!]!
+}
+
+input DigitalContentUploadInput @doc(category: "Products") {
+  """Use default digital content settings for this product."""
+  useDefaultSettings: Boolean!
+
+  """
+  Determines how many times a download link can be accessed by a customer.
+  """
+  maxDownloads: Int
+
+  """
+  Determines for how many days a download link is active since it was generated.
+  """
+  urlValidDays: Int
+
+  """Overwrite default automatic_fulfillment setting for variant."""
+  automaticFulfillment: Boolean
+
+  """
+  Fields required to update the digital content metadata. Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the digital content private metadata. Requires permissions to modify and to read the metadata of the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """Represents an file in a multipart request."""
+  contentFile: Upload!
+}
+
+"""
+Remove digital content assigned to given variant. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type DigitalContentDelete @doc(category: "Products") {
+  variant: ProductVariant
+  productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ProductError!]!
+}
+
+"""
+Updates digital content. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type DigitalContentUpdate @doc(category: "Products") {
+  variant: ProductVariant
+  content: DigitalContent
+  productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ProductError!]!
+}
+
+input DigitalContentInput @doc(category: "Products") {
+  """Use default digital content settings for this product."""
+  useDefaultSettings: Boolean!
+
+  """
+  Determines how many times a download link can be accessed by a customer.
+  """
+  maxDownloads: Int
+
+  """
+  Determines for how many days a download link is active since it was generated.
+  """
+  urlValidDays: Int
+
+  """Overwrite default automatic_fulfillment setting for variant."""
+  automaticFulfillment: Boolean
+
+  """
+  Fields required to update the digital content metadata. Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the digital content private metadata. Requires permissions to modify and to read the metadata of the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  privateMetadata: [MetadataInput!]
+}
+
+"""
+Generate new URL to digital content. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type DigitalContentUrlCreate @doc(category: "Products") {
+  productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ProductError!]!
+  digitalContentUrl: DigitalContentUrl
+}
+
+input DigitalContentUrlCreateInput @doc(category: "Products") {
+  """Digital content ID which URL will belong to."""
+  content: ID!
 }
 
 """
@@ -25469,17 +25678,8 @@ type ProductVariantBulkDelete @doc(category: "Products") {
 Creates stocks for product variant. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
-
-Triggers the following webhook events:
-- PRODUCT_VARIANT_BACK_IN_STOCK (async): A product variant stock is created in a warehouse.
-- PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL (async): A product variant is back in stock in a channel (non click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-- PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is back in stock in a channel (click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
 """
-type ProductVariantStocksCreate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_BACK_IN_STOCK, PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL, PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: []) {
+type ProductVariantStocksCreate @doc(category: "Products") {
   """Updated product variant."""
   productVariant: ProductVariant
   bulkStockErrors: [BulkStockError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -25512,17 +25712,8 @@ type BulkStockError @doc(category: "Products") {
 Deletes stocks from product variant. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
-
-Triggers the following webhook events:
-- PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock is deleted from a warehouse.
-- PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-- PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
 """
-type ProductVariantStocksDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: []) {
+type ProductVariantStocksDelete @doc(category: "Products") {
   """Updated product variant."""
   productVariant: ProductVariant
   stockErrors: [StockError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -25555,25 +25746,8 @@ enum StockErrorCode @doc(category: "Products") {
 Updates stocks for product variant. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
-
-Triggers the following webhook events:
-- PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock is updated.
-- PRODUCT_VARIANT_BACK_IN_STOCK (async): A product variant stock transitioned from no availability to available quantity.
-- PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock transitioned from available quantity to no availability.
-- PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL (async): A product variant is back in stock in a channel (non click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-- PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-- PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is back in stock in a channel (click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-- PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
-
-Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
 """
-type ProductVariantStocksUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED, PRODUCT_VARIANT_BACK_IN_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: []) {
+type ProductVariantStocksUpdate @doc(category: "Products") {
   """Updated product variant."""
   productVariant: ProductVariant
   bulkStockErrors: [BulkStockError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -26004,7 +26178,7 @@ input TransactionCreateInput @doc(category: "Payments") {
 }
 
 """
-Details of the payment method used for the transaction. One of `card`, `other`, or `giftCard` is required.
+Details of the payment method used for the transaction. One of `card` or `other` is required.
 
 Added in Saleor 3.22.
 """
@@ -26014,13 +26188,6 @@ input PaymentMethodDetailsInput {
 
   """Details of the non-card payment method used for this transaction."""
   other: OtherPaymentMethodDetailsInput
-
-  """
-  Details of the gift card payment method used for the transaction.
-  
-  Added in Saleor 3.23.
-  """
-  giftCard: GiftCardPaymentMethodDetailsInput
 }
 
 input CardPaymentMethodDetailsInput {
@@ -26058,29 +26225,6 @@ input CardPaymentMethodDetailsInput {
 input OtherPaymentMethodDetailsInput {
   """Name of the payment method used for the transaction."""
   name: String!
-}
-
-input GiftCardPaymentMethodDetailsInput {
-  """
-  Name of the payment method used for the transaction. Max length is 256 characters.
-  
-  Added in Saleor 3.23.
-  """
-  name: String!
-
-  """
-  Brand of the gift card used for the transaction. Max length is 40 characters.
-  
-  Added in Saleor 3.23.
-  """
-  brand: String
-
-  """
-  Last characters of the gift card used for the transaction. Max length is 4 characters.
-  
-  Added in Saleor 3.23.
-  """
-  lastChars: String
 }
 
 input TransactionEventInput @doc(category: "Payments") {
@@ -26842,7 +26986,7 @@ input PageTypeUpdateInput @doc(category: "Pages") {
   """List of attribute IDs to be assigned to the page type."""
   addAttributes: [ID!]
 
-  """List of attribute IDs to be unassigned from the page type."""
+  """List of attribute IDs to be assigned to the page type."""
   removeAttributes: [ID!]
 }
 
@@ -26974,7 +27118,7 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   shippingMethod: ID
 
   """ID of the voucher associated with the order."""
-  voucher: ID @deprecated(reason: "Use `voucherCode` instead.")
+  voucher: ID
 
   """
   A code of the voucher associated with the order.
@@ -27124,7 +27268,7 @@ input DraftOrderInput @doc(category: "Orders") {
   shippingMethod: ID
 
   """ID of the voucher associated with the order."""
-  voucher: ID @deprecated(reason: "Use `voucherCode` instead.")
+  voucher: ID
 
   """
   A code of the voucher associated with the order.
@@ -27431,6 +27575,20 @@ input OrderReturnProductsInput @doc(category: "Orders") {
 
   """If true, Saleor will call refund action for all lines."""
   refund: Boolean = false
+
+  """
+  Reason for returning this order.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  ID of a `Page` (Model) to reference in reason for this return.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 input OrderReturnLineInput @doc(category: "Orders") {
@@ -27442,6 +27600,20 @@ input OrderReturnLineInput @doc(category: "Orders") {
 
   """Determines, if the line should be added to replace order."""
   replace: Boolean = false
+
+  """
+  Reason for returning this line.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  ID of a `Page` (Model) to reference in reason for this line.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
@@ -27453,6 +27625,20 @@ input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
 
   """Determines, if the line should be added to replace order."""
   replace: Boolean = false
+
+  """
+  Reason for returning this fulfillment line.
+  
+  Added in Saleor 3.22.
+  """
+  reason: String
+
+  """
+  ID of a `Page` (Model) to reference in reason for this fulfillment line.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 """
@@ -27557,6 +27743,13 @@ input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
 
   """Reason of the granted refund for the line."""
   reason: String
+
+  """
+  ID of a `Page` (Model) to reference in reason for the line.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 """
@@ -27667,6 +27860,13 @@ input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {
 
   """Reason of the granted refund for the line."""
   reason: String
+
+  """
+  ID of a `Page` (Model) to reference in reason for the line.
+  
+  Added in Saleor 3.22.
+  """
+  reasonReference: ID
 }
 
 """
@@ -30402,7 +30602,9 @@ input ExportGiftCardsInput @doc(category: "Gift cards") {
 """
 Export voucher codes to csv/xlsx file.
 
-Added in Saleor 3.18. 
+Added in Saleor 3.18.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
@@ -30808,30 +31010,6 @@ type CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(as
 }
 
 """
-Deletes a checkout.
-
-Added in Saleor 3.23. 
-
-Requires one of the following permissions: MANAGE_CHECKOUTS.
-"""
-type CheckoutDelete @doc(category: "Checkout") {
-  errors: [CheckoutDeleteError!]!
-}
-
-type CheckoutDeleteError @doc(category: "Checkout") {
-  """
-  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
-  """
-  field: String
-
-  """The error message."""
-  message: String
-
-  """The error code."""
-  code: CheckoutErrorCode!
-}
-
-"""
 Updates email address in the existing checkout object.
 
 Triggers the following webhook events:
@@ -31010,10 +31188,9 @@ Updates the shipping method of the checkout.
 
 Triggers the following webhook events:
 - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout shipping method with the external one.
-- CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
-type CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) {
+type CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT]) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -31025,10 +31202,9 @@ Updates the delivery method (shipping method or pick up point) of the checkout. 
 
 Triggers the following webhook events:
 - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout delivery method with the external one.
-- CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
-type CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) {
+type CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT]) {
   """An updated checkout."""
   checkout: Checkout
   errors: [CheckoutError!]!
@@ -31290,13 +31466,6 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   Added in Saleor 3.22.
   """
   automaticCompletion: CheckoutAutoCompleteInput
-
-  """
-  Default to `true`. Determines whether gift cards can be attached to a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards is deprecated.
-  
-  Added in Saleor 3.23.
-  """
-  allowLegacyGiftCardUse: Boolean
 }
 
 input CheckoutAutoCompleteInput @doc(category: "Checkout") {
@@ -32221,10 +32390,10 @@ type AppInstall @doc(category: "Apps") {
 
 input AppInstallInput @doc(category: "Apps") {
   """Name of the app to install."""
-  appName: String!
+  appName: String
 
   """URL to app's manifest in JSON format."""
-  manifestUrl: String!
+  manifestUrl: String
 
   """Determine if app will be set active or not."""
   activateAfterInstallation: Boolean = true
@@ -32341,22 +32510,28 @@ type AppManifestExtension @doc(category: "Apps") {
   """URL of a view where extension's iframe is placed."""
   url: String!
 
+  """Place where given extension will be mounted."""
+  mount: AppExtensionMountEnum! @deprecated(reason: "Use `mountName` instead.")
+
+  """Type of way how app extension will be opened."""
+  target: AppExtensionTargetEnum! @deprecated(reason: "Use `targetName` instead.")
+
   """
-  Name of the extension mount point in the dashboard. Value returned in UPPERCASE.
+  Name of the extension mount point in the dashboard. Replaces `mount`
   
   Added in Saleor 3.22.
   """
   mountName: String!
 
   """
-  Name of the extension target in the dashboard. Value returned in UPPERCASE.
+  Name of the extension target in the dashboard. Replaces `target`
   
   Added in Saleor 3.22.
   """
   targetName: String!
 
   """
-  App extension settings.
+  JSON object with settings for this extension.
   
   Added in Saleor 3.22.
   """
@@ -32645,9 +32820,7 @@ enum AccountErrorCode @doc(category: "Users") {
   MISSING_CHANNEL_SLUG
   ACCOUNT_NOT_CONFIRMED
   LOGIN_ATTEMPT_DELAYED
-  DISABLED_AUTHENTICATION_METHOD
   UNKNOWN_IP_ADDRESS
-  FILE_SIZE_LIMIT_EXCEEDED
 }
 
 """
@@ -33950,84 +34123,6 @@ type Subscription @doc(category: "Miscellaneous") {
     """
     channels: [String!]
   ): CheckoutMetadataUpdated @doc(category: "Checkout")
-
-  """
-  Event sent when product variant discounted price is recalculated.
-  
-  Added in Saleor 3.22.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  productVariantDiscountedPriceUpdated(
-    """
-    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
-    """
-    channels: [String!]
-  ): ProductVariantDiscountedPriceUpdated @doc(category: "Products")
-
-  """
-  Event sent when a product variant becomes out of stock across all non click-and-collect warehouses in a channel.
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  
-  Added in Saleor 3.23.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  productVariantOutOfStockInChannel(
-    """
-    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
-    """
-    channels: [String!]
-  ): ProductVariantOutOfStockInChannel @doc(category: "Products")
-
-  """
-  Event sent when a product variant becomes available again across non click-and-collect warehouses in a channel.
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  
-  Added in Saleor 3.23.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  productVariantBackInStockInChannel(
-    """
-    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
-    """
-    channels: [String!]
-  ): ProductVariantBackInStockInChannel @doc(category: "Products")
-
-  """
-  Event sent when a product variant becomes out of stock across all click-and-collect warehouses in a channel.
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  
-  Added in Saleor 3.23.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  productVariantOutOfStockForClickAndCollect(
-    """
-    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
-    """
-    channels: [String!]
-  ): ProductVariantOutOfStockForClickAndCollect @doc(category: "Products")
-
-  """
-  Event sent when a product variant becomes available again across click-and-collect warehouses in a channel.
-  
-  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-  
-  Added in Saleor 3.23.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  productVariantBackInStockForClickAndCollect(
-    """
-    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
-    """
-    channels: [String!]
-  ): ProductVariantBackInStockForClickAndCollect @doc(category: "Products")
 }
 
 interface Event {
@@ -34414,145 +34509,6 @@ type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
 
   """The checkout the event relates to."""
   checkout: Checkout
-}
-
-"""
-Event sent when product variant discounted price is recalculated.
-
-Added in Saleor 3.22.
-"""
-type ProductVariantDiscountedPriceUpdated implements Event @doc(category: "Products") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The product variant the event relates to."""
-  productVariant: ProductVariant!
-
-  """The channel where the price changed."""
-  channel: Channel!
-
-  """The previous discounted price."""
-  previousPrice: Money!
-
-  """The new discounted price."""
-  newPrice: Money!
-}
-
-"""
-Event sent when a product variant becomes out of stock across all non click-and-collect warehouses in a channel.
-
-Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-
-Added in Saleor 3.23.
-"""
-type ProductVariantOutOfStockInChannel implements Event @doc(category: "Products") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The product variant the event relates to."""
-  productVariant: ProductVariant!
-
-  """The channel the stock availability changed in."""
-  channel: Channel!
-}
-
-"""
-Event sent when a product variant becomes available again across non click-and-collect warehouses in a channel.
-
-Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-
-Added in Saleor 3.23.
-"""
-type ProductVariantBackInStockInChannel implements Event @doc(category: "Products") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The product variant the event relates to."""
-  productVariant: ProductVariant!
-
-  """The channel the stock availability changed in."""
-  channel: Channel!
-}
-
-"""
-Event sent when a product variant becomes out of stock across all click-and-collect warehouses in a channel.
-
-Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-
-Added in Saleor 3.23.
-"""
-type ProductVariantOutOfStockForClickAndCollect implements Event @doc(category: "Products") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The product variant the event relates to."""
-  productVariant: ProductVariant!
-
-  """The channel the stock availability changed in."""
-  channel: Channel!
-}
-
-"""
-Event sent when a product variant becomes available again across click-and-collect warehouses in a channel.
-
-Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
-
-Added in Saleor 3.23.
-"""
-type ProductVariantBackInStockForClickAndCollect implements Event @doc(category: "Products") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The product variant the event relates to."""
-  productVariant: ProductVariant!
-
-  """The channel the stock availability changed in."""
-  channel: Channel!
 }
 
 enum DistanceUnitsEnum {
@@ -36225,28 +36181,6 @@ type CustomerUpdated implements Event @doc(category: "Users") {
   user: User
 }
 
-"""
-Event sent when customer user is deleted.
-
-Added in Saleor 3.23.
-"""
-type CustomerDeleted implements Event @doc(category: "Users") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The user the event relates to."""
-  user: User
-}
-
 """Event sent when customer user metadata is updated."""
 type CustomerMetadataUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -37718,37 +37652,6 @@ type CardPaymentMethodDetails implements PaymentMethodDetails {
 
   """Four-digit number representing the card’s expiration year."""
   expYear: Int
-}
-
-"""
-Represents a gift card payment method used for a transaction.
-
-Added in Saleor 3.23.
-"""
-type GiftCardPaymentMethodDetails implements PaymentMethodDetails {
-  """Name of the gift card."""
-  name: String!
-
-  """
-  Brand of the gift card.
-  
-  Added in Saleor 3.23.
-  """
-  brand: String
-
-  """
-  Last characters of the gift card code. Max 4 characters.
-  
-  Added in Saleor 3.23.
-  """
-  lastChars: String
-
-  """
-  Indicates whether the gift card is a built-in Saleor gift card.
-  
-  Added in Saleor 3.23.
-  """
-  isSaleorGiftcard: Boolean!
 }
 
 """
