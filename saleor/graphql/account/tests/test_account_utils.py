@@ -1,4 +1,5 @@
 from ....account.models import Group, User
+from ....account.tests.fixtures.user import dangerously_create_test_user
 from ....app.models import App
 from ....channel.models import Channel
 from ....permission.enums import (
@@ -395,7 +396,7 @@ def test_get_out_of_scope_users_user_has_rights_to_manage_all_users(
 ):
     staff_user1 = staff_users[0]
     staff_user2 = staff_users[1]
-    staff_user3 = User.objects.create_user(
+    staff_user3 = dangerously_create_test_user(
         email="staff3_test@example.com",
         password="password",
         is_staff=True,
@@ -447,7 +448,7 @@ def test_get_out_of_scope_users_return_some_users(
 ):
     staff_user1 = staff_users[0]
     staff_user2 = staff_users[1]
-    staff_user3 = User.objects.create_user(
+    staff_user3 = dangerously_create_test_user(
         email="staff3_test@example.com",
         password="password",
         is_staff=True,

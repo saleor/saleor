@@ -5,7 +5,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT, Client
 
-from ...account.models import User
+from ...account.tests.fixtures.user import dangerously_create_test_user
 from ...app.models import App
 from ...graphql.tests.fixtures import BaseApiClient
 
@@ -47,7 +47,7 @@ class E2eApiClient(BaseApiClient):
 
 @pytest.fixture
 def e2e_staff_api_client():
-    e2e_staff_user = User.objects.create_user(
+    e2e_staff_user = dangerously_create_test_user(
         email="e2e_staff_test@example.com",
         password="password",
         is_staff=True,
@@ -59,7 +59,7 @@ def e2e_staff_api_client():
 
 @pytest.fixture
 def e2e_logged_api_client():
-    e2e_customer = User.objects.create_user(
+    e2e_customer = dangerously_create_test_user(
         email="JoeCustomer@example.com",
         password="password",
         first_name="Joe",
@@ -87,7 +87,7 @@ def e2e_app_api_client():
 
 @pytest.fixture
 def e2e_no_permission_staff_api_client():
-    e2e_no_permission_staff_user = User.objects.create_user(
+    e2e_no_permission_staff_user = dangerously_create_test_user(
         email="e2e_no_permission_staff_test@example.com",
         password="password",
         is_staff=True,

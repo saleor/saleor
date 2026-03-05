@@ -226,7 +226,12 @@ class AccountRegister(DeprecatedModelMutation):
 
     @classmethod
     def save_and_create_task(cls, user_exists, instance, cleaned_input, context_data):
-        instance.set_password(cleaned_input["password"])
+        instance.set_password(
+            # nosemgrep: python.django.security.audit.unvalidated-password.unvalidated-password
+            # Password is being validated via cls.clean_input(), which correctly invokes
+            # django.contrib.auth.password_validation.validate_password()
+            cleaned_input["password"]
+        )
         instance.is_confirmed = False
 
         user_created = False

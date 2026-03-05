@@ -41,6 +41,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Add optional usage telemetry. - #18789 by @wcislo-saleor
 - The app can now be installed without providing a `tokenTargetUrl` in the manifest file.
 - Removed the setting `JWT_EXPIRE` which allowed to configure Saleor to ignore the JWT token expiration. - #18856 by @NyanKiyoshi
+- Removed support for custom `User` DB models in `./manage.py createsuperuser` command. - #18890 by @NyanKiyoshi
 
 #### Search improvements
 

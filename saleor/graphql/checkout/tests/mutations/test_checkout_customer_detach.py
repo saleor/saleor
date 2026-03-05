@@ -5,7 +5,7 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....account.models import User
+from .....account.tests.fixtures.user import dangerously_create_test_user
 from .....checkout.actions import call_checkout_event
 from .....core.models import EventDelivery
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
@@ -50,7 +50,7 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
     assert checkout.search_index_dirty is True
 
     # Mutation should fail when user calling it doesn't own the checkout.
-    other_user = User.objects.create_user("othercustomer@example.com", "password")
+    other_user = dangerously_create_test_user("othercustomer@example.com", "password")
     checkout.user = other_user
     checkout.save()
     response = user_api_client.post_graphql(
