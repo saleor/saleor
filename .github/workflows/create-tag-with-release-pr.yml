@@ -64,14 +64,18 @@ jobs:
     needs:
       - publish
     steps:
+      - name: Get Token
+        id: get-token
+        uses: saleor/saleor-internal-actions/request-vault-token@eb0c692da7bf13f5e1a82c17488b24c514dd10a1 # v1.10.0
+        with:
+          vault-url: ${{ secrets.VAULT_URL }}
+          vault-jwt: ${{ secrets.VAULT_JWT }}
+
       - name: Trigger staging deployment for tagged release
         env:
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
           VERSION: ${{ needs.publish.outputs.version }}
         run: |
-          export GITHUB_TOKEN=$( \
-            curl --request GET --url ${{ secrets.VAULT_URL}} --header "Authorization: JWT ${{ secrets.VAULT_JWT }}" | jq -r .token \
-          )
-
           payload=$(
               jq --arg version "$VERSION" --null-input '
                 {
