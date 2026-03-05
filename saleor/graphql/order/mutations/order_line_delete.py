@@ -5,6 +5,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
+from ....order.models import Order as OrderModel
 from ....order.search import update_order_search_vector
 from ....order.utils import (
     delete_order_line,
@@ -53,14 +54,20 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         order = line.order
         cls.validate(info, order, line)
 
-        db_id = line.id
-        line_allocation = line.allocations.first()
-        warehouse_pk = (
-            line_allocation.stock.warehouse.pk
-            if line_allocation and order.is_unconfirmed()
-            else None
-        )
         with traced_atomic_transaction():
+            OrderModel.objects.select_for_update().filter(pk=order.pk).first()
+
+            line.refresh_from_db()
+
+            db_id = line.id
+            line_allocation = line.allocations.select_related(
+                "stock__warehouse"
+            ).first()
+            warehouse_pk = (
+                line_allocation.stock.warehouse.pk
+                if line_allocation and order.is_unconfirmed()
+                else None
+            )
             line_info = OrderLineInfo(
                 line=line,
                 quantity=line.quantity,
