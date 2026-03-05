@@ -13,7 +13,7 @@ from .plugins.views import (
     handle_plugin_webhook,
 )
 from .product.views import digital_product
-from .thumbnail.views import handle_thumbnail
+from .thumbnail.views import handle_original_image, handle_thumbnail
 
 urlpatterns = [
     re_path(
@@ -49,6 +49,11 @@ urlpatterns = [
         ),
         handle_thumbnail,
         name="thumbnail",
+    ),
+    re_path(
+        (r"^image/(?P<instance_id>[.0-9A-Za-z_=\-]+)/$"),
+        handle_original_image,
+        name="original-image",
     ),
     re_path(r"^\.well-known/jwks.json$", jwks, name="jwks"),
 ]

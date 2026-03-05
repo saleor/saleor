@@ -1270,8 +1270,12 @@ def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     assert len(error_1) == 1
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.fetch_product_media_image_task.delay"
+)
 @pytest.mark.vcr
 def test_product_bulk_create_with_media_image_file_is_fetched_only_once(
+    mock_fetch_product_media_image_task,
     staff_api_client,
     product_type,
     category,
@@ -1317,27 +1321,21 @@ def test_product_bulk_create_with_media_image_file_is_fetched_only_once(
     assert data["results"][0]["product"]["media"][0]["alt"] == alt
     assert data["results"][0]["product"]["media"][0]["url"] != url
 
-    # Validate the image file
     product = Product.objects.first()
     product_image = product.media.last()
-    assert product_image.image.file
-    img_name, format = os.path.splitext(expected_file_name)
-    file_name = product_image.image.name
-    assert file_name != expected_file_name
-    assert file_name.startswith(f"products/{img_name}")
-    assert file_name.endswith(format)
 
-    # Open the image and validate its content
-    image_path = product_image.image.path
-    with PIL.Image.open(image_path) as img:
-        assert img.format == "PNG"  # Ensure the image format is PNG
-        assert img.size[0] > 0  # Ensure the image has dimensions
-        assert img.size[1] > 0  # Ensure the image has dimensions
+    assert bool(product_image.image) is False
+    assert product_image.external_url is not None
+    mock_fetch_product_media_image_task.assert_called_once_with(product_image.pk)
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.fetch_product_media_image_task.delay"
+)
 @patch("saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient")
 def test_product_bulk_create_with_no_extension_media_url(
     mock_HTTPClient,
+    mock_fetch_product_media_image_task,
     staff_api_client,
     product_type,
     category,
@@ -1376,13 +1374,12 @@ def test_product_bulk_create_with_no_extension_media_url(
 
     # then
     assert not content["results"][0]["errors"]
-    # validate image file
     _, product_id = graphene.Node.from_global_id(content["results"][0]["product"]["id"])
     product_image = Product.objects.get(id=product_id).media.first()
-    assert product_image.image.name.startswith("products/image-path_")
-    assert product_image.image.name.endswith(".png")
-    with product_image.image.open("rb") as img:
-        assert img.read() == image_content
+
+    assert bool(product_image.image) is False
+    assert product_image.external_url is not None
+    mock_fetch_product_media_image_task.assert_called_once_with(product_image.pk)
 
 
 def test_product_bulk_create_with_attributes(
