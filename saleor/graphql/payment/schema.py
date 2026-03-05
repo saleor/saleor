@@ -39,7 +39,7 @@ from .types import (
     OtherPaymentMethodDetails,
     Payment,
     PaymentCountableConnection,
-    SaleorGiftcardPaymentMethodDetails,
+    SaleorGiftCardPaymentMethodDetails,
     TransactionCountableConnection,
     TransactionItem,
 )
@@ -47,7 +47,7 @@ from .types import (
 PAYMENT_ADDITIONAL_TYPES = [
     CardPaymentMethodDetails,
     OtherPaymentMethodDetails,
-    SaleorGiftcardPaymentMethodDetails,
+    SaleorGiftCardPaymentMethodDetails,
 ]
 
 

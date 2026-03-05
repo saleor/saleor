@@ -477,7 +477,7 @@ class PaymentMethodDetails(graphene.Interface):
         if instance.payment_method_type == PaymentMethodType.CARD:
             return CardPaymentMethodDetails
         if instance.payment_method_type == PaymentMethodType.GIFT_CARD:
-            return SaleorGiftcardPaymentMethodDetails
+            return SaleorGiftCardPaymentMethodDetails
         return OtherPaymentMethodDetails
 
     @staticmethod
@@ -540,7 +540,7 @@ class OtherPaymentMethodDetails(BaseObjectType):
         interfaces = [PaymentMethodDetails]
 
 
-class SaleorGiftcardPaymentMethodDetails(BaseObjectType):
+class SaleorGiftCardPaymentMethodDetails(BaseObjectType):
     name = graphene.String(required=True, description="Name of the payment method.")
     code = graphene.String(
         required=True,
@@ -556,7 +556,7 @@ class SaleorGiftcardPaymentMethodDetails(BaseObjectType):
 
     @staticmethod
     def resolve_code(root: models.TransactionItem, _info):
-        return root.gift_card_display_code or ""
+        return root.gift_card_last_digits or ""
 
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):

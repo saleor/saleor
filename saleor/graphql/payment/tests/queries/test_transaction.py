@@ -110,7 +110,7 @@ TRANSACTION_QUERY = """
                 ...on OtherPaymentMethodDetails{
                     name
                 }
-                ...on SaleorGiftcardPaymentMethodDetails{
+                ...on SaleorGiftCardPaymentMethodDetails{
                     name
                     code
                 }
@@ -998,7 +998,7 @@ def test_transaction_query_by_app_with_payment_method_gift_card(
 
     transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
     transaction_item_created_by_app.payment_method_name = expected_payment_method_name
-    transaction_item_created_by_app.gift_card_display_code = expected_display_code
+    transaction_item_created_by_app.gift_card_last_digits = expected_display_code
     transaction_item_created_by_app.save()
 
     variables = {
@@ -1017,7 +1017,7 @@ def test_transaction_query_by_app_with_payment_method_gift_card(
     data = content["data"]["transaction"]
     assert (
         data["paymentMethodDetails"]["__typename"]
-        == "SaleorGiftcardPaymentMethodDetails"
+        == "SaleorGiftCardPaymentMethodDetails"
     )
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
     assert data["paymentMethodDetails"]["code"] == expected_display_code
@@ -1032,7 +1032,7 @@ def test_transaction_query_by_staff_with_payment_method_gift_card(
 
     transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
     transaction_item_created_by_app.payment_method_name = expected_payment_method_name
-    transaction_item_created_by_app.gift_card_display_code = expected_display_code
+    transaction_item_created_by_app.gift_card_last_digits = expected_display_code
     transaction_item_created_by_app.save()
 
     variables = {
@@ -1051,7 +1051,7 @@ def test_transaction_query_by_staff_with_payment_method_gift_card(
     data = content["data"]["transaction"]
     assert (
         data["paymentMethodDetails"]["__typename"]
-        == "SaleorGiftcardPaymentMethodDetails"
+        == "SaleorGiftCardPaymentMethodDetails"
     )
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
     assert data["paymentMethodDetails"]["code"] == expected_display_code

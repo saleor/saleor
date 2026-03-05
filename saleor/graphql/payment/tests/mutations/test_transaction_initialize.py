@@ -3507,7 +3507,7 @@ def test_for_checkout_with_gift_card_payment_gateway(
     transaction = checkout.payment_transactions.last()
     assert transaction.payment_method_type == PaymentMethodType.GIFT_CARD
     assert transaction.payment_method_name == GIFT_CARD_PAYMENT_GATEWAY_NAME
-    assert transaction.gift_card_display_code == gift_card_created_by_staff.display_code
+    assert transaction.gift_card_last_digits == gift_card_created_by_staff.display_code
 
 
 @mock.patch("saleor.giftcard.gateway.uuid4")

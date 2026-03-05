@@ -37420,7 +37420,7 @@ Represents a Saleor gift card payment method. Set by Saleor when a gift card is 
 
 Added in Saleor 3.23.
 """
-type SaleorGiftcardPaymentMethodDetails implements PaymentMethodDetails {
+type SaleorGiftCardPaymentMethodDetails implements PaymentMethodDetails {
   """Name of the payment method."""
   name: String!
 

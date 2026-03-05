@@ -155,13 +155,13 @@ def attach_gift_card_to_transaction(
     transaction.gift_card = gift_card
     transaction.payment_method_type = PaymentMethodType.GIFT_CARD
     transaction.payment_method_name = GIFT_CARD_PAYMENT_GATEWAY_NAME
-    transaction.gift_card_display_code = gift_card.display_code
+    transaction.gift_card_last_digits = gift_card.display_code
     transaction.save(
         update_fields=[
             "gift_card",
             "payment_method_type",
             "payment_method_name",
-            "gift_card_display_code",
+            "gift_card_last_digits",
         ]
     )
 
