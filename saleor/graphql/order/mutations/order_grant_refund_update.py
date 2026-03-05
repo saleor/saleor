@@ -64,6 +64,10 @@ class OrderGrantRefundUpdateLineAddInput(BaseInputObjectType):
         description="The quantity of line items to be marked to refund.", required=True
     )
     reason = graphene.String(description="Reason of the granted refund for the line.")
+    reason_reference = graphene.ID(
+        description="ID of a `Page` (Model) to reference in reason for the line."
+        + ADDED_IN_322,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
