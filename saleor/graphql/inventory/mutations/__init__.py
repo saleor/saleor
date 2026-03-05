@@ -10,7 +10,9 @@ from .receipt_complete import ReceiptComplete
 from .receipt_delete import ReceiptDelete
 from .receipt_line_delete import ReceiptLineDelete
 from .receipt_receive_item import ReceiptReceiveItem
+from .receipt_receive_items_batch import ReceiptReceiveItemsBatch
 from .receipt_start import ReceiptStart
+from .receipt_update_lines import ReceiptUpdateLines
 from .remove_order_from_purchase_order import RemoveOrderFromPurchaseOrder
 from .resolve_product_discrepancy import ResolveProductDiscrepancy
 
@@ -25,7 +27,9 @@ __all__ = [
     "ReceiptDelete",
     "ReceiptLineDelete",
     "ReceiptReceiveItem",
+    "ReceiptReceiveItemsBatch",
     "ReceiptStart",
+    "ReceiptUpdateLines",
     "RemoveOrderFromPurchaseOrder",
     "RemovePurchaseOrderItem",
     "ResolveProductDiscrepancy",

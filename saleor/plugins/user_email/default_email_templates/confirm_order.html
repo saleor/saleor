@@ -212,6 +212,10 @@
       </tbody>
       </table>
 
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:12px;line-height:1.4;text-align:left;color:#666666;padding:10px 0 0 0;font-style:italic;">
+        Please note: quantities are subject to change based on availability.
+      </div>
+
                 </td>
               </tr>
 
@@ -269,10 +273,14 @@
                 {{/if}}
               </td>
               <td css-class="address" style="padding: 5px;">
-                {{#if order.shipping_address}}
-                  {{format_address order.shipping_address}}
+                {{#if order.show_shipping_address}}
+                  {{#if order.shipping_address}}
+                    {{format_address order.shipping_address}}
+                  {{else}}
+                    No shipping required
+                  {{/if}}
                 {{else}}
-                  No shipping required
+                  Collection (arranged by buyer)
                 {{/if}}
               </td>
             </tr>

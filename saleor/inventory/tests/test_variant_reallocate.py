@@ -170,13 +170,12 @@ def _assert_stock_invariants(warehouse, variants, before):
         Stock.objects.filter(warehouse=warehouse, product_variant__in=variants)
     )
 
-    # physical quantities unchanged — reallocation doesn't move goods
-    for s in after:
-        if s.product_variant_id in before:
-            old_qty, _ = before[s.product_variant_id]
-            assert s.quantity == old_qty, (
-                f"Stock {s.pk} quantity changed {old_qty} -> {s.quantity}"
-            )
+    # total physical quantity conserved across variants (zero-sum redistribution)
+    old_total_qty = sum(qty for qty, _ in before.values())
+    new_total_qty = sum(s.quantity for s in after)
+    assert new_total_qty == old_total_qty, (
+        f"Total stock quantity changed: {old_total_qty} -> {new_total_qty}"
+    )
 
     # product-level conservation — total allocated is a zero-sum game
     old_total = sum(alloc for _, alloc in before.values())

@@ -1199,6 +1199,12 @@ type Query {
   Requires one of the following permissions: MANAGE_PURCHASE_ORDERS.
   """
   purchaseOrders(
+    """Filter purchase orders by status."""
+    status: PurchaseOrderStatusEnum
+
+    """Exclude purchase orders with this status."""
+    statusNot: PurchaseOrderStatusEnum
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -19343,6 +19349,32 @@ type Mutation {
   ): ReceiptReceiveItem @doc(category: "Products")
 
   """
+  Record receiving multiple items in a single batch operation. 
+  
+  Requires one of the following permissions: MANAGE_STOCK.
+  """
+  receiveItemsBatch(
+    """List of items to receive."""
+    items: [ReceiveItemInput!]!
+
+    """ID of the receipt to add items to."""
+    receiptId: ID!
+  ): ReceiptReceiveItemsBatch @doc(category: "Products")
+
+  """
+  Set received quantities on a receipt. Creates, updates, or removes receipt lines as needed. 
+  
+  Requires one of the following permissions: MANAGE_STOCK.
+  """
+  updateReceiptLines(
+    """Lines to upsert."""
+    lines: [ReceiptLineInput!]!
+
+    """ID of the receipt."""
+    receiptId: ID!
+  ): ReceiptUpdateLines @doc(category: "Products")
+
+  """
   Complete a goods receipt. Automatically creates adjustments for discrepancies between ordered and received quantities. 
   
   Requires one of the following permissions: MANAGE_STOCK.
@@ -29096,6 +29128,49 @@ type ReceiptReceiveItem @doc(category: "Products") {
   receiptLine: ReceiptLine
   receiptErrors: [ReceiptError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ReceiptError!]!
+}
+
+"""
+Record receiving multiple items in a single batch operation. 
+
+Requires one of the following permissions: MANAGE_STOCK.
+"""
+type ReceiptReceiveItemsBatch @doc(category: "Products") {
+  """The updated receipt."""
+  receipt: Receipt
+  receiptErrors: [ReceiptError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ReceiptError!]!
+}
+
+input ReceiveItemInput {
+  """ID of the product variant being received."""
+  variantId: ID!
+
+  """Quantity received."""
+  quantity: Int!
+
+  """Optional notes about this item."""
+  notes: String
+}
+
+"""
+Set received quantities on a receipt. Creates, updates, or removes receipt lines as needed. 
+
+Requires one of the following permissions: MANAGE_STOCK.
+"""
+type ReceiptUpdateLines @doc(category: "Products") {
+  """The updated receipt."""
+  receipt: Receipt
+  receiptErrors: [ReceiptError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ReceiptError!]!
+}
+
+input ReceiptLineInput {
+  """ID of the purchase order item."""
+  purchaseOrderItemId: ID!
+
+  """Absolute quantity received. 0 removes the line."""
+  quantity: Int!
 }
 
 """

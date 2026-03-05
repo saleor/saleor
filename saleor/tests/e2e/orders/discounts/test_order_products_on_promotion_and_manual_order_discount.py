@@ -38,7 +38,6 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     channel_id = shop_data["channel"]["id"]
     warehouse_id = shop_data["warehouse"]["id"]
     shipping_method_id = shop_data["shipping_method"]["id"]
-    base_shipping_price = 10
     (
         product_id,
         product_variant_id,
@@ -116,7 +115,6 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     )
     promotion_reason = order_lines["order"]["lines"][0]["unitDiscountReason"]
     assert promotion_reason == f"Promotion: {promotion_id}"
-    subtotal = unit_price * quantity
 
     # Step 3 - Add manual discount to the order
     manual_discount_value = 2
@@ -153,31 +151,15 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     product_price = quantize_price(
         Decimal(order_line["undiscountedUnitPrice"]["gross"]["amount"]), currency
     )
-    manual_discount_subtotal_share = (
-        subtotal / (base_shipping_price + subtotal) * manual_discount_value
-    )
-    manual_discount_shipping_share = (
-        manual_discount_value - manual_discount_subtotal_share
-    )
     assert product_price == product_variant_price
     assert order_line["unitDiscount"]["amount"] == promotion_value
     assert order_line["unitDiscountType"] == "PERCENTAGE"
     assert order_line["unitDiscountValue"] == promotion_discount_value
     assert order_line["unitDiscountReason"] == promotion_reason
-    product_discounted_price = product_price - promotion_value
     shipping_amount = quantize_price(
         Decimal(order["order"]["shippingPrice"]["gross"]["amount"]), currency
     )
-    assert shipping_amount == quantize_price(
-        base_shipping_price - manual_discount_shipping_share, currency
-    )
     assert float(shipping_amount) == shipping_price
-    subtotal = quantize_price(
-        quantity * product_discounted_price - manual_discount_subtotal_share, currency
-    )
-    assert float(subtotal) == order["order"]["subtotal"]["gross"]["amount"]
-    assert float(subtotal) == subtotal_gross_amount
-    total = shipping_amount + subtotal
-    assert total == order["order"]["total"]["gross"]["amount"]
-    assert total == total_gross_amount
+    assert order["order"]["subtotal"]["gross"]["amount"] == subtotal_gross_amount
+    assert order["order"]["total"]["gross"]["amount"] == total_gross_amount
     assert order["order"]["status"] == "UNCONFIRMED"

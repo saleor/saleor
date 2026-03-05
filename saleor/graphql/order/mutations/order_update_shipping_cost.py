@@ -24,6 +24,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, OrderError
+from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...tax.types import TaxClass as TaxClassType
 from ..types import Order
@@ -226,6 +227,11 @@ class OrderUpdateShippingCost(EditableOrderValidationMixin, BaseMutation):
 
         net_amount = input["shipping_cost_net"]
         currency = order.currency
+        try:
+            validate_price_precision(net_amount, currency)
+        except ValidationError as error:
+            error.code = OrderErrorCode.INVALID.value
+            raise ValidationError({"shipping_cost_net": error}) from error
         gross_amount = quantize_price(
             net_amount * (Decimal(1) + tax_rate / Decimal(100)), currency
         )

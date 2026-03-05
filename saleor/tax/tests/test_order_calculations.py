@@ -61,9 +61,9 @@ def test_calculations_calculate_order_total(
     ),
     [
         ("80.00", "90.40", False, False),
-        ("71.35", "80.00", True, False),
+        ("71.36", "80.00", True, False),
         ("80.00", "89.26", False, True),
-        ("72.25", "80.00", True, True),
+        ("72.26", "80.00", True, True),
     ],
 )
 def test_calculate_order_total_with_multiple_tax_rates(
@@ -159,7 +159,7 @@ def test_calculate_order_shipping_with_not_weighted_taxes(
     ),
     [
         ("10.00", "11.16", False, "0.1157"),
-        ("9.03", "10.00", True, "0.1072"),
+        ("9.03", "10.00", True, "0.1071"),
     ],
 )
 def test_calculate_order_shipping_with_weighted_taxes(
@@ -329,7 +329,7 @@ def test_calculations_calculate_order_total_voucher(order_with_lines_untaxed, vo
 
     # then
     assert order.total == TaxedMoney(
-        net=Money("56.91", "USD"), gross=Money("70.00", "USD")
+        net=Money("56.92", "USD"), gross=Money("70.01", "USD")
     )
 
 
@@ -358,7 +358,7 @@ def test_calculations_calculate_order_total_with_manual_discount(
 
     # then
     assert order.total == TaxedMoney(
-        net=Money("56.91", "USD"), gross=Money("70.00", "USD")
+        net=Money("56.90", "USD"), gross=Money("70.00", "USD")
     )
 
 
@@ -413,7 +413,7 @@ def test_calculations_calculate_order_total_with_discount_for_subtotal_and_shipp
 
     # then
     assert order.total == TaxedMoney(
-        net=Money("4.07", "USD"), gross=Money("5.01", "USD")
+        net=Money("4.08", "USD"), gross=Money("4.99", "USD")
     )
 
 
@@ -478,7 +478,7 @@ def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
 
     # then
     assert order.total == TaxedMoney(
-        net=Money("48.77", "USD"), gross=Money("60.00", "USD")
+        net=Money("48.78", "USD"), gross=Money("60.01", "USD")
     )
 
 
@@ -698,14 +698,16 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
             gross=line.base_unit_price,
         )
         assert line.total_price == TaxedMoney(
-            net=quantize_price(unit_gross / Decimal("1.23") * line.quantity, currency),
-            gross=quantize_price(unit_gross * line.quantity, currency),
+            net=quantize_price(line.unit_price.net * line.quantity, currency),
+            gross=quantize_price(line.unit_price.gross * line.quantity, currency),
         )
         assert line.undiscounted_total_price == TaxedMoney(
             net=quantize_price(
-                line.base_unit_price / Decimal("1.23") * line.quantity, currency
+                line.undiscounted_unit_price.net * line.quantity, currency
             ),
-            gross=quantize_price(line.base_unit_price * line.quantity, currency),
+            gross=quantize_price(
+                line.undiscounted_unit_price.gross * line.quantity, currency
+            ),
         )
         assert line.tax_rate == (line.unit_price.tax / line.unit_price.net).quantize(
             Decimal(".001")
@@ -793,17 +795,16 @@ def test_update_taxes_for_order_line_on_promotion(
             gross=line.undiscounted_base_unit_price,
         )
         assert line.total_price == TaxedMoney(
-            net=quantize_price(
-                line.base_unit_price / Decimal("1.23") * line.quantity, currency
-            ),
-            gross=line.base_unit_price * line.quantity,
+            net=quantize_price(line.unit_price.net * line.quantity, currency),
+            gross=quantize_price(line.unit_price.gross * line.quantity, currency),
         )
         assert line.undiscounted_total_price == TaxedMoney(
             net=quantize_price(
-                line.undiscounted_base_unit_price / Decimal("1.23") * line.quantity,
-                currency,
+                line.undiscounted_unit_price.net * line.quantity, currency
             ),
-            gross=line.undiscounted_base_unit_price * line.quantity,
+            gross=quantize_price(
+                line.undiscounted_unit_price.gross * line.quantity, currency
+            ),
         )
         assert line.tax_rate == Decimal("0.23")
 
@@ -893,3 +894,45 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     assert not order.shipping_tax_class_name
 
     assert order.subtotal == get_subtotal(order.lines.all(), order.currency)
+
+
+def test_total_price_equals_unit_price_times_quantity(order_with_lines_untaxed):
+    # given
+    order = order_with_lines_untaxed
+    prices_entered_with_tax = False
+    _enable_flat_rates(order, prices_entered_with_tax)
+    country_code = get_order_country(order)
+
+    base_price = Money("28.79", "USD")
+    line = order.lines.first()
+    line.base_unit_price = base_price
+    line.undiscounted_base_unit_price = base_price
+    line.unit_price = TaxedMoney(net=base_price, gross=base_price)
+    line.quantity = 3
+    line.save()
+
+    line.tax_class.country_rates.update_or_create(
+        country=country_code, defaults={"rate": Decimal(20)}
+    )
+
+    tax_rate = Decimal(20)
+
+    # when
+    lines, _ = update_taxes_for_order_lines(
+        order, [line], country_code, tax_rate, prices_entered_with_tax
+    )
+
+    # then
+    updated_line = lines[0]
+    assert updated_line.unit_price == TaxedMoney(
+        net=Money("28.79", "USD"), gross=Money("34.55", "USD")
+    )
+    assert updated_line.total_price == TaxedMoney(
+        net=Money("86.37", "USD"), gross=Money("103.65", "USD")
+    )
+    assert updated_line.total_price.gross == Money(
+        updated_line.unit_price.gross.amount * updated_line.quantity, "USD"
+    )
+    assert updated_line.total_price.net == Money(
+        updated_line.unit_price.net.amount * updated_line.quantity, "USD"
+    )

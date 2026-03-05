@@ -309,10 +309,14 @@
                 {{/if}}
               </td>
               <td css-class="address" style="padding: 5px;">
-                {{#if order.shipping_address}}
-                  {{format_address order.shipping_address}}
+                {{#if order.show_shipping_address}}
+                  {{#if order.shipping_address}}
+                    {{format_address order.shipping_address}}
+                  {{else}}
+                    No shipping required
+                  {{/if}}
                 {{else}}
-                  No shipping required
+                  Collection (arranged by buyer)
                 {{/if}}
               </td>
             </tr>

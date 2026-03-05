@@ -66,6 +66,7 @@ from ...core.scalars import DateTime, PositiveDecimal, WeightScalar
 from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
+from ...core.validators import validate_price_precision
 from ...discount.enums import DiscountValueTypeEnum
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...payment.mutations.transaction.transaction_create import (
@@ -1199,6 +1200,28 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         quantity = line_input["quantity"]
         tax_rate = line_input.get("tax_rate", None)
+
+        for field, amounts in [
+            ("total_price", (gross_amount, net_amount)),
+            (
+                "undiscounted_total_price",
+                (undiscounted_gross_amount, undiscounted_net_amount),
+            ),
+        ]:
+            for amount in amounts:
+                try:
+                    validate_price_precision(amount, currency)
+                except ValidationError:
+                    order_data.errors.append(
+                        OrderBulkError(
+                            message="Price amount cannot have more decimal places "
+                            "than the currency allows.",
+                            path=f"lines.{index}.{field}",
+                            code=OrderBulkCreateErrorCode.PRICE_ERROR,
+                        )
+                    )
+                    order_data.is_critical_error = True
+                    break
 
         if quantity < 1 or int(quantity) != quantity:
             order_data.errors.append(

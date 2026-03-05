@@ -239,9 +239,9 @@ def update_taxes_for_order_lines(
         line.unit_price = quantize_price(unit_price, currency)
         line.undiscounted_unit_price = quantize_price(undiscounted_unit_price, currency)
 
-        line.total_price = quantize_price(unit_price * line.quantity, currency)
+        line.total_price = quantize_price(line.unit_price * line.quantity, currency)
         line.undiscounted_total_price = quantize_price(
-            undiscounted_unit_price * line.quantity, currency
+            line.undiscounted_unit_price * line.quantity, currency
         )
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
 

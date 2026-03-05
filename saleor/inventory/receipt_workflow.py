@@ -110,6 +110,48 @@ def receive_item(receipt, product_variant, quantity, user=None, notes=""):
     return receipt_line
 
 
+@transaction.atomic
+def update_receipt_lines(receipt, lines_data, user=None):
+    """Upsert receipt lines by purchase order item.
+
+    Each entry in lines_data is a dict with:
+      - purchase_order_item_id: ID of the PurchaseOrderItem
+      - quantity: absolute quantity received (0 = delete the line)
+
+    Creates, updates, or deletes ReceiptLines as needed.
+    """
+    from . import ReceiptStatus
+
+    if receipt.status != ReceiptStatus.IN_PROGRESS:
+        raise ReceiptNotInProgress(receipt)
+
+    for line_data in lines_data:
+        poi_id = line_data["purchase_order_item_id"]
+        quantity = line_data["quantity"]
+
+        existing = ReceiptLine.objects.filter(
+            receipt=receipt,
+            purchase_order_item_id=poi_id,
+        ).first()
+
+        if quantity <= 0:
+            if existing:
+                existing.delete()
+        elif existing:
+            existing.quantity_received = quantity
+            existing.received_by = user
+            existing.save(update_fields=["quantity_received", "received_by"])
+        else:
+            ReceiptLine.objects.create(
+                receipt=receipt,
+                purchase_order_item_id=poi_id,
+                quantity_received=quantity,
+                received_by=user,
+            )
+
+    return receipt
+
+
 def _remove_allocation_source(
     ass: AllocationSource,
     *,
@@ -444,6 +486,36 @@ def _apply_reallocation(
             for poi, poi_qty in poi_dist.items():
                 if poi_qty > 0:
                     _add_allocation_source(poi, order_line, stock, poi_qty)
+
+    # --- adjust Stock.quantity to reflect actual received quantities ---
+    # When variants are swapped (e.g. ordered 6×S+4×M, received 4×S+6×M),
+    # the physical stock must move with the allocation.
+    old_qty_by_variant: dict[int, int] = defaultdict(int)
+    for a in removals:
+        old_qty_by_variant[a.purchase_order_item.product_variant_id] += a.quantity
+
+    new_qty_by_variant: dict[int, int] = defaultdict(int)
+    for (_order, variant), qty in distribution.items():
+        new_qty_by_variant[variant.pk] += qty
+
+    all_variant_ids = set(old_qty_by_variant) | set(new_qty_by_variant)
+    for variant_id in all_variant_ids:
+        delta = new_qty_by_variant.get(variant_id, 0) - old_qty_by_variant.get(
+            variant_id, 0
+        )
+        if delta != 0:
+            stock = stock_map[variant_id]
+            logger.debug(
+                "apply_reallocation: adjusting stock %s variant=%s quantity %d -> %d "
+                "(delta=%+d)",
+                stock.pk,
+                variant_id,
+                stock.quantity,
+                stock.quantity + delta,
+                delta,
+            )
+            stock.quantity += delta
+            stock.save(update_fields=["quantity"])
 
 
 @transaction.atomic

@@ -6,6 +6,7 @@ from ..core.connection import create_connection_slice, filter_connection_queryse
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
+from .enums import PurchaseOrderStatusEnum
 from .mutations import (
     AddOrderToPurchaseOrder,
     AddPurchaseOrderItem,
@@ -17,7 +18,9 @@ from .mutations import (
     ReceiptDelete,
     ReceiptLineDelete,
     ReceiptReceiveItem,
+    ReceiptReceiveItemsBatch,
     ReceiptStart,
+    ReceiptUpdateLines,
     RemoveOrderFromPurchaseOrder,
     RemovePurchaseOrderItem,
     ResolveProductDiscrepancy,
@@ -56,6 +59,14 @@ class InventoryQueries(graphene.ObjectType):
     )
     purchase_orders = FilterConnectionField(
         PurchaseOrderCountableConnection,
+        status=graphene.Argument(
+            PurchaseOrderStatusEnum,
+            description="Filter purchase orders by status.",
+        ),
+        status_not=graphene.Argument(
+            PurchaseOrderStatusEnum,
+            description="Exclude purchase orders with this status.",
+        ),
         description="List of purchase orders.",
         permissions=[
             WarehousePermissions.MANAGE_PURCHASE_ORDERS,
@@ -133,7 +144,13 @@ class InventoryQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_purchase_orders(root, info: ResolveInfo, **kwargs):
+        status = kwargs.pop("status", None)
+        status_not = kwargs.pop("status_not", None)
         qs = resolve_purchase_orders(info)
+        if status is not None:
+            qs = qs.filter(status=status)
+        if status_not is not None:
+            qs = qs.exclude(status=status_not)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
@@ -207,6 +224,8 @@ class InventoryMutations(graphene.ObjectType):
     # Receipt workflow mutations
     start_receipt = ReceiptStart.Field()
     receive_item = ReceiptReceiveItem.Field()
+    receive_items_batch = ReceiptReceiveItemsBatch.Field()
+    update_receipt_lines = ReceiptUpdateLines.Field()
     complete_receipt = ReceiptComplete.Field()
     delete_receipt = ReceiptDelete.Field()
     delete_receipt_line = ReceiptLineDelete.Field()
