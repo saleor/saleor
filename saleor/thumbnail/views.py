@@ -93,15 +93,11 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str | None = 
     ):
         return HttpResponseRedirect(thumbnail.image.url)
 
+    pk_field = "uuid" if object_type in UUID_IDENTIFIABLE_TYPES else "id"
     try:
-        if object_type in UUID_IDENTIFIABLE_TYPES:
-            instance = model_data.model.objects.using(
-                settings.DATABASE_CONNECTION_REPLICA_NAME
-            ).get(uuid=pk)  # type: ignore[misc]
-        else:
-            instance = model_data.model.objects.using(
-                settings.DATABASE_CONNECTION_REPLICA_NAME
-            ).get(id=pk)
+        instance = model_data.model.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).get(**{pk_field: pk})
     except ObjectDoesNotExist:
         return HttpResponseNotFound("Instance with the given id cannot be found.")
 
@@ -156,15 +152,11 @@ def handle_original_image(request, instance_id: str):
 
     model_data = TYPE_TO_MODEL_DATA_MAPPING[object_type]
 
+    pk_field = "uuid" if object_type in UUID_IDENTIFIABLE_TYPES else "id"
     try:
-        if object_type in UUID_IDENTIFIABLE_TYPES:
-            instance = model_data.model.objects.using(
-                settings.DATABASE_CONNECTION_REPLICA_NAME
-            ).get(uuid=pk)  # type: ignore[misc]
-        else:
-            instance = model_data.model.objects.using(
-                settings.DATABASE_CONNECTION_REPLICA_NAME
-            ).get(id=pk)
+        instance = model_data.model.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).get(**{pk_field: pk})
     except ObjectDoesNotExist:
         return HttpResponseNotFound("Instance with the given id cannot be found.")
 
