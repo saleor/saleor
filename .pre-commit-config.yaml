@@ -35,7 +35,7 @@ repos:
       - id: deptry
 
   - repo: https://github.com/returntocorp/semgrep
-    rev: v1.89.0
+    rev: v1.153.0
     hooks:
     - id: semgrep
       exclude_types:
@@ -56,6 +56,7 @@ repos:
         - --quiet
 
   - repo: https://github.com/python-poetry/poetry
+    # WARNING: upgrade .devcontainer/Dockerfile too if you change this version
     rev: 2.2.1
     hooks:
       - id: poetry-lock
