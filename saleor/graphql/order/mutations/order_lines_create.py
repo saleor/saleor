@@ -215,6 +215,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
+            order_models.Order.objects.select_for_update().filter(pk=order.pk).first()
+
             added_lines = cls.add_lines_to_order(
                 order,
                 lines_to_add,
