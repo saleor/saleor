@@ -388,6 +388,21 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
         raise AuthenticationError("Token validation failed") from e
 
 
+def _invalidate_password_for_new_oidc_account(
+    user: User, oidc_metadata_key: str
+) -> None:
+    """Invalidate password for pre-existing user being claimed by OIDC for the first time.
+
+    When OIDC finds a user by email who wasn't previously linked to this OIDC provider,
+    the old password must be cleared to prevent login with stale credentials. This
+    handles the case where a staff account is deleted (soft-deleted with is_staff=False)
+    and later recreated via OIDC — without this, the old password would still work.
+    """
+    if not user.get_value_from_private_metadata(oidc_metadata_key):
+        user.set_unusable_password()
+        user.save(update_fields=["password"])
+
+
 def get_or_create_user_from_payload(
     payload: dict,
     oauth_url: str,
@@ -429,14 +444,18 @@ def get_or_create_user_from_payload(
             email=user_email,
             defaults=defaults_create,
         )
+        if not created:
+            _invalidate_password_for_new_oidc_account(user, oidc_metadata_key)
         match_orders_with_new_user(user)
 
     except User.MultipleObjectsReturned:
         logger.warning("Multiple users returned for single OIDC sub ID")
-        user, _ = User.objects.get_or_create(
+        user, created = User.objects.get_or_create(
             email=user_email,
             defaults=defaults_create,
         )
+        if not created:
+            _invalidate_password_for_new_oidc_account(user, oidc_metadata_key)
 
     # User logged in by OpenID are treated as confirmed by default so we only need to
     # check if user is active
