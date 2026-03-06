@@ -460,9 +460,17 @@ def test_product_media_create_when_alt_is_null(
     assert content["product"]["media"][0]["alt"] == ""
 
 
+@patch(
+    "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
+)
 @patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
 def test_product_media_create_with_media_url_when_alt_is_null(
-    mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
+    mock_HTTPClient,
+    mock_fetch_product_media_image_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
 ):
     # given
     image_file, _ = create_image()
@@ -488,3 +496,6 @@ def test_product_media_create_with_media_url_when_alt_is_null(
     # then
     assert not content["errors"]
     assert content["product"]["media"][0]["alt"] == ""
+
+    product_media = product.media.last()
+    mock_fetch_product_media_image_task.assert_called_once_with(product_media.pk)
