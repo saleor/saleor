@@ -3,6 +3,7 @@ from unittest.mock import patch
 import graphene
 from PIL import Image
 
+from ...product import ProductMediaTypes
 from .. import IconThumbnailFormat, ThumbnailFormat
 from ..models import Thumbnail
 
@@ -197,6 +198,25 @@ def test_handle_thumbnail_view_no_image(client, category):
 
     # then
     assert response.status_code == 404
+
+
+def test_handle_thumbnail_view_for_product_media_image_type_with_external_url_but_no_image(
+    client, product
+):
+    # given
+    size = 500
+    product_media = product.media.create(
+        image=None,
+        type=ProductMediaTypes.IMAGE,
+        external_url="https://example.com/image.jpg",
+    )
+    product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
+
+    # when
+    response = client.get(f"/thumbnail/{product_media_id}/{size}/")
+
+    # then
+    assert response.status_code == 503
 
 
 def test_handle_thumbnail_view_invalid_object_type(client, order):
@@ -560,3 +580,21 @@ def test_handle_original_image_for_product_media_without_image(client, product):
 
     # then
     assert response.status_code == 404
+
+
+def test_handle_original_image_for_product_media_image_type_with_external_url_but_no_image(
+    client, product
+):
+    # given
+    product_media = product.media.create(
+        image=None,
+        type=ProductMediaTypes.IMAGE,
+        external_url="https://example.com/image.jpg",
+    )
+    product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
+
+    # when
+    response = client.get(f"/image/{product_media_id}/")
+
+    # then
+    assert response.status_code == 503
