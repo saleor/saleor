@@ -372,3 +372,45 @@ def test_refresh_token_do_update_last_login_when_out_of_threshold(
     assert customer_user.last_login != previous_last_login
     assert customer_user.updated_at == time_ouf_of_threshold
     assert customer_user.last_login == time_ouf_of_threshold
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_refresh_token_propagates_is_staff_false(api_client, staff_user, settings):
+    # given
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(
+        staff_user, {"csrfToken": csrf_token, "is_staff": False}
+    )
+    variables = {"token": refresh_token, "csrf_token": None}
+
+    # when
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["tokenRefresh"]
+    assert not data["errors"]
+    token = data["token"]
+    payload = jwt_decode(token)
+    assert payload["is_staff"] is False
+    assert payload["email"] == staff_user.email
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_refresh_token_preserves_is_staff_true(api_client, staff_user, settings):
+    # given
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(staff_user, {"csrfToken": csrf_token})
+    variables = {"token": refresh_token, "csrf_token": None}
+
+    # when
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["tokenRefresh"]
+    assert not data["errors"]
+    token = data["token"]
+    payload = jwt_decode(token)
+    assert payload["is_staff"] is True
+    assert payload["email"] == staff_user.email
