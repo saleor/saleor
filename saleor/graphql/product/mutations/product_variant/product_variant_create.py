@@ -194,6 +194,15 @@ class ProductVariantCreate(DeprecatedModelMutation):
                     )
                 }
             )
+        if not isinstance(product, models.Product):
+            raise ValidationError(
+                {
+                    "product": ValidationError(
+                        "Could not resolve to a Product.",
+                        code=ProductErrorCode.INVALID.value,
+                    )
+                }
+            )
         return product
 
     @classmethod
