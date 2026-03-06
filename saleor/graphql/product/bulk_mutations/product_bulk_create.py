@@ -4,6 +4,7 @@ from collections import defaultdict
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import F
 from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
@@ -865,7 +866,9 @@ class ProductBulkCreate(BaseMutation):
 
         models.Product.objects.bulk_create(products_to_create)
         models.ProductMedia.objects.bulk_create(media_to_create)
-        cls.schedule_fetch_product_media_image_tasks(media_to_create)
+        transaction.on_commit(
+            lambda: cls.schedule_fetch_product_media_image_tasks(media_to_create)
+        )
         models.ProductChannelListing.objects.bulk_create(listings_to_create)
 
         for product, attributes in attributes_to_save:
