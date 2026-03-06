@@ -8,6 +8,7 @@ from ..permission.enums import (
     get_permissions_from_codenames,
     get_permissions_from_names,
 )
+from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
 from .auth import get_token_from_request
 from .jwt import (
@@ -155,6 +156,10 @@ def load_user_from_request(request):
         user.effective_permissions = get_permissions_from_codenames(token_codenames)
         user.is_staff = True if user.effective_permissions else False
 
-    if payload.get("is_staff"):
-        user.is_staff = True
+    # When password_login_mode is CUSTOMERS_ONLY, staff users get tokens
+    # with is_staff=False. This strips their staff status and clears all
+    # permissions so the token behaves as a customer-only session.
+    if "is_staff" in payload and payload["is_staff"] is False and user.is_staff:
+        user.is_staff = False
+        user.effective_permissions = Permission.objects.none()
     return user
