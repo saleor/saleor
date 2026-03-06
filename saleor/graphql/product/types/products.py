@@ -16,7 +16,7 @@ from ....core.weight import convert_weight_to_default_weight_unit
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import OrderPermissions, ProductPermissions
 from ....permission.utils import has_one_of_permissions
-from ....product import models
+from ....product import ProductMediaTypes, models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
 from ....product.utils import calculate_revenue_for_variant
 from ....product.utils.availability import (
@@ -31,6 +31,7 @@ from ....tax.utils import (
 )
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
+    get_original_image_proxy_url,
     get_thumbnail_format,
     get_thumbnail_size,
 )
@@ -2043,15 +2044,22 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         size: int | None = None,
         format: str | None = None,
     ) -> str | None | Promise[str]:
-        if root.external_url:
+        if root.external_url and root.type != ProductMediaTypes.IMAGE:
             return root.external_url
 
-        if not root.image:
-            return None
-
-        if size == 0:
+        # Bypass proxy URL when image is already in-place and original size is
+        # requested.
+        if root.image and size == 0:
             return build_absolute_uri(root.image.url)
 
+        # If image is not there yet and original size is requested return proxy URL for
+        # original.
+        if size == 0:
+            return build_absolute_uri(
+                get_original_image_proxy_url(str(root.id), "ProductMedia")
+            )
+
+        # Else, return proxy URL for thumbnail.
         format = get_thumbnail_format(format)
         selected_size = get_thumbnail_size(size)
 
