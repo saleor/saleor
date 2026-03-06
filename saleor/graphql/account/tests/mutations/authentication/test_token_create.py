@@ -19,6 +19,7 @@ from ......core.jwt import (
     jwt_decode,
 )
 from ......core.utils import build_absolute_uri
+from ......site import PasswordLoginMode
 from .....tests.utils import get_graphql_content
 from ....mutations.authentication.utils import _get_new_csrf_token
 
@@ -527,3 +528,125 @@ def test_create_token_throttling_unidentified_ip_address(
     error = errors[0]
     assert error["code"] == AccountErrorCode.UNKNOWN_IP_ADDRESS.name
     assert error["field"] is None
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.account.throttling.cache")
+def test_create_token_disabled_password_login(
+    _mocked_cache, api_client, customer_user, site_settings
+):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.DISABLED
+    site_settings.save(update_fields=["password_login_mode"])
+    variables = {"email": customer_user.email, "password": customer_user._password}
+
+    # when
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["tokenCreate"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
+    assert error["field"] == "email"
+    assert error["message"] == "Password-based login is disabled."
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.account.throttling.cache")
+def test_create_token_disabled_password_login_for_staff(
+    _mocked_cache, api_client, staff_user, site_settings
+):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.DISABLED
+    site_settings.save(update_fields=["password_login_mode"])
+    variables = {"email": staff_user.email, "password": "password"}
+
+    # when
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["tokenCreate"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
+    assert error["field"] == "email"
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.account.throttling.cache")
+def test_create_token_customers_only_mode_for_customer(
+    _mocked_cache, api_client, customer_user, site_settings
+):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.CUSTOMERS_ONLY
+    site_settings.save(update_fields=["password_login_mode"])
+    variables = {"email": customer_user.email, "password": customer_user._password}
+
+    # when
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["tokenCreate"]
+    assert data["errors"] == []
+    assert data["token"]
+
+    payload = jwt_decode(data["token"])
+    assert payload["is_staff"] is False
+    assert payload["email"] == customer_user.email
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.account.throttling.cache")
+def test_create_token_customers_only_mode_for_staff(
+    _mocked_cache, api_client, staff_user, site_settings
+):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.CUSTOMERS_ONLY
+    site_settings.save(update_fields=["password_login_mode"])
+    variables = {"email": staff_user.email, "password": "password"}
+
+    # when
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["tokenCreate"]
+    assert data["errors"] == []
+    assert data["token"]
+    assert data["user"]["email"] == staff_user.email
+
+    # Token should have is_staff set to False (no staff permissions)
+    payload = jwt_decode(data["token"])
+    assert payload["is_staff"] is False
+    assert payload["email"] == staff_user.email
+
+    refresh_payload = jwt_decode(data["refreshToken"])
+    assert refresh_payload["is_staff"] is False
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.account.throttling.cache")
+def test_create_token_enabled_mode_for_staff(
+    _mocked_cache, api_client, staff_user, site_settings
+):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.ENABLED
+    site_settings.save(update_fields=["password_login_mode"])
+    variables = {"email": staff_user.email, "password": "password"}
+
+    # when
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["tokenCreate"]
+    assert data["errors"] == []
+    assert data["token"]
+
+    payload = jwt_decode(data["token"])
+    assert payload["is_staff"] is True
+    assert payload["email"] == staff_user.email
