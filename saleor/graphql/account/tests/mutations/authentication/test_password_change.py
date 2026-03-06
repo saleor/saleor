@@ -1,4 +1,6 @@
 from ......account import events as account_events
+from ......account.error_codes import AccountErrorCode
+from ......site import PasswordLoginMode
 from .....tests.utils import get_graphql_content
 
 CHANGE_PASSWORD_MUTATION = """
@@ -7,6 +9,7 @@ CHANGE_PASSWORD_MUTATION = """
             errors {
                 field
                 message
+                code
             }
             user {
                 email
@@ -134,3 +137,24 @@ def test_password_change_user_usable_password_fails_if_old_password_is_omitted(
     customer_user.refresh_from_db()
     assert customer_user.has_usable_password()
     assert not customer_user.check_password(new_password)
+
+
+def test_password_change_disabled_password_login(user_api_client, site_settings):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.DISABLED
+    site_settings.save(update_fields=["password_login_mode"])
+    variables = {"oldPassword": "password", "newPassword": "new-password"}
+
+    # when
+    response = user_api_client.post_graphql(CHANGE_PASSWORD_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["passwordChange"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
+    assert error["field"] == "email"
+
+    user_api_client.user.refresh_from_db()
+    assert user_api_client.user.check_password("password")

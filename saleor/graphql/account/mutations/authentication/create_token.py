@@ -13,7 +13,11 @@ from ....core.mutations import BaseMutation
 from ....core.types import AccountError
 from ....site.dataloaders import get_site_promise
 from ...types import User
-from .utils import _get_new_csrf_token, update_user_last_login_if_required
+from .utils import (
+    _get_new_csrf_token,
+    check_password_login_not_disabled,
+    update_user_last_login_if_required,
+)
 
 
 class CreateToken(BaseMutation):
@@ -93,17 +97,11 @@ class CreateToken(BaseMutation):
         signaling that the issued token should have is_staff=False so
         the user is treated as a customer with no staff permissions.
         """
-        password_login_mode = site_settings.password_login_mode
-        if password_login_mode == PasswordLoginMode.DISABLED:
-            raise ValidationError(
-                {
-                    "email": ValidationError(
-                        "Password-based login is disabled.",
-                        code=AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.value,
-                    )
-                }
-            )
-        if password_login_mode == PasswordLoginMode.CUSTOMERS_ONLY and user.is_staff:
+        check_password_login_not_disabled(site_settings)
+        if (
+            site_settings.password_login_mode == PasswordLoginMode.CUSTOMERS_ONLY
+            and user.is_staff
+        ):
             return True
         return False
 
