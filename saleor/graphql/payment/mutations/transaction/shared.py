@@ -257,9 +257,12 @@ def validate_payment_method_details_input(
                 }
             )
     elif payment_method_details_input.gift_card:
-        validate_gift_card_payment_method_details_input(
-            payment_method_details_input.gift_card, error_code_class
-        )
+        try:
+            validate_gift_card_payment_method_details_input(
+                payment_method_details_input.gift_card, error_code_class
+            )
+        except ValidationError as e:
+            raise ValidationError({"payment_method_details": e}) from e
 
     if errors:
         raise ValidationError({"payment_method_details": errors})

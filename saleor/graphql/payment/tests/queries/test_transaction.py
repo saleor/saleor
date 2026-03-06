@@ -5,6 +5,10 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .....giftcard.const import (
+    SALEOR_GIFT_CARD_BRAND,
+    SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME,
+)
 from .....page.models import Page
 from .....payment import PaymentMethodType, TransactionEventType
 from .....payment.models import TransactionEvent
@@ -1070,11 +1074,13 @@ def test_transaction_query_with_saleor_gift_card_is_saleor_giftcard_true(
 ):
     # given
     transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
-    transaction_item_created_by_app.payment_method_name = "Saleor Gift Card"
+    transaction_item_created_by_app.payment_method_name = (
+        SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME
+    )
     transaction_item_created_by_app.gc_last_digits = (
         gift_card_created_by_staff.display_code
     )
-    transaction_item_created_by_app.gc_brand = "Saleor"
+    transaction_item_created_by_app.gc_brand = SALEOR_GIFT_CARD_BRAND
     transaction_item_created_by_app.gift_card = gift_card_created_by_staff
     transaction_item_created_by_app.save()
 
@@ -1093,8 +1099,8 @@ def test_transaction_query_with_saleor_gift_card_is_saleor_giftcard_true(
     content = get_graphql_content(response)
     data = content["data"]["transaction"]
     assert data["paymentMethodDetails"]["__typename"] == "GiftCardPaymentMethodDetails"
-    assert data["paymentMethodDetails"]["name"] == "Saleor Gift Card"
-    assert data["paymentMethodDetails"]["brand"] == "Saleor"
+    assert data["paymentMethodDetails"]["name"] == SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME
+    assert data["paymentMethodDetails"]["brand"] == SALEOR_GIFT_CARD_BRAND
     assert (
         data["paymentMethodDetails"]["lastDigits"]
         == gift_card_created_by_staff.display_code
