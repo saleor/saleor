@@ -93,15 +93,11 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str | None = 
     ):
         return HttpResponseRedirect(thumbnail.image.url)
 
+    pk_field = "uuid" if object_type in UUID_IDENTIFIABLE_TYPES else "id"
     try:
-        if object_type in UUID_IDENTIFIABLE_TYPES:
-            instance = model_data.model.objects.using(
-                settings.DATABASE_CONNECTION_REPLICA_NAME
-            ).get(uuid=pk)  # type: ignore[misc]
-        else:
-            instance = model_data.model.objects.using(
-                settings.DATABASE_CONNECTION_REPLICA_NAME
-            ).get(id=pk)
+        instance = model_data.model.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).get(**{pk_field: pk})
     except ObjectDoesNotExist:
         return HttpResponseNotFound("Instance with the given id cannot be found.")
 
@@ -142,3 +138,30 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str | None = 
         call_event(manager.thumbnail_created, thumbnail)
 
     return HttpResponseRedirect(thumbnail.image.url)
+
+
+def handle_original_image(request, instance_id: str):
+    """Redirect to original image URL."""
+    try:
+        object_type, pk = from_global_id_or_error(instance_id, raise_error=True)
+    except GraphQLError:
+        return HttpResponseNotFound("Cannot find instance with the given id.")
+
+    if object_type not in TYPE_TO_MODEL_DATA_MAPPING:
+        return HttpResponseNotFound("Invalid instance type.")
+
+    model_data = TYPE_TO_MODEL_DATA_MAPPING[object_type]
+
+    pk_field = "uuid" if object_type in UUID_IDENTIFIABLE_TYPES else "id"
+    try:
+        instance = model_data.model.objects.using(
+            settings.DATABASE_CONNECTION_REPLICA_NAME
+        ).get(**{pk_field: pk})
+    except ObjectDoesNotExist:
+        return HttpResponseNotFound("Instance with the given id cannot be found.")
+
+    image = getattr(instance, model_data.image_field)
+    if not bool(image):
+        return HttpResponseNotFound("There is no image for provided instance.")
+
+    return HttpResponseRedirect(image.url)

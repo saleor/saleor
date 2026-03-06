@@ -50,6 +50,16 @@ def prepare_image_proxy_url(
     return reverse("thumbnail", kwargs=kwargs)
 
 
+def get_original_image_proxy_url(
+    instance_pk: str,
+    object_type: str,
+):
+    instance_id = graphene.Node.to_global_id(object_type, instance_pk)
+    kwargs = {"instance_id": instance_id}
+
+    return reverse("original-image", kwargs=kwargs)
+
+
 def get_thumbnail_size(size: int | None) -> int:
     """Return the closest size to the given one of the available sizes."""
     if size is None:

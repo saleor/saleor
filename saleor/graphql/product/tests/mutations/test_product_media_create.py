@@ -1,13 +1,10 @@
 import json
 import os
-from io import BytesIO
 from unittest.mock import Mock, patch
 
 import graphene
-import PIL
 import pytest
 from django.conf import settings
-from PIL import Image
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
 from .....product import ProductMediaTypes
@@ -322,9 +319,16 @@ def test_product_media_create_mutation_invalid_image_file_fetch_only_header(
     mock_response.headers.get.assert_called_once_with("content-type")
 
 
+@patch(
+    "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
+)
 @pytest.mark.vcr
 def test_product_media_create_mutation_valid_image_file_is_fetched_once(
-    staff_api_client, product, permission_manage_products, media_root
+    mock_fetch_product_media_image_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
 ):
     # given
     expected_file_name = "icon-dark.png"
@@ -348,40 +352,33 @@ def test_product_media_create_mutation_valid_image_file_is_fetched_once(
     # then
     data = content["data"]["productMediaCreate"]
     assert data["errors"] == []
-    assert data["product"]["media"][0]["url"] is not None
     assert data["product"]["media"][0]["type"] == ProductMediaTypes.IMAGE
     assert data["product"]["media"][0]["alt"] == expected_alt
+    assert data["product"]["media"][0]["url"] != url
 
-    # Validate the image file
     product.refresh_from_db()
     product_image = product.media.last()
-    assert product_image.image.file
-    img_name, format = os.path.splitext(expected_file_name)
-    file_name = product_image.image.name
-    assert file_name != expected_file_name
-    assert file_name.startswith(f"products/{img_name}")
-    assert file_name.endswith(format)
 
-    # Open the image and validate its content
-    image_path = product_image.image.path
-    with Image.open(image_path) as img:
-        assert img.format == "PNG"  # Ensure the image format is PNG
-        assert img.size[0] > 0  # Ensure the image has dimensions
-        assert img.size[1] > 0  # Ensure the image has dimensions
+    assert bool(product_image.image) is False
+    assert product_image.external_url is not None
+    mock_fetch_product_media_image_task.assert_called_once_with(product_image.pk)
 
 
+@patch(
+    "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
+)
 @patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
 def test_product_media_create_mutation_with_no_extension_media_url(
-    mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
+    mock_HTTPClient,
+    mock_fetch_product_media_image_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
 ):
     # given
     mock_response = Mock()
     mock_response.headers.get = Mock(return_value="image/png")
-    # generate PNG image content
-    image_content = BytesIO()
-    PIL.Image.new("RGB", size=(100, 100)).save(image_content, format="PNG")
-    image_content = image_content.read()
-    mock_response.content = image_content
     mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
@@ -400,12 +397,11 @@ def test_product_media_create_mutation_with_no_extension_media_url(
 
     # then
     assert not content["errors"]
-    # validate image file
     product_image = product.media.last()
-    assert product_image.image.name.startswith("products/image-path_")
-    assert product_image.image.name.endswith(".png")
-    with product_image.image.open("rb") as img:
-        assert img.read() == image_content
+
+    assert bool(product_image.image) is False
+    assert product_image.external_url is not None
+    mock_fetch_product_media_image_task.assert_called_once_with(product_image.pk)
 
 
 def test_product_media_create_mutation_alt_character_limit(
