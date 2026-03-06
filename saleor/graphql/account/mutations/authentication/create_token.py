@@ -1,9 +1,12 @@
+from typing import Any
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from .....account.error_codes import AccountErrorCode
 from .....account.throttling import authenticate_with_throttling
 from .....core.jwt import create_access_token, create_refresh_token
+from .....site import PasswordLoginMode
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.mutations import BaseMutation
@@ -82,13 +85,36 @@ class CreateToken(BaseMutation):
         return user
 
     @classmethod
+    def _check_password_login_mode(cls, site_settings, user):
+        """Check password login mode, return whether staff permissions must be cleared.
+
+        Raises ValidationError when password login is fully disabled.
+        Returns True when the mode is CUSTOMERS_ONLY and the user is staff,
+        signaling that the issued token should have is_staff=False so
+        the user is treated as a customer with no staff permissions.
+        """
+        password_login_mode = site_settings.password_login_mode
+        if password_login_mode == PasswordLoginMode.DISABLED:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "Password-based login is disabled.",
+                        code=AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.value,
+                    )
+                }
+            )
+        if password_login_mode == PasswordLoginMode.CUSTOMERS_ONLY and user.is_staff:
+            return True
+        return False
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, audience=None, email, password
     ):
-        additional_paylod = {}
+        additional_paylod: dict[str, Any] = {}
 
         csrf_token = _get_new_csrf_token()
-        refresh_additional_payload = {
+        refresh_additional_payload: dict[str, Any] = {
             "csrfToken": csrf_token,
         }
         if audience:
@@ -96,6 +122,13 @@ class CreateToken(BaseMutation):
             refresh_additional_payload["aud"] = f"custom:{audience}"
 
         user = cls.get_user(info, email, password)
+
+        site_settings = get_site_promise(info.context).get().settings
+        strip_staff_permissions = cls._check_password_login_mode(site_settings, user)
+        if strip_staff_permissions:
+            additional_paylod["is_staff"] = False
+            refresh_additional_payload["is_staff"] = False
+
         access_token = create_access_token(user, additional_payload=additional_paylod)
         refresh_token = create_refresh_token(
             user, additional_payload=refresh_additional_payload
