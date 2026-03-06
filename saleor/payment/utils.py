@@ -55,6 +55,7 @@ from . import (
     ChargeStatus,
     GatewayError,
     PaymentError,
+    PaymentMethodType,
     StorePaymentMethod,
     TransactionAction,
     TransactionEventType,
@@ -949,6 +950,14 @@ def parse_transaction_action_data_for_session_webhook(
             )
             payment_method_details.exp_month = parsed_payment_method_details.exp_month
             payment_method_details.exp_year = parsed_payment_method_details.exp_year
+        elif isinstance(
+            parsed_payment_method_details,
+            transaction_schemas.GiftCardPaymentMethodDetails,
+        ):
+            payment_method_details.brand = parsed_payment_method_details.brand
+            payment_method_details.last_digits = (
+                parsed_payment_method_details.last_digits
+            )
 
     return (
         TransactionSessionResponse(
@@ -1302,21 +1311,30 @@ def update_transaction_item_with_payment_method_details(
     if payment_method_details.name != transaction_item.payment_method_name:
         transaction_item.payment_method_name = payment_method_details.name
         updated_fields.append("payment_method_name")
-    if payment_method_details.brand != transaction_item.cc_brand:
-        transaction_item.cc_brand = payment_method_details.brand
-        updated_fields.append("cc_brand")
-    if payment_method_details.first_digits != transaction_item.cc_first_digits:
-        transaction_item.cc_first_digits = payment_method_details.first_digits
-        updated_fields.append("cc_first_digits")
-    if payment_method_details.last_digits != transaction_item.cc_last_digits:
-        transaction_item.cc_last_digits = payment_method_details.last_digits
-        updated_fields.append("cc_last_digits")
-    if payment_method_details.exp_month != transaction_item.cc_exp_month:
-        transaction_item.cc_exp_month = payment_method_details.exp_month
-        updated_fields.append("cc_exp_month")
-    if payment_method_details.exp_year != transaction_item.cc_exp_year:
-        transaction_item.cc_exp_year = payment_method_details.exp_year
-        updated_fields.append("cc_exp_year")
+
+    if payment_method_details.type == PaymentMethodType.GIFT_CARD:
+        if payment_method_details.brand != transaction_item.gc_brand:
+            transaction_item.gc_brand = payment_method_details.brand
+            updated_fields.append("gc_brand")
+        if payment_method_details.last_digits != transaction_item.gc_last_digits:
+            transaction_item.gc_last_digits = payment_method_details.last_digits
+            updated_fields.append("gc_last_digits")
+    else:
+        if payment_method_details.brand != transaction_item.cc_brand:
+            transaction_item.cc_brand = payment_method_details.brand
+            updated_fields.append("cc_brand")
+        if payment_method_details.first_digits != transaction_item.cc_first_digits:
+            transaction_item.cc_first_digits = payment_method_details.first_digits
+            updated_fields.append("cc_first_digits")
+        if payment_method_details.last_digits != transaction_item.cc_last_digits:
+            transaction_item.cc_last_digits = payment_method_details.last_digits
+            updated_fields.append("cc_last_digits")
+        if payment_method_details.exp_month != transaction_item.cc_exp_month:
+            transaction_item.cc_exp_month = payment_method_details.exp_month
+            updated_fields.append("cc_exp_month")
+        if payment_method_details.exp_year != transaction_item.cc_exp_year:
+            transaction_item.cc_exp_year = payment_method_details.exp_year
+            updated_fields.append("cc_exp_year")
     return updated_fields
 
 

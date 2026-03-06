@@ -175,6 +175,8 @@ class TransactionItem(ModelWithMetadata):
         choices=PaymentMethodType.CHOICES,
     )
     payment_method_name = models.CharField(max_length=256, blank=True, null=True)
+    gc_last_digits = models.CharField(max_length=4, blank=True, null=True)
+    gc_brand = models.CharField(max_length=40, blank=True, null=True)
 
     gift_card = models.ForeignKey(
         "giftcard.GiftCard",

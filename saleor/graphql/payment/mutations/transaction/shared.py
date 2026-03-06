@@ -1,5 +1,9 @@
+from typing import Annotated
+
 import graphene
 from django.core.exceptions import ValidationError
+from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import ValidationError as PydanticValidationError
 
 from .....payment import PaymentMethodType
 from .....payment.error_codes import (
@@ -8,9 +12,10 @@ from .....payment.error_codes import (
     TransactionUpdateErrorCode,
 )
 from .....payment.interface import PaymentMethodDetails
-from ....core.descriptions import ADDED_IN_322
+from ....core.descriptions import ADDED_IN_322, ADDED_IN_323
 from ....core.types.base import BaseInputObjectType
 from ....core.validators import validate_one_of_args_is_in_mutation
+from ....error import pydantic_to_validation_error
 
 
 class CardPaymentMethodDetailsInput(BaseInputObjectType):
@@ -47,6 +52,30 @@ class OtherPaymentMethodDetailsInput(BaseInputObjectType):
     )
 
 
+class GiftCardPaymentMethodDetailsInput(BaseInputObjectType):
+    name = graphene.String(
+        description=(
+            "Name of the payment method used for the transaction. "
+            "Max length is 256 characters." + ADDED_IN_323
+        ),
+        required=True,
+    )
+    brand = graphene.String(
+        description=(
+            "Brand of the gift card used for the transaction. "
+            "Max length is 40 characters." + ADDED_IN_323
+        ),
+        required=False,
+    )
+    last_digits = graphene.String(
+        description=(
+            "Last digits of the gift card used for the transaction. "
+            "Max length is 4 characters." + ADDED_IN_323
+        ),
+        required=False,
+    )
+
+
 class PaymentMethodDetailsInput(BaseInputObjectType):
     card = graphene.Field(
         CardPaymentMethodDetailsInput,
@@ -58,11 +87,19 @@ class PaymentMethodDetailsInput(BaseInputObjectType):
         required=False,
         description="Details of the non-card payment method used for this transaction.",
     )
+    gift_card = graphene.Field(
+        GiftCardPaymentMethodDetailsInput,
+        required=False,
+        description=(
+            "Details of the gift card payment method used for the transaction."
+            + ADDED_IN_323
+        ),
+    )
 
     class Meta:
         description = (
             "Details of the payment method used for the transaction. "
-            "One of `card` or `other` is required." + ADDED_IN_322
+            "One of `card`, `other`, or `giftCard` is required." + ADDED_IN_322
         )
 
 
@@ -143,6 +180,32 @@ def validate_card_payment_method_details_input(
     return errors
 
 
+class GiftCardPaymentMethodDetailsValidatedInput(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    name: Annotated[str, StringConstraints(max_length=256)]
+    brand: Annotated[str, StringConstraints(max_length=40)] | None = None
+    last_digits: Annotated[str, StringConstraints(max_length=4)] | None = None
+
+
+def validate_gift_card_payment_method_details_input(
+    gift_card_details_input: GiftCardPaymentMethodDetailsInput,
+    error_code_class: type[TransactionEventReportErrorCode]
+    | type[TransactionCreateErrorCode]
+    | type[TransactionUpdateErrorCode],
+):
+    try:
+        GiftCardPaymentMethodDetailsValidatedInput(
+            name=gift_card_details_input.name,
+            brand=gift_card_details_input.brand,
+            last_digits=gift_card_details_input.last_digits,
+        )
+    except PydanticValidationError as exc:
+        raise pydantic_to_validation_error(
+            exc, default_error_code=error_code_class.INVALID.value
+        ) from exc
+
+
 def validate_payment_method_details_input(
     payment_method_details_input: PaymentMethodDetailsInput,
     error_code_class: type[TransactionEventReportErrorCode]
@@ -152,11 +215,12 @@ def validate_payment_method_details_input(
     if (
         payment_method_details_input.card is None
         and payment_method_details_input.other is None
+        and payment_method_details_input.gift_card is None
     ):
         raise ValidationError(
             {
                 "payment_method_details": ValidationError(
-                    "One of `card` or `other` is required.",
+                    "One of `card`, `other`, or `giftCard` is required.",
                     code=error_code_class.INVALID.value,
                 )
             }
@@ -167,6 +231,8 @@ def validate_payment_method_details_input(
             payment_method_details_input.card,
             "other",
             payment_method_details_input.other,
+            "gift_card",
+            payment_method_details_input.gift_card,
         )
     except ValidationError as e:
         e.code = error_code_class.INVALID.value
@@ -190,6 +256,13 @@ def validate_payment_method_details_input(
                     )
                 }
             )
+    elif payment_method_details_input.gift_card:
+        try:
+            validate_gift_card_payment_method_details_input(
+                payment_method_details_input.gift_card, error_code_class
+            )
+        except ValidationError as e:
+            raise ValidationError({"payment_method_details": e}) from e
 
     if errors:
         raise ValidationError({"payment_method_details": errors})
@@ -223,6 +296,16 @@ def get_payment_method_details(
         payment_details_data = PaymentMethodDetails(
             type=PaymentMethodType.OTHER,
             name=other_details.name,
+        )
+    elif payment_method_details_input.gift_card:
+        gc_details: GiftCardPaymentMethodDetailsInput = (
+            payment_method_details_input.gift_card
+        )
+        payment_details_data = PaymentMethodDetails(
+            type=PaymentMethodType.GIFT_CARD,
+            name=gc_details.name,
+            brand=gc_details.brand,
+            last_digits=gc_details.last_digits,
         )
 
     return payment_details_data

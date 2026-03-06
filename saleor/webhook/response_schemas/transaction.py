@@ -112,6 +112,31 @@ class CardPaymentMethodDetails(PaymentMethodDetailsBase):
     ] = None
 
 
+class GiftCardPaymentMethodDetails(PaymentMethodDetailsBase):
+    type: Annotated[  # type: ignore[name-defined]
+        Literal[PaymentMethodTypeEnum.GIFT_CARD.name],
+        Field(
+            description="Type of the payment method used for the transaction.",
+            max_length=32,
+        ),
+    ]
+    brand: Annotated[
+        str | None,
+        Field(
+            description="Brand of the gift card used for the transaction.",
+            max_length=40,
+        ),
+    ] = None
+    last_digits: Annotated[
+        str | None,
+        Field(
+            description="Last digits of the gift card used for the transaction.",
+            max_length=4,
+            validation_alias="lastDigits",
+        ),
+    ] = None
+
+
 class TransactionBaseSchema(BaseModel):
     psp_reference: Annotated[
         DefaultIfNone[str],
@@ -351,7 +376,10 @@ class TransactionSessionBaseSchema(TransactionBaseSchema):
     ]
 
     payment_method_details: Annotated[
-        OtherPaymentMethodDetails | CardPaymentMethodDetails | None,
+        OtherPaymentMethodDetails
+        | CardPaymentMethodDetails
+        | GiftCardPaymentMethodDetails
+        | None,
         Field(
             validation_alias="paymentMethodDetails",
             default=None,
