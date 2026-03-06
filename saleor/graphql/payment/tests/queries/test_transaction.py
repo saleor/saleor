@@ -110,9 +110,11 @@ TRANSACTION_QUERY = """
                 ...on OtherPaymentMethodDetails{
                     name
                 }
-                ...on SaleorGiftCardPaymentMethodDetails{
+                ...on GiftCardPaymentMethodDetails{
                     name
-                    codeLastFour
+                    brand
+                    lastDigits
+                    isSaleorGiftcard
                 }
             }
         }
@@ -993,14 +995,14 @@ def test_transaction_query_by_app_with_payment_method_gift_card(
     app_api_client, transaction_item_created_by_app, permission_manage_payments, app
 ):
     # given
-    expected_display_code = "ABCD"
-    expected_payment_method_name = "Gift Card Payment Gateway"
+    expected_last_digits = "ABCD"
+    expected_brand = "Saleor"
+    expected_payment_method_name = "Saleor Gift Card"
 
-    transaction_item_created_by_app.payment_method_type = (
-        PaymentMethodType.SALEOR_GIFT_CARD
-    )
+    transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
     transaction_item_created_by_app.payment_method_name = expected_payment_method_name
-    transaction_item_created_by_app.gift_card_last_digits = expected_display_code
+    transaction_item_created_by_app.gc_last_digits = expected_last_digits
+    transaction_item_created_by_app.gc_brand = expected_brand
     transaction_item_created_by_app.save()
 
     variables = {
@@ -1017,26 +1019,25 @@ def test_transaction_query_by_app_with_payment_method_gift_card(
     # then
     content = get_graphql_content(response)
     data = content["data"]["transaction"]
-    assert (
-        data["paymentMethodDetails"]["__typename"]
-        == "SaleorGiftCardPaymentMethodDetails"
-    )
+    assert data["paymentMethodDetails"]["__typename"] == "GiftCardPaymentMethodDetails"
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
-    assert data["paymentMethodDetails"]["codeLastFour"] == expected_display_code
+    assert data["paymentMethodDetails"]["brand"] == expected_brand
+    assert data["paymentMethodDetails"]["lastDigits"] == expected_last_digits
+    assert data["paymentMethodDetails"]["isSaleorGiftcard"] is False
 
 
 def test_transaction_query_by_staff_with_payment_method_gift_card(
     staff_api_client, transaction_item_created_by_app, permission_manage_payments
 ):
     # given
-    expected_display_code = "WXYZ"
-    expected_payment_method_name = "Gift Card Payment Gateway"
+    expected_last_digits = "WXYZ"
+    expected_brand = "ExternalBrand"
+    expected_payment_method_name = "External Gift Card"
 
-    transaction_item_created_by_app.payment_method_type = (
-        PaymentMethodType.SALEOR_GIFT_CARD
-    )
+    transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
     transaction_item_created_by_app.payment_method_name = expected_payment_method_name
-    transaction_item_created_by_app.gift_card_last_digits = expected_display_code
+    transaction_item_created_by_app.gc_last_digits = expected_last_digits
+    transaction_item_created_by_app.gc_brand = expected_brand
     transaction_item_created_by_app.save()
 
     variables = {
@@ -1053,12 +1054,52 @@ def test_transaction_query_by_staff_with_payment_method_gift_card(
     # then
     content = get_graphql_content(response)
     data = content["data"]["transaction"]
-    assert (
-        data["paymentMethodDetails"]["__typename"]
-        == "SaleorGiftCardPaymentMethodDetails"
-    )
+    assert data["paymentMethodDetails"]["__typename"] == "GiftCardPaymentMethodDetails"
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
-    assert data["paymentMethodDetails"]["codeLastFour"] == expected_display_code
+    assert data["paymentMethodDetails"]["brand"] == expected_brand
+    assert data["paymentMethodDetails"]["lastDigits"] == expected_last_digits
+    assert data["paymentMethodDetails"]["isSaleorGiftcard"] is False
+
+
+def test_transaction_query_with_saleor_gift_card_is_saleor_giftcard_true(
+    app_api_client,
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    gift_card_created_by_staff,
+    app,
+):
+    # given
+    transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
+    transaction_item_created_by_app.payment_method_name = "Saleor Gift Card"
+    transaction_item_created_by_app.gc_last_digits = (
+        gift_card_created_by_staff.display_code
+    )
+    transaction_item_created_by_app.gc_brand = "Saleor"
+    transaction_item_created_by_app.gift_card = gift_card_created_by_staff
+    transaction_item_created_by_app.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_app.token
+        )
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_QUERY, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transaction"]
+    assert data["paymentMethodDetails"]["__typename"] == "GiftCardPaymentMethodDetails"
+    assert data["paymentMethodDetails"]["name"] == "Saleor Gift Card"
+    assert data["paymentMethodDetails"]["brand"] == "Saleor"
+    assert (
+        data["paymentMethodDetails"]["lastDigits"]
+        == gift_card_created_by_staff.display_code
+    )
+    assert data["paymentMethodDetails"]["isSaleorGiftcard"] is True
 
 
 def test_transaction_event_with_reason_reference(

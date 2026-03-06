@@ -22,7 +22,11 @@ from ..payment.models import TransactionEvent, TransactionItem
 from ..payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
 )
-from .const import GIFT_CARD_PAYMENT_GATEWAY_ID, GIFT_CARD_PAYMENT_GATEWAY_NAME
+from .const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    SALEOR_GIFT_CARD_BRAND,
+    SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME,
+)
 from .models import GiftCard
 
 
@@ -153,15 +157,17 @@ def attach_gift_card_to_transaction(
 
     transaction = transaction_session_data.transaction
     transaction.gift_card = gift_card
-    transaction.payment_method_type = PaymentMethodType.SALEOR_GIFT_CARD
-    transaction.payment_method_name = GIFT_CARD_PAYMENT_GATEWAY_NAME
-    transaction.gift_card_last_digits = gift_card.display_code
+    transaction.payment_method_type = PaymentMethodType.GIFT_CARD
+    transaction.payment_method_name = SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME
+    transaction.gc_last_digits = gift_card.display_code
+    transaction.gc_brand = SALEOR_GIFT_CARD_BRAND
     transaction.save(
         update_fields=[
             "gift_card",
             "payment_method_type",
             "payment_method_name",
-            "gift_card_last_digits",
+            "gc_last_digits",
+            "gc_brand",
         ]
     )
 

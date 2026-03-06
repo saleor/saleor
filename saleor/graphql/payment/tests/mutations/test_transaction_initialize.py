@@ -19,7 +19,8 @@ from .....checkout.models import Checkout
 from .....core.prices import Money, quantize_price
 from .....giftcard.const import (
     GIFT_CARD_PAYMENT_GATEWAY_ID,
-    GIFT_CARD_PAYMENT_GATEWAY_NAME,
+    SALEOR_GIFT_CARD_BRAND,
+    SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME,
 )
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderStatus
 from .....order.models import Order
@@ -3505,9 +3506,11 @@ def test_for_checkout_with_gift_card_payment_gateway(
     )
 
     transaction = checkout.payment_transactions.last()
-    assert transaction.payment_method_type == PaymentMethodType.SALEOR_GIFT_CARD
-    assert transaction.payment_method_name == GIFT_CARD_PAYMENT_GATEWAY_NAME
-    assert transaction.gift_card_last_digits == gift_card_created_by_staff.display_code
+    assert transaction.payment_method_type == PaymentMethodType.GIFT_CARD
+    assert transaction.payment_method_name == SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME
+    assert transaction.gc_last_digits == gift_card_created_by_staff.display_code
+    assert transaction.gc_brand == SALEOR_GIFT_CARD_BRAND
+    assert transaction.gift_card == gift_card_created_by_staff
 
 
 @mock.patch("saleor.giftcard.gateway.uuid4")

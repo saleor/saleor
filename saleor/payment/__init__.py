@@ -292,16 +292,16 @@ class PaymentMethodType:
     The following types are possible:
     CARD - represents a card payment method.
     OTHER - represents any payment method that is not a card payment.
-    SALEOR_GIFT_CARD - represents a Saleor gift card payment method.
+    GIFT_CARD - represents a gift card payment method.
 
     """
 
     CARD = "card"
     OTHER = "other"
-    SALEOR_GIFT_CARD = "saleor_gift_card"
+    GIFT_CARD = "gift_card"
 
     CHOICES = [
         (CARD, "Card"),
         (OTHER, "Other"),
-        (SALEOR_GIFT_CARD, "Saleor gift card"),
+        (GIFT_CARD, "Gift card"),
     ]

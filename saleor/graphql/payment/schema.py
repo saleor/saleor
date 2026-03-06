@@ -36,18 +36,18 @@ from .resolvers import (
 )
 from .types import (
     CardPaymentMethodDetails,
+    GiftCardPaymentMethodDetails,
     OtherPaymentMethodDetails,
     Payment,
     PaymentCountableConnection,
-    SaleorGiftCardPaymentMethodDetails,
     TransactionCountableConnection,
     TransactionItem,
 )
 
 PAYMENT_ADDITIONAL_TYPES = [
     CardPaymentMethodDetails,
+    GiftCardPaymentMethodDetails,
     OtherPaymentMethodDetails,
-    SaleorGiftCardPaymentMethodDetails,
 ]
 
 
