@@ -153,7 +153,7 @@ def attach_gift_card_to_transaction(
 
     transaction = transaction_session_data.transaction
     transaction.gift_card = gift_card
-    transaction.payment_method_type = PaymentMethodType.GIFT_CARD
+    transaction.payment_method_type = PaymentMethodType.SALEOR_GIFT_CARD
     transaction.payment_method_name = GIFT_CARD_PAYMENT_GATEWAY_NAME
     transaction.gift_card_last_digits = gift_card.display_code
     transaction.save(

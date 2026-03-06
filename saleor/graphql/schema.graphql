@@ -15955,12 +15955,12 @@ Represents possible payment method types.
     The following types are possible:
     CARD - represents a card payment method.
     OTHER - represents any payment method that is not a card payment.
-    GIFT_CARD - represents a Saleor gift card payment method.
+    SALEOR_GIFT_CARD - represents a Saleor gift card payment method.
 """
 enum PaymentMethodTypeEnum @doc(category: "Payments") {
   CARD
   OTHER
-  GIFT_CARD
+  SALEOR_GIFT_CARD
 }
 
 input PaymentMethodDetailsCardFilterInput {
@@ -37429,7 +37429,7 @@ type SaleorGiftCardPaymentMethodDetails implements PaymentMethodDetails {
   
   Added in Saleor 3.23.
   """
-  code: String!
+  codeLastFour: String!
 }
 
 """

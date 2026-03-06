@@ -476,7 +476,7 @@ class PaymentMethodDetails(graphene.Interface):
     def resolve_type(cls, instance, info: graphene.ResolveInfo):
         if instance.payment_method_type == PaymentMethodType.CARD:
             return CardPaymentMethodDetails
-        if instance.payment_method_type == PaymentMethodType.GIFT_CARD:
+        if instance.payment_method_type == PaymentMethodType.SALEOR_GIFT_CARD:
             return SaleorGiftCardPaymentMethodDetails
         return OtherPaymentMethodDetails
 
@@ -542,7 +542,7 @@ class OtherPaymentMethodDetails(BaseObjectType):
 
 class SaleorGiftCardPaymentMethodDetails(BaseObjectType):
     name = graphene.String(required=True, description="Name of the payment method.")
-    code = graphene.String(
+    code_last_four = graphene.String(
         required=True,
         description="Last 4 characters of the gift card code." + ADDED_IN_323,
     )
@@ -555,7 +555,7 @@ class SaleorGiftCardPaymentMethodDetails(BaseObjectType):
         interfaces = [PaymentMethodDetails]
 
     @staticmethod
-    def resolve_code(root: models.TransactionItem, _info):
+    def resolve_code_last_four(root: models.TransactionItem, _info):
         return root.gift_card_last_digits or ""
 
 

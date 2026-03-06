@@ -112,7 +112,7 @@ TRANSACTION_QUERY = """
                 }
                 ...on SaleorGiftCardPaymentMethodDetails{
                     name
-                    code
+                    codeLastFour
                 }
             }
         }
@@ -996,7 +996,9 @@ def test_transaction_query_by_app_with_payment_method_gift_card(
     expected_display_code = "ABCD"
     expected_payment_method_name = "Gift Card Payment Gateway"
 
-    transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
+    transaction_item_created_by_app.payment_method_type = (
+        PaymentMethodType.SALEOR_GIFT_CARD
+    )
     transaction_item_created_by_app.payment_method_name = expected_payment_method_name
     transaction_item_created_by_app.gift_card_last_digits = expected_display_code
     transaction_item_created_by_app.save()
@@ -1020,7 +1022,7 @@ def test_transaction_query_by_app_with_payment_method_gift_card(
         == "SaleorGiftCardPaymentMethodDetails"
     )
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
-    assert data["paymentMethodDetails"]["code"] == expected_display_code
+    assert data["paymentMethodDetails"]["codeLastFour"] == expected_display_code
 
 
 def test_transaction_query_by_staff_with_payment_method_gift_card(
@@ -1030,7 +1032,9 @@ def test_transaction_query_by_staff_with_payment_method_gift_card(
     expected_display_code = "WXYZ"
     expected_payment_method_name = "Gift Card Payment Gateway"
 
-    transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
+    transaction_item_created_by_app.payment_method_type = (
+        PaymentMethodType.SALEOR_GIFT_CARD
+    )
     transaction_item_created_by_app.payment_method_name = expected_payment_method_name
     transaction_item_created_by_app.gift_card_last_digits = expected_display_code
     transaction_item_created_by_app.save()
@@ -1054,7 +1058,7 @@ def test_transaction_query_by_staff_with_payment_method_gift_card(
         == "SaleorGiftCardPaymentMethodDetails"
     )
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
-    assert data["paymentMethodDetails"]["code"] == expected_display_code
+    assert data["paymentMethodDetails"]["codeLastFour"] == expected_display_code
 
 
 def test_transaction_event_with_reason_reference(
