@@ -13,8 +13,10 @@ from ....core.context import disallow_replica_in_context
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import validation_error_to_error_type
 from ....core.types import AccountError
+from ....site.dataloaders import get_site_promise
 from ..base import INVALID_TOKEN
 from . import CreateToken
+from .utils import check_password_login_not_disabled
 
 
 class SetPassword(CreateToken):
@@ -41,7 +43,9 @@ class SetPassword(CreateToken):
     ):
         disallow_replica_in_context(info.context)
 
+        site_settings = get_site_promise(info.context).get().settings
         try:
+            check_password_login_not_disabled(site_settings)
             cls._set_password_for_user(email, password, token)
         except ValidationError as e:
             errors = validation_error_to_error_type(e, AccountError)
