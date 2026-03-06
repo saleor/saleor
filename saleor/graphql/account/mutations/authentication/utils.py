@@ -15,6 +15,7 @@ from .....account.error_codes import AccountErrorCode
 from .....account.models import User
 from .....core.jwt import PERMISSIONS_FIELD, get_user_from_payload, jwt_decode
 from .....permission.enums import get_permissions_from_names
+from .....site import PasswordLoginMode
 
 
 def get_user(payload):
@@ -59,6 +60,19 @@ def _does_token_match(token: str, csrf_token: str) -> bool:
         _unmask_cipher_token(token),
         _unmask_cipher_token(csrf_token),
     )
+
+
+def check_password_login_not_disabled(site_settings):
+    """Raise ValidationError if password-based authentication is disabled."""
+    if site_settings.password_login_mode == PasswordLoginMode.DISABLED:
+        raise ValidationError(
+            {
+                "email": ValidationError(
+                    "Password-based login is disabled.",
+                    code=AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.value,
+                )
+            }
+        )
 
 
 def update_user_last_login_if_required(user: User):

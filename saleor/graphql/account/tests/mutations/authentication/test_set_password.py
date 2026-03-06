@@ -6,6 +6,7 @@ from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
 from ......account.tests.fixtures.user import dangerously_create_test_user
 from ......core.tokens import token_generator
+from ......site import PasswordLoginMode
 from .....core.utils import str_to_enum
 from .....tests.utils import get_graphql_content
 from ....mutations.base import INVALID_TOKEN
@@ -183,3 +184,33 @@ def test_set_password_invalid_password(
     account_errors = content["data"]["setPassword"]["errors"]
     assert account_errors[0]["code"] == str_to_enum("password_too_short")
     assert account_errors[1]["code"] == str_to_enum("password_entirely_numeric")
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_set_password_disabled_password_login(user_api_client, site_settings):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.DISABLED
+    site_settings.save(update_fields=["password_login_mode"])
+
+    customer_user = dangerously_create_test_user(
+        email="testSetPasswordDisabled@example.com", password="old-password"
+    )
+    token = token_generator.make_token(customer_user)
+    variables = {
+        "email": customer_user.email,
+        "password": "new-password",
+        "token": token,
+    }
+
+    # when
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["setPassword"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
+    assert errors[0]["field"] == "email"
+
+    customer_user.refresh_from_db()
+    assert customer_user.check_password("old-password")
