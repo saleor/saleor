@@ -7,7 +7,7 @@ from ....permission.enums import SitePermissions
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_322, ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.enums import WeightUnitsEnum
 from ...core.mutations import BaseMutation
@@ -17,6 +17,7 @@ from ...core.utils import WebhookEventInfo
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
+from ..enums import PasswordLoginModeEnum
 from ..types import Shop
 
 
@@ -98,6 +99,10 @@ class ShopSettingsInput(graphene.InputObjectType):
             "being removed during validation. Validation errors are still returned."
         )
         + ADDED_IN_322,
+    )
+    password_login_mode = PasswordLoginModeEnum(
+        description="Controls whether password-based authentication is allowed."
+        + ADDED_IN_323,
     )
 
     # deprecated

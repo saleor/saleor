@@ -217,3 +217,43 @@ def test_user_payload_doesnt_have_user_token(prefix, rf, staff_user, settings):
     backend = JSONWebTokenBackend()
     with pytest.raises(InvalidTokenError):
         backend.authenticate(request)
+
+
+@pytest.mark.parametrize("prefix", ["JWT", "Bearer"])
+def test_staff_user_with_is_staff_true_in_payload(
+    prefix, rf, staff_user, permission_manage_products
+):
+    # given
+    staff_user.user_permissions.add(permission_manage_products)
+    access_token = create_access_token(staff_user)
+
+    # when
+    request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {access_token}")
+    backend = JSONWebTokenBackend()
+    user = backend.authenticate(request)
+
+    # then
+    assert user == staff_user
+    assert user.is_staff is True
+    assert permission_manage_products in user.effective_permissions
+
+
+@pytest.mark.parametrize("prefix", ["JWT", "Bearer"])
+def test_staff_user_with_is_staff_false_in_payload(
+    prefix, rf, staff_user, permission_manage_products
+):
+    # given
+    staff_user.user_permissions.add(permission_manage_products)
+    access_token = create_access_token(
+        staff_user, additional_payload={"is_staff": False}
+    )
+
+    # when
+    request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {access_token}")
+    backend = JSONWebTokenBackend()
+    user = backend.authenticate(request)
+
+    # then
+    assert user == staff_user
+    assert user.is_staff is False
+    assert list(user.effective_permissions) == []
