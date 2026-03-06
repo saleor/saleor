@@ -1,0 +1,43 @@
+saleor/graphql/payment/types.py
+  a71364888eacbd36 479-480,543-553,555-556,558,563,569-574,577-578
+saleor/graphql/payment/schema.py
+  a71364888eacbd36 39,49
+saleor/payment/__init__.py
+  a71364888eacbd36 295,301,306
+saleor/graphql/payment/mutations/transaction/shared.py
+  a71364888eacbd36 1-2,6,15,18,55-78,90-96,102,183-208,218,223,234-235,259-262,297-306
+saleor/webhook/response_schemas/transaction.py
+  a71364888eacbd36 115-139,381-382
+saleor/graphql/payment/tests/queries/test_transaction.py
+  a71364888eacbd36 113,115-117,998-1000,1004-1005,1024-1026,1033-1035,1039-1040,1059-1061,1064-1094,1096-1097,1099-1100,1102
+saleor/payment/utils.py
+  a71364888eacbd36 58,953-960,1314-1323
+saleor/payment/models.py
+  a71364888eacbd36 178-179
+saleor/giftcard/const.py
+  a71364888eacbd36 3-4
+saleor/graphql/payment/tests/mutations/test_transaction_initialize.py
+  a71364888eacbd36 22-23,3509-3513
+saleor/giftcard/gateway.py
+  a71364888eacbd36 25-29,160-163,169-170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "39919675c53af8b4d191b9eca2583b9538e06f9b",
+  "prompts": {
+    "a71364888eacbd36": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e4257a94-c45e-4590-af03-b2d76cf8fae8",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 312,
+      "total_deletions": 102,
+      "accepted_lines": 246,
+      "overriden_lines": 6
+    }
+  }
+}
