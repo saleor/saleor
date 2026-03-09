@@ -2675,6 +2675,52 @@ def test_transaction_create_with_invalid_other_payment_method_details(
     assert error["field"] == "paymentMethodDetails"
 
 
+def test_transaction_create_with_gift_card_empty_last_chars(
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    authorized_value = Decimal(10)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "paymentMethodDetails": {
+                "giftCard": {
+                    "name": "Gift Card",
+                    "lastChars": "",
+                }
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE,
+        variables,
+        permissions=[permission_manage_payments],
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_data = response["data"]["transactionCreate"]
+    assert transaction_data["errors"]
+    assert len(transaction_data["errors"]) == 1
+    error = transaction_data["errors"][0]
+    assert error["code"] == TransactionCreateErrorCode.INVALID.name
+    assert error["field"] == "paymentMethodDetails"
+    assert error["message"] == "String should have at least 1 character"
+
+
 # Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.
 @pytest.mark.django_db(transaction=True)
 @patch(

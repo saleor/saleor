@@ -185,7 +185,9 @@ class GiftCardPaymentMethodDetailsValidatedInput(BaseModel):
 
     name: Annotated[str, StringConstraints(max_length=256)]
     brand: Annotated[str, StringConstraints(max_length=40)] | None = None
-    last_chars: Annotated[str, StringConstraints(max_length=4)] | None = None
+    last_chars: Annotated[str, StringConstraints(min_length=1, max_length=4)] | None = (
+        None
+    )
 
 
 def validate_gift_card_payment_method_details_input(
@@ -262,7 +264,9 @@ def validate_payment_method_details_input(
                 payment_method_details_input.gift_card, error_code_class
             )
         except ValidationError as e:
-            raise ValidationError({"payment_method_details": e}) from e
+            for field, field_errors in e.error_dict.items():
+                for field_error in field_errors:
+                    errors.append({field: field_error})
 
     if errors:
         raise ValidationError({"payment_method_details": errors})
