@@ -7,6 +7,7 @@ from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
 from ...core.types.common import ReturnSettingsUpdateError
+from ...site.dataloaders import get_site_promise
 from ..types import ReturnSettings
 
 
@@ -45,4 +46,21 @@ class ReturnSettingsUpdate(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, input
     ):
-        raise NotImplementedError("not implemented yet")
+        return_reason_reference_type = input.get("return_reason_reference_type")
+
+        site = get_site_promise(info.context).get()
+        settings = site.settings
+
+        if return_reason_reference_type:
+            model_type = cls.get_node_or_error(
+                info,
+                return_reason_reference_type,
+                only_type="PageType",
+                field="return_reason_reference_type",
+            )
+
+            settings.return_reason_reference_type = model_type  # type: ignore[assignment]
+
+            settings.save(update_fields=["return_reason_reference_type"])
+
+        return ReturnSettingsUpdate(return_settings=settings)
