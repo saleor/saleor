@@ -3,9 +3,11 @@ from collections import defaultdict
 from typing import Any, cast
 
 import graphene
+from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
 from ....order import models
+from ....page.models import Page, PageType
 from ...core.utils import from_global_id_or_error
 
 
@@ -75,8 +77,9 @@ def get_input_lines_data(
     lines: list[dict[str, str | int]],
     errors: list[dict[str, str]],
     error_code: str,
-) -> dict[uuid.UUID, models.OrderGrantedRefundLine]:
+) -> tuple[dict[uuid.UUID, models.OrderGrantedRefundLine], dict[uuid.UUID, str | None]]:
     granted_refund_lines = {}
+    line_reason_reference_ids: dict[uuid.UUID, str | None] = {}
     for line in lines:
         order_line_id = cast(str, line["id"])
         try:
@@ -85,11 +88,13 @@ def get_input_lines_data(
             )
             uuid_pk = uuid.UUID(pk)
             reason = cast(str | None, line.get("reason"))
+            reason_reference_id = cast(str | None, line.get("reason_reference"))
             granted_refund_lines[uuid_pk] = models.OrderGrantedRefundLine(
                 order_line_id=uuid_pk,
                 quantity=int(line["quantity"]),
                 reason=reason,
             )
+            line_reason_reference_ids[uuid_pk] = reason_reference_id
         except (GraphQLError, ValueError) as e:
             errors.append(
                 {
@@ -99,7 +104,7 @@ def get_input_lines_data(
                     "message": str(e),
                 }
             )
-    return granted_refund_lines
+    return granted_refund_lines, line_reason_reference_ids
 
 
 def assign_order_lines(
@@ -124,3 +129,104 @@ def assign_order_lines(
             )
     for line_pk, order_line in lines_dict.items():
         input_lines_data[line_pk].order_line = order_line
+
+
+def resolve_reason_reference_page(
+    reason_reference_id: str,
+    reason_reference_type: PageType,
+    error_code_enum,
+) -> Page:
+    """Resolve a reason_reference global ID to a Page instance.
+
+    Validates the Page belongs to the expected PageType.
+    """
+    try:
+        _, pk = from_global_id_or_error(
+            reason_reference_id, only_type="Page", raise_error=True
+        )
+    except GraphQLError as e:
+        raise ValidationError(
+            {
+                "reason_reference": ValidationError(
+                    str(e),
+                    code=error_code_enum.GRAPHQL_ERROR.value,
+                )
+            }
+        ) from None
+
+    try:
+        return Page.objects.get(pk=pk, page_type=reason_reference_type.pk)
+    except (Page.DoesNotExist, ValueError):
+        raise ValidationError(
+            {
+                "reason_reference": ValidationError(
+                    "Invalid reason reference. Must be an ID of a Model (Page)",
+                    code=error_code_enum.INVALID.value,
+                )
+            }
+        ) from None
+
+
+def resolve_per_line_reason_references(
+    lines: list[models.OrderGrantedRefundLine],
+    line_reason_reference_ids: dict[uuid.UUID, str | None],
+    refund_reason_reference_type: PageType | None,
+    error_code_enum,
+) -> None:
+    """Resolve per-line reason_reference IDs and set on line instances.
+
+    Batches DB lookups: collects all page IDs, fetches in one query, maps back.
+    """
+    has_any_reason_ref = any(
+        line_reason_reference_ids.get(line.order_line_id) for line in lines
+    )
+    if not has_any_reason_ref:
+        return
+
+    if not refund_reason_reference_type:
+        raise ValidationError(
+            {
+                "reason_reference": ValidationError(
+                    "Reason reference type is not configured.",
+                    code=error_code_enum.NOT_CONFIGURED.value,
+                )
+            }
+        )
+
+    # Collect all non-null reason_reference global IDs from lines
+    lines_with_refs: list[tuple[models.OrderGrantedRefundLine, str]] = []
+    for line in lines:
+        reason_ref_id = line_reason_reference_ids.get(line.order_line_id)
+        if reason_ref_id:
+            lines_with_refs.append((line, reason_ref_id))
+
+    # Parse all global IDs to PKs
+    page_pks: dict[str, int] = {}  # global_id -> pk
+    for _, global_id in lines_with_refs:
+        _, pk_str = from_global_id_or_error(
+            global_id, only_type="Page", raise_error=True
+        )
+        page_pks[global_id] = int(pk_str)
+
+    # Single DB query for all pages
+    pages_by_pk: dict[int, Page] = {
+        page.pk: page
+        for page in Page.objects.filter(
+            pk__in=page_pks.values(),
+            page_type=refund_reason_reference_type.pk,
+        )
+    }
+
+    # Map back to lines
+    for line, global_id in lines_with_refs:
+        page = pages_by_pk.get(page_pks[global_id])
+        if not page:
+            raise ValidationError(
+                {
+                    "reason_reference": ValidationError(
+                        "Invalid reason reference. Must be an ID of a Model (Page)",
+                        code=error_code_enum.INVALID.value,
+                    )
+                }
+            )
+        line.reason_reference = page

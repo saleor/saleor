@@ -44,6 +44,7 @@ class OrderErrorCode(Enum):
 class OrderGrantRefundCreateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+    NOT_CONFIGURED = "not_configured"
     SHIPPING_COSTS_ALREADY_GRANTED = "shipping_costs_already_granted"
     AMOUNT_GREATER_THAN_AVAILABLE = "amount_greater_than_available"
     REQUIRED = "required"
@@ -53,6 +54,7 @@ class OrderGrantRefundCreateErrorCode(Enum):
 class OrderGrantRefundUpdateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+    NOT_CONFIGURED = "not_configured"
     REQUIRED = "required"
     INVALID = "invalid"
     AMOUNT_GREATER_THAN_AVAILABLE = "amount_greater_than_available"
