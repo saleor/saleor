@@ -1,0 +1,57 @@
+saleor/graphql/order/mutations/order_grant_refund_update.py
+  cae3d2ae35c73932 30-31,238-239,256,294-295,297,381,383-384,387-389,393
+saleor/graphql/order/tests/mutations/test_order_grant_refund_create_line_reason.py
+  cae3d2ae35c73932 1-47,49-118,120-200,202-263,265-275,277-343,345-394
+  56c8548981d4ea4b 48,119,201,264,344
+saleor/graphql/order/mutations/order_grant_refund_create.py
+  cae3d2ae35c73932 29-30,137-138,141,158,160,218,220-221,296,298-299,302-308
+saleor/graphql/order/tests/mutations/test_order_grant_refund_update_line_reason.py
+  cae3d2ae35c73932 1-47,49-123,125-207,209-272
+  56c8548981d4ea4b 48,124,208
+saleor/graphql/order/dataloaders.py
+  cae3d2ae35c73932 134-143
+saleor/graphql/order/tests/mutations/test_order_grant_refund_utils.py
+  cae3d2ae35c73932 1-31,84,89,161-163,165-166,170,192-197,244
+  56c8548981d4ea4b 35,37-42,44-48,53-58,68-70,92-95,105-107,114-119,127-129,136-141,149,156-160,164,167-169,171-172,176-177,187-191,199,205-206,209-210,213,215-218,221-223,227-228,230-231,233-234,236-238,240
+saleor/graphql/order/types.py
+  cae3d2ae35c73932 164,278-305
+saleor/order/error_codes.py
+  cae3d2ae35c73932 47,57
+saleor/graphql/order/mutations/order_grant_refund_utils.py
+  cae3d2ae35c73932 6,10,80,82,91,97,107,132-198,200-232
+saleor/order/models.py
+  cae3d2ae35c73932 980-982
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "79399a9b96973529e28fc0808078f5b2b0e594ed",
+  "prompts": {
+    "56c8548981d4ea4b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8831ec39-168d-4bb5-8ba4-ed89afa86206",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 8,
+      "total_deletions": 8,
+      "accepted_lines": 93,
+      "overriden_lines": 0
+    },
+    "cae3d2ae35c73932": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a1d7ac53-20ed-4f5b-a4f6-0304e9aad4a5",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 1222,
+      "total_deletions": 182,
+      "accepted_lines": 889,
+      "overriden_lines": 0
+    }
+  }
+}
