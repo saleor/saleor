@@ -956,7 +956,7 @@ def parse_transaction_action_data_for_session_webhook(
         ):
             payment_method_details.brand = parsed_payment_method_details.brand
             payment_method_details.last_digits = (
-                parsed_payment_method_details.last_4_chars
+                parsed_payment_method_details.last_chars
             )
 
     return (
@@ -1316,12 +1316,9 @@ def update_transaction_item_with_payment_method_details(
         if payment_method_details.brand != transaction_item.gift_card_brand:
             transaction_item.gift_card_brand = payment_method_details.brand
             updated_fields.append("gift_card_brand")
-        if (
-            payment_method_details.last_digits
-            != transaction_item.gift_card_last_4_chars
-        ):
-            transaction_item.gift_card_last_4_chars = payment_method_details.last_digits
-            updated_fields.append("gift_card_last_4_chars")
+        if payment_method_details.last_digits != transaction_item.gift_card_last_chars:
+            transaction_item.gift_card_last_chars = payment_method_details.last_digits
+            updated_fields.append("gift_card_last_chars")
     else:
         if payment_method_details.brand != transaction_item.cc_brand:
             transaction_item.cc_brand = payment_method_details.brand

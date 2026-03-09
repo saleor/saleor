@@ -546,8 +546,9 @@ class GiftCardPaymentMethodDetails(BaseObjectType):
         description="Brand of the gift card." + ADDED_IN_323,
         required=False,
     )
-    last_4_chars = graphene.String(
-        description="Last 4 characters of the gift card code." + ADDED_IN_323,
+    last_chars = graphene.String(
+        description="Last characters of the gift card code. Max 4 characters."
+        + ADDED_IN_323,
         required=False,
     )
     is_saleor_giftcard = graphene.Boolean(
@@ -570,8 +571,8 @@ class GiftCardPaymentMethodDetails(BaseObjectType):
         return root.gift_card_brand
 
     @staticmethod
-    def resolve_last_4_chars(root: models.TransactionItem, _info):
-        return root.gift_card_last_4_chars
+    def resolve_last_chars(root: models.TransactionItem, _info):
+        return root.gift_card_last_chars
 
     @staticmethod
     def resolve_is_saleor_giftcard(root: models.TransactionItem, _info):

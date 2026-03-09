@@ -67,9 +67,9 @@ class GiftCardPaymentMethodDetailsInput(BaseInputObjectType):
         ),
         required=False,
     )
-    last_4_chars = graphene.String(
+    last_chars = graphene.String(
         description=(
-            "Last 4 characters of the gift card used for the transaction. "
+            "Last characters of the gift card used for the transaction. "
             "Max length is 4 characters." + ADDED_IN_323
         ),
         required=False,
@@ -185,7 +185,7 @@ class GiftCardPaymentMethodDetailsValidatedInput(BaseModel):
 
     name: Annotated[str, StringConstraints(max_length=256)]
     brand: Annotated[str, StringConstraints(max_length=40)] | None = None
-    last_4_chars: Annotated[str, StringConstraints(max_length=4)] | None = None
+    last_chars: Annotated[str, StringConstraints(max_length=4)] | None = None
 
 
 def validate_gift_card_payment_method_details_input(
@@ -198,7 +198,7 @@ def validate_gift_card_payment_method_details_input(
         GiftCardPaymentMethodDetailsValidatedInput(
             name=gift_card_details_input.name,
             brand=gift_card_details_input.brand,
-            last_4_chars=gift_card_details_input.last_4_chars,
+            last_chars=gift_card_details_input.last_chars,
         )
     except PydanticValidationError as exc:
         raise pydantic_to_validation_error(
@@ -305,7 +305,7 @@ def get_payment_method_details(
             type=PaymentMethodType.GIFT_CARD,
             name=gc_details.name,
             brand=gc_details.brand,
-            last_digits=gc_details.last_4_chars,
+            last_digits=gc_details.last_chars,
         )
 
     return payment_details_data

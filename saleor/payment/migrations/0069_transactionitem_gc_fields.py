@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="transactionitem",
-            name="gift_card_last_4_chars",
+            name="gift_card_last_chars",
             field=models.CharField(blank=True, max_length=4, null=True),
         ),
         migrations.AlterField(

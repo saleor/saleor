@@ -127,12 +127,12 @@ class GiftCardPaymentMethodDetails(PaymentMethodDetailsBase):
             max_length=40,
         ),
     ] = None
-    last_4_chars: Annotated[
+    last_chars: Annotated[
         str | None,
         Field(
-            description="Last 4 characters of the gift card used for the transaction.",
+            description="Last characters of the gift card used for the transaction.",
             max_length=4,
-            validation_alias="last4Chars",
+            validation_alias="lastChars",
         ),
     ] = None
 

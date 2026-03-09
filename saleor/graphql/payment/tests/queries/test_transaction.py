@@ -117,7 +117,7 @@ TRANSACTION_QUERY = """
                 ...on GiftCardPaymentMethodDetails{
                     name
                     brand
-                    last4Chars
+                    lastChars
                     isSaleorGiftcard
                 }
             }
@@ -1005,7 +1005,7 @@ def test_transaction_query_by_app_with_payment_method_gift_card(
 
     transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
     transaction_item_created_by_app.payment_method_name = expected_payment_method_name
-    transaction_item_created_by_app.gift_card_last_4_chars = expected_last_digits
+    transaction_item_created_by_app.gift_card_last_chars = expected_last_digits
     transaction_item_created_by_app.gift_card_brand = expected_brand
     transaction_item_created_by_app.save()
 
@@ -1026,7 +1026,7 @@ def test_transaction_query_by_app_with_payment_method_gift_card(
     assert data["paymentMethodDetails"]["__typename"] == "GiftCardPaymentMethodDetails"
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
     assert data["paymentMethodDetails"]["brand"] == expected_brand
-    assert data["paymentMethodDetails"]["last4Chars"] == expected_last_digits
+    assert data["paymentMethodDetails"]["lastChars"] == expected_last_digits
     assert data["paymentMethodDetails"]["isSaleorGiftcard"] is False
 
 
@@ -1040,7 +1040,7 @@ def test_transaction_query_by_staff_with_payment_method_gift_card(
 
     transaction_item_created_by_app.payment_method_type = PaymentMethodType.GIFT_CARD
     transaction_item_created_by_app.payment_method_name = expected_payment_method_name
-    transaction_item_created_by_app.gift_card_last_4_chars = expected_last_digits
+    transaction_item_created_by_app.gift_card_last_chars = expected_last_digits
     transaction_item_created_by_app.gift_card_brand = expected_brand
     transaction_item_created_by_app.save()
 
@@ -1061,7 +1061,7 @@ def test_transaction_query_by_staff_with_payment_method_gift_card(
     assert data["paymentMethodDetails"]["__typename"] == "GiftCardPaymentMethodDetails"
     assert data["paymentMethodDetails"]["name"] == expected_payment_method_name
     assert data["paymentMethodDetails"]["brand"] == expected_brand
-    assert data["paymentMethodDetails"]["last4Chars"] == expected_last_digits
+    assert data["paymentMethodDetails"]["lastChars"] == expected_last_digits
     assert data["paymentMethodDetails"]["isSaleorGiftcard"] is False
 
 
@@ -1077,7 +1077,7 @@ def test_transaction_query_with_saleor_gift_card_is_saleor_giftcard_true(
     transaction_item_created_by_app.payment_method_name = (
         SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME
     )
-    transaction_item_created_by_app.gift_card_last_4_chars = (
+    transaction_item_created_by_app.gift_card_last_chars = (
         gift_card_created_by_staff.display_code
     )
     transaction_item_created_by_app.gift_card_brand = SALEOR_GIFT_CARD_BRAND
@@ -1102,7 +1102,7 @@ def test_transaction_query_with_saleor_gift_card_is_saleor_giftcard_true(
     assert data["paymentMethodDetails"]["name"] == SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME
     assert data["paymentMethodDetails"]["brand"] == SALEOR_GIFT_CARD_BRAND
     assert (
-        data["paymentMethodDetails"]["last4Chars"]
+        data["paymentMethodDetails"]["lastChars"]
         == gift_card_created_by_staff.display_code
     )
     assert data["paymentMethodDetails"]["isSaleorGiftcard"] is True
