@@ -29218,7 +29218,7 @@ Requires one of the following permissions: MANAGE_STOCK.
 """
 type ResolveProductDiscrepancy @doc(category: "Products") {
   """The resolved adjustments."""
-  adjustments: [PurchaseOrderItemAdjustment!]!
+  adjustments: [PurchaseOrderItemAdjustment!]
   receiptErrors: [ReceiptError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ReceiptError!]!
 }

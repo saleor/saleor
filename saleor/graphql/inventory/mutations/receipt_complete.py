@@ -74,6 +74,20 @@ class ReceiptComplete(BaseMutation):
                 user=info.context.user,
                 manager=manager,
             )
+        except ValidationError as e:
+            from ....order.error_codes import OrderErrorCode
+
+            code = getattr(e, "code", None)
+            if code == OrderErrorCode.XERO_SYNC_FAILED.value:
+                raise ValidationError(
+                    {
+                        "receipt_id": ValidationError(
+                            str(e.message),
+                            code=ReceiptErrorCode.XERO_SYNC_FAILED.value,
+                        )
+                    }
+                ) from e
+            raise
         except ValueError as e:
             raise ValidationError(
                 {
