@@ -5,7 +5,7 @@ class PasswordLoginMode:
     CUSTOMERS_ONLY - only customer users can log in with a password.
         If a staff user logs in with a password, they will be treated as a customer
         — the issued token will not contain any staff permissions.
-    DISABLED - no user can log in with a password. The tokenCreate mutation returns an error.
+    DISABLED - no user can log in with a password.
     """
 
     ENABLED = "enabled"
