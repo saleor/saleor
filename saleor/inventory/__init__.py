@@ -52,7 +52,6 @@ class PurchaseOrderItemAdjustmentReason:
 
     INVOICE_VARIANCE = "invoice_variance"
     DELIVERY_SHORT = "delivery_short"
-
     CHOICES = [
         (SHRINKAGE_THEFT, "Shrinkage - Theft"),
         (SHRINKAGE_DAMAGE, "Shrinkage - Damage"),

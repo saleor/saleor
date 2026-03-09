@@ -1253,3 +1253,74 @@ def resolve_product_discrepancy(
     )
 
     return adjustments
+
+
+@transaction.atomic
+def delay_for_future_shipment(
+    receipt,
+    product,
+    user=None,
+    manager=None,
+):
+    """Delay unreceived POIs for a product, removing them from this shipment.
+
+    For POIs where nothing was received (quantity_received == 0), detach them
+    from the current shipment and revert to CONFIRMED status so they can be
+    assigned to a future shipment. The POIAs created by complete_receipt are
+    deleted — there is no real adjustment since the goods are still expected.
+
+    Args:
+        receipt: The completed Receipt.
+        product: The Product whose unreceived POIs to delay.
+        user: User performing the action.
+        manager: Plugin manager for event dispatching.
+
+    Returns:
+        list of delayed PurchaseOrderItems.
+
+    Raises:
+        ValueError: If no eligible POIs (REQUIRES_ATTENTION with 0 received).
+
+    """
+
+    pois = list(
+        PurchaseOrderItem.objects.select_for_update()
+        .filter(
+            shipment=receipt.shipment,
+            product_variant__product=product,
+            status=PurchaseOrderItemStatus.REQUIRES_ATTENTION,
+        )
+        .select_related("product_variant")
+    )
+
+    # Only delay POIs with 0 received
+    eligible = [poi for poi in pois if poi.quantity_received == 0]
+
+    if not eligible:
+        raise ValueError(
+            f"No unreceived POIs for product {product} on receipt {receipt.id}. "
+            "Only POIs with 0 quantity received can be delayed."
+        )
+
+    # Delete the POIAs — they were created by complete_receipt as delivery
+    # shorts, but this isn't actually a shortage; the goods just weren't on
+    # this shipment.
+    PurchaseOrderItemAdjustment.objects.filter(
+        purchase_order_item__in=eligible,
+        processed_at__isnull=True,
+    ).delete()
+
+    # Detach from shipment and revert to CONFIRMED
+    for poi in eligible:
+        poi.shipment = None
+        poi.status = PurchaseOrderItemStatus.CONFIRMED
+        poi.save(update_fields=["shipment", "status", "updated_at"])
+
+    # Create fulfillments for any orders that are now fully received.
+    _create_fulfillments_for_shipment(
+        shipment=receipt.shipment,
+        user=user,
+        manager=manager,
+    )
+
+    return eligible

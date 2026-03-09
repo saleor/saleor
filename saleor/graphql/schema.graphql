@@ -19426,6 +19426,19 @@ type Mutation {
   ): ResolveProductDiscrepancy @doc(category: "Products")
 
   """
+  Delay unreceived purchase order items for a product. Removes them from the current shipment and reverts to CONFIRMED status so they can be assigned to a future shipment. Deletes the auto-created POIAs since no real adjustment occurred. Only works for POIs with 0 quantity received. 
+  
+  Requires one of the following permissions: MANAGE_STOCK.
+  """
+  delayForFutureShipment(
+    """ID of the product to delay."""
+    productId: ID!
+
+    """ID of the completed receipt."""
+    receiptId: ID!
+  ): DelayForFutureShipment @doc(category: "Products")
+
+  """
   Activate a gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
@@ -29116,6 +29129,7 @@ enum ReceiptErrorCode @doc(category: "Products") {
   INVALID
   NOT_FOUND
   REQUIRED
+  XERO_SYNC_FAILED
 }
 
 """
@@ -29232,6 +29246,18 @@ input OrderResolutionInput @doc(category: "Products") {
 
   """Quantity to allocate."""
   quantity: Int!
+}
+
+"""
+Delay unreceived purchase order items for a product. Removes them from the current shipment and reverts to CONFIRMED status so they can be assigned to a future shipment. Deletes the auto-created POIAs since no real adjustment occurred. Only works for POIs with 0 quantity received. 
+
+Requires one of the following permissions: MANAGE_STOCK.
+"""
+type DelayForFutureShipment @doc(category: "Products") {
+  """The POIs that were delayed."""
+  delayedItems: [PurchaseOrderItem!]
+  receiptErrors: [ReceiptError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ReceiptError!]!
 }
 
 """
