@@ -62,6 +62,21 @@ def purchase_order_item(purchase_order, variant, shipment):
     # Properly confirm through business logic (creates Stock at destination)
     confirm_purchase_order_item(poi)
 
+    # Mark as received so fulfillment guard passes.
+    # Skip if a receipt already exists (e.g. from the receipt fixture in
+    # receipt workflow tests — those manage their own receipt lines).
+    from ...models import Receipt, ReceiptLine, ReceiptStatus
+
+    if not Receipt.objects.filter(shipment=shipment).exists():
+        receipt = Receipt.objects.create(
+            shipment=shipment, status=ReceiptStatus.COMPLETED
+        )
+        ReceiptLine.objects.create(
+            receipt=receipt,
+            purchase_order_item=poi,
+            quantity_received=poi.quantity_ordered,
+        )
+
     return poi
 
 
