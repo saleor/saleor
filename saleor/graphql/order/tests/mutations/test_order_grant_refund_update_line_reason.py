@@ -45,7 +45,7 @@ mutation OrderGrantRefundUpdate(
 """
 
 
-def test_grant_refund_update_add_line_with_reason_reference(
+def test_add_line_with_reason_reference(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
@@ -121,7 +121,7 @@ def test_grant_refund_update_add_line_with_reason_reference(
     assert refund_line_from_db.reason_reference == page
 
 
-def test_grant_refund_update_add_line_with_reason_reference_wrong_page_type(
+def test_add_line_with_reason_reference_wrong_page_type(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
@@ -205,7 +205,7 @@ def test_grant_refund_update_add_line_with_reason_reference_wrong_page_type(
     )
 
 
-def test_grant_refund_update_add_line_with_reason_reference_not_configured(
+def test_add_line_with_reason_reference_not_configured(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,

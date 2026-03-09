@@ -45,7 +45,7 @@ mutation OrderGrantRefundCreate(
 """
 
 
-def test_grant_refund_create_with_per_line_reason_reference(
+def test_with_per_line_reason_reference(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
@@ -116,7 +116,7 @@ def test_grant_refund_create_with_per_line_reason_reference(
     assert granted_refund_line_from_db.reason_reference == page
 
 
-def test_grant_refund_create_with_per_line_reason_reference_multiple_lines(
+def test_with_per_line_reason_reference_multiple_lines(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
@@ -198,7 +198,7 @@ def test_grant_refund_create_with_per_line_reason_reference_multiple_lines(
     assert lines_by_reason["Wrong size"]["reasonReference"]["id"] == page2_id
 
 
-def test_grant_refund_create_with_per_line_reason_reference_no_config_rejects(
+def test_with_per_line_reason_reference_no_config_rejects(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
@@ -261,7 +261,7 @@ def test_grant_refund_create_with_per_line_reason_reference_no_config_rejects(
     assert errors[0]["message"] == "Reason reference type is not configured."
 
 
-def test_grant_refund_create_with_per_line_reason_reference_wrong_page_type(
+def test_with_per_line_reason_reference_wrong_page_type(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
@@ -341,7 +341,7 @@ def test_grant_refund_create_with_per_line_reason_reference_wrong_page_type(
     )
 
 
-def test_grant_refund_create_line_without_reason_reference_when_not_configured(
+def test_line_without_reason_reference_when_not_configured(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
