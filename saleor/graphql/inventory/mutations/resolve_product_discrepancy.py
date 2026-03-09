@@ -39,7 +39,6 @@ class ResolveProductDiscrepancy(BaseMutation):
     adjustments = graphene.List(
         graphene.NonNull(PurchaseOrderItemAdjustment),
         description="The resolved adjustments.",
-        required=True,
     )
 
     class Arguments:

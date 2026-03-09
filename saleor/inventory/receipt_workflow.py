@@ -893,15 +893,14 @@ def complete_receipt(receipt, user=None, manager=None):
             po.status = new_status
             po.save(update_fields=["status", "updated_at"])
 
-    # Create fulfillments only if no pending adjustments
-    if not adjustments_pending:
-        logger.debug("complete_receipt: no pending adjustments, creating fulfillments")
-        _create_fulfillments_for_shipment(shipment=shipment, user=user, manager=manager)
-    else:
-        logger.debug(
-            "complete_receipt: %d pending adjustments, skipping fulfillments",
-            len(adjustments_pending),
-        )
+    # Create fulfillments for orders whose POIs are all received.
+    # Orders with unresolved discrepancies are skipped automatically.
+    logger.debug(
+        "complete_receipt: creating fulfillments for ready orders "
+        "(%d pending adjustments)",
+        len(adjustments_pending),
+    )
+    _create_fulfillments_for_shipment(shipment=shipment, user=user, manager=manager)
 
     # If there are pending adjustments, notify staff
     if adjustments_pending and manager:
@@ -949,10 +948,26 @@ def _create_fulfillments_for_shipment(shipment, user, manager):
     fulfill_manager = manager or get_plugins_manager(allow_replica=False)
     site_settings = Site.objects.get_current().settings
 
-    orders_to_fulfill = Order.objects.filter(
-        lines__allocations__allocation_sources__purchase_order_item__shipment=shipment,
-        status=OrderStatus.UNFULFILLED,
+    # Only fulfill orders where ALL of that order's POIs (across all
+    # shipments) are received.  This prevents partial fulfillment when an
+    # order spans multiple shipments, while still allowing unaffected
+    # orders to proceed when other orders have unresolved discrepancies.
+    orders_with_pending = Order.objects.filter(
+        lines__allocations__allocation_sources__purchase_order_item__status__in=[
+            PurchaseOrderItemStatus.REQUIRES_ATTENTION,
+            PurchaseOrderItemStatus.DRAFT,
+            PurchaseOrderItemStatus.CONFIRMED,
+        ],
     ).distinct()
+
+    orders_to_fulfill = (
+        Order.objects.filter(
+            lines__allocations__allocation_sources__purchase_order_item__shipment=shipment,
+            status=OrderStatus.UNFULFILLED,
+        )
+        .exclude(pk__in=orders_with_pending)
+        .distinct()
+    )
 
     for order in orders_to_fulfill:
         allocations = Allocation.objects.filter(order_line__order=order).select_related(
@@ -1230,23 +1245,11 @@ def resolve_product_discrepancy(
         poi.status = PurchaseOrderItemStatus.RECEIVED
         poi.save(update_fields=["status", "updated_at"])
 
-    # If all POIs on this shipment are now RECEIVED, create fulfillments
-    shipment = receipt.shipment
-    remaining = (
-        PurchaseOrderItem.objects.filter(
-            shipment=shipment,
-        )
-        .exclude(
-            status=PurchaseOrderItemStatus.RECEIVED,
-        )
-        .exists()
+    # Create fulfillments for any orders that are now fully received.
+    _create_fulfillments_for_shipment(
+        shipment=receipt.shipment,
+        user=user,
+        manager=manager,
     )
-
-    if not remaining:
-        _create_fulfillments_for_shipment(
-            shipment=shipment,
-            user=user,
-            manager=manager,
-        )
 
     return adjustments

@@ -15,7 +15,11 @@ from ..models import (
     Receipt,
     ReceiptLine,
 )
-from ..receipt_workflow import get_product_discrepancies, resolve_product_discrepancy
+from ..receipt_workflow import (
+    complete_receipt,
+    get_product_discrepancies,
+    resolve_product_discrepancy,
+)
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -609,7 +613,7 @@ def test_resolve_last_product_triggers_fulfillment_creation(
     assert fulfillments.first().status == FulfillmentStatus.WAITING_FOR_APPROVAL
 
 
-def test_resolve_partial_does_not_trigger_fulfillment(
+def test_resolve_partial_fulfills_unaffected_order(
     channel_USD,
     purchase_order,
     poi_a,
@@ -624,7 +628,7 @@ def test_resolve_partial_does_not_trigger_fulfillment(
     product_variant_factory,
     mocker,
 ):
-    """Fulfillments are NOT created if other POIs on the shipment still need attention."""
+    """Unaffected orders are fulfilled even when other products still need attention."""
     from ...order import OrderStatus
     from ...order.models import Fulfillment
     from ...product.models import Product, ProductType, ProductVariant
@@ -685,9 +689,219 @@ def test_resolve_partial_does_not_trigger_fulfillment(
         manager=mock_manager,
     )
 
-    # then: no fulfillment yet
-    assert Fulfillment.objects.filter(order=order).count() == 0
+    # then: fulfillment IS created for this order because its own POIs are
+    # all received, even though poi_c (belonging to a different product/order)
+    # still requires attention on the same shipment.
+    assert Fulfillment.objects.filter(order=order).count() == 1
 
     # and: poi_c still requires attention
     poi_c.refresh_from_db()
     assert poi_c.status == PurchaseOrderItemStatus.REQUIRES_ATTENTION
+
+
+def test_no_partial_fulfillment_when_order_spans_shipments(
+    channel_USD,
+    purchase_order,
+    poi_a,
+    poia_a,
+    stock_a,
+    variant_a,
+    owned_warehouse,
+    completed_receipt,
+    staff_user,
+    shipment,
+    nonowned_warehouse,
+    product_variant_factory,
+    mocker,
+):
+    """An order is NOT fulfilled if it has POIs on another shipment.
+
+    Even when the current shipment's POIs are resolved, the order should
+    not be fulfilled if it has unrecieved POIs on another shipment.
+    """
+    from ...order import OrderStatus
+    from ...order.models import Fulfillment
+    from ...product.models import Product, ProductType, ProductVariant
+    from ...shipping.models import Shipment
+
+    # given: an order with variant_a on shipment (being resolved)
+    addr = purchase_order.source_warehouse.address
+    order = _make_order(channel_USD, addr)
+    order.status = OrderStatus.UNFULFILLED
+    order.save(update_fields=["status"])
+
+    line_a = _make_line(order, variant_a, 8)
+    _make_alloc_source(poi_a, line_a, stock_a, 8)
+
+    # and: the same order also has a variant on a DIFFERENT shipment
+    # that hasn't been received yet
+    from ...shipping import IncoTerm, ShipmentType
+
+    other_shipment = Shipment.objects.create(
+        source=purchase_order.source_warehouse.address,
+        destination=purchase_order.destination_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-OTHER",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    product_type = ProductType.objects.first()
+    other_product = Product.objects.create(
+        name="Other Product",
+        slug="other-product-cross-shipment",
+        product_type=product_type,
+    )
+    variant_d = ProductVariant.objects.create(product=other_product, sku="RESOLVE-D")
+    stock_d = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_d,
+        quantity=20,
+        quantity_allocated=0,
+    )
+    poi_d = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_d,
+        quantity_ordered=5,
+        total_price_amount=50,
+        currency="USD",
+        shipment=other_shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    line_d = _make_line(order, variant_d, 5)
+    _make_alloc_source(poi_d, line_d, stock_d, 5)
+
+    mock_manager = mocker.Mock()
+
+    # when: resolve variant_a on this shipment
+    resolve_product_discrepancy(
+        receipt=completed_receipt,
+        product=variant_a.product,
+        resolutions=[{"order": order, "variant": variant_a, "quantity": 8}],
+        affects_payable=True,
+        user=staff_user,
+        manager=mock_manager,
+    )
+
+    # then: no fulfillment because the order still has an unrecieved POI
+    # on the other shipment
+    assert Fulfillment.objects.filter(order=order).count() == 0
+
+
+def test_complete_receipt_fulfills_unaffected_orders(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    channel_USD,
+    staff_user,
+    product_variant_factory,
+):
+    """Orders unaffected by a POIA are fulfilled during receipt completion.
+
+    Even when other orders on the same shipment have discrepancies,
+    unaffected orders should still be fulfilled.
+    """
+    from ...order import OrderStatus
+    from ...order.models import Fulfillment
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    shipment = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-UNAFFECTED",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+
+    # given: order_ok with variant_ok — will be received perfectly
+    variant_ok = product_variant_factory(sku="OK-VARIANT")
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_ok,
+        quantity=100,
+        quantity_allocated=0,
+    )
+    stock_ok = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_ok,
+        quantity=10,
+        quantity_allocated=0,
+    )
+    poi_ok = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_ok,
+        quantity_ordered=5,
+        total_price_amount=50,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+    )
+
+    addr = purchase_order.source_warehouse.address
+    order_ok = _make_order(channel_USD, addr)
+    order_ok.status = OrderStatus.UNFULFILLED
+    order_ok.save(update_fields=["status"])
+    line_ok = _make_line(order_ok, variant_ok, 5)
+    _make_alloc_source(poi_ok, line_ok, stock_ok, 5)
+
+    # and: order_bad with variant_bad — will have a shortage
+    variant_bad = product_variant_factory(sku="BAD-VARIANT")
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_bad,
+        quantity=100,
+        quantity_allocated=0,
+    )
+    stock_bad = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_bad,
+        quantity=10,
+        quantity_allocated=0,
+    )
+    poi_bad = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_bad,
+        quantity_ordered=10,
+        total_price_amount=100,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+    )
+
+    order_bad = _make_order(channel_USD, addr)
+    order_bad.status = OrderStatus.UNFULFILLED
+    order_bad.save(update_fields=["status"])
+    line_bad = _make_line(order_bad, variant_bad, 10)
+    _make_alloc_source(poi_bad, line_bad, stock_bad, 10)
+
+    # and: a receipt where variant_ok matches but variant_bad is short
+    receipt = Receipt.objects.create(
+        shipment=shipment,
+        status=ReceiptStatus.IN_PROGRESS,
+        created_by=staff_user,
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt, purchase_order_item=poi_ok, quantity_received=5
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt, purchase_order_item=poi_bad, quantity_received=7
+    )
+
+    # when
+    complete_receipt(receipt, user=staff_user)
+
+    # then: order_ok is fulfilled (its POI is received)
+    assert Fulfillment.objects.filter(order=order_ok).count() == 1
+
+    # and: order_bad is NOT fulfilled (its POI requires attention)
+    assert Fulfillment.objects.filter(order=order_bad).count() == 0
+
+    # and: poi_bad has a POIA
+    poi_bad.refresh_from_db()
+    assert poi_bad.status == PurchaseOrderItemStatus.REQUIRES_ATTENTION

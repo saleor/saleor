@@ -25,3 +25,4 @@ class ReceiptErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     REQUIRED = "required"
+    XERO_SYNC_FAILED = "xero_sync_failed"
