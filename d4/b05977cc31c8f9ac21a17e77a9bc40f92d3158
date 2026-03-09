@@ -1,0 +1,25 @@
+saleor/graphql/payment/mutations/transaction/shared.py
+  7b4d629355d1115d 267-269
+saleor/graphql/payment/tests/mutations/test_transaction_create.py
+  7b4d629355d1115d 2678-2723
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "d4b05977cc31c8f9ac21a17e77a9bc40f92d3158",
+  "prompts": {
+    "7b4d629355d1115d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e1bd1de2-e455-4bbf-8071-d32510bd4771",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 51,
+      "total_deletions": 3,
+      "accepted_lines": 49,
+      "overriden_lines": 1
+    }
+  }
+}
