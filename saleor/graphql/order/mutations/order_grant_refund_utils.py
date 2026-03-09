@@ -203,9 +203,19 @@ def resolve_per_line_reason_references(
     # Parse all global IDs to PKs
     page_pks: dict[str, int] = {}  # global_id -> pk
     for _, global_id in lines_with_refs:
-        _, pk_str = from_global_id_or_error(
-            global_id, only_type="Page", raise_error=True
-        )
+        try:
+            _, pk_str = from_global_id_or_error(
+                global_id, only_type="Page", raise_error=True
+            )
+        except GraphQLError as e:
+            raise ValidationError(
+                {
+                    "reason_reference": ValidationError(
+                        str(e),
+                        code=error_code_enum.GRAPHQL_ERROR.value,
+                    )
+                }
+            ) from None
         page_pks[global_id] = int(pk_str)
 
     # Single DB query for all pages

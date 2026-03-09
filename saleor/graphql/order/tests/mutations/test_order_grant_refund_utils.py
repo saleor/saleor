@@ -89,6 +89,9 @@ def test_raises_invalid_for_nonexistent_page(refund_page_type):
         )
     error = exc_info.value.error_dict["reason_reference"][0]
     assert error.code == OrderGrantRefundCreateErrorCode.INVALID.value
+    assert error.message == (
+        "Invalid reason reference. Must be an ID of a Model (Page)"
+    )
 
 
 def test_resolves_reason_references_for_lines(
@@ -135,7 +138,7 @@ def test_skips_lines_without_reason_reference(refund_page_type, order_with_lines
     )
 
     # Then
-    assert not hasattr(line, "_reason_reference_cache")
+    assert line.reason_reference_id is None
 
 
 def test_raises_not_configured_when_type_missing(order_with_lines):
