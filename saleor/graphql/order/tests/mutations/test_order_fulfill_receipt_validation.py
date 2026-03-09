@@ -542,5 +542,5 @@ def test_order_fulfill_blocked_when_partial_receipt(
     # Should fail - not enough received
     assert data["errors"]
     error = data["errors"][0]
-    assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+    assert error["code"] == OrderErrorCode.CANNOT_FULFILL_UNRECEIVED_STOCK.name
     assert not data["fulfillments"]

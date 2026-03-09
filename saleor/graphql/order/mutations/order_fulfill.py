@@ -184,64 +184,6 @@ class OrderFulfill(BaseMutation):
             )
 
     @classmethod
-    def check_unreceived_stock(cls, lines_for_warehouses: dict):
-        """Check if all stock for fulfillment has been physically received.
-
-        Enforced for OWNED warehouses regardless of approval status.
-        Non-owned warehouses are exempt from this validation.
-        """
-
-        from ....warehouse.models import Warehouse
-        from ....warehouse.stock_utils import get_received_quantity_for_order_line
-
-        for warehouse_pk, lines_data in lines_for_warehouses.items():
-            warehouse = Warehouse.objects.get(pk=warehouse_pk)
-            if not warehouse.is_owned:
-                continue  # Skip validation for non-owned warehouses
-
-            for line_info in lines_data:
-                order_line = line_info["order_line"]
-                quantity_to_fulfill = line_info["quantity"]
-
-                total_received = get_received_quantity_for_order_line(
-                    order_line, warehouse_id=warehouse_pk
-                )
-
-                if total_received == 0:
-                    order_line_global_id = graphene.Node.to_global_id(
-                        "OrderLine", order_line.pk
-                    )
-                    raise ValidationError(
-                        {
-                            "stocks": ValidationError(
-                                "Cannot fulfill order with unreceived stock. "
-                                "Goods must be physically received before fulfillment.",
-                                code=OrderErrorCode.CANNOT_FULFILL_UNRECEIVED_STOCK.value,
-                                params={"order_lines": [order_line_global_id]},
-                            )
-                        }
-                    )
-
-                if total_received < quantity_to_fulfill:
-                    order_line_global_id = graphene.Node.to_global_id(
-                        "OrderLine", order_line.pk
-                    )
-                    raise ValidationError(
-                        {
-                            "stocks": ValidationError(
-                                "Insufficient product stock.",
-                                code=OrderErrorCode.INSUFFICIENT_STOCK.value,
-                                params={
-                                    "order_lines": [order_line_global_id],
-                                    "warehouse": graphene.Node.to_global_id(
-                                        "Warehouse", warehouse_pk
-                                    ),
-                                },
-                            )
-                        }
-                    )
-
-    @classmethod
     def check_poi_requires_attention(cls, order_lines):
         from ....inventory import PurchaseOrderItemStatus
         from ....warehouse.models import AllocationSource
@@ -335,9 +277,6 @@ class OrderFulfill(BaseMutation):
                     lines_for_warehouses[warehouse_pk].append(
                         {"order_line": order_line, "quantity": stock["quantity"]}
                     )
-
-        # Check if all stock has been physically received (only for owned warehouses)
-        cls.check_unreceived_stock(lines_for_warehouses)
 
         data["order_lines"] = order_lines
         data["lines_for_warehouses"] = lines_for_warehouses
