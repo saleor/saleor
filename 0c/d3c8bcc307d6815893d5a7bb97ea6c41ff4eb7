@@ -1,0 +1,25 @@
+saleor/graphql/order/mutations/order_grant_refund_utils.py
+  cc80d628c075fe83 206,210-218
+saleor/graphql/order/tests/mutations/test_order_grant_refund_utils.py
+  cc80d628c075fe83 92-94,141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "0cd3c8bcc307d6815893d5a7bb97ea6c41ff4eb7",
+  "prompts": {
+    "cc80d628c075fe83": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e032aeb1-4a46-4877-9025-c0417c50d32a",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 17,
+      "total_deletions": 4,
+      "accepted_lines": 14,
+      "overriden_lines": 0
+    }
+  }
+}
