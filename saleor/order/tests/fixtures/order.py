@@ -1249,6 +1249,25 @@ def order_with_allocations_single_warehouse(
         quantity=5,
     )
 
+    from ....inventory.models import Receipt, ReceiptLine, ReceiptStatus
+    from ....shipping import IncoTerm, ShipmentType
+    from ....shipping.models import Shipment
+
+    shipment = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST",
+        shipping_cost_amount=0,
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    receipt = Receipt.objects.create(shipment=shipment, status=ReceiptStatus.COMPLETED)
+    ReceiptLine.objects.create(
+        receipt=receipt, purchase_order_item=poi, quantity_received=5
+    )
+
     order.lines_count = order.lines.count()
     order.save()
 
@@ -1388,6 +1407,30 @@ def order_with_allocations_multiple_warehouses(
         purchase_order_item=poi2,
         quantity=2,
     )
+
+    from ....inventory.models import Receipt, ReceiptLine, ReceiptStatus
+    from ....shipping import IncoTerm, ShipmentType
+    from ....shipping.models import Shipment
+
+    for _po, poi, wh in [(po1, poi1, owned_warehouse), (po2, poi2, warehouse_JPY)]:
+        shipment = Shipment.objects.create(
+            source=nonowned_warehouse.address,
+            destination=wh.address,
+            shipment_type=ShipmentType.INBOUND,
+            tracking_url="TEST",
+            shipping_cost_amount=0,
+            currency="USD",
+            carrier="TEST",
+            inco_term=IncoTerm.DDP,
+        )
+        receipt = Receipt.objects.create(
+            shipment=shipment, status=ReceiptStatus.COMPLETED
+        )
+        ReceiptLine.objects.create(
+            receipt=receipt,
+            purchase_order_item=poi,
+            quantity_received=poi.quantity_ordered,
+        )
 
     order.lines_count = order.lines.count()
     order.save()

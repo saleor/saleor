@@ -1399,6 +1399,30 @@ def _create_fulfillment_lines(
     return fulfillment_lines
 
 
+def _check_fulfillment_lines_received(
+    fulfillment_lines_for_warehouses: dict[UUID, list["OrderFulfillmentLineInfo"]],
+) -> None:
+    from ..warehouse.models import Warehouse
+    from ..warehouse.stock_utils import get_received_quantity_for_order_line
+
+    for warehouse_pk, lines_data in fulfillment_lines_for_warehouses.items():
+        warehouse = Warehouse.objects.get(pk=warehouse_pk)
+        if not warehouse.is_owned:
+            continue
+        for line_info in lines_data:
+            order_line = line_info["order_line"]
+            quantity = line_info["quantity"]
+            received = get_received_quantity_for_order_line(
+                order_line, warehouse_id=warehouse_pk
+            )
+            if received < quantity:
+                raise ValidationError(
+                    f"Cannot fulfill {quantity} of '{order_line}' — "
+                    f"only {received} received.",
+                    code=OrderErrorCode.CANNOT_FULFILL_UNRECEIVED_STOCK.value,
+                )
+
+
 def create_fulfillments(
     user: User | None,
     app: Optional["App"],
@@ -1477,6 +1501,8 @@ def create_fulfillments(
             order_line_quantities_to_fulfill[line.pk] for line in order_lines
         ]
         clean_order_line_quantities(order_lines, quantities_for_lines)
+
+        _check_fulfillment_lines_received(fulfillment_lines_for_warehouses)
 
         for warehouse_pk in fulfillment_lines_for_warehouses:
             fulfillment = Fulfillment.objects.create(

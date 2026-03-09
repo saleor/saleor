@@ -62,6 +62,16 @@ def purchase_order_item(purchase_order, variant, shipment):
     # Properly confirm through business logic (creates Stock at destination)
     confirm_purchase_order_item(poi)
 
+    # Mark as received so fulfillment guard passes
+    from ...models import Receipt, ReceiptLine, ReceiptStatus
+
+    receipt = Receipt.objects.create(shipment=shipment, status=ReceiptStatus.COMPLETED)
+    ReceiptLine.objects.create(
+        receipt=receipt,
+        purchase_order_item=poi,
+        quantity_received=poi.quantity_ordered,
+    )
+
     return poi
 
 
@@ -94,6 +104,10 @@ def multiple_purchase_order_items(purchase_order, variant):
         arrived_at=timezone.now(),
     )
 
+    from ...models import Receipt, ReceiptLine, ReceiptStatus
+
+    receipt = Receipt.objects.create(shipment=shipment, status=ReceiptStatus.COMPLETED)
+
     now = timezone.now()
     pois = []
 
@@ -113,6 +127,12 @@ def multiple_purchase_order_items(purchase_order, variant):
         # Manually set confirmed_at for FIFO testing
         poi.confirmed_at = now - timedelta(days=days_ago)
         poi.save(update_fields=["confirmed_at"])
+        # Mark as received
+        ReceiptLine.objects.create(
+            receipt=receipt,
+            purchase_order_item=poi,
+            quantity_received=poi.quantity_ordered,
+        )
         pois.append(poi)
 
     return pois  # Returns [oldest, middle, newest]
