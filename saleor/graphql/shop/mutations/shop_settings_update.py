@@ -2,8 +2,10 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.error_codes import ShopErrorCode
+from ....core.jwt import JWT_SALEOR_OWNER_NAME
 from ....core.utils.url import validate_storefront_url
 from ....permission.enums import SitePermissions
+from ....site import PasswordLoginMode
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -168,7 +170,23 @@ class ShopSettingsUpdate(BaseMutation):
         ]
 
     @classmethod
-    def clean_input(cls, _info, _instance, data):
+    def clean_input(cls, info, _instance, data):
+        if "password_login_mode" in data and data["password_login_mode"] in (
+            PasswordLoginMode.DISABLED,
+            PasswordLoginMode.CUSTOMERS_ONLY,
+        ):
+            decoded_token = info.context.decoded_auth_token or {}
+            if decoded_token.get("owner") == JWT_SALEOR_OWNER_NAME:
+                raise ValidationError(
+                    {
+                        "password_login_mode": ValidationError(
+                            "Cannot restrict password login while authenticated "
+                            "with a password.",
+                            code=ShopErrorCode.PASSWORD_AUTH_RESTRICTION.value,
+                        )
+                    }
+                )
+
         if data.get("customer_set_password_url"):
             try:
                 validate_storefront_url(data["customer_set_password_url"])

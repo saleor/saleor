@@ -22961,6 +22961,7 @@ enum ShopErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  PASSWORD_AUTH_RESTRICTION
 }
 
 input StaffNotificationRecipientInput {
