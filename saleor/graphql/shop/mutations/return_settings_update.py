@@ -1,5 +1,8 @@
+from typing import cast
+
 import graphene
 
+from ....page.models import PageType
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
@@ -59,7 +62,7 @@ class ReturnSettingsUpdate(BaseMutation):
                 field="return_reason_reference_type",
             )
 
-            settings.return_reason_reference_type = model_type  # type: ignore[assignment]
+            settings.return_reason_reference_type = cast(PageType, model_type)
 
             settings.save(update_fields=["return_reason_reference_type"])
 
