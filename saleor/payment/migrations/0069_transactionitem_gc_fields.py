@@ -11,12 +11,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="transactionitem",
-            name="gc_brand",
+            name="gift_card_brand",
             field=models.CharField(blank=True, max_length=40, null=True),
         ),
         migrations.AddField(
             model_name="transactionitem",
-            name="gc_last_digits",
+            name="gift_card_last_4_chars",
             field=models.CharField(blank=True, max_length=4, null=True),
         ),
         migrations.AlterField(

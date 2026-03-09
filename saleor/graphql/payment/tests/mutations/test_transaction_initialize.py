@@ -3508,8 +3508,8 @@ def test_for_checkout_with_gift_card_payment_gateway(
     transaction = checkout.payment_transactions.last()
     assert transaction.payment_method_type == PaymentMethodType.GIFT_CARD
     assert transaction.payment_method_name == SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME
-    assert transaction.gc_last_digits == gift_card_created_by_staff.display_code
-    assert transaction.gc_brand == SALEOR_GIFT_CARD_BRAND
+    assert transaction.gift_card_last_4_chars == gift_card_created_by_staff.display_code
+    assert transaction.gift_card_brand == SALEOR_GIFT_CARD_BRAND
     assert transaction.gift_card == gift_card_created_by_staff
 
 

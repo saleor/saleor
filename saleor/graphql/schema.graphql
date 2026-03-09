@@ -26058,11 +26058,11 @@ input GiftCardPaymentMethodDetailsInput {
   brand: String
 
   """
-  Last digits of the gift card used for the transaction. Max length is 4 characters.
+  Last 4 characters of the gift card used for the transaction. Max length is 4 characters.
   
   Added in Saleor 3.23.
   """
-  lastDigits: String
+  last4Chars: String
 }
 
 input TransactionEventInput @doc(category: "Payments") {
@@ -37452,11 +37452,11 @@ type GiftCardPaymentMethodDetails implements PaymentMethodDetails {
   brand: String
 
   """
-  Last 4 digits of the gift card code.
+  Last 4 characters of the gift card code.
   
   Added in Saleor 3.23.
   """
-  lastDigits: String
+  last4Chars: String
 
   """
   Indicates whether the gift card is a built-in Saleor gift card.
