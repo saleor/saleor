@@ -87,10 +87,34 @@ def receive_item(receipt, product_variant, quantity, user=None, notes=""):
         .order_by("pk")
     )
     if not pois:
-        raise ValueError(
-            f"Product variant {product_variant.sku} not found in "
-            f"shipment {receipt.shipment.id}"
+        sibling_pois = list(
+            PurchaseOrderItem.objects.filter(
+                shipment=receipt.shipment,
+                product_variant__product=product_variant.product,
+            ).select_related("order")
         )
+        if not sibling_pois:
+            raise ValueError(
+                f"Product variant {product_variant.sku} does not belong to "
+                f"any product on shipment {receipt.shipment.id}"
+            )
+        origins = {p.country_of_origin for p in sibling_pois}
+        if len(origins) > 1:
+            raise ValueError(
+                f"Cannot auto-create POI for {product_variant.sku}: "
+                f"sibling variants have mixed countries of origin ({origins}). "
+                f"Create the POI manually with the correct country."
+            )
+        poi = PurchaseOrderItem.objects.create(
+            order=sibling_pois[0].order,
+            product_variant=product_variant,
+            quantity_ordered=0,
+            shipment=receipt.shipment,
+            currency=sibling_pois[0].currency,
+            country_of_origin=sibling_pois[0].country_of_origin,
+            status=PurchaseOrderItemStatus.CONFIRMED,
+        )
+        pois = [poi]
 
     # FIFO: fill POIs in order, picking the first with remaining capacity
     poi = pois[0]

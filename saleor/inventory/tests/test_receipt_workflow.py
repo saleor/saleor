@@ -126,11 +126,11 @@ def test_error_when_receipt_not_in_progress(receipt, variant, staff_user):
 def test_error_when_variant_not_in_shipment(
     receipt, product_variant_factory, staff_user
 ):
-    # given: a variant that is not part of this shipment
+    # given: a variant whose product has no POIs on this shipment
     other_variant = product_variant_factory()
 
     # when/then: trying to receive it raises error
-    with pytest.raises(ValueError, match="not found in shipment"):
+    with pytest.raises(ValueError, match="does not belong to any product"):
         receive_item(receipt, other_variant, quantity=10, user=staff_user)
 
 
@@ -988,3 +988,725 @@ def test_receive_item_fifo_overflows_to_second_poi(
 
     # then: overflows to second POI
     assert line.purchase_order_item == poi_b
+
+
+# Tests for receiving unexpected variant (same product, different size)
+
+
+def test_receive_unexpected_variant_creates_zero_qty_poi(
+    receipt,
+    purchase_order,
+    product,
+    variant,
+    shipment,
+    staff_user,
+    product_variant_factory,
+):
+    # given: a POI for variant_s on the shipment
+    from ...product.models import ProductVariant
+
+    variant_s = variant
+    variant_m = ProductVariant.objects.create(product=product, sku="UNEXP-M")
+
+    PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=10,
+        total_price_amount=100,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # when: receiving variant_m (same product, not on any POI)
+    line = receive_item(receipt, variant_m, quantity=5, user=staff_user)
+
+    # then: a zero-qty POI was created for variant_m
+    new_poi = line.purchase_order_item
+    assert new_poi.product_variant == variant_m
+    assert new_poi.quantity_ordered == 0
+    assert new_poi.total_price_amount is None
+    assert new_poi.currency == "USD"
+    assert new_poi.country_of_origin == "US"
+    assert new_poi.status == PurchaseOrderItemStatus.CONFIRMED
+    assert new_poi.shipment == shipment
+    assert new_poi.order == purchase_order
+    assert line.quantity_received == 5
+
+
+def test_receive_unexpected_variant_reuses_existing_zero_qty_poi(
+    receipt,
+    purchase_order,
+    product,
+    variant,
+    shipment,
+    staff_user,
+):
+    # given: a POI for variant_s and we already received variant_m once
+    from ...product.models import ProductVariant
+
+    variant_s = variant
+    variant_m = ProductVariant.objects.create(product=product, sku="REUSE-M")
+
+    PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=10,
+        total_price_amount=100,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # first scan creates the zero-qty POI
+    line1 = receive_item(receipt, variant_m, quantity=3, user=staff_user)
+    created_poi = line1.purchase_order_item
+
+    # when: scanning variant_m again
+    line2 = receive_item(receipt, variant_m, quantity=2, user=staff_user)
+
+    # then: reuses the same POI (no duplicate)
+    assert line2.purchase_order_item == created_poi
+    assert (
+        PurchaseOrderItem.objects.filter(
+            shipment=shipment, product_variant=variant_m
+        ).count()
+        == 1
+    )
+
+
+def test_receive_unexpected_variant_mixed_origin_raises(
+    receipt,
+    purchase_order,
+    product,
+    variant,
+    shipment,
+    staff_user,
+):
+    # given: two POIs for the same product but different countries of origin
+    from ...product.models import ProductVariant
+
+    variant_s = variant
+    variant_m = ProductVariant.objects.create(product=product, sku="MIXORG-M")
+    variant_l = ProductVariant.objects.create(product=product, sku="MIXORG-L")
+
+    PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=10,
+        total_price_amount=100,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_m,
+        quantity_ordered=5,
+        total_price_amount=50,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="CN",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # when/then: receiving variant_l raises because siblings have mixed origins
+    with pytest.raises(ValueError, match="mixed countries of origin"):
+        receive_item(receipt, variant_l, quantity=3, user=staff_user)
+
+
+def test_receive_variant_from_unrelated_product_raises(
+    receipt,
+    purchase_order,
+    variant,
+    shipment,
+    staff_user,
+):
+    # given: a POI for variant on the shipment
+    from ...product.models import Product, ProductType, ProductVariant
+
+    PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant,
+        quantity_ordered=10,
+        total_price_amount=100,
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # and: a variant from a completely different product
+    other_product_type = ProductType.objects.create(
+        name="Other Type", slug="other-type"
+    )
+    other_product = Product.objects.create(
+        name="Other Product",
+        slug="other-product",
+        product_type=other_product_type,
+    )
+    alien_variant = ProductVariant.objects.create(product=other_product, sku="ALIEN-V")
+
+    # when/then: receiving it raises error
+    with pytest.raises(ValueError, match="does not belong to any product"):
+        receive_item(receipt, alien_variant, quantity=5, user=staff_user)
+
+
+def test_receive_unexpected_variant_full_substitution_reallocation(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    product,
+    channel_USD,
+    staff_user,
+):
+    """Full substitution: ordered variant_s, received only variant_m.
+
+    receive_item creates a zero-qty POI for variant_m. On complete_receipt,
+    variant reallocation redistributes to orders that expected variant_s.
+    """
+    from decimal import Decimal
+
+    from ...order import OrderStatus
+    from ...order.models import Order, OrderLine
+    from ...product.models import ProductVariant, ProductVariantChannelListing
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    # given: two variants of the same product
+    variant_s = ProductVariant.objects.create(product=product, sku="FULLSUB-S")
+    variant_m = ProductVariant.objects.create(product=product, sku="FULLSUB-M")
+    for v in [variant_s, variant_m]:
+        ProductVariantChannelListing.objects.create(
+            variant=v,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            discounted_price_amount=Decimal(10),
+            cost_price_amount=Decimal(1),
+            currency=channel_USD.currency_code,
+        )
+
+    # given: stock at both warehouses
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_s,
+        quantity=1000,
+        quantity_allocated=0,
+    )
+    stock_s = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_s,
+        quantity=5,
+        quantity_allocated=0,
+    )
+    Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_m,
+        quantity=0,
+        quantity_allocated=0,
+    )
+
+    # given: shipment with POI for variant_s only
+    ship = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-FULLSUB",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    poi_s = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=5,
+        total_price_amount=Decimal("50.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # given: order allocated against variant_s
+    addr = purchase_order.source_warehouse.address
+    order_a = Order.objects.create(
+        channel=channel_USD,
+        billing_address=addr,
+        shipping_address=addr,
+        status=OrderStatus.UNCONFIRMED,
+        lines_count=1,
+    )
+    line_a_s = OrderLine.objects.create(
+        order=order_a,
+        variant=variant_s,
+        quantity=5,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("50.00"),
+        total_price_net_amount=Decimal("50.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+    alloc_s = Allocation.objects.create(
+        order_line=line_a_s, stock=stock_s, quantity_allocated=5
+    )
+    stock_s.quantity_allocated = 5
+    stock_s.save()
+    poi_s.quantity_allocated = 5
+    poi_s.save()
+    AllocationSource.objects.create(
+        purchase_order_item=poi_s, allocation=alloc_s, quantity=5
+    )
+
+    # given: start receipt and receive variant_m instead of variant_s
+    receipt = Receipt.objects.create(
+        shipment=ship,
+        status=ReceiptStatus.IN_PROGRESS,
+        created_by=staff_user,
+    )
+    line = receive_item(receipt, variant_m, quantity=5, user=staff_user)
+    poi_m = line.purchase_order_item
+    assert poi_m.quantity_ordered == 0
+    assert poi_m.product_variant == variant_m
+
+    # also record 0 received for variant_s (via receipt line on its POI)
+    ReceiptLine.objects.create(
+        receipt=receipt,
+        purchase_order_item=poi_s,
+        quantity_received=0,
+    )
+
+    # when: completing the receipt
+    result = complete_receipt(receipt, user=staff_user)
+
+    # then: reallocation succeeded — no pending adjustments
+    assert result["adjustments_pending"] == []
+
+    # then: order_a now has variant_m instead of variant_s
+    new_ass = AllocationSource.objects.filter(
+        allocation__order_line__order=order_a
+    ).select_related("purchase_order_item__product_variant")
+    assert new_ass.count() == 1
+    assert new_ass.first().purchase_order_item.product_variant == variant_m
+
+    # then: stock quantities reflect what was actually received
+    stock_s.refresh_from_db()
+    stock_m = Stock.objects.get(warehouse=owned_warehouse, product_variant=variant_m)
+    assert stock_s.quantity == 0, "S stock should be 0 (received 0, was 5)"
+    assert stock_m.quantity == 5, "M stock should be 5 (received 5, was 0)"
+
+    # then: stock.quantity_allocated matches sum of Allocations
+    from django.db.models import Sum
+
+    for s in [stock_s, stock_m]:
+        alloc_sum = (
+            Allocation.objects.filter(stock=s).aggregate(t=Sum("quantity_allocated"))[
+                "t"
+            ]
+            or 0
+        )
+        assert s.quantity_allocated == alloc_sum, (
+            f"Stock {s.product_variant.sku}: quantity_allocated={s.quantity_allocated} "
+            f"!= sum(Allocation)={alloc_sum}"
+        )
+
+    # then: no negative available stock
+    assert stock_s.quantity >= stock_s.quantity_allocated
+    assert stock_m.quantity >= stock_m.quantity_allocated
+
+    # then: total physical stock conserved across variants
+    assert stock_s.quantity + stock_m.quantity == 5
+
+
+def test_receive_unexpected_variant_partial_substitution_reallocation(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    product,
+    channel_USD,
+    staff_user,
+):
+    """Partial substitution: ordered 10×S, received 7×S + 3×M.
+
+    variant_m has no POI initially. receive_item creates one.
+    Reallocation redistributes so orders get the right total.
+    """
+    from decimal import Decimal
+
+    from ...order import OrderStatus
+    from ...order.models import Order, OrderLine
+    from ...product.models import ProductVariant, ProductVariantChannelListing
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    variant_s = ProductVariant.objects.create(product=product, sku="PARTSUB-S")
+    variant_m = ProductVariant.objects.create(product=product, sku="PARTSUB-M")
+    for v in [variant_s, variant_m]:
+        ProductVariantChannelListing.objects.create(
+            variant=v,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            discounted_price_amount=Decimal(10),
+            cost_price_amount=Decimal(1),
+            currency=channel_USD.currency_code,
+        )
+
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_s,
+        quantity=1000,
+        quantity_allocated=0,
+    )
+    stock_s = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_s,
+        quantity=10,
+        quantity_allocated=0,
+    )
+    Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_m,
+        quantity=0,
+        quantity_allocated=0,
+    )
+
+    ship = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-PARTSUB",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    poi_s = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=10,
+        total_price_amount=Decimal("100.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    addr = purchase_order.source_warehouse.address
+    order_a = Order.objects.create(
+        channel=channel_USD,
+        billing_address=addr,
+        shipping_address=addr,
+        status=OrderStatus.UNCONFIRMED,
+        lines_count=1,
+    )
+    line_a = OrderLine.objects.create(
+        order=order_a,
+        variant=variant_s,
+        quantity=10,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("100.00"),
+        total_price_net_amount=Decimal("100.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+    alloc = Allocation.objects.create(
+        order_line=line_a, stock=stock_s, quantity_allocated=10
+    )
+    stock_s.quantity_allocated = 10
+    stock_s.save()
+    poi_s.quantity_allocated = 10
+    poi_s.save()
+    AllocationSource.objects.create(
+        purchase_order_item=poi_s, allocation=alloc, quantity=10
+    )
+
+    # given: receive 7×S + 3×M (variant_m creates zero-qty POI)
+    receipt = Receipt.objects.create(
+        shipment=ship,
+        status=ReceiptStatus.IN_PROGRESS,
+        created_by=staff_user,
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt,
+        purchase_order_item=poi_s,
+        quantity_received=7,
+    )
+    receive_item(receipt, variant_m, quantity=3, user=staff_user)
+
+    # when
+    result = complete_receipt(receipt, user=staff_user)
+
+    # then: reallocation succeeded, total allocation preserved
+    assert result["adjustments_pending"] == []
+
+    total_allocated = sum(
+        a.quantity
+        for a in AllocationSource.objects.filter(allocation__order_line__order=order_a)
+    )
+    assert total_allocated == 10
+
+    # then: stock quantities reflect what was actually received
+    stock_s.refresh_from_db()
+    stock_m = Stock.objects.get(warehouse=owned_warehouse, product_variant=variant_m)
+    assert stock_s.quantity == 7, "S stock should be 7 (received 7, was 10)"
+    assert stock_m.quantity == 3, "M stock should be 3 (received 3, was 0)"
+
+    # then: stock.quantity_allocated matches sum of Allocations
+    from django.db.models import Sum
+
+    for s in [stock_s, stock_m]:
+        alloc_sum = (
+            Allocation.objects.filter(stock=s).aggregate(t=Sum("quantity_allocated"))[
+                "t"
+            ]
+            or 0
+        )
+        assert s.quantity_allocated == alloc_sum, (
+            f"Stock {s.product_variant.sku}: quantity_allocated={s.quantity_allocated} "
+            f"!= sum(Allocation)={alloc_sum}"
+        )
+
+    # then: no negative available stock
+    assert stock_s.quantity >= stock_s.quantity_allocated
+    assert stock_m.quantity >= stock_m.quantity_allocated
+
+    # then: total physical stock conserved (was 10, received 10)
+    assert stock_s.quantity + stock_m.quantity == 10
+
+
+def test_receive_unexpected_variant_shortage_creates_poia(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    product,
+    channel_USD,
+    staff_user,
+):
+    """Shortage: ordered 10×S, received 3×S + 4×M = 7 total (need 10).
+
+    Reallocation fails (shortage), POIAs created for both POIs.
+    """
+    from decimal import Decimal
+
+    from ...order import OrderStatus
+    from ...order.models import Order, OrderLine
+    from ...product.models import ProductVariant, ProductVariantChannelListing
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    variant_s = ProductVariant.objects.create(product=product, sku="SHORT-S")
+    variant_m = ProductVariant.objects.create(product=product, sku="SHORT-M")
+    for v in [variant_s, variant_m]:
+        ProductVariantChannelListing.objects.create(
+            variant=v,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            discounted_price_amount=Decimal(10),
+            cost_price_amount=Decimal(1),
+            currency=channel_USD.currency_code,
+        )
+
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_s,
+        quantity=1000,
+        quantity_allocated=0,
+    )
+    stock_s = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_s,
+        quantity=10,
+        quantity_allocated=0,
+    )
+    Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_m,
+        quantity=0,
+        quantity_allocated=0,
+    )
+
+    ship = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-SHORT",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    poi_s = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=10,
+        total_price_amount=Decimal("100.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    addr = purchase_order.source_warehouse.address
+    order_a = Order.objects.create(
+        channel=channel_USD,
+        billing_address=addr,
+        shipping_address=addr,
+        status=OrderStatus.UNCONFIRMED,
+        lines_count=1,
+    )
+    line_a = OrderLine.objects.create(
+        order=order_a,
+        variant=variant_s,
+        quantity=10,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("100.00"),
+        total_price_net_amount=Decimal("100.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+    )
+    alloc = Allocation.objects.create(
+        order_line=line_a, stock=stock_s, quantity_allocated=10
+    )
+    stock_s.quantity_allocated = 10
+    stock_s.save()
+    poi_s.quantity_allocated = 10
+    poi_s.save()
+    AllocationSource.objects.create(
+        purchase_order_item=poi_s, allocation=alloc, quantity=10
+    )
+
+    # given: receive 3×S + 4×M = 7 total (shortage of 3)
+    receipt = Receipt.objects.create(
+        shipment=ship,
+        status=ReceiptStatus.IN_PROGRESS,
+        created_by=staff_user,
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt,
+        purchase_order_item=poi_s,
+        quantity_received=3,
+    )
+    receive_item(receipt, variant_m, quantity=4, user=staff_user)
+
+    # when
+    result = complete_receipt(receipt, user=staff_user)
+
+    # then: reallocation failed (7 received < 10 needed), POIAs created
+    assert len(result["adjustments_pending"]) > 0
+
+    # then: POIs marked as requires_attention
+    poi_s.refresh_from_db()
+    assert poi_s.status == PurchaseOrderItemStatus.REQUIRES_ATTENTION
+
+    # then: stock unchanged (reallocation raised before mutating)
+    stock_s.refresh_from_db()
+    assert stock_s.quantity == 10, (
+        "S stock should be unchanged after failed reallocation"
+    )
+    assert stock_s.quantity_allocated == 10, "S allocation should be unchanged"
+
+    # then: stock.quantity_allocated still matches sum of Allocations
+    from django.db.models import Sum
+
+    alloc_sum = (
+        Allocation.objects.filter(stock=stock_s).aggregate(t=Sum("quantity_allocated"))[
+            "t"
+        ]
+        or 0
+    )
+    assert stock_s.quantity_allocated == alloc_sum
+
+
+def test_receive_unexpected_variant_surplus_creates_poia(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    product,
+    channel_USD,
+    staff_user,
+):
+    """Surplus: ordered 5×S, received 5×S + 3×M. S matches exactly.
+
+    variant_m's zero-qty POI is the only discrepancy. No allocation sources
+    exist for it, so reallocation is skipped. POIA created for the surplus.
+    """
+    from decimal import Decimal
+
+    from ...product.models import ProductVariant, ProductVariantChannelListing
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    variant_s = ProductVariant.objects.create(product=product, sku="SURPLUS-S")
+    variant_m = ProductVariant.objects.create(product=product, sku="SURPLUS-M")
+    for v in [variant_s, variant_m]:
+        ProductVariantChannelListing.objects.create(
+            variant=v,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            discounted_price_amount=Decimal(10),
+            cost_price_amount=Decimal(1),
+            currency=channel_USD.currency_code,
+        )
+
+    Stock.objects.create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_s,
+        quantity=1000,
+        quantity_allocated=0,
+    )
+
+    ship = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-SURPLUS",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    poi_s = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=5,
+        total_price_amount=Decimal("50.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # given: receive 5×S (exact match) + 3×M (unexpected surplus)
+    receipt = Receipt.objects.create(
+        shipment=ship,
+        status=ReceiptStatus.IN_PROGRESS,
+        created_by=staff_user,
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt,
+        purchase_order_item=poi_s,
+        quantity_received=5,
+    )
+    receive_item(receipt, variant_m, quantity=3, user=staff_user)
+
+    # when
+    result = complete_receipt(receipt, user=staff_user)
+
+    # then: poi_s is received (exact match)
+    poi_s.refresh_from_db()
+    assert poi_s.status == PurchaseOrderItemStatus.RECEIVED
+
+    # then: variant_m's POI gets a POIA for the surplus
+    assert len(result["adjustments_pending"]) == 1
+    adj = result["adjustments_pending"][0]
+    assert adj.quantity_change == 3
+    assert adj.reason == "cycle_count_pos"

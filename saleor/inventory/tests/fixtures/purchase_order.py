@@ -62,16 +62,6 @@ def purchase_order_item(purchase_order, variant, shipment):
     # Properly confirm through business logic (creates Stock at destination)
     confirm_purchase_order_item(poi)
 
-    # Mark as received so fulfillment guard passes
-    from ...models import Receipt, ReceiptLine, ReceiptStatus
-
-    receipt = Receipt.objects.create(shipment=shipment, status=ReceiptStatus.COMPLETED)
-    ReceiptLine.objects.create(
-        receipt=receipt,
-        purchase_order_item=poi,
-        quantity_received=poi.quantity_ordered,
-    )
-
     return poi
 
 
