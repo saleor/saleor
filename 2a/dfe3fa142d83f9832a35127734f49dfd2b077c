@@ -1,0 +1,39 @@
+saleor/giftcard/gateway.py
+  7b4d629355d1115d 162,169
+saleor/graphql/payment/tests/queries/test_transaction.py
+  7b4d629355d1115d 120,1008,1029,1043,1064,1080,1105
+saleor/graphql/payment/tests/mutations/test_transaction_initialize.py
+  7b4d629355d1115d 3511
+saleor/webhook/response_schemas/transaction.py
+  7b4d629355d1115d 130,133,135
+saleor/payment/models.py
+  7b4d629355d1115d 178
+saleor/payment/migrations/0069_transactionitem_gc_fields.py
+  7b4d629355d1115d 19
+saleor/graphql/payment/mutations/transaction/shared.py
+  7b4d629355d1115d 70,72,188,201,308
+saleor/graphql/payment/types.py
+  7b4d629355d1115d 549-550,574-575
+saleor/payment/utils.py
+  7b4d629355d1115d 959,1320-1321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "2adfe3fa142d83f9832a35127734f49dfd2b077c",
+  "prompts": {
+    "7b4d629355d1115d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e1bd1de2-e455-4bbf-8071-d32510bd4771",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 28,
+      "total_deletions": 28,
+      "accepted_lines": 27,
+      "overriden_lines": 0
+    }
+  }
+}
