@@ -11987,6 +11987,11 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Indicates if this fulfillment can automatically transition to FULFILLED status.
   """
   canTransitionToFulfilled: Boolean!
+
+  """
+  Total gross amount of this fulfillment (sum of line quantities × unit prices).
+  """
+  total: Money
 }
 
 enum FulfillmentStatus @doc(category: "Orders") {
@@ -20063,6 +20068,19 @@ type Mutation {
     """Fields required to export orders data."""
     input: ExportOrdersInput!
   ): ExportOrders @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+
+  """
+  Export purchase orders to csv or xlsx file. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for the exported file.
+  """
+  exportPurchaseOrders(
+    """Fields required to export purchase orders data."""
+    input: ExportPurchaseOrdersInput!
+  ): ExportPurchaseOrders @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -30902,6 +30920,33 @@ input ExportOrdersInput @doc(category: "Orders") {
   scope: ExportScope!
 
   """List of order IDs to export."""
+  ids: [ID!]
+
+  """Type of exported file."""
+  fileType: FileTypesEnum!
+}
+
+"""
+Export purchase orders to csv or xlsx file. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for the exported file.
+"""
+type ExportPurchaseOrders @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+  """
+  The newly created export file job which is responsible for export data.
+  """
+  exportFile: ExportFile
+  errors: [ExportError!]!
+}
+
+input ExportPurchaseOrdersInput @doc(category: "Products") {
+  """Determine which purchase orders should be exported."""
+  scope: ExportScope!
+
+  """List of purchase order IDs to export."""
   ids: [ID!]
 
   """Type of exported file."""
