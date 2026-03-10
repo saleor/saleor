@@ -15186,8 +15186,6 @@ type Shop implements ObjectWithMetadata {
   Controls whether password-based authentication is allowed.
   
   Added in Saleor 3.23.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
   """
   passwordLoginMode: PasswordLoginModeEnum!
 
