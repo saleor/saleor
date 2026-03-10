@@ -1,4 +1,5 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
@@ -27,7 +28,9 @@ class ReturnSettingsUpdateInput(BaseInputObjectType):
 
 
 class ReturnSettingsUpdate(BaseMutation):
-    return_settings = graphene.Field(ReturnSettings, description="Return settings.")
+    return_settings = graphene.Field(
+        ReturnSettings, description="Return settings.", required=True
+    )
 
     class Arguments:
         input = ReturnSettingsUpdateInput(
@@ -51,13 +54,18 @@ class ReturnSettingsUpdate(BaseMutation):
         settings = site.settings
 
         if return_reason_reference_type:
-            model_type = cls.get_node_or_error(
-                info,
-                return_reason_reference_type,
-                only_type=PageType,
-                field="return_reason_reference_type",
-                code="invalid",
-            )
+            try:
+                model_type = cls.get_node_or_error(
+                    info,
+                    return_reason_reference_type,
+                    only_type=PageType,
+                    field="return_reason_reference_type",
+                    code="invalid",
+                )
+            except ValidationError as e:
+                response = cls.handle_errors(e)
+                response.return_settings = settings
+                return response
 
             settings.return_reason_reference_type = model_type
 
