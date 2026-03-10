@@ -1710,3 +1710,93 @@ def test_receive_unexpected_variant_surplus_creates_poia(
     adj = result["adjustments_pending"][0]
     assert adj.quantity_change == 3
     assert adj.reason == "cycle_count_pos"
+
+
+def test_floor_stock_size_swap_auto_resolves(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    product,
+    channel_USD,
+    staff_user,
+):
+    """Size swap with balanced product total and no orders auto-resolves.
+
+    Ordered 4×S + 4×M, received 2×S + 6×M. Total 8=8, no allocations.
+    Should not create POIAs — just adjust quantity_ordered to match received.
+    """
+    from decimal import Decimal
+
+    from ...product.models import ProductVariant, ProductVariantChannelListing
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    variant_s = ProductVariant.objects.create(product=product, sku="SWAP-S")
+    variant_m = ProductVariant.objects.create(product=product, sku="SWAP-M")
+    for v in [variant_s, variant_m]:
+        ProductVariantChannelListing.objects.create(
+            variant=v,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            discounted_price_amount=Decimal(10),
+            cost_price_amount=Decimal(1),
+            currency=channel_USD.currency_code,
+        )
+
+    ship = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="TEST-SWAP",
+        shipping_cost_amount=Decimal("100.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    poi_s = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_s,
+        quantity_ordered=4,
+        total_price_amount=Decimal("40.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    poi_m = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_m,
+        quantity_ordered=4,
+        total_price_amount=Decimal("40.00"),
+        currency="USD",
+        shipment=ship,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # given: receive 2×S + 6×M (size swap, total balanced)
+    receipt = Receipt.objects.create(
+        shipment=ship,
+        status=ReceiptStatus.IN_PROGRESS,
+        created_by=staff_user,
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt, purchase_order_item=poi_s, quantity_received=2
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt, purchase_order_item=poi_m, quantity_received=6
+    )
+
+    # when
+    result = complete_receipt(receipt, user=staff_user)
+
+    # then: no POIAs created — auto-resolved as floor stock size swap
+    assert len(result["adjustments_pending"]) == 0
+
+    # and: POIs adjusted to match received quantities
+    poi_s.refresh_from_db()
+    poi_m.refresh_from_db()
+    assert poi_s.quantity_ordered == 2
+    assert poi_m.quantity_ordered == 6
+    assert poi_s.status == PurchaseOrderItemStatus.RECEIVED
+    assert poi_m.status == PurchaseOrderItemStatus.RECEIVED

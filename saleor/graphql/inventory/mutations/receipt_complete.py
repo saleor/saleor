@@ -87,7 +87,15 @@ class ReceiptComplete(BaseMutation):
                         )
                     }
                 ) from e
-            raise
+            msg = str(e.message) if hasattr(e, "message") else str(e)
+            raise ValidationError(
+                {
+                    "receipt_id": ValidationError(
+                        msg,
+                        code=ReceiptErrorCode.INVALID.value,
+                    )
+                }
+            ) from e
         except ValueError as e:
             raise ValidationError(
                 {

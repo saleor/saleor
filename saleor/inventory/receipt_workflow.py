@@ -922,24 +922,40 @@ def complete_receipt(receipt, user=None, manager=None):
                 e,
             )
 
-        if reallocation_succeeded:
-            total_ordered = sum(p.quantity_ordered for p in product_pois)
-            total_received = sum(p.quantity_received for p in product_pois)
-            if total_received == total_ordered:
-                for poi in product_pois:
-                    poi.refresh_from_db()
-                    received = poi.quantity_received
-                    if received != poi.quantity_ordered:
-                        logger.debug(
-                            "complete_receipt: poi %s variant=%s adjusting "
-                            "quantity_ordered %d -> %d (reallocation)",
-                            poi.pk,
-                            poi.product_variant.sku,
-                            poi.quantity_ordered,
-                            received,
-                        )
-                        poi.quantity_ordered = received
-                        poi.save(update_fields=["quantity_ordered", "updated_at"])
+        total_ordered = sum(p.quantity_ordered for p in product_pois)
+        total_received = sum(p.quantity_received for p in product_pois)
+        product_total_balanced = total_received == total_ordered
+
+        if reallocation_succeeded and product_total_balanced:
+            for poi in product_pois:
+                poi.refresh_from_db()
+                received = poi.quantity_received
+                if received != poi.quantity_ordered:
+                    logger.debug(
+                        "complete_receipt: poi %s variant=%s adjusting "
+                        "quantity_ordered %d -> %d (reallocation)",
+                        poi.pk,
+                        poi.product_variant.sku,
+                        poi.quantity_ordered,
+                        received,
+                    )
+                    poi.quantity_ordered = received
+                    poi.save(update_fields=["quantity_ordered", "updated_at"])
+        elif not reallocation_succeeded and product_total_balanced and not ass:
+            # Floor stock size swap: product total balances but no orders
+            # to reallocate. Just accept the different size mix.
+            for poi in product_pois:
+                if poi.quantity_received != poi.quantity_ordered:
+                    logger.debug(
+                        "complete_receipt: poi %s variant=%s adjusting "
+                        "quantity_ordered %d -> %d (floor stock size swap)",
+                        poi.pk,
+                        poi.product_variant.sku,
+                        poi.quantity_ordered,
+                        poi.quantity_received,
+                    )
+                    poi.quantity_ordered = poi.quantity_received
+                    poi.save(update_fields=["quantity_ordered", "updated_at"])
 
         for poi in product_pois:
             poi.refresh_from_db()
@@ -1240,7 +1256,8 @@ def get_product_discrepancies(receipt):
                 }
             )
 
-        total_shortage = sum(v["delta"] for v in variants if v["delta"] < 0)
+        net_delta = sum(v["delta"] for v in variants)
+        total_shortage = min(0, net_delta)
 
         results.append(
             {
