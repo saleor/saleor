@@ -9,12 +9,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name="transaction",
-            name="legacy_adyen_plugin_payment_method",
-        ),
-        migrations.RemoveField(
-            model_name="transaction",
-            name="legacy_adyen_plugin_result_code",
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.RemoveField(
+                    model_name="transaction",
+                    name="legacy_adyen_plugin_payment_method",
+                ),
+                migrations.RemoveField(
+                    model_name="transaction",
+                    name="legacy_adyen_plugin_result_code",
+                ),
+            ],
+            database_operations=[],
         ),
     ]
