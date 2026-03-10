@@ -33,6 +33,19 @@ All notable, unreleased changes to this project will be documented in this file.
 - For order webhook events, sync webhooks (such as `ORDER_CALCULATE_TAXES` and `ORDER_FILTER_SHIPPING_METHODS`) are no longer pre-fired before sending async webhook events. Sync webhooks are now only triggered when their data is actually requested, improving performance and decoupling async event delivery from sync webhook execution.
 -  Building payloads for webhook order events (including draft orders and fulfillments) is now delegated to a separate background task. This speeds up the execution of most order mutations by deferring the expensive payload serialization out of the request path.
 
+### Explicit delivery options
+ - Introduced `deliveryOptionsCalculate` mutation to give storefronts explicit, deterministic control over when shipping webhook calls happen. Previously `SHIPPING_LIST_METHODS_FOR_CHECKOUT` and `CHECKOUT_FILTER_SHIPPING_METHODS` webhooks were fired implicitly, inside checkout mutations (e.g., on address change) and while resolving query fields, causing unpredictable latency, uncontrolled webhook traffic, and increased costs. Developers can now decide exactly when to fetch delivery options by calling `deliveryOptionsCalculate`, which returns a list of `Delivery` objects.
+
+   The selected delivery method is available on the new `Checkout.delivery` field, which replaces the deprecated `Checkout.shippingMethod` and `Checkout.deliveryMethod` fields.
+
+   To help storefronts detect when the delivery method requires attention, two new problem types are introduced in `Checkout.problems`:
+   - `CheckoutProblemDeliveryMethodStale`: the currently selected method may be outdated due to checkout changes (e.g., a different shipping address, an applied voucher). This problem does not block checkout completion but triggers re-validation of the delivery method when `checkoutComplete` is called. Calling `deliveryOptionsCalculate` will re-validate the assigned delivery.
+   - `CheckoutProblemDeliveryMethodInvalid`: the selected delivery method is no longer valid (e.g., the shipping address no longer falls within it). This problem blocks `checkoutComplete` until a valid delivery method is assigned via `checkoutDeliveryMethodUpdate`.
+
+   See the [upgrading guide](https://docs.saleor.io/upgrade-guides/3-22-to-3-23##explicit-delivery-options-calculation) to learn more.
+
+
+
 ### Other changes
 
 - Fix send order confirmation email to staff - #18342 by @Shaokun-X
