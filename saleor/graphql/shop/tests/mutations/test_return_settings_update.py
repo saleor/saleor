@@ -161,7 +161,7 @@ def test_nonexistent_page_type(staff_api_client, permission_manage_settings):
 
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "returnReasonReferenceType"
-    assert data["errors"][0]["code"] == ReturnSettingsErrorCode.INVALID.name
+    assert data["errors"][0]["code"] == ReturnSettingsErrorCode.NOT_FOUND.name
 
 
 def test_wrong_node_type(staff_api_client, permission_manage_settings, product):
