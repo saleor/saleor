@@ -109,7 +109,7 @@ class ReturnSettings(ModelObjectType[site_models.SiteSettings]):
 
     @staticmethod
     def resolve_reason_reference_type(root, info):
-        raise NotImplementedError("not implemented yet")
+        return root.return_reason_reference_type
 
 
 class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):

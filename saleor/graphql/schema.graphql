@@ -23462,6 +23462,7 @@ type ReturnSettingsUpdateError @doc(category: "Shop") {
 
 enum ReturnSettingsErrorCode @doc(category: "Shop") {
   INVALID
+  NOT_FOUND
   REQUIRED
   GRAPHQL_ERROR
 }
