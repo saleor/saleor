@@ -60,7 +60,6 @@ class ReturnSettingsUpdate(BaseMutation):
                     return_reason_reference_type,
                     only_type=PageType,
                     field="return_reason_reference_type",
-                    code="invalid",
                 )
             except ValidationError as e:
                 response = cls.handle_errors(e)
