@@ -944,8 +944,10 @@ def complete_receipt(receipt, user=None, manager=None):
         elif not reallocation_succeeded and product_total_balanced and not ass:
             # Floor stock size swap: product total balances but no orders
             # to reallocate. Just accept the different size mix.
+            warehouse = product_pois[0].order.destination_warehouse
             for poi in product_pois:
                 if poi.quantity_received != poi.quantity_ordered:
+                    delta = poi.quantity_received - poi.quantity_ordered
                     logger.debug(
                         "complete_receipt: poi %s variant=%s adjusting "
                         "quantity_ordered %d -> %d (floor stock size swap)",
@@ -956,6 +958,22 @@ def complete_receipt(receipt, user=None, manager=None):
                     )
                     poi.quantity_ordered = poi.quantity_received
                     poi.save(update_fields=["quantity_ordered", "updated_at"])
+                    stock, _ = Stock.objects.get_or_create(
+                        warehouse=warehouse,
+                        product_variant=poi.product_variant,
+                        defaults={"quantity": 0, "quantity_allocated": 0},
+                    )
+                    logger.debug(
+                        "complete_receipt: adjusting stock %s variant=%s "
+                        "quantity %d -> %d (delta=%+d, floor stock size swap)",
+                        stock.pk,
+                        poi.product_variant.sku,
+                        stock.quantity,
+                        stock.quantity + delta,
+                        delta,
+                    )
+                    stock.quantity += delta
+                    stock.save(update_fields=["quantity"])
 
         for poi in product_pois:
             poi.refresh_from_db()

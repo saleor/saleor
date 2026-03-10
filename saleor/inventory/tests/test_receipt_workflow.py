@@ -1774,6 +1774,16 @@ def test_floor_stock_size_swap_auto_resolves(
         status=PurchaseOrderItemStatus.CONFIRMED,
     )
 
+    # given: stock exists from PO confirmation (4×S + 4×M)
+    from ...warehouse.models import Stock
+
+    stock_s = Stock.objects.create(
+        warehouse=owned_warehouse, product_variant=variant_s, quantity=4
+    )
+    stock_m = Stock.objects.create(
+        warehouse=owned_warehouse, product_variant=variant_m, quantity=4
+    )
+
     # given: receive 2×S + 6×M (size swap, total balanced)
     receipt = Receipt.objects.create(
         shipment=ship,
@@ -1800,3 +1810,9 @@ def test_floor_stock_size_swap_auto_resolves(
     assert poi_m.quantity_ordered == 6
     assert poi_s.status == PurchaseOrderItemStatus.RECEIVED
     assert poi_m.status == PurchaseOrderItemStatus.RECEIVED
+
+    # and: stock adjusted to match received quantities
+    stock_s.refresh_from_db()
+    stock_m.refresh_from_db()
+    assert stock_s.quantity == 2
+    assert stock_m.quantity == 6
