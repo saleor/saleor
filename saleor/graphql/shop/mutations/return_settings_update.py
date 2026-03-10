@@ -1,8 +1,5 @@
-from typing import cast
-
 import graphene
 
-from ....page.models import PageType
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
@@ -10,6 +7,7 @@ from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
 from ...core.types.common import ReturnSettingsUpdateError
+from ...page.types import PageType
 from ...site.dataloaders import get_site_promise
 from ..types import ReturnSettings
 
@@ -58,11 +56,11 @@ class ReturnSettingsUpdate(BaseMutation):
             model_type = cls.get_node_or_error(
                 info,
                 return_reason_reference_type,
-                only_type="PageType",
+                only_type=PageType,
                 field="return_reason_reference_type",
             )
 
-            settings.return_reason_reference_type = cast(PageType, model_type)
+            settings.return_reason_reference_type = model_type
 
             settings.save(update_fields=["return_reason_reference_type"])
 

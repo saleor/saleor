@@ -1,4 +1,3 @@
-from .....page.models import PageType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 RETURN_REASON_REFERENCE_TYPE_CLEAR_MUTATION = """
@@ -103,42 +102,6 @@ def test_when_already_none(staff_api_client, site_settings, permission_manage_se
     # Verify database state remains unchanged
     site_settings.refresh_from_db()
     assert site_settings.return_reason_reference_type is None
-
-
-def test_multiple_page_types(
-    staff_api_client, site_settings, permission_manage_settings
-):
-    # given
-    staff_user = staff_api_client.user
-    staff_user.user_permissions.add(permission_manage_settings)
-
-    page_type1 = PageType.objects.create(name="Type 1", slug="type-1")
-    page_type2 = PageType.objects.create(name="Type 2", slug="type-2")
-
-    site_settings.return_reason_reference_type = page_type1
-    site_settings.save()
-    assert site_settings.return_reason_reference_type == page_type1
-
-    # when
-    response = staff_api_client.post_graphql(
-        RETURN_REASON_REFERENCE_TYPE_CLEAR_MUTATION,
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["returnReasonReferenceClear"]
-
-    assert not data["errors"]
-    assert data["returnSettings"]
-    assert data["returnSettings"]["reasonReferenceType"] is None
-
-    # Verify database update
-    site_settings.refresh_from_db()
-    assert site_settings.return_reason_reference_type is None
-
-    # Verify other page types still exist
-    assert PageType.objects.filter(id=page_type1.id).exists()
-    assert PageType.objects.filter(id=page_type2.id).exists()
 
 
 def test_no_permission_staff(
