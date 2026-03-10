@@ -1,6 +1,6 @@
 import uuid
 from collections import defaultdict
-from typing import Any, cast
+from typing import Any, TypedDict
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -9,6 +9,13 @@ from graphql import GraphQLError
 from ....order import models
 from ....page.models import Page, PageType
 from ...core.utils import from_global_id_or_error
+
+
+class GrantRefundLineDict(TypedDict, total=False):
+    id: str
+    quantity: int
+    reason: str
+    reason_reference: str
 
 
 def shipping_costs_already_granted(
@@ -74,24 +81,24 @@ def handle_lines_with_quantity_already_refunded(
 
 
 def get_input_lines_data(
-    lines: list[dict[str, str | int]],
+    lines: list[GrantRefundLineDict],
     errors: list[dict[str, str]],
     error_code: str,
 ) -> tuple[dict[uuid.UUID, models.OrderGrantedRefundLine], dict[uuid.UUID, str | None]]:
     granted_refund_lines = {}
     line_reason_reference_ids: dict[uuid.UUID, str | None] = {}
     for line in lines:
-        order_line_id = cast(str, line["id"])
+        order_line_id = line["id"]
         try:
             _, pk = from_global_id_or_error(
                 order_line_id, only_type="OrderLine", raise_error=True
             )
             uuid_pk = uuid.UUID(pk)
-            reason = cast(str | None, line.get("reason"))
-            reason_reference_id = cast(str | None, line.get("reason_reference"))
+            reason = line.get("reason")
+            reason_reference_id = line.get("reason_reference")
             granted_refund_lines[uuid_pk] = models.OrderGrantedRefundLine(
                 order_line_id=uuid_pk,
-                quantity=int(line["quantity"]),
+                quantity=line["quantity"],
                 reason=reason,
             )
             line_reason_reference_ids[uuid_pk] = reason_reference_id

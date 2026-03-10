@@ -24,6 +24,7 @@ from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
+    GrantRefundLineDict,
     assign_order_lines,
     get_input_lines_data,
     handle_lines_with_quantity_already_refunded,
@@ -232,7 +233,7 @@ class OrderGrantRefundUpdate(BaseMutation):
     def clean_add_lines(
         cls,
         order: models.Order,
-        lines: list[dict[str, str | int]],
+        lines: list[GrantRefundLineDict],
         errors: list[dict[str, Any]],
         line_ids_exclude: list[int],
     ) -> tuple[list[models.OrderGrantedRefundLine], dict]:
