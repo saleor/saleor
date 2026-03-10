@@ -941,6 +941,11 @@ class Fulfillment(
         ),
         required=True,
     )
+    total = graphene.Field(
+        Money,
+        description="Total gross amount of this fulfillment (sum of line quantities × unit prices).",
+        required=False,
+    )
 
     class Meta:
         default_resolver = (
@@ -1121,6 +1126,22 @@ class Fulfillment(
         root: SyncWebhookControlContext[models.Fulfillment], _info
     ):
         return root.node.can_auto_transition_to_fulfilled()
+
+    @staticmethod
+    def resolve_total(root: SyncWebhookControlContext[models.Fulfillment], info):
+        from ...order.proforma import calculate_fulfillment_total
+
+        fulfillment = root.node
+
+        def _resolve_total(order):
+            total_amount = calculate_fulfillment_total(fulfillment)
+            return prices.Money(total_amount, currency=order.currency)
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(fulfillment.order_id)
+            .then(_resolve_total)
+        )
 
 
 class OrderLine(

@@ -100,9 +100,17 @@ def test_receipt_poia_never_affects_fulfillments(
     assert order.fulfillments.count() == 0
 
     # given: start receipt and record shortage
+    # (delete the guard receipt created by purchase_order_item fixture
+    #  and refresh shipment to clear Django's cached reverse relation)
+    from ...shipping.models import Shipment
+    from ..models import Receipt
+
+    Receipt.objects.filter(shipment=poi.shipment).delete()
+    shipment = Shipment.objects.get(pk=poi.shipment.pk)
+
     from ..receipt_workflow import receive_item, start_receipt
 
-    receipt = start_receipt(poi.shipment, user=staff_user)
+    receipt = start_receipt(shipment, user=staff_user)
     receive_item(
         receipt=receipt,
         product_variant=poi.product_variant,

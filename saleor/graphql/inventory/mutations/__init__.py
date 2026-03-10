@@ -1,4 +1,5 @@
 from .add_order_to_purchase_order import AddOrderToPurchaseOrder
+from .delay_for_future_shipment import DelayForFutureShipment
 from .purchase_order_confirm import PurchaseOrderConfirm
 from .purchase_order_create import PurchaseOrderCreate
 from .purchase_order_delete import PurchaseOrderDelete
@@ -18,6 +19,7 @@ from .resolve_product_discrepancy import ResolveProductDiscrepancy
 
 __all__ = [
     "AddOrderToPurchaseOrder",
+    "DelayForFutureShipment",
     "AddPurchaseOrderItem",
     "PurchaseOrderCreate",
     "PurchaseOrderConfirm",

@@ -11987,6 +11987,11 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Indicates if this fulfillment can automatically transition to FULFILLED status.
   """
   canTransitionToFulfilled: Boolean!
+
+  """
+  Total gross amount of this fulfillment (sum of line quantities × unit prices).
+  """
+  total: Money
 }
 
 enum FulfillmentStatus @doc(category: "Orders") {
@@ -19426,6 +19431,19 @@ type Mutation {
   ): ResolveProductDiscrepancy @doc(category: "Products")
 
   """
+  Delay unreceived purchase order items for a product. Removes them from the current shipment and reverts to CONFIRMED status so they can be assigned to a future shipment. Deletes the auto-created POIAs since no real adjustment occurred. Only works for POIs with 0 quantity received. 
+  
+  Requires one of the following permissions: MANAGE_STOCK.
+  """
+  delayForFutureShipment(
+    """ID of the product to delay."""
+    productId: ID!
+
+    """ID of the completed receipt."""
+    receiptId: ID!
+  ): DelayForFutureShipment @doc(category: "Products")
+
+  """
   Activate a gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
@@ -20050,6 +20068,19 @@ type Mutation {
     """Fields required to export orders data."""
     input: ExportOrdersInput!
   ): ExportOrders @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
+
+  """
+  Export purchase orders to csv or xlsx file. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for the exported file.
+  """
+  exportPurchaseOrders(
+    """Fields required to export purchase orders data."""
+    input: ExportPurchaseOrdersInput!
+  ): ExportPurchaseOrders @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -29116,6 +29147,7 @@ enum ReceiptErrorCode @doc(category: "Products") {
   INVALID
   NOT_FOUND
   REQUIRED
+  XERO_SYNC_FAILED
 }
 
 """
@@ -29166,8 +29198,25 @@ type ReceiptUpdateLines @doc(category: "Products") {
 }
 
 input ReceiptLineInput {
-  """ID of the purchase order item."""
-  purchaseOrderItemId: ID!
+  """
+  ID of the purchase order item. Exactly one of purchaseOrderItemId or variantId must be provided.
+  """
+  purchaseOrderItemId: ID
+
+  """
+  ID of an existing product variant. Use this to receive an unexpected variant — a POI will be auto-created if a sibling variant is on the shipment.
+  """
+  variantId: ID
+
+  """
+  ID of the product. Used together with variantName to receive a variant that doesn't exist yet — the variant will be created automatically (copying attributes and channel listings from a sibling).
+  """
+  productId: ID
+
+  """
+  Name of the variant to create (e.g. a size like 'XL'). Must be provided together with productId.
+  """
+  variantName: String
 
   """Absolute quantity received. 0 removes the line."""
   quantity: Int!
@@ -29232,6 +29281,18 @@ input OrderResolutionInput @doc(category: "Products") {
 
   """Quantity to allocate."""
   quantity: Int!
+}
+
+"""
+Delay unreceived purchase order items for a product. Removes them from the current shipment and reverts to CONFIRMED status so they can be assigned to a future shipment. Deletes the auto-created POIAs since no real adjustment occurred. Only works for POIs with 0 quantity received. 
+
+Requires one of the following permissions: MANAGE_STOCK.
+"""
+type DelayForFutureShipment @doc(category: "Products") {
+  """The POIs that were delayed."""
+  delayedItems: [PurchaseOrderItem!]
+  receiptErrors: [ReceiptError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [ReceiptError!]!
 }
 
 """
@@ -30859,6 +30920,33 @@ input ExportOrdersInput @doc(category: "Orders") {
   scope: ExportScope!
 
   """List of order IDs to export."""
+  ids: [ID!]
+
+  """Type of exported file."""
+  fileType: FileTypesEnum!
+}
+
+"""
+Export purchase orders to csv or xlsx file. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for the exported file.
+"""
+type ExportPurchaseOrders @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
+  """
+  The newly created export file job which is responsible for export data.
+  """
+  exportFile: ExportFile
+  errors: [ExportError!]!
+}
+
+input ExportPurchaseOrdersInput @doc(category: "Products") {
+  """Determine which purchase orders should be exported."""
+  scope: ExportScope!
+
+  """List of purchase order IDs to export."""
   ids: [ID!]
 
   """Type of exported file."""

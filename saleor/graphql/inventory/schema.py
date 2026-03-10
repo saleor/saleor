@@ -10,6 +10,7 @@ from .enums import PurchaseOrderStatusEnum
 from .mutations import (
     AddOrderToPurchaseOrder,
     AddPurchaseOrderItem,
+    DelayForFutureShipment,
     PurchaseOrderConfirm,
     PurchaseOrderCreate,
     PurchaseOrderDelete,
@@ -232,3 +233,4 @@ class InventoryMutations(graphene.ObjectType):
 
     # POIA resolution
     resolve_product_discrepancy = ResolveProductDiscrepancy.Field()
+    delay_for_future_shipment = DelayForFutureShipment.Field()

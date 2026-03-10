@@ -67,6 +67,139 @@ def start_receipt(shipment, user=None):
     return receipt
 
 
+def _get_or_create_poi(shipment, product_variant):
+    """Find or create a POI for a variant on a shipment.
+
+    If the variant already has a POI on the shipment, returns it.
+    If the variant's product has sibling POIs on the shipment, creates a new
+    POI with quantity_ordered=0 (unexpected variant).
+
+    Raises ValueError if the product isn't on the shipment at all.
+    """
+    pois = list(
+        PurchaseOrderItem.objects.filter(
+            shipment=shipment,
+            product_variant=product_variant,
+        )
+        .prefetch_related("receipt_lines")
+        .order_by("pk")
+    )
+    if pois:
+        # FIFO: pick the first with remaining capacity
+        poi = pois[0]
+        for candidate in pois:
+            if candidate.quantity_received < candidate.quantity_ordered:
+                poi = candidate
+                break
+        return poi
+
+    sibling_pois = list(
+        PurchaseOrderItem.objects.filter(
+            shipment=shipment,
+            product_variant__product=product_variant.product,
+        ).select_related("order")
+    )
+    if not sibling_pois:
+        raise ValueError(
+            f"Product variant {product_variant.sku} does not belong to "
+            f"any product on shipment {shipment.id}"
+        )
+    origins = {p.country_of_origin for p in sibling_pois}
+    if len(origins) > 1:
+        raise ValueError(
+            f"Cannot auto-create POI for {product_variant.sku}: "
+            f"sibling variants have mixed countries of origin ({origins}). "
+            f"Create the POI manually with the correct country."
+        )
+    return PurchaseOrderItem.objects.create(
+        order=sibling_pois[0].order,
+        product_variant=product_variant,
+        quantity_ordered=0,
+        shipment=shipment,
+        currency=sibling_pois[0].currency,
+        country_of_origin=sibling_pois[0].country_of_origin,
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+
+def _get_or_create_variant(product, variant_name):
+    """Find or create a ProductVariant by name on a given product.
+
+    Looks for an existing variant whose name matches (case-insensitive).
+    If none exists, creates a new one — copying the variant-selection
+    attribute value, channel listings, and SKU pattern from a sibling.
+
+    Returns a ProductVariant instance.
+    """
+    from django.utils.text import slugify
+
+    from ..attribute.models import AttributeValue, AttributeVariant
+    from ..attribute.utils import associate_attribute_values_to_instance
+    from ..product.models import ProductVariantChannelListing
+
+    existing = ProductVariant.objects.filter(
+        product=product, name__iexact=variant_name
+    ).first()
+    if existing:
+        return existing
+
+    sibling = (
+        ProductVariant.objects.filter(product=product)
+        .prefetch_related("channel_listings")
+        .first()
+    )
+    if not sibling:
+        raise ValueError(f"Product {product.pk} has no existing variants to copy from.")
+
+    attr_assignment = (
+        AttributeVariant.objects.filter(
+            product_type=product.product_type, variant_selection=True
+        )
+        .select_related("attribute")
+        .first()
+    )
+    if not attr_assignment:
+        raise ValueError(
+            f"Product type '{product.product_type.name}' has no variant-selection "
+            f"attribute. Add one (e.g. 'Size') in Configuration → Product Types "
+            f"before creating new variants."
+        )
+
+    slug = slugify(variant_name)
+    sku = f"{product.slug}-{slug}"
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku=sku,
+        name=variant_name,
+    )
+
+    if attr_assignment:
+        attribute = attr_assignment.attribute
+        attr_value, _ = AttributeValue.objects.get_or_create(
+            attribute=attribute,
+            slug=slug,
+            defaults={"name": variant_name},
+        )
+        associate_attribute_values_to_instance(variant, {attribute.pk: [attr_value]})
+
+    listings_to_create = []
+    for sl in sibling.channel_listings.all():
+        listings_to_create.append(
+            ProductVariantChannelListing(
+                variant=variant,
+                channel=sl.channel,
+                price_amount=sl.price_amount,
+                discounted_price_amount=sl.discounted_price_amount,
+                cost_price_amount=sl.cost_price_amount,
+                currency=sl.currency,
+            )
+        )
+    if listings_to_create:
+        ProductVariantChannelListing.objects.bulk_create(listings_to_create)
+
+    return variant
+
+
 @transaction.atomic
 def receive_item(receipt, product_variant, quantity, user=None, notes=""):
     from . import ReceiptStatus
@@ -78,26 +211,7 @@ def receive_item(receipt, product_variant, quantity, user=None, notes=""):
     if quantity <= 0:
         raise ValueError(f"Quantity must be positive, got {quantity}")
 
-    pois = list(
-        PurchaseOrderItem.objects.filter(
-            shipment=receipt.shipment,
-            product_variant=product_variant,
-        )
-        .prefetch_related("receipt_lines")
-        .order_by("pk")
-    )
-    if not pois:
-        raise ValueError(
-            f"Product variant {product_variant.sku} not found in "
-            f"shipment {receipt.shipment.id}"
-        )
-
-    # FIFO: fill POIs in order, picking the first with remaining capacity
-    poi = pois[0]
-    for candidate in pois:
-        if candidate.quantity_received < candidate.quantity_ordered:
-            poi = candidate
-            break
+    poi = _get_or_create_poi(receipt.shipment, product_variant)
 
     receipt_line = ReceiptLine.objects.create(
         receipt=receipt,
@@ -112,12 +226,17 @@ def receive_item(receipt, product_variant, quantity, user=None, notes=""):
 
 @transaction.atomic
 def update_receipt_lines(receipt, lines_data, user=None):
-    """Upsert receipt lines by purchase order item.
+    """Upsert receipt lines by purchase order item, variant, or new variant name.
 
     Each entry in lines_data is a dict with:
-      - purchase_order_item_id: ID of the PurchaseOrderItem
+      - purchase_order_item_id: ID of the PurchaseOrderItem (for existing POIs)
+      - OR variant: ProductVariant instance (for unexpected variants —
+        auto-creates a POI if needed)
+      - OR product + variant_name: creates the ProductVariant if it doesn't
+        exist, then auto-creates a POI
       - quantity: absolute quantity received (0 = delete the line)
 
+    Exactly one identifier must be provided.
     Creates, updates, or deletes ReceiptLines as needed.
     """
     from . import ReceiptStatus
@@ -126,8 +245,18 @@ def update_receipt_lines(receipt, lines_data, user=None):
         raise ReceiptNotInProgress(receipt)
 
     for line_data in lines_data:
-        poi_id = line_data["purchase_order_item_id"]
+        poi_id = line_data.get("purchase_order_item_id")
+        variant = line_data.get("variant")
+        product = line_data.get("product")
+        variant_name = line_data.get("variant_name")
         quantity = line_data["quantity"]
+
+        if product and variant_name:
+            variant = _get_or_create_variant(product, variant_name)
+
+        if variant and not poi_id:
+            poi = _get_or_create_poi(receipt.shipment, variant)
+            poi_id = poi.pk
 
         existing = ReceiptLine.objects.filter(
             receipt=receipt,
@@ -1253,3 +1382,74 @@ def resolve_product_discrepancy(
     )
 
     return adjustments
+
+
+@transaction.atomic
+def delay_for_future_shipment(
+    receipt,
+    product,
+    user=None,
+    manager=None,
+):
+    """Delay unreceived POIs for a product, removing them from this shipment.
+
+    For POIs where nothing was received (quantity_received == 0), detach them
+    from the current shipment and revert to CONFIRMED status so they can be
+    assigned to a future shipment. The POIAs created by complete_receipt are
+    deleted — there is no real adjustment since the goods are still expected.
+
+    Args:
+        receipt: The completed Receipt.
+        product: The Product whose unreceived POIs to delay.
+        user: User performing the action.
+        manager: Plugin manager for event dispatching.
+
+    Returns:
+        list of delayed PurchaseOrderItems.
+
+    Raises:
+        ValueError: If no eligible POIs (REQUIRES_ATTENTION with 0 received).
+
+    """
+
+    pois = list(
+        PurchaseOrderItem.objects.select_for_update()
+        .filter(
+            shipment=receipt.shipment,
+            product_variant__product=product,
+            status=PurchaseOrderItemStatus.REQUIRES_ATTENTION,
+        )
+        .select_related("product_variant")
+    )
+
+    # Only delay POIs with 0 received
+    eligible = [poi for poi in pois if poi.quantity_received == 0]
+
+    if not eligible:
+        raise ValueError(
+            f"No unreceived POIs for product {product} on receipt {receipt.id}. "
+            "Only POIs with 0 quantity received can be delayed."
+        )
+
+    # Delete the POIAs — they were created by complete_receipt as delivery
+    # shorts, but this isn't actually a shortage; the goods just weren't on
+    # this shipment.
+    PurchaseOrderItemAdjustment.objects.filter(
+        purchase_order_item__in=eligible,
+        processed_at__isnull=True,
+    ).delete()
+
+    # Detach from shipment and revert to CONFIRMED
+    for poi in eligible:
+        poi.shipment = None
+        poi.status = PurchaseOrderItemStatus.CONFIRMED
+        poi.save(update_fields=["shipment", "status", "updated_at"])
+
+    # Create fulfillments for any orders that are now fully received.
+    _create_fulfillments_for_shipment(
+        shipment=receipt.shipment,
+        user=user,
+        manager=manager,
+    )
+
+    return eligible

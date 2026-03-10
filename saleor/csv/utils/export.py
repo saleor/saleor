@@ -1,6 +1,7 @@
 import datetime
 import logging
 import uuid
+from decimal import Decimal
 from tempfile import NamedTemporaryFile
 from typing import IO, TYPE_CHECKING, Any, cast
 
@@ -15,6 +16,7 @@ from ...core.db.connection import allow_writer
 from ...core.utils.batches import queryset_in_batches
 from ...discount.models import VoucherCode
 from ...giftcard.models import GiftCard
+from ...inventory.models import PurchaseOrder
 from ...order.models import Order
 from ...product.models import Product
 from .. import FileTypes
@@ -212,6 +214,7 @@ ORDER_LINE_HEADERS = [
     "Tax Rate",
     "Tax Class",
     "Tax Class Country",
+    "Allocation Sources",
 ]
 
 # Flat/denormalized headers for CSV (order fields + line fields, no duplicate Number)
@@ -277,6 +280,23 @@ def _build_order_rows(order, product_code_slug: str) -> tuple[dict, list[dict]]:
                 if av.value.attribute.slug == product_code_slug:
                     product_code = av.value.name
                     break
+
+        allocation_details = []
+        for allocation in line.allocations.all():
+            for source in allocation.allocation_sources.all():
+                poi = source.purchase_order_item
+                po = poi.order
+                po_name = po.name or str(po.pk)
+                supplier = po.source_warehouse.name
+                unit_price = _compute_unit_price(poi)
+                price = str(round(unit_price, 2)) if unit_price else "?"
+                currency = poi.currency or ""
+                coo = str(poi.country_of_origin) if poi.country_of_origin else ""
+                parts = [f"{source.quantity}@{price} {currency}".strip(), supplier]
+                if coo:
+                    parts.append(coo)
+                allocation_details.append(f"{po_name}({', '.join(parts)})")
+
         line_rows.append(
             {
                 "Number": str(order.number),
@@ -292,6 +312,7 @@ def _build_order_rows(order, product_code_slug: str) -> tuple[dict, list[dict]]:
                 "Tax Rate": str(line.tax_rate) if line.tax_rate is not None else "",
                 "Tax Class": line.tax_class_name or "",
                 "Tax Class Country": tax_class_country,
+                "Allocation Sources": "; ".join(allocation_details),
             }
         )
 
@@ -313,6 +334,8 @@ def _order_batch_queryset(batch_pks):
             "lines",
             "lines__tax_class_country_rate",
             "lines__variant__product__attributevalues__value__attribute",
+            "lines__allocations__allocation_sources__purchase_order_item__order__source_warehouse",
+            "lines__allocations__allocation_sources__purchase_order_item__adjustments",
         )
         .order_by("pk")
     )
@@ -1016,3 +1039,342 @@ def save_csv_file_in_export_file(
     export_file: "ExportFile", temporary_file: IO[bytes], file_name: str
 ):
     export_file.content_file.save(file_name, temporary_file)
+
+
+PO_SUMMARY_HEADERS = [
+    "PO Name",
+    "Status",
+    "Supplier",
+    "Destination",
+    "Currency",
+    "Created",
+    "Total Ordered Qty",
+    "Total Received Qty",
+    "Total Value",
+]
+
+PO_LINE_HEADERS = [
+    "PO Name",
+    "Product Name",
+    "Product Code",
+    "SKU",
+    "Ordered",
+    "Shipped",
+    "Received",
+    "Difference",
+    "Unit Price",
+    "Total Price",
+    "Currency",
+    "Country of Origin",
+    "Status",
+]
+
+PO_EXPORT_HEADERS = PO_SUMMARY_HEADERS + [h for h in PO_LINE_HEADERS if h != "PO Name"]
+
+
+def _compute_unit_price(poi) -> Decimal | int:
+    from decimal import Decimal
+
+    if poi.quantity_ordered == 0 or poi.total_price_amount is None:
+        return 0
+    base_unit_price = poi.total_price_amount / poi.quantity_ordered
+
+    payable_adj = sum(
+        a.quantity_change
+        for a in poi.adjustments.all()
+        if a.affects_payable and a.processed_at is not None
+    )
+    adjusted_cost = poi.total_price_amount + (Decimal(payable_adj) * base_unit_price)
+
+    all_adj = sum(
+        a.quantity_change for a in poi.adjustments.all() if a.processed_at is not None
+    )
+    adjusted_quantity = poi.quantity_ordered + all_adj
+
+    if adjusted_quantity > 0:
+        return adjusted_cost / adjusted_quantity
+    return base_unit_price
+
+
+def _get_variant_size(variant, size_values_map: dict) -> str:
+    size = size_values_map.get(variant.pk)
+    if size:
+        return size
+    return variant.sku or f"V{variant.pk}"
+
+
+def _build_size_qty_string(size_qty_pairs: list[tuple[str, int]]) -> str:
+    try:
+        sorted_pairs = sorted(size_qty_pairs, key=lambda x: float(x[0]))
+    except (ValueError, TypeError):
+        sorted_pairs = sorted(size_qty_pairs, key=lambda x: str(x[0]))
+    return ", ".join(f"{size}[{qty}]" for size, qty in sorted_pairs)
+
+
+def _build_po_rows(
+    po, product_code_slug: str, size_values_map: dict
+) -> tuple[dict, list[dict]]:
+    from collections import defaultdict
+    from decimal import Decimal
+
+    supplier = po.source_warehouse.name if po.source_warehouse else ""
+    destination = po.destination_warehouse.name if po.destination_warehouse else ""
+
+    total_ordered = 0
+    total_received = 0
+    total_value = Decimal(0)
+
+    product_groups: dict[int, dict] = defaultdict(
+        lambda: {
+            "product_name": "",
+            "product_code": "",
+            "sku": "",
+            "ordered": [],
+            "shipped": [],
+            "received": [],
+            "unit_prices": [],
+            "total_prices": [],
+            "currencies": [],
+            "countries": [],
+            "statuses": [],
+        }
+    )
+
+    for poi in po.items.all():
+        variant = poi.product_variant
+        product = variant.product
+        product_id = product.pk
+        size = _get_variant_size(variant, size_values_map)
+
+        group = product_groups[product_id]
+        if not group["product_name"]:
+            group["product_name"] = product.name
+            group["sku"] = variant.sku or ""
+            for av in product.attributevalues.all():
+                if av.value.attribute.slug == product_code_slug:
+                    group["product_code"] = av.value.name
+                    break
+
+        group["ordered"].append((size, poi.quantity_ordered))
+        total_ordered += poi.quantity_ordered
+
+        is_shipped = poi.shipment_id and poi.shipment and poi.shipment.departed_at
+        group["shipped"].append((size, poi.quantity_ordered) if is_shipped else None)
+
+        receipt_lines = list(poi.receipt_lines.all())
+        if receipt_lines:
+            received_qty = sum(rl.quantity_received for rl in receipt_lines)
+            group["received"].append((size, received_qty))
+            total_received += received_qty
+        else:
+            group["received"].append(None)
+
+        if poi.total_price_amount is not None:
+            total_value += poi.total_price_amount
+
+        unit_price = _compute_unit_price(poi)
+        if unit_price and str(round(unit_price, 2)) not in group["unit_prices"]:
+            group["unit_prices"].append(str(round(unit_price, 2)))
+        if poi.total_price_amount is not None:
+            group["total_prices"].append(poi.total_price_amount)
+        if poi.currency and poi.currency not in group["currencies"]:
+            group["currencies"].append(poi.currency)
+        coo = str(poi.country_of_origin) if poi.country_of_origin else ""
+        if coo and coo not in group["countries"]:
+            group["countries"].append(coo)
+        if poi.status and poi.status not in group["statuses"]:
+            group["statuses"].append(poi.status)
+
+    summary = {
+        "PO Name": po.name or str(po.pk),
+        "Status": po.status,
+        "Supplier": supplier,
+        "Destination": destination,
+        "Currency": po.currency or "",
+        "Created": po.created_at.strftime("%Y-%m-%d") if po.created_at else "",
+        "Total Ordered Qty": total_ordered,
+        "Total Received Qty": total_received,
+        "Total Value": str(total_value),
+    }
+
+    line_rows: list[dict] = []
+    for _product_id, group in product_groups.items():
+        ordered_pairs = group["ordered"]
+        shipped_actual = [p for p in group["shipped"] if p is not None]
+        received_actual = [p for p in group["received"] if p is not None]
+
+        diff_pairs = []
+        if received_actual:
+            for i, (size, ordered_qty) in enumerate(ordered_pairs):
+                recv = group["received"][i]
+                if recv is not None:
+                    d = recv[1] - ordered_qty
+                    if d != 0:
+                        diff_pairs.append((size, d))
+
+        line_total = sum(group["total_prices"])
+
+        line_rows.append(
+            {
+                "PO Name": po.name or str(po.pk),
+                "Product Name": group["product_name"],
+                "Product Code": group["product_code"],
+                "SKU": group["sku"],
+                "Ordered": _build_size_qty_string(ordered_pairs),
+                "Shipped": _build_size_qty_string(shipped_actual)
+                if shipped_actual
+                else "",
+                "Received": _build_size_qty_string(received_actual)
+                if received_actual
+                else "",
+                "Difference": _build_size_qty_string(diff_pairs) if diff_pairs else "",
+                "Unit Price": ", ".join(group["unit_prices"]),
+                "Total Price": str(line_total) if line_total else "",
+                "Currency": ", ".join(group["currencies"]),
+                "Country of Origin": ", ".join(group["countries"]),
+                "Status": ", ".join(group["statuses"]),
+            }
+        )
+
+    return summary, line_rows
+
+
+def _po_batch_queryset(batch_pks):
+    return (
+        PurchaseOrder.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk__in=batch_pks)
+        .select_related(
+            "source_warehouse",
+            "destination_warehouse",
+        )
+        .prefetch_related(
+            "items__product_variant__product__attributevalues__value__attribute",
+            "items__shipment",
+            "items__receipt_lines",
+            "items__adjustments",
+        )
+        .order_by("pk")
+    )
+
+
+def _get_size_values_for_variants(variant_ids: list) -> dict:
+    if not variant_ids:
+        return {}
+
+    from ...attribute.models import AssignedVariantAttribute
+
+    size_values_map: dict = {}
+    for slug in ["size", "Size", "SIZE"]:
+        assigned_attrs = (
+            AssignedVariantAttribute.objects.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            )
+            .filter(
+                variant_id__in=variant_ids,
+                assignment__attribute__slug=slug,
+            )
+            .prefetch_related("values")
+        )
+        for assigned_attr in assigned_attrs:
+            values = assigned_attr.values.all()
+            if values:
+                size_values_map[assigned_attr.variant_id] = (
+                    values[0].name or values[0].slug or str(values[0].value)
+                )
+        if size_values_map:
+            break
+    return size_values_map
+
+
+def export_purchase_orders(
+    export_file: "ExportFile",
+    scope: dict[str, str | dict],
+    file_type: str,
+    delimiter: str = ",",
+):
+    from ...graphql.inventory.filters import PurchaseOrderFilter
+    from ...site.models import SiteSettings
+
+    file_name = get_filename("purchase_order", file_type)
+    queryset = get_queryset(PurchaseOrder, PurchaseOrderFilter, scope)
+
+    site_settings = SiteSettings.objects.first()
+    product_code_slug = (
+        site_settings.invoice_product_code_attribute
+        if site_settings
+        else "product-code"
+    )
+
+    all_variant_ids = list(
+        PurchaseOrder.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(pk__in=queryset.values_list("pk", flat=True))
+        .values_list("items__product_variant_id", flat=True)
+        .distinct()
+    )
+    size_values_map = _get_size_values_for_variants(
+        [v for v in all_variant_ids if v is not None]
+    )
+
+    if file_type == FileTypes.XLSX:
+        summary_rows: list[dict] = []
+        lines_rows: list[dict] = []
+        for batch_pks in queryset_in_batches(queryset, BATCH_SIZE):
+            for po in _po_batch_queryset(batch_pks):
+                summary, line_rows = _build_po_rows(
+                    po, product_code_slug, size_values_map
+                )
+                summary_rows.append(summary)
+                lines_rows.extend(line_rows)
+
+        temp_file = NamedTemporaryFile("ab+", suffix=".xlsx")
+        _write_po_xlsx(summary_rows, lines_rows, temp_file.name)
+        temporary_file = temp_file
+    else:
+        temporary_file = create_file_with_headers(
+            PO_EXPORT_HEADERS, delimiter, file_type
+        )
+        for batch_pks in queryset_in_batches(queryset, BATCH_SIZE):
+            export_data: list[dict] = []
+            for po in _po_batch_queryset(batch_pks):
+                summary, line_rows = _build_po_rows(
+                    po, product_code_slug, size_values_map
+                )
+                if not line_rows:
+                    export_data.append(
+                        {
+                            **summary,
+                            **{h: "" for h in PO_LINE_HEADERS if h != "PO Name"},
+                        }
+                    )
+                else:
+                    for line_row in line_rows:
+                        export_data.append(
+                            {
+                                **summary,
+                                **{k: v for k, v in line_row.items() if k != "PO Name"},
+                            }
+                        )
+            append_to_file(
+                export_data, PO_EXPORT_HEADERS, temporary_file, FileTypes.CSV, delimiter
+            )
+
+    save_csv_file_in_export_file(export_file, temporary_file, file_name)
+    temporary_file.close()
+    send_export_download_link_notification(export_file, "purchase orders")
+
+
+def _write_po_xlsx(summary_rows: list[dict], lines_rows: list[dict], filename: str):
+    wb = openpyxl.Workbook()
+
+    ws_po = wb.active
+    ws_po.title = "Purchase Orders"
+    ws_po.append(PO_SUMMARY_HEADERS)
+    for row in summary_rows:
+        ws_po.append([row.get(h, "") for h in PO_SUMMARY_HEADERS])
+
+    ws_lines = wb.create_sheet("Lines")
+    ws_lines.append(PO_LINE_HEADERS)
+    for row in lines_rows:
+        ws_lines.append([row.get(h, "") for h in PO_LINE_HEADERS])
+
+    wb.save(filename)

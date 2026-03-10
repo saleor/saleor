@@ -16,6 +16,7 @@ from .utils.export import (
     export_gift_cards,
     export_orders,
     export_products,
+    export_purchase_orders,
     export_voucher_codes,
 )
 
@@ -29,6 +30,7 @@ class ExportTask(RestrictWriterDBTask):
         "export-gift-cards": "gift cards",
         "export-voucher-codes": "voucher codes",
         "export-orders": "orders",
+        "export-purchase-orders": "purchase orders",
     }
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
@@ -126,6 +128,20 @@ def export_orders_task(
             pk=export_file_id
         )
     export_orders(export_file, scope, file_type, delimiter)
+
+
+@app.task(name="export-purchase-orders", base=ExportTask)
+def export_purchase_orders_task(
+    export_file_id: int,
+    scope: dict[str, str | dict],
+    file_type: str,
+    delimiter: str = ",",
+):
+    with allow_writer():
+        export_file = ExportFile.objects.select_related("app", "user").get(
+            pk=export_file_id
+        )
+    export_purchase_orders(export_file, scope, file_type, delimiter)
 
 
 @app.task
