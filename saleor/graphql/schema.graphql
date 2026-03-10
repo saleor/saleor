@@ -29180,8 +29180,25 @@ type ReceiptUpdateLines @doc(category: "Products") {
 }
 
 input ReceiptLineInput {
-  """ID of the purchase order item."""
-  purchaseOrderItemId: ID!
+  """
+  ID of the purchase order item. Exactly one of purchaseOrderItemId or variantId must be provided.
+  """
+  purchaseOrderItemId: ID
+
+  """
+  ID of an existing product variant. Use this to receive an unexpected variant — a POI will be auto-created if a sibling variant is on the shipment.
+  """
+  variantId: ID
+
+  """
+  ID of the product. Used together with variantName to receive a variant that doesn't exist yet — the variant will be created automatically (copying attributes and channel listings from a sibling).
+  """
+  productId: ID
+
+  """
+  Name of the variant to create (e.g. a size like 'XL'). Must be provided together with productId.
+  """
+  variantName: String
 
   """Absolute quantity received. 0 removes the line."""
   quantity: Int!
