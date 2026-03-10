@@ -386,7 +386,6 @@ class Shop(graphene.ObjectType):
         PasswordLoginModeEnum,
         description="Controls whether password-based authentication is allowed."
         + ADDED_IN_323,
-        permissions=[SitePermissions.MANAGE_SETTINGS],
         required=True,
     )
 
