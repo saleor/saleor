@@ -1,6 +1,7 @@
 import graphene
 
 from .....page.models import PageType
+from .....site.error_codes import ReturnSettingsErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 RETURN_SETTINGS_UPDATE_MUTATION = """
@@ -155,8 +156,12 @@ def test_nonexistent_page_type(staff_api_client, permission_manage_settings):
     )
 
     # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert "errors" in content
+    content = get_graphql_content(response)
+    data = content["data"]["returnSettingsUpdate"]
+
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "returnReasonReferenceType"
+    assert data["errors"][0]["code"] == ReturnSettingsErrorCode.INVALID.name
 
 
 def test_wrong_node_type(staff_api_client, permission_manage_settings, product):
@@ -174,8 +179,12 @@ def test_wrong_node_type(staff_api_client, permission_manage_settings, product):
     )
 
     # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert "errors" in content
+    content = get_graphql_content(response)
+    data = content["data"]["returnSettingsUpdate"]
+
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "returnReasonReferenceType"
+    assert data["errors"][0]["code"] == ReturnSettingsErrorCode.GRAPHQL_ERROR.name
 
 
 def test_invalid_id_format(staff_api_client, permission_manage_settings):
@@ -192,8 +201,12 @@ def test_invalid_id_format(staff_api_client, permission_manage_settings):
     )
 
     # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert "errors" in content
+    content = get_graphql_content(response)
+    data = content["data"]["returnSettingsUpdate"]
+
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "returnReasonReferenceType"
+    assert data["errors"][0]["code"] == ReturnSettingsErrorCode.GRAPHQL_ERROR.name
 
 
 def test_no_permission_staff(staff_api_client, page_type):

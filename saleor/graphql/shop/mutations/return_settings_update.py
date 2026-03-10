@@ -27,9 +27,7 @@ class ReturnSettingsUpdateInput(BaseInputObjectType):
 
 
 class ReturnSettingsUpdate(BaseMutation):
-    return_settings = graphene.Field(
-        ReturnSettings, description="Return settings.", required=True
-    )
+    return_settings = graphene.Field(ReturnSettings, description="Return settings.")
 
     class Arguments:
         input = ReturnSettingsUpdateInput(
@@ -58,6 +56,7 @@ class ReturnSettingsUpdate(BaseMutation):
                 return_reason_reference_type,
                 only_type=PageType,
                 field="return_reason_reference_type",
+                code="invalid",
             )
 
             settings.return_reason_reference_type = model_type
