@@ -151,26 +151,21 @@ def _get_or_create_variant(product, variant_name):
     if not sibling:
         raise ValueError(f"Product {product.pk} has no existing variants to copy from.")
 
-    variant_attrs = AttributeVariant.objects.filter(
-        product_type=product.product_type, variant_selection=True
-    ).select_related("attribute")
-
-    if not variant_attrs.exists():
+    attr_assignment = (
+        AttributeVariant.objects.filter(
+            product_type=product.product_type, variant_selection=True
+        )
+        .select_related("attribute")
+        .first()
+    )
+    if not attr_assignment:
         raise ValueError(
-            f"Product type {product.product_type.slug} has no variant-selection "
-            f"attributes — cannot auto-create variant '{variant_name}'."
+            f"Product type '{product.product_type.name}' has no variant-selection "
+            f"attribute. Add one (e.g. 'Size') in Configuration → Product Types "
+            f"before creating new variants."
         )
 
-    attr_assignment = variant_attrs.first()
-    attribute = attr_assignment.attribute
-
     slug = slugify(variant_name)
-    attr_value, _ = AttributeValue.objects.get_or_create(
-        attribute=attribute,
-        slug=slug,
-        defaults={"name": variant_name},
-    )
-
     sku = f"{product.slug}-{slug}"
     variant = ProductVariant.objects.create(
         product=product,
@@ -178,7 +173,14 @@ def _get_or_create_variant(product, variant_name):
         name=variant_name,
     )
 
-    associate_attribute_values_to_instance(variant, {attribute.pk: [attr_value]})
+    if attr_assignment:
+        attribute = attr_assignment.attribute
+        attr_value, _ = AttributeValue.objects.get_or_create(
+            attribute=attribute,
+            slug=slug,
+            defaults={"name": variant_name},
+        )
+        associate_attribute_values_to_instance(variant, {attribute.pk: [attr_value]})
 
     listings_to_create = []
     for sl in sibling.channel_listings.all():
