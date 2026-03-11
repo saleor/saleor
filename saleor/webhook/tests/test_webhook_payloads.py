@@ -185,7 +185,6 @@ def test_generate_order_payload(
                 "type": "Payment",
                 "gateway": payment.gateway,
                 "payment_method_type": payment.payment_method_type,
-                "partial": False,
                 "cc_brand": payment.cc_brand,
                 "is_active": payment.is_active,
                 "created": parse_django_datetime(payment.created_at),
