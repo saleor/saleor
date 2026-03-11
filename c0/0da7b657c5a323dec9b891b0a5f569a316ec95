@@ -1,0 +1,23 @@
+saleor/graphql/payment/types.py
+  1537bef8de529e0f 206-210
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "c00da7b657c5a323dec9b891b0a5f569a316ec95",
+  "prompts": {
+    "1537bef8de529e0f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f14be17a-a0e5-4f04-b472-a279c6f403f3",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 0,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
