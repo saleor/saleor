@@ -16,6 +16,7 @@ from .....account.models import User
 from .....core.jwt import PERMISSIONS_FIELD, get_user_from_payload, jwt_decode
 from .....permission.enums import get_permissions_from_names
 from .....site import PasswordLoginMode
+from .....site.models import SiteSettings
 
 
 def get_user(payload):
@@ -62,7 +63,7 @@ def _does_token_match(token: str, csrf_token: str) -> bool:
     )
 
 
-def check_password_login_not_disabled(site_settings):
+def check_password_login_not_disabled(site_settings: SiteSettings):
     """Raise ValidationError if password-based authentication is disabled."""
     if site_settings.password_login_mode == PasswordLoginMode.DISABLED:
         raise ValidationError(
