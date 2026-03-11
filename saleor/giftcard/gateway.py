@@ -27,6 +27,7 @@ from .const import (
     SALEOR_GIFT_CARD_BRAND,
     SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME,
 )
+from .events import gift_card_refunded_in_order_event, gift_cards_used_in_order_event
 from .models import GiftCard
 
 
@@ -287,10 +288,18 @@ def charge_gift_card_transactions(
                         f"to cover requested amount ({quantize_price(gift_card_transaction.authorized_value, gift_card_transaction.currency)})."
                     )
                 else:
+                    previous_balance = gift_card.current_balance_amount
                     gift_card.current_balance_amount -= (
                         gift_card_transaction.authorized_value
                     )
                     gift_card.save(update_fields=["current_balance_amount"])
+
+                    gift_cards_used_in_order_event(
+                        balance_data=[(gift_card, previous_balance)],
+                        order=order,
+                        user=None,
+                        app=None,
+                    )
 
                     response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
                     response["message"] = (
@@ -376,8 +385,16 @@ def refund_gift_card_transaction(
                 .select_for_update()
                 .get()
             )
+            previous_balance = gift_card.current_balance_amount
             gift_card.current_balance_amount = F("current_balance_amount") + amount
             gift_card.save(update_fields=["current_balance_amount"])
+            gift_card.refresh_from_db(fields=["current_balance_amount"])
+
+            gift_card_refunded_in_order_event(
+                gift_card=gift_card,
+                order=transaction_item.order,
+                previous_balance=previous_balance,
+            )
     except GiftCard.DoesNotExist:
         # Gift card must have been just deleted.
         # Eat the exception, failure response dict is already prepared.

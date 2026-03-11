@@ -21,6 +21,7 @@ class GiftCardEvents:
     RESENT = "resent"
     NOTE_ADDED = "note_added"
     USED_IN_ORDER = "used_in_order"
+    REFUNDED_IN_ORDER = "refunded_in_order"
 
     CHOICES = [
         (ISSUED, "The gift card was created be staff user or app."),
@@ -35,6 +36,7 @@ class GiftCardEvents:
         (RESENT, "The gift card was resent to the customer."),
         (NOTE_ADDED, "A note was added to the gift card."),
         (USED_IN_ORDER, "The gift card was used in order."),
+        (REFUNDED_IN_ORDER, "The gift card was refunded in order."),
     ]
 
 

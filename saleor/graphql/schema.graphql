@@ -11425,7 +11425,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   product: Product
 
   """
-  List of events associated with the gift card. Requires MANAGE_GIFT_CARD permission to access all events. Users with MANAGE_ORDERS permission can access only USED_IN_ORDER events.
+  List of events associated with the gift card. Requires MANAGE_GIFT_CARD permission to access all events. Users with MANAGE_ORDERS permission can access only USED_IN_ORDER and REFUNDED_IN_ORDER events.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD, MANAGE_ORDERS.
   """
@@ -11519,6 +11519,7 @@ enum GiftCardEventsEnum @doc(category: "Gift cards") {
   RESENT
   NOTE_ADDED
   USED_IN_ORDER
+  REFUNDED_IN_ORDER
 }
 
 type GiftCardEventBalance @doc(category: "Gift cards") {

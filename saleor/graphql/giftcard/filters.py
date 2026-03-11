@@ -133,12 +133,12 @@ class GiftCardFilterInput(FilterInputObjectType):
         filterset_class = GiftCardFilter
 
 
-def filter_events_by_type(events: list[models.GiftCardEvent], type_value: str):
-    filtered_events = []
-    for event in events:
-        if event.type == type_value:
-            filtered_events.append(event)
-    return filtered_events
+def filter_events_by_type(
+    events: list[models.GiftCardEvent], type_value: str | list[str]
+):
+    if isinstance(type_value, list):
+        return [event for event in events if event.type in type_value]
+    return [event for event in events if event.type == type_value]
 
 
 def filter_events_by_orders(
