@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "a7dce770f6b704e8ed08ce878724a328d73b7f4f",
+  "prompts": {
+    "1ff388b0bdab1c34": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ebf8ad80-3b13-4ffa-be11-43f295e8097b",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  }
+}
