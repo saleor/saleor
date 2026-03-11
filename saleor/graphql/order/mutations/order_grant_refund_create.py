@@ -139,7 +139,7 @@ class OrderGrantRefundCreate(BaseMutation):
         list[dict[str, str]] | None,
     ]:
         errors: list[dict[str, str]] = []
-        input_lines_data, line_reason_reference_ids = get_input_lines_data(
+        input_lines_data = get_input_lines_data(
             lines, errors, OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value
         )
         assign_order_lines(
@@ -156,7 +156,6 @@ class OrderGrantRefundCreate(BaseMutation):
         )
         clean_line_reason_references(
             input_lines_data,
-            line_reason_reference_ids,
             refund_reason_reference_type,
             errors,
             OrderGrantRefundCreateLineErrorCode,
@@ -165,7 +164,7 @@ class OrderGrantRefundCreate(BaseMutation):
         if errors:
             return [], errors
 
-        return list(input_lines_data.values()), None
+        return [entry["line_model"] for entry in input_lines_data.values()], None
 
     @classmethod
     def calculate_amount(

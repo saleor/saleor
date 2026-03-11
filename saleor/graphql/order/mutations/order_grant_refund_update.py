@@ -238,7 +238,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         line_ids_exclude: list[int],
         refund_reason_reference_type,
     ) -> list[models.OrderGrantedRefundLine]:
-        input_lines_data, line_reason_reference_ids = get_input_lines_data(
+        input_lines_data = get_input_lines_data(
             lines, errors, OrderGrantRefundUpdateLineErrorCode.GRAPHQL_ERROR.value
         )
         assign_order_lines(
@@ -256,13 +256,12 @@ class OrderGrantRefundUpdate(BaseMutation):
         )
         clean_line_reason_references(
             input_lines_data,
-            line_reason_reference_ids,
             refund_reason_reference_type,
             errors,
             OrderGrantRefundUpdateLineErrorCode,
         )
 
-        return list(input_lines_data.values())
+        return [entry["line_model"] for entry in input_lines_data.values()]
 
     @classmethod
     def clean_input(

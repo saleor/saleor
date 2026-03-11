@@ -18,6 +18,11 @@ class GrantRefundLineDict(TypedDict, total=False):
     reason_reference: str
 
 
+class InputLineData(TypedDict):
+    line_model: models.OrderGrantedRefundLine
+    reference_id: str | None
+
+
 def shipping_costs_already_granted(
     order: models.Order, grant_refund_pk_to_exclude=None
 ):
@@ -31,7 +36,7 @@ def shipping_costs_already_granted(
 
 def handle_lines_with_quantity_already_refunded(
     order: models.Order,
-    input_lines_data: dict[uuid.UUID, models.OrderGrantedRefundLine],
+    input_lines_data: dict[uuid.UUID, InputLineData],
     errors: list[dict[str, Any]],
     error_code: str,
     granted_refund_lines_to_exclude: list[int] | None = None,
@@ -50,7 +55,8 @@ def handle_lines_with_quantity_already_refunded(
     for line in lines_to_process:
         lines_with_quantity_already_refunded[line.order_line_id] += line.quantity
 
-    for granted_refund_line in input_lines_data.values():
+    for entry in input_lines_data.values():
+        granted_refund_line = entry["line_model"]
         if not granted_refund_line.order_line:
             continue
 
@@ -84,9 +90,8 @@ def get_input_lines_data(
     lines: list[GrantRefundLineDict],
     errors: list[dict[str, str]],
     error_code: str,
-) -> tuple[dict[uuid.UUID, models.OrderGrantedRefundLine], dict[uuid.UUID, str | None]]:
-    granted_refund_lines = {}
-    line_reason_reference_ids: dict[uuid.UUID, str | None] = {}
+) -> dict[uuid.UUID, InputLineData]:
+    input_lines: dict[uuid.UUID, InputLineData] = {}
     for line in lines:
         order_line_id = line["id"]
         try:
@@ -96,12 +101,14 @@ def get_input_lines_data(
             uuid_pk = uuid.UUID(pk)
             reason = line.get("reason")
             reason_reference_id = line.get("reason_reference")
-            granted_refund_lines[uuid_pk] = models.OrderGrantedRefundLine(
-                order_line_id=uuid_pk,
-                quantity=line["quantity"],
-                reason=reason,
-            )
-            line_reason_reference_ids[uuid_pk] = reason_reference_id
+            input_lines[uuid_pk] = {
+                "line_model": models.OrderGrantedRefundLine(
+                    order_line_id=uuid_pk,
+                    quantity=line["quantity"],
+                    reason=reason,
+                ),
+                "reference_id": reason_reference_id,
+            }
         except (GraphQLError, ValueError) as e:
             errors.append(
                 {
@@ -111,12 +118,12 @@ def get_input_lines_data(
                     "message": str(e),
                 }
             )
-    return granted_refund_lines, line_reason_reference_ids
+    return input_lines
 
 
 def assign_order_lines(
     order: models.Order,
-    input_lines_data: dict[uuid.UUID, models.OrderGrantedRefundLine],
+    input_lines_data: dict[uuid.UUID, InputLineData],
     errors: list[dict[str, str]],
     error_code: str,
 ):
@@ -135,7 +142,7 @@ def assign_order_lines(
                 }
             )
     for line_pk, order_line in lines_dict.items():
-        input_lines_data[line_pk].order_line = order_line
+        input_lines_data[line_pk]["line_model"].order_line = order_line
 
 
 def resolve_reason_reference_page(
@@ -175,8 +182,7 @@ def resolve_reason_reference_page(
 
 
 def clean_line_reason_references(
-    input_lines_data: dict[uuid.UUID, models.OrderGrantedRefundLine],
-    line_reason_reference_ids: dict[uuid.UUID, str | None],
+    input_lines_data: dict[uuid.UUID, InputLineData],
     refund_reason_reference_type: PageType | None,
     errors: list[dict[str, Any]],
     line_error_code_enum,
@@ -185,11 +191,11 @@ def clean_line_reason_references(
 
     Batches DB lookups: collects all page IDs, fetches in one query, maps back.
     """
-    lines_with_refs: list[tuple[uuid.UUID, models.OrderGrantedRefundLine, str]] = []
-    for line_pk, line in input_lines_data.items():
-        reason_ref_id = line_reason_reference_ids.get(line_pk)
+    lines_with_refs: list[tuple[uuid.UUID, InputLineData, str]] = []
+    for line_pk, entry in input_lines_data.items():
+        reason_ref_id = entry["reference_id"]
         if reason_ref_id:
-            lines_with_refs.append((line_pk, line, reason_ref_id))
+            lines_with_refs.append((line_pk, entry, reason_ref_id))
 
     if not lines_with_refs:
         return
@@ -238,18 +244,16 @@ def clean_line_reason_references(
     }
 
     # Map back to lines
-    for line_pk, line, global_id in lines_with_refs:
+    for line_pk, entry, global_id in lines_with_refs:
         page = pages_by_pk.get(page_pks[global_id])
         if not page:
             errors.append(
                 {
                     "line_id": graphene.Node.to_global_id("OrderLine", line_pk),
                     "field": "reason_reference",
-                    "message": (
-                        "Invalid reason reference. Must be an ID of a Model (Page)."
-                    ),
+                    "message": "Invalid reason reference.",
                     "code": line_error_code_enum.INVALID.value,
                 }
             )
         else:
-            line.reason_reference = page
+            entry["line_model"].reason_reference = page
