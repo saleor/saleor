@@ -241,10 +241,14 @@ def gift_card_refunded_in_order_event(
     gift_card: GiftCard,
     order: "Order | None",
     previous_balance: "Decimal",
+    user: User | None,
+    app: App | None,
 ):
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
         order=order,
+        user=user,
+        app=app,
         type=GiftCardEvents.REFUNDED_IN_ORDER,
         parameters={
             "balance": {

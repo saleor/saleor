@@ -7,6 +7,8 @@ from django.db import transaction
 from django.db.models import Exists, F, OuterRef, Q
 from django.utils import timezone
 
+from ..account.models import User
+from ..app.models import App
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..graphql.payment.mutations.transaction.utils import (
@@ -222,7 +224,7 @@ def detach_gift_card_from_previous_checkout_transactions(
 
 
 def charge_gift_card_transactions(
-    order: "Order",
+    order: "Order", user: User | None = None, app: App | None = None
 ):
     """Find all gift card payment gateway transactions tied to an order and attempt to charge funds from gift cards.
 
@@ -355,7 +357,10 @@ def cancel_gift_card_transaction(
 
 
 def refund_gift_card_transaction(
-    transaction_item: "TransactionItem", request_event: "TransactionEvent"
+    transaction_item: "TransactionItem",
+    request_event: "TransactionEvent",
+    user: User | None = None,
+    app: App | None = None,
 ):
     """Refund funds to a gift card which previously were charged from the same gift card.
 
@@ -394,6 +399,8 @@ def refund_gift_card_transaction(
                 gift_card=gift_card,
                 order=transaction_item.order,
                 previous_balance=previous_balance,
+                user=user,
+                app=app,
             )
     except GiftCard.DoesNotExist:
         # Gift card must have been just deleted.
