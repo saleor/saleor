@@ -49,12 +49,14 @@ from .mutations.draft_order_update import DraftOrderUpdate
 from .mutations.fulfillment_approve import FulfillmentApprove
 from .mutations.fulfillment_cancel import FulfillmentCancel
 from .mutations.fulfillment_refund_products import FulfillmentRefundProducts
-from .mutations.fulfillment_replace_prepayment import FulfillmentReplacePrepayment
 from .mutations.fulfillment_return_products import FulfillmentReturnProducts
 from .mutations.fulfillment_update_tracking import FulfillmentUpdateTracking
+from .mutations.order_add_prepayment import OrderAddPrepayment
 from .mutations.order_cancel import OrderCancel
 from .mutations.order_capture import OrderCapture
+from .mutations.order_check_prepayment import OrderCheckPrepayment
 from .mutations.order_confirm import OrderConfirm
+from .mutations.order_delete_prepayment import OrderDeletePrepayment
 from .mutations.order_discount_add import OrderDiscountAdd
 from .mutations.order_discount_delete import OrderDiscountDelete
 from .mutations.order_discount_update import OrderDiscountUpdate
@@ -71,7 +73,6 @@ from .mutations.order_note_add import OrderAddNote, OrderNoteAdd
 from .mutations.order_note_update import OrderNoteUpdate
 from .mutations.order_override_deposit_threshold import OrderOverrideDepositThreshold
 from .mutations.order_refund import OrderRefund
-from .mutations.order_replace_deposit_prepayment import OrderReplaceDepositPrepayment
 from .mutations.order_set_deposit_required import OrderSetDepositRequired
 from .mutations.order_update import OrderUpdate
 from .mutations.order_update_shipping import OrderUpdateShipping
@@ -444,7 +445,9 @@ class OrderMutations(graphene.ObjectType):
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_fulfillment_refund_products = FulfillmentRefundProducts.Field()
     order_fulfillment_return_products = FulfillmentReturnProducts.Field()
-    fulfillment_replace_prepayment = FulfillmentReplacePrepayment.Field()
+    order_add_prepayment = OrderAddPrepayment.Field()
+    order_check_prepayment = OrderCheckPrepayment.Field()
+    order_delete_prepayment = OrderDeletePrepayment.Field()
     order_grant_refund_create = OrderGrantRefundCreate.Field()
     order_grant_refund_update = OrderGrantRefundUpdate.Field()
 
@@ -465,7 +468,6 @@ class OrderMutations(graphene.ObjectType):
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()
     order_override_deposit_threshold = OrderOverrideDepositThreshold.Field()
-    order_replace_deposit_prepayment = OrderReplaceDepositPrepayment.Field()
     order_set_deposit_required = OrderSetDepositRequired.Field()
     order_update = OrderUpdate.Field()
     order_update_shipping = OrderUpdateShipping.Field()

@@ -87,9 +87,10 @@ class OrderSetDepositRequired(BaseMutation):
         order = cls.get_node_or_error(info, id, only_type=Order)
         cls.check_channel_permissions(info, [order.channel_id])
 
-        if order.xero_deposit_prepayment_id:
+        if order.payments.xero_unpaid_deposits().exists():
             raise ValidationError(
-                "Deposit settings cannot be changed after a Xero prepayment has been created.",
+                "Deposit settings cannot be changed while unpaid deposit prepayments exist. "
+                "Delete the unpaid prepayments first.",
                 code=OrderErrorCode.INVALID.value,
             )
 

@@ -1569,8 +1569,7 @@ def create_fulfillments(
                 generate_proforma_invoice(fulfillment, manager)
                 manager.xero_fulfillment_created(fulfillment)
                 if order.origin != OrderOrigin.CHECKOUT:
-                    fulfillment.refresh_from_db(fields=["xero_proforma_prepayment_id"])
-                    if not fulfillment.xero_proforma_prepayment_id:
+                    if not fulfillment.payments.exists():
                         raise ValidationError(
                             "Xero sync failed: could not create proforma prepayment.",
                             code=OrderErrorCode.XERO_SYNC_FAILED.value,
@@ -2468,11 +2467,15 @@ def try_auto_approve_fulfillment(fulfillment, user=None, enabled=True):
 
     order = fulfillment.order
     if order.origin != OrderOrigin.CHECKOUT:
+        from ..payment import ChargeStatus, CustomPaymentChoices
+
+        proforma_payments = fulfillment.payments.filter(
+            gateway=CustomPaymentChoices.XERO,
+            is_active=True,
+        )
         if (
-            not fulfillment.xero_proforma_prepayment_id
-            or not order.payments.filter(
-                psp_reference=fulfillment.xero_proforma_prepayment_id
-            ).exists()
+            not proforma_payments.exists()
+            or proforma_payments.filter(charge_status=ChargeStatus.NOT_CHARGED).exists()
         ):
             return False
 

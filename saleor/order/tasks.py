@@ -245,13 +245,9 @@ def reduce_user_number_of_orders(user_orders_count: dict[int, int]):
 @allow_writer()
 def check_xero_prepayment_statuses_task():
     """Hourly CRON: check all pending Xero prepayments and record payments if paid."""
-    from decimal import Decimal
-
-    from ..order.utils import record_external_payment
-    from ..payment import CustomPaymentChoices, TransactionKind
+    from ..payment.utils_xero import get_reconciled_amount
     from ..webhook.event_types import WebhookEventSyncType
     from ..webhook.utils import get_webhooks_for_event
-    from .models import Fulfillment, FulfillmentStatus
 
     manager = get_plugins_manager(allow_replica=False)
 
@@ -260,72 +256,40 @@ def check_xero_prepayment_statuses_task():
     ):
         return
 
-    # Check deposit prepayments: orders with a stored Xero prepayment ID and no deposit_paid_at
-    pending_deposit_orders = (
-        Order.objects.filter(
-            xero_deposit_prepayment_id__isnull=False,
-            deposit_paid_at__isnull=True,
-        )
-        .exclude(payments__psp_reference=F("xero_deposit_prepayment_id"))
-        .select_related("channel")
+    from ..payment import ChargeStatus as PaymentChargeStatus
+    from ..payment.models import Payment
+
+    pending_payments = Payment.objects.xero_pending().select_related(
+        "order", "order__channel", "fulfillment"
     )
 
-    for order in pending_deposit_orders:
-        if order.xero_deposit_prepayment_id is None:
-            continue
-        response = manager.xero_check_prepayment_status(
-            order.xero_deposit_prepayment_id
-        )
-        reconciled = response.get("reconciledAmount") if response else None
-        if not reconciled or Decimal(str(reconciled)) <= 0:
-            continue
-        amount = Decimal(str(reconciled))
-        record_external_payment(
-            order=order,
-            amount=amount,
-            gateway=CustomPaymentChoices.XERO,
-            psp_reference=order.xero_deposit_prepayment_id,
-            transaction_kind=TransactionKind.CAPTURE,
-            metadata={"source": "xero_cron"},
-            user=None,
-            app=None,
-            manager=manager,
-        )
-        order.refresh_from_db(fields=["deposit_paid_at"])
+    for payment in pending_payments:
+        response = manager.xero_check_prepayment_status(payment.psp_reference)
 
-    # Check proforma prepayments: fulfillments with a stored Xero prepayment ID
-    # that don't already have a recorded payment for that ID
-    pending_proforma_fulfillments = (
-        Fulfillment.objects.filter(
-            xero_proforma_prepayment_id__isnull=False,
-            status=FulfillmentStatus.WAITING_FOR_APPROVAL,
-        )
-        .exclude(order__payments__psp_reference=F("xero_proforma_prepayment_id"))
-        .select_related("order", "order__channel")
-    )
-
-    for fulfillment in pending_proforma_fulfillments:
-        if fulfillment.xero_proforma_prepayment_id is None:
+        if response is None:
+            logger.info(
+                "Xero prepayment %s no longer exists, deleting Payment %s",
+                payment.psp_reference,
+                payment.pk,
+            )
+            payment.delete()
             continue
-        response = manager.xero_check_prepayment_status(
-            fulfillment.xero_proforma_prepayment_id
-        )
-        reconciled = response.get("reconciledAmount") if response else None
-        if not reconciled or Decimal(str(reconciled)) <= 0:
-            continue
-        order = fulfillment.order
-        amount = Decimal(str(reconciled))
-        record_external_payment(
-            order=order,
-            amount=amount,
-            gateway=CustomPaymentChoices.XERO,
-            psp_reference=fulfillment.xero_proforma_prepayment_id,
-            transaction_kind=TransactionKind.CAPTURE,
-            metadata={"source": "xero_cron"},
-            user=None,
-            app=None,
-            manager=manager,
-        )
-        from .actions import try_auto_approve_fulfillment
 
-        try_auto_approve_fulfillment(fulfillment)
+        reconciled = get_reconciled_amount(response)
+        if reconciled <= 0:
+            continue
+
+        payment.captured_amount = reconciled
+        payment.total = reconciled
+        payment.charge_status = PaymentChargeStatus.FULLY_CHARGED
+        payment.save(
+            update_fields=["captured_amount", "total", "charge_status", "modified_at"]
+        )
+
+        if payment.fulfillment is None:
+            order = payment.order
+            order.refresh_from_db(fields=["deposit_paid_at"])
+        else:
+            from .actions import try_auto_approve_fulfillment
+
+            try_auto_approve_fulfillment(payment.fulfillment)

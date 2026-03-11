@@ -40,6 +40,14 @@ class OrderOverrideDepositThreshold(BaseMutation):
                 code=OrderErrorCode.INVALID.value,
             )
 
+        if override:
+            if order.payments.xero_unpaid_deposits().exists():
+                raise ValidationError(
+                    "Cannot override deposit threshold while unpaid deposit "
+                    "prepayments exist. Delete the unpaid prepayments first.",
+                    code=OrderErrorCode.INVALID.value,
+                )
+
         update_fields = ["deposit_threshold_met_override"]
         order.deposit_threshold_met_override = override
         if override and not order.deposit_paid_at:

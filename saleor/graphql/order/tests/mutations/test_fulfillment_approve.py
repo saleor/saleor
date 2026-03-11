@@ -784,6 +784,7 @@ def test_fulfillment_approve_draft_order_prepayment_paid(
 
     Payment.objects.create(
         order=order,
+        fulfillment=fulfillment,
         gateway=CustomPaymentChoices.XERO,
         psp_reference="PREPAY-001",
         total=0,

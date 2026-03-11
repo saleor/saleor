@@ -523,12 +523,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
 
         from ..payment import CustomPaymentChoices
 
-        if not self.xero_deposit_prepayment_id:
-            return Decimal(0)
         result = self.payments.filter(
             gateway=CustomPaymentChoices.XERO,
             is_active=True,
-            psp_reference=self.xero_deposit_prepayment_id,
+            fulfillment__isnull=True,
         ).aggregate(total=Sum("captured_amount"))
         return result["total"] or Decimal(0)
 
@@ -1142,10 +1140,13 @@ class Fulfillment(ModelWithMetadata):
 
         order = self.order
         if order.origin != OrderOrigin.CHECKOUT:
+            from ..payment import ChargeStatus
+
+            proforma_payments = self.payments.xero_proforma()
             if (
-                not self.xero_proforma_prepayment_id
-                or not order.payments.filter(
-                    psp_reference=self.xero_proforma_prepayment_id
+                not proforma_payments.exists()
+                or proforma_payments.filter(
+                    charge_status=ChargeStatus.NOT_CHARGED
                 ).exists()
             ):
                 return False
