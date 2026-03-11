@@ -12303,6 +12303,9 @@ type PurchaseOrder implements Node {
   """Destination warehouse (owned)."""
   destinationWarehouse: Warehouse!
 
+  """Channel this purchase order is associated with."""
+  channel: Channel
+
   """Current status of the purchase order."""
   status: PurchaseOrderStatusEnum!
 
@@ -28979,6 +28982,9 @@ input PurchaseOrderCreateInput @doc(category: "Products") {
 
   """Destination warehouse (must be owned warehouse)."""
   destinationWarehouseId: ID!
+
+  """Channel this purchase order is associated with."""
+  channelId: ID
 
   """Optional name for the purchase order."""
   name: String

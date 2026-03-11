@@ -14,6 +14,10 @@ mutation createPurchaseOrder($input: PurchaseOrderCreateInput!) {
                 id
                 name
             }
+            channel {
+                id
+                slug
+            }
             items {
                 id
                 productVariant {
@@ -47,6 +51,7 @@ def test_create_purchase_order_success(
     variant,
     warehouse,
     supplier_warehouse,
+    channel_USD,
 ):
     """Successfully create a purchase order with valid data."""
     # given
@@ -58,6 +63,7 @@ def test_create_purchase_order_success(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": graphene.Node.to_global_id(
@@ -89,6 +95,7 @@ def test_create_purchase_order_success(
     po = PurchaseOrder.objects.first()
     assert po.source_warehouse == supplier_warehouse
     assert po.destination_warehouse == warehouse
+    assert po.channel == channel_USD
 
     item = PurchaseOrderItem.objects.first()
     assert item.product_variant == variant
@@ -102,7 +109,7 @@ def test_create_purchase_order_success(
 
 
 def test_create_purchase_order_source_warehouse_must_be_non_owned(
-    staff_api_client, permission_manage_purchase_orders, variant, warehouse
+    staff_api_client, permission_manage_purchase_orders, variant, warehouse, channel_USD
 ):
     """Source warehouse must be a supplier (non-owned)."""
     # given - using owned warehouse as source (invalid)
@@ -112,6 +119,7 @@ def test_create_purchase_order_source_warehouse_must_be_non_owned(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": graphene.Node.to_global_id(
@@ -144,7 +152,11 @@ def test_create_purchase_order_source_warehouse_must_be_non_owned(
 
 
 def test_create_purchase_order_destination_warehouse_must_be_owned(
-    staff_api_client, permission_manage_purchase_orders, variant, supplier_warehouse
+    staff_api_client,
+    permission_manage_purchase_orders,
+    variant,
+    supplier_warehouse,
+    channel_USD,
 ):
     """Destination warehouse must be owned."""
     # given - using non-owned warehouse as destination (invalid)
@@ -156,6 +168,7 @@ def test_create_purchase_order_destination_warehouse_must_be_owned(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", supplier_warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": graphene.Node.to_global_id(
@@ -188,7 +201,11 @@ def test_create_purchase_order_destination_warehouse_must_be_owned(
 
 
 def test_create_purchase_order_without_items(
-    staff_api_client, permission_manage_purchase_orders, warehouse, supplier_warehouse
+    staff_api_client,
+    permission_manage_purchase_orders,
+    warehouse,
+    supplier_warehouse,
+    channel_USD,
 ):
     """Draft purchase order can be created without items."""
     # given
@@ -200,6 +217,7 @@ def test_create_purchase_order_without_items(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
         }
     }
 
@@ -224,6 +242,7 @@ def test_create_purchase_order_items_without_price(
     variant,
     warehouse,
     supplier_warehouse,
+    channel_USD,
 ):
     """Items can be created without unit price or currency for draft POs."""
     # given
@@ -235,6 +254,7 @@ def test_create_purchase_order_items_without_price(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": graphene.Node.to_global_id(
@@ -271,6 +291,7 @@ def test_create_purchase_order_quantity_must_be_positive(
     variant,
     warehouse,
     supplier_warehouse,
+    channel_USD,
 ):
     """Quantity must be greater than 0."""
     # given
@@ -282,6 +303,7 @@ def test_create_purchase_order_quantity_must_be_positive(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": graphene.Node.to_global_id(
@@ -315,7 +337,11 @@ def test_create_purchase_order_quantity_must_be_positive(
 
 
 def test_create_purchase_order_invalid_variant_id(
-    staff_api_client, permission_manage_purchase_orders, warehouse, supplier_warehouse
+    staff_api_client,
+    permission_manage_purchase_orders,
+    warehouse,
+    supplier_warehouse,
+    channel_USD,
 ):
     """Invalid variant IDs should be rejected."""
     # given
@@ -328,6 +354,7 @@ def test_create_purchase_order_invalid_variant_id(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": invalid_variant_id,
@@ -363,6 +390,7 @@ def test_create_purchase_order_invalid_country_code(
     variant,
     warehouse,
     supplier_warehouse,
+    channel_USD,
 ):
     """Invalid country codes should be rejected."""
     # given
@@ -374,6 +402,7 @@ def test_create_purchase_order_invalid_country_code(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": graphene.Node.to_global_id(
@@ -406,7 +435,7 @@ def test_create_purchase_order_invalid_country_code(
 
 
 def test_create_purchase_order_requires_permission(
-    staff_api_client, variant, warehouse, supplier_warehouse
+    staff_api_client, variant, warehouse, supplier_warehouse, channel_USD
 ):
     """Permission is required to create purchase orders."""
     # given
@@ -418,6 +447,7 @@ def test_create_purchase_order_requires_permission(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": graphene.Node.to_global_id(
@@ -448,6 +478,7 @@ def test_create_purchase_order_initial_status_is_draft(
     variant,
     warehouse,
     supplier_warehouse,
+    channel_USD,
 ):
     """Verify initial status is DRAFT."""
     # given
@@ -459,6 +490,7 @@ def test_create_purchase_order_initial_status_is_draft(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": graphene.Node.to_global_id(
@@ -494,6 +526,7 @@ def test_create_purchase_order_quantity_received_starts_at_zero(
     variant,
     warehouse,
     supplier_warehouse,
+    channel_USD,
 ):
     """Verify quantity_received starts at 0."""
     # given
@@ -505,6 +538,7 @@ def test_create_purchase_order_quantity_received_starts_at_zero(
             "destinationWarehouseId": graphene.Node.to_global_id(
                 "Warehouse", warehouse.id
             ),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.id),
             "items": [
                 {
                     "variantId": graphene.Node.to_global_id(

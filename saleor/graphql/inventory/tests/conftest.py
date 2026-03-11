@@ -38,13 +38,14 @@ def supplier_warehouse(address, shipping_zone, channel_USD):
 
 
 @pytest.fixture
-def draft_purchase_order(supplier_warehouse, warehouse, variant):
+def draft_purchase_order(supplier_warehouse, warehouse, variant, channel_USD):
     """Draft purchase order with items in DRAFT status."""
     from decimal import Decimal
 
     purchase_order = PurchaseOrder.objects.create(
         source_warehouse=supplier_warehouse,
         destination_warehouse=warehouse,
+        channel=channel_USD,
     )
     PurchaseOrderItem.objects.create(
         order=purchase_order,
