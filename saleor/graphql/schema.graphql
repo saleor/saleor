@@ -36600,6 +36600,21 @@ type XeroFulfillmentApproved implements Event @doc(category: "Orders") {
 
   """Pre-computed line amounts and tax codes for Xero invoice creation."""
   calculatedAmounts: XeroFulfillmentCreatedCalculatedAmounts
+
+  """
+  Order-level deposit prepayments (fully charged). Dirac should allocate these FIFO against the final invoice.
+  """
+  depositPrepayments: [XeroPrepaymentReference!]!
+
+  """
+  This fulfillment's proforma prepayments (fully charged). Dirac should allocate these before deposit prepayments.
+  """
+  fulfillmentPrepayments: [XeroPrepaymentReference!]!
+}
+
+type XeroPrepaymentReference {
+  """Xero bank transaction ID."""
+  pspReference: String!
 }
 
 """Sync event to check whether a Xero prepayment has been paid."""

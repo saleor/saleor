@@ -1725,10 +1725,32 @@ class XeroFulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
         )
 
 
+class XeroPrepaymentReference(graphene.ObjectType):
+    psp_reference = graphene.String(
+        required=True, description="Xero bank transaction ID."
+    )
+
+
 class XeroFulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
     calculated_amounts = graphene.Field(
         XeroFulfillmentCreatedCalculatedAmounts,
         description="Pre-computed line amounts and tax codes for Xero invoice creation.",
+    )
+    deposit_prepayments = graphene.List(
+        graphene.NonNull(XeroPrepaymentReference),
+        required=True,
+        description=(
+            "Order-level deposit prepayments (fully charged). "
+            "Dirac should allocate these FIFO against the final invoice."
+        ),
+    )
+    fulfillment_prepayments = graphene.List(
+        graphene.NonNull(XeroPrepaymentReference),
+        required=True,
+        description=(
+            "This fulfillment's proforma prepayments (fully charged). "
+            "Dirac should allocate these before deposit prepayments."
+        ),
     )
 
     class Meta:
@@ -1750,6 +1772,36 @@ class XeroFulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
             amount=order.total_gross_amount, currency=order.currency
         )
         return result
+
+    @staticmethod
+    def resolve_deposit_prepayments(root, _info: ResolveInfo):
+        from ...payment import ChargeStatus, CustomPaymentChoices
+
+        _, fulfillment = root
+        order = fulfillment.order
+        payments = order.payments.filter(
+            gateway=CustomPaymentChoices.XERO,
+            is_active=True,
+            fulfillment__isnull=True,
+            charge_status=ChargeStatus.FULLY_CHARGED,
+        ).order_by("created_at")
+        return [
+            XeroPrepaymentReference(psp_reference=p.psp_reference) for p in payments
+        ]
+
+    @staticmethod
+    def resolve_fulfillment_prepayments(root, _info: ResolveInfo):
+        from ...payment import ChargeStatus, CustomPaymentChoices
+
+        _, fulfillment = root
+        payments = fulfillment.payments.filter(
+            gateway=CustomPaymentChoices.XERO,
+            is_active=True,
+            charge_status=ChargeStatus.FULLY_CHARGED,
+        ).order_by("created_at")
+        return [
+            XeroPrepaymentReference(psp_reference=p.psp_reference) for p in payments
+        ]
 
 
 class XeroCheckPrepaymentStatus(SubscriptionObjectType):

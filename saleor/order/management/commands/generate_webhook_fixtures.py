@@ -179,22 +179,20 @@ def _gen_list_payments(query, output_dir, channel, request, stdout):
 
 
 def _gen_xero_fulfillment_approved(query, output_dir, channel, request, stdout):
-    from ....payment import ChargeStatus, TransactionKind
-    from ....payment.models import Payment, Transaction
+    from ....payment import ChargeStatus
+    from ....payment.models import Payment
 
     payload = None
     try:
         with transaction.atomic():
             order = _make_order(channel)
             order.status = OrderStatus.UNFULFILLED
-            order.xero_deposit_prepayment_id = "00000000-0000-0000-0000-000000000000"
             order.shipping_price_net_amount = Decimal("20.00")
             order.shipping_price_gross_amount = Decimal("24.00")
             order.shipping_tax_rate = Decimal("0.20")
             order.save(
                 update_fields=[
                     "status",
-                    "xero_deposit_prepayment_id",
                     "shipping_price_net_amount",
                     "shipping_price_gross_amount",
                     "shipping_tax_rate",
@@ -229,7 +227,6 @@ def _gen_xero_fulfillment_approved(query, output_dir, channel, request, stdout):
             fulfillment = Fulfillment.objects.create(
                 order=order,
                 deposit_allocated_amount=Decimal("90.00"),
-                xero_proforma_prepayment_id="00000000-0000-0000-0000-000000000001",
             )
             FulfillmentLine.objects.create(
                 fulfillment=fulfillment,
@@ -237,24 +234,27 @@ def _gen_xero_fulfillment_approved(query, output_dir, channel, request, stdout):
                 quantity=10,
             )
 
-            payment = Payment.objects.create(
+            Payment.objects.create(
                 gateway="xero",
                 order=order,
+                fulfillment=None,
                 currency=channel.currency_code,
                 total=Decimal("90.00"),
                 captured_amount=Decimal("90.00"),
                 charge_status=ChargeStatus.FULLY_CHARGED,
-                psp_reference=order.xero_deposit_prepayment_id,
+                psp_reference="00000000-0000-0000-0000-deposit-0001",
                 is_active=True,
             )
-            Transaction.objects.create(
-                payment=payment,
-                token=order.xero_deposit_prepayment_id,
-                kind=TransactionKind.CAPTURE,
+            Payment.objects.create(
+                gateway="xero",
+                order=order,
+                fulfillment=fulfillment,
                 currency=channel.currency_code,
-                amount=Decimal("90.00"),
-                gateway_response={},
-                is_success=True,
+                total=Decimal("234.00"),
+                captured_amount=Decimal("234.00"),
+                charge_status=ChargeStatus.FULLY_CHARGED,
+                psp_reference="00000000-0000-0000-0000-proforma-001",
+                is_active=True,
             )
 
             payload = generate_payload_from_subscription(
