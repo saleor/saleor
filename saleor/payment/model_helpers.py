@@ -10,8 +10,7 @@ if TYPE_CHECKING:
 
 
 def get_last_payment(payments: Iterable[Payment]):
-    valid_payments = [payment for payment in payments if not payment.partial]
-    return max(valid_payments, default=None, key=attrgetter("pk"))
+    return max(payments, default=None, key=attrgetter("pk"))
 
 
 def get_total_authorized(payments: Iterable[Payment], fallback_currency: str):

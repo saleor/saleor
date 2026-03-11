@@ -433,9 +433,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return f"#{self.id}"
 
     def get_last_payment(self) -> Payment | None:
-        payments: list[Payment] = [
-            payment for payment in self.payments.all() if not payment.partial
-        ]
+        payments: list[Payment] = list(self.payments.all())
         return max(payments, default=None, key=attrgetter("pk"))
 
     def is_pre_authorized(self):

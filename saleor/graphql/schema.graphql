@@ -12749,9 +12749,6 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   """The details of the card used for this payment."""
   creditCard: CreditCard
 
-  """Informs whether this is a partial payment."""
-  partial: Boolean!
-
   """PSP reference of the payment."""
   pspReference: String
 }
