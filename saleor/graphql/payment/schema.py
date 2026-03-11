@@ -36,6 +36,7 @@ from .resolvers import (
 )
 from .types import (
     CardPaymentMethodDetails,
+    GiftCardPaymentMethodDetails,
     OtherPaymentMethodDetails,
     Payment,
     PaymentCountableConnection,
@@ -45,6 +46,7 @@ from .types import (
 
 PAYMENT_ADDITIONAL_TYPES = [
     CardPaymentMethodDetails,
+    GiftCardPaymentMethodDetails,
     OtherPaymentMethodDetails,
 ]
 

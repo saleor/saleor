@@ -15955,10 +15955,12 @@ Represents possible payment method types.
     The following types are possible:
     CARD - represents a card payment method.
     OTHER - represents any payment method that is not a card payment.
+    GIFT_CARD - represents a gift card payment method.
 """
 enum PaymentMethodTypeEnum @doc(category: "Payments") {
   CARD
   OTHER
+  GIFT_CARD
 }
 
 input PaymentMethodDetailsCardFilterInput {
@@ -26034,7 +26036,7 @@ input TransactionCreateInput @doc(category: "Payments") {
 }
 
 """
-Details of the payment method used for the transaction. One of `card` or `other` is required.
+Details of the payment method used for the transaction. One of `card`, `other`, or `giftCard` is required.
 
 Added in Saleor 3.22.
 """
@@ -26044,6 +26046,13 @@ input PaymentMethodDetailsInput {
 
   """Details of the non-card payment method used for this transaction."""
   other: OtherPaymentMethodDetailsInput
+
+  """
+  Details of the gift card payment method used for the transaction.
+  
+  Added in Saleor 3.23.
+  """
+  giftCard: GiftCardPaymentMethodDetailsInput
 }
 
 input CardPaymentMethodDetailsInput {
@@ -26081,6 +26090,29 @@ input CardPaymentMethodDetailsInput {
 input OtherPaymentMethodDetailsInput {
   """Name of the payment method used for the transaction."""
   name: String!
+}
+
+input GiftCardPaymentMethodDetailsInput {
+  """
+  Name of the payment method used for the transaction. Max length is 256 characters.
+  
+  Added in Saleor 3.23.
+  """
+  name: String!
+
+  """
+  Brand of the gift card used for the transaction. Max length is 40 characters.
+  
+  Added in Saleor 3.23.
+  """
+  brand: String
+
+  """
+  Last characters of the gift card used for the transaction. Max length is 4 characters.
+  
+  Added in Saleor 3.23.
+  """
+  lastChars: String
 }
 
 input TransactionEventInput @doc(category: "Payments") {
@@ -37453,6 +37485,37 @@ type CardPaymentMethodDetails implements PaymentMethodDetails {
 
   """Four-digit number representing the card’s expiration year."""
   expYear: Int
+}
+
+"""
+Represents a gift card payment method used for a transaction.
+
+Added in Saleor 3.23.
+"""
+type GiftCardPaymentMethodDetails implements PaymentMethodDetails {
+  """Name of the gift card."""
+  name: String!
+
+  """
+  Brand of the gift card.
+  
+  Added in Saleor 3.23.
+  """
+  brand: String
+
+  """
+  Last characters of the gift card code. Max 4 characters.
+  
+  Added in Saleor 3.23.
+  """
+  lastChars: String
+
+  """
+  Indicates whether the gift card is a built-in Saleor gift card.
+  
+  Added in Saleor 3.23.
+  """
+  isSaleorGiftcard: Boolean!
 }
 
 """
