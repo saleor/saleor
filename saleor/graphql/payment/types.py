@@ -155,6 +155,10 @@ class Payment(ModelObjectType[models.Payment]):
         "saleor.graphql.order.types.Order",
         description="Order associated with a payment.",
     )
+    fulfillment = graphene.Field(
+        "saleor.graphql.order.types.Fulfillment",
+        description="Fulfillment associated with a payment.",
+    )
     payment_method_type = graphene.String(
         required=True, description="Type of method used for payment."
     )
@@ -295,6 +299,23 @@ class Payment(ModelObjectType[models.Payment]):
         return (
             OrderByIdLoader(info.context)
             .load(root.order_id)
+            .then(_wrap_with_webhook_sync_control)
+        )
+
+    @staticmethod
+    def resolve_fulfillment(root: models.Payment, info):
+        if not root.fulfillment_id:
+            return None
+        from ..order.dataloaders import FulfillmentByIdLoader
+
+        def _wrap_with_webhook_sync_control(fulfillment):
+            if not fulfillment:
+                return None
+            return SyncWebhookControlContext(node=fulfillment)
+
+        return (
+            FulfillmentByIdLoader(info.context)
+            .load(root.fulfillment_id)
             .then(_wrap_with_webhook_sync_control)
         )
 

@@ -1139,15 +1139,25 @@ def _create_fulfillments_for_shipment(shipment, user, manager):
 
         warehouse_groups: dict = defaultdict(list)
         for allocation in allocations:
-            warehouse_groups[allocation.stock.warehouse_id].append(allocation)
+            qty = min(
+                allocation.quantity_allocated,
+                allocation.order_line.quantity_unfulfilled,
+            )
+            if qty > 0:
+                warehouse_groups[allocation.stock.warehouse_id].append(
+                    (allocation, qty)
+                )
+
+        if not warehouse_groups:
+            continue
 
         fulfillment_lines_for_warehouses = {
             warehouse_pk: [
                 OrderFulfillmentLineInfo(
                     order_line=alloc.order_line,
-                    quantity=alloc.quantity_allocated,
+                    quantity=qty,
                 )
-                for alloc in alloc_list
+                for alloc, qty in alloc_list
             ]
             for warehouse_pk, alloc_list in warehouse_groups.items()
         }
@@ -1388,6 +1398,51 @@ def resolve_product_discrepancy(
         received_by_poi=received_by_poi,
         warehouse=warehouse,
     )
+
+    # Adjust stock for discrepancies not covered by reallocation.
+    # _apply_reallocation adjusts stock for allocation moves (old→new),
+    # but the net surplus/shortage from receiving needs separate handling.
+    # E.g. if 1 was ordered and 999 received with no orders allocated,
+    # _apply_reallocation delta is 0 but stock needs +998.
+    old_alloc_by_variant: dict[int, int] = defaultdict(int)
+    for a in current_ass:
+        old_alloc_by_variant[a.purchase_order_item.product_variant_id] += a.quantity
+
+    new_alloc_by_variant: dict[int, int] = defaultdict(int)
+    for (_order, variant), qty in distribution.items():
+        new_alloc_by_variant[variant.pk] += qty
+
+    discrepancy_by_variant: dict[int, int] = defaultdict(int)
+    for poi in pois:
+        discrepancy_by_variant[poi.product_variant_id] += (
+            poi.quantity_received - poi.quantity_ordered
+        )
+
+    for vid in discrepancy_by_variant:
+        realloc_delta = new_alloc_by_variant.get(vid, 0) - old_alloc_by_variant.get(
+            vid, 0
+        )
+        net_adjustment = discrepancy_by_variant[vid] - realloc_delta
+        if net_adjustment != 0:
+            stock, _ = Stock.objects.select_for_update().get_or_create(
+                warehouse=warehouse,
+                product_variant_id=vid,
+                defaults={"quantity": 0, "quantity_allocated": 0},
+            )
+            logger.debug(
+                "resolve_product_discrepancy: adjusting stock %s variant=%s "
+                "quantity %d -> %d (discrepancy=%+d, realloc_delta=%+d, "
+                "net=%+d)",
+                stock.pk,
+                vid,
+                stock.quantity,
+                stock.quantity + net_adjustment,
+                discrepancy_by_variant[vid],
+                realloc_delta,
+                net_adjustment,
+            )
+            stock.quantity += net_adjustment
+            stock.save(update_fields=["quantity"])
 
     # Mark all pending POIAs for these POIs as processed
     adjustments = list(

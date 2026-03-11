@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....order.error_codes import OrderErrorCode
+from ....order.utils import update_order_charge_data
 from ....payment import ChargeStatus, CustomPaymentChoices
 from ....payment.models import Payment
 from ....permission.enums import OrderPermissions
@@ -77,5 +78,7 @@ class OrderDeletePrepayment(BaseMutation):
             )
 
         payment.delete()
+
+        update_order_charge_data(order)
 
         return OrderDeletePrepayment(order=SyncWebhookControlContext(order))

@@ -161,7 +161,10 @@ def _gen_check_prepayment_status(query, output_dir, channel, request, stdout):
     _write(
         output_dir,
         "xero_check_prepayment_status.json",
-        {"prepaymentId": "00000000-0000-0000-0000-000000000000"},
+        {
+            "prepaymentId": "00000000-0000-0000-0000-000000000000",
+            "xeroContactId": "00000000-0000-0000-0000-000000000001",
+        },
         stdout,
     )
 

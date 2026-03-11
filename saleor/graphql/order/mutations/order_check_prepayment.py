@@ -1,7 +1,10 @@
+from decimal import Decimal
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....order.error_codes import OrderErrorCode
+from ....order.utils import update_order_charge_data
 from ....payment import ChargeStatus, CustomPaymentChoices
 from ....payment.models import Payment
 from ....payment.utils_xero import get_reconciled_amount
@@ -63,14 +66,12 @@ class OrderCheckPrepayment(BaseMutation):
                 code=OrderErrorCode.INVALID.value,
             ) from None
 
-        if payment.charge_status != ChargeStatus.NOT_CHARGED:
-            return OrderCheckPrepayment(order=SyncWebhookControlContext(order))
-
         manager = get_plugin_manager_promise(info.context).get()
         response = manager.xero_check_prepayment_status(psp_reference)
 
         if response is None:
             payment.delete()
+            update_order_charge_data(order)
             return OrderCheckPrepayment(order=SyncWebhookControlContext(order))
 
         reconciled = get_reconciled_amount(response)
@@ -78,13 +79,19 @@ class OrderCheckPrepayment(BaseMutation):
             payment.captured_amount = reconciled
             payment.total = reconciled
             payment.charge_status = ChargeStatus.FULLY_CHARGED
-            payment.save(
-                update_fields=[
-                    "captured_amount",
-                    "total",
-                    "charge_status",
-                    "modified_at",
-                ]
-            )
+        else:
+            payment.captured_amount = Decimal(0)
+            payment.total = Decimal(0)
+            payment.charge_status = ChargeStatus.NOT_CHARGED
+        payment.save(
+            update_fields=[
+                "captured_amount",
+                "total",
+                "charge_status",
+                "modified_at",
+            ]
+        )
+
+        update_order_charge_data(order)
 
         return OrderCheckPrepayment(order=SyncWebhookControlContext(order))

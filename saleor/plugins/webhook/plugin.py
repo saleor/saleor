@@ -3954,13 +3954,18 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def xero_check_prepayment_status(
-        self, prepayment_id: str, previous_value: dict | None
+        self,
+        prepayment_id: str,
+        xero_contact_id: str | None,
+        previous_value: dict | None,
     ) -> dict | None:
         webhooks = get_webhooks_for_event(
             WebhookEventSyncType.XERO_CHECK_PREPAYMENT_STATUS
         )
         for webhook in webhooks:
-            payload_str = generate_xero_check_prepayment_status_payload(prepayment_id)
+            payload_str = generate_xero_check_prepayment_status_payload(
+                prepayment_id, xero_contact_id
+            )
             response_data = trigger_webhook_sync(
                 event_type=WebhookEventSyncType.XERO_CHECK_PREPAYMENT_STATUS,
                 payload=payload_str,

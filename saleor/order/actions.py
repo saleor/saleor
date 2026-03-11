@@ -1502,14 +1502,17 @@ def create_fulfillments(
         ]
         clean_order_line_quantities(order_lines, quantities_for_lines)
 
-        discounted_lines = [ol for ol in order_lines if ol.unit_discount_amount > 0]
-        if discounted_lines:
-            skus = ", ".join(ol.product_sku or str(ol.pk) for ol in discounted_lines)
-            raise ValidationError(
-                f"Cannot fulfill order with discounted lines ({skus}). "
-                "Discounts cause rounding inconsistencies with Xero invoicing.",
-                code=OrderErrorCode.INVALID.value,
-            )
+        if not auto_approved:
+            discounted_lines = [ol for ol in order_lines if ol.unit_discount_amount > 0]
+            if discounted_lines:
+                skus = ", ".join(
+                    ol.product_sku or str(ol.pk) for ol in discounted_lines
+                )
+                raise ValidationError(
+                    f"Cannot fulfill order with discounted lines ({skus}). "
+                    "Discounts cause rounding inconsistencies with Xero invoicing.",
+                    code=OrderErrorCode.INVALID.value,
+                )
 
         _check_fulfillment_lines_received(fulfillment_lines_for_warehouses)
 

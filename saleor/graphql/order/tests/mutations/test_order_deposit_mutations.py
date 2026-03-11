@@ -465,6 +465,9 @@ def test_add_deposit_prepayment(
     assert payment.gateway == CustomPaymentChoices.XERO
     assert payment.captured_amount == Decimal(0)
 
+    order.refresh_from_db()
+    assert order.total_charged_amount == Decimal(0)
+
 
 def test_add_deposit_prepayment_already_paid_in_xero(
     staff_api_client, permission_group_manage_orders, order_with_lines
@@ -489,6 +492,9 @@ def test_add_deposit_prepayment_already_paid_in_xero(
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == Decimal("150.00")
     assert payment.total == Decimal("150.00")
+
+    order.refresh_from_db()
+    assert order.total_charged_amount == Decimal("150.00")
 
 
 def test_add_prepayment_not_found_in_xero(
@@ -776,6 +782,9 @@ def test_check_prepayment_marks_paid_when_reconciled(
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == Decimal("200.00")
 
+    order.refresh_from_db()
+    assert order.total_charged_amount == Decimal("200.00")
+
 
 def test_check_prepayment_deletes_when_gone_from_xero(
     staff_api_client, permission_group_manage_orders, order_with_lines
@@ -805,6 +814,9 @@ def test_check_prepayment_deletes_when_gone_from_xero(
     content = get_graphql_content(response)
     assert not content["data"]["orderCheckPrepayment"]["errors"]
     assert not Payment.objects.filter(psp_reference="pp-check-gone").exists()
+
+    order.refresh_from_db()
+    assert order.total_charged_amount == Decimal(0)
 
 
 def test_check_prepayment_no_op_when_still_unpaid(
@@ -838,10 +850,10 @@ def test_check_prepayment_no_op_when_still_unpaid(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
-def test_check_prepayment_skips_already_paid(
+def test_check_prepayment_resets_to_unpaid_when_unreconciled(
     staff_api_client, permission_group_manage_orders, order_with_lines
 ):
-    # given
+    # given - payment was previously marked as paid
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     Payment.objects.create(
@@ -855,8 +867,8 @@ def test_check_prepayment_skips_already_paid(
     )
     order_id = graphene.Node.to_global_id("Order", order.id)
 
-    # when
-    with patch(XERO_MOCK_PATH) as mock_xero:
+    # when - Xero reports prepayment is no longer reconciled
+    with patch(XERO_MOCK_PATH, return_value=XERO_UNPAID):
         response = staff_api_client.post_graphql(
             ORDER_CHECK_PREPAYMENT_MUTATION,
             {"orderId": order_id, "pspReference": "pp-already-paid"},
@@ -865,7 +877,13 @@ def test_check_prepayment_skips_already_paid(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["orderCheckPrepayment"]["errors"]
-    mock_xero.assert_not_called()
+    payment = Payment.objects.get(psp_reference="pp-already-paid")
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.captured_amount == Decimal(0)
+    assert payment.total == Decimal(0)
+
+    order.refresh_from_db()
+    assert order.total_charged_amount == Decimal(0)
 
 
 def test_check_prepayment_not_found(

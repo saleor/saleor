@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....order.error_codes import OrderErrorCode
+from ....order.utils import update_order_charge_data
 from ....payment import ChargeStatus, CustomPaymentChoices
 from ....payment.models import Payment
 from ....payment.utils_xero import get_reconciled_amount
@@ -95,8 +96,16 @@ class OrderAddPrepayment(BaseMutation):
                 code=OrderErrorCode.INVALID.value,
             )
 
+        xero_contact_id = None
+        if order.user_id:
+            xero_contact_id = (
+                type(order)
+                .objects.values_list("user__xero_contact_id", flat=True)
+                .get(pk=order.pk)
+            )
+
         manager = get_plugin_manager_promise(info.context).get()
-        response = manager.xero_check_prepayment_status(psp_reference)
+        response = manager.xero_check_prepayment_status(psp_reference, xero_contact_id)
         if response is None:
             raise ValidationError(
                 "Prepayment not found in Xero. Check the bank transaction ID.",
@@ -118,5 +127,7 @@ class OrderAddPrepayment(BaseMutation):
             ),
             currency=order.currency,
         )
+
+        update_order_charge_data(order)
 
         return OrderAddPrepayment(order=SyncWebhookControlContext(order))

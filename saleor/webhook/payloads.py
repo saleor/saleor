@@ -1599,8 +1599,13 @@ def generate_xero_list_bank_accounts_payload(domain: str) -> str:
     return json.dumps({"domain": domain})
 
 
-def generate_xero_check_prepayment_status_payload(prepayment_id: str) -> str:
-    return json.dumps({"prepaymentId": prepayment_id})
+def generate_xero_check_prepayment_status_payload(
+    prepayment_id: str, xero_contact_id: str | None = None
+) -> str:
+    payload: dict = {"prepaymentId": prepayment_id}
+    if xero_contact_id:
+        payload["xeroContactId"] = xero_contact_id
+    return json.dumps(payload)
 
 
 def generate_xero_list_tax_codes_payload(domain: str) -> str:

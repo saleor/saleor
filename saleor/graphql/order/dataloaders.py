@@ -178,6 +178,16 @@ class AllocationsByOrderLineIdLoader(DataLoader[UUID, list[Allocation]]):
         return [order_lines_to_allocations[order_line_id] for order_line_id in keys]
 
 
+class FulfillmentByIdLoader(DataLoader[int, Fulfillment]):
+    context_key = "fulfillment_by_id"
+
+    def batch_load(self, keys):
+        fulfillments = Fulfillment.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
+        return [fulfillments.get(fulfillment_id) for fulfillment_id in keys]
+
+
 class FulfillmentsByOrderIdLoader(DataLoader[UUID, list[Fulfillment]]):
     context_key = "fulfillments_by_order"
 

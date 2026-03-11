@@ -12791,6 +12791,9 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   """Order associated with a payment."""
   order: Order
 
+  """Fulfillment associated with a payment."""
+  fulfillment: Fulfillment
+
   """Type of method used for payment."""
   paymentMethodType: String!
 
@@ -36633,6 +36636,9 @@ type XeroCheckPrepaymentStatus implements Event @doc(category: "Orders") {
 
   """The Xero prepayment ID to check."""
   prepaymentId: String!
+
+  """Expected Xero contact ID. Null if unknown."""
+  xeroContactId: String
 }
 
 """Event sent when new customer user is created."""

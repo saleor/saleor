@@ -1797,6 +1797,9 @@ class XeroCheckPrepaymentStatus(SubscriptionObjectType):
         description="The Xero prepayment ID to check.",
         required=True,
     )
+    xero_contact_id = graphene.String(
+        description="Expected Xero contact ID. Null if unknown.",
+    )
 
     class Meta:
         root_type = None
@@ -1809,6 +1812,11 @@ class XeroCheckPrepaymentStatus(SubscriptionObjectType):
     def resolve_prepayment_id(root, _info: ResolveInfo):
         _, data = root
         return data["prepayment_id"]
+
+    @staticmethod
+    def resolve_xero_contact_id(root, _info: ResolveInfo):
+        _, data = root
+        return data.get("xero_contact_id")
 
 
 class UserBase(AbstractType):
