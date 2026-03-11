@@ -13,10 +13,15 @@ env:
   DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
   SECRET_KEY: ci-test
 
+permissions: {}
+
 jobs:
   build:
     runs-on: ubuntu-latest
     container: python:3.12
+
+    permissions:
+      contents: read
 
     services:
       postgres:
@@ -54,7 +59,7 @@ jobs:
       - name: Checkout base
         uses: actions/checkout@v5
         with:
-          ref: ${{ github['base_ref'] }}
+          ref: ${{ github.event.pull_request.base.sha }}
 
       # Sync dependencies to ensure consistency with base branch
       - name: Synchronize dependencies
@@ -63,5 +68,5 @@ jobs:
 
       - name: Run tests
         run: |
-          export PYTEST_DB_URL=$DATABASE_URL
+          export PYTEST_DB_URL="$DATABASE_URL"
           uv run pytest -n 0 --reuse-db

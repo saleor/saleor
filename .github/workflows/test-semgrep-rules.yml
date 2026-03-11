@@ -11,10 +11,15 @@ on:
       - .github/workflows/test-semgrep-rules.yml
       - .pre-commit-config.yaml
 
+permissions: {}
+
 jobs:
   main:
     runs-on: ubuntu-22.04
     container: python:3.12-slim
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout

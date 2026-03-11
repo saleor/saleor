@@ -6,15 +6,22 @@ on:
     types: [closed, unlabeled]
     branches: ["**"]
 
+permissions: {}
+
 jobs:
-  cleanup:
+  cleanup-aws:
     name: Remove test environment deployment
     if: ${{ ((github.event.action == 'unlabeled') && (github.event.label.name == 'test deployment')) || ((github.event.action == 'closed') && contains(github.event.pull_request.labels.*.name, 'test deployment')) }}
     runs-on: ubuntu-latest
+    environment: testenvs-cleanup
+
     permissions:
       id-token: write # needed by aws-actions/configure-aws-credentials
       contents: read
-      deployments: write
+
+    outputs:
+      slug: ${{ steps.slugify-branch-name.outputs.result }}
+
     steps:
       - name: Generate GITHUB_HEAD_REF_SLUG_URL
         id: slugify-branch-name
@@ -32,19 +39,24 @@ jobs:
               .slice(0, 63)                  // trim length down (limit is up to 64 characters)
               .replace(/-+$/, '');           // remove trailing dash
 
-      - name: Configure AWS Credentials
+      - id: aws-login
+        name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
           aws-region: ${{ vars.AWS_TESTENVS_REGION }}
+          # No need to expose the credentials in GITHUB_ENV, instead we only share the
+          # credentials on a need-to-know basis
+          output-env-credentials: "false"
+          output-credentials: "true"
 
       - name: Invoke deployment lambda
         id: lambda
         uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
-          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ steps.aws-login.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws-login.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws-login.outputs.aws-session-token }}
           REGION: ${{ vars.AWS_TESTENVS_REGION }}
           FunctionName: test-env-manager
           Payload: >-
@@ -86,9 +98,19 @@ jobs:
           echo "${PAYLOAD:-null}"
           echo "--------"
 
+  cleanup-github:
+    name: Update GitHub Deployment Status
+    runs-on: ubuntu-latest
+
+    permissions:
+      deployments: write
+
+    needs: [cleanup-aws]
+
+    steps:
       - name: Mark deployment as deactivated
         uses: bobheadxi/deployments@648679e8e4915b27893bd7dbc35cb504dc915bc8 # v1.5.0
         with:
           step: deactivate-env
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ steps.slugify-branch-name.outputs.result }}
+          env: ${{ needs.cleanup-aws.outputs.slug }}

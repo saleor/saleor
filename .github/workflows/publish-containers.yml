@@ -15,6 +15,14 @@ on:
         description: Optional custom image version tag
         required: false
         type: string
+      publish-environment:
+        description: GitHub Environment name used for OIDC and secrets for build-push phase.
+        required: true
+        type: string
+      notification-environment:
+        description: The secrets for sending Slack notifications about the release.
+        required: true
+        type: string
     secrets:
       SLACK_WEBHOOK_URL:
       SLACK_MENTION_GROUP_ID:
@@ -22,6 +30,8 @@ on:
       version:
         description: Docker image version
         value: ${{ jobs.prepare-variables.outputs.version }}
+
+permissions: {}
 
 jobs:
   prepare-variables:
@@ -80,7 +90,7 @@ jobs:
 
       - name: Docker metadata
         id: metadata
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
           images: |
             ghcr.io/${{ steps.get-image-name.outputs.image_name }}
@@ -94,16 +104,16 @@ jobs:
             type=raw,value=latest,enable=${{ steps.check-latest.outputs.IS_LATEST }}
           context: git
 
-
   build-push:
     needs: prepare-variables
-    uses: saleor/saleor-internal-actions/.github/workflows/build-push-image-multi-platform.yaml@92c29aa0e4545de579b892b2ef9f2d6366c29c11 # v1.5.2
+    uses: saleor/saleor-internal-actions/.github/workflows/build-push-image-multi-platform.yaml@49a069ae9731cfccf3a1033fe1da4e3da84f4f2a # v1.11.0
     permissions:
       contents: read
       id-token: write # needed for AWS/ECR login (not used, but required permission)
       packages: write # needed for GHCR
     with:
       checkout-ref: ${{ inputs.ref }}
+      publish-environment: ${{ inputs.publish-environment }}
 
       enable-ghcr: true
       oci-full-repository: ghcr.io/${{ needs.prepare-variables.outputs.image_name }}
@@ -116,11 +126,13 @@ jobs:
   notify:
     if: ${{ failure() }}
     needs: [prepare-variables, build-push]
-    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@eb0c692da7bf13f5e1a82c17488b24c514dd10a1 # v1.10.0
+    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@49a069ae9731cfccf3a1033fe1da4e3da84f4f2a # v1.11.0
     with:
       type: build
       ref: ${{ needs.prepare-variables.outputs.version || inputs.ref || github.ref_name }}
       status: failure
-    secrets:
-      slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-      mention_group_id: ${{ secrets.SLACK_MENTION_GROUP_ID }}
+      github-environment: ${{ inputs.notification-environment }}
+    # Secrets used:
+    # - SLACK_WEBHOOK_URL
+    # - MENTION_GROUP_ID
+    secrets: inherit # needed due to using environments
