@@ -3,18 +3,14 @@ from decimal import Decimal
 from ..core.utils.events import call_event
 from ..invoice.models import Invoice, InvoiceEvents
 
+TWO_DP = Decimal("0.01")
+
+
+def _is_order_fully_fulfilled(order) -> bool:
+    return all(line.quantity_unfulfilled == 0 for line in order.lines.all())
+
 
 def calculate_deposit_allocation(order, fulfillment_total):
-    """Calculate deposit credit for a fulfillment using FIFO allocation.
-
-    Args:
-        order: Order instance with deposit information
-        fulfillment_total: Total amount of current fulfillment
-
-    Returns:
-        Decimal: Amount of deposit to allocate to this fulfillment
-
-    """
     if not order.deposit_required:
         return Decimal(0)
 
@@ -29,12 +25,17 @@ def calculate_deposit_allocation(order, fulfillment_total):
     already_allocated = sum(
         f.deposit_allocated_amount or Decimal(0) for f in order.fulfillments.all()
     )
-    remaining_deposit = max(Decimal(0), total_deposit_paid - already_allocated)
+    remaining_deposit = max(
+        Decimal(0), (total_deposit_paid - already_allocated).quantize(TWO_DP)
+    )
 
-    proportional_share = fulfillment_total * (total_deposit_paid / order_total)
-    deposit_credit = min(remaining_deposit, proportional_share)
+    if _is_order_fully_fulfilled(order):
+        return remaining_deposit
 
-    return deposit_credit
+    proportional_share = (
+        fulfillment_total * total_deposit_paid / order_total
+    ).quantize(TWO_DP)
+    return min(remaining_deposit, proportional_share)
 
 
 def calculate_proportional_shipping(

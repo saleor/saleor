@@ -523,9 +523,12 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
 
         from ..payment import CustomPaymentChoices
 
+        if not self.xero_deposit_prepayment_id:
+            return Decimal(0)
         result = self.payments.filter(
             gateway=CustomPaymentChoices.XERO,
             is_active=True,
+            psp_reference=self.xero_deposit_prepayment_id,
         ).aggregate(total=Sum("captured_amount"))
         return result["total"] or Decimal(0)
 
