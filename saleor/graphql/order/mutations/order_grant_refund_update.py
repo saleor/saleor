@@ -26,9 +26,9 @@ from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
     GrantRefundLineDict,
     assign_order_lines,
+    clean_line_reason_references,
     get_input_lines_data,
     handle_lines_with_quantity_already_refunded,
-    resolve_per_line_reason_references,
     resolve_reason_reference_page,
     shipping_costs_already_granted,
 )
@@ -236,7 +236,8 @@ class OrderGrantRefundUpdate(BaseMutation):
         lines: list[GrantRefundLineDict],
         errors: list[dict[str, Any]],
         line_ids_exclude: list[int],
-    ) -> tuple[list[models.OrderGrantedRefundLine], dict]:
+        refund_reason_reference_type,
+    ) -> list[models.OrderGrantedRefundLine]:
         input_lines_data, line_reason_reference_ids = get_input_lines_data(
             lines, errors, OrderGrantRefundUpdateLineErrorCode.GRAPHQL_ERROR.value
         )
@@ -253,8 +254,15 @@ class OrderGrantRefundUpdate(BaseMutation):
             OrderGrantRefundUpdateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.value,
             granted_refund_lines_to_exclude=line_ids_exclude,
         )
+        clean_line_reason_references(
+            input_lines_data,
+            line_reason_reference_ids,
+            refund_reason_reference_type,
+            errors,
+            OrderGrantRefundUpdateLineErrorCode,
+        )
 
-        return list(input_lines_data.values()), line_reason_reference_ids
+        return list(input_lines_data.values())
 
     @classmethod
     def clean_input(
@@ -279,6 +287,21 @@ class OrderGrantRefundUpdate(BaseMutation):
         requestor_is_app = info.context.app is not None
         requestor_is_user = info.context.user is not None and not requestor_is_app
 
+        site = get_site_promise(info.context).get()
+
+        refund_reason_context = validate_and_resolve_refund_reason_context(
+            reason_reference_id=reason_reference_id,
+            requestor_is_user=bool(requestor_is_user),
+            refund_reference_field_name="reason_reference",
+            error_code_enum=OrderGrantRefundUpdateErrorCode,
+            site_settings=site.settings,
+        )
+
+        should_apply = refund_reason_context["should_apply"]
+        refund_reason_reference_type = refund_reason_context[
+            "refund_reason_reference_type"
+        ]
+
         line_ids_to_remove = []
         if remove_lines:
             line_ids_to_remove = cls.clean_remove_lines(
@@ -293,10 +316,13 @@ class OrderGrantRefundUpdate(BaseMutation):
             )
 
         lines_to_add: list[models.OrderGrantedRefundLine] = []
-        line_reason_reference_ids: dict = {}
         if add_lines:
-            lines_to_add, line_reason_reference_ids = cls.clean_add_lines(
-                order, add_lines, add_errors, line_ids_to_remove
+            lines_to_add = cls.clean_add_lines(
+                order,
+                add_lines,
+                add_errors,
+                line_ids_to_remove,
+                refund_reason_reference_type,
             )
             for line in lines_to_add:
                 line.granted_refund = granted_refund
@@ -361,21 +387,6 @@ class OrderGrantRefundUpdate(BaseMutation):
         if errors:
             raise ValidationError(errors)
 
-        site = get_site_promise(info.context).get()
-
-        refund_reason_context = validate_and_resolve_refund_reason_context(
-            reason_reference_id=reason_reference_id,
-            requestor_is_user=bool(requestor_is_user),
-            refund_reference_field_name="reason_reference",
-            error_code_enum=OrderGrantRefundUpdateErrorCode,
-            site_settings=site.settings,
-        )
-
-        should_apply = refund_reason_context["should_apply"]
-        refund_reason_reference_type = refund_reason_context[
-            "refund_reason_reference_type"
-        ]
-
         reason_reference_instance: Page | None = None
 
         if should_apply:
@@ -384,13 +395,6 @@ class OrderGrantRefundUpdate(BaseMutation):
                 refund_reason_reference_type,
                 OrderGrantRefundUpdateErrorCode,
             )
-
-        resolve_per_line_reason_references(
-            lines_to_add,
-            line_reason_reference_ids,
-            refund_reason_reference_type,
-            OrderGrantRefundUpdateErrorCode,
-        )
 
         cleaned_input = {
             "amount": amount,

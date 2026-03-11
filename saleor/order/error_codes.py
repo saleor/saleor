@@ -65,12 +65,16 @@ class OrderGrantRefundCreateLineErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     QUANTITY_GREATER_THAN_AVAILABLE = "quantity_greater_than_available"
+    INVALID = "invalid"
+    NOT_CONFIGURED = "not_configured"
 
 
 class OrderGrantRefundUpdateLineErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     QUANTITY_GREATER_THAN_AVAILABLE = "quantity_greater_than_available"
+    INVALID = "invalid"
+    NOT_CONFIGURED = "not_configured"
 
 
 class OrderBulkCreateErrorCode(Enum):

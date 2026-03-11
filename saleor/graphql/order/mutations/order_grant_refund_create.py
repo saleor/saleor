@@ -25,9 +25,9 @@ from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
     GrantRefundLineDict,
     assign_order_lines,
+    clean_line_reason_references,
     get_input_lines_data,
     handle_lines_with_quantity_already_refunded,
-    resolve_per_line_reason_references,
     resolve_reason_reference_page,
     shipping_costs_already_granted,
 )
@@ -133,9 +133,9 @@ class OrderGrantRefundCreate(BaseMutation):
         cls,
         order: models.Order,
         lines: list[GrantRefundLineDict],
+        refund_reason_reference_type,
     ) -> tuple[
         list[models.OrderGrantedRefundLine],
-        dict,
         list[dict[str, str]] | None,
     ]:
         errors: list[dict[str, str]] = []
@@ -154,11 +154,18 @@ class OrderGrantRefundCreate(BaseMutation):
             errors,
             OrderGrantRefundCreateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.value,
         )
+        clean_line_reason_references(
+            input_lines_data,
+            line_reason_reference_ids,
+            refund_reason_reference_type,
+            errors,
+            OrderGrantRefundCreateLineErrorCode,
+        )
 
         if errors:
-            return [], {}, errors
+            return [], errors
 
-        return list(input_lines_data.values()), line_reason_reference_ids, None
+        return list(input_lines_data.values()), None
 
     @classmethod
     def calculate_amount(
@@ -215,11 +222,28 @@ class OrderGrantRefundCreate(BaseMutation):
 
         cls.validate_input(input)
 
+        requestor_is_app = info.context.app is not None
+        requestor_is_user = info.context.user is not None and not requestor_is_app
+
+        site = get_site_promise(info.context).get()
+
+        refund_reason_context = validate_and_resolve_refund_reason_context(
+            reason_reference_id=reason_reference_id,
+            requestor_is_user=bool(requestor_is_user),
+            refund_reference_field_name="reason_reference",
+            error_code_enum=OrderGrantRefundCreateErrorCode,
+            site_settings=site.settings,
+        )
+
+        should_apply = refund_reason_context["should_apply"]
+        refund_reason_reference_type = refund_reason_context[
+            "refund_reason_reference_type"
+        ]
+
         cleaned_input_lines: list[models.OrderGrantedRefundLine] = []
-        line_reason_reference_ids: dict = {}
         if input_lines:
-            cleaned_input_lines, line_reason_reference_ids, lines_errors = (
-                cls.clean_input_lines(order, input_lines)
+            cleaned_input_lines, lines_errors = cls.clean_input_lines(
+                order, input_lines, refund_reason_reference_type
             )
             if lines_errors:
                 raise ValidationError(
@@ -273,24 +297,6 @@ class OrderGrantRefundCreate(BaseMutation):
                 }
             )
 
-        requestor_is_app = info.context.app is not None
-        requestor_is_user = info.context.user is not None and not requestor_is_app
-
-        site = get_site_promise(info.context).get()
-
-        refund_reason_context = validate_and_resolve_refund_reason_context(
-            reason_reference_id=reason_reference_id,
-            requestor_is_user=bool(requestor_is_user),
-            refund_reference_field_name="reason_reference",
-            error_code_enum=OrderGrantRefundCreateErrorCode,
-            site_settings=site.settings,
-        )
-
-        should_apply = refund_reason_context["should_apply"]
-        refund_reason_reference_type = refund_reason_context[
-            "refund_reason_reference_type"
-        ]
-
         reason_reference_instance: Page | None = None
 
         if should_apply:
@@ -299,13 +305,6 @@ class OrderGrantRefundCreate(BaseMutation):
                 refund_reason_reference_type,
                 OrderGrantRefundCreateErrorCode,
             )
-
-        resolve_per_line_reason_references(
-            cleaned_input_lines,
-            line_reason_reference_ids,
-            refund_reason_reference_type,
-            OrderGrantRefundCreateErrorCode,
-        )
 
         return {
             "amount": amount,

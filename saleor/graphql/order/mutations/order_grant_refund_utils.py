@@ -174,56 +174,59 @@ def resolve_reason_reference_page(
         ) from None
 
 
-def resolve_per_line_reason_references(
-    lines: list[models.OrderGrantedRefundLine],
+def clean_line_reason_references(
+    input_lines_data: dict[uuid.UUID, models.OrderGrantedRefundLine],
     line_reason_reference_ids: dict[uuid.UUID, str | None],
     refund_reason_reference_type: PageType | None,
-    error_code_enum,
+    errors: list[dict[str, Any]],
+    line_error_code_enum,
 ) -> None:
-    """Resolve per-line reason_reference IDs and set on line instances.
+    """Validate and resolve per-line reason_reference IDs, appending per-line errors.
 
     Batches DB lookups: collects all page IDs, fetches in one query, maps back.
     """
-    has_any_reason_ref = any(
-        line_reason_reference_ids.get(line.order_line_id) for line in lines
-    )
-    if not has_any_reason_ref:
+    lines_with_refs: list[tuple[uuid.UUID, models.OrderGrantedRefundLine, str]] = []
+    for line_pk, line in input_lines_data.items():
+        reason_ref_id = line_reason_reference_ids.get(line_pk)
+        if reason_ref_id:
+            lines_with_refs.append((line_pk, line, reason_ref_id))
+
+    if not lines_with_refs:
         return
 
     if not refund_reason_reference_type:
-        raise ValidationError(
-            {
-                "reason_reference": ValidationError(
-                    "Reason reference type is not configured.",
-                    code=error_code_enum.NOT_CONFIGURED.value,
-                )
-            }
-        )
-
-    # Collect all non-null reason_reference global IDs from lines
-    lines_with_refs: list[tuple[models.OrderGrantedRefundLine, str]] = []
-    for line in lines:
-        reason_ref_id = line_reason_reference_ids.get(line.order_line_id)
-        if reason_ref_id:
-            lines_with_refs.append((line, reason_ref_id))
+        for line_pk, _, _ in lines_with_refs:
+            errors.append(
+                {
+                    "line_id": graphene.Node.to_global_id("OrderLine", line_pk),
+                    "field": "reason_reference",
+                    "message": "Reason reference type is not configured.",
+                    "code": line_error_code_enum.NOT_CONFIGURED.value,
+                }
+            )
+        return
 
     # Parse all global IDs to PKs
     page_pks: dict[str, int] = {}  # global_id -> pk
-    for _, global_id in lines_with_refs:
+    for line_pk, _, global_id in lines_with_refs:
         try:
             _, pk_str = from_global_id_or_error(
                 global_id, only_type="Page", raise_error=True
             )
-        except GraphQLError as e:
-            raise ValidationError(
+        except (GraphQLError, ValueError) as e:
+            errors.append(
                 {
-                    "reason_reference": ValidationError(
-                        str(e),
-                        code=error_code_enum.GRAPHQL_ERROR.value,
-                    )
+                    "line_id": graphene.Node.to_global_id("OrderLine", line_pk),
+                    "field": "reason_reference",
+                    "message": str(e),
+                    "code": line_error_code_enum.GRAPHQL_ERROR.value,
                 }
-            ) from None
+            )
+            continue
         page_pks[global_id] = int(pk_str)
+
+    if errors:
+        return
 
     # Single DB query for all pages
     pages_by_pk: dict[int, Page] = {
@@ -235,15 +238,18 @@ def resolve_per_line_reason_references(
     }
 
     # Map back to lines
-    for line, global_id in lines_with_refs:
+    for line_pk, line, global_id in lines_with_refs:
         page = pages_by_pk.get(page_pks[global_id])
         if not page:
-            raise ValidationError(
+            errors.append(
                 {
-                    "reason_reference": ValidationError(
-                        "Invalid reason reference. Must be an ID of a Model (Page)",
-                        code=error_code_enum.INVALID.value,
-                    )
+                    "line_id": graphene.Node.to_global_id("OrderLine", line_pk),
+                    "field": "reason_reference",
+                    "message": (
+                        "Invalid reason reference. Must be an ID of a Model (Page)."
+                    ),
+                    "code": line_error_code_enum.INVALID.value,
                 }
             )
-        line.reason_reference = page
+        else:
+            line.reason_reference = page

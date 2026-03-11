@@ -27701,6 +27701,8 @@ enum OrderGrantRefundCreateLineErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   QUANTITY_GREATER_THAN_AVAILABLE
+  INVALID
+  NOT_CONFIGURED
 }
 
 input OrderGrantRefundCreateInput @doc(category: "Orders") {
@@ -27816,6 +27818,8 @@ enum OrderGrantRefundUpdateLineErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   QUANTITY_GREATER_THAN_AVAILABLE
+  INVALID
+  NOT_CONFIGURED
 }
 
 input OrderGrantRefundUpdateInput @doc(category: "Orders") {
