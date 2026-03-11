@@ -12832,7 +12832,7 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   creditCard: CreditCard
 
   """Informs whether this is a partial payment."""
-  partial: Boolean!
+  partial: Boolean! @deprecated(reason: "This field is reserved for the Adyen Gateway plugin. For other gateways, its value is always `false`. This field will be removed in 3.23 along with the plugin.")
 
   """PSP reference of the payment."""
   pspReference: String
