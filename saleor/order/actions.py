@@ -1502,6 +1502,18 @@ def create_fulfillments(
         ]
         clean_order_line_quantities(order_lines, quantities_for_lines)
 
+        if not auto_approved:
+            discounted_lines = [ol for ol in order_lines if ol.unit_discount_amount > 0]
+            if discounted_lines:
+                skus = ", ".join(
+                    ol.product_sku or str(ol.pk) for ol in discounted_lines
+                )
+                raise ValidationError(
+                    f"Cannot fulfill order with discounted lines ({skus}). "
+                    "Discounts cause rounding inconsistencies with Xero invoicing.",
+                    code=OrderErrorCode.INVALID.value,
+                )
+
         _check_fulfillment_lines_received(fulfillment_lines_for_warehouses)
 
         for warehouse_pk in fulfillment_lines_for_warehouses:
@@ -1545,32 +1557,22 @@ def create_fulfillments(
             )
         else:
             from .proforma import (
-                calculate_deposit_allocation,
-                calculate_fulfillment_total,
-                calculate_proportional_shipping,
+                allocate_costs_to_fulfillments,
                 generate_proforma_invoice,
             )
 
-            order_lines_total = sum(
-                line.unit_price_gross_amount * line.quantity
-                for line in order.lines.all()
-            )
+            allocate_costs_to_fulfillments(order, fulfillments)
             for fulfillment in fulfillments:
-                fulfillment_total = calculate_fulfillment_total(fulfillment)
-                shipping_gross = order.shipping_price_gross_amount or Decimal(0)
-                proportional_shipping = calculate_proportional_shipping(
-                    shipping_gross, fulfillment_total, order_lines_total
+                fulfillment.save(
+                    update_fields=[
+                        "deposit_allocated_amount",
+                        "shipping_allocated_net_amount",
+                    ]
                 )
-                deposit_credit = calculate_deposit_allocation(
-                    order, fulfillment_total + proportional_shipping
-                )
-                fulfillment.deposit_allocated_amount = deposit_credit
-                fulfillment.save(update_fields=["deposit_allocated_amount"])
                 generate_proforma_invoice(fulfillment, manager)
                 manager.xero_fulfillment_created(fulfillment)
                 if order.origin != OrderOrigin.CHECKOUT:
-                    fulfillment.refresh_from_db(fields=["xero_proforma_prepayment_id"])
-                    if not fulfillment.xero_proforma_prepayment_id:
+                    if not fulfillment.payments.exists():
                         raise ValidationError(
                             "Xero sync failed: could not create proforma prepayment.",
                             code=OrderErrorCode.XERO_SYNC_FAILED.value,
@@ -2468,11 +2470,15 @@ def try_auto_approve_fulfillment(fulfillment, user=None, enabled=True):
 
     order = fulfillment.order
     if order.origin != OrderOrigin.CHECKOUT:
+        from ..payment import ChargeStatus, CustomPaymentChoices
+
+        proforma_payments = fulfillment.payments.filter(
+            gateway=CustomPaymentChoices.XERO,
+            is_active=True,
+        )
         if (
-            not fulfillment.xero_proforma_prepayment_id
-            or not order.payments.filter(
-                psp_reference=fulfillment.xero_proforma_prepayment_id
-            ).exists()
+            not proforma_payments.exists()
+            or proforma_payments.filter(charge_status=ChargeStatus.NOT_CHARGED).exists()
         ):
             return False
 

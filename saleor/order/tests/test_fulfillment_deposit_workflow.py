@@ -65,15 +65,14 @@ def order_with_three_lines(order_with_lines, product_list):
 
 def _allocate_and_generate(order, fulfillment, manager):
     from saleor.order.proforma import (
-        calculate_deposit_allocation,
-        calculate_fulfillment_total,
+        allocate_costs_to_fulfillments,
         generate_proforma_invoice,
     )
 
-    fulfillment_total = calculate_fulfillment_total(fulfillment)
-    deposit_credit = calculate_deposit_allocation(order, fulfillment_total)
-    fulfillment.deposit_allocated_amount = deposit_credit
-    fulfillment.save(update_fields=["deposit_allocated_amount"])
+    allocate_costs_to_fulfillments(order, [fulfillment])
+    fulfillment.save(
+        update_fields=["deposit_allocated_amount", "shipping_allocated_net_amount"]
+    )
     return generate_proforma_invoice(fulfillment, manager)
 
 
@@ -96,6 +95,10 @@ def test_multiple_partial_fulfillments_with_deposit_allocation(
 
     order = order_with_three_lines
     lines = list(order.lines.all()[:3])
+    # line1: 10 x £10 = £100
+    # line2:  5 x £20 = £100
+    # line3:  8 x £15 = £120
+    # total gross = £320
 
     order.deposit_required = True
     order.deposit_percentage = Decimal("30.00")
@@ -170,6 +173,7 @@ def test_multiple_partial_fulfillments_with_deposit_allocation(
     manager = Mock()
     manager.fulfillment_proforma_invoice_generated.return_value = None
 
+    # F1: fulfills line1 (10 x £10 = £100 of £320 total)
     fulfillment1 = Fulfillment.objects.create(
         order=order, status="waiting_for_approval"
     )
@@ -184,14 +188,11 @@ def test_multiple_partial_fulfillments_with_deposit_allocation(
     assert invoice1.fulfillment == fulfillment1
 
     fulfillment1.refresh_from_db()
-    fulfillment1_total = Decimal("100.00")
-    expected_deposit1 = min(
-        Decimal("96.00"),
-        fulfillment1_total * (Decimal("96.00") / Decimal("320.00")),
-    )
-    assert fulfillment1.deposit_allocated_amount == expected_deposit1
+    # F1 covers £100 of £320 order, unfulfilled=£220
+    # Gets proportional share: 96 * 100/320 = 30.00
     assert fulfillment1.deposit_allocated_amount == Decimal("30.00")
 
+    # F2: fulfills line2 (5 x £20 = £100)
     fulfillment2 = Fulfillment.objects.create(
         order=order, status="waiting_for_approval"
     )
@@ -206,15 +207,11 @@ def test_multiple_partial_fulfillments_with_deposit_allocation(
     assert invoice2.fulfillment == fulfillment2
 
     fulfillment2.refresh_from_db()
-    remaining_deposit = Decimal("96.00") - Decimal("30.00")
-    fulfillment2_total = Decimal("100.00")
-    expected_deposit2 = min(
-        remaining_deposit,
-        fulfillment2_total * (Decimal("96.00") / Decimal("320.00")),
-    )
-    assert fulfillment2.deposit_allocated_amount == expected_deposit2
+    # Remaining deposit: 96-30=66, F2 weight=100, unfulfilled=line3 £120
+    # F2 share: 66 * 100/220 = 30.00
     assert fulfillment2.deposit_allocated_amount == Decimal("30.00")
 
+    # F3: fulfills line3 (8 x £15 = £120)
     fulfillment3 = Fulfillment.objects.create(
         order=order, status="waiting_for_approval"
     )
@@ -229,13 +226,7 @@ def test_multiple_partial_fulfillments_with_deposit_allocation(
     assert invoice3.fulfillment == fulfillment3
 
     fulfillment3.refresh_from_db()
-    remaining_deposit_final = Decimal("96.00") - Decimal("30.00") - Decimal("30.00")
-    fulfillment3_total = Decimal("120.00")
-    expected_deposit3 = min(
-        remaining_deposit_final,
-        fulfillment3_total * (Decimal("96.00") / Decimal("320.00")),
-    )
-    assert fulfillment3.deposit_allocated_amount == expected_deposit3
+    # Remaining deposit: 96-30-30=36, F3 is last (no unfulfilled)
     assert fulfillment3.deposit_allocated_amount == Decimal("36.00")
 
     total_allocated = (
@@ -339,6 +330,7 @@ def test_deposit_allocation_exhausted_before_final_fulfillment(
     manager = Mock()
     manager.fulfillment_proforma_invoice_generated.return_value = None
 
+    # F1: line1 (10 x £10 = £100 of £320)
     fulfillment1 = Fulfillment.objects.create(
         order=order, status="waiting_for_approval"
     )
@@ -347,6 +339,7 @@ def test_deposit_allocation_exhausted_before_final_fulfillment(
     )
     _allocate_and_generate(order, fulfillment1, manager)
 
+    # F2: line2 (5 x £20 = £100)
     fulfillment2 = Fulfillment.objects.create(
         order=order, status="waiting_for_approval"
     )
@@ -358,10 +351,12 @@ def test_deposit_allocation_exhausted_before_final_fulfillment(
     fulfillment1.refresh_from_db()
     fulfillment2.refresh_from_db()
 
-    allocated_so_far = (
-        fulfillment1.deposit_allocated_amount + fulfillment2.deposit_allocated_amount
-    )
+    # F1: 64 * 100/320 = 20.00
+    assert fulfillment1.deposit_allocated_amount == Decimal("20.00")
+    # F2: remaining 44 * 100/220 = 20.00
+    assert fulfillment2.deposit_allocated_amount == Decimal("20.00")
 
+    # F3: line3 (8 x £15 = £120)
     fulfillment3 = Fulfillment.objects.create(
         order=order, status="waiting_for_approval"
     )
@@ -372,9 +367,8 @@ def test_deposit_allocation_exhausted_before_final_fulfillment(
 
     fulfillment3.refresh_from_db()
 
-    remaining_for_fulfillment3 = Decimal("64.00") - allocated_so_far
-    assert fulfillment3.deposit_allocated_amount == remaining_for_fulfillment3
-    assert fulfillment3.deposit_allocated_amount < Decimal("120.00")
+    # F3 gets all remaining: 64-20-20=24
+    assert fulfillment3.deposit_allocated_amount == Decimal("24.00")
 
     total_allocated = (
         fulfillment1.deposit_allocated_amount

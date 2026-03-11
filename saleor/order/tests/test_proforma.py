@@ -1,205 +1,273 @@
 from decimal import Decimal
 from unittest.mock import Mock
 
-from ..proforma import (
-    calculate_deposit_allocation,
-    calculate_fulfillment_total,
-    calculate_proportional_shipping,
-)
+from ..proforma import allocate_costs_to_fulfillments, calculate_fulfillment_total
 
 
-def test_calculate_deposit_allocation_no_deposit():
+def _make_order_line(pk, unit_price_gross, quantity):
+    line = Mock()
+    line.pk = pk
+    line.unit_price_gross_amount = unit_price_gross
+    line.quantity = quantity
+    return line
+
+
+def _make_fulfillment_line(order_line, quantity):
+    line = Mock()
+    line.order_line = order_line
+    line.order_line_id = order_line.pk
+    line.quantity = quantity
+    return line
+
+
+def _make_fulfillment(
+    pk, lines, deposit_allocated=Decimal(0), shipping_allocated_net=Decimal(0)
+):
+    f = Mock()
+    f.pk = pk
+    f.lines.all.return_value = lines
+    f.deposit_allocated_amount = deposit_allocated
+    f.shipping_allocated_net_amount = shipping_allocated_net
+    return f
+
+
+def _make_order(
+    deposit_required=True,
+    total_deposit_paid=Decimal(0),
+    shipping_net=Decimal(0),
+    currency="GBP",
+    all_fulfillments=None,
+    order_lines=None,
+):
     order = Mock()
-    order.deposit_required = False
-    order.total_deposit_paid = Decimal(0)
-
-    result = calculate_deposit_allocation(order, Decimal(100))
-
-    assert result == Decimal(0)
-
-
-def test_calculate_deposit_allocation_zero_order_total():
-    order = Mock()
-    order.deposit_required = True
-    order.total_deposit_paid = Decimal(50)
-    order.total_gross_amount = Decimal(0)
-
-    result = calculate_deposit_allocation(order, Decimal(100))
-
-    assert result == Decimal(0)
+    order.deposit_required = deposit_required
+    order.total_deposit_paid = total_deposit_paid
+    order.shipping_price_net_amount = shipping_net
+    order.currency = currency
+    order.fulfillments.all.return_value = all_fulfillments or []
+    order.lines.all.return_value = order_lines or []
+    return order
 
 
-def test_calculate_deposit_allocation_simple():
-    order = Mock()
-    order.deposit_required = True
-    order.total_deposit_paid = Decimal(100)
-    order.total_gross_amount = Decimal(200)
-    order.fulfillments.all.return_value = []
+def test_single_fulfillment_covers_whole_order():
+    """One fulfillment covering whole order gets the entire deposit."""
+    ol = _make_order_line(pk="ol1", unit_price_gross=Decimal("100.00"), quantity=3)
+    lines = [_make_fulfillment_line(ol, 3)]
+    f1 = _make_fulfillment(pk=1, lines=lines)
 
-    fulfillment_total = Decimal(50)
-    result = calculate_deposit_allocation(order, fulfillment_total)
-
-    assert result == Decimal(25)
-
-
-def test_calculate_deposit_allocation_fifo_with_already_allocated():
-    order = Mock()
-    order.deposit_required = True
-    order.total_deposit_paid = Decimal(100)
-    order.total_gross_amount = Decimal(300)
-
-    existing_fulfillment = Mock()
-    existing_fulfillment.deposit_allocated_amount = Decimal(40)
-    order.fulfillments.all.return_value = [existing_fulfillment]
-
-    fulfillment_total = Decimal(100)
-    result = calculate_deposit_allocation(order, fulfillment_total)
-
-    remaining_deposit = Decimal(100) - Decimal(40)
-    proportional_share = Decimal(100) * (Decimal(100) / Decimal(300))
-    expected = min(remaining_deposit, proportional_share)
-
-    assert result == expected
-
-
-def test_calculate_deposit_allocation_exceeds_remaining():
-    order = Mock()
-    order.deposit_required = True
-    order.total_deposit_paid = Decimal(100)
-    order.total_gross_amount = Decimal(200)
-
-    existing_fulfillment = Mock()
-    existing_fulfillment.deposit_allocated_amount = Decimal(90)
-    order.fulfillments.all.return_value = [existing_fulfillment]
-
-    fulfillment_total = Decimal(100)
-    result = calculate_deposit_allocation(order, fulfillment_total)
-
-    assert result == Decimal(10)
-
-
-def test_calculate_proportional_shipping_full_fulfillment():
-    # Single fulfillment covers all lines: gets the full shipping amount.
-    result = calculate_proportional_shipping(
-        shipping_amount=Decimal("12.20"),
-        fulfillment_lines_total=Decimal("112.92"),
-        order_lines_total=Decimal("112.92"),
-    )
-    assert result == Decimal("12.20")
-
-
-def test_calculate_proportional_shipping_partial_fulfillment():
-    # 2 of 3 identical products: fulfillment gets 2/3 of shipping.
-    result = calculate_proportional_shipping(
-        shipping_amount=Decimal("12.00"),
-        fulfillment_lines_total=Decimal("75.28"),
-        order_lines_total=Decimal("112.92"),
-    )
-    # 12.00 * (75.28 / 112.92) ≈ 7.9928...
-    assert result == Decimal("12.00") * Decimal("75.28") / Decimal("112.92")
-
-
-def test_calculate_proportional_shipping_zero_order_lines():
-    result = calculate_proportional_shipping(
-        shipping_amount=Decimal("12.20"),
-        fulfillment_lines_total=Decimal(0),
-        order_lines_total=Decimal(0),
-    )
-    assert result == Decimal(0)
-
-
-def test_calculate_proportional_shipping_two_partial_fulfillments_sum_to_full():
-    # Proportional shares must sum to the full shipping amount.
-    shipping = Decimal("12.00")
-    order_lines_total = Decimal("112.92")
-    fulfillment1_lines = Decimal("75.28")  # 2/3 of order
-    fulfillment2_lines = Decimal("37.64")  # 1/3 of order
-
-    share1 = calculate_proportional_shipping(
-        shipping, fulfillment1_lines, order_lines_total
-    )
-    share2 = calculate_proportional_shipping(
-        shipping, fulfillment2_lines, order_lines_total
+    order = _make_order(
+        total_deposit_paid=Decimal("90.00"),
+        shipping_net=Decimal("10.00"),
+        all_fulfillments=[f1],
+        order_lines=[ol],
     )
 
-    # Sum should equal full shipping (within floating-point tolerance)
-    assert share1 + share2 == shipping
+    allocate_costs_to_fulfillments(order, [f1])
+
+    assert f1.deposit_allocated_amount == Decimal("90.00")
+    assert f1.shipping_allocated_net_amount == Decimal("10.00")
 
 
-def test_deposit_allocation_with_proportional_shipping_two_partial_fulfillments():
-    # End-to-end: verify deposit is fully and correctly allocated across two partial
-    # fulfillments when shipping is split proportionally.
-    #
-    # Order: 3 × £37.64 products = £112.92 lines, £12.20 shipping = £125.12 total
-    # Deposit: 50% = £62.56
-    order = Mock()
-    order.deposit_required = True
-    order.total_deposit_paid = Decimal("62.56")
-    order.total_gross_amount = Decimal("125.12")
+def test_partial_fulfillment_gets_proportional_share():
+    """Fulfilling half the order gets half the deposit and shipping."""
+    ol = _make_order_line(pk="ol1", unit_price_gross=Decimal("50.00"), quantity=2)
+    lines = [_make_fulfillment_line(ol, 1)]
+    f1 = _make_fulfillment(pk=1, lines=lines)
 
-    shipping = Decimal("12.20")
-    order_lines_total = Decimal("112.92")
-
-    # --- Fulfillment 1: 2 products ---
-    order.fulfillments.all.return_value = []
-    f1_lines = Decimal("75.28")
-    prop_shipping_1 = calculate_proportional_shipping(
-        shipping, f1_lines, order_lines_total
+    order = _make_order(
+        total_deposit_paid=Decimal("20.00"),
+        shipping_net=Decimal("10.00"),
+        all_fulfillments=[f1],
+        order_lines=[ol],
     )
-    deposit_1 = calculate_deposit_allocation(order, f1_lines + prop_shipping_1)
 
-    f1 = Mock()
-    f1.deposit_allocated_amount = deposit_1
-    order.fulfillments.all.return_value = [f1]
+    allocate_costs_to_fulfillments(order, [f1])
 
-    # --- Fulfillment 2: 1 product ---
-    f2_lines = Decimal("37.64")
-    prop_shipping_2 = calculate_proportional_shipping(
-        shipping, f2_lines, order_lines_total
+    assert f1.deposit_allocated_amount == Decimal("10.00")
+    assert f1.shipping_allocated_net_amount == Decimal("5.00")
+
+
+def test_second_fulfillment_gets_remainder():
+    """F1 already allocated. F2 gets remainder proportional to its share."""
+    ol1 = _make_order_line(pk="ol1", unit_price_gross=Decimal("50.00"), quantity=2)
+    ol2 = _make_order_line(pk="ol2", unit_price_gross=Decimal("50.00"), quantity=2)
+
+    f1_lines = [_make_fulfillment_line(ol1, 2)]
+    f1 = _make_fulfillment(
+        pk=1,
+        lines=f1_lines,
+        deposit_allocated=Decimal("25.00"),
+        shipping_allocated_net=Decimal("5.00"),
     )
-    deposit_2 = calculate_deposit_allocation(order, f2_lines + prop_shipping_2)
 
-    # Full deposit is consumed
-    assert deposit_1 + deposit_2 == Decimal("62.56")
+    f2_lines = [_make_fulfillment_line(ol2, 2)]
+    f2 = _make_fulfillment(pk=2, lines=f2_lines)
 
-    # Proforma amounts sum to order_total - deposit
-    proforma_1 = f1_lines + prop_shipping_1.quantize(Decimal("0.01")) - deposit_1
-    proforma_2 = f2_lines + prop_shipping_2.quantize(Decimal("0.01")) - deposit_2
-    expected_total_proforma = Decimal("125.12") - Decimal("62.56")
-    assert (proforma_1 + proforma_2).quantize(
-        Decimal("0.01")
-    ) == expected_total_proforma
+    order = _make_order(
+        total_deposit_paid=Decimal("50.00"),
+        shipping_net=Decimal("10.00"),
+        all_fulfillments=[f1, f2],
+        order_lines=[ol1, ol2],
+    )
 
+    allocate_costs_to_fulfillments(order, [f2])
 
-def test_deposit_allocation_with_proportional_shipping_three_partial_fulfillments():
-    # Three equal-value fulfillments: each should get 1/3 of shipping and 1/3 of deposit.
-    order = Mock()
-    order.deposit_required = True
-    order.total_deposit_paid = Decimal("30.00")
-    order.total_gross_amount = Decimal("120.00")  # 90 lines + 30 shipping
-
-    shipping = Decimal("30.00")
-    order_lines_total = Decimal("90.00")  # 3 × £30
-
-    allocated = []
-    for _i in range(3):
-        order.fulfillments.all.return_value = [
-            Mock(deposit_allocated_amount=d) for d in allocated
-        ]
-        f_lines = Decimal("30.00")
-        prop_shipping = calculate_proportional_shipping(
-            shipping, f_lines, order_lines_total
-        )
-        deposit = calculate_deposit_allocation(order, f_lines + prop_shipping)
-        allocated.append(deposit)
-
-    assert sum(allocated) == Decimal("30.00")
-    # Each fulfillment's proforma = 30 + 10 - 10 = 30
-    for deposit in allocated:
-        assert deposit == Decimal("10.00")
+    # F2 covers all remaining items, gets all remaining costs
+    assert f2.deposit_allocated_amount == Decimal("25.00")
+    assert f2.shipping_allocated_net_amount == Decimal("5.00")
+    # F1 unchanged
+    assert f1.deposit_allocated_amount == Decimal("25.00")
+    assert f1.shipping_allocated_net_amount == Decimal("5.00")
 
 
-def test_calculate_fulfillment_total():
+def test_two_new_fulfillments_split_remainder_by_weight():
+    """Two new fulfillments in same batch split remainder by goods value."""
+    ol1 = _make_order_line(pk="ol1", unit_price_gross=Decimal("100.00"), quantity=1)
+    ol2 = _make_order_line(pk="ol2", unit_price_gross=Decimal("100.00"), quantity=1)
+    ol3 = _make_order_line(pk="ol3", unit_price_gross=Decimal("200.00"), quantity=1)
+
+    f1_lines = [_make_fulfillment_line(ol1, 1)]
+    f1 = _make_fulfillment(
+        pk=1,
+        lines=f1_lines,
+        deposit_allocated=Decimal("30.00"),
+        shipping_allocated_net=Decimal("5.00"),
+    )
+
+    f2_lines = [_make_fulfillment_line(ol2, 1)]
+    f2 = _make_fulfillment(pk=2, lines=f2_lines)
+
+    f3_lines = [_make_fulfillment_line(ol3, 1)]
+    f3 = _make_fulfillment(pk=3, lines=f3_lines)
+
+    order = _make_order(
+        total_deposit_paid=Decimal("90.00"),
+        shipping_net=Decimal("15.00"),
+        all_fulfillments=[f1, f2, f3],
+        order_lines=[ol1, ol2, ol3],
+    )
+
+    allocate_costs_to_fulfillments(order, [f2, f3])
+
+    # All items fulfilled (no unfulfilled remainder)
+    # Remaining deposit: 90 - 30 = 60, split 1:2 by weight -> 20, 40
+    assert f2.deposit_allocated_amount == Decimal("20.00")
+    assert f3.deposit_allocated_amount == Decimal("40.00")
+    # Remaining shipping: 15 - 5 = 10, split 1:2
+    assert (
+        f2.shipping_allocated_net_amount + f3.shipping_allocated_net_amount
+        == Decimal("10.00")
+    )
+    # F1 unchanged
+    assert f1.deposit_allocated_amount == Decimal("30.00")
+
+
+def test_no_deposit_required():
+    """No deposit -> all fulfillments get 0 deposit."""
+    ol = _make_order_line(pk="ol1", unit_price_gross=Decimal("100.00"), quantity=1)
+    lines = [_make_fulfillment_line(ol, 1)]
+    f1 = _make_fulfillment(pk=1, lines=lines)
+
+    order = _make_order(
+        deposit_required=False,
+        shipping_net=Decimal("10.00"),
+        all_fulfillments=[f1],
+        order_lines=[ol],
+    )
+
+    allocate_costs_to_fulfillments(order, [f1])
+
+    assert f1.deposit_allocated_amount == Decimal(0)
+    assert f1.shipping_allocated_net_amount == Decimal("10.00")
+
+
+def test_deposit_fully_allocated_by_previous():
+    """Previous fulfillments already allocated all deposit -> new gets 0."""
+    ol1 = _make_order_line(pk="ol1", unit_price_gross=Decimal("100.00"), quantity=1)
+    ol2 = _make_order_line(pk="ol2", unit_price_gross=Decimal("100.00"), quantity=1)
+
+    f1 = _make_fulfillment(
+        pk=1,
+        lines=[_make_fulfillment_line(ol1, 1)],
+        deposit_allocated=Decimal("50.00"),
+        shipping_allocated_net=Decimal("10.00"),
+    )
+    f2 = _make_fulfillment(
+        pk=2,
+        lines=[_make_fulfillment_line(ol2, 1)],
+    )
+
+    order = _make_order(
+        total_deposit_paid=Decimal("50.00"),
+        shipping_net=Decimal("10.00"),
+        all_fulfillments=[f1, f2],
+        order_lines=[ol1, ol2],
+    )
+
+    allocate_costs_to_fulfillments(order, [f2])
+
+    assert f2.deposit_allocated_amount == Decimal(0)
+    assert f2.shipping_allocated_net_amount == Decimal(0)
+
+
+def test_three_sequential_fulfillments_sum_exactly():
+    """Three fulfillments created one at a time always sum to total deposit."""
+    deposit = Decimal("100.00")
+    shipping_net = Decimal("33.33")
+
+    ol1 = _make_order_line(pk="ol1", unit_price_gross=Decimal("100.00"), quantity=1)
+    ol2 = _make_order_line(pk="ol2", unit_price_gross=Decimal("200.00"), quantity=1)
+    ol3 = _make_order_line(pk="ol3", unit_price_gross=Decimal("300.00"), quantity=1)
+
+    # Round 1: F1 alone
+    f1_lines = [_make_fulfillment_line(ol1, 1)]
+    f1 = _make_fulfillment(pk=1, lines=f1_lines)
+
+    order = _make_order(
+        total_deposit_paid=deposit,
+        shipping_net=shipping_net,
+        all_fulfillments=[f1],
+        order_lines=[ol1, ol2, ol3],
+    )
+    allocate_costs_to_fulfillments(order, [f1])
+
+    # F1 covers 100/600 of the order
+    assert f1.deposit_allocated_amount == Decimal("16.67")
+    assert f1.shipping_allocated_net_amount == Decimal("5.56")
+
+    # Round 2: F2 alone
+    f2_lines = [_make_fulfillment_line(ol2, 1)]
+    f2 = _make_fulfillment(pk=2, lines=f2_lines)
+    order.fulfillments.all.return_value = [f1, f2]
+    allocate_costs_to_fulfillments(order, [f2])
+
+    # F2 covers 200/500 of remaining order value
+    assert f2.deposit_allocated_amount == Decimal("33.33")
+    assert f2.shipping_allocated_net_amount == Decimal("11.11")
+
+    # Round 3: F3 alone (last fulfillment, no unfulfilled remainder)
+    f3_lines = [_make_fulfillment_line(ol3, 1)]
+    f3 = _make_fulfillment(pk=3, lines=f3_lines)
+    order.fulfillments.all.return_value = [f1, f2, f3]
+    allocate_costs_to_fulfillments(order, [f3])
+
+    # F3 gets all remaining
+    total_dep = (
+        f1.deposit_allocated_amount
+        + f2.deposit_allocated_amount
+        + f3.deposit_allocated_amount
+    )
+    assert total_dep == deposit
+
+    total_ship = (
+        f1.shipping_allocated_net_amount
+        + f2.shipping_allocated_net_amount
+        + f3.shipping_allocated_net_amount
+    )
+    assert total_ship == shipping_net
+
+
+def test_fulfillment_total():
     line1 = Mock()
     line1.order_line.unit_price_gross_amount = Decimal(10)
     line1.quantity = 2

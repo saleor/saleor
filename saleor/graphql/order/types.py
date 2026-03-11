@@ -927,10 +927,6 @@ class Fulfillment(
         description="Xero Quote number (e.g. Q-1234).",
         required=False,
     )
-    xero_proforma_prepayment_id = graphene.String(
-        description="Xero prepayment UUID for the proforma payment on this fulfillment.",
-        required=False,
-    )
     quote_pdf_url = graphene.String(
         description="URL to the quote PDF hosted by the Xero integration app.",
         required=False,
@@ -1102,13 +1098,21 @@ class Fulfillment(
 
     @staticmethod
     def resolve_is_paid(root: SyncWebhookControlContext[models.Fulfillment], _info):
+        from ...payment import ChargeStatus
+
         fulfillment = root.node
         order = fulfillment.order
         if order.origin == OrderOrigin.CHECKOUT:
             return True
-        return order.payments.filter(
-            psp_reference=fulfillment.xero_proforma_prepayment_id
-        ).exists()
+        if order.deposit_required and order.payments.xero_unpaid_deposits().exists():
+            return False
+        proforma_payments = fulfillment.payments.xero_proforma()
+        return (
+            proforma_payments.exists()
+            and not proforma_payments.filter(
+                charge_status=ChargeStatus.NOT_CHARGED
+            ).exists()
+        )
 
     @staticmethod
     def resolve_deposit_allocated_amount(
@@ -1939,10 +1943,6 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     )
     deposit_paid_at = DateTime(
         description="Date and time when deposit threshold was met."
-    )
-    xero_deposit_prepayment_id = graphene.String(
-        description="Xero prepayment UUID for the deposit on this order.",
-        required=False,
     )
     xero_bank_account_code = graphene.String(
         description="Xero bank account code used for deposit prepayments on this order.",

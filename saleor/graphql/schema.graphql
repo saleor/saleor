@@ -11626,9 +11626,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Date and time when deposit threshold was met."""
   depositPaidAt: DateTime
 
-  """Xero prepayment UUID for the deposit on this order."""
-  xeroDepositPrepaymentId: String
-
   """Xero bank account code used for deposit prepayments on this order."""
   xeroBankAccountCode: String
 
@@ -11977,9 +11974,6 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Xero Quote number (e.g. Q-1234)."""
   xeroQuoteNumber: String
 
-  """Xero prepayment UUID for the proforma payment on this fulfillment."""
-  xeroProformaPrepaymentId: String
-
   """URL to the quote PDF hosted by the Xero integration app."""
   quotePdfUrl: String
 
@@ -12302,6 +12296,9 @@ type PurchaseOrder implements Node {
 
   """Destination warehouse (owned)."""
   destinationWarehouse: Warehouse!
+
+  """Channel this purchase order is associated with."""
+  channel: Channel
 
   """Current status of the purchase order."""
   status: PurchaseOrderStatusEnum!
@@ -12793,6 +12790,9 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
 
   """Order associated with a payment."""
   order: Order
+
+  """Fulfillment associated with a payment."""
+  fulfillment: Fulfillment
 
   """Type of method used for payment."""
   paymentMethodType: String!
@@ -18524,17 +18524,48 @@ type Mutation {
   ): FulfillmentReturnProducts @doc(category: "Orders")
 
   """
-  Replace the Xero proforma prepayment tracked by Saleor for a fulfillment. Use when the original prepayment was voided in Xero and a new one created manually. Staff must void the old prepayment in Xero before calling this mutation. 
+  Add a Xero prepayment to an order. If fulfillment_id is provided, the prepayment is a proforma payment for that fulfillment. Otherwise it is a deposit payment. Deposit prepayments cannot be added after any fulfillment prepayment exists on the order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
-  fulfillmentReplacePrepayment(
-    """ID of the fulfillment."""
-    id: ID!
+  orderAddPrepayment(
+    """
+    ID of the fulfillment this prepayment is for. If omitted, the prepayment is treated as a deposit payment.
+    """
+    fulfillmentId: ID
 
-    """New Xero prepayment ID for this fulfillment's proforma."""
-    xeroProformaPrepaymentId: String!
-  ): FulfillmentReplacePrepayment @doc(category: "Orders")
+    """ID of the order."""
+    orderId: ID!
+
+    """Xero bank transaction ID for this prepayment."""
+    pspReference: String!
+  ): OrderAddPrepayment @doc(category: "Orders")
+
+  """
+  Check the status of a Xero prepayment and update the local Payment record. If the prepayment has been reconciled in Xero, marks the payment as paid. If the prepayment no longer exists in Xero, deletes the local Payment record. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderCheckPrepayment(
+    """ID of the order."""
+    orderId: ID!
+
+    """Xero bank transaction ID of the prepayment to check."""
+    pspReference: String!
+  ): OrderCheckPrepayment @doc(category: "Orders")
+
+  """
+  Delete an unpaid Xero prepayment from an order. The prepayment must have been voided in Xero first — this is verified by checking the prepayment status live. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderDeletePrepayment(
+    """ID of the order."""
+    orderId: ID!
+
+    """Xero bank transaction ID of the prepayment to delete."""
+    pspReference: String!
+  ): OrderDeletePrepayment @doc(category: "Orders")
 
   """
   Adds granted refund to the order. 
@@ -18721,33 +18752,6 @@ type Mutation {
     """Set to true to manually mark the deposit threshold as met."""
     override: Boolean!
   ): OrderOverrideDepositThreshold @doc(category: "Orders")
-
-  """
-  Replace the Xero deposit prepayment tracked by Saleor for an order. Use when the original prepayment was voided in Xero and a new one created manually. Staff must void the old prepayment in Xero before calling this mutation. 
-  
-  Requires one of the following permissions: MANAGE_ORDERS.
-  """
-  orderReplaceDepositPrepayment(
-    """ID of the order."""
-    id: ID!
-
-    """
-    Updated deposit percentage (0-100). If omitted, existing value is kept.
-    """
-    percentage: Decimal
-
-    """Updated Xero bank account code. If omitted, existing value is kept."""
-    xeroBankAccountCode: String
-
-    """Updated bank account number. If omitted, existing value is kept."""
-    xeroBankAccountNumber: String
-
-    """Updated bank sort code. If omitted, existing value is kept."""
-    xeroBankAccountSortCode: String
-
-    """New Xero prepayment ID for this order's deposit."""
-    xeroDepositPrepaymentId: String!
-  ): OrderReplaceDepositPrepayment @doc(category: "Orders")
 
   """
   Set whether an order requires a deposit before fulfillment. 
@@ -27402,15 +27406,36 @@ input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
 }
 
 """
-Replace the Xero proforma prepayment tracked by Saleor for a fulfillment. Use when the original prepayment was voided in Xero and a new one created manually. Staff must void the old prepayment in Xero before calling this mutation. 
+Add a Xero prepayment to an order. If fulfillment_id is provided, the prepayment is a proforma payment for that fulfillment. Otherwise it is a deposit payment. Deposit prepayments cannot be added after any fulfillment prepayment exists on the order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type FulfillmentReplacePrepayment @doc(category: "Orders") {
-  """Fulfillment with updated proforma prepayment."""
-  fulfillment: Fulfillment
+type OrderAddPrepayment @doc(category: "Orders") {
+  """Order the prepayment was added to."""
+  order: Order
+  orderErrors: [OrderError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [OrderError!]!
+}
 
-  """Order for the updated fulfillment."""
+"""
+Check the status of a Xero prepayment and update the local Payment record. If the prepayment has been reconciled in Xero, marks the payment as paid. If the prepayment no longer exists in Xero, deletes the local Payment record. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderCheckPrepayment @doc(category: "Orders") {
+  """Order the prepayment belongs to."""
+  order: Order
+  orderErrors: [OrderError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [OrderError!]!
+}
+
+"""
+Delete an unpaid Xero prepayment from an order. The prepayment must have been voided in Xero first — this is verified by checking the prepayment status live. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderDeletePrepayment @doc(category: "Orders") {
+  """Order the prepayment was deleted from."""
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [OrderError!]!
@@ -27862,18 +27887,6 @@ Requires one of the following permissions: MANAGE_ORDERS.
 """
 type OrderOverrideDepositThreshold @doc(category: "Orders") {
   """Order with updated deposit override."""
-  order: Order
-  orderErrors: [OrderError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [OrderError!]!
-}
-
-"""
-Replace the Xero deposit prepayment tracked by Saleor for an order. Use when the original prepayment was voided in Xero and a new one created manually. Staff must void the old prepayment in Xero before calling this mutation. 
-
-Requires one of the following permissions: MANAGE_ORDERS.
-"""
-type OrderReplaceDepositPrepayment @doc(category: "Orders") {
-  """Order with updated deposit prepayment."""
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [OrderError!]!
@@ -28979,6 +28992,9 @@ input PurchaseOrderCreateInput @doc(category: "Products") {
 
   """Destination warehouse (must be owned warehouse)."""
   destinationWarehouseId: ID!
+
+  """Channel this purchase order is associated with."""
+  channelId: ID
 
   """Optional name for the purchase order."""
   name: String
@@ -36587,6 +36603,21 @@ type XeroFulfillmentApproved implements Event @doc(category: "Orders") {
 
   """Pre-computed line amounts and tax codes for Xero invoice creation."""
   calculatedAmounts: XeroFulfillmentCreatedCalculatedAmounts
+
+  """
+  Order-level deposit prepayments (fully charged). Dirac should allocate these FIFO against the final invoice.
+  """
+  depositPrepayments: [XeroPrepaymentReference!]!
+
+  """
+  This fulfillment's proforma prepayments (fully charged). Dirac should allocate these before deposit prepayments.
+  """
+  fulfillmentPrepayments: [XeroPrepaymentReference!]!
+}
+
+type XeroPrepaymentReference {
+  """Xero bank transaction ID."""
+  pspReference: String!
 }
 
 """Sync event to check whether a Xero prepayment has been paid."""
@@ -36605,6 +36636,9 @@ type XeroCheckPrepaymentStatus implements Event @doc(category: "Orders") {
 
   """The Xero prepayment ID to check."""
   prepaymentId: String!
+
+  """Expected Xero contact ID. Null if unknown."""
+  xeroContactId: String
 }
 
 """Event sent when new customer user is created."""

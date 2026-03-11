@@ -11,6 +11,7 @@ from django_countries.fields import CountryField
 from prices import Money
 
 from ..app.models import App
+from ..channel.models import Channel
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..product.models import ProductVariant
 from ..warehouse.models import Warehouse
@@ -66,6 +67,14 @@ class PurchaseOrder(models.Model):
         Warehouse,
         on_delete=models.DO_NOTHING,
         related_name="destination_purchase_orders",
+    )
+
+    channel = models.ForeignKey(
+        Channel,
+        on_delete=models.PROTECT,
+        related_name="purchase_orders",
+        null=True,
+        blank=True,
     )
 
     name = models.CharField(max_length=255, blank=True, default="")

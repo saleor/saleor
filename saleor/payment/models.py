@@ -260,6 +260,33 @@ class TransactionEvent(models.Model):
         ]
 
 
+class XeroPaymentQuerySet(models.QuerySet):
+    def xero_unpaid_deposits(self):
+        return self.filter(
+            gateway=CustomPaymentChoices.XERO,
+            is_active=True,
+            fulfillment__isnull=True,
+            charge_status=ChargeStatus.NOT_CHARGED,
+        )
+
+    def xero_pending(self):
+        return self.filter(
+            gateway=CustomPaymentChoices.XERO,
+            is_active=True,
+            charge_status=ChargeStatus.NOT_CHARGED,
+            psp_reference__isnull=False,
+        )
+
+    def xero_proforma(self):
+        return self.filter(
+            gateway=CustomPaymentChoices.XERO,
+            is_active=True,
+        )
+
+
+PaymentManager = models.Manager.from_queryset(XeroPaymentQuerySet)
+
+
 class Payment(ModelWithMetadata):
     """A model that represents a single payment.
 
@@ -274,6 +301,8 @@ class Payment(ModelWithMetadata):
     Several payment methods can be used within a single order. Each payment
     method may consist of multiple transactions.
     """
+
+    objects = PaymentManager()
 
     gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
@@ -307,6 +336,13 @@ class Payment(ModelWithMetadata):
         related_name="payments",
         null=True,
         on_delete=models.PROTECT,
+    )
+    fulfillment = models.ForeignKey(
+        "order.Fulfillment",
+        related_name="payments",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
     store_payment_method = models.CharField(
         max_length=11,

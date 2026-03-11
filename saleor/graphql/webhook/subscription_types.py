@@ -1697,38 +1697,48 @@ class XeroFulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
                 )
             )
 
-        from saleor.order.proforma import calculate_proportional_shipping
-
-        shipping_gross = order.shipping_price_gross_amount or Decimal(0)
-        shipping_net = order.shipping_price_net_amount or Decimal(0)
-        # Use all order lines as denominator so shipping splits correctly across
-        # partial fulfillments (each fulfillment gets its proportional share).
-        order_all_lines_total = sum(
-            line.unit_price_gross_amount * line.quantity for line in order.lines.all()
-        )
-        prop_shipping_gross = calculate_proportional_shipping(
-            shipping_gross, fulfillment_total, order_all_lines_total
-        ).quantize(Decimal("0.01"))
-        prop_shipping_net = calculate_proportional_shipping(
-            shipping_net, fulfillment_total, order_all_lines_total
-        ).quantize(Decimal("0.01"))
+        shipping_net = fulfillment.shipping_allocated_net_amount or Decimal(0)
+        tax_rate = order.shipping_tax_rate or Decimal(0)
+        shipping_gross = (shipping_net * (1 + tax_rate)).quantize(Decimal("0.01"))
         deposit_credit = fulfillment.deposit_allocated_amount or Decimal(0)
-        proforma_amount = fulfillment_total + prop_shipping_gross - deposit_credit
+        proforma_amount = fulfillment_total + shipping_gross - deposit_credit
 
         return XeroFulfillmentCreatedCalculatedAmounts(
             proforma_amount=Money(amount=proforma_amount, currency=order.currency),
             deposit_amount=Money(amount=deposit_credit, currency=order.currency),
-            shipping_cost=Money(amount=prop_shipping_gross, currency=order.currency),
-            shipping_net=Money(amount=prop_shipping_net, currency=order.currency),
+            shipping_cost=Money(amount=shipping_gross, currency=order.currency),
+            shipping_net=Money(amount=shipping_net, currency=order.currency),
             shipping_xero_tax_code=order.shipping_xero_tax_code,
             lines=lines,
         )
+
+
+class XeroPrepaymentReference(graphene.ObjectType):
+    psp_reference = graphene.String(
+        required=True, description="Xero bank transaction ID."
+    )
 
 
 class XeroFulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
     calculated_amounts = graphene.Field(
         XeroFulfillmentCreatedCalculatedAmounts,
         description="Pre-computed line amounts and tax codes for Xero invoice creation.",
+    )
+    deposit_prepayments = graphene.List(
+        graphene.NonNull(XeroPrepaymentReference),
+        required=True,
+        description=(
+            "Order-level deposit prepayments (fully charged). "
+            "Dirac should allocate these FIFO against the final invoice."
+        ),
+    )
+    fulfillment_prepayments = graphene.List(
+        graphene.NonNull(XeroPrepaymentReference),
+        required=True,
+        description=(
+            "This fulfillment's proforma prepayments (fully charged). "
+            "Dirac should allocate these before deposit prepayments."
+        ),
     )
 
     class Meta:
@@ -1751,11 +1761,44 @@ class XeroFulfillmentApproved(SubscriptionObjectType, FulfillmentBase):
         )
         return result
 
+    @staticmethod
+    def resolve_deposit_prepayments(root, _info: ResolveInfo):
+        from ...payment import ChargeStatus, CustomPaymentChoices
+
+        _, fulfillment = root
+        order = fulfillment.order
+        payments = order.payments.filter(
+            gateway=CustomPaymentChoices.XERO,
+            is_active=True,
+            fulfillment__isnull=True,
+            charge_status=ChargeStatus.FULLY_CHARGED,
+        ).order_by("created_at")
+        return [
+            XeroPrepaymentReference(psp_reference=p.psp_reference) for p in payments
+        ]
+
+    @staticmethod
+    def resolve_fulfillment_prepayments(root, _info: ResolveInfo):
+        from ...payment import ChargeStatus, CustomPaymentChoices
+
+        _, fulfillment = root
+        payments = fulfillment.payments.filter(
+            gateway=CustomPaymentChoices.XERO,
+            is_active=True,
+            charge_status=ChargeStatus.FULLY_CHARGED,
+        ).order_by("created_at")
+        return [
+            XeroPrepaymentReference(psp_reference=p.psp_reference) for p in payments
+        ]
+
 
 class XeroCheckPrepaymentStatus(SubscriptionObjectType):
     prepayment_id = graphene.String(
         description="The Xero prepayment ID to check.",
         required=True,
+    )
+    xero_contact_id = graphene.String(
+        description="Expected Xero contact ID. Null if unknown.",
     )
 
     class Meta:
@@ -1769,6 +1812,11 @@ class XeroCheckPrepaymentStatus(SubscriptionObjectType):
     def resolve_prepayment_id(root, _info: ResolveInfo):
         _, data = root
         return data["prepayment_id"]
+
+    @staticmethod
+    def resolve_xero_contact_id(root, _info: ResolveInfo):
+        _, data = root
+        return data.get("xero_contact_id")
 
 
 class UserBase(AbstractType):

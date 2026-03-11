@@ -3,7 +3,7 @@
 import pytest
 from django.utils import timezone
 
-from ...order import FulfillmentStatus, OrderStatus
+from ...order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ...order.models import Fulfillment
 from ...warehouse.models import Allocation, AllocationSource, Stock
 from .. import PurchaseOrderItemStatus, ReceiptStatus
@@ -1816,3 +1816,425 @@ def test_floor_stock_size_swap_auto_resolves(
     stock_m.refresh_from_db()
     assert stock_s.quantity == 2
     assert stock_m.quantity == 6
+
+
+def test_complete_receipt_fulfills_only_unfulfilled_quantities_across_shipments(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    product,
+    channel_USD,
+    staff_user,
+):
+    """Completing a second shipment's receipt only fulfills remaining quantities.
+
+    Regression: when an order spanned two shipments and the first shipment's receipt
+    created a WAITING_FOR_APPROVAL fulfillment, completing the second shipment's receipt
+    tried to fulfill ALL allocated quantities (including already-fulfilled lines),
+    raising "Only 0 items remaining to fulfill."
+
+    Scenario:
+      - Order with 2 lines: variant_a (qty 3), variant_b (qty 2)
+      - Shipment 1 has POI for variant_a (qty 3)
+      - Shipment 2 has POI for variant_b (qty 2)
+      - Complete receipt for shipment 1 → fulfillment for variant_a only
+      - Complete receipt for shipment 2 → should fulfill variant_b only
+    """
+    from decimal import Decimal
+
+    from ...order.models import FulfillmentLine, Order, OrderLine
+    from ...product.models import ProductVariant, ProductVariantChannelListing
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    # given - two variants
+    variant_a = ProductVariant.objects.create(product=product, sku="MULTI-SHIP-A")
+    variant_b = ProductVariant.objects.create(product=product, sku="MULTI-SHIP-B")
+    for v in [variant_a, variant_b]:
+        ProductVariantChannelListing.objects.create(
+            variant=v,
+            channel=channel_USD,
+            price_amount=Decimal("10.00"),
+            currency="USD",
+        )
+
+    stock_a = Stock.objects.create(
+        warehouse=owned_warehouse, product_variant=variant_a, quantity=3
+    )
+    stock_b = Stock.objects.create(
+        warehouse=owned_warehouse, product_variant=variant_b, quantity=2
+    )
+
+    # given - two shipments
+    ship1 = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="SHIP-1",
+        shipping_cost_amount=Decimal("50.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    ship2 = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="SHIP-2",
+        shipping_cost_amount=Decimal("50.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+
+    # given - POIs on different shipments
+    poi_a = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_a,
+        quantity_ordered=3,
+        total_price_amount=Decimal("30.00"),
+        currency="USD",
+        shipment=ship1,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    poi_b = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_b,
+        quantity_ordered=2,
+        total_price_amount=Decimal("20.00"),
+        currency="USD",
+        shipment=ship2,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # given - order with two lines
+    order = Order.objects.create(
+        status=OrderStatus.UNFULFILLED,
+        origin=OrderOrigin.CHECKOUT,
+        channel=channel_USD,
+        currency="USD",
+        total_gross_amount=Decimal("50.00"),
+        total_net_amount=Decimal("50.00"),
+        undiscounted_total_gross_amount=Decimal("50.00"),
+        undiscounted_total_net_amount=Decimal("50.00"),
+        shipping_price_gross_amount=Decimal(0),
+        shipping_price_net_amount=Decimal(0),
+        lines_count=2,
+    )
+    line_a = OrderLine.objects.create(
+        order=order,
+        variant=variant_a,
+        product_sku="MULTI-SHIP-A",
+        quantity=3,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("30.00"),
+        total_price_net_amount=Decimal("30.00"),
+        undiscounted_unit_price_gross_amount=Decimal("10.00"),
+        undiscounted_unit_price_net_amount=Decimal("10.00"),
+        undiscounted_total_price_gross_amount=Decimal("30.00"),
+        undiscounted_total_price_net_amount=Decimal("30.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+        tax_rate=0,
+    )
+    line_b = OrderLine.objects.create(
+        order=order,
+        variant=variant_b,
+        product_sku="MULTI-SHIP-B",
+        quantity=2,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("20.00"),
+        total_price_net_amount=Decimal("20.00"),
+        undiscounted_unit_price_gross_amount=Decimal("10.00"),
+        undiscounted_unit_price_net_amount=Decimal("10.00"),
+        undiscounted_total_price_gross_amount=Decimal("20.00"),
+        undiscounted_total_price_net_amount=Decimal("20.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+        tax_rate=0,
+    )
+
+    # given - allocations linked to POIs
+    alloc_a = Allocation.objects.create(
+        order_line=line_a, stock=stock_a, quantity_allocated=3
+    )
+    alloc_b = Allocation.objects.create(
+        order_line=line_b, stock=stock_b, quantity_allocated=2
+    )
+    AllocationSource.objects.create(
+        purchase_order_item=poi_a, allocation=alloc_a, quantity=3
+    )
+    AllocationSource.objects.create(
+        purchase_order_item=poi_b, allocation=alloc_b, quantity=2
+    )
+
+    # given - receipt for shipment 1 (variant_a only)
+    receipt1 = Receipt.objects.create(
+        shipment=ship1, status=ReceiptStatus.IN_PROGRESS, created_by=staff_user
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt1, purchase_order_item=poi_a, quantity_received=3
+    )
+
+    # when - complete receipt for shipment 1
+    # poi_b is still CONFIRMED so order is excluded from fulfillment
+    # (orders_with_pending filter catches it)
+    complete_receipt(receipt1, user=staff_user)
+
+    # then - no fulfillment yet (poi_b still pending on shipment 2)
+    assert Fulfillment.objects.filter(order=order).count() == 0
+
+    # given - receipt for shipment 2 (variant_b only)
+    receipt2 = Receipt.objects.create(
+        shipment=ship2, status=ReceiptStatus.IN_PROGRESS, created_by=staff_user
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt2, purchase_order_item=poi_b, quantity_received=2
+    )
+
+    # when - complete receipt for shipment 2
+    complete_receipt(receipt2, user=staff_user)
+
+    # then - fulfillment created covering all lines
+    fulfillments = Fulfillment.objects.filter(order=order)
+    assert fulfillments.count() == 1
+    fulfillment = fulfillments.first()
+    assert fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL
+
+    fl_by_sku = {
+        fl.order_line.product_sku: fl.quantity
+        for fl in FulfillmentLine.objects.filter(
+            fulfillment=fulfillment
+        ).select_related("order_line")
+    }
+    assert fl_by_sku == {"MULTI-SHIP-A": 3, "MULTI-SHIP-B": 2}
+
+
+def test_second_shipment_receipt_fulfills_remaining_after_partial_fulfillment(
+    purchase_order,
+    owned_warehouse,
+    nonowned_warehouse,
+    product,
+    channel_USD,
+    staff_user,
+):
+    """Second shipment fulfills only remaining unfulfilled quantities.
+
+    When a first shipment already created a partial fulfillment, the second
+    shipment's receipt should only fulfill the remaining unfulfilled quantities.
+
+    Scenario:
+      - Order with 2 lines: variant_a (qty 2), variant_b (qty 3)
+      - Shipment 1 has POIs for both: variant_a (qty 1), variant_b (qty 3)
+      - Shipment 2 has POI for variant_a (qty 1)
+      - Complete receipt 1 → fulfillment for variant_a=1, variant_b=3
+      - Complete receipt 2 → should fulfill only variant_a=1
+    """
+    from decimal import Decimal
+
+    from ...order.models import FulfillmentLine, Order, OrderLine
+    from ...product.models import ProductVariant, ProductVariantChannelListing
+    from ...shipping import IncoTerm, ShipmentType
+    from ...shipping.models import Shipment
+
+    # given - two variants
+    variant_a = ProductVariant.objects.create(product=product, sku="PARTIAL-A")
+    variant_b = ProductVariant.objects.create(product=product, sku="PARTIAL-B")
+    for v in [variant_a, variant_b]:
+        ProductVariantChannelListing.objects.create(
+            variant=v,
+            channel=channel_USD,
+            price_amount=Decimal("10.00"),
+            currency="USD",
+        )
+
+    stock_a = Stock.objects.create(
+        warehouse=owned_warehouse, product_variant=variant_a, quantity=2
+    )
+    stock_b = Stock.objects.create(
+        warehouse=owned_warehouse, product_variant=variant_b, quantity=3
+    )
+
+    # given - two shipments
+    ship1 = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="PARTIAL-SHIP-1",
+        shipping_cost_amount=Decimal("50.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+    ship2 = Shipment.objects.create(
+        source=nonowned_warehouse.address,
+        destination=owned_warehouse.address,
+        shipment_type=ShipmentType.INBOUND,
+        tracking_url="PARTIAL-SHIP-2",
+        shipping_cost_amount=Decimal("50.00"),
+        currency="USD",
+        carrier="TEST",
+        inco_term=IncoTerm.DDP,
+    )
+
+    # given - POIs split across shipments
+    poi_a1 = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_a,
+        quantity_ordered=1,
+        total_price_amount=Decimal("10.00"),
+        currency="USD",
+        shipment=ship1,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    poi_b = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_b,
+        quantity_ordered=3,
+        total_price_amount=Decimal("30.00"),
+        currency="USD",
+        shipment=ship1,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+    poi_a2 = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_a,
+        quantity_ordered=1,
+        total_price_amount=Decimal("10.00"),
+        currency="USD",
+        shipment=ship2,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.CONFIRMED,
+    )
+
+    # given - order with two lines
+    order = Order.objects.create(
+        status=OrderStatus.UNFULFILLED,
+        origin=OrderOrigin.CHECKOUT,
+        channel=channel_USD,
+        currency="USD",
+        total_gross_amount=Decimal("50.00"),
+        total_net_amount=Decimal("50.00"),
+        undiscounted_total_gross_amount=Decimal("50.00"),
+        undiscounted_total_net_amount=Decimal("50.00"),
+        shipping_price_gross_amount=Decimal(0),
+        shipping_price_net_amount=Decimal(0),
+        lines_count=2,
+    )
+    line_a = OrderLine.objects.create(
+        order=order,
+        variant=variant_a,
+        product_sku="PARTIAL-A",
+        quantity=2,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("20.00"),
+        total_price_net_amount=Decimal("20.00"),
+        undiscounted_unit_price_gross_amount=Decimal("10.00"),
+        undiscounted_unit_price_net_amount=Decimal("10.00"),
+        undiscounted_total_price_gross_amount=Decimal("20.00"),
+        undiscounted_total_price_net_amount=Decimal("20.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+        tax_rate=0,
+    )
+    line_b = OrderLine.objects.create(
+        order=order,
+        variant=variant_b,
+        product_sku="PARTIAL-B",
+        quantity=3,
+        unit_price_gross_amount=Decimal("10.00"),
+        unit_price_net_amount=Decimal("10.00"),
+        total_price_gross_amount=Decimal("30.00"),
+        total_price_net_amount=Decimal("30.00"),
+        undiscounted_unit_price_gross_amount=Decimal("10.00"),
+        undiscounted_unit_price_net_amount=Decimal("10.00"),
+        undiscounted_total_price_gross_amount=Decimal("30.00"),
+        undiscounted_total_price_net_amount=Decimal("30.00"),
+        currency="USD",
+        is_shipping_required=True,
+        is_gift_card=False,
+        tax_rate=0,
+    )
+
+    # given - allocations: line_a has 2 allocated (split across 2 POIs via sources)
+    alloc_a = Allocation.objects.create(
+        order_line=line_a, stock=stock_a, quantity_allocated=2
+    )
+    alloc_b = Allocation.objects.create(
+        order_line=line_b, stock=stock_b, quantity_allocated=3
+    )
+    AllocationSource.objects.create(
+        purchase_order_item=poi_a1, allocation=alloc_a, quantity=1
+    )
+    AllocationSource.objects.create(
+        purchase_order_item=poi_a2, allocation=alloc_a, quantity=1
+    )
+    AllocationSource.objects.create(
+        purchase_order_item=poi_b, allocation=alloc_b, quantity=3
+    )
+
+    # given - complete receipt for shipment 1 (variant_a=1, variant_b=3)
+    # poi_a2 is still CONFIRMED on ship2, so order is excluded
+    receipt1 = Receipt.objects.create(
+        shipment=ship1, status=ReceiptStatus.IN_PROGRESS, created_by=staff_user
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt1, purchase_order_item=poi_a1, quantity_received=1
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt1, purchase_order_item=poi_b, quantity_received=3
+    )
+    complete_receipt(receipt1, user=staff_user)
+
+    # then - no fulfillment yet (poi_a2 still pending)
+    assert Fulfillment.objects.filter(order=order).count() == 0
+
+    # given - manually create the fulfillment that would exist from a prior
+    # shipment completing all its POIs (simulating the real scenario where
+    # the first shipment's discrepancy resolution triggers fulfillment)
+    from ...order.models import FulfillmentLine as FL
+
+    f1 = Fulfillment.objects.create(
+        order=order, status=FulfillmentStatus.WAITING_FOR_APPROVAL
+    )
+    FL.objects.create(fulfillment=f1, order_line=line_a, quantity=1, stock=stock_a)
+    FL.objects.create(fulfillment=f1, order_line=line_b, quantity=3, stock=stock_b)
+    line_a.quantity_fulfilled = 1
+    line_a.save(update_fields=["quantity_fulfilled"])
+    line_b.quantity_fulfilled = 3
+    line_b.save(update_fields=["quantity_fulfilled"])
+
+    # when - complete receipt for shipment 2
+    receipt2 = Receipt.objects.create(
+        shipment=ship2, status=ReceiptStatus.IN_PROGRESS, created_by=staff_user
+    )
+    ReceiptLine.objects.create(
+        receipt=receipt2, purchase_order_item=poi_a2, quantity_received=1
+    )
+    complete_receipt(receipt2, user=staff_user)
+
+    # then - second fulfillment created for only the remaining quantity
+    fulfillments = Fulfillment.objects.filter(order=order).order_by("created_at")
+    assert fulfillments.count() == 2
+
+    second_fulfillment = fulfillments.last()
+    assert second_fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL
+
+    fl_by_sku = {
+        fl.order_line.product_sku: fl.quantity
+        for fl in FulfillmentLine.objects.filter(
+            fulfillment=second_fulfillment
+        ).select_related("order_line")
+    }
+    # Only variant_a=1 remaining; variant_b already fully fulfilled
+    assert fl_by_sku == {"PARTIAL-A": 1}
