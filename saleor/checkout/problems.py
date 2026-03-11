@@ -218,7 +218,10 @@ def get_checkout_problems(
     ):
         problems.append(CheckoutProblemDeliveryMethodStale(delivery=assigned_delivery))
 
-    if assigned_delivery and not assigned_delivery.is_valid:
+    if not assigned_delivery:
+        return problems
+
+    if not assigned_delivery.is_valid or not assigned_delivery.active:
         problems.append(
             CheckoutProblemDeliveryMethodInvalid(delivery=assigned_delivery)
         )

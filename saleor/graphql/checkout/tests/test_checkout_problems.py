@@ -485,6 +485,30 @@ def test_checkout_problems_delivery_method_invalid(
 
 
 @freeze_time("2024-05-31 12:00:01")
+def test_checkout_problems_delivery_method_invalid_when_active_set_to_false(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout.assigned_delivery.active = False
+    checkout.assigned_delivery.save(update_fields=["active"])
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 1
+    problem = content["data"]["checkout"]["problems"][0]
+    assert problem["__typename"] == "CheckoutProblemDeliveryMethodInvalid"
+    assert problem["delivery"]["id"] == to_global_id_or_none(checkout.assigned_delivery)
+
+
+@freeze_time("2024-05-31 12:00:01")
 def test_checkout_problems_delivery_method_stale_and_invalid(
     checkout_with_items_and_shipping, api_client
 ):
