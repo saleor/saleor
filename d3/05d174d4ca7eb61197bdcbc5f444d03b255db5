@@ -1,0 +1,31 @@
+saleor/graphql/order/mutations/order_grant_refund_create.py
+  e58ef6f9bd8d1d53 28,136,157-163,225-229,237,242,245-246
+saleor/graphql/order/mutations/order_grant_refund_utils.py
+  e58ef6f9bd8d1d53 177-178,181-182,184,188-194,198-199,201-205,207,211,216-217,219-222,225,228-229,241,244,246-248,250-251,254
+saleor/graphql/order/mutations/order_grant_refund_update.py
+  e58ef6f9bd8d1d53 29,239,257-263,290-291,299,304,320,324-325
+saleor/graphql/order/tests/mutations/test_order_grant_refund_utils.py
+  e58ef6f9bd8d1d53 8,13,98,103-104,109,112,115-116,119-120,124-125,128,133-134,139,141,144-145,148-149,153-154,157-158,169-170,175,178,181-182,185-186,188-195,198,210-211,216,219,222-227,229-248,250-268,272,289-290,293-294,297-298,305,309-310,313-314,317-319
+saleor/order/error_codes.py
+  e58ef6f9bd8d1d53 68-69,76-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "d305d174d4ca7eb61197bdcbc5f444d03b255db5",
+  "prompts": {
+    "e58ef6f9bd8d1d53": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e788270b-dcaa-42fb-92ea-a391ba052621",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 250,
+      "total_deletions": 167,
+      "accepted_lines": 184,
+      "overriden_lines": 0
+    }
+  }
+}
