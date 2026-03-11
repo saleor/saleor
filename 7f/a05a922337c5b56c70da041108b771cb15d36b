@@ -1,0 +1,23 @@
+saleor/payment/migrations/0069_remove_transaction_legacy_adyen_plugin_payment_method_and_more.py
+  82e3522c3332d9be 12-14,20-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "7fa05a922337c5b56c70da041108b771cb15d36b",
+  "prompts": {
+    "82e3522c3332d9be": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "86cecbf3-fff2-449c-b40a-b58bdf5fbd8e",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 7,
+      "accepted_lines": 7,
+      "overriden_lines": 0
+    }
+  }
+}
