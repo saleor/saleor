@@ -170,7 +170,7 @@ class ShopSettingsUpdate(BaseMutation):
         ]
 
     @classmethod
-    def clean_input(cls, info, _instance, data):
+    def _validate_password_login_mode_restriction(cls, info, data):
         if "password_login_mode" in data and data["password_login_mode"] in (
             PasswordLoginMode.DISABLED,
             PasswordLoginMode.CUSTOMERS_ONLY,
@@ -186,6 +186,10 @@ class ShopSettingsUpdate(BaseMutation):
                         )
                     }
                 )
+
+    @classmethod
+    def clean_input(cls, info, _instance, data):
+        cls._validate_password_login_mode_restriction(info, data)
 
         if data.get("customer_set_password_url"):
             try:

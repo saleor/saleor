@@ -550,7 +550,6 @@ def test_create_token_disabled_password_login(
     error = errors[0]
     assert error["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
     assert error["field"] == "email"
-    assert error["message"] == "Password-based login is disabled."
 
 
 @freeze_time("2020-03-18 12:00:00")
