@@ -31,6 +31,7 @@ from .const import (
 )
 from .events import gift_card_refunded_in_order_event, gift_cards_used_in_order_event
 from .models import GiftCard
+from .search import mark_gift_cards_search_index_as_dirty
 
 
 class GiftCardPaymentGatewayDataSchema(pydantic.BaseModel):
@@ -223,6 +224,28 @@ def detach_gift_card_from_previous_checkout_transactions(
     transactions_to_cancel_qs.update(gift_card=None)
 
 
+def charge_gift_card(
+    gift_card: GiftCard,
+    authorized_value: Decimal,
+    order: "Order",
+):
+    """Deduct authorized amount from the gift card balance and update usage metadata."""
+    gift_card.current_balance_amount -= authorized_value
+    gift_card.used_by = (
+        order.user or User.objects.filter(email=order.user_email).first()
+    )
+    gift_card.used_by_email = order.user_email
+    gift_card.last_used_on = timezone.now()
+    gift_card.save(
+        update_fields=[
+            "current_balance_amount",
+            "used_by",
+            "used_by_email",
+            "last_used_on",
+        ]
+    )
+
+
 def charge_gift_card_transactions(
     order: "Order", user: User | None = None, app: App | None = None
 ):
@@ -291,10 +314,12 @@ def charge_gift_card_transactions(
                     )
                 else:
                     previous_balance = gift_card.current_balance_amount
-                    gift_card.current_balance_amount -= (
-                        gift_card_transaction.authorized_value
+                    charge_gift_card(
+                        gift_card,
+                        gift_card_transaction.authorized_value,
+                        order,
                     )
-                    gift_card.save(update_fields=["current_balance_amount"])
+                    mark_gift_cards_search_index_as_dirty([gift_card])
 
                     gift_cards_used_in_order_event(
                         balance_data=[(gift_card, previous_balance)],

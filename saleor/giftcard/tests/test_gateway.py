@@ -37,6 +37,9 @@ def test_charge_creates_used_in_order_event(
     # then
     gift_card.refresh_from_db()
     assert gift_card.current_balance_amount == initial_balance - authorized_amount
+    assert gift_card.used_by == order.user
+    assert gift_card.used_by_email == order.user_email
+    assert gift_card.last_used_on is not None
 
     event = GiftCardEvent.objects.get(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER

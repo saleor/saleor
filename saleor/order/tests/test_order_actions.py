@@ -3173,6 +3173,9 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
         gift_card_created_by_staff.current_balance_amount
         == Decimal(100) - order.total_gross_amount
     )
+    assert gift_card_created_by_staff.used_by == order.user
+    assert gift_card_created_by_staff.used_by_email == order.user_email
+    assert gift_card_created_by_staff.last_used_on is not None
 
     transaction.events.get(type=TransactionEventType.CHARGE_REQUEST)
     charge_success_event = transaction.events.get(
