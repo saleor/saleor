@@ -1697,29 +1697,17 @@ class XeroFulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
                 )
             )
 
-        from saleor.order.proforma import calculate_proportional_shipping
-
-        shipping_gross = order.shipping_price_gross_amount or Decimal(0)
-        shipping_net = order.shipping_price_net_amount or Decimal(0)
-        # Use all order lines as denominator so shipping splits correctly across
-        # partial fulfillments (each fulfillment gets its proportional share).
-        order_all_lines_total = sum(
-            line.unit_price_gross_amount * line.quantity for line in order.lines.all()
-        )
-        prop_shipping_gross = calculate_proportional_shipping(
-            shipping_gross, fulfillment_total, order_all_lines_total
-        ).quantize(Decimal("0.01"))
-        prop_shipping_net = calculate_proportional_shipping(
-            shipping_net, fulfillment_total, order_all_lines_total
-        ).quantize(Decimal("0.01"))
+        shipping_net = fulfillment.shipping_allocated_net_amount or Decimal(0)
+        tax_rate = order.shipping_tax_rate or Decimal(0)
+        shipping_gross = (shipping_net * (1 + tax_rate)).quantize(Decimal("0.01"))
         deposit_credit = fulfillment.deposit_allocated_amount or Decimal(0)
-        proforma_amount = fulfillment_total + prop_shipping_gross - deposit_credit
+        proforma_amount = fulfillment_total + shipping_gross - deposit_credit
 
         return XeroFulfillmentCreatedCalculatedAmounts(
             proforma_amount=Money(amount=proforma_amount, currency=order.currency),
             deposit_amount=Money(amount=deposit_credit, currency=order.currency),
-            shipping_cost=Money(amount=prop_shipping_gross, currency=order.currency),
-            shipping_net=Money(amount=prop_shipping_net, currency=order.currency),
+            shipping_cost=Money(amount=shipping_gross, currency=order.currency),
+            shipping_net=Money(amount=shipping_net, currency=order.currency),
             shipping_xero_tax_code=order.shipping_xero_tax_code,
             lines=lines,
         )

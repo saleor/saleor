@@ -973,6 +973,11 @@ class Fulfillment(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal(0),
     )
+    shipping_allocated_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
     xero_quote_id = models.CharField(
         max_length=36,
         null=True,

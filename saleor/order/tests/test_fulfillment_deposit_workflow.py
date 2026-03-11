@@ -65,15 +65,14 @@ def order_with_three_lines(order_with_lines, product_list):
 
 def _allocate_and_generate(order, fulfillment, manager):
     from saleor.order.proforma import (
-        calculate_deposit_allocation,
-        calculate_fulfillment_total,
+        allocate_costs_to_fulfillments,
         generate_proforma_invoice,
     )
 
-    fulfillment_total = calculate_fulfillment_total(fulfillment)
-    deposit_credit = calculate_deposit_allocation(order, fulfillment_total)
-    fulfillment.deposit_allocated_amount = deposit_credit
-    fulfillment.save(update_fields=["deposit_allocated_amount"])
+    allocate_costs_to_fulfillments(order, [fulfillment])
+    fulfillment.save(
+        update_fields=["deposit_allocated_amount", "shipping_allocated_net_amount"]
+    )
     return generate_proforma_invoice(fulfillment, manager)
 
 
@@ -184,13 +183,8 @@ def test_multiple_partial_fulfillments_with_deposit_allocation(
     assert invoice1.fulfillment == fulfillment1
 
     fulfillment1.refresh_from_db()
-    fulfillment1_total = Decimal("100.00")
-    expected_deposit1 = min(
-        Decimal("96.00"),
-        fulfillment1_total * (Decimal("96.00") / Decimal("320.00")),
-    )
-    assert fulfillment1.deposit_allocated_amount == expected_deposit1
-    assert fulfillment1.deposit_allocated_amount == Decimal("30.00")
+    # First fulfillment (only one in batch) gets full remaining deposit
+    assert fulfillment1.deposit_allocated_amount == Decimal("96.00")
 
     fulfillment2 = Fulfillment.objects.create(
         order=order, status="waiting_for_approval"
@@ -206,14 +200,8 @@ def test_multiple_partial_fulfillments_with_deposit_allocation(
     assert invoice2.fulfillment == fulfillment2
 
     fulfillment2.refresh_from_db()
-    remaining_deposit = Decimal("96.00") - Decimal("30.00")
-    fulfillment2_total = Decimal("100.00")
-    expected_deposit2 = min(
-        remaining_deposit,
-        fulfillment2_total * (Decimal("96.00") / Decimal("320.00")),
-    )
-    assert fulfillment2.deposit_allocated_amount == expected_deposit2
-    assert fulfillment2.deposit_allocated_amount == Decimal("30.00")
+    # All deposit already allocated to F1, F2 gets 0
+    assert fulfillment2.deposit_allocated_amount == Decimal("0.00")
 
     fulfillment3 = Fulfillment.objects.create(
         order=order, status="waiting_for_approval"
@@ -229,14 +217,7 @@ def test_multiple_partial_fulfillments_with_deposit_allocation(
     assert invoice3.fulfillment == fulfillment3
 
     fulfillment3.refresh_from_db()
-    remaining_deposit_final = Decimal("96.00") - Decimal("30.00") - Decimal("30.00")
-    fulfillment3_total = Decimal("120.00")
-    expected_deposit3 = min(
-        remaining_deposit_final,
-        fulfillment3_total * (Decimal("96.00") / Decimal("320.00")),
-    )
-    assert fulfillment3.deposit_allocated_amount == expected_deposit3
-    assert fulfillment3.deposit_allocated_amount == Decimal("36.00")
+    assert fulfillment3.deposit_allocated_amount == Decimal("0.00")
 
     total_allocated = (
         fulfillment1.deposit_allocated_amount
@@ -358,9 +339,9 @@ def test_deposit_allocation_exhausted_before_final_fulfillment(
     fulfillment1.refresh_from_db()
     fulfillment2.refresh_from_db()
 
-    allocated_so_far = (
-        fulfillment1.deposit_allocated_amount + fulfillment2.deposit_allocated_amount
-    )
+    # F1 gets all deposit (only one in its batch), F2 gets 0
+    assert fulfillment1.deposit_allocated_amount == Decimal("64.00")
+    assert fulfillment2.deposit_allocated_amount == Decimal("0.00")
 
     fulfillment3 = Fulfillment.objects.create(
         order=order, status="waiting_for_approval"
@@ -372,9 +353,7 @@ def test_deposit_allocation_exhausted_before_final_fulfillment(
 
     fulfillment3.refresh_from_db()
 
-    remaining_for_fulfillment3 = Decimal("64.00") - allocated_so_far
-    assert fulfillment3.deposit_allocated_amount == remaining_for_fulfillment3
-    assert fulfillment3.deposit_allocated_amount < Decimal("120.00")
+    assert fulfillment3.deposit_allocated_amount == Decimal("0.00")
 
     total_allocated = (
         fulfillment1.deposit_allocated_amount
