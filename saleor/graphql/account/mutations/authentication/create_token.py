@@ -89,15 +89,13 @@ class CreateToken(BaseMutation):
         return user
 
     @classmethod
-    def _check_password_login_mode(cls, site_settings, user):
-        """Check password login mode, return whether staff permissions must be cleared.
+    def _should_strip_staff_permissions_for_password_login(cls, site_settings, user):
+        """Return whether staff permissions must be cleared.
 
-        Raises ValidationError when password login is fully disabled.
         Returns True when the mode is CUSTOMERS_ONLY and the user is staff,
         signaling that the issued token should have is_staff=False so
         the user is treated as a customer with no staff permissions.
         """
-        check_password_login_not_disabled(site_settings)
         if (
             site_settings.password_login_mode == PasswordLoginMode.CUSTOMERS_ONLY
             and user.is_staff
@@ -122,7 +120,10 @@ class CreateToken(BaseMutation):
         user = cls.get_user(info, email, password)
 
         site_settings = get_site_promise(info.context).get().settings
-        strip_staff_permissions = cls._check_password_login_mode(site_settings, user)
+        check_password_login_not_disabled(site_settings)
+        strip_staff_permissions = (
+            cls._should_strip_staff_permissions_for_password_login(site_settings, user)
+        )
         if strip_staff_permissions:
             additional_paylod["is_staff"] = False
             refresh_additional_payload["is_staff"] = False
