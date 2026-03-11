@@ -162,7 +162,7 @@ def load_user_from_request(request):
     # When password_login_mode is CUSTOMERS_ONLY, staff users get tokens
     # with is_staff=False. This strips their staff status and clears all
     # permissions so the token behaves as a customer-only session.
-    if "is_staff" in payload and payload["is_staff"] is False and user.is_staff:
+    if payload.get("is_staff") is False and user.is_staff:
         user.is_staff = False
         user.effective_permissions = Permission.objects.none()
     return user

@@ -133,7 +133,7 @@ class RefreshToken(BaseMutation):
         additional_payload = {}
         if audience := payload.get("aud"):
             additional_payload["aud"] = audience
-        if "is_staff" in payload and payload["is_staff"] is False:
+        if payload.get("is_staff") is False:
             additional_payload["is_staff"] = False
         user = get_user(payload)
         token = create_access_token(user, additional_payload=additional_payload)
