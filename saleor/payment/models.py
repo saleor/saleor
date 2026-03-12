@@ -282,7 +282,6 @@ class Payment(ModelWithMetadata):
     gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     to_confirm = models.BooleanField(default=False)
-    partial = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
@@ -484,18 +483,6 @@ class Transaction(models.Model):
     # @deprecated
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)
-
-    """
-    Legacy fields that allow Adyen plugin to work until it's removed.
-
-    Previously Adyen plugin was using gateway_response which holds entire response for every Payment plugin.
-    Adyen plugin is the only plugin using this field, it has access to result_code and payment_method.
-
-    To remove gateway_response we introduce two legacy fields that Adyen can write to and gateway_response can be removed.
-    Once plugin is removed, these fields should be removed from the model.
-    """
-    legacy_adyen_plugin_result_code = models.TextField(null=True)
-    legacy_adyen_plugin_payment_method = models.TextField(null=True)
 
     class Meta:
         ordering = ("pk",)

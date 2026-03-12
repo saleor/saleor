@@ -14,7 +14,7 @@ def action_required_gateway_response():
         action_required_data={
             "paymentData": "test",
             "paymentMethodType": "scheme",
-            "url": "https://test.adyen.com/hpp/3d/validate.shtml",
+            "url": "https://test.example.com/3d/validate",
             "data": {
                 "MD": "md-test-data",
                 "PaReq": "PaReq-test-data",
