@@ -5,7 +5,10 @@ import graphene
 from .....page.models import Page, PageType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
-from ...enums import OrderGrantRefundCreateErrorCode
+from ...enums import (
+    OrderGrantRefundCreateErrorCode,
+    OrderGrantRefundCreateLineErrorCode,
+)
 
 ORDER_GRANT_REFUND_CREATE = """
 mutation OrderGrantRefundCreate(
@@ -256,9 +259,17 @@ def test_with_per_line_reason_reference_no_config_rejects(
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "reasonReference"
-    assert errors[0]["code"] == OrderGrantRefundCreateErrorCode.NOT_CONFIGURED.name
-    assert errors[0]["message"] == "Reason reference type is not configured."
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    line_errors = errors[0]["lines"]
+    assert len(line_errors) == 1
+    assert line_errors[0]["field"] == "reason_reference"
+    assert line_errors[0]["lineId"] == line_id
+    assert (
+        line_errors[0]["code"]
+        == OrderGrantRefundCreateLineErrorCode.NOT_CONFIGURED.name
+    )
+    assert line_errors[0]["message"] == "Reason reference type is not configured."
 
 
 def test_with_per_line_reason_reference_wrong_page_type(
@@ -333,12 +344,14 @@ def test_with_per_line_reason_reference_wrong_page_type(
     data = content["data"]["orderGrantRefundCreate"]
     errors = data["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "reasonReference"
+    assert errors[0]["field"] == "lines"
     assert errors[0]["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
-    assert (
-        errors[0]["message"]
-        == "Invalid reason reference. Must be an ID of a Model (Page)"
-    )
+    line_errors = errors[0]["lines"]
+    assert len(line_errors) == 1
+    assert line_errors[0]["field"] == "reason_reference"
+    assert line_errors[0]["lineId"] == line_id
+    assert line_errors[0]["code"] == OrderGrantRefundCreateLineErrorCode.INVALID.name
+    assert line_errors[0]["message"] == "Invalid reason reference."
 
 
 def test_line_without_reason_reference_when_not_configured(
