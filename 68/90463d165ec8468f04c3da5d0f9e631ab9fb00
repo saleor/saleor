@@ -1,0 +1,25 @@
+saleor/graphql/order/tests/mutations/test_order_grant_refund_update_line_reason.py
+  23ea536ca494cda9 9,203,205-210,275-280,282-283,285
+saleor/graphql/order/tests/mutations/test_order_grant_refund_create_line_reason.py
+  23ea536ca494cda9 9,262-267,269-270,272,347,349-354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "6890463d165ec8468f04c3da5d0f9e631ab9fb00",
+  "prompts": {
+    "23ea536ca494cda9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d0d16075-be12-48f2-8cc7-f81bc82dfdc0",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 32,
+      "total_deletions": 18,
+      "accepted_lines": 34,
+      "overriden_lines": 4
+    }
+  }
+}
