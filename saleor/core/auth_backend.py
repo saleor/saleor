@@ -4,7 +4,6 @@ from django.conf import settings
 from ..account.models import User
 from ..graphql.account.dataloaders import UserByEmailLoader
 from ..graphql.plugins.dataloaders import AnonymousPluginManagerLoader
-from ..graphql.site.dataloaders import get_site_promise
 from ..permission.enums import (
     get_permissions_from_codenames,
     get_permissions_from_names,
@@ -12,6 +11,7 @@ from ..permission.enums import (
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
 from ..site import PasswordLoginMode
+from ..site.models import Site
 from .auth import get_token_from_request
 from .jwt import (
     JWT_ACCESS_TYPE,
@@ -152,7 +152,9 @@ def load_user_from_request(request):
             "Invalid token. Create new one by using tokenCreate mutation."
         )
 
-    site_settings = get_site_promise(request).get().settings
+    # Fetch site settings directly instead of using get_site_promise dataloader
+    # to avoid creating a reference cycle on the request object.
+    site_settings = Site.objects.get_current().settings
     password_login_mode = site_settings.password_login_mode
 
     if password_login_mode != PasswordLoginMode.ENABLED:
