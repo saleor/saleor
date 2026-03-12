@@ -22,7 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Mutations `channelCreate` and `channelUpdate` now raise GraphQL errors instead `INVALID` when negative `MINUTE`/`HOUR`/`DAY` values are passed.
 - `AppInstallInput` for `appInstall` mutation now requires `appName` and `manifestUrl` fields in the schema, matching the validation that was always enforced by the mutation logic.
 - Removed Adyen plugin (payment gateway). [Switch to the app](https://docs.saleor.io/developer/app-store/apps/adyen/overview).
-- Removed `partial` field from the `Payment` GraphQL type. This field was an Adyen-specific workaround and always returned `false` after the Adyen plugin removal.
+- Removed `partial` field from the `Payment` GraphQL type. This field was an Adyen-specific workaround and always returned `false` after the Adyen plugin removal. Ensure you are not relying on this field (on Adyen gateway in general) before upgrading.
 
 ### GraphQL API
 
@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - `Attribute` fields `name`, `slug` and `type` are now non-nullable in schema.
 - Added new scalar `NonNegativeInt` which allows integer values greater than or equal to zero.
 - Scalars `Minute`, `Hour` and `Day` now inherit from `NonNegativeInt`, which mean GraphQL disallows negative values for time units.
+- Removed `partial` field from the `Payment` GraphQL type.
 
 ### Webhooks
 - For order webhook events, sync webhooks (such as `ORDER_CALCULATE_TAXES` and `ORDER_FILTER_SHIPPING_METHODS`) are no longer pre-fired before sending async webhook events. Sync webhooks are now only triggered when their data is actually requested, improving performance and decoupling async event delivery from sync webhook execution.

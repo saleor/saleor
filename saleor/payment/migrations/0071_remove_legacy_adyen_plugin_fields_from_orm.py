@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             "payment",
-            "0070_remove_transaction_legacy_adyen_plugin_payment_method_and_more",
+            "0070_alter_payment_partial_add_db_default",
         ),
     ]
 
