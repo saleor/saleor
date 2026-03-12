@@ -11,9 +11,11 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....site.dataloaders import get_site_promise
 from ...types import User
 from .utils import (
     _does_token_match,
+    check_password_login_not_disabled,
     get_payload,
     get_user,
     update_user_last_login_if_required,
@@ -129,6 +131,9 @@ class RefreshToken(BaseMutation):
         # None when we got refresh_token from cookie.
         if need_csrf:
             cls.clean_csrf_token(csrf_token, payload)
+
+        site_settings = get_site_promise(info.context).get().settings
+        check_password_login_not_disabled(site_settings)
 
         additional_payload = {}
         if audience := payload.get("aud"):

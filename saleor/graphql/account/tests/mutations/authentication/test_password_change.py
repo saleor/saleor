@@ -1,7 +1,6 @@
 from ......account import events as account_events
-from ......account.error_codes import AccountErrorCode
 from ......site import PasswordLoginMode
-from .....tests.utils import get_graphql_content
+from .....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 CHANGE_PASSWORD_MUTATION = """
     mutation PasswordChange($oldPassword: String, $newPassword: String!) {
@@ -147,14 +146,11 @@ def test_password_change_disabled_password_login(user_api_client, site_settings)
 
     # when
     response = user_api_client.post_graphql(CHANGE_PASSWORD_MUTATION, variables)
-    content = get_graphql_content(response)
 
     # then
-    data = content["data"]["passwordChange"]
-    assert len(data["errors"]) == 1
-    error = data["errors"][0]
-    assert error["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
-    assert error["field"] == "email"
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content, content
+    assert content["errors"][0]["message"] == "The authentication method is disabled."
 
     user_api_client.user.refresh_from_db()
     assert user_api_client.user.check_password("password")

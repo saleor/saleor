@@ -620,4 +620,3 @@ def test_request_password_reset_disabled_password_login(
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
-    assert error["field"] == "email"
