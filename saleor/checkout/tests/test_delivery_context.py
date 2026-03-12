@@ -123,7 +123,7 @@ def test_fetch_shipping_methods_for_checkout_with_built_in_shipping_method(
     assert len(shipping_methods) == 1
     checkout_delivery = shipping_methods[0]
     assert isinstance(checkout_delivery, CheckoutDelivery)
-    assert checkout.shipping_methods.count() == 1
+    assert checkout.deliveries.count() == 1
     # Make sure that shipping method data is aligned with the built-in shipping method
     _assert_built_in_shipping_method(
         checkout_delivery, available_shipping_method, checkout, settings
@@ -151,7 +151,7 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_built_in_shipping_
 
     available_shipping_method = ShippingMethod.objects.get()
 
-    existing_shipping_method = checkout.shipping_methods.create(
+    existing_shipping_method = checkout.deliveries.create(
         built_in_shipping_method_id=available_shipping_method.id,
         name=available_shipping_method.name,
         description=available_shipping_method.description,
@@ -228,7 +228,7 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_built_in_shi
     available_shipping_method = ShippingMethod.objects.get()
 
     non_applicable_shipping_method_id = available_shipping_method.id + 1
-    checkout.shipping_methods.create(
+    checkout.deliveries.create(
         built_in_shipping_method_id=non_applicable_shipping_method_id,
         name="Nonexisting Shipping Method",
         price_amount=Decimal(99),
@@ -273,7 +273,7 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_built_in_sh
     available_shipping_method = ShippingMethod.objects.get()
 
     non_applicable_shipping_method_id = available_shipping_method.id + 1
-    assigned_delivery = checkout.shipping_methods.create(
+    assigned_delivery = checkout.deliveries.create(
         built_in_shipping_method_id=non_applicable_shipping_method_id,
         name="Nonexisting Shipping Method",
         price_amount=Decimal(99),
@@ -354,7 +354,7 @@ def test_fetch_shipping_methods_for_checkout_with_excluded_built_in_shipping_met
     assert len(shipping_methods) == 1
     checkout_delivery = shipping_methods[0]
     assert isinstance(checkout_delivery, CheckoutDelivery)
-    assert checkout.shipping_methods.count() == 1
+    assert checkout.deliveries.count() == 1
     assert checkout_delivery.active is False
     assert checkout_delivery.message == exclude_reason
 
@@ -376,7 +376,7 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_built_in_ship
     )
     previous_shipping_price = shipping_channel_listing.price_amount
 
-    assigned_delivery = checkout.shipping_methods.create(
+    assigned_delivery = checkout.deliveries.create(
         built_in_shipping_method_id=available_shipping_method.id,
         name="Nonexisting Shipping Method",
         price_amount=previous_shipping_price,
@@ -429,7 +429,7 @@ def test_fetch_shipping_methods_for_checkout_with_changed_tax_class_of_built_in_
     )
     previous_shipping_price = shipping_channel_listing.price_amount
 
-    assigned_delivery = checkout.shipping_methods.create(
+    assigned_delivery = checkout.deliveries.create(
         built_in_shipping_method_id=available_shipping_method.id,
         name="Nonexisting Shipping Method",
         price_amount=previous_shipping_price,
@@ -576,7 +576,7 @@ def test_fetch_shipping_methods_for_checkout_updates_existing_external_shipping_
     mocked_webhook.return_value = Promise.resolve([available_shipping_method])
 
     checkout = checkout_with_item
-    checkout.shipping_methods.create(
+    checkout.deliveries.create(
         external_shipping_method_id=to_shipping_app_id(
             app, "external-shipping-method-id"
         ),
@@ -642,7 +642,7 @@ def test_fetch_shipping_methods_for_checkout_removes_non_applicable_external_shi
     mocked_webhook.return_value = Promise.resolve([available_shipping_method])
 
     checkout = checkout_with_item
-    checkout.shipping_methods.create(
+    checkout.deliveries.create(
         external_shipping_method_id=to_shipping_app_id(
             external_app, "expired-shipping-method-id"
         ),
@@ -709,7 +709,7 @@ def test_fetch_shipping_methods_for_checkout_non_applicable_assigned_external_sh
 
     checkout = checkout_with_item
     expired_app_id = to_shipping_app_id(external_app, "expired-shipping-method-id")
-    assigned_delivery = checkout.shipping_methods.create(
+    assigned_delivery = checkout.deliveries.create(
         external_shipping_method_id=expired_app_id,
         name="Old External Shipping name",
         price_amount=Decimal(99),
@@ -852,7 +852,7 @@ def test_fetch_shipping_methods_for_checkout_with_changed_price_of_external_ship
 
     new_shipping_price_amount = shipping_price_amount + Decimal(99)
     checkout = checkout_with_item
-    assigned_delivery = checkout.shipping_methods.create(
+    assigned_delivery = checkout.deliveries.create(
         external_shipping_method_id=to_shipping_app_id(
             app, "external-shipping-method-id"
         ),
@@ -948,7 +948,7 @@ def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_inva
 
     checkout = checkout_with_item
 
-    assigned_delivery = checkout.shipping_methods.create(
+    assigned_delivery = checkout.deliveries.create(
         external_shipping_method_id=to_shipping_app_id(
             external_app, "expired-shipping-method-id"
         ),
@@ -1004,7 +1004,7 @@ def test_fetch_shipping_methods_for_checkout_with_preserve_when_assigned_is_vali
 
     checkout = checkout_with_item
 
-    assigned_delivery = checkout.shipping_methods.create(
+    assigned_delivery = checkout.deliveries.create(
         external_shipping_method_id=to_shipping_app_id(
             external_app, "expired-shipping-method-id"
         ),
