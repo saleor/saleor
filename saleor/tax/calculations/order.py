@@ -1,10 +1,10 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from decimal import Decimal
+from decimal import ROUND_HALF_EVEN, Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
 from django.conf import settings
-from prices import TaxedMoney
+from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import TaxDataError, zero_taxed_money
@@ -23,6 +23,27 @@ from . import calculate_flat_rate_tax
 if TYPE_CHECKING:
     from ...order.models import Order, OrderLine
     from ...tax.models import TaxClass
+
+TWO_DP = Decimal("0.01")
+
+
+def _line_total_with_tax(
+    unit_price: TaxedMoney,
+    quantity: int,
+    tax_rate: Decimal,
+    currency: str,
+) -> TaxedMoney:
+    """Compute line total with tax rounded at the line level (Xero-style).
+
+    Xero calculates tax as round(unit_net * qty * rate / 100) per line, not
+    round(unit_net * rate / 100) * qty. We match that here.
+    """
+    line_net = unit_price.net * quantity
+    line_tax = (line_net.amount * tax_rate / 100).quantize(
+        TWO_DP, rounding=ROUND_HALF_EVEN
+    )
+    line_gross = line_net + Money(line_tax, currency)
+    return quantize_price(TaxedMoney(net=line_net, gross=line_gross), currency)
 
 
 def update_order_prices_with_flat_rates(
@@ -226,8 +247,14 @@ def update_taxes_for_order_lines(
             tax_rate = denormalize_tax_rate_from_db(line.tax_rate)
 
         undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
-        price_with_discounts = (
-            line.unit_price.gross if prices_entered_with_tax else line.unit_price.net
+        # Quantize the unit price to currency dp (2dp) before applying tax so that
+        # Saleor and Xero compute identical gross amounts. Xero receives a 2dp unit
+        # price and rounds tax line-by-line; we match that behaviour here.
+        # https://developer.xero.com/documentation/guides/how-to-guides/rounding-in-xero/.
+        # Note https://help.file.ai/xero-rounding-issues Xero uses bankers rounding.
+        price_with_discounts = quantize_price(
+            line.unit_price.gross if prices_entered_with_tax else line.unit_price.net,
+            currency,
         )
         unit_price = calculate_flat_rate_tax(
             price_with_discounts, tax_rate, prices_entered_with_tax
@@ -239,9 +266,13 @@ def update_taxes_for_order_lines(
         line.unit_price = quantize_price(unit_price, currency)
         line.undiscounted_unit_price = quantize_price(undiscounted_unit_price, currency)
 
-        line.total_price = quantize_price(line.unit_price * line.quantity, currency)
-        line.undiscounted_total_price = quantize_price(
-            line.undiscounted_unit_price * line.quantity, currency
+        # Compute line totals with tax at the line level (not per-unit) to match
+        # Xero's rounding: tax = round(unit_net * qty * rate/100, 2dp, banker's).
+        line.total_price = _line_total_with_tax(
+            line.unit_price, line.quantity, tax_rate, currency
+        )
+        line.undiscounted_total_price = _line_total_with_tax(
+            line.undiscounted_unit_price, line.quantity, tax_rate, currency
         )
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
 

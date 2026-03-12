@@ -493,6 +493,252 @@ def test_resolve_with_no_existing_allocations(
 
 
 # ---------------------------------------------------------------------------
+# Tests — stock adjustment on resolve
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_surplus_no_orders_increases_stock(
+    purchase_order,
+    variant_a,
+    owned_warehouse,
+    nonowned_warehouse,
+    completed_receipt,
+    staff_user,
+    shipment,
+):
+    """Pure surplus with no orders — stock must increase by the discrepancy.
+
+    Regression test: resolve_product_discrepancy previously marked the POIA as
+    processed without adjusting stock, leaving the surplus quantity missing
+    from the destination warehouse.
+    """
+    # given: POI ordered 1, received 999
+    Stock.objects.get_or_create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_a,
+        defaults={"quantity": 1000, "quantity_allocated": 0},
+    )
+    poi = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_a,
+        quantity_ordered=1,
+        total_price_amount=Decimal("10.00"),
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.REQUIRES_ATTENTION,
+    )
+    ReceiptLine.objects.create(
+        receipt=completed_receipt,
+        purchase_order_item=poi,
+        quantity_received=999,
+    )
+    PurchaseOrderItemAdjustment.objects.create(
+        purchase_order_item=poi,
+        quantity_change=998,
+        reason="cycle_count_pos",
+        affects_payable=True,
+        created_by=staff_user,
+    )
+    stock = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_a,
+        quantity=1,
+        quantity_allocated=0,
+    )
+
+    # when
+    resolve_product_discrepancy(
+        receipt=completed_receipt,
+        product=variant_a.product,
+        resolutions=[],
+        affects_payable=True,
+        user=staff_user,
+    )
+
+    # then: stock increased by 998 (the surplus)
+    stock.refresh_from_db()
+    assert stock.quantity == 999
+
+
+def test_resolve_shortage_no_orders_decreases_stock(
+    purchase_order,
+    variant_a,
+    owned_warehouse,
+    nonowned_warehouse,
+    completed_receipt,
+    staff_user,
+    shipment,
+):
+    """Pure shortage with no orders — stock must decrease by the discrepancy."""
+    # given: POI ordered 10, received 7
+    Stock.objects.get_or_create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_a,
+        defaults={"quantity": 1000, "quantity_allocated": 0},
+    )
+    poi = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_a,
+        quantity_ordered=10,
+        total_price_amount=Decimal("100.00"),
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.REQUIRES_ATTENTION,
+    )
+    ReceiptLine.objects.create(
+        receipt=completed_receipt,
+        purchase_order_item=poi,
+        quantity_received=7,
+    )
+    PurchaseOrderItemAdjustment.objects.create(
+        purchase_order_item=poi,
+        quantity_change=-3,
+        reason="delivery_short",
+        affects_payable=True,
+        created_by=staff_user,
+    )
+    stock = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_a,
+        quantity=10,
+        quantity_allocated=0,
+    )
+
+    # when
+    resolve_product_discrepancy(
+        receipt=completed_receipt,
+        product=variant_a.product,
+        resolutions=[],
+        affects_payable=True,
+        user=staff_user,
+    )
+
+    # then: stock decreased by 3 (the shortage)
+    stock.refresh_from_db()
+    assert stock.quantity == 7
+
+
+def test_resolve_surplus_with_orders_increases_unallocated_stock(
+    channel_USD,
+    purchase_order,
+    variant_a,
+    owned_warehouse,
+    nonowned_warehouse,
+    completed_receipt,
+    staff_user,
+    shipment,
+):
+    """Surplus with orders — orders keep their allocation, remaining surplus goes to stock."""
+    # given: POI ordered 5, received 8 — order has 5 allocated
+    Stock.objects.get_or_create(
+        warehouse=nonowned_warehouse,
+        product_variant=variant_a,
+        defaults={"quantity": 1000, "quantity_allocated": 0},
+    )
+    poi = PurchaseOrderItem.objects.create(
+        order=purchase_order,
+        product_variant=variant_a,
+        quantity_ordered=5,
+        total_price_amount=Decimal("50.00"),
+        currency="USD",
+        shipment=shipment,
+        country_of_origin="US",
+        status=PurchaseOrderItemStatus.REQUIRES_ATTENTION,
+    )
+    ReceiptLine.objects.create(
+        receipt=completed_receipt,
+        purchase_order_item=poi,
+        quantity_received=8,
+    )
+    PurchaseOrderItemAdjustment.objects.create(
+        purchase_order_item=poi,
+        quantity_change=3,
+        reason="cycle_count_pos",
+        affects_payable=True,
+        created_by=staff_user,
+    )
+    stock = Stock.objects.create(
+        warehouse=owned_warehouse,
+        product_variant=variant_a,
+        quantity=5,
+        quantity_allocated=0,
+    )
+
+    addr = purchase_order.source_warehouse.address
+    order = _make_order(channel_USD, addr)
+    line = _make_line(order, variant_a, 5)
+    _make_alloc_source(poi, line, stock, 5)
+
+    # when: resolve — order keeps 5
+    resolve_product_discrepancy(
+        receipt=completed_receipt,
+        product=variant_a.product,
+        resolutions=[{"order": order, "variant": variant_a, "quantity": 5}],
+        affects_payable=True,
+        user=staff_user,
+    )
+
+    # then: stock increased by 3 (the surplus) on top of the 5 already there
+    stock.refresh_from_db()
+    assert stock.quantity == 8
+    assert stock.quantity_allocated == 5
+
+
+def test_resolve_variant_swap_balanced_no_double_adjustment(
+    channel_USD,
+    purchase_order,
+    poi_a,
+    poi_b,
+    poia_a,
+    poia_b,
+    stock_a,
+    stock_b,
+    variant_a,
+    variant_b,
+    owned_warehouse,
+    completed_receipt,
+    staff_user,
+):
+    """Variant swap where product total balances.
+
+    Stock moves between variants but does not double-adjust.
+    """
+    # given: poi_a ordered=10 received=8 (POIA=-2)
+    #        poi_b ordered=10 received=12 (POIA=+2)
+    #        stock_a=20 stock_b=20, order has 10xA allocated
+    addr = purchase_order.source_warehouse.address
+    order = _make_order(channel_USD, addr)
+
+    line = _make_line(order, variant_a, 10)
+    _make_alloc_source(poi_a, line, stock_a, 10)
+
+    stock_a_before = stock_a.quantity  # 20
+    stock_b_before = stock_b.quantity  # 20
+
+    # when: substitute — give order 8 A + 2 B
+    resolve_product_discrepancy(
+        receipt=completed_receipt,
+        product=variant_a.product,
+        resolutions=[
+            {"order": order, "variant": variant_a, "quantity": 8},
+            {"order": order, "variant": variant_b, "quantity": 2},
+        ],
+        affects_payable=False,
+        user=staff_user,
+    )
+
+    # then: stock_a decreased by 2 (shortage), stock_b increased by 2 (surplus)
+    # _apply_reallocation handles -2 on A (alloc moved 10→8) and +2 on B (alloc 0→2)
+    # The discrepancy is also -2 on A and +2 on B, so net additional adjustment = 0
+    stock_a.refresh_from_db()
+    stock_b.refresh_from_db()
+    assert stock_a.quantity == stock_a_before - 2
+    assert stock_b.quantity == stock_b_before + 2
+
+
+# ---------------------------------------------------------------------------
 # Tests — get_product_discrepancies
 # ---------------------------------------------------------------------------
 

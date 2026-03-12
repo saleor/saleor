@@ -609,24 +609,37 @@ def test_xero_fulfillment_created_calculated_amounts_serializes_as_decimal(
     order = fulfillment.order
     order.shipping_price_gross_amount = Decimal("120.00")
     order.shipping_price_net_amount = Decimal("100.00")
+    order.shipping_tax_rate = Decimal("0.20")
     order.shipping_xero_tax_code = "OUTPUT2"
     order.currency = "USD"
     order.save(
         update_fields=[
             "shipping_price_gross_amount",
             "shipping_price_net_amount",
+            "shipping_tax_rate",
             "shipping_xero_tax_code",
             "currency",
         ]
     )
     fulfillment.deposit_allocated_amount = Decimal("50.00")
-    fulfillment.save(update_fields=["deposit_allocated_amount"])
+    fulfillment.shipping_allocated_net_amount = Decimal("100.00")
+    fulfillment.save(
+        update_fields=["deposit_allocated_amount", "shipping_allocated_net_amount"]
+    )
 
     for line in fulfillment.lines.all():
-        line.order_line.unit_price_gross_amount = Decimal("100.00")
-        line.order_line.unit_price_net_amount = Decimal("80.00")
-        line.order_line.save(
-            update_fields=["unit_price_gross_amount", "unit_price_net_amount"]
+        ol = line.order_line
+        ol.unit_price_gross_amount = Decimal("100.00")
+        ol.unit_price_net_amount = Decimal("80.00")
+        ol.total_price_gross_amount = Decimal("100.00") * ol.quantity
+        ol.total_price_net_amount = Decimal("80.00") * ol.quantity
+        ol.save(
+            update_fields=[
+                "unit_price_gross_amount",
+                "unit_price_net_amount",
+                "total_price_gross_amount",
+                "total_price_net_amount",
+            ]
         )
 
     lines_gross = sum(
@@ -669,12 +682,14 @@ def test_xero_fulfillment_created_partial_fulfillment_splits_shipping_proportion
     order = order_with_lines
     order.shipping_price_gross_amount = Decimal("12.00")
     order.shipping_price_net_amount = Decimal("10.00")
+    order.shipping_tax_rate = Decimal("0.20")
     order.shipping_xero_tax_code = "OUTPUT2"
     order.currency = "GBP"
     order.save(
         update_fields=[
             "shipping_price_gross_amount",
             "shipping_price_net_amount",
+            "shipping_tax_rate",
             "shipping_xero_tax_code",
             "currency",
         ]
@@ -684,20 +699,29 @@ def test_xero_fulfillment_created_partial_fulfillment_splits_shipping_proportion
     for line in all_lines:
         line.unit_price_gross_amount = Decimal("50.00")
         line.unit_price_net_amount = Decimal("40.00")
+        line.total_price_gross_amount = Decimal("50.00")
+        line.total_price_net_amount = Decimal("40.00")
         line.quantity = 1
         line.save(
             update_fields=[
                 "unit_price_gross_amount",
                 "unit_price_net_amount",
+                "total_price_gross_amount",
+                "total_price_net_amount",
                 "quantity",
             ]
         )
 
     # Only the first line is in this fulfillment
+    n_lines = len(all_lines)
+    shipping_net_share = (Decimal("10.00") / n_lines).quantize(Decimal("0.01"))
     partial = order.fulfillments.create()
     partial.lines.create(order_line=all_lines[0], quantity=1)
     partial.deposit_allocated_amount = Decimal("5.00")
-    partial.save(update_fields=["deposit_allocated_amount"])
+    partial.shipping_allocated_net_amount = shipping_net_share
+    partial.save(
+        update_fields=["deposit_allocated_amount", "shipping_allocated_net_amount"]
+    )
 
     request = initialize_request(app=app)
 
@@ -713,16 +737,10 @@ def test_xero_fulfillment_created_partial_fulfillment_splits_shipping_proportion
     assert "errors" not in payload
     amounts = payload["calculatedAmounts"]
 
-    n_lines = len(all_lines)
-    order_lines_total = Decimal("50.00") * n_lines  # all lines
-    fulfillment_lines_total = Decimal("50.00")  # one line
-
-    expected_shipping_gross = (
-        Decimal("12.00") * fulfillment_lines_total / order_lines_total
-    ).quantize(Decimal("0.01"))
-    expected_shipping_net = (
-        Decimal("10.00") * fulfillment_lines_total / order_lines_total
-    ).quantize(Decimal("0.01"))
+    expected_shipping_net = shipping_net_share
+    expected_shipping_gross = (shipping_net_share * Decimal("1.20")).quantize(
+        Decimal("0.01")
+    )
 
     assert amounts["shippingCost"]["amount"] == pytest.approx(
         float(expected_shipping_gross)
@@ -733,6 +751,7 @@ def test_xero_fulfillment_created_partial_fulfillment_splits_shipping_proportion
     # Shipping must be strictly less than the full amount for a partial fulfillment
     assert amounts["shippingCost"]["amount"] < 12.0
 
+    fulfillment_lines_total = Decimal("50.00")
     expected_proforma = float(
         fulfillment_lines_total + expected_shipping_gross - Decimal("5.00")
     )
@@ -749,11 +768,15 @@ def test_xero_fulfillment_created_line_amounts_use_stored_values(fulfillment, ap
     ol = first_fl.order_line
     ol.unit_price_gross_amount = Decimal("200.00")
     ol.unit_price_net_amount = Decimal("166.67")
+    ol.total_price_gross_amount = Decimal("200.00") * ol.quantity
+    ol.total_price_net_amount = Decimal("166.67") * ol.quantity
     ol.xero_tax_code = "OUTPUT2"
     ol.save(
         update_fields=[
             "unit_price_gross_amount",
             "unit_price_net_amount",
+            "total_price_gross_amount",
+            "total_price_net_amount",
             "xero_tax_code",
         ]
     )

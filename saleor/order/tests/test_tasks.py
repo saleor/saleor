@@ -904,8 +904,18 @@ def test_check_xero_prepayment_statuses_no_webhooks_exits_early(
     mock_get_webhooks, order
 ):
     # given
-    order.xero_deposit_prepayment_id = "DEPOSIT-001"
-    order.save(update_fields=["xero_deposit_prepayment_id"])
+    from ...payment import ChargeStatus, CustomPaymentChoices
+    from ...payment.models import Payment
+
+    Payment.objects.create(
+        order=order,
+        gateway=CustomPaymentChoices.XERO,
+        psp_reference="DEPOSIT-001",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        currency=order.currency,
+    )
 
     # when
     from ..tasks import check_xero_prepayment_statuses_task
@@ -922,16 +932,24 @@ def test_check_xero_prepayment_statuses_no_webhooks_exits_early(
 @pytest.mark.django_db
 @patch("saleor.webhook.utils.get_webhooks_for_event")
 @patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_deposit_records_payment_when_paid(
+def test_cron_marks_payment_as_paid_when_reconciled(
     mock_check_status, mock_get_webhooks, order
 ):
     from decimal import Decimal
 
+    from ...payment import ChargeStatus, CustomPaymentChoices
     from ...payment.models import Payment
 
     # given
-    order.xero_deposit_prepayment_id = "DEPOSIT-002"
-    order.save(update_fields=["xero_deposit_prepayment_id"])
+    payment = Payment.objects.create(
+        order=order,
+        gateway=CustomPaymentChoices.XERO,
+        psp_reference="DEPOSIT-002",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        currency=order.currency,
+    )
 
     mock_get_webhooks.return_value = [MagicMock()]
     mock_check_status.return_value = {"reconciledAmount": "150.00"}
@@ -942,31 +960,31 @@ def test_check_xero_prepayment_statuses_deposit_records_payment_when_paid(
     check_xero_prepayment_statuses_task()
 
     # then
-    payment = Payment.objects.get(psp_reference="DEPOSIT-002")
-    assert payment.order == order
-    assert payment.total == Decimal("150.00")
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == Decimal("150.00")
-    assert payment.metadata["source"] == "xero_cron"
-    assert "datePaid" not in payment.metadata
-
-    from ...payment.models import Transaction
-
-    transaction = Transaction.objects.get(payment=payment)
-    assert transaction.amount == Decimal("150.00")
-    assert transaction.is_success is True
+    assert payment.total == Decimal("150.00")
 
 
 @pytest.mark.django_db
 @patch("saleor.webhook.utils.get_webhooks_for_event")
 @patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_deposit_skips_when_not_paid(
+def test_cron_skips_payment_when_not_reconciled(
     mock_check_status, mock_get_webhooks, order
 ):
+    from ...payment import ChargeStatus, CustomPaymentChoices
     from ...payment.models import Payment
 
     # given
-    order.xero_deposit_prepayment_id = "DEPOSIT-003"
-    order.save(update_fields=["xero_deposit_prepayment_id"])
+    payment = Payment.objects.create(
+        order=order,
+        gateway=CustomPaymentChoices.XERO,
+        psp_reference="DEPOSIT-003",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        currency=order.currency,
+    )
 
     mock_get_webhooks.return_value = [MagicMock()]
     mock_check_status.return_value = {"reconciledAmount": "0.00"}
@@ -976,136 +994,30 @@ def test_check_xero_prepayment_statuses_deposit_skips_when_not_paid(
 
     check_xero_prepayment_statuses_task()
 
-    # then
-    assert not Payment.objects.filter(psp_reference="DEPOSIT-003").exists()
+    # then - payment still NOT_CHARGED
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
 @pytest.mark.django_db
 @patch("saleor.webhook.utils.get_webhooks_for_event")
 @patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_proforma_records_payment_when_paid(
-    mock_check_status, mock_get_webhooks, fulfillment
-):
-    from decimal import Decimal
-
-    from ...order import FulfillmentStatus
-    from ...payment.models import Payment
-
-    # given
-    fulfillment.xero_proforma_prepayment_id = "PROFORMA-001"
-    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
-    fulfillment.save(update_fields=["xero_proforma_prepayment_id", "status"])
-
-    mock_get_webhooks.return_value = [MagicMock()]
-    mock_check_status.return_value = {"reconciledAmount": "250.00"}
-
-    # when
-    from ..tasks import check_xero_prepayment_statuses_task
-
-    check_xero_prepayment_statuses_task()
-
-    # then
-    payment = Payment.objects.get(psp_reference="PROFORMA-001")
-    assert payment.order == fulfillment.order
-    assert payment.total == Decimal("250.00")
-    assert payment.captured_amount == Decimal("250.00")
-    assert payment.metadata["source"] == "xero_cron"
-    assert "datePaid" not in payment.metadata
-
-    from ...payment.models import Transaction
-
-    transaction = Transaction.objects.get(payment=payment)
-    assert transaction.amount == Decimal("250.00")
-    assert transaction.is_success is True
-
-
-@pytest.mark.django_db
-@patch("saleor.webhook.utils.get_webhooks_for_event")
-@patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_proforma_skips_already_recorded(
-    mock_check_status, mock_get_webhooks, fulfillment
-):
-    from decimal import Decimal
-
-    from ...order import FulfillmentStatus
-    from ...payment import ChargeStatus, CustomPaymentChoices
-    from ...payment.models import Payment
-
-    # given
-    fulfillment.xero_proforma_prepayment_id = "PROFORMA-DUP"
-    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
-    fulfillment.save(update_fields=["xero_proforma_prepayment_id", "status"])
-
-    # payment already recorded for this prepayment
-    Payment.objects.create(
-        order=fulfillment.order,
-        gateway=CustomPaymentChoices.XERO,
-        psp_reference="PROFORMA-DUP",
-        total=Decimal("250.00"),
-        captured_amount=Decimal("250.00"),
-        charge_status=ChargeStatus.FULLY_CHARGED,
-        currency=fulfillment.order.currency,
-    )
-
-    mock_get_webhooks.return_value = [MagicMock()]
-
-    # when
-    from ..tasks import check_xero_prepayment_statuses_task
-
-    check_xero_prepayment_statuses_task()
-
-    # then - already recorded, not re-checked
-    mock_check_status.assert_not_called()
-
-
-@pytest.mark.django_db
-@patch("saleor.webhook.utils.get_webhooks_for_event")
-@patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_deposit_skips_already_recorded(
+def test_cron_deletes_payment_when_xero_returns_none(
     mock_check_status, mock_get_webhooks, order
 ):
-    from decimal import Decimal
-
     from ...payment import ChargeStatus, CustomPaymentChoices
     from ...payment.models import Payment
 
     # given
-    order.xero_deposit_prepayment_id = "DEPOSIT-DUP"
-    order.save(update_fields=["xero_deposit_prepayment_id"])
-
     Payment.objects.create(
         order=order,
         gateway=CustomPaymentChoices.XERO,
-        psp_reference="DEPOSIT-DUP",
-        total=Decimal("150.00"),
-        captured_amount=Decimal("150.00"),
-        charge_status=ChargeStatus.FULLY_CHARGED,
+        psp_reference="DEPOSIT-GONE",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
         currency=order.currency,
     )
-
-    mock_get_webhooks.return_value = [MagicMock()]
-
-    # when
-    from ..tasks import check_xero_prepayment_statuses_task
-
-    check_xero_prepayment_statuses_task()
-
-    # then - already recorded, not re-checked
-    mock_check_status.assert_not_called()
-    assert Payment.objects.filter(psp_reference="DEPOSIT-DUP").count() == 1
-
-
-@pytest.mark.django_db
-@patch("saleor.webhook.utils.get_webhooks_for_event")
-@patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_deposit_skips_when_response_is_none(
-    mock_check_status, mock_get_webhooks, order
-):
-    from ...payment.models import Payment
-
-    # given
-    order.xero_deposit_prepayment_id = "DEPOSIT-NONE"
-    order.save(update_fields=["xero_deposit_prepayment_id"])
 
     mock_get_webhooks.return_value = [MagicMock()]
     mock_check_status.return_value = None
@@ -1115,26 +1027,108 @@ def test_check_xero_prepayment_statuses_deposit_skips_when_response_is_none(
 
     check_xero_prepayment_statuses_task()
 
-    # then - None response (Dirac timeout/failure) must not record a payment
-    assert not Payment.objects.filter(psp_reference="DEPOSIT-NONE").exists()
+    # then - payment deleted because prepayment no longer exists in Xero
+    assert not Payment.objects.filter(psp_reference="DEPOSIT-GONE").exists()
 
 
 @pytest.mark.django_db
 @patch("saleor.webhook.utils.get_webhooks_for_event")
 @patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_proforma_skips_when_not_reconciled(
-    mock_check_status, mock_get_webhooks, fulfillment
+def test_cron_skips_already_charged_payments(
+    mock_check_status, mock_get_webhooks, order
 ):
-    from ...order import FulfillmentStatus
+    from decimal import Decimal
+
+    from ...payment import ChargeStatus, CustomPaymentChoices
+    from ...payment.models import Payment
+
+    # given - payment already FULLY_CHARGED
+    Payment.objects.create(
+        order=order,
+        gateway=CustomPaymentChoices.XERO,
+        psp_reference="DEPOSIT-PAID",
+        total=Decimal("100.00"),
+        captured_amount=Decimal("100.00"),
+        charge_status=ChargeStatus.FULLY_CHARGED,
+        currency=order.currency,
+    )
+
+    mock_get_webhooks.return_value = [MagicMock()]
+
+    # when
+    from ..tasks import check_xero_prepayment_statuses_task
+
+    check_xero_prepayment_statuses_task()
+
+    # then - not checked because already charged
+    mock_check_status.assert_not_called()
+
+
+@pytest.mark.django_db
+@patch("saleor.webhook.utils.get_webhooks_for_event")
+@patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
+def test_cron_consecutive_runs_idempotent(mock_check_status, mock_get_webhooks, order):
+    from decimal import Decimal
+
+    from ...payment import ChargeStatus, CustomPaymentChoices
     from ...payment.models import Payment
 
     # given
-    fulfillment.xero_proforma_prepayment_id = "PROFORMA-ZERO"
-    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
-    fulfillment.save(update_fields=["xero_proforma_prepayment_id", "status"])
+    Payment.objects.create(
+        order=order,
+        gateway=CustomPaymentChoices.XERO,
+        psp_reference="DEPOSIT-CONSEC",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        currency=order.currency,
+    )
 
     mock_get_webhooks.return_value = [MagicMock()]
-    mock_check_status.return_value = {"reconciledAmount": "0.00"}
+    mock_check_status.return_value = {"reconciledAmount": "100.00"}
+
+    from ..tasks import check_xero_prepayment_statuses_task
+
+    # when - first run marks as paid, second run skips (already FULLY_CHARGED)
+    check_xero_prepayment_statuses_task()
+    check_xero_prepayment_statuses_task()
+
+    # then
+    assert mock_check_status.call_count == 1
+    payment = Payment.objects.get(psp_reference="DEPOSIT-CONSEC")
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.captured_amount == Decimal("100.00")
+
+
+@pytest.mark.django_db
+@patch("saleor.webhook.utils.get_webhooks_for_event")
+@patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
+def test_cron_updates_order_charge_data_when_reconciled(
+    mock_check_status, mock_get_webhooks, order
+):
+    from decimal import Decimal
+
+    from ...order import OrderChargeStatus
+    from ...payment import ChargeStatus, CustomPaymentChoices
+    from ...payment.models import Payment
+
+    # given
+    order.total_gross_amount = Decimal("500.00")
+    order.total_net_amount = Decimal("500.00")
+    order.save(update_fields=["total_gross_amount", "total_net_amount"])
+
+    Payment.objects.create(
+        order=order,
+        gateway=CustomPaymentChoices.XERO,
+        psp_reference="DEPOSIT-CHARGE-001",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        currency=order.currency,
+    )
+
+    mock_get_webhooks.return_value = [MagicMock()]
+    mock_check_status.return_value = {"reconciledAmount": "150.00"}
 
     # when
     from ..tasks import check_xero_prepayment_statuses_task
@@ -1142,106 +1136,146 @@ def test_check_xero_prepayment_statuses_proforma_skips_when_not_reconciled(
     check_xero_prepayment_statuses_task()
 
     # then
-    assert not Payment.objects.filter(psp_reference="PROFORMA-ZERO").exists()
+    order.refresh_from_db()
+    assert order.total_charged_amount == Decimal("150.00")
+    assert order.charge_status == OrderChargeStatus.PARTIAL
 
 
 @pytest.mark.django_db
 @patch("saleor.webhook.utils.get_webhooks_for_event")
 @patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_deposit_no_duplicate_on_consecutive_runs(
+def test_cron_sets_full_charge_status_when_fully_reconciled(
     mock_check_status, mock_get_webhooks, order
 ):
+    from decimal import Decimal
+
+    from ...order import OrderChargeStatus
+    from ...payment import ChargeStatus, CustomPaymentChoices
     from ...payment.models import Payment
 
     # given
-    order.xero_deposit_prepayment_id = "DEPOSIT-CONSEC"
-    order.save(update_fields=["xero_deposit_prepayment_id"])
+    order.total_gross_amount = Decimal("200.00")
+    order.total_net_amount = Decimal("200.00")
+    order.save(update_fields=["total_gross_amount", "total_net_amount"])
 
-    mock_get_webhooks.return_value = [MagicMock()]
-    mock_check_status.return_value = {"reconciledAmount": "100.00"}
-
-    from ..tasks import check_xero_prepayment_statuses_task
-
-    # when - task runs twice
-    check_xero_prepayment_statuses_task()
-    check_xero_prepayment_statuses_task()
-
-    # then - only one payment created despite two runs
-    assert Payment.objects.filter(psp_reference="DEPOSIT-CONSEC").count() == 1
-    mock_check_status.assert_called_once()
-
-
-@pytest.mark.django_db
-@patch("saleor.webhook.utils.get_webhooks_for_event")
-@patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_proforma_no_duplicate_on_consecutive_runs(
-    mock_check_status, mock_get_webhooks, fulfillment
-):
-    from ...order import FulfillmentStatus
-    from ...payment.models import Payment
-
-    # given
-    fulfillment.xero_proforma_prepayment_id = "PROFORMA-CONSEC"
-    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
-    fulfillment.save(update_fields=["xero_proforma_prepayment_id", "status"])
+    Payment.objects.create(
+        order=order,
+        gateway=CustomPaymentChoices.XERO,
+        psp_reference="DEPOSIT-FULL-001",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        currency=order.currency,
+    )
 
     mock_get_webhooks.return_value = [MagicMock()]
     mock_check_status.return_value = {"reconciledAmount": "200.00"}
 
+    # when
     from ..tasks import check_xero_prepayment_statuses_task
 
-    # when - task runs twice
-    check_xero_prepayment_statuses_task()
     check_xero_prepayment_statuses_task()
 
-    # then - only one payment created despite two runs
-    assert Payment.objects.filter(psp_reference="PROFORMA-CONSEC").count() == 1
-    mock_check_status.assert_called_once()
+    # then
+    order.refresh_from_db()
+    assert order.total_charged_amount == Decimal("200.00")
+    assert order.charge_status == OrderChargeStatus.FULL
 
 
 @pytest.mark.django_db
 @patch("saleor.webhook.utils.get_webhooks_for_event")
 @patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
-def test_check_xero_prepayment_statuses_deposit_exclude_guards_when_deposit_paid_at_null(
+def test_cron_sets_deposit_paid_at_when_threshold_met(
     mock_check_status, mock_get_webhooks, order
 ):
-    """The .exclude(psp_reference) filter is the real idempotency guard — it prevents double-recording even when deposit_paid_at is still null (e.g. threshold not met or payment recorded by a different code path that didn't set deposit_paid_at)."""
     from decimal import Decimal
 
     from ...payment import ChargeStatus, CustomPaymentChoices
     from ...payment.models import Payment
 
-    # given - payment already exists with the prepayment ID but deposit_paid_at is null
-    order.xero_deposit_prepayment_id = "DEPOSIT-PARTIAL"
+    # given
+    order.total_gross_amount = Decimal("1000.00")
+    order.total_net_amount = Decimal("1000.00")
     order.deposit_required = True
-    order.deposit_percentage = Decimal(99)
-    order.deposit_paid_at = None
+    order.deposit_percentage = Decimal("30.00")
     order.save(
         update_fields=[
-            "xero_deposit_prepayment_id",
+            "total_gross_amount",
+            "total_net_amount",
             "deposit_required",
             "deposit_percentage",
-            "deposit_paid_at",
         ]
     )
+    assert order.deposit_paid_at is None
+
     Payment.objects.create(
         order=order,
         gateway=CustomPaymentChoices.XERO,
-        psp_reference="DEPOSIT-PARTIAL",
-        total=Decimal("1.00"),
-        captured_amount=Decimal("1.00"),
-        charge_status=ChargeStatus.FULLY_CHARGED,
+        psp_reference="DEPOSIT-THRESHOLD-001",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
         currency=order.currency,
     )
 
     mock_get_webhooks.return_value = [MagicMock()]
+    mock_check_status.return_value = {"reconciledAmount": "300.00"}
 
+    # when
     from ..tasks import check_xero_prepayment_statuses_task
 
-    # when - task runs: deposit_paid_at is null so the deposit_paid_at__isnull=True
-    # filter alone would include this order, but .exclude(psp_reference) must block it
     check_xero_prepayment_statuses_task()
 
-    # then - not re-checked and no duplicate created
-    mock_check_status.assert_not_called()
-    assert Payment.objects.filter(psp_reference="DEPOSIT-PARTIAL").count() == 1
+    # then
+    order.refresh_from_db()
+    assert order.deposit_paid_at is not None
+    assert order.total_charged_amount == Decimal("300.00")
+
+
+@pytest.mark.django_db
+@patch("saleor.webhook.utils.get_webhooks_for_event")
+@patch("saleor.plugins.manager.PluginsManager.xero_check_prepayment_status")
+def test_cron_does_not_set_deposit_paid_at_when_threshold_not_met(
+    mock_check_status, mock_get_webhooks, order
+):
+    from decimal import Decimal
+
+    from ...payment import ChargeStatus, CustomPaymentChoices
+    from ...payment.models import Payment
+
+    # given
+    order.total_gross_amount = Decimal("1000.00")
+    order.total_net_amount = Decimal("1000.00")
+    order.deposit_required = True
+    order.deposit_percentage = Decimal("30.00")
+    order.save(
+        update_fields=[
+            "total_gross_amount",
+            "total_net_amount",
+            "deposit_required",
+            "deposit_percentage",
+        ]
+    )
+
+    Payment.objects.create(
+        order=order,
+        gateway=CustomPaymentChoices.XERO,
+        psp_reference="DEPOSIT-UNDER-001",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        currency=order.currency,
+    )
+
+    mock_get_webhooks.return_value = [MagicMock()]
+    mock_check_status.return_value = {"reconciledAmount": "100.00"}
+
+    # when
+    from ..tasks import check_xero_prepayment_statuses_task
+
+    check_xero_prepayment_statuses_task()
+
+    # then
+    order.refresh_from_db()
+    assert order.deposit_paid_at is None
+    assert order.total_charged_amount == Decimal("100.00")

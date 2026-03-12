@@ -3823,8 +3823,19 @@ class WebhookPlugin(BasePlugin):
                 "xeroDepositBankTransactionId"
             )
             if xero_deposit_prepayment_id:
-                order.xero_deposit_prepayment_id = xero_deposit_prepayment_id
-                order.save(update_fields=["xero_deposit_prepayment_id"])
+                from ...payment import ChargeStatus, CustomPaymentChoices
+                from ...payment.models import Payment
+
+                Payment.objects.create(
+                    order=order,
+                    fulfillment=None,
+                    gateway=CustomPaymentChoices.XERO,
+                    psp_reference=xero_deposit_prepayment_id,
+                    captured_amount=Decimal(0),
+                    total=Decimal(0),
+                    charge_status=ChargeStatus.NOT_CHARGED,
+                    currency=order.currency,
+                )
         return previous_value
 
     def xero_fulfillment_created(self, fulfillment, previous_value: None) -> None:
@@ -3855,8 +3866,19 @@ class WebhookPlugin(BasePlugin):
             if xero_proforma_prepayment_id := response_data.get(
                 "xeroProformaBankTransactionId"
             ):
-                fulfillment.xero_proforma_prepayment_id = xero_proforma_prepayment_id
-                update_fields.append("xero_proforma_prepayment_id")
+                from ...payment import ChargeStatus, CustomPaymentChoices
+                from ...payment.models import Payment
+
+                Payment.objects.create(
+                    order=fulfillment.order,
+                    fulfillment=fulfillment,
+                    gateway=CustomPaymentChoices.XERO,
+                    psp_reference=xero_proforma_prepayment_id,
+                    captured_amount=Decimal(0),
+                    total=Decimal(0),
+                    charge_status=ChargeStatus.NOT_CHARGED,
+                    currency=fulfillment.order.currency,
+                )
             if quote_pdf_url := response_data.get("quotePdfUrl"):
                 Invoice.objects.filter(
                     fulfillment=fulfillment, type=InvoiceType.PROFORMA
@@ -3932,13 +3954,18 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def xero_check_prepayment_status(
-        self, prepayment_id: str, previous_value: dict | None
+        self,
+        prepayment_id: str,
+        xero_contact_id: str | None,
+        previous_value: dict | None,
     ) -> dict | None:
         webhooks = get_webhooks_for_event(
             WebhookEventSyncType.XERO_CHECK_PREPAYMENT_STATUS
         )
         for webhook in webhooks:
-            payload_str = generate_xero_check_prepayment_status_payload(prepayment_id)
+            payload_str = generate_xero_check_prepayment_status_payload(
+                prepayment_id, xero_contact_id
+            )
             response_data = trigger_webhook_sync(
                 event_type=WebhookEventSyncType.XERO_CHECK_PREPAYMENT_STATUS,
                 payload=payload_str,

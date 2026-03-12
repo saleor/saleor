@@ -2971,9 +2971,15 @@ class PluginsManager(PaymentInterface):
             "xero_fulfillment_approved", None, fulfillment, channel_slug=None
         )
 
-    def xero_check_prepayment_status(self, prepayment_id: str) -> dict | None:
+    def xero_check_prepayment_status(
+        self, prepayment_id: str, xero_contact_id: str | None = None
+    ) -> dict | None:
         return self.__run_method_on_plugins(
-            "xero_check_prepayment_status", None, prepayment_id, channel_slug=None
+            "xero_check_prepayment_status",
+            None,
+            prepayment_id,
+            xero_contact_id,
+            channel_slug=None,
         )
 
     def xero_list_bank_accounts(self, domain: str) -> list:

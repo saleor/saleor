@@ -224,6 +224,16 @@ class OrderFulfill(BaseMutation):
             )
 
         if order.deposit_required:
+            if order.payments.xero_unpaid_deposits().exists():
+                raise ValidationError(
+                    {
+                        "order": ValidationError(
+                            "Cannot fulfill order: unpaid deposit prepayments exist. "
+                            "Wait for payment or delete the unpaid prepayments first.",
+                            code=OrderErrorCode.INVALID.value,
+                        )
+                    }
+                )
             if not order.deposit_threshold_met:
                 raise ValidationError(
                     {

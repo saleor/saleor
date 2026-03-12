@@ -441,12 +441,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     )
     deposit_threshold_met_override = models.BooleanField(default=False)
     allow_variant_reallocation = models.BooleanField(default=True)
-    xero_deposit_prepayment_id = models.CharField(
-        max_length=36,
-        null=True,
-        blank=True,
-        help_text="Xero prepayment UUID for the deposit on this order.",
-    )
     xero_bank_account_code = models.CharField(
         max_length=10,
         null=True,
@@ -526,6 +520,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         result = self.payments.filter(
             gateway=CustomPaymentChoices.XERO,
             is_active=True,
+            fulfillment__isnull=True,
         ).aggregate(total=Sum("captured_amount"))
         return result["total"] or Decimal(0)
 
@@ -972,6 +967,11 @@ class Fulfillment(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal(0),
     )
+    shipping_allocated_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
     xero_quote_id = models.CharField(
         max_length=36,
         null=True,
@@ -983,12 +983,6 @@ class Fulfillment(ModelWithMetadata):
         null=True,
         blank=True,
         help_text="Xero Quote number (e.g. Q-1234).",
-    )
-    xero_proforma_prepayment_id = models.CharField(
-        max_length=36,
-        null=True,
-        blank=True,
-        help_text="Xero prepayment UUID for the proforma payment on this fulfillment.",
     )
 
     class Meta(ModelWithMetadata.Meta):
@@ -1139,10 +1133,13 @@ class Fulfillment(ModelWithMetadata):
 
         order = self.order
         if order.origin != OrderOrigin.CHECKOUT:
+            from ..payment import ChargeStatus
+
+            proforma_payments = self.payments.xero_proforma()
             if (
-                not self.xero_proforma_prepayment_id
-                or not order.payments.filter(
-                    psp_reference=self.xero_proforma_prepayment_id
+                not proforma_payments.exists()
+                or proforma_payments.filter(
+                    charge_status=ChargeStatus.NOT_CHARGED
                 ).exists()
             ):
                 return False

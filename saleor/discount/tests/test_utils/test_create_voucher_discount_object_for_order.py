@@ -282,15 +282,13 @@ def test_create_discount_for_voucher_apply_once_per_order_percentage(
         discounted_line.undiscounted_base_unit_price_amount - unit_discount_amount,
         currency,
     )
-    assert discounted_line.total_price_gross_amount == quantize_price(
-        discounted_line.unit_price_gross_amount * discounted_line.quantity,
+    assert discounted_line.total_price_net_amount == quantize_price(
+        discounted_line.unit_price_net_amount * discounted_line.quantity,
         currency,
     )
-    assert (
-        discounted_line.undiscounted_total_price_gross_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * tax_rate
+    assert discounted_line.undiscounted_total_price_net_amount == quantize_price(
+        discounted_line.undiscounted_unit_price_net_amount * discounted_line.quantity,
+        currency,
     )
     assert discounted_line.unit_discount_amount == quantize_price(
         unit_discount_amount, currency
@@ -299,12 +297,11 @@ def test_create_discount_for_voucher_apply_once_per_order_percentage(
     assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert line_1.total_price_gross_amount == quantize_price(
-        line_1.unit_price_gross_amount * line_1.quantity, currency
+    assert line_1.total_price_net_amount == quantize_price(
+        line_1.unit_price_net_amount * line_1.quantity, currency
     )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
+    assert line_1.undiscounted_total_price_net_amount == quantize_price(
+        line_1.undiscounted_unit_price_net_amount * line_1.quantity, currency
     )
     assert line_1.unit_discount_amount == 0
     assert line_1.unit_discount_type is None
@@ -387,15 +384,13 @@ def test_create_discount_for_voucher_apply_once_per_order_fixed(
         discounted_line.undiscounted_base_unit_price_amount - unit_discount_amount,
         currency,
     )
-    assert discounted_line.total_price_gross_amount == quantize_price(
-        discounted_line.unit_price_gross_amount * discounted_line.quantity,
+    assert discounted_line.total_price_net_amount == quantize_price(
+        discounted_line.unit_price_net_amount * discounted_line.quantity,
         currency,
     )
-    assert (
-        discounted_line.undiscounted_total_price_gross_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * tax_rate
+    assert discounted_line.undiscounted_total_price_net_amount == quantize_price(
+        discounted_line.undiscounted_unit_price_net_amount * discounted_line.quantity,
+        currency,
     )
     assert discounted_line.unit_discount_amount == quantize_price(
         unit_discount_amount, currency
@@ -404,12 +399,11 @@ def test_create_discount_for_voucher_apply_once_per_order_fixed(
     assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert line_1.total_price_gross_amount == quantize_price(
-        line_1.unit_price_gross_amount * line_1.quantity, currency
+    assert line_1.total_price_net_amount == quantize_price(
+        line_1.unit_price_net_amount * line_1.quantity, currency
     )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
+    assert line_1.undiscounted_total_price_net_amount == quantize_price(
+        line_1.undiscounted_unit_price_net_amount * line_1.quantity, currency
     )
     assert line_1.unit_discount_amount == 0
     assert line_1.unit_discount_type is None

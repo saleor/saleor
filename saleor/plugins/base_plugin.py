@@ -1931,7 +1931,10 @@ class BasePlugin:
         return NotImplemented
 
     def xero_check_prepayment_status(
-        self, prepayment_id: str, previous_value: dict | None
+        self,
+        prepayment_id: str,
+        xero_contact_id: str | None,
+        previous_value: dict | None,
     ) -> dict | None:
         return NotImplemented
 

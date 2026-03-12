@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django_countries import countries
 
+from ....channel.models import Channel
 from ....inventory import PurchaseOrderItemStatus, events, models
 from ....inventory.error_codes import PurchaseOrderErrorCode
 from ....permission.enums import WarehousePermissions
@@ -94,6 +95,19 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
                 "This field is required.",
                 code=PurchaseOrderErrorCode.REQUIRED.value,
             )
+
+        # Validate channel (optional)
+        channel_id = data.get("channel_id")
+        if channel_id:
+            try:
+                _, ch_id = from_global_id_or_error(channel_id, "Channel")
+                channel = Channel.objects.get(pk=ch_id)
+                cleaned_input["channel"] = channel
+            except Channel.DoesNotExist:
+                errors["channel_id"] = ValidationError(
+                    "Channel not found.",
+                    code=PurchaseOrderErrorCode.INVALID.value,
+                )
 
         # Validate items (optional for draft creation)
         items = data.get("items") or []
@@ -191,9 +205,11 @@ class PurchaseOrderCreate(DeprecatedModelMutation):
         app = get_app_promise(info.context).get()
 
         with transaction.atomic():
-            # Save the purchase order instance with warehouses
+            # Save the purchase order instance with warehouses and channel
             instance.source_warehouse = cleaned_input["source_warehouse"]
             instance.destination_warehouse = cleaned_input["destination_warehouse"]
+            if "channel" in cleaned_input:
+                instance.channel = cleaned_input["channel"]
             if "name" in cleaned_input:
                 instance.name = cleaned_input["name"]
             if "auto_reallocate_variants" in cleaned_input:

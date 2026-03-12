@@ -1,6 +1,7 @@
 import graphene
 
 from ...inventory import models
+from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.context import ChannelContext
@@ -35,6 +36,12 @@ class PurchaseOrder(ModelObjectType[models.PurchaseOrder]):
         "saleor.graphql.warehouse.types.Warehouse",
         required=True,
         description="Destination warehouse (owned).",
+    )
+
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        required=False,
+        description="Channel this purchase order is associated with.",
     )
 
     status = PurchaseOrderStatusEnum(
@@ -85,6 +92,12 @@ class PurchaseOrder(ModelObjectType[models.PurchaseOrder]):
     @staticmethod
     def resolve_destination_warehouse(root, info: ResolveInfo):
         return WarehouseByIdLoader(info.context).load(root.destination_warehouse_id)
+
+    @staticmethod
+    def resolve_channel(root, info: ResolveInfo):
+        if root.channel_id is None:
+            return None
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
     def resolve_has_linked_orders(root, info: ResolveInfo):
@@ -235,6 +248,10 @@ class PurchaseOrderCreateInput(BaseInputObjectType):
     destination_warehouse_id = graphene.ID(
         required=True,
         description="Destination warehouse (must be owned warehouse).",
+    )
+    channel_id = graphene.ID(
+        required=False,
+        description="Channel this purchase order is associated with.",
     )
     name = graphene.String(
         description="Optional name for the purchase order.",

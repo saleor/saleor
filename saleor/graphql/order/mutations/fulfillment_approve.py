@@ -75,12 +75,24 @@ class FulfillmentApprove(BaseMutation):
 
         order = fulfillment.order
         if order.origin != OrderOrigin.CHECKOUT:
-            if (
-                not fulfillment.xero_proforma_prepayment_id
-                or not order.payments.filter(
-                    psp_reference=fulfillment.xero_proforma_prepayment_id
-                ).exists()
-            ):
+            from ....payment import ChargeStatus
+
+            if order.deposit_required:
+                if order.payments.xero_unpaid_deposits().exists():
+                    raise ValidationError(
+                        "Cannot approve: unpaid deposit prepayments exist.",
+                        code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.value,
+                    )
+
+            proforma_payments = fulfillment.payments.xero_proforma()
+            if not proforma_payments.exists():
+                raise ValidationError(
+                    "Cannot fulfill: no prepayment has been created.",
+                    code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.value,
+                )
+            if proforma_payments.filter(
+                charge_status=ChargeStatus.NOT_CHARGED
+            ).exists():
                 raise ValidationError(
                     "Cannot fulfill: prepayment has not been paid.",
                     code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.value,

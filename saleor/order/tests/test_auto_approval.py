@@ -14,14 +14,17 @@ from ..actions import (
 )
 
 
-def _create_xero_payment(order, psp_reference):
+def _create_xero_payment(
+    order, psp_reference, fulfillment=None, charge_status=ChargeStatus.FULLY_CHARGED
+):
     return Payment.objects.create(
         order=order,
+        fulfillment=fulfillment,
         gateway=CustomPaymentChoices.XERO,
         psp_reference=psp_reference,
         total=0,
         captured_amount=0,
-        charge_status=ChargeStatus.FULLY_CHARGED,
+        charge_status=charge_status,
         currency=order.currency,
         is_active=True,
     )
@@ -180,9 +183,15 @@ def test_no_auto_approve_when_proforma_not_paid(
     order.origin = OrderOrigin.DRAFT
     order.save(update_fields=["origin"])
 
-    fulfillment.xero_proforma_prepayment_id = "PREPAY-001"
     fulfillment.shipment = shipment_for_fulfillment
-    fulfillment.save(update_fields=["xero_proforma_prepayment_id", "shipment"])
+    fulfillment.save(update_fields=["shipment"])
+
+    _create_xero_payment(
+        order,
+        psp_reference="PREPAY-001",
+        fulfillment=fulfillment,
+        charge_status=ChargeStatus.NOT_CHARGED,
+    )
 
     pick = auto_create_pick_for_fulfillment(fulfillment, user=staff_user)
     start_pick(pick, user=staff_user)
@@ -196,7 +205,7 @@ def test_no_auto_approve_when_proforma_not_paid(
     assert fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL
 
 
-def test_no_auto_approve_when_no_prepayment_id(
+def test_no_auto_approve_when_no_prepayment(
     full_fulfillment_awaiting_approval,
     shipment_for_fulfillment,
     staff_user,
@@ -236,11 +245,10 @@ def test_auto_approve_when_proforma_paid(
     order.origin = OrderOrigin.DRAFT
     order.save(update_fields=["origin"])
 
-    fulfillment.xero_proforma_prepayment_id = "PREPAY-001"
     fulfillment.shipment = shipment_for_fulfillment
-    fulfillment.save(update_fields=["xero_proforma_prepayment_id", "shipment"])
+    fulfillment.save(update_fields=["shipment"])
 
-    _create_xero_payment(order, psp_reference="PREPAY-001")
+    _create_xero_payment(order, psp_reference="PREPAY-001", fulfillment=fulfillment)
     Invoice.objects.create(fulfillment=fulfillment, type=InvoiceType.FINAL)
 
     pick = auto_create_pick_for_fulfillment(fulfillment, user=staff_user)
