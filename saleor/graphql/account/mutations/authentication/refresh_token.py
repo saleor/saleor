@@ -133,8 +133,6 @@ class RefreshToken(BaseMutation):
         additional_payload = {}
         if audience := payload.get("aud"):
             additional_payload["aud"] = audience
-        if payload.get("is_staff") is False:
-            additional_payload["is_staff"] = False
         user = get_user(payload)
         token = create_access_token(user, additional_payload=additional_payload)
         if user and not user.is_anonymous:

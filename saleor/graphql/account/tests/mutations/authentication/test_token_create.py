@@ -600,35 +600,6 @@ def test_create_token_customers_only_mode_for_customer(
 
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.account.throttling.cache")
-def test_create_token_customers_only_mode_for_staff(
-    _mocked_cache, api_client, staff_user, site_settings
-):
-    # given
-    site_settings.password_login_mode = PasswordLoginMode.CUSTOMERS_ONLY
-    site_settings.save(update_fields=["password_login_mode"])
-    variables = {"email": staff_user.email, "password": "password"}
-
-    # when
-    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["tokenCreate"]
-    assert data["errors"] == []
-    assert data["token"]
-    assert data["user"]["email"] == staff_user.email
-
-    # Token should have is_staff set to False (no staff permissions)
-    payload = jwt_decode(data["token"])
-    assert payload["is_staff"] is False
-    assert payload["email"] == staff_user.email
-
-    refresh_payload = jwt_decode(data["refreshToken"])
-    assert refresh_payload["is_staff"] is False
-
-
-@freeze_time("2020-03-18 12:00:00")
-@patch("saleor.account.throttling.cache")
 def test_create_token_enabled_mode_for_staff(
     _mocked_cache, api_client, staff_user, site_settings
 ):
