@@ -24,10 +24,7 @@ from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineE
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
     GrantRefundLineDict,
-    assign_order_lines,
-    clean_line_reason_references,
-    get_input_lines_data,
-    handle_lines_with_quantity_already_refunded,
+    clean_grant_refund_lines,
     resolve_reason_reference_page,
     shipping_costs_already_granted,
 )
@@ -134,37 +131,26 @@ class OrderGrantRefundCreate(BaseMutation):
         order: models.Order,
         lines: list[GrantRefundLineDict],
         refund_reason_reference_type,
-    ) -> tuple[
-        list[models.OrderGrantedRefundLine],
-        list[dict[str, str]] | None,
-    ]:
+    ) -> list[models.OrderGrantedRefundLine]:
         errors: list[dict[str, str]] = []
-        input_lines_data = get_input_lines_data(
-            lines, errors, OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value
+        result = clean_grant_refund_lines(
+            order=order,
+            lines=lines,
+            refund_reason_reference_type=refund_reason_reference_type,
+            errors=errors,
+            line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
         )
-        assign_order_lines(
-            order,
-            input_lines_data,
-            errors,
-            OrderGrantRefundCreateLineErrorCode.NOT_FOUND.value,
-        )
-        handle_lines_with_quantity_already_refunded(
-            order,
-            input_lines_data,
-            errors,
-            OrderGrantRefundCreateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.value,
-        )
-        clean_line_reason_references(
-            input_lines_data,
-            refund_reason_reference_type,
-            errors,
-            OrderGrantRefundCreateLineErrorCode,
-        )
-
         if errors:
-            return [], errors
-
-        return [entry["line_model"] for entry in input_lines_data.values()], None
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Provided input for lines is invalid.",
+                        code=OrderGrantRefundCreateErrorCode.INVALID.value,
+                        params={"lines": errors},
+                    ),
+                }
+            )
+        return result
 
     @classmethod
     def calculate_amount(
@@ -241,19 +227,9 @@ class OrderGrantRefundCreate(BaseMutation):
 
         cleaned_input_lines: list[models.OrderGrantedRefundLine] = []
         if input_lines:
-            cleaned_input_lines, lines_errors = cls.clean_input_lines(
+            cleaned_input_lines = cls.clean_input_lines(
                 order, input_lines, refund_reason_reference_type
             )
-            if lines_errors:
-                raise ValidationError(
-                    {
-                        "lines": ValidationError(
-                            "Provided input for lines is invalid.",
-                            code=OrderGrantRefundCreateErrorCode.INVALID.value,
-                            params={"lines": lines_errors},
-                        ),
-                    }
-                )
         if grant_refund_for_shipping and shipping_costs_already_granted(order):
             error_code = OrderGrantRefundCreateErrorCode.SHIPPING_COSTS_ALREADY_GRANTED
             raise ValidationError(

@@ -25,10 +25,7 @@ from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineE
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
     GrantRefundLineDict,
-    assign_order_lines,
-    clean_line_reason_references,
-    get_input_lines_data,
-    handle_lines_with_quantity_already_refunded,
+    clean_grant_refund_lines,
     resolve_reason_reference_page,
     shipping_costs_already_granted,
 )
@@ -238,30 +235,14 @@ class OrderGrantRefundUpdate(BaseMutation):
         line_ids_exclude: list[int],
         refund_reason_reference_type,
     ) -> list[models.OrderGrantedRefundLine]:
-        input_lines_data = get_input_lines_data(
-            lines, errors, OrderGrantRefundUpdateLineErrorCode.GRAPHQL_ERROR.value
-        )
-        assign_order_lines(
-            order,
-            input_lines_data,
-            errors,
-            OrderGrantRefundUpdateLineErrorCode.NOT_FOUND.value,
-        )
-        handle_lines_with_quantity_already_refunded(
-            order,
-            input_lines_data,
-            errors,
-            OrderGrantRefundUpdateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.value,
+        return clean_grant_refund_lines(
+            order=order,
+            lines=lines,
+            refund_reason_reference_type=refund_reason_reference_type,
+            errors=errors,
+            line_error_code_enum=OrderGrantRefundUpdateLineErrorCode,
             granted_refund_lines_to_exclude=line_ids_exclude,
         )
-        clean_line_reason_references(
-            input_lines_data,
-            refund_reason_reference_type,
-            errors,
-            OrderGrantRefundUpdateLineErrorCode,
-        )
-
-        return [entry["line_model"] for entry in input_lines_data.values()]
 
     @classmethod
     def clean_input(

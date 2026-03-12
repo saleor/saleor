@@ -257,3 +257,37 @@ def clean_line_reason_references(
             )
         else:
             entry["line_model"].reason_reference = page
+
+
+def clean_grant_refund_lines(
+    *,
+    order: models.Order,
+    lines: list[GrantRefundLineDict],
+    refund_reason_reference_type,
+    errors: list[dict[str, Any]],
+    line_error_code_enum,
+    granted_refund_lines_to_exclude: list[int] | None = None,
+) -> list[models.OrderGrantedRefundLine]:
+    input_lines_data = get_input_lines_data(
+        lines, errors, line_error_code_enum.GRAPHQL_ERROR.value
+    )
+    assign_order_lines(
+        order,
+        input_lines_data,
+        errors,
+        line_error_code_enum.NOT_FOUND.value,
+    )
+    handle_lines_with_quantity_already_refunded(
+        order,
+        input_lines_data,
+        errors,
+        line_error_code_enum.QUANTITY_GREATER_THAN_AVAILABLE.value,
+        granted_refund_lines_to_exclude=granted_refund_lines_to_exclude,
+    )
+    clean_line_reason_references(
+        input_lines_data,
+        refund_reason_reference_type,
+        errors,
+        line_error_code_enum,
+    )
+    return [entry["line_model"] for entry in input_lines_data.values()]
