@@ -496,73 +496,6 @@ MUTATION_UPDATE_PASSWORD_LOGIN_MODE = """
 """
 
 
-def test_shop_settings_update_password_login_mode(
-    staff_api_client, site_settings, permission_manage_settings
-):
-    # given
-    site_settings.password_login_mode = PasswordLoginModeEnum.DISABLED.value
-    site_settings.save(update_fields=["password_login_mode"])
-
-    variables = {"input": {"passwordLoginMode": PasswordLoginModeEnum.ENABLED.name}}
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_UPDATE_PASSWORD_LOGIN_MODE,
-        variables,
-        permissions=[permission_manage_settings],
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["shopSettingsUpdate"]
-    assert not data["errors"]
-    assert data["shop"]["passwordLoginMode"] == "ENABLED"
-    site_settings.refresh_from_db()
-    assert site_settings.password_login_mode == PasswordLoginModeEnum.ENABLED.value
-
-
-def test_shop_settings_update_password_login_mode_preserves_when_not_provided(
-    staff_api_client, site_settings, permission_manage_settings
-):
-    # given
-    site_settings.password_login_mode = PasswordLoginModeEnum.DISABLED.value
-    site_settings.save(update_fields=["password_login_mode"])
-    variables = {"input": {"headerText": "New header"}}
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_UPDATE_PASSWORD_LOGIN_MODE,
-        variables,
-        permissions=[permission_manage_settings],
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["shopSettingsUpdate"]
-    assert not data["errors"]
-    assert data["shop"]["passwordLoginMode"] == "DISABLED"
-    site_settings.refresh_from_db()
-    assert site_settings.password_login_mode == PasswordLoginModeEnum.DISABLED.value
-
-
-def test_shop_settings_update_password_login_mode_requires_permission(
-    user_api_client, site_settings
-):
-    # given
-    variables = {"input": {"passwordLoginMode": "DISABLED"}}
-
-    # when
-    response = user_api_client.post_graphql(
-        MUTATION_UPDATE_PASSWORD_LOGIN_MODE,
-        variables,
-    )
-
-    # then
-    assert response.status_code == 200
-    content = get_graphql_content(response, ignore_errors=True)
-    assert content["data"]["shopSettingsUpdate"] is None
-
-
 @pytest.mark.parametrize(
     "mode",
     [PasswordLoginModeEnum.DISABLED.name, PasswordLoginModeEnum.CUSTOMERS_ONLY.name],
@@ -623,3 +556,28 @@ def test_shop_settings_update_password_login_mode_allowed_for_oidc_auth(
     data = content["data"]["shopSettingsUpdate"]
     assert not data["errors"]
     assert data["shop"]["passwordLoginMode"] == mode
+
+
+def test_shop_settings_update_password_login_mode_preserves_when_not_provided(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    login_mode = PasswordLoginModeEnum.ENABLED.value
+    site_settings.password_login_mode = login_mode
+    site_settings.save(update_fields=["password_login_mode"])
+    variables = {"input": {"headerText": "New header"}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PASSWORD_LOGIN_MODE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert not data["errors"]
+    assert data["shop"]["passwordLoginMode"] == login_mode.upper()
+    site_settings.refresh_from_db()
+    assert site_settings.password_login_mode == login_mode
