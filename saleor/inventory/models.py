@@ -48,6 +48,56 @@ TODO: add a celery task to check the Stock is as expected every evening.
 """
 
 
+class Bill(models.Model):
+    xero_invoice_id = models.CharField(max_length=255, unique=True)
+    xero_invoice_number = models.CharField(max_length=255, blank=True, default="")
+    xero_url = models.URLField(max_length=500, blank=True, default="")
+    xero_status = models.CharField(max_length=32, blank=True, default="")
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    vat_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    vat_reclaimed_at = models.DateTimeField(null=True, blank=True)
+    invoice_date = models.DateField(null=True, blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Bill {self.xero_invoice_number or self.xero_invoice_id}"
+
+
+class BillPayment(models.Model):
+    bill = models.ForeignKey(
+        Bill,
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
+    xero_payment_id = models.CharField(max_length=255, unique=True)
+    amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    paid_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-paid_at"]
+
+    def __str__(self):
+        return f"BillPayment {self.xero_payment_id} ({self.amount} {self.currency})"
+
+
 class PurchaseOrder(models.Model):
     """Products come into owned warehouses through a PurchaseOrder.
 
@@ -76,6 +126,15 @@ class PurchaseOrder(models.Model):
         choices=PurchaseOrderStatus.CHOICES,
         default=PurchaseOrderStatus.DRAFT,
     )
+
+    bill = models.ForeignKey(
+        Bill,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="purchase_orders",
+    )
+    reconciliation_completed_at = models.DateTimeField(null=True, blank=True)
 
     auto_reallocate_variants = models.BooleanField(default=True)
 
@@ -177,6 +236,8 @@ class PurchaseOrderItem(models.Model):
     # Tracks how much of this batch has been fulfilled (shipped out)
     # via FulfillmentSource
     quantity_fulfilled = models.PositiveIntegerField(default=0)
+
+    xero_line_item_id = models.CharField(max_length=255, blank=True, default="")
 
     objects = PurchaseOrderItemManager()
 

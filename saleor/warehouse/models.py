@@ -303,6 +303,7 @@ class Warehouse(ModelWithMetadata, ModelWithExternalReference):
         default=WarehouseClickAndCollectOption.DISABLED,
     )
     is_private = models.BooleanField(default=True)
+    xero_contact_id = models.CharField(max_length=255, blank=True, default="")
 
     objects = WarehouseManager()
 
