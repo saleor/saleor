@@ -628,10 +628,18 @@ def test_xero_fulfillment_created_calculated_amounts_serializes_as_decimal(
     )
 
     for line in fulfillment.lines.all():
-        line.order_line.unit_price_gross_amount = Decimal("100.00")
-        line.order_line.unit_price_net_amount = Decimal("80.00")
-        line.order_line.save(
-            update_fields=["unit_price_gross_amount", "unit_price_net_amount"]
+        ol = line.order_line
+        ol.unit_price_gross_amount = Decimal("100.00")
+        ol.unit_price_net_amount = Decimal("80.00")
+        ol.total_price_gross_amount = Decimal("100.00") * ol.quantity
+        ol.total_price_net_amount = Decimal("80.00") * ol.quantity
+        ol.save(
+            update_fields=[
+                "unit_price_gross_amount",
+                "unit_price_net_amount",
+                "total_price_gross_amount",
+                "total_price_net_amount",
+            ]
         )
 
     lines_gross = sum(
@@ -691,11 +699,15 @@ def test_xero_fulfillment_created_partial_fulfillment_splits_shipping_proportion
     for line in all_lines:
         line.unit_price_gross_amount = Decimal("50.00")
         line.unit_price_net_amount = Decimal("40.00")
+        line.total_price_gross_amount = Decimal("50.00")
+        line.total_price_net_amount = Decimal("40.00")
         line.quantity = 1
         line.save(
             update_fields=[
                 "unit_price_gross_amount",
                 "unit_price_net_amount",
+                "total_price_gross_amount",
+                "total_price_net_amount",
                 "quantity",
             ]
         )
@@ -756,11 +768,15 @@ def test_xero_fulfillment_created_line_amounts_use_stored_values(fulfillment, ap
     ol = first_fl.order_line
     ol.unit_price_gross_amount = Decimal("200.00")
     ol.unit_price_net_amount = Decimal("166.67")
+    ol.total_price_gross_amount = Decimal("200.00") * ol.quantity
+    ol.total_price_net_amount = Decimal("166.67") * ol.quantity
     ol.xero_tax_code = "OUTPUT2"
     ol.save(
         update_fields=[
             "unit_price_gross_amount",
             "unit_price_net_amount",
+            "total_price_gross_amount",
+            "total_price_net_amount",
             "xero_tax_code",
         ]
     )

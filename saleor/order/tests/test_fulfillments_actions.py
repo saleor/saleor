@@ -80,7 +80,8 @@ def test_create_fulfillments(
     mock_email_fulfillment.assert_called_once_with(
         order, order.fulfillments.get(), staff_user, None, manager
     )
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    # Checkout-origin orders skip xero_fulfillment_approved
+    mock_fulfillment_approved.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.xero_fulfillment_approved")

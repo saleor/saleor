@@ -919,6 +919,26 @@ class Fulfillment(
         description="Amount of deposit credit allocated to this fulfillment.",
         required=False,
     )
+    shipping_allocated_net_amount = graphene.Field(
+        Money,
+        description="Net shipping cost allocated to this fulfillment.",
+        required=False,
+    )
+    shipping_allocated_tax_amount = graphene.Field(
+        Money,
+        description="Tax on shipping allocated to this fulfillment.",
+        required=False,
+    )
+    shipping_allocated_gross_amount = graphene.Field(
+        Money,
+        description="Gross shipping cost allocated to this fulfillment (net + tax).",
+        required=False,
+    )
+    goods_tax_amount = graphene.Field(
+        Money,
+        description="Total tax on goods in this fulfillment.",
+        required=False,
+    )
     xero_quote_id = graphene.String(
         description="Xero Quote UUID for the proforma quote linked to this fulfillment.",
         required=False,
@@ -1124,6 +1144,56 @@ class Fulfillment(
         return prices.Money(
             fulfillment.deposit_allocated_amount, fulfillment.order.currency
         )
+
+    @staticmethod
+    def resolve_shipping_allocated_net_amount(
+        root: SyncWebhookControlContext[models.Fulfillment], _info
+    ):
+        fulfillment = root.node
+        if fulfillment.shipping_allocated_net_amount is None:
+            return None
+        return prices.Money(
+            fulfillment.shipping_allocated_net_amount, fulfillment.order.currency
+        )
+
+    @staticmethod
+    def resolve_shipping_allocated_tax_amount(
+        root: SyncWebhookControlContext[models.Fulfillment], _info
+    ):
+        from decimal import Decimal
+
+        fulfillment = root.node
+        shipping_net = fulfillment.shipping_allocated_net_amount or Decimal(0)
+        tax_rate = fulfillment.order.shipping_tax_rate or Decimal(0)
+        gross = (shipping_net * (1 + tax_rate)).quantize(Decimal("0.01"))
+        return prices.Money(gross - shipping_net, fulfillment.order.currency)
+
+    @staticmethod
+    def resolve_shipping_allocated_gross_amount(
+        root: SyncWebhookControlContext[models.Fulfillment], _info
+    ):
+        from decimal import Decimal
+
+        fulfillment = root.node
+        shipping_net = fulfillment.shipping_allocated_net_amount or Decimal(0)
+        tax_rate = fulfillment.order.shipping_tax_rate or Decimal(0)
+        gross = (shipping_net * (1 + tax_rate)).quantize(Decimal("0.01"))
+        return prices.Money(gross, fulfillment.order.currency)
+
+    @staticmethod
+    def resolve_goods_tax_amount(
+        root: SyncWebhookControlContext[models.Fulfillment], _info
+    ):
+        from decimal import Decimal
+
+        from ...order.proforma import line_gross, line_net
+
+        fulfillment = root.node
+        tax = Decimal(0)
+        for line in fulfillment.lines.all():
+            ol = line.order_line
+            tax += line_gross(ol, line.quantity) - line_net(ol, line.quantity)
+        return prices.Money(tax, fulfillment.order.currency)
 
     @staticmethod
     def resolve_can_transition_to_fulfilled(

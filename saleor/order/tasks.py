@@ -258,6 +258,7 @@ def check_xero_prepayment_statuses_task():
 
     from ..payment import ChargeStatus as PaymentChargeStatus
     from ..payment.models import Payment
+    from .utils import update_order_charge_data
 
     pending_payments = Payment.objects.xero_pending().select_related(
         "order", "order__channel", "fulfillment"
@@ -286,9 +287,18 @@ def check_xero_prepayment_statuses_task():
             update_fields=["captured_amount", "total", "charge_status", "modified_at"]
         )
 
+        order = payment.order
+        update_order_charge_data(order)
+
         if payment.fulfillment is None:
-            order = payment.order
             order.refresh_from_db(fields=["deposit_paid_at"])
+            if (
+                order.deposit_required
+                and order.deposit_threshold_met
+                and not order.deposit_paid_at
+            ):
+                order.deposit_paid_at = timezone.now()
+                order.save(update_fields=["deposit_paid_at"])
         else:
             from .actions import try_auto_approve_fulfillment
 

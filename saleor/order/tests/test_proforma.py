@@ -4,11 +4,29 @@ from unittest.mock import Mock
 from ..proforma import allocate_costs_to_fulfillments, calculate_fulfillment_total
 
 
-def _make_order_line(pk, unit_price_gross, quantity):
+def _make_order_line(
+    pk,
+    unit_price_gross,
+    quantity,
+    unit_price_net=None,
+    total_price_gross=None,
+    total_price_net=None,
+):
     line = Mock()
     line.pk = pk
     line.unit_price_gross_amount = unit_price_gross
+    line.unit_price_net_amount = unit_price_net or unit_price_gross
     line.quantity = quantity
+    line.total_price_gross_amount = (
+        total_price_gross
+        if total_price_gross is not None
+        else unit_price_gross * quantity
+    )
+    line.total_price_net_amount = (
+        total_price_net
+        if total_price_net is not None
+        else line.unit_price_net_amount * quantity
+    )
     return line
 
 
@@ -267,18 +285,79 @@ def test_three_sequential_fulfillments_sum_exactly():
     assert total_ship == shipping_net
 
 
-def test_fulfillment_total():
-    line1 = Mock()
-    line1.order_line.unit_price_gross_amount = Decimal(10)
-    line1.quantity = 2
-
-    line2 = Mock()
-    line2.order_line.unit_price_gross_amount = Decimal(25)
-    line2.quantity = 3
+def test_fulfillment_total_uses_stored_line_totals():
+    """calculate_fulfillment_total uses stored total_price_gross_amount, not unit * qty."""
+    # Line-level tax rounding: 3 x 26.13 = 78.39, but stored total is 78.40
+    ol1 = _make_order_line(
+        pk="ol1",
+        unit_price_gross=Decimal("26.13"),
+        quantity=3,
+        total_price_gross=Decimal("78.40"),
+    )
+    ol2 = _make_order_line(
+        pk="ol2",
+        unit_price_gross=Decimal("25.00"),
+        quantity=2,
+        total_price_gross=Decimal("50.00"),
+    )
 
     fulfillment = Mock()
-    fulfillment.lines.all.return_value = [line1, line2]
+    fulfillment.lines.all.return_value = [
+        _make_fulfillment_line(ol1, 3),
+        _make_fulfillment_line(ol2, 2),
+    ]
 
     result = calculate_fulfillment_total(fulfillment)
 
-    assert result == Decimal(95)
+    # Should use stored totals: 78.40 + 50.00, NOT 26.13*3 + 25*2 = 128.39
+    assert result == Decimal("128.40")
+
+
+def test_fulfillment_total_prorates_partial_fulfillment():
+    """Partial fulfillment prorates from stored total_price_gross_amount."""
+    ol = _make_order_line(
+        pk="ol1",
+        unit_price_gross=Decimal("26.13"),
+        quantity=3,
+        total_price_gross=Decimal("78.40"),
+    )
+
+    fulfillment = Mock()
+    fulfillment.lines.all.return_value = [_make_fulfillment_line(ol, 2)]
+
+    result = calculate_fulfillment_total(fulfillment)
+
+    # 78.40 * 2 / 3 = 52.2666... -> 52.27
+    assert result == Decimal("52.27")
+
+
+def test_allocation_weights_use_stored_totals():
+    """allocate_costs_to_fulfillments weights use stored totals, not unit * qty."""
+    # Two lines with line-level tax rounding differences
+    ol1 = _make_order_line(
+        pk="ol1",
+        unit_price_gross=Decimal("26.13"),
+        quantity=3,
+        total_price_gross=Decimal("78.40"),
+    )
+    ol2 = _make_order_line(
+        pk="ol2",
+        unit_price_gross=Decimal("26.13"),
+        quantity=3,
+        total_price_gross=Decimal("78.40"),
+    )
+
+    f1 = _make_fulfillment(pk=1, lines=[_make_fulfillment_line(ol1, 3)])
+    f2 = _make_fulfillment(pk=2, lines=[_make_fulfillment_line(ol2, 3)])
+
+    order = _make_order(
+        shipping_net=Decimal("10.00"),
+        all_fulfillments=[f1, f2],
+        order_lines=[ol1, ol2],
+    )
+
+    allocate_costs_to_fulfillments(order, [f1, f2])
+
+    # Equal weights -> equal split
+    assert f1.shipping_allocated_net_amount == Decimal("5.00")
+    assert f2.shipping_allocated_net_amount == Decimal("5.00")
