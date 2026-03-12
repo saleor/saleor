@@ -112,7 +112,8 @@ def test_fulfillment_approve(
     event = events[0]
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.user == staff_api_client.user
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    # Checkout-origin orders skip xero_fulfillment_approved
+    mock_fulfillment_approved.assert_not_called()
 
 
 def test_fulfillment_approve_by_user_no_channel_access(
@@ -204,7 +205,8 @@ def test_fulfillment_approve_by_app(
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.app == app_api_client.app
     assert event.user is None
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    # Checkout-origin orders skip xero_fulfillment_approved
+    mock_fulfillment_approved.assert_not_called()
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
@@ -679,9 +681,8 @@ def test_fulfillment_approve_partial_order_fulfill(
     assert partial_fulfillment_awaiting_approval.status == FulfillmentStatus.FULFILLED
 
     assert mock_email_fulfillment.call_count == 0
-    mock_fulfillment_approved.assert_called_once_with(
-        partial_fulfillment_awaiting_approval
-    )
+    # Checkout-origin orders skip xero_fulfillment_approved
+    mock_fulfillment_approved.assert_not_called()
 
 
 def test_fulfillment_approve_invalid_status(
@@ -958,7 +959,8 @@ def test_fulfillment_approve_trigger_webhook_event(
     staff_api_client.post_graphql(query, variables)
 
     # then
-    mock_xero_fulfillment_approved.assert_called_once_with(fulfillment)
+    # Checkout-origin orders skip xero_fulfillment_approved
+    mock_xero_fulfillment_approved.assert_not_called()
 
 
 def test_fulfillment_approve_fails_without_pick(
@@ -1099,7 +1101,8 @@ def test_fulfillment_approve_succeeds_when_pick_completed(
     event = events[0]
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.user == staff_api_client.user
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    # Checkout-origin orders skip xero_fulfillment_approved
+    mock_fulfillment_approved.assert_not_called()
 
 
 def test_fulfillment_approve_fails_without_shipment(
@@ -1191,7 +1194,8 @@ def test_fulfillment_approve_succeeds_with_shipment_and_completed_pick(
     assert fulfillment.status == FulfillmentStatus.FULFILLED
     assert fulfillment.shipment == shipment
 
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    # Checkout-origin orders skip xero_fulfillment_approved
+    mock_fulfillment_approved.assert_not_called()
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
