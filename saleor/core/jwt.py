@@ -153,12 +153,6 @@ def get_user_from_access_payload(payload: dict, request=None) -> User | None:
         if payload.get("is_staff"):
             user.is_staff = True
 
-        # When password_login_mode is CUSTOMERS_ONLY, staff users get tokens
-        # with is_staff=False. This strips their staff status and clears all
-        # permissions so the token behaves as a customer-only session.
-        if payload.get("is_staff") is False and user.is_staff:
-            user.is_staff = False
-            user.effective_permissions = Permission.objects.none()
     return user
 
 

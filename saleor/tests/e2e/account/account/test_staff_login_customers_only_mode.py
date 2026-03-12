@@ -55,24 +55,31 @@ def test_staff_token_has_no_permissions_in_customers_only_mode(
     assert content["data"]["productCreate"]["errors"] == []
     assert content["data"]["productCreate"]["product"]["id"] is not None
 
-    # Step 3: Switch to CUSTOMERS_ONLY mode and login again
+    # Step 3: Switch to CUSTOMERS_ONLY mode
     site_settings.password_login_mode = PasswordLoginMode.CUSTOMERS_ONLY
     site_settings.save(update_fields=["password_login_mode"])
 
-    login_response = raw_token_create(
-        e2e_not_logged_api_client, staff_email, staff_password
-    )
-    login_data = login_response["data"]["tokenCreate"]
-    assert login_data["errors"] == []
-    customers_only_token = login_data["token"]
-
-    # Step 4: Try to create a product with the new token — should fail
-    customers_only_client = E2eApiClient()
-    customers_only_client.token = customers_only_token
-
-    response = customers_only_client.post_graphql(
-        PRODUCT_CREATE_MUTATION, product_input
-    )
+    # Step 4: Try to create a product — should fail
+    response = enabled_client.post_graphql(PRODUCT_CREATE_MUTATION, product_input)
     content = get_graphql_content(response, ignore_errors=True)
     assert "errors" in content
     assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
+
+    # Step 5: Fetch products — should still work
+    products_query = """
+        query Products($first: Int!, $channel: String) {
+            products(first: $first, channel: $channel) {
+                edges {
+                    node {
+                        id
+                        name
+                    }
+                }
+            }
+        }
+    """
+    products_variables = {"first": 5, "channel": "default-channel"}
+
+    response = enabled_client.post_graphql(products_query, products_variables)
+    content = get_graphql_content(response)
+    assert content["data"]["products"]["edges"] is not None

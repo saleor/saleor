@@ -67,12 +67,8 @@ def check_password_login_not_disabled(site_settings: SiteSettings):
     """Raise ValidationError if password-based authentication is disabled."""
     if site_settings.password_login_mode == PasswordLoginMode.DISABLED:
         raise ValidationError(
-            {
-                "email": ValidationError(
-                    "Password-based login is disabled.",
-                    code=AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.value,
-                )
-            }
+            "Password-based login is disabled.",
+            code=AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.value,
         )
 
 
