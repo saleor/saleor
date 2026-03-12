@@ -1670,13 +1670,15 @@ class XeroFulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
             if site_settings
             else "product-code"
         )
+        from saleor.order.proforma import _line_gross, _line_net
+
         fulfillment_total = Decimal(0)
         lines = []
         for line in fulfillment.lines.all():
             ol = line.order_line
-            gross = ol.unit_price_gross_amount
-            net = ol.unit_price_net_amount
-            fulfillment_total += gross * line.quantity
+            line_total_gross = _line_gross(ol, line.quantity)
+            line_total_net = _line_net(ol, line.quantity)
+            fulfillment_total += line_total_gross
             lines.append(
                 XeroFulfillmentLineAmounts(
                     order_line_id=str(ol.pk),
@@ -1686,13 +1688,19 @@ class XeroFulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
                     product_sku=ol.product_sku,
                     product_code=get_product_code_for_line(ol, product_code_slug),
                     xero_tax_code=ol.xero_tax_code,
-                    unit_price_gross=Money(amount=gross, currency=order.currency),
-                    unit_price_net=Money(amount=net, currency=order.currency),
+                    unit_price_gross=Money(
+                        amount=ol.unit_price_gross_amount,
+                        currency=order.currency,
+                    ),
+                    unit_price_net=Money(
+                        amount=ol.unit_price_net_amount,
+                        currency=order.currency,
+                    ),
                     total_price_gross=Money(
-                        amount=gross * line.quantity, currency=order.currency
+                        amount=line_total_gross, currency=order.currency
                     ),
                     total_price_net=Money(
-                        amount=net * line.quantity, currency=order.currency
+                        amount=line_total_net, currency=order.currency
                     ),
                 )
             )

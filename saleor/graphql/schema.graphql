@@ -11968,6 +11968,18 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Amount of deposit credit allocated to this fulfillment."""
   depositAllocatedAmount: Money
 
+  """Net shipping cost allocated to this fulfillment."""
+  shippingAllocatedNetAmount: Money
+
+  """Tax on shipping allocated to this fulfillment."""
+  shippingAllocatedTaxAmount: Money
+
+  """Gross shipping cost allocated to this fulfillment (net + tax)."""
+  shippingAllocatedGrossAmount: Money
+
+  """Total tax on goods in this fulfillment."""
+  goodsTaxAmount: Money
+
   """Xero Quote UUID for the proforma quote linked to this fulfillment."""
   xeroQuoteId: String
 

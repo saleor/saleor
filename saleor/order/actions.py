@@ -702,7 +702,8 @@ def order_fulfilled(
 
         if order_fulfilled or manually_approved:
             for fulfillment in fulfillments:
-                manager.xero_fulfillment_approved(fulfillment)
+                if order.origin != OrderOrigin.CHECKOUT:
+                    manager.xero_fulfillment_approved(fulfillment)
 
         call_order_events(
             manager,
@@ -1569,9 +1570,9 @@ def create_fulfillments(
                         "shipping_allocated_net_amount",
                     ]
                 )
-                generate_proforma_invoice(fulfillment, manager)
-                manager.xero_fulfillment_created(fulfillment)
                 if order.origin != OrderOrigin.CHECKOUT:
+                    generate_proforma_invoice(fulfillment, manager)
+                    manager.xero_fulfillment_created(fulfillment)
                     if not fulfillment.payments.exists():
                         raise ValidationError(
                             "Xero sync failed: could not create proforma prepayment.",

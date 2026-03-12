@@ -5,12 +5,26 @@ from ..core.utils.events import call_event
 from ..invoice.models import Invoice, InvoiceEvents
 
 
+def _line_total(stored_total, order_qty, quantity):
+    if quantity == order_qty:
+        return stored_total
+    return (stored_total * quantity / order_qty).quantize(Decimal("0.01"))
+
+
+def _line_gross(order_line, quantity):
+    return _line_total(
+        order_line.total_price_gross_amount, order_line.quantity, quantity
+    )
+
+
+def _line_net(order_line, quantity):
+    return _line_total(order_line.total_price_net_amount, order_line.quantity, quantity)
+
+
 def calculate_fulfillment_total(fulfillment):
     total = Decimal(0)
     for line in fulfillment.lines.all():
-        order_line = line.order_line
-        unit_price = order_line.unit_price_gross_amount
-        total += unit_price * line.quantity
+        total += _line_gross(line.order_line, line.quantity)
     return total
 
 
@@ -33,7 +47,7 @@ def _calculate_unfulfilled_weight(order, already_fulfilled_ids, new_fulfillments
     for line in order.lines.all():
         remaining_qty = line.quantity - fulfilled_qty_by_line.get(line.pk, 0)
         if remaining_qty > 0:
-            unfulfilled_total += line.unit_price_gross_amount * remaining_qty
+            unfulfilled_total += _line_gross(line, remaining_qty)
     return unfulfilled_total
 
 
