@@ -1,5 +1,6 @@
 import logging
 from typing import cast
+from urllib.parse import urlparse
 
 from authlib.common.errors import AuthlibBaseError
 from django.core import signing
@@ -220,8 +221,6 @@ class OpenIDConnectPlugin(BasePlugin):
 
     def _is_google_provider(self) -> bool:
         """Detect Google as the OIDC provider from configured URLs."""
-        from urllib.parse import urlparse
-
         urls_to_check = [
             self.config.authorization_url or "",
             self.config.json_web_key_set_url or "",
