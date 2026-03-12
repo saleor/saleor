@@ -708,6 +708,8 @@ def test_fulfillment_approve_draft_order_prepayment_not_paid(
 
     from django.utils import timezone
 
+    from .....payment import ChargeStatus, CustomPaymentChoices
+    from .....payment.models import Payment
     from .....shipping import IncoTerm, ShipmentType
     from .....shipping.models import Shipment
 
@@ -718,8 +720,17 @@ def test_fulfillment_approve_draft_order_prepayment_not_paid(
     order.origin = OrderOrigin.DRAFT
     order.save(update_fields=["origin"])
 
-    fulfillment.xero_proforma_prepayment_id = "PREPAY-001"
-    fulfillment.save(update_fields=["xero_proforma_prepayment_id"])
+    Payment.objects.create(
+        order=order,
+        fulfillment=fulfillment,
+        gateway=CustomPaymentChoices.XERO,
+        psp_reference="PREPAY-001",
+        total=0,
+        captured_amount=0,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        currency=order.currency,
+        is_active=True,
+    )
 
     warehouse = fulfillment.lines.first().stock.warehouse
     shipment = Shipment.objects.create(
@@ -778,9 +789,6 @@ def test_fulfillment_approve_draft_order_prepayment_paid(
     order = fulfillment.order
     order.origin = OrderOrigin.DRAFT
     order.save(update_fields=["origin"])
-
-    fulfillment.xero_proforma_prepayment_id = "PREPAY-001"
-    fulfillment.save(update_fields=["xero_proforma_prepayment_id"])
 
     Payment.objects.create(
         order=order,
