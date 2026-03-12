@@ -1165,8 +1165,8 @@ class Fulfillment(
         fulfillment = root.node
         shipping_net = fulfillment.shipping_allocated_net_amount or Decimal(0)
         tax_rate = fulfillment.order.shipping_tax_rate or Decimal(0)
-        tax = (shipping_net * tax_rate).quantize(Decimal("0.01"))
-        return prices.Money(tax, fulfillment.order.currency)
+        gross = (shipping_net * (1 + tax_rate)).quantize(Decimal("0.01"))
+        return prices.Money(gross - shipping_net, fulfillment.order.currency)
 
     @staticmethod
     def resolve_shipping_allocated_gross_amount(
@@ -1186,13 +1186,13 @@ class Fulfillment(
     ):
         from decimal import Decimal
 
-        from ...order.proforma import _line_gross, _line_net
+        from ...order.proforma import line_gross, line_net
 
         fulfillment = root.node
         tax = Decimal(0)
         for line in fulfillment.lines.all():
             ol = line.order_line
-            tax += _line_gross(ol, line.quantity) - _line_net(ol, line.quantity)
+            tax += line_gross(ol, line.quantity) - line_net(ol, line.quantity)
         return prices.Money(tax, fulfillment.order.currency)
 
     @staticmethod

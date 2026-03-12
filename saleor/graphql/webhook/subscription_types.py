@@ -1670,14 +1670,14 @@ class XeroFulfillmentCreated(SubscriptionObjectType, FulfillmentBase):
             if site_settings
             else "product-code"
         )
-        from saleor.order.proforma import _line_gross, _line_net
+        from saleor.order.proforma import line_gross, line_net
 
         fulfillment_total = Decimal(0)
         lines = []
         for line in fulfillment.lines.all():
             ol = line.order_line
-            line_total_gross = _line_gross(ol, line.quantity)
-            line_total_net = _line_net(ol, line.quantity)
+            line_total_gross = line_gross(ol, line.quantity)
+            line_total_net = line_net(ol, line.quantity)
             fulfillment_total += line_total_gross
             lines.append(
                 XeroFulfillmentLineAmounts(
