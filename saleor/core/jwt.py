@@ -152,7 +152,6 @@ def get_user_from_access_payload(payload: dict, request=None) -> User | None:
 
         if payload.get("is_staff"):
             user.is_staff = True
-
     return user
 
 
