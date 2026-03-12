@@ -689,7 +689,7 @@ def test_base_checkout_total_high_discount_on_entire_order_apply_once_per_order(
         checkout_with_item, shipping_method
     )
     checkout_with_item.voucher_code = voucher_percentage.code
-    checkout_with_item.save(update_fields=["shipping_method", "voucher_code"])
+    checkout_with_item.save(update_fields=["voucher_code"])
 
     line = checkout_with_item.lines.first()
     line.quantity = 1

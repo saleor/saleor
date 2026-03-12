@@ -214,7 +214,7 @@ def test_checkout_shipping_method_update_external_shipping_method(
 
     assert checkout.assigned_delivery.shipping_method_id == method_id
     assert checkout.undiscounted_base_shipping_price_amount == method_price
-    assert checkout.shipping_method_name == method_name
+    assert checkout.assigned_delivery.name == method_name
     assert (
         PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
     )
@@ -313,7 +313,6 @@ def test_checkout_shipping_method_update_excluded_webhook(
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.assigned_delivery is None
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
-    assert checkout.shipping_method_name is None
 
 
 # Deprecated
@@ -347,7 +346,6 @@ def test_checkout_shipping_method_update_excluded_postal_code(
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.assigned_delivery is None
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
-    assert checkout.shipping_method_name is None
     assert (
         mock_is_shipping_method_available.call_count
         == shipping_models.ShippingMethod.objects.count()
@@ -394,7 +392,7 @@ def test_checkout_shipping_method_update_with_not_all_required_shipping_address_
         checkout.undiscounted_base_shipping_price_amount
         == shipping_method.channel_listings.get().price_amount
     )
-    assert checkout.shipping_method_name == shipping_method.name
+    assert checkout.assigned_delivery.name == shipping_method.name
 
 
 def test_checkout_shipping_method_update_with_not_valid_shipping_address_data(
@@ -443,7 +441,7 @@ def test_checkout_shipping_method_update_with_not_valid_shipping_address_data(
         checkout.undiscounted_base_shipping_price_amount
         == shipping_method.channel_listings.get().price_amount
     )
-    assert checkout.shipping_method_name == shipping_method.name
+    assert checkout.assigned_delivery.name == shipping_method.name
 
 
 def test_checkout_delivery_method_update_unavailable_variant(
@@ -514,7 +512,6 @@ def test_checkout_shipping_method_update_shipping_zone_without_channel(
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.assigned_delivery is None
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
-    assert checkout.shipping_method_name is None
 
 
 def test_checkout_update_shipping_method_with_digital(
@@ -546,7 +543,6 @@ def test_checkout_update_shipping_method_with_digital(
     checkout.refresh_from_db()
     assert checkout.assigned_delivery is None
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
-    assert checkout.shipping_method_name is None
 
 
 def test_with_active_problems_flow(
@@ -827,7 +823,7 @@ def test_checkout_shipping_method_update_from_external_shipping_to_different_ext
 
     assert checkout.collection_point_id is None
     assert checkout.assigned_delivery.shipping_method_id == method_id
-    assert checkout.shipping_method_name == response_shipping_name
+    assert checkout.assigned_delivery.name == response_shipping_name
 
     # mark as invalid when assigned_delivery is not available
     # mark as invalid when new assigned_delivery is assigned
@@ -886,7 +882,7 @@ def test_checkout_shipping_method_update_from_external_shipping_to_the_same_exte
         maximum_delivery_days=7,
         is_external=True,
     )
-    checkout.shipping_method_name = response_shipping_name
+    checkout.assigned_delivery.name = response_shipping_name
     checkout.undiscounted_base_shipping_price_amount = Decimal(response_shipping_price)
     checkout.save()
 
@@ -955,7 +951,7 @@ def test_checkout_shipping_method_update_from_external_shipping_to_built_in_meth
 
     assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
     assert checkout.collection_point_id is None
-    assert checkout.shipping_method_name == shipping_method.name
+    assert checkout.assigned_delivery.name == shipping_method.name
 
     # mark as invalid when assigned_delivery is not available
     # mark as invalid when new assigned_delivery is assigned
@@ -996,7 +992,6 @@ def test_checkout_shipping_method_update_from_external_shipping_to_none(
 
     assert checkout.collection_point_id is None
     assert checkout.assigned_delivery is None
-    assert checkout.shipping_method_name is None
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -1043,7 +1038,7 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_different_bui
     assert checkout.assigned_delivery.shipping_method_id == str(
         other_shipping_method.id
     )
-    assert checkout.shipping_method_name == other_shipping_method.name
+    assert checkout.assigned_delivery.name == other_shipping_method.name
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -1106,7 +1101,7 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_external(
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
     assert checkout.assigned_delivery.shipping_method_id == method_id
-    assert checkout.shipping_method_name == response_shipping_name
+    assert checkout.assigned_delivery.name == response_shipping_name
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -1131,7 +1126,7 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_the_same_buil
 
     assigned_delivery = checkout.assigned_delivery
     price = assigned_delivery.price
-    checkout.shipping_method_name = assigned_delivery.name
+    checkout.assigned_delivery.name = assigned_delivery.name
     checkout.undiscounted_base_shipping_price_amount = price.amount
     checkout.save()
 
@@ -1157,7 +1152,7 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_the_same_buil
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
     assert checkout.assigned_delivery_id == assigned_delivery.id
-    assert checkout.shipping_method_name == assigned_delivery.name
+    assert checkout.assigned_delivery.name == assigned_delivery.name
 
     mocked_invalidate_checkout.assert_not_called()
     mocked_call_checkout_info_event.assert_not_called()
@@ -1195,7 +1190,6 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_none(
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
     assert checkout.assigned_delivery_id is None
-    assert checkout.shipping_method_name is None
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()

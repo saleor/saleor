@@ -1418,8 +1418,7 @@ def test_calculate_checkout_total_with_order_promotion(
     tax_configuration.country_exceptions.all().delete()
 
     checkout.assigned_delivery = checkout_delivery(checkout)
-    checkout.shipping_method_name = checkout.assigned_delivery.name
-    checkout.save(update_fields=["assigned_delivery", "shipping_method_name"])
+    checkout.save(update_fields=["assigned_delivery_id"])
 
     line = checkout.lines.first()
     product = line.variant.product
@@ -1479,8 +1478,7 @@ def test_calculate_checkout_total_with_gift_promotion(
     tax_configuration.country_exceptions.all().delete()
 
     checkout.assigned_delivery = checkout_delivery(checkout)
-    checkout.shipping_method_name = checkout.assigned_delivery.name
-    checkout.save(update_fields=["assigned_delivery", "shipping_method_name"])
+    checkout.save(update_fields=["assigned_delivery_id"])
 
     line = checkout.lines.get(is_gift=False)
     product = line.variant.product
@@ -4054,7 +4052,7 @@ def test_get_checkout_line_tax_rate_error_in_response(
 
     checkout_with_item.shipping_address = address
     checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
-    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+    checkout_with_item.save(update_fields=["shipping_address", "assigned_delivery_id"])
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
@@ -4195,7 +4193,7 @@ def test_get_checkout_shipping_tax_rate(
 
     checkout_with_item.shipping_address = address
     checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
-    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+    checkout_with_item.save(update_fields=["shipping_address", "assigned_delivery_id"])
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
@@ -4401,7 +4399,7 @@ def test_get_checkout_shipping_tax_rate_error_in_response(
 
     checkout_with_item.shipping_address = address
     checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
-    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+    checkout_with_item.save(update_fields=["shipping_address", "assigned_delivery_id"])
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
@@ -4438,7 +4436,7 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
 
     checkout_with_item.shipping_address = address
     checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
-    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+    checkout_with_item.save(update_fields=["shipping_address", "assigned_delivery_id"])
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
@@ -5775,14 +5773,14 @@ def test_validate_checkout_click_and_collect(
     warehouse.is_private = False
     warehouse.save(update_fields=["is_private"])
     user_checkout_with_items_for_cc.collection_point = warehouse
-    user_checkout_with_items_for_cc.shipping_method = None
+    user_checkout_with_items_for_cc.assigned_delivery = None
     user_checkout_with_items_for_cc.shipping_address = None
     user_checkout_with_items_for_cc.billing_address = address
     user_checkout_with_items_for_cc.save(
         update_fields=[
             "shipping_address",
             "billing_address",
-            "shipping_method",
+            "assigned_delivery_id",
             "collection_point",
         ]
     )
@@ -6022,8 +6020,8 @@ def test_generate_request_data_from_checkout_lines_adds_lines_with_taxes_disable
     line.variant.product.tax_class = tax_class_zero_rates
     line.variant.product.save(update_fields=["tax_class"])
 
-    checkout_with_item.shipping_method = None
-    checkout_with_item.save(update_fields=["shipping_method"])
+    checkout_with_item.assigned_delivery = None
+    checkout_with_item.save(update_fields=["assigned_delivery_id"])
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
@@ -6252,8 +6250,8 @@ def test_calculate_checkout_shipping_validates_checkout(
     checkout = checkout_with_item
     lines, _ = fetch_checkout_lines(checkout)
 
-    checkout.shipping_method = None
-    checkout.save(update_fields=["shipping_method"])
+    checkout.assigned_delivery = None
+    checkout.save(update_fields=["assigned_delivery_id"])
 
     for line in lines:
         line.product_type.is_shipping_required = True
@@ -6283,8 +6281,8 @@ def test_calculate_checkout_line_total_validates_checkout(
     checkout = checkout_with_item
     lines, _ = fetch_checkout_lines(checkout)
 
-    checkout.shipping_method = None
-    checkout.save(update_fields=["shipping_method"])
+    checkout.assigned_delivery = None
+    checkout.save(update_fields=["assigned_delivery_id"])
 
     for line in lines:
         line.product_type.is_shipping_required = True

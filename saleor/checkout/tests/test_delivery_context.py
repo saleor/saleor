@@ -1479,7 +1479,6 @@ def test_assign_delivery_method_to_checkout_delivery_method_to_external(
     )
 
     # then
-    assert checkout.shipping_method_name == app_shipping_name
     assert checkout.assigned_delivery.shipping_method_id == method_id
     assert checkout.assigned_delivery.name == app_shipping_name
     assert checkout_info.collection_point is None
@@ -1515,7 +1514,6 @@ def test_assign_delivery_method_to_checkout_delivery_method_to_cc(
     assert checkout.shipping_address == collection_point.address
     assert int(checkout.shipping_address_id) != int(collection_point.address.id)
     assert checkout.assigned_delivery is None
-    assert checkout.shipping_method_name is None
 
 
 def test_clear_cc_delivery_method(
