@@ -16,6 +16,7 @@ def site_settings(db, settings) -> SiteSettings:
     obj = SiteSettings.objects.get_or_create(
         site=site,
         refund_reason_reference_type=None,
+        return_reason_reference_type=None,
         default_mail_sender_name="Example",
         default_mail_sender_address="example@example.com",
     )[0]

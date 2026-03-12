@@ -32,6 +32,10 @@
 - Avoid assertion to plain values, if you already have references to existing value. For example, when you create entity in database and assert if entity is returned in response, compare response fields with entity fields, instead plain values.
 -
 
+# Code Style
+
+- Always use top-level imports. Do not use lazy/deferred imports inside function bodies.
+
 # Concurrency and Thread Safety
 
 Saleor runs across many Python services that execute concurrently. Follow these patterns to ensure thread-safe code.

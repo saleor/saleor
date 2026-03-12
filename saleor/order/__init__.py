@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from ..page.models import Page
     from .models import FulfillmentLine
 
 
@@ -306,6 +307,8 @@ class FulfillmentLineData:
     line: "FulfillmentLine"
     quantity: int
     replace: bool = False
+    reason: str | None = None
+    reason_reference: "Page | None" = None
 
 
 class StockUpdatePolicy:
