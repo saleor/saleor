@@ -65,21 +65,11 @@ def test_staff_token_has_no_permissions_in_customers_only_mode(
     assert "errors" in content
     assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
 
-    # Step 5: Fetch products — should still work
-    products_query = """
-        query Products($first: Int!, $channel: String) {
-            products(first: $first, channel: $channel) {
-                edges {
-                    node {
-                        id
-                        name
-                    }
-                }
-            }
-        }
-    """
-    products_variables = {"first": 5, "channel": "default-channel"}
+    # Step 5: Switch back to ENABLED mode — should succeed again
+    site_settings.password_login_mode = PasswordLoginMode.ENABLED
+    site_settings.save(update_fields=["password_login_mode"])
 
-    response = enabled_client.post_graphql(products_query, products_variables)
+    response = enabled_client.post_graphql(PRODUCT_CREATE_MUTATION, product_input)
     content = get_graphql_content(response)
-    assert content["data"]["products"]["edges"] is not None
+    assert content["data"]["productCreate"]["errors"] == []
+    assert content["data"]["productCreate"]["product"]["id"] is not None

@@ -174,10 +174,10 @@ def _resolve_user_for_password_login_restriction(user: User, password_login_mode
     """Resolve authenticated user for restricted password login modes.
 
     Returns the user with staff access stripped in CUSTOMERS_ONLY mode.
-    Returns None when password login is DISABLED.
+    Raises an error when password login is DISABLED.
     """
     if password_login_mode == PasswordLoginMode.CUSTOMERS_ONLY:
         user.is_staff = False
         user.effective_permissions = Permission.objects.none()
         return user
-    return None
+    raise jwt.InvalidTokenError("The authentication method is disabled.")

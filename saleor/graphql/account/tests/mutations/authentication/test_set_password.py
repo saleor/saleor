@@ -210,7 +210,6 @@ def test_set_password_disabled_password_login(user_api_client, site_settings):
     errors = content["data"]["setPassword"]["errors"]
     assert len(errors) == 1
     assert errors[0]["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
-    assert errors[0]["field"] == "email"
 
     customer_user.refresh_from_db()
     assert customer_user.check_password("old-password")

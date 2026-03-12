@@ -14,6 +14,7 @@ from ......core.jwt import (
     jwt_decode,
 )
 from ......core.utils import build_absolute_uri
+from ......site import PasswordLoginMode
 from .....tests.utils import get_graphql_content
 from ....mutations.authentication.utils import _get_new_csrf_token
 
@@ -392,3 +393,29 @@ def test_refresh_token_for_staff_user(api_client, staff_user, settings):
     payload = jwt_decode(token)
     assert payload["is_staff"] is True
     assert payload["email"] == staff_user.email
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_refresh_token_when_password_login_disabled(
+    api_client, staff_user, site_settings
+):
+    # given
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(staff_user, {"csrfToken": csrf_token})
+    variables = {"token": refresh_token, "csrf_token": None}
+
+    site_settings.password_login_mode = PasswordLoginMode.DISABLED
+    site_settings.save(update_fields=["password_login_mode"])
+
+    # when
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["tokenRefresh"]
+    assert len(data["errors"]) == 1
+    assert (
+        data["errors"][0]["code"]
+        == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
+    )
+    assert data["token"] is None

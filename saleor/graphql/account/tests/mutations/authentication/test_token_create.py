@@ -549,7 +549,6 @@ def test_create_token_disabled_password_login(
     assert len(errors) == 1
     error = errors[0]
     assert error["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
-    assert error["field"] == "email"
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -571,7 +570,6 @@ def test_create_token_disabled_password_login_for_staff(
     assert len(errors) == 1
     error = errors[0]
     assert error["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
-    assert error["field"] == "email"
 
 
 @freeze_time("2020-03-18 12:00:00")

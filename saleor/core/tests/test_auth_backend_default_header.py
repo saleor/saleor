@@ -268,7 +268,7 @@ def test_staff_user_disabled_mode(prefix, rf, staff_user, site_settings):
     # when
     request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {access_token}")
     backend = JSONWebTokenBackend()
-    user = backend.authenticate(request)
 
     # then
-    assert user is None
+    with pytest.raises(InvalidTokenError):
+        backend.authenticate(request)
