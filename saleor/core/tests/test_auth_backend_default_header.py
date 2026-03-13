@@ -5,6 +5,7 @@ from jwt import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
 
 from ...permission.enums import get_permissions_from_names
 from ...permission.models import Permission
+from ...site import PasswordLoginMode
 from ..auth_backend import JSONWebTokenBackend
 from ..jwt import (
     JWT_ACCESS_TYPE,
@@ -215,5 +216,59 @@ def test_user_payload_doesnt_have_user_token(prefix, rf, staff_user, settings):
 
     request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {access_token}")
     backend = JSONWebTokenBackend()
+    with pytest.raises(InvalidTokenError):
+        backend.authenticate(request)
+
+
+@pytest.mark.parametrize("prefix", ["JWT", "Bearer"])
+def test_staff_user_customers_only_mode(
+    prefix, rf, staff_user, permission_manage_products, site_settings
+):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.CUSTOMERS_ONLY
+    site_settings.save(update_fields=["password_login_mode"])
+    staff_user.user_permissions.add(permission_manage_products)
+    access_token = create_access_token(staff_user)
+
+    # when
+    request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {access_token}")
+    backend = JSONWebTokenBackend()
+    user = backend.authenticate(request)
+
+    # then
+    assert user == staff_user
+    assert user.is_staff is False
+    assert list(user.effective_permissions) == []
+
+
+@pytest.mark.parametrize("prefix", ["JWT", "Bearer"])
+def test_customer_user_customers_only_mode(prefix, rf, customer_user, site_settings):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.CUSTOMERS_ONLY
+    site_settings.save(update_fields=["password_login_mode"])
+    access_token = create_access_token(customer_user)
+
+    # when
+    request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {access_token}")
+    backend = JSONWebTokenBackend()
+    user = backend.authenticate(request)
+
+    # then
+    assert user == customer_user
+    assert user.is_staff is False
+
+
+@pytest.mark.parametrize("prefix", ["JWT", "Bearer"])
+def test_staff_user_disabled_mode(prefix, rf, staff_user, site_settings):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.DISABLED
+    site_settings.save(update_fields=["password_login_mode"])
+    access_token = create_access_token(staff_user)
+
+    # when
+    request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {access_token}")
+    backend = JSONWebTokenBackend()
+
+    # then
     with pytest.raises(InvalidTokenError):
         backend.authenticate(request)

@@ -9,7 +9,6 @@ from ..models import Address, User
 from ..utils import (
     get_user_groups_permissions,
     is_user_address_limit_reached,
-    remove_staff_member,
     remove_the_oldest_user_address,
     remove_the_oldest_user_address_if_address_limit_is_reached,
     retrieve_user_by_email,
@@ -17,29 +16,6 @@ from ..utils import (
     store_user_address,
 )
 from .fixtures.user import dangerously_create_test_user
-
-
-def test_remove_staff_member_with_orders(staff_user, permission_manage_products, order):
-    # given
-    order.user = staff_user
-    order.save()
-    staff_user.user_permissions.add(permission_manage_products)
-
-    # when
-    remove_staff_member(staff_user)
-
-    # then
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert not staff_user.is_staff
-    assert not staff_user.user_permissions.exists()
-
-
-def test_remove_staff_member(staff_user):
-    # when
-    remove_staff_member(staff_user)
-
-    # then
-    assert not User.objects.filter(pk=staff_user.pk).exists()
 
 
 @override_settings(MAX_USER_ADDRESSES=2)

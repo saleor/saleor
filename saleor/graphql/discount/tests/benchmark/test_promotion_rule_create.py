@@ -134,7 +134,7 @@ def test_promotion_rule_create_gift(
 
     # when
     staff_api_client.ensure_access_token()
-    with django_assert_num_queries(16):
+    with django_assert_num_queries(19):
         content = get_graphql_content(
             staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
         )
