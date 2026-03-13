@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - `AppInstallInput` for `appInstall` mutation now requires `appName` and `manifestUrl` fields in the schema, matching the validation that was always enforced by the mutation logic.
 - Removed Adyen plugin (payment gateway). [Switch to the app](https://docs.saleor.io/developer/app-store/apps/adyen/overview).
 - Removed `partial` field from the `Payment` GraphQL type. This field was an Adyen-specific workaround and always returned `false` after the Adyen plugin removal. Ensure you are not relying on this field (on Adyen gateway in general) before upgrading.
+- Removed the NP Atobarai payment gateway plugin (`saleor.payment.gateways.np_atobarai`). Use the [App](https://docs.saleor.io/developer/app-store/apps/np-atobarai/overview) instead.
 
 ### GraphQL API
 
