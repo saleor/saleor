@@ -2,6 +2,7 @@ import graphene
 import pytest
 
 from .....app.models import App, AppToken
+from .....site.models import Site
 from .....webhook.models import Webhook
 from ....tests.utils import get_graphql_content
 
@@ -54,6 +55,10 @@ def test_apps_for_federation_query_count(
         content = get_graphql_content(response)
         assert len(content["data"]["_entities"]) == 1
 
+    # Clear cache for proper query count comparison.
+    # Site and site settings are cached in `auth_backend` when querying the current site.
+    Site.objects.clear_cache()
+
     variables = {
         "representations": [
             {
@@ -64,7 +69,7 @@ def test_apps_for_federation_query_count(
         ],
     }
 
-    with django_assert_num_queries(5):
+    with django_assert_num_queries(7):
         response = staff_api_client.post_graphql(
             query,
             variables,
