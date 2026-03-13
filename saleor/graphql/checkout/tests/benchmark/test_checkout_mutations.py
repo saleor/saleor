@@ -1115,9 +1115,13 @@ def test_add_checkout_lines_with_reservations(
         data = content["data"]["checkoutLinesAdd"]
         assert not data["errors"]
 
+    # Clear cache for proper query count comparison.
+    # Site and site settings are cached in `auth_backend` when querying the current site.
+    Site.objects.clear_cache()
+
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(105):
+    with django_assert_num_queries(107):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
