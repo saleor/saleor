@@ -2959,3 +2959,60 @@ def test_create_product_variant_with_attributes_by_external_reference_invalid_va
     assert not content["productVariant"]
     assert content["errors"][0]["field"] == "attributes"
     assert content["errors"][0]["code"] == "INVALID"
+
+
+def test_create_variant_fails_object_of_other_type_is_passed_as_product(
+    staff_api_client,
+    product,
+    product_variant_list,
+    product_type,
+    permission_manage_products,
+    warehouse,
+):
+    # given
+    product_variant_id = graphene.Node.to_global_id(
+        "ProductVariant", product_variant_list[0].pk
+    )
+    sku = "1"
+    name = "test-name"
+    weight = 10.22
+    metadata_key = "md key"
+    metadata_value = "md value"
+    attribute = product_type.variant_attributes.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attr_value = "test-value"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+    external_reference = "test-ext-ref"
+
+    variables = {
+        "input": {
+            "product": product_variant_id,
+            "sku": sku,
+            "stocks": stocks,
+            "name": name,
+            "weight": weight,
+            "attributes": [{"id": attribute_id, "values": [attr_value]}],
+            "trackInventory": True,
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+            "externalReference": external_reference,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VARIANT_MUTATION, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+
+    # then
+    assert len(content["errors"]) == 1
+    error = content["errors"][0]
+    assert error["field"] == "product"
+    assert error["code"] == ProductErrorCode.INVALID.name
+    assert error["message"] == "Could not resolve to a Product."
