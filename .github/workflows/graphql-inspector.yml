@@ -2,15 +2,21 @@ name: GraphQL Inspector
 
 on:
   push:
-    paths: [ "**.graphql" ]
+    paths: ["**.graphql"]
+
+permissions: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      checks: write
+
     steps:
       - uses: actions/checkout@v5
 
-      - uses: graphql-hive/graphql-inspector@release-1769448022768
+      - uses: graphql-hive/graphql-inspector@84c610fac649e0379643da772e77e775c6aeaf56 # release-1769448022768
         with:
           schema: "main:saleor/graphql/schema.graphql"

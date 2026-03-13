@@ -3,22 +3,31 @@ name: Bump dependencies
 on:
   workflow_dispatch:
   schedule:
-    - cron:  '0 8 1 * *'  # At 08:00 on day-of-month 1
+    - cron: "0 8 1 * *" # At 08:00 on day-of-month 1
+
+permissions: {}
 
 jobs:
   bump-dependencies:
     if: ${{ github.event_name != 'schedule' || github.repository == 'saleor/saleor' }}
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.0.0
         with:
-          enable-cache: true
+          # Do not allow cache as other actions could write to that cache
+          # for lateral movement, and the workflow runs too infrequently
+          # thus there isn't any benefit.
+          enable-cache: false
 
       - run: python -m pip install pre-commit
       - run: uv lock --upgrade
@@ -26,13 +35,13 @@ jobs:
       - run: git status
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e  # v7.0.8
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: bump-dependencies
           delete-branch: true
           commit-message: Bump dependencies
-          title: 'Bump dependencies'
+          title: "Bump dependencies"
           body: |
             Monthly update of backend dependencies.
           labels: |

@@ -6,18 +6,23 @@ on:
     types: [reopened, synchronize, labeled]
     branches: ["**"]
 
+permissions: {}
+
 jobs:
-  deploy:
+  prepare:
     name: Deploy test environment for labeled pull requests
     if: ${{ ((github.event.action == 'labeled') && (github.event.label.name == 'test deployment')) || ((github.event.action != 'labeled') && contains(github.event.pull_request.labels.*.name, 'test deployment')) }}
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write # needed by aws-actions/configure-aws-credentials
-      contents: read
-      deployments: write
-    steps:
-      - uses: actions/checkout@v6
 
+    permissions:
+      deployments: write
+
+    outputs:
+      slug: ${{ steps.slugify-branch-name.outputs.result }}
+      domain: ${{ steps.set-domain.outputs.domain }}
+      github-deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+
+    steps:
       - name: Generate GITHUB_HEAD_REF_SLUG_URL
         id: slugify-branch-name
         uses: actions/github-script@v8
@@ -36,9 +41,11 @@ jobs:
 
       - name: Set domain
         id: set-domain
+        env:
+          ENV_SLUG: ${{ steps.slugify-branch-name.outputs.result }}
         # Set test instance domain based on branch name slug
         run: |
-          echo "domain=${{ steps.slugify-branch-name.outputs.result }}.api.saleor.rocks" >> $GITHUB_OUTPUT
+          echo "domain=${ENV_SLUG}.api.saleor.rocks" >> $GITHUB_OUTPUT
 
       - name: Start deployment
         uses: bobheadxi/deployments@648679e8e4915b27893bd7dbc35cb504dc915bc8 # v1.5.0
@@ -49,35 +56,59 @@ jobs:
           env: ${{ steps.slugify-branch-name.outputs.result }}
           ref: ${{ github.head_ref }}
 
-      - name: Configure AWS Credentials
+  build-deploy:
+    name: Build & Deploy
+    needs: [prepare]
+    runs-on: ubuntu-latest
+
+    environment: testenvs-deploy
+
+    permissions:
+      contents: read
+      id-token: write # needed by aws-actions/configure-aws-credentials
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - id: aws-login
+        name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
           aws-region: ${{ vars.AWS_TESTENVS_REGION }}
+          # No need to expose the credentials in GITHUB_ENV, instead we only share the
+          # credentials on a need-to-know basis
+          output-env-credentials: "false"
+          output-credentials: "true"
 
       - name: Build and push
         uses: kciter/aws-ecr-action@ea6db9ecebec495c996b0f084c8ea1591f1185d7 # v5
         with:
-          access_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
-          secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          access_key_id: ${{ steps.aws-login.outputs.aws-access-key-id }}
+          secret_access_key: ${{ steps.aws-login.outputs.aws-secret-access-key }}
           account_id: ${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}
           repo: saleor-testenvs
           region: ${{ vars.AWS_TESTENVS_REGION }}
-          tags: ${{ steps.slugify-branch-name.outputs.result }},${{ github.sha }}
+          tags: ${{ needs.prepare.outputs.slug }},${{ github.sha }}
+        env:
+          # No input field is present for the session token which thus causes
+          # errors with message: 'The security token included in the request is invalid'
+          # as AWS expects to receive a session token alongside the access key.
+          AWS_SESSION_TOKEN: ${{ steps.aws-login.outputs.aws-session-token }}
 
       - name: Invoke deployment lambda
         id: lambda
         uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
-          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ steps.aws-login.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws-login.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws-login.outputs.aws-session-token }}
           REGION: ${{ vars.AWS_TESTENVS_REGION }}
           FunctionName: test-env-manager
           Payload: >-
             {
               "action": "${{ github.event.action }}",
-              "label": "${{ steps.slugify-branch-name.outputs.result }}",
+              "label": "${{ needs.prepare.outputs.slug }}",
               "image": "${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_TESTENVS_REGION }}.amazonaws.com/saleor-testenvs:${{ github.sha }}"
             }
           LogType: Tail
@@ -113,13 +144,21 @@ jobs:
           echo "${PAYLOAD:-null}"
           echo "--------"
 
+  complete:
+    runs-on: ubuntu-latest
+    needs: [prepare, build-deploy]
+
+    permissions:
+      deployments: write
+
+    steps:
       - name: Update deployment status
         uses: bobheadxi/deployments@648679e8e4915b27893bd7dbc35cb504dc915bc8 # v1.5.0
         if: always()
         with:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ steps.slugify-branch-name.outputs.result }}
+          env: ${{ needs.prepare.outputs.slug }}
           status: ${{ job.status }}
-          env_url: https://${{ steps.set-domain.outputs.domain }}/graphql/
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          env_url: https://${{ needs.prepare.outputs.domain }}/graphql/
+          deployment_id: ${{ needs.prepare.outputs.github-deployment-id }}

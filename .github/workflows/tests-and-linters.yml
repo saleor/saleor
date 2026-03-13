@@ -2,7 +2,7 @@ name: Tests & Linters
 
 on:
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types: [opened, synchronize, reopened]
     paths:
       - "**.py"
       - Dockerfile
@@ -13,7 +13,6 @@ on:
   push:
     branches:
       - main
-      - ci/*
     paths:
       - "**.py"
       - Dockerfile
@@ -34,11 +33,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   unit_tests:
     runs-on: ubuntu-latest
     container: python:3.12
     name: Run unit tests
+
+    permissions:
+      contents: read
 
     services:
       postgres:
@@ -75,55 +79,70 @@ jobs:
           uv sync --locked
 
       - name: Run unit tests
-        env:
-          COVERAGE_CORE: sysmon
         run: |
           uv run pytest \
             -m "not e2e" \
-            --cov \
-            --cov-report= \
             --junitxml=junit/test-results.xml \
             -o junit_family=legacy \
-            --django-db-bench=${{ env.BENCH_PATH }} \
+            --django-db-bench="$BENCH_PATH" \
             -n logical
 
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }} # Run even if tests fail
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      # Publish coverage and test results
-      - uses: codecov/codecov-action@v5
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-      - uses: actions/upload-artifact@v4
+      - name: Upload Test Results
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: pytest-results
           path: junit/test-results.xml
+          # Throw an error if test results aren't reported. This could happen
+          # when bumping dependencies for example.
+          if-no-files-found: error
         if: ${{ always() }}
 
       # Publish detected differences as comment
-      - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
+      - name: Compare DB Queries Results (PR)
+        uses: NyanKiyoshi/pytest-django-queries-ci-tools@45b5ac36ff19669a88fe56429b662b0661d8f46b # v1.1.1
         with:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
           diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
           diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
         if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor'
 
-      # Save results for future comparison against pull requests
-      - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
+      - name: Upload DB Queries Results
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          query_raw_dump_path: ${{ env.BENCH_PATH }}
+          name: pytest-django-db-queries-results
+          path: ${{ env.BENCH_PATH }}
+          if-no-files-found: error
+
+  # Uploads the SQL count report for base branches
+  upload-query-count-base-branch:
+    if: github.event_name == 'push' && github.repository == 'saleor/saleor'
+
+    runs-on: ubuntu-latest
+    environment: pytest-upload-django-db-queries
+
+    permissions: {}
+
+    steps:
+      - name: Download Reports
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: pytest-django-db-queries-results
+          path: results/
+
+      - name: Upload Results
+        uses: NyanKiyoshi/pytest-django-queries-ci-tools@45b5ac36ff19669a88fe56429b662b0661d8f46b # v1.1.1
+        with:
+          query_raw_dump_path: results/queries-results.json
           upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
           upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
-        if: github.event_name == 'push' && github.repository == 'saleor/saleor'
 
   linters:
     runs-on: ubuntu-latest
     container: python:3.12
     name: Run linters
+
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v5

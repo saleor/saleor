@@ -2,19 +2,24 @@ name: "Changelog check"
 on:
   pull_request:
     branches:
-      - 'main'
+      - "main"
     # The specific activity types are listed here to include "labeled" and "unlabeled"
     # (which are not included by default for the "pull_request" trigger).
     # This is needed to allow skipping enforcement of the changelog in PRs with specific labels,
     # as defined in the (optional) "skipLabels" property.
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
+permissions: {}
 
 jobs:
   # Enforces the update of a changelog file on every pull request
   changelog:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     steps:
-    - uses: dangoslen/changelog-enforcer@204e7d3ef26579f4cd0fd759c57032656fdf23c7
-      with:
-        skipLabels: "skip changelog,dependencies,bot"
+      - uses: dangoslen/changelog-enforcer@204e7d3ef26579f4cd0fd759c57032656fdf23c7
+        with:
+          skipLabels: "skip changelog,dependencies,bot"
