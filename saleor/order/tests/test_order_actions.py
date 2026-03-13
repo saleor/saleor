@@ -3143,7 +3143,8 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
     order = order_with_lines
     manager = get_plugins_manager(False)
 
-    gift_card_created_by_staff.current_balance_amount = Decimal(100)
+    balance = Decimal(100)
+    gift_card_created_by_staff.current_balance_amount = balance
     gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
 
     transaction = transaction_item_generator(
@@ -3193,10 +3194,10 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
     )
     assert gift_card_event.order == order
     assert Decimal(gift_card_event.parameters["balance"]["old_current_balance"]) == (
-        Decimal(100)
+        balance
     )
     assert Decimal(gift_card_event.parameters["balance"]["current_balance"]) == (
-        Decimal(100) - order.total_gross_amount
+        balance - order.total_gross_amount
     )
 
 

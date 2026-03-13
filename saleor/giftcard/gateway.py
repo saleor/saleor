@@ -418,7 +418,6 @@ def refund_gift_card_transaction(
             previous_balance = gift_card.current_balance_amount
             gift_card.current_balance_amount = F("current_balance_amount") + amount
             gift_card.save(update_fields=["current_balance_amount"])
-            gift_card.refresh_from_db(fields=["current_balance_amount"])
 
             gift_card_refunded_in_order_event(
                 gift_card=gift_card,
