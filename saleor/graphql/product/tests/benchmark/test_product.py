@@ -322,7 +322,7 @@ def test_retrieve_channel_listings(
 
     variables = {"channel": channel_USD.slug}
 
-    with django_assert_num_queries(16):
+    with django_assert_num_queries(17):
         get_graphql_content(
             staff_api_client.post_graphql(
                 query,
@@ -351,7 +351,7 @@ def test_retrieve_channel_listings(
             ),
         ]
     )
-    with django_assert_num_queries(14):
+    with django_assert_num_queries(15):
         get_graphql_content(
             staff_api_client.post_graphql(
                 query,

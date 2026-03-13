@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.contrib.sites.models import Site
 
 from .....site import PasswordLoginMode
 from ...account.utils.token_create import raw_token_create
@@ -79,6 +80,7 @@ def test_staff_token_is_rejected_in_disabled_mode(
     # Step 3: Switch to DISABLED mode
     site_settings.password_login_mode = PasswordLoginMode.DISABLED
     site_settings.save(update_fields=["password_login_mode"])
+    Site.objects.clear_cache()
 
     # Step 4: Try to create a product and fetch orders — should fail (user is not authenticated)
     response = enabled_client.post_graphql(PRODUCT_CREATE_MUTATION, product_input)
@@ -98,6 +100,7 @@ def test_staff_token_is_rejected_in_disabled_mode(
     # Step 5: Switch back to ENABLED mode — should succeed again
     site_settings.password_login_mode = PasswordLoginMode.ENABLED
     site_settings.save(update_fields=["password_login_mode"])
+    Site.objects.clear_cache()
 
     response = enabled_client.post_graphql(PRODUCT_CREATE_MUTATION, product_input)
     content = get_graphql_content(response)
