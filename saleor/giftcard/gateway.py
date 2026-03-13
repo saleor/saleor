@@ -7,6 +7,8 @@ from django.db import transaction
 from django.db.models import Exists, F, OuterRef, Q
 from django.utils import timezone
 
+from ..account.models import User
+from ..app.models import App
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..graphql.payment.mutations.transaction.utils import (
@@ -27,7 +29,9 @@ from .const import (
     SALEOR_GIFT_CARD_BRAND,
     SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME,
 )
+from .events import gift_card_refunded_in_order_event, gift_cards_used_in_order_event
 from .models import GiftCard
+from .search import mark_gift_cards_search_index_as_dirty
 
 
 class GiftCardPaymentGatewayDataSchema(pydantic.BaseModel):
@@ -220,8 +224,30 @@ def detach_gift_card_from_previous_checkout_transactions(
     transactions_to_cancel_qs.update(gift_card=None)
 
 
-def charge_gift_card_transactions(
+def charge_gift_card(
+    gift_card: GiftCard,
+    authorized_value: Decimal,
     order: "Order",
+):
+    """Deduct authorized amount from the gift card balance and update usage metadata."""
+    gift_card.current_balance_amount -= authorized_value
+    gift_card.used_by = (
+        order.user or User.objects.filter(email=order.user_email).first()
+    )
+    gift_card.used_by_email = order.user_email
+    gift_card.last_used_on = timezone.now()
+    gift_card.save(
+        update_fields=[
+            "current_balance_amount",
+            "used_by",
+            "used_by_email",
+            "last_used_on",
+        ]
+    )
+
+
+def charge_gift_card_transactions(
+    order: "Order", user: User | None = None, app: App | None = None
 ):
     """Find all gift card payment gateway transactions tied to an order and attempt to charge funds from gift cards.
 
@@ -287,10 +313,20 @@ def charge_gift_card_transactions(
                         f"to cover requested amount ({quantize_price(gift_card_transaction.authorized_value, gift_card_transaction.currency)})."
                     )
                 else:
-                    gift_card.current_balance_amount -= (
-                        gift_card_transaction.authorized_value
+                    previous_balance = gift_card.current_balance_amount
+                    charge_gift_card(
+                        gift_card,
+                        gift_card_transaction.authorized_value,
+                        order,
                     )
-                    gift_card.save(update_fields=["current_balance_amount"])
+                    mark_gift_cards_search_index_as_dirty([gift_card])
+
+                    gift_cards_used_in_order_event(
+                        balance_data=[(gift_card, previous_balance)],
+                        order=order,
+                        user=None,
+                        app=None,
+                    )
 
                     response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
                     response["message"] = (
@@ -346,7 +382,10 @@ def cancel_gift_card_transaction(
 
 
 def refund_gift_card_transaction(
-    transaction_item: "TransactionItem", request_event: "TransactionEvent"
+    transaction_item: "TransactionItem",
+    request_event: "TransactionEvent",
+    user: User | None = None,
+    app: App | None = None,
 ):
     """Refund funds to a gift card which previously were charged from the same gift card.
 
@@ -376,8 +415,17 @@ def refund_gift_card_transaction(
                 .select_for_update()
                 .get()
             )
+            previous_balance = gift_card.current_balance_amount
             gift_card.current_balance_amount = F("current_balance_amount") + amount
             gift_card.save(update_fields=["current_balance_amount"])
+
+            gift_card_refunded_in_order_event(
+                gift_card=gift_card,
+                order=transaction_item.order,
+                previous_balance=previous_balance,
+                user=user,
+                app=app,
+            )
     except GiftCard.DoesNotExist:
         # Gift card must have been just deleted.
         # Eat the exception, failure response dict is already prepared.
