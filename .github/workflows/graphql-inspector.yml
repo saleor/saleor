@@ -12,6 +12,7 @@ jobs:
 
     permissions:
       contents: read
+      checks: write
 
     steps:
       - uses: actions/checkout@v5
