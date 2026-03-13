@@ -302,10 +302,6 @@ def assign_shipping_method_to_checkout(
     # private metadata
     _remove_external_shipping_from_metadata(checkout=checkout)
 
-    if checkout.shipping_method_name != checkout_delivery.name:
-        checkout.shipping_method_name = checkout_delivery.name
-        fields_to_update.append("shipping_method_name")
-
     return fields_to_update
 
 
@@ -331,9 +327,6 @@ def remove_shipping_method_from_checkout(checkout: Checkout) -> list[str]:
     if checkout.assigned_delivery_id:
         checkout.assigned_delivery_id = None
         fields_to_update.append("assigned_delivery_id")
-        if checkout.shipping_method_name is not None:
-            checkout.shipping_method_name = None
-            fields_to_update.append("shipping_method_name")
     return fields_to_update
 
 

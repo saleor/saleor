@@ -753,6 +753,7 @@ def test_checkout_complete_validate_checkout_addresses_raises_does_not_exist_err
     checkout_with_item,
     shipping_method,
     address,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_item
@@ -760,14 +761,14 @@ def test_checkout_complete_validate_checkout_addresses_raises_does_not_exist_err
     checkout.shipping_address = address
     checkout.save_shipping_address = False
     checkout.save_billing_address = False
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save(
         update_fields=[
             "billing_address",
             "shipping_address",
             "save_shipping_address",
             "save_billing_address",
-            "shipping_method",
+            "assigned_delivery",
         ]
     )
     validate_addresses_mock.side_effect = Checkout.DoesNotExist()
@@ -795,7 +796,7 @@ def test_checkout_complete_validate_checkout_addresses_raises_does_not_exist_err
     user_api_client,
     checkout_with_item,
     order,
-    shipping_method,
+    checkout_delivery,
     address,
 ):
     # given
@@ -804,14 +805,14 @@ def test_checkout_complete_validate_checkout_addresses_raises_does_not_exist_err
     checkout.shipping_address = address
     checkout.save_shipping_address = False
     checkout.save_billing_address = False
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save(
         update_fields=[
             "billing_address",
             "shipping_address",
             "save_shipping_address",
             "save_billing_address",
-            "shipping_method",
+            "assigned_delivery",
         ]
     )
     validate_addresses_mock.side_effect = Checkout.DoesNotExist()

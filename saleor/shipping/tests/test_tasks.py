@@ -10,48 +10,14 @@ from ..tasks import drop_invalid_shipping_methods_relations_for_given_channels
 
 
 @freeze_time()
-def test_drop_invalid_shipping_method_relations(
-    checkouts_list,
+def test_drop_invalid_shipping_method_from_order(
     order_list,
     shipping_method,
     other_shipping_method,
-    shipping_method_weight_based,
     channel_USD,
     channel_PLN,
 ):
     # given
-    valid_time = timezone.now() + datetime.timedelta(hours=24)
-
-    checkout_PLN = checkouts_list[0]
-    checkout_PLN.shipping_method = shipping_method
-    checkout_PLN.channel = channel_PLN
-    checkout_PLN.price_expiration = valid_time
-
-    checkout_USD = checkouts_list[1]
-    checkout_USD.shipping_method = shipping_method
-    checkout_USD.channel = channel_USD
-    checkout_USD.price_expiration = valid_time
-
-    checkout_weight_shipping_method = checkouts_list[2]
-    checkout_weight_shipping_method.shipping_method = shipping_method_weight_based
-    checkout_weight_shipping_method.channel = channel_USD
-    checkout_weight_shipping_method.price_expiration = valid_time
-
-    checkout_another_shipping_method = checkouts_list[3]
-    checkout_another_shipping_method.shipping_method = other_shipping_method
-    checkout_another_shipping_method.channel = channel_USD
-    checkout_another_shipping_method.price_expiration = valid_time
-
-    Checkout.objects.bulk_update(
-        [
-            checkout_PLN,
-            checkout_USD,
-            checkout_weight_shipping_method,
-            checkout_another_shipping_method,
-        ],
-        ["shipping_method", "channel", "price_expiration"],
-    )
-
     order_confirmed = order_list[0]
     order_confirmed.status = OrderStatus.UNFULFILLED
     order_confirmed.shipping_method = shipping_method
@@ -81,22 +47,6 @@ def test_drop_invalid_shipping_method_relations(
     )
 
     # then
-    checkout_PLN.refresh_from_db()
-    checkout_USD.refresh_from_db()
-    checkout_another_shipping_method.refresh_from_db()
-
-    assert checkout_PLN.shipping_method == shipping_method
-    assert checkout_USD.shipping_method is None
-    assert (
-        checkout_weight_shipping_method.shipping_method == shipping_method_weight_based
-    )
-    assert checkout_another_shipping_method.shipping_method is None
-
-    assert checkout_PLN.price_expiration == valid_time
-    assert checkout_USD.price_expiration == timezone.now()
-    assert checkout_weight_shipping_method.price_expiration == valid_time
-    assert checkout_another_shipping_method.price_expiration == timezone.now()
-
     order_confirmed.refresh_from_db()
     order_draft.refresh_from_db()
     order_draft_PLN.refresh_from_db()
@@ -108,3 +58,53 @@ def test_drop_invalid_shipping_method_relations(
     assert not order_confirmed.should_refresh_prices
     assert order_draft.should_refresh_prices
     assert not order_draft_PLN.should_refresh_prices
+
+
+@freeze_time()
+def test_mark_as_invalid_shipping_method_for_checkout(
+    checkouts_list,
+    shipping_method,
+    other_shipping_method,
+    channel_USD,
+    channel_PLN,
+    checkout_delivery,
+    shipping_zones_with_different_channels,
+):
+    # given
+    shipping_method = shipping_zones_with_different_channels[0].shipping_methods.first()
+    valid_time = timezone.now() + datetime.timedelta(hours=24)
+
+    checkout_PLN = checkouts_list[0]
+    checkout_PLN.assigned_delivery = checkout_delivery(checkout_PLN, shipping_method)
+    checkout_PLN.channel = channel_PLN
+    checkout_PLN.price_expiration = valid_time
+
+    checkout_USD = checkouts_list[1]
+    checkout_USD.assigned_delivery = checkout_delivery(checkout_USD, shipping_method)
+    checkout_USD.channel = channel_USD
+    checkout_USD.price_expiration = valid_time
+
+    Checkout.objects.bulk_update(
+        [
+            checkout_PLN,
+            checkout_USD,
+        ],
+        ["assigned_delivery", "channel", "price_expiration"],
+    )
+
+    # when
+    drop_invalid_shipping_methods_relations_for_given_channels(
+        [shipping_method.id, other_shipping_method.id], [channel_USD.id]
+    )
+
+    # then
+    checkout_PLN.refresh_from_db()
+    checkout_USD.refresh_from_db()
+
+    assert (
+        checkout_PLN.assigned_delivery.built_in_shipping_method_id == shipping_method.id
+    )
+    assert not checkout_USD.assigned_delivery.is_valid
+
+    assert checkout_PLN.price_expiration == valid_time
+    assert checkout_USD.price_expiration == valid_time

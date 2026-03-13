@@ -972,7 +972,7 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
 
     checkout_with_item.shipping_address = address_other_country
     checkout_with_item.assigned_delivery = checkout_delivery(checkout_with_item)
-    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+    checkout_with_item.save(update_fields=["shipping_address", "assigned_delivery"])
     assert checkout_with_item.shipping_address.country == address_other_country.country
 
     voucher = voucher_shipping_type
@@ -1334,17 +1334,18 @@ def test_checkout_shipping_address_update_when_switching_from_cc(
     permission_handle_checkouts,
     shipping_method,
     address,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_items
     address_data = graphql_address_data_skipped_validation
     # after switching for cc to standard shipping method - the shipping method is set
     # and the shipping address is cleared
-    checkout.shipping_method = shipping_method
+    checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.billing_address = address
     checkout.shipping_address = None
     checkout.save(
-        update_fields=["shipping_method", "billing_address", "shipping_address"]
+        update_fields=["billing_address", "shipping_address", "assigned_delivery_id"]
     )
 
     variables = {

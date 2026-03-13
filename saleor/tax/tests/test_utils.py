@@ -151,12 +151,16 @@ def test_get_tax_country_fallbacks_to_channel_country_address_data_with_empty_co
 
 
 def test_get_shipping_tax_rate_for_checkout_weighted_tax(
-    checkout_with_items, channel_USD, plugins_manager, shipping_method
+    checkout_with_items,
+    channel_USD,
+    plugins_manager,
+    shipping_method,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_items
-    checkout.shipping_method = shipping_method
-    checkout.save(update_fields=["shipping_method"])
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.save(update_fields=["assigned_delivery_id"])
 
     tax_configuration = channel_USD.tax_configuration
     tax_configuration.use_weighted_tax_for_shipping = True
@@ -263,7 +267,11 @@ def test_get_shipping_tax_rate_for_checkout_weighted_tax_with_multiple_tax_rates
 
 
 def test_get_shipping_tax_rate_for_checkout_when_weighted_tax_is_disabled(
-    checkout_with_items, channel_USD, shipping_method, plugins_manager
+    checkout_with_items,
+    channel_USD,
+    shipping_method,
+    plugins_manager,
+    checkout_delivery,
 ):
     # given
     checkout = checkout_with_items
@@ -274,8 +282,8 @@ def test_get_shipping_tax_rate_for_checkout_when_weighted_tax_is_disabled(
         update_fields=["use_weighted_tax_for_shipping", "tax_calculation_strategy"]
     )
 
-    checkout.shipping_method = shipping_method
-    checkout.save(update_fields=["shipping_method"])
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.save(update_fields=["assigned_delivery_id"])
 
     checkout_info = fetch_checkout_info(checkout, [], plugins_manager)
     checkout_lines_info, _ = fetch_checkout_lines(checkout, plugins_manager)

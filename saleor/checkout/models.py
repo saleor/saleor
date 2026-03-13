@@ -23,7 +23,6 @@ from ..core.taxes import TAX_ERROR_FIELD_LENGTH, zero_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..giftcard.models import GiftCard
 from ..permission.enums import CheckoutPermissions
-from ..shipping.models import ShippingMethod
 from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
 
 if TYPE_CHECKING:
@@ -152,20 +151,6 @@ class Checkout(models.Model):
         editable=False,
         null=True,
         on_delete=models.SET_NULL,
-    )
-    shipping_method = models.ForeignKey(
-        ShippingMethod,
-        blank=True,
-        null=True,
-        related_name="checkouts",
-        on_delete=models.SET_NULL,
-    )
-
-    shipping_method_name = models.CharField(
-        max_length=255, null=True, default=None, blank=True, editable=False
-    )
-    external_shipping_method_id = models.CharField(
-        max_length=1024, null=True, default=None, blank=True, editable=False
     )
 
     collection_point = models.ForeignKey(

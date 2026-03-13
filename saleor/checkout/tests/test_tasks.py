@@ -881,12 +881,9 @@ def test_automatic_checkout_completion_missing_delivery_method(
 ):
     # given
     checkout = checkout_with_prices
-    checkout.shipping_method = None
     checkout.collection_point = None
     checkout.assigned_delivery = None
-    checkout.save(
-        update_fields=["shipping_method", "collection_point", "assigned_delivery"]
-    )
+    checkout.save(update_fields=["collection_point", "assigned_delivery"])
     checkout_pk = checkout.pk
 
     # allow catching the log in caplog
@@ -1076,6 +1073,7 @@ def test_trigger_automatic_checkout_completion_task_checkout_not_eligible_due_mi
     mocked_automatic_checkout_completion,
     checkout_with_prices,
     channel_USD,
+    checkout_delivery,
     shipping_method,
 ):
     # given
@@ -1093,7 +1091,6 @@ def test_trigger_automatic_checkout_completion_task_checkout_not_eligible_due_mi
         last_change=timezone.now() - datetime.timedelta(minutes=7),
         email="test@email.com",
         billing_address=None,
-        shipping_method=shipping_method,
     )
 
     # when
@@ -1176,8 +1173,8 @@ def test_trigger_automatic_checkout_completion_task_respects_batch_size(
     checkouts_list,
     channel_USD,
     batch_size,
-    shipping_method,
     address,
+    checkout_delivery,
 ):
     # given
 
@@ -1197,10 +1194,13 @@ def test_trigger_automatic_checkout_completion_task_respects_batch_size(
         email="test@email.com",
         channel=channel_USD,
         last_change=timezone.now() - datetime.timedelta(minutes=10),
-        shipping_method=shipping_method,
         total_gross_amount=amount,
         total_net_amount=amount,
     )
+    checkouts = Checkout.objects.all()
+    for checkout in checkouts:
+        checkout.assigned_delivery = checkout_delivery(checkout)
+    Checkout.objects.bulk_update(checkouts, ["assigned_delivery_id"])
 
     # when
     with mock.patch(
