@@ -124,6 +124,10 @@ class TransactionCreate(BaseMutation):
     def validate_external_url(cls, external_url: str | None, error_code: str):
         if external_url is None:
             return
+        from .....webhook.response_schemas.utils.url import RELATIVE_URL_PATTERN
+
+        if RELATIVE_URL_PATTERN.match(external_url):
+            return
         validator = URLValidator()
         try:
             validator(external_url)

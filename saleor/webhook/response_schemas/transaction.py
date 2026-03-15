@@ -6,7 +6,9 @@ from typing import Annotated, Any, Literal
 
 from django.conf import settings
 from django.utils import timezone
-from pydantic import BaseModel, Field, HttpUrl, field_validator
+from pydantic import BaseModel, Field, field_validator
+
+from .utils.url import AbsoluteOrRelativeUrl
 
 from ...graphql.core.utils import str_to_enum
 from ...payment import (
@@ -164,7 +166,7 @@ class TransactionBaseSchema(BaseModel):
         ),
     ]
     external_url: Annotated[
-        DefaultIfNone[HttpUrl],
+        DefaultIfNone[AbsoluteOrRelativeUrl],
         Field(
             validation_alias="externalUrl",
             description="External url with action details",
