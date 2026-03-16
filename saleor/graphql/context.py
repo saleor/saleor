@@ -27,8 +27,27 @@ def get_context_value(request: HttpRequest) -> SaleorContext:
 
 
 def clear_context(context: SaleorContext):
+    _clear_dataloaders_fields_cache(context)
     context.dataloaders.clear()
     del context.user
+
+
+def _clear_dataloaders_fields_cache(context: SaleorContext):
+    """Clear Django model fields_cache on all cached dataloader values.
+
+    Django's OneToOneField descriptors create bidirectional caches in
+    _state.fields_cache (e.g. Site ↔ SiteSettings), forming reference cycles
+    that survive after dataloaders are cleared. Breaking these caches here
+    prevents the cycles from leaking into garbage collection.
+    """
+    for loader in context.dataloaders.values():
+        for promise in getattr(loader, "_promise_cache", {}).values():
+            try:
+                value = promise.get()
+            except Exception:
+                continue
+            if hasattr(value, "_state"):
+                value._state.fields_cache.clear()
 
 
 class RequestWithUser(HttpRequest):
