@@ -395,7 +395,7 @@ def checkout_with_delivery_method_for_cc(
 
 @pytest.fixture
 def checkout_with_delivery_method_for_external_shipping(checkout_with_item, address):
-    sm = checkout_with_item.shipping_methods.create(
+    sm = checkout_with_item.deliveries.create(
         external_shipping_method_id="YXBwOlFYQndPakU9OmFiY2Q=",
         name="Provider - Economy",
         price_amount=Decimal(99),
