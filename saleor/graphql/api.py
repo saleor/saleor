@@ -64,7 +64,9 @@ def monitor_fields_usage(schema: graphql.GraphQLSchema) -> None:
     - `monitor_usage=True` is passed to a `BaseField` declaration.
     """
     for gql_type in schema.get_type_map().values():
-        if not isinstance(gql_type, GraphQLObjectType | GraphQLInterfaceType):
+        if not isinstance(
+            gql_type, GraphQLObjectType | GraphQLInterfaceType
+        ) or gql_type.name.startswith("__"):
             continue
         for gql_field_name, gql_field in gql_type.fields.items():
             if gql_field.resolver is None:
