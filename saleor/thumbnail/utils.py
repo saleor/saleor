@@ -12,6 +12,7 @@ from django.core.files.storage import default_storage
 from django.urls import reverse
 from PIL import Image
 
+from ..product import ProductMediaTypes
 from . import (
     DEFAULT_THUMBNAIL_SIZE,
     FILE_NAME_MAX_LENGTH,
@@ -274,3 +275,12 @@ def get_filename_from_url(url: str, mime_type: str | None = None) -> str:
     name = name[:FILE_NAME_MAX_LENGTH]
     hash = secrets.token_hex(nbytes=4)
     return f"{name}_{hash}{format}"
+
+
+def is_product_media_image_pending(object_type: str, instance) -> bool:
+    """Check if instance is a ProductMedia of IMAGE type with a pending image download."""
+    return (
+        object_type == "ProductMedia"
+        and instance.type == ProductMediaTypes.IMAGE
+        and instance.external_url
+    )

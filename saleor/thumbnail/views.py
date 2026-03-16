@@ -4,6 +4,7 @@ from typing import NamedTuple
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import (
+    HttpResponse,
     HttpResponseBadRequest,
     HttpResponseNotFound,
     HttpResponseRedirect,
@@ -23,6 +24,7 @@ from .utils import (
     ProcessedIconImage,
     ProcessedImage,
     get_thumbnail_size,
+    is_product_media_image_pending,
     prepare_thumbnail_file_name,
 )
 
@@ -103,6 +105,10 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str | None = 
 
     image = getattr(instance, model_data.image_field)
     if not bool(image):
+        if is_product_media_image_pending(object_type, instance):
+            return HttpResponse(
+                "Image has not been fetched yet, try later.", status=503
+            )
         return HttpResponseNotFound("There is no image for provided instance.")
 
     # prepare thumbnail
@@ -162,6 +168,10 @@ def handle_original_image(request, instance_id: str):
 
     image = getattr(instance, model_data.image_field)
     if not bool(image):
+        if is_product_media_image_pending(object_type, instance):
+            return HttpResponse(
+                "Image has not been fetched yet, try later.", status=503
+            )
         return HttpResponseNotFound("There is no image for provided instance.")
 
     return HttpResponseRedirect(image.url)
