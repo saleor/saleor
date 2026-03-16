@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 import graphene
 import pytest
+from django.utils import timezone
 
 from .....payment.models import TransactionItem
 from ....tests.utils import get_graphql_content
@@ -359,3 +362,169 @@ def test_transactions_query_filter_respects_app_permissions(
     content = get_graphql_content(response)
     transactions = content["data"]["transactions"]["edges"]
     assert len(transactions) == 0
+
+
+def test_filter_by_created_at_range(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    now = timezone.now()
+    old_date = now - timedelta(days=30)
+    recent_date = now - timedelta(days=5)
+
+    transaction_old = transaction_item_generator(
+        order_id=order_with_lines.pk, psp_reference="OLD", currency="USD"
+    )
+    transaction_recent = transaction_item_generator(
+        order_id=order_with_lines.pk, psp_reference="RECENT", currency="USD"
+    )
+
+    TransactionItem.objects.filter(pk=transaction_old.pk).update(created_at=old_date)
+    TransactionItem.objects.filter(pk=transaction_recent.pk).update(
+        created_at=recent_date
+    )
+
+    variables = {
+        "where": {
+            "createdAt": {
+                "gte": (now - timedelta(days=10)).isoformat(),
+                "lte": now.isoformat(),
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == 1
+    assert transactions[0]["node"]["pspReference"] == transaction_recent.psp_reference
+
+
+def test_filter_by_created_at_gte_only(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    now = timezone.now()
+    old_date = now - timedelta(days=30)
+    recent_date = now - timedelta(days=5)
+
+    transaction_old = transaction_item_generator(
+        order_id=order_with_lines.pk, psp_reference="OLD", currency="USD"
+    )
+    transaction_recent = transaction_item_generator(
+        order_id=order_with_lines.pk, psp_reference="RECENT", currency="USD"
+    )
+
+    TransactionItem.objects.filter(pk=transaction_old.pk).update(created_at=old_date)
+    TransactionItem.objects.filter(pk=transaction_recent.pk).update(
+        created_at=recent_date
+    )
+
+    variables = {
+        "where": {"createdAt": {"gte": (now - timedelta(days=10)).isoformat()}}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == 1
+    assert transactions[0]["node"]["pspReference"] == transaction_recent.psp_reference
+
+
+def test_filter_by_created_at_lte_only(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    now = timezone.now()
+    old_date = now - timedelta(days=30)
+    recent_date = now - timedelta(days=5)
+
+    transaction_old = transaction_item_generator(
+        order_id=order_with_lines.pk, psp_reference="OLD", currency="USD"
+    )
+    transaction_recent = transaction_item_generator(
+        order_id=order_with_lines.pk, psp_reference="RECENT", currency="USD"
+    )
+
+    TransactionItem.objects.filter(pk=transaction_old.pk).update(created_at=old_date)
+    TransactionItem.objects.filter(pk=transaction_recent.pk).update(
+        created_at=recent_date
+    )
+
+    variables = {
+        "where": {"createdAt": {"lte": (now - timedelta(days=20)).isoformat()}}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == 1
+    assert transactions[0]["node"]["pspReference"] == transaction_old.psp_reference
+
+
+def test_filter_by_modified_at_range(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    transaction_item_generator,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    now = timezone.now()
+    old_date = now - timedelta(days=30)
+    recent_date = now - timedelta(days=5)
+
+    transaction_old = transaction_item_generator(
+        order_id=order_with_lines.pk, psp_reference="OLD", currency="USD"
+    )
+    transaction_recent = transaction_item_generator(
+        order_id=order_with_lines.pk, psp_reference="RECENT", currency="USD"
+    )
+
+    TransactionItem.objects.filter(pk=transaction_old.pk).update(modified_at=old_date)
+    TransactionItem.objects.filter(pk=transaction_recent.pk).update(
+        modified_at=recent_date
+    )
+
+    variables = {
+        "where": {
+            "modifiedAt": {
+                "gte": (now - timedelta(days=10)).isoformat(),
+                "lte": now.isoformat(),
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == 1
+    assert transactions[0]["node"]["pspReference"] == transaction_recent.psp_reference

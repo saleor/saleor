@@ -15547,6 +15547,20 @@ input TransactionWhereInput @doc(category: "Payments") {
   """Filter by app identifier."""
   appIdentifier: StringFilterInput
 
+  """
+  Filter transactions by created at date.
+  
+  Added in Saleor 3.23.
+  """
+  createdAt: DateTimeRangeInput
+
+  """
+  Filter transactions by modified at date.
+  
+  Added in Saleor 3.23.
+  """
+  modifiedAt: DateTimeRangeInput
+
   """List of conditions that must be met."""
   AND: [TransactionWhereInput!]
 
