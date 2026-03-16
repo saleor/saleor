@@ -1,4 +1,5 @@
-from functools import partial
+import logging
+from functools import partial, wraps
 
 import graphql
 from django.urls import reverse
@@ -32,6 +33,7 @@ from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .invoice.schema import InvoiceMutations
 from .menu.schema import MenuMutations, MenuQueries
 from .meta.schema import MetaMutations
+from .metrics import record_field_usage
 from .order.schema import OrderMutations, OrderQueries
 from .page.schema import PageMutations, PageQueries
 from .payment.schema import PAYMENT_ADDITIONAL_TYPES, PaymentMutations, PaymentQueries
@@ -50,7 +52,40 @@ from .warehouse.schema import (
 from .webhook.schema import WebhookMutations, WebhookQueries
 from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
 
+logger = logging.getLogger(__name__)
+
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
+
+
+def monitor_fields_usage(schema: graphql.GraphQLSchema) -> None:
+    """Wrap resolvers of tracked fields to record usage metrics on each call.
+
+    A field is tracked when at least one of the following is true:
+    - `deprecation_reason` is set.
+    - `monitor_usage=True` is passed to a `BaseField` declaration.
+    """
+    for gql_type in schema._type_map.values():
+        fields = getattr(gql_type, "fields", None)
+        if not fields:
+            continue
+        for field_name, field in fields.items():
+            resolver = getattr(field, "resolver", None)
+            if resolver is None:
+                continue
+            is_deprecated = bool(field.deprecation_reason)
+            should_monitor = getattr(resolver, "monitor_usage", False)
+            if not is_deprecated and not should_monitor:
+                continue
+
+            def wrapper(original, type_name, field_name, deprecated):
+                @wraps(original)
+                def _wrapper(*args, **kwargs):
+                    record_field_usage(type_name, field_name, deprecated)
+                    return original(*args, **kwargs)
+
+                return _wrapper
+
+            field.resolver = wrapper(resolver, gql_type.name, field_name, is_deprecated)
 
 
 class Query(
@@ -188,6 +223,7 @@ schema = build_federated_schema(
     directives=graphql.specified_directives
     + [GraphQLDocDirective, GraphQLWebhookEventsInfoDirective],
 )
+monitor_fields_usage(schema)
 
 
 def _fail(errors, **_kwargs) -> ExecutionResult:
