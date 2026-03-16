@@ -20963,7 +20963,11 @@ type Mutation {
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutDeliveryMethodUpdate(
-    """Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID)."""
+    """
+    Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID or `CheckoutDelivery` ID).
+    
+    DEPRECATED: Usage of `ShippingMethod` ID is deprecated. Use CheckoutDelivery ID instead.
+    """
     deliveryMethodId: ID
 
     """The checkout's ID."""

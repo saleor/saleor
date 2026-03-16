@@ -52,7 +52,11 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         )
 
         delivery_method_id = graphene.ID(
-            description="Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID).",
+            description=(
+                "Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID or "
+                "`CheckoutDelivery` ID).\n\nDEPRECATED: Usage of `ShippingMethod` ID "
+                "is deprecated. Use CheckoutDelivery ID instead."
+            ),
             required=False,
         )
 
@@ -117,7 +121,12 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         if id_ is None:
             return None, None
 
-        possible_types = ("Warehouse", "ShippingMethod", APP_ID_PREFIX)
+        possible_types = (
+            "Warehouse",
+            "ShippingMethod",
+            "CheckoutDelivery",
+            APP_ID_PREFIX,
+        )
         type_, id_ = from_global_id_or_error(id_)
         str_type = str(type_)
 
@@ -125,7 +134,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             raise ValidationError(
                 {
                     "delivery_method_id": ValidationError(
-                        "ID does not belong to Warehouse or ShippingMethod",
+                        "ID does not belong to Warehouse, ShippingMethod, or CheckoutDelivery",
                         code=CheckoutErrorCode.INVALID.value,
                     )
                 }
@@ -137,6 +146,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     def get_checkout_delivery(
         cls,
         checkout_info: CheckoutInfo,
+        type_name: str,
         internal_shipping_method_id: str | None,
         requestor: Union["App", "User", None],
     ) -> CheckoutDelivery | None:
@@ -146,10 +156,17 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout_deliveries = get_or_fetch_checkout_deliveries(
             checkout_info, requestor=requestor
         ).get()
+
         for method in checkout_deliveries:
             if not method.active:
                 continue
             if method.shipping_method_id == internal_shipping_method_id:
+                return method
+
+            if (
+                type_name == "CheckoutDelivery"
+                and str(method.id) == internal_shipping_method_id
+            ):
                 return method
 
         raise ValidationError(
@@ -175,13 +192,14 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             None
         )
         type_name, internal_id = cls._resolve_delivery_method_type(delivery_method_id)
-        if internal_id is None:
+
+        if internal_id is None or type_name is None:
             return None
         if type_name == "Warehouse":
             delivery_method_data = cls.get_collection_point(checkout_info, internal_id)
         else:
             delivery_method_data = cls.get_checkout_delivery(
-                checkout_info, internal_id, requestor=requestor
+                checkout_info, type_name, internal_id, requestor=requestor
             )
         return delivery_method_data
 
