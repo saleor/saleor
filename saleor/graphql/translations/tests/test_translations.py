@@ -3,7 +3,6 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-from freezegun import freeze_time
 
 from ....attribute.tests.model_helpers import (
     get_product_attribute_values,
