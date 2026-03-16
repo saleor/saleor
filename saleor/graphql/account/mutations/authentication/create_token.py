@@ -93,6 +93,9 @@ class CreateToken(BaseMutation):
     ):
         additional_payload: dict[str, Any] = {}
 
+        site_settings = get_site_promise(info.context).get().settings
+        check_password_login_not_disabled(site_settings)
+
         csrf_token = _get_new_csrf_token()
         refresh_additional_payload: dict[str, Any] = {
             "csrfToken": csrf_token,
@@ -102,9 +105,6 @@ class CreateToken(BaseMutation):
             refresh_additional_payload["aud"] = f"custom:{audience}"
 
         user = cls.get_user(info, email, password)
-
-        site_settings = get_site_promise(info.context).get().settings
-        check_password_login_not_disabled(site_settings)
 
         access_token = create_access_token(user, additional_payload=additional_payload)
         refresh_token = create_refresh_token(

@@ -124,6 +124,9 @@ class RefreshToken(BaseMutation):
     def perform_mutation(
         cls, _root, info: ResolveInfo, /, *, csrf_token=None, refresh_token=None
     ):
+        site_settings = get_site_promise(info.context).get().settings
+        check_password_login_not_disabled(site_settings)
+
         need_csrf = refresh_token is None
         refresh_token = cls.get_refresh_token(info, refresh_token)
         payload = cls.clean_refresh_token(refresh_token)
@@ -131,9 +134,6 @@ class RefreshToken(BaseMutation):
         # None when we got refresh_token from cookie.
         if need_csrf:
             cls.clean_csrf_token(csrf_token, payload)
-
-        site_settings = get_site_promise(info.context).get().settings
-        check_password_login_not_disabled(site_settings)
 
         additional_payload = {}
         if audience := payload.get("aud"):
