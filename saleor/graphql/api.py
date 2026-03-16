@@ -1,4 +1,3 @@
-import logging
 from functools import partial, wraps
 
 import graphql
@@ -7,6 +6,8 @@ from django.utils.functional import SimpleLazyObject
 from graphql import (
     GraphQLCachedBackend,
     GraphQLCoreBackend,
+    GraphQLInterfaceType,
+    GraphQLObjectType,
     GraphQLScalarType,
     GraphQLSchema,
     execute,
@@ -52,8 +53,6 @@ from .warehouse.schema import (
 from .webhook.schema import WebhookMutations, WebhookQueries
 from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
 
-logger = logging.getLogger(__name__)
-
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 
@@ -64,16 +63,14 @@ def monitor_fields_usage(schema: graphql.GraphQLSchema) -> None:
     - `deprecation_reason` is set.
     - `monitor_usage=True` is passed to a `BaseField` declaration.
     """
-    for gql_type in schema._type_map.values():
-        fields = getattr(gql_type, "fields", None)
-        if not fields:
+    for gql_type in schema.get_type_map().values():
+        if not isinstance(gql_type, GraphQLObjectType | GraphQLInterfaceType):
             continue
-        for field_name, field in fields.items():
-            resolver = getattr(field, "resolver", None)
-            if resolver is None:
+        for gql_field_name, gql_field in gql_type.fields.items():
+            if gql_field.resolver is None:
                 continue
-            is_deprecated = bool(field.deprecation_reason)
-            should_monitor = getattr(resolver, "monitor_usage", False)
+            is_deprecated = bool(gql_field.deprecation_reason)
+            should_monitor = getattr(gql_field.resolver, "monitor_usage", False)
             if not is_deprecated and not should_monitor:
                 continue
 
@@ -85,7 +82,9 @@ def monitor_fields_usage(schema: graphql.GraphQLSchema) -> None:
 
                 return _wrapper
 
-            field.resolver = wrapper(resolver, gql_type.name, field_name, is_deprecated)
+            gql_field.resolver = wrapper(
+                gql_field.resolver, gql_type.name, gql_field_name, is_deprecated
+            )
 
 
 class Query(

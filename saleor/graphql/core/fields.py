@@ -1,4 +1,3 @@
-import logging
 from functools import wraps
 from json import JSONDecodeError
 
@@ -10,8 +9,6 @@ from ...permission.utils import message_one_of_permissions_required
 from ..decorators import one_of_permissions_required
 from .connection import FILTERS_NAME, FILTERSET_CLASS, WHERE_FILTERSET_CLASS, WHERE_NAME
 from .utils import WebhookEventInfo, message_webhook_events
-
-logger = logging.getLogger(__name__)
 
 
 class BaseField(graphene.Field):
