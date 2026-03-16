@@ -241,6 +241,7 @@ def gift_card_refunded_in_order_event(
     gift_card: GiftCard,
     order: "Order | None",
     previous_balance: "Decimal",
+    current_balance: "Decimal",
     user: User | None,
     app: App | None,
 ):
@@ -253,7 +254,7 @@ def gift_card_refunded_in_order_event(
         parameters={
             "balance": {
                 "currency": gift_card.currency,
-                "current_balance": gift_card.current_balance.amount,
+                "current_balance": current_balance,
                 "old_current_balance": previous_balance,
             },
         },

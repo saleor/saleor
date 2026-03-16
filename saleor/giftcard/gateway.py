@@ -423,6 +423,7 @@ def refund_gift_card_transaction(
                 gift_card=gift_card,
                 order=transaction_item.order,
                 previous_balance=previous_balance,
+                current_balance=previous_balance + amount,
                 user=user,
                 app=app,
             )
