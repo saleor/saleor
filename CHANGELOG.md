@@ -53,6 +53,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 
 - Fix Google OAuth OIDC login failing with `invalid_scope` error when `enable_refresh_token` is enabled. Google does not support the `offline_access` scope; use `access_type=offline` authorization parameter instead. - #18919 by @dnplkndll
+- Add `saleor.graphql.field.usage` OTel metric to track GraphQL field resolver call counts. The metric is emitted for deprecated fields (detected automatically) and for fields explicitly opted in with `monitor_usage=True` on a `BaseField` declaration.
 - Fix send order confirmation email to staff - #18342 by @Shaokun-X
 - Validation on `AppExtension` is now removed. Saleor will accept string values for `mount` and `target` from Manifest during App installation and JSON value for `options` field.
 Validation is now performed on the frontend (Dashboard). This change increases velocity of features related to apps and extensions, now Dashboard is only entity that ensures the contract
