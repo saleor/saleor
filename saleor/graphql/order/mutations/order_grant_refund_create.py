@@ -132,21 +132,21 @@ class OrderGrantRefundCreate(BaseMutation):
         lines: list[GrantRefundLineDict],
         refund_reason_reference_type,
     ) -> list[models.OrderGrantedRefundLine]:
-        errors: list[dict[str, str]] = []
+        lines_errors: list[dict[str, str]] = []
         result = clean_grant_refund_lines(
             order=order,
             lines=lines,
             refund_reason_reference_type=refund_reason_reference_type,
-            errors=errors,
+            errors=lines_errors,
             line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
         )
-        if errors:
+        if lines_errors:
             raise ValidationError(
                 {
                     "lines": ValidationError(
                         "Provided input for lines is invalid.",
                         code=OrderGrantRefundCreateErrorCode.INVALID.value,
-                        params={"lines": errors},
+                        params={"lines": lines_errors},
                     ),
                 }
             )
