@@ -145,7 +145,8 @@ jobs:
           echo "--------"
 
   complete:
-    if: ${{ always() }}
+    # Doesn't match when job is skipped
+    if: ${{ success() || failure() || cancelled() }}
     runs-on: ubuntu-latest
     needs: [prepare, build-deploy]
 
