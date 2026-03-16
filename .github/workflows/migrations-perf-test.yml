@@ -32,7 +32,7 @@ jobs:
         uses: kciter/aws-ecr-action@ea6db9ecebec495c996b0f084c8ea1591f1185d7 # v5
         with:
           access_key_id: ${{ steps.aws-login.outputs.aws-access-key-id }}
-          secret_access_key: ${{ steps.aws-login.outputs.aws-access-key-id }}
+          secret_access_key: ${{ steps.aws-login.outputs.aws-secret-access-key }}
           account_id: ${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}
           repo: saleor-testenvs
           region: ${{ vars.AWS_TESTENVS_REGION }}

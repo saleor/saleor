@@ -117,6 +117,7 @@ jobs:
   upload-query-count-base-branch:
     if: github.event_name == 'push' && github.repository == 'saleor/saleor'
 
+    needs: [unit_tests]
     runs-on: ubuntu-latest
     environment: pytest-upload-django-db-queries
 
