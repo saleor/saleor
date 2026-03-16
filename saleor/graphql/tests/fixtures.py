@@ -32,9 +32,7 @@ class BaseApiClient(Client):
         self.user = user
         self.app_token = None
         self.app = app
-        if user:
-            self.token = create_access_token(user)
-        elif app:
+        if app:
             _, auth_token = app.tokens.create(name="Default")
             self.app_token = auth_token
         self.api_path = API_PATH
@@ -44,11 +42,22 @@ class BaseApiClient(Client):
 
     def _base_environ(self, **request):
         environ = super()._base_environ(**request)
-        if self.user:
+        self.ensure_access_token()
+        if self.token:
             environ["HTTP_AUTHORIZATION"] = f"JWT {self.token}"
         elif self.app_token:
             environ["HTTP_AUTHORIZATION"] = f"Bearer {self.app_token}"
         return environ
+
+    def regenerate_access_token(self):
+        if self.user and self.token:
+            self.token = create_access_token(self.user)
+        else:
+            self.token = None
+
+    def ensure_access_token(self):
+        if self.user and not self.token:
+            self.token = create_access_token(self.user)
 
     @property
     def user(self):
@@ -57,8 +66,7 @@ class BaseApiClient(Client):
     @user.setter
     def user(self, user):
         self._user = user
-        if user:
-            self.token = create_access_token(user)
+        self.token = None
 
     def post(self, data=None, **kwargs):
         """Send a POST request.

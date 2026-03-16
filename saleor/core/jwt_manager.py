@@ -165,7 +165,7 @@ class JWTManager(JWTManagerBase):
     def encode(cls, payload):
         return api_jwt.encode(
             payload,
-            cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
+            cls.get_private_key(),
             algorithm="RS256",
             headers={"kid": cls.get_key_id()},
         )
@@ -174,7 +174,7 @@ class JWTManager(JWTManagerBase):
     def jws_encode(cls, payload: bytes, is_payload_detached: bool = True) -> str:
         return api_jws.encode(
             payload,
-            key=cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
+            key=cls.get_private_key(),
             algorithm="RS256",
             headers={"kid": cls.get_key_id(), "crit": ["b64"]},
             is_payload_detached=is_payload_detached,
@@ -188,7 +188,7 @@ class JWTManager(JWTManagerBase):
         if headers.get("alg") == "RS256":
             return jwt.decode(
                 token,
-                cls.get_public_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
+                cls.get_public_key(),
                 algorithms=["RS256"],
                 options={"verify_exp": verify_expiration, "verify_aud": verify_aud},
             )

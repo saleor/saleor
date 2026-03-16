@@ -3,7 +3,6 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-from freezegun import freeze_time
 
 from ....attribute.tests.model_helpers import (
     get_product_attribute_values,
@@ -845,7 +844,6 @@ PRODUCT_TRANSLATE_MUTATION = """
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_product_create_translation(
@@ -998,7 +996,6 @@ def test_product_create_translation_by_invalid_translatable_content_id(
     assert errors["field"] == "id"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_product_update_translation(
@@ -1063,7 +1060,6 @@ mutation productVariantTranslate(
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_product_variant_create_translation(
@@ -1122,7 +1118,6 @@ def test_product_variant_create_translation_by_translatable_content_id(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_product_variant_update_translation(
@@ -1213,7 +1208,6 @@ mutation collectionTranslate($collectionId: ID!, $input: TranslationInput!) {
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_collection_create_translation(
@@ -1307,7 +1301,6 @@ def test_collection_create_translation_for_description_name_as_null(
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_collection_update_translation(
@@ -1388,7 +1381,6 @@ mutation categoryTranslate($categoryId: ID!, $input: TranslationInput!) {
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_category_create_translation(
@@ -1482,7 +1474,6 @@ def test_category_create_translation_for_description_name_as_null(
     assert data["category"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_category_update_translation(
@@ -1541,7 +1532,6 @@ VOUCHER_TRANSLATE_MUTATION = """
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_voucher_create_translation(
@@ -1598,7 +1588,6 @@ def test_voucher_create_translation_by_translatable_content_id(
     assert data["voucher"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_voucher_update_translation(
@@ -1660,7 +1649,6 @@ SALE_TRANSLATION_MUTATION = """
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_sale_create_translation(
@@ -1731,7 +1719,6 @@ def test_sale_create_translation_by_translatable_content_id(
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_sale_update_translation(
@@ -1826,7 +1813,6 @@ mutation pageTranslate($pageId: ID!, $input: PageTranslationInput!) {
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_page_create_translation(
@@ -1917,7 +1903,6 @@ def test_page_create_translation_by_translatable_content_id(
     assert data["page"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_page_update_translation(
@@ -1977,7 +1962,6 @@ ATTRIBUTE_TRANSLATE_MUTATION = """
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_attribute_create_translation(
@@ -2034,7 +2018,6 @@ def test_attribute_create_translation_by_translatable_content_id(
     assert data["attribute"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_attribute_update_translation(
@@ -2100,7 +2083,6 @@ ATTRIBUTE_VALUE_TRANSLATE_MUTATION = """
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_attribute_value_create_translation(
@@ -2226,7 +2208,6 @@ def test_attribute_value_create_translation_by_translatable_content_id(
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_attribute_value_update_translation(
@@ -2689,7 +2670,6 @@ SHIPPING_PRICE_TRANSLATE = """
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_shipping_method_create_translation(
@@ -2760,7 +2740,6 @@ def test_shipping_method_create_translation_by_translatable_content_id(
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_shipping_method_update_translation(
@@ -2839,7 +2818,6 @@ MENU_ITEM_TRANSLATE = """
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_menu_item_update_translation(
@@ -2898,7 +2876,6 @@ def test_menu_item_create_translation_by_translatable_content_id(
     assert data["menuItem"]["translation"]["language"]["code"] == "PL"
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_shop_create_translation(
@@ -2971,7 +2948,6 @@ SHOP_SETTINGS_TRANSLATE_MUTATION = """
 """
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_shop_update_translation(
@@ -3013,7 +2989,6 @@ def test_shop_update_translation(
     )
 
 
-@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_shop_translation_validates_values_lengths(
     mocked_webhook_trigger,

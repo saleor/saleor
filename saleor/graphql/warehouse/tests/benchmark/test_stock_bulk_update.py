@@ -70,6 +70,7 @@ def test_stocks_bulk_update_queries_count(
         }
     ]
 
+    staff_api_client.ensure_access_token()
     # test number of queries when single object is updated
     with django_assert_num_queries(11):
         staff_api_client.user.user_permissions.add(permission_manage_products)

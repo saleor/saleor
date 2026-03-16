@@ -2,7 +2,6 @@ from unittest import mock
 from urllib.parse import urlencode
 
 import pytest
-from freezegun import freeze_time
 
 from ...core.notify import NotifyEventType, UserNotifyEvent
 from ...core.tests.utils import get_site_context_payload
@@ -27,7 +26,6 @@ def test_get_default_user_payload(customer_user):
     }
 
 
-@freeze_time("2018-05-31 12:00:01")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_request_change(
     mocked_notify, site_settings, customer_user, channel_PLN
