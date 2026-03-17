@@ -81,7 +81,7 @@ class ProductMediaCreate(BaseMutation):
         )
 
         media = None
-        if image := input.get("image"):
+        if image:
             input["image"] = info.context.FILES.get(image)
             image_data = clean_image_file(input, "image", ProductErrorCode)
             media = product.media.create(
