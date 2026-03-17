@@ -110,6 +110,16 @@ class ProductMediaCreate(BaseMutation):
             only_type=Product,
             qs=models.Product.objects.all(),
         )
+        """get_node_or_error can actually return None, so until it's fixed, we need to double check"""
+        if product is None:
+            raise ValidationError(
+                {
+                    "product": ValidationError(
+                        "Product ID is required.",
+                        code=ProductErrorCode.REQUIRED.value,
+                    )
+                }
+            )
 
         # Replace null alt value with an empty string to satisfy DB constraints
         alt = input.get("alt") or ""
