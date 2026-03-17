@@ -15,6 +15,7 @@ class BaseField(graphene.Field):
     description: str | None
     doc_category: str | None
     webhook_events_info: list[WebhookEventInfo] | None
+    monitor_usage: bool
 
     def __init__(self, *args, **kwargs):
         auto_webhook_events_info_message = kwargs.pop(
