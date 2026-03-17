@@ -686,6 +686,13 @@ type Query {
     """Where filtering options for transactions."""
     where: TransactionWhereInput
 
+    """
+    Sort transactions.
+    
+    Added in Saleor 3.23.
+    """
+    sortBy: TransactionSortingInput
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -15566,6 +15573,30 @@ input TransactionWhereInput @doc(category: "Payments") {
 
   """A list of conditions of which at least one must be met."""
   OR: [TransactionWhereInput!]
+}
+
+input TransactionSortingInput @doc(category: "Payments") {
+  """Specifies the direction in which to sort transactions."""
+  direction: OrderDirection!
+
+  """Sort transactions by the selected field."""
+  field: TransactionSortField!
+}
+
+enum TransactionSortField @doc(category: "Payments") {
+  """
+  Sort transactions by creation date. 
+  
+  Added in Saleor 3.23.
+  """
+  CREATED_AT
+
+  """
+  Sort transactions by modification date. 
+  
+  Added in Saleor 3.23.
+  """
+  MODIFIED_AT
 }
 
 type PageCountableConnection @doc(category: "Pages") {
