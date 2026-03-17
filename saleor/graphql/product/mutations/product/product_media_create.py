@@ -1,15 +1,6 @@
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from .....core.exceptions import UnsupportedMediaProviderException
-from .....core.http_client import HTTPClient
-from .....core.utils.validators import (
-    get_mime_type,
-    get_oembed_data,
-    is_image_mimetype,
-    is_valid_image_content_type,
-)
 from .....permission.enums import ProductPermissions
 from .....product import ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
@@ -22,7 +13,7 @@ from ....core.types import BaseInputObjectType, ProductError, Upload
 from ....core.validators.file import clean_image_file
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
-from ...utils import validate_media_input
+from ...utils import probe_media_url, validate_media_input
 
 
 class ProductMediaCreateInput(BaseInputObjectType):
@@ -100,48 +91,20 @@ class ProductMediaCreate(BaseMutation):
             # Remote URLs can point to the images or oembed data.
             # In case of images, the image is fetched asynchronously by a task.
             # Otherwise we keep only URL to remote media.
-            with HTTPClient.send_request(
-                "GET",
-                media_url,
-                stream=True,
-                allow_redirects=False,
-                timeout=settings.COMMON_REQUESTS_TIMEOUT,
-            ) as image_data:
-                mime_type = get_mime_type(image_data.headers.get("content-type"))
-                if is_image_mimetype(mime_type):
-                    if not is_valid_image_content_type(mime_type):
-                        raise ValidationError(
-                            {
-                                "media_url": ValidationError(
-                                    "Invalid file type.",
-                                    code=ProductErrorCode.INVALID.value,
-                                )
-                            }
-                        )
-                    media = product.media.create(
-                        external_url=media_url,
-                        alt=alt,
-                        type=ProductMediaTypes.IMAGE,
-                    )
-                    fetch_product_media_image_task.delay(media.pk)
-            if media is None:
-                try:
-                    oembed_data, media_type = get_oembed_data(
-                        media_url,
-                    )
-                except UnsupportedMediaProviderException as exc:
-                    raise ValidationError(
-                        {
-                            "media_url": ValidationError(
-                                exc.message,
-                                code=ProductErrorCode.UNSUPPORTED_MEDIA_PROVIDER.value,
-                            )
-                        }
-                    ) from exc
+            probe_result = probe_media_url(media_url, ProductErrorCode)
+            if probe_result.is_image:
+                media = product.media.create(
+                    external_url=media_url,
+                    alt=alt,
+                    type=ProductMediaTypes.IMAGE,
+                )
+                fetch_product_media_image_task.delay(media.pk)
+            else:
+                oembed_data = probe_result.oembed_data
                 media = product.media.create(
                     external_url=oembed_data["url"],
                     alt=oembed_data.get("title", alt),
-                    type=media_type,
+                    type=probe_result.media_type,
                     oembed_data=oembed_data,
                 )
         manager = get_plugin_manager_promise(info.context).get()
