@@ -260,6 +260,7 @@ class TransactionEvent(models.Model):
         ordering = ("pk",)
         indexes = [
             BTreeIndex(fields=["created_at"], name="transactionevent_created_at_idx"),
+            BTreeIndex(fields=["type"], name="transactionevent_type_idx"),
         ]
         constraints = [
             models.UniqueConstraint(

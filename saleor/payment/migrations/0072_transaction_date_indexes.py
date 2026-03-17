@@ -27,4 +27,10 @@ class Migration(migrations.Migration):
                 fields=["created_at"], name="transactionevent_created_at_idx"
             ),
         ),
+        AddIndexConcurrently(
+            model_name="transactionevent",
+            index=django.contrib.postgres.indexes.BTreeIndex(
+                fields=["type"], name="transactionevent_type_idx"
+            ),
+        ),
     ]
