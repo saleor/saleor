@@ -87,17 +87,6 @@ def probe_media_url(media_url: str, error_code_enum) -> MediaUrlProbeResult:
             timeout=settings.COMMON_REQUESTS_TIMEOUT,
         ) as response:
             mime_type = get_mime_type(response.headers.get("content-type"))
-            if is_image_mimetype(mime_type):
-                if not is_valid_image_content_type(mime_type):
-                    raise ValidationError(
-                        {
-                            "media_url": ValidationError(
-                                "Invalid file type.",
-                                code=error_code_enum.INVALID.value,
-                            )
-                        }
-                    )
-                return MediaUrlProbeResult(is_image=True)
     except requests.exceptions.RequestException as exc:
         raise ValidationError(
             {
@@ -107,6 +96,18 @@ def probe_media_url(media_url: str, error_code_enum) -> MediaUrlProbeResult:
                 )
             }
         ) from exc
+
+    if is_image_mimetype(mime_type):
+        if not is_valid_image_content_type(mime_type):
+            raise ValidationError(
+                {
+                    "media_url": ValidationError(
+                        "Invalid file type.",
+                        code=error_code_enum.INVALID.value,
+                    )
+                }
+            )
+        return MediaUrlProbeResult(is_image=True)
 
     try:
         oembed_data, media_type = get_oembed_data(media_url)
