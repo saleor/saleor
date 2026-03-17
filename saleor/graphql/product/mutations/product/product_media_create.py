@@ -87,7 +87,7 @@ class ProductMediaCreate(BaseMutation):
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
-        if media_url:
+        elif media_url:
             # Remote URLs can point to the images or oembed data.
             # In case of images, the image is fetched asynchronously by a task.
             # Otherwise we keep only URL to remote media.

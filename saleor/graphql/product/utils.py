@@ -37,30 +37,36 @@ logger = logging.getLogger(__name__)
 ALT_CHAR_LIMIT = 250
 
 
+class MediaValidationError(NamedTuple):
+    message: str
+    code: str
+    field: str
+
+
 def validate_media_input(
     image, media_url, alt, error_code_enum
-) -> tuple[str, str, str] | None:
+) -> MediaValidationError | None:
     """Validate media input fields.
 
-    Returns (error_message, error_code_value, field) if validation fails, None otherwise.
+    Returns a MediaValidationError if validation fails, None otherwise.
     """
     if not image and not media_url:
-        return (
-            "Image or external URL is required.",
-            error_code_enum.REQUIRED.value,
-            "",
+        return MediaValidationError(
+            message="Image or external URL is required.",
+            code=error_code_enum.REQUIRED.value,
+            field="",
         )
     if image and media_url:
-        return (
-            "Either image or external URL is required.",
-            error_code_enum.DUPLICATED_INPUT_ITEM.value,
-            "",
+        return MediaValidationError(
+            message="Either image or external URL is required.",
+            code=error_code_enum.DUPLICATED_INPUT_ITEM.value,
+            field="",
         )
     if alt and len(alt) > ALT_CHAR_LIMIT:
-        return (
-            f"Alt field exceeds the character limit of {ALT_CHAR_LIMIT}.",
-            error_code_enum.INVALID.value,
-            "alt",
+        return MediaValidationError(
+            message=f"Alt field exceeds the character limit of {ALT_CHAR_LIMIT}.",
+            code=error_code_enum.INVALID.value,
+            field="alt",
         )
     return None
 
