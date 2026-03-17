@@ -32,7 +32,7 @@ def test_charge_creates_used_in_order_event(
     )
 
     # when
-    charge_gift_card_transactions(order)
+    charge_gift_card_transactions(order, user=order.user, app=None)
 
     # then
     gift_card.refresh_from_db()
@@ -52,11 +52,13 @@ def test_charge_creates_used_in_order_event(
     assert (
         Decimal(event.parameters["balance"]["old_current_balance"]) == initial_balance
     )
+    assert event.user == order.user
+    assert event.app is None
 
 
 @pytest.mark.django_db
 def test_charge_does_not_create_event_on_insufficient_funds(
-    order, gift_card_created_by_staff, transaction_item_generator
+    order, gift_card_created_by_staff, transaction_item_generator, app
 ):
     # given
     gift_card = gift_card_created_by_staff
@@ -82,7 +84,7 @@ def test_charge_does_not_create_event_on_insufficient_funds(
 
 @pytest.mark.django_db
 def test_refund_creates_refunded_in_order_event(
-    order, gift_card_created_by_staff, transaction_item_generator
+    order, gift_card_created_by_staff, transaction_item_generator, app
 ):
     # given
     charged_amount = Decimal("5.00")
@@ -109,7 +111,7 @@ def test_refund_creates_refunded_in_order_event(
     )
 
     # when
-    refund_gift_card_transaction(transaction, request_event)
+    refund_gift_card_transaction(transaction, request_event, user=None, app=app)
 
     # then
     gift_card.refresh_from_db()
@@ -126,3 +128,5 @@ def test_refund_creates_refunded_in_order_event(
     assert Decimal(event.parameters["balance"]["old_current_balance"]) == (
         balance_before_refund
     )
+    assert event.user is None
+    assert event.app == app

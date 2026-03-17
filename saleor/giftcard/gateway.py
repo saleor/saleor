@@ -324,8 +324,8 @@ def charge_gift_card_transactions(
                     gift_cards_used_in_order_event(
                         balance_data=[(gift_card, previous_balance)],
                         order=order,
-                        user=None,
-                        app=None,
+                        user=user,
+                        app=app,
                     )
 
                     response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
