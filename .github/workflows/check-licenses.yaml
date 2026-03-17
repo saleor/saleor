@@ -18,6 +18,8 @@ on:
       - "**/pnpm-lock.yaml"
       - "**/package-lock.json"
 
+permissions: {}
+
 jobs:
   default:
     permissions:
