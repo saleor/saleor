@@ -99,7 +99,7 @@ class ProductMediaCreate(BaseMutation):
                     type=ProductMediaTypes.IMAGE,
                 )
                 fetch_product_media_image_task.delay(media.pk)
-            elif probe_result.oembed_data and probe_result.media_type:
+            else:
                 oembed_data = probe_result.oembed_data
                 media = product.media.create(
                     external_url=oembed_data["url"],

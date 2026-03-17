@@ -67,8 +67,8 @@ class MediaUrlProbeResult:
     """Result of probing a media URL."""
 
     is_image: bool
-    oembed_data: dict | None = None
-    media_type: str | None = None
+    oembed_data: dict
+    media_type: str
 
 
 def probe_media_url(media_url: str, error_code_enum) -> MediaUrlProbeResult:
@@ -107,7 +107,7 @@ def probe_media_url(media_url: str, error_code_enum) -> MediaUrlProbeResult:
                     )
                 }
             )
-        return MediaUrlProbeResult(is_image=True)
+        return MediaUrlProbeResult(is_image=True, oembed_data={}, media_type="")
 
     try:
         oembed_data, media_type = get_oembed_data(media_url)
