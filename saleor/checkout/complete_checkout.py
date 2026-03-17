@@ -431,13 +431,10 @@ def _create_line_for_order(
         # The sale_id will be set only for the catalogue discount if exists.
         line.sale_id = _get_sale_id(line_discounts)
 
-    is_digital = line.is_digital
     line_info = OrderLineInfo(
         line=line,
         quantity=quantity,
-        is_digital=is_digital,
         variant=variant,
-        digital_content=variant.digital_content if is_digital and variant else None,
         warehouse_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         line_discounts=line_discounts,
     )

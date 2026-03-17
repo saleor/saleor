@@ -48,7 +48,11 @@ class ProductTypeInput(BaseInputObjectType):
         description="Determines if shipping is required for products of this variant."
     )
     is_digital = graphene.Boolean(
-        description="Determines if products are digital.", required=False
+        description=(
+            "Determines if products are digital - doesn't have any effect, "
+            "it's present for backward-compatibility."
+        ),
+        required=False,
     )
     weight = WeightScalar(description="Weight of the ProductType items.")
     tax_code = graphene.String(

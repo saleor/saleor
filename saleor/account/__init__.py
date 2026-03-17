@@ -14,7 +14,6 @@ class CustomerEvents:
     # Order related events
     PLACED_ORDER = "placed_order"  # created an order
     NOTE_ADDED_TO_ORDER = "note_added_to_order"  # added a note to one of their orders
-    DIGITAL_LINK_DOWNLOADED = "digital_link_downloaded"  # downloaded a digital good
 
     # Staff actions over customers events
     CUSTOMER_DELETED = "customer_deleted"  # staff user deleted a customer
@@ -36,7 +35,6 @@ class CustomerEvents:
         (EMAIL_CHANGED, "The account email address was changed"),
         (PLACED_ORDER, "An order was placed"),
         (NOTE_ADDED_TO_ORDER, "A note was added"),
-        (DIGITAL_LINK_DOWNLOADED, "A digital good was downloaded"),
         (CUSTOMER_DELETED, "A customer was deleted"),
         (NAME_ASSIGNED, "A customer's name was edited"),
         (EMAIL_ASSIGNED, "A customer's email address was edited"),

@@ -1,6 +1,6 @@
 import pytest
 
-from ...product.utils.preparing_product import prepare_digital_product
+from ...product.utils.preparing_product import prepare_product
 from ...shop.utils.preparing_shop import prepare_shop
 from ...taxes.utils import update_country_tax_rates
 from ...utils import assign_permissions
@@ -14,7 +14,7 @@ from ..utils import (
 
 
 @pytest.mark.e2e
-def test_digital_checkout_calculate_simple_tax_based_on_billing_country_CORE_2007(
+def test_no_shipping_checkout_calculate_simple_tax_based_on_billing_country_CORE_2007(
     e2e_staff_api_client,
     e2e_not_logged_api_client,
     shop_permissions,
@@ -77,8 +77,12 @@ def test_digital_checkout_calculate_simple_tax_based_on_billing_country_CORE_200
     )
 
     variant_price = 88.89
-    _product_id, product_variant_id, product_variant_price = prepare_digital_product(
-        e2e_staff_api_client, channel_id, warehouse_id, variant_price
+    _product_id, product_variant_id, product_variant_price = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id=warehouse_id,
+        channel_id=channel_id,
+        variant_price=variant_price,
+        is_shipping_required=False,
     )
     product_variant_price = float(product_variant_price)
 

@@ -654,25 +654,19 @@ def test_get_variant_with_sorted_attribute_values(
     assert assigned_values[2]["slug"] == expected_third_product.slug
 
 
-@pytest.mark.parametrize(
-    ("field", "is_nested"),
-    [("digitalContent", True), ("quantityOrdered", False)],
-)
-def test_variant_restricted_fields_permissions(
+def test_variant_quantity_ordered_field_is_restricted_with_permissions(
     staff_api_client,
     permission_manage_products,
     permission_manage_orders,
     product,
-    field,
-    is_nested,
     channel_USD,
 ):
-    query = f"""
-    query ProductVariant($id: ID!, $channel: String) {{
-        productVariant(id: $id, channel: $channel) {{
-            {field if not is_nested else f"{field} {{ __typename }}"}
-        }}
-    }}
+    query = """
+    query ProductVariant($id: ID!, $channel: String) {
+        productVariant(id: $id, channel: $channel) {
+            quantityOrdered
+        }
+    }
     """
     variant = product.variants.first()
     variables = {
@@ -682,31 +676,7 @@ def test_variant_restricted_fields_permissions(
     permissions = [permission_manage_orders, permission_manage_products]
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
-    assert field in content["data"]["productVariant"]
-
-
-def test_variant_digital_content(
-    staff_api_client, permission_manage_products, digital_content, channel_USD
-):
-    query = """
-    query Margin($id: ID!, $channel: String) {
-        productVariant(id: $id, channel: $channel) {
-            digitalContent{
-                id
-            }
-        }
-    }
-    """
-    variant = digital_content.product_variant
-    variables = {
-        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "channel": channel_USD.slug,
-    }
-    permissions = [permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-    assert "digitalContent" in content["data"]["productVariant"]
-    assert "id" in content["data"]["productVariant"]["digitalContent"]
+    assert "quantityOrdered" in content["data"]["productVariant"]
 
 
 def test_product_variant_without_price_by_sku_as_user(

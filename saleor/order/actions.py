@@ -45,7 +45,6 @@ from . import (
     OrderOrigin,
     OrderStatus,
     events,
-    utils,
 )
 from .events import (
     draft_order_created_from_replace_event,
@@ -65,7 +64,6 @@ from .notifications import (
 )
 from .utils import (
     clean_order_line_quantities,
-    order_line_needs_automatic_fulfillment,
     restock_fulfillment_lines,
     update_order_authorize_data,
     update_order_charge_data,
@@ -396,8 +394,6 @@ def handle_fully_paid_order(
     events.order_fully_paid_event(order=order, user=user, app=app, gateway=gateway)
     if order_info.customer_email:
         send_payment_confirmation(order_info, manager)
-        if utils.order_needs_automatic_fulfillment(order_info.lines_data):
-            automatically_fulfill_digital_lines(order_info, manager, user, app)
 
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
@@ -1072,70 +1068,6 @@ def fulfill_order_lines(
         _increase_order_line_quantity(order_lines_info)
 
 
-def automatically_fulfill_digital_lines(
-    order_info: "OrderInfo",
-    manager: "PluginsManager",
-    user: User | None = None,
-    app: App | None = None,
-):
-    """Fulfill all digital lines which have enabled automatic fulfillment setting.
-
-    Send confirmation email afterward.
-    """
-    order = order_info.order
-    digital_lines_data = [
-        line_data
-        for line_data in order_info.lines_data
-        if not line_data.line.is_shipping_required and line_data.digital_content
-    ]
-    # transaction ensures fulfillment consistency
-    with traced_atomic_transaction():
-        if not digital_lines_data:
-            return
-        fulfillment, created = Fulfillment.objects.get_or_create(order=order)
-
-        fulfillments = []
-        lines_info = []
-        for line_data in digital_lines_data:
-            if not order_line_needs_automatic_fulfillment(line_data):
-                continue
-            digital_content = line_data.digital_content
-            line = line_data.line
-            if digital_content:
-                digital_content.urls.create(line=line)
-            quantity = line_data.quantity
-            fulfillments.append(
-                FulfillmentLine(
-                    fulfillment=fulfillment, order_line=line, quantity=quantity
-                )
-            )
-            allocation = line.allocations.first()
-            if allocation:
-                line_data.warehouse_pk = allocation.stock.warehouse.pk
-            else:
-                # allocation is not created when track inventory for given product
-                # is turned off so it doesn't matter which warehouse we'll use
-                if line_data.variant:
-                    stock = line_data.variant.stocks.first()
-                    if stock:
-                        line_data.warehouse_pk = stock.warehouse.pk
-
-            lines_info.append(line_data)
-
-        FulfillmentLine.objects.bulk_create(fulfillments)
-        fulfill_order_lines(lines_info, manager)
-        events.fulfillment_fulfilled_items_event(
-            order=order, user=user, app=app, fulfillment_lines=fulfillments, auto=True
-        )
-
-        send_fulfillment_confirmation_to_customer(
-            order, fulfillment, user=order.user, app=None, manager=manager
-        )
-        if created:
-            manager.fulfillment_created(fulfillment)
-        update_order_status(order)
-
-
 def _create_fulfillment_lines(
     fulfillment: Fulfillment,
     warehouse_pk: UUID,
@@ -1213,18 +1145,14 @@ def _create_fulfillment_lines(
                 insufficient_stocks.append(error_data)
                 continue
 
-            is_digital = order_line.is_digital
             lines_info.append(
                 OrderLineInfo(
                     line=order_line,
-                    is_digital=is_digital,
                     quantity=quantity,
                     variant=variant,
                     warehouse_pk=warehouse_pk,
                 )
             )
-            if variant and is_digital:
-                variant.digital_content.urls.create(line=order_line)
             fulfillment_line = FulfillmentLine(
                 order_line=order_line,
                 fulfillment=fulfillment,

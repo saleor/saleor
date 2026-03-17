@@ -933,12 +933,12 @@ def test_checkout_shipping_address_update_with_disabled_fields_normalization(
     assert shipping_address.street_address_1 == address_data["streetAddress1"]
 
 
-def test_checkout_update_shipping_address_with_digital(
-    api_client, checkout_with_digital_item, graphql_address_data
+def test_checkout_update_shipping_address_on_checkout_without_shipping_required(
+    api_client, checkout_without_shipping_required, graphql_address_data
 ):
-    """Test updating the shipping address of a digital order throws an error."""
+    """Test updating the shipping address of an order w/o shipping throws an error."""
 
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
     variables = {
         "id": to_global_id_or_none(checkout),
         "shippingAddress": graphql_address_data,

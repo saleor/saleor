@@ -1682,21 +1682,6 @@ def test_complete_checkout_with_single_line(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_complete_checkout_with_digital_line(
-    api_client, checkout_with_digital_line_with_charged_payment, count_queries
-):
-    query = COMPLETE_CHECKOUT_MUTATION
-
-    variables = {
-        "id": to_global_id_or_none(checkout_with_digital_line_with_charged_payment),
-    }
-
-    response = get_graphql_content(api_client.post_graphql(query, variables))
-    assert not response["data"]["checkoutComplete"]["errors"]
-
-
-@pytest.mark.django_db
-@pytest.mark.count_queries(autouse=False)
 def test_customer_complete_checkout(
     api_client, checkout_with_charged_payment, customer_user, count_queries
 ):

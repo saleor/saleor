@@ -20,8 +20,6 @@ from ...payment import (
 )
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
-from ...product.models import DigitalContent
-from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.transport.asynchronous.transport import generate_deferred_payloads
@@ -35,7 +33,6 @@ from .. import (
 )
 from ..actions import (
     WEBHOOK_EVENTS_FOR_FULLY_PAID,
-    automatically_fulfill_digital_lines,
     call_order_event,
     call_order_events,
     cancel_fulfillment,
@@ -56,60 +53,8 @@ from ..actions import (
     order_voided,
 )
 from ..fetch import OrderInfo
-from ..models import Fulfillment, OrderLine
-from ..notifications import (
-    send_fulfillment_confirmation_to_customer,
-    send_payment_confirmation,
-)
+from ..models import OrderLine
 from ..utils import updates_amounts_for_order
-
-
-@patch(
-    "saleor.order.actions.send_fulfillment_confirmation_to_customer",
-    wraps=send_fulfillment_confirmation_to_customer,
-)
-@patch(
-    "saleor.order.actions.send_payment_confirmation", wraps=send_payment_confirmation
-)
-@patch("saleor.plugins.manager.PluginsManager.fulfillment_created")
-def test_handle_fully_paid_order_digital_lines(
-    mock_fulfillment_created,
-    mock_send_payment_confirmation,
-    send_fulfillment_confirmation_to_customer,
-    order_with_digital_line,
-):
-    # given
-    order = order_with_digital_line
-    order.payments.add(Payment.objects.create())
-    redirect_url = "http://localhost.pl"
-    order = order_with_digital_line
-    order.redirect_url = redirect_url
-    order.save()
-    order_info = fetch_order_info(order)
-    manager = get_plugins_manager(allow_replica=False)
-
-    webhook_event_map = get_webhooks_for_multiple_events(WEBHOOK_EVENTS_FOR_FULLY_PAID)
-
-    # when
-    handle_fully_paid_order(manager, order_info, webhook_event_map=webhook_event_map)
-
-    # then
-    fulfillment = order.fulfillments.first()
-    assert set(order.events.values_list("type", flat=True)) == {
-        OrderEvents.ORDER_FULLY_PAID,
-        OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
-    }
-    fulfilled_event = order.events.get(type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS)
-    assert fulfilled_event.parameters["auto"] is True
-
-    mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
-    send_fulfillment_confirmation_to_customer.assert_called_once_with(
-        order, fulfillment, user=order.user, app=None, manager=manager
-    )
-
-    order.refresh_from_db()
-    assert order.status == OrderStatus.FULFILLED
-    mock_fulfillment_created.assert_called_once_with(fulfillment)
 
 
 @patch("saleor.order.actions.send_payment_confirmation")
@@ -1551,111 +1496,6 @@ def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
-
-
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
-@patch("saleor.order.utils.get_default_digital_content_settings")
-@patch("saleor.plugins.manager.PluginsManager.fulfillment_created")
-def test_fulfill_digital_lines(
-    mock_fulfillment_created,
-    mock_digital_settings,
-    mock_email_fulfillment,
-    order_with_lines,
-    media_root,
-):
-    mock_digital_settings.return_value = {"automatic_fulfillment": True}
-    line = order_with_lines.lines.all()[0]
-
-    image_file, image_name = create_image()
-    variant = line.variant
-
-    product_type = variant.product.product_type
-    product_type.is_digital = True
-    product_type.is_shipping_required = False
-    product_type.save(update_fields=["is_digital", "is_shipping_required"])
-
-    digital_content = DigitalContent.objects.create(
-        content_file=image_file, product_variant=variant, use_default_settings=True
-    )
-
-    line.variant.digital_content = digital_content
-    line.is_shipping_required = False
-    line.save()
-
-    order_with_lines.refresh_from_db()
-    order_info = fetch_order_info(order_with_lines)
-    manager = get_plugins_manager(allow_replica=False)
-
-    automatically_fulfill_digital_lines(order_info, manager)
-
-    line.refresh_from_db()
-    fulfillment = Fulfillment.objects.get(order=order_with_lines)
-    fulfillment_lines = fulfillment.lines.all()
-
-    assert fulfillment_lines.count() == 1
-    assert line.digital_content_url
-    assert mock_email_fulfillment.called
-    mock_fulfillment_created.assert_called_once_with(fulfillment)
-
-    event = order_with_lines.events.filter(
-        type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS
-    ).first()
-    assert event
-    assert set(event.parameters["fulfilled_items"]) == {
-        line.pk for line in fulfillment_lines
-    }
-
-
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
-@patch("saleor.order.utils.get_default_digital_content_settings")
-@patch("saleor.plugins.manager.PluginsManager.fulfillment_created")
-def test_fulfill_digital_lines_no_allocation(
-    mock_fulfillment_created,
-    mock_digital_settings,
-    mock_email_fulfillment,
-    order_with_lines,
-    media_root,
-):
-    # given
-    mock_digital_settings.return_value = {"automatic_fulfillment": True}
-    line = order_with_lines.lines.all()[0]
-
-    image_file, image_name = create_image()
-    variant = line.variant
-
-    product_type = variant.product.product_type
-    product_type.is_digital = True
-    product_type.is_shipping_required = False
-    product_type.save(update_fields=["is_digital", "is_shipping_required"])
-
-    digital_content = DigitalContent.objects.create(
-        content_file=image_file, product_variant=variant, use_default_settings=True
-    )
-
-    variant.digital_content = digital_content
-    variant.track_inventory = False
-    variant.save()
-
-    line.is_shipping_required = False
-    line.allocations.all().delete()
-    line.save()
-
-    order_with_lines.refresh_from_db()
-    order_info = fetch_order_info(order_with_lines)
-    manager = get_plugins_manager(allow_replica=False)
-
-    # when
-    automatically_fulfill_digital_lines(order_info, manager)
-
-    # then
-    line.refresh_from_db()
-    fulfillment = Fulfillment.objects.get(order=order_with_lines)
-    fulfillment_lines = fulfillment.lines.all()
-
-    assert fulfillment_lines.count() == 1
-    assert line.digital_content_url
-    assert mock_email_fulfillment.called
-    mock_fulfillment_created.assert_called_once_with(fulfillment)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")

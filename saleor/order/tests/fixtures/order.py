@@ -1076,18 +1076,9 @@ def fulfilled_order_with_all_cancelled_fulfillments(
 
 
 @pytest.fixture
-def order_with_digital_line(order, digital_content, stock, site_settings):
-    site_settings.automatic_fulfillment_digital_products = True
-    site_settings.save()
-
-    variant = stock.product_variant
-    variant.digital_content = digital_content
-    variant.digital_content.save()
-
-    product_type = variant.product.product_type
-    product_type.is_shipping_required = False
-    product_type.is_digital = True
-    product_type.save()
+def order_without_shipping_required(order, product_without_shipping):
+    variant = product_without_shipping.variants.get()
+    stock = variant.stocks.get()
 
     quantity = 3
     product = variant.product

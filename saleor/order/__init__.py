@@ -217,7 +217,6 @@ class OrderEventsEmails:
     ORDER_CANCEL = "order_cancel"
     ORDER_REFUND = "order_refund"
     FULFILLMENT = "fulfillment_confirmation"
-    DIGITAL_LINKS = "digital_links"
 
     CHOICES = [
         (PAYMENT, "The payment confirmation email was sent"),
@@ -228,7 +227,6 @@ class OrderEventsEmails:
         (ORDER_CANCEL, "The order cancel confirmation email was sent"),
         (ORDER_REFUND, "The order refund confirmation email was sent"),
         (FULFILLMENT, "The fulfillment confirmation email was sent"),
-        (DIGITAL_LINKS, "The email containing the digital links was sent"),
     ]
 
 

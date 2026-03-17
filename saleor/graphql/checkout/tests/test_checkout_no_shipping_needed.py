@@ -1,4 +1,4 @@
-"""Test the API's checkout process over full digital orders."""
+"""Test the API's checkout process over fullly non-shippable orders."""
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....plugins.manager import get_plugins_manager
@@ -8,9 +8,11 @@ from ..mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 
 def test_checkout_has_no_available_shipping_methods(
-    api_client, checkout_with_digital_item, address, shipping_zone
+    api_client,
+    checkout_without_shipping_required,
+    address,
 ):
-    """Test no shipping method are available on digital orders."""
+    """Test no shipping method are available on orders without shippable products."""
 
     query = """
         query getCheckout($id: ID!) {
@@ -25,7 +27,7 @@ def test_checkout_has_no_available_shipping_methods(
         }
     """
 
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
 
     # Put a shipping address, to ensure it is still handled properly
     checkout.shipping_address = address
@@ -39,10 +41,10 @@ def test_checkout_has_no_available_shipping_methods(
     assert len(data["availableShippingMethods"]) == 0
 
 
-def test_do_not_remove_shipping_method_if_only_digital_in_checkout(
-    checkout_with_digital_item, address, checkout_delivery
+def test_do_not_remove_shipping_method_if_only_non_shippable_products_in_checkout(
+    checkout_without_shipping_required, address, checkout_delivery
 ):
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
     checkout.shipping_address = address
     checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save()

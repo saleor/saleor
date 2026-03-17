@@ -1826,16 +1826,19 @@ def test_order_from_checkout_own_reservation(
         reservation.refresh_from_db()
 
 
-def test_order_from_checkout_with_digital(
+def test_order_from_checkout_with_non_shippable_product(
     app_api_client,
     permission_handle_checkouts,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
     address,
     customer_user,
 ):
-    """Ensure it is possible to complete a digital checkout without shipping."""
+    """Ensure we can complete checkout with a shipping address.
 
-    checkout = checkout_with_digital_item
+    Should work even if product isn't shippable.
+    """
+
+    checkout = checkout_without_shipping_required
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     # Set a billing address
@@ -1860,15 +1863,15 @@ def test_order_from_checkout_with_digital(
     assert order.billing_address
 
 
-def test_order_from_checkout_with_digital_and_shipping_address(
+def test_order_from_checkout_with_non_shippable_product_and_shipping_address(
     app_api_client,
     permission_handle_checkouts,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
     address,
     customer_user,
 ):
-    """Ensure it is possible to complete a digital checkout without shipping."""
-    checkout = checkout_with_digital_item
+    """Ensure we can complete a non-shippable checkout without providing shipping."""
+    checkout = checkout_without_shipping_required
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     # Set a billing address
@@ -1896,15 +1899,15 @@ def test_order_from_checkout_with_digital_and_shipping_address(
     assert order.draft_save_shipping_address is None
 
 
-def test_order_from_checkout_with_digital_saving_addresses_off(
+def test_order_from_checkout_with_non_shippable_product_saving_addresses_off(
     app_api_client,
     permission_handle_checkouts,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
     address,
     customer_user,
 ):
     # given
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     # Set a billing address
