@@ -323,7 +323,7 @@ def test_retrieve_channel_listings(
 
     variables = {"channel": channel_USD.slug}
 
-    expected_db_queries = 17
+    expected_db_queries = 16
     with django_assert_num_queries(expected_db_queries):
         get_graphql_content(
             staff_api_client.post_graphql(
