@@ -1,0 +1,25 @@
+saleor/graphql/product/mutations/product/product_media_create.py
+  fae436ef1fadb02a 114-122
+saleor/graphql/product/tests/mutations/test_product_media_create.py
+  fae436ef1fadb02a 495-518
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "10282776a64e151653af18549d51e366de750b40",
+  "prompts": {
+    "fae436ef1fadb02a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "205f0da4-1651-4cbe-84ec-eabd8043a9c3",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 33,
+      "total_deletions": 0,
+      "accepted_lines": 33,
+      "overriden_lines": 0
+    }
+  }
+}
