@@ -54,7 +54,7 @@ from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
 from ..types import Product
-from ..utils import ALT_CHAR_LIMIT
+from ..utils import validate_media_input
 from .product_variant_bulk_create import (
     ProductVariantBulkCreate,
     ProductVariantBulkCreateInput,
@@ -441,40 +441,27 @@ class ProductBulkCreate(BaseMutation):
         for index, media_input in enumerate(media_inputs):
             image = media_input.get("image")
             media_url = media_input.get("media_url")
-            # Replace null alt value with an empty string to satisfy DB constraints
             alt = media_input.get("alt") or ""
+
+            if error := validate_media_input(
+                image, media_url, alt, ProductBulkCreateErrorCode
+            ):
+                error_message, error_code = error
+                path = (
+                    f"media.{index}.alt"
+                    if error_code == ProductBulkCreateErrorCode.INVALID.value
+                    else f"media.{index}"
+                )
+                index_error_map[product_index].append(
+                    ProductBulkCreateError(
+                        path=path,
+                        message=error_message,
+                        code=error_code,
+                    )
+                )
+                continue
+
             media_input["alt"] = alt
-
-            if not image and not media_url:
-                index_error_map[product_index].append(
-                    ProductBulkCreateError(
-                        path=f"media.{index}",
-                        message="Image or external URL is required.",
-                        code=ProductBulkCreateErrorCode.REQUIRED.value,
-                    )
-                )
-                continue
-
-            if image and media_url:
-                index_error_map[product_index].append(
-                    ProductBulkCreateError(
-                        path=f"media.{index}",
-                        message="Either image or external URL is required.",
-                        code=ProductBulkCreateErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    )
-                )
-                continue
-
-            if alt and len(alt) > ALT_CHAR_LIMIT:
-                index_error_map[product_index].append(
-                    ProductBulkCreateError(
-                        path=f"media.{index}.alt",
-                        message=f"Alt field exceeds the character "
-                        f"limit of {ALT_CHAR_LIMIT}.",
-                        code=ProductBulkCreateErrorCode.INVALID.value,
-                    )
-                )
-                continue
 
             if image:
                 media_input["image"] = info.context.FILES.get(image)

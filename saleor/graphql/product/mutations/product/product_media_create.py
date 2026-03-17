@@ -22,7 +22,7 @@ from ....core.types import BaseInputObjectType, ProductError, Upload
 from ....core.validators.file import clean_image_file
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
-from ...utils import ALT_CHAR_LIMIT
+from ...utils import validate_media_input
 
 
 class ProductMediaCreateInput(BaseInputObjectType):
@@ -63,45 +63,24 @@ class ProductMediaCreate(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def validate_input(cls, data):
-        image = data.get("image")
-        media_url = data.get("media_url")
-        alt = data.get("alt")
-
-        if not image and not media_url:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        "Image or external URL is required.",
-                        code=ProductErrorCode.REQUIRED.value,
-                    )
-                }
-            )
-        if image and media_url:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        "Either image or external URL is required.",
-                        code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    )
-                }
-            )
-
-        if alt and len(alt) > ALT_CHAR_LIMIT:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        f"Alt field exceeds the character limit of {ALT_CHAR_LIMIT}.",
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-
-    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, input
     ):
-        cls.validate_input(input)
+        image = input.get("image")
+        media_url = input.get("media_url")
+        alt = input.get("alt") or ""
+
+        if error := validate_media_input(image, media_url, alt, ProductErrorCode):
+            error_message, error_code = error
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        error_message,
+                        code=error_code,
+                    )
+                }
+            )
+
         product = cls.get_node_or_error(
             info,
             input["product"],
@@ -110,12 +89,9 @@ class ProductMediaCreate(BaseMutation):
             qs=models.Product.objects.all(),
         )
 
-        # Replace null alt value with an empty string to satisfy DB constraints
-        alt = input.get("alt") or ""
-        media_url = input.get("media_url")
         media = None
-        if img_data := input.get("image"):
-            input["image"] = info.context.FILES.get(img_data)
+        if image := input.get("image"):
+            input["image"] = info.context.FILES.get(image)
             image_data = clean_image_file(input, "image", ProductErrorCode)
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
