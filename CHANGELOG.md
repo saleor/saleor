@@ -47,6 +47,7 @@ All notable, unreleased changes to this project will be documented in this file.
    - `CheckoutProblemDeliveryMethodInvalid`: the selected delivery method is no longer valid (e.g., the shipping address no longer falls within it). This problem blocks `checkoutComplete` until a valid delivery method is assigned via `checkoutDeliveryMethodUpdate`.
 
    See the [upgrading guide](https://docs.saleor.io/upgrade-guides/3-22-to-3-23##explicit-delivery-options-calculation) to learn more.
+  - `checkoutDeliveryMethodUpdate` mutation now accepts `CheckoutDelivery` ID as `deliveryMethodId` (ID returned by `deliveryOptionsCalculate` mutation). Usage of `ShippingMethod` ID is deprecated in favor of `CheckoutDelivery` ID.
 
 
 

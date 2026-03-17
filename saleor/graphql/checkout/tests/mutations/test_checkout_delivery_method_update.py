@@ -1,10 +1,13 @@
+from datetime import timedelta
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, patch
+from uuid import uuid4
 
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 
 from .....account.models import Address
 from .....checkout.actions import call_checkout_info_event
@@ -32,6 +35,9 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
           shippingAddress {
             id
             firstName
+          }
+          delivery {
+            id
           }
           deliveryMethod {
             __typename
@@ -2069,3 +2075,132 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_none(
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
+
+
+MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_DELIVERY = """
+    mutation checkoutDeliveryMethodUpdate($id: ID, $deliveryMethodId: ID) {
+      checkoutDeliveryMethodUpdate(id: $id, deliveryMethodId: $deliveryMethodId) {
+        checkout {
+          id
+          delivery {
+            id
+          }
+        }
+        errors {
+          field
+          message
+          code
+        }
+      }
+    }
+"""
+
+
+@mock.patch(
+    "saleor.checkout.actions.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch(
+    "saleor.checkout.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_with_checkout_delivery_as_id(
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    checkout_with_delivery_method_for_external_shipping,
+    checkout_delivery,
+    api_client,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_external_shipping
+    checkout.delivery_methods_stale_at = timezone.now() + timedelta(minutes=5)
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(
+        update_fields=[
+            "save_billing_address",
+            "save_shipping_address",
+            "delivery_methods_stale_at",
+        ]
+    )
+    delivery = checkout_delivery(checkout)
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_DELIVERY,
+        {
+            "id": to_global_id_or_none(checkout),
+            "deliveryMethodId": to_global_id_or_none(delivery),
+        },
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+    assert data["checkout"]["delivery"]["id"] == to_global_id_or_none(delivery)
+
+    checkout.refresh_from_db()
+
+    assert checkout.collection_point_id is None
+    assert checkout.assigned_delivery.id == delivery.id
+
+    # Called as checkout has been changed by assigning new delivery
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()
+
+
+@mock.patch(
+    "saleor.checkout.actions.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch(
+    "saleor.checkout.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_with_invalid_checkout_delivery_as_id(
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    checkout_with_delivery_method_for_external_shipping,
+    api_client,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_external_shipping
+    checkout.delivery_methods_stale_at = timezone.now() + timedelta(minutes=5)
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(
+        update_fields=[
+            "save_billing_address",
+            "save_shipping_address",
+            "delivery_methods_stale_at",
+        ]
+    )
+
+    non_existing_id = uuid4()
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_DELIVERY_METHOD_WITH_ONLY_DELIVERY,
+        {
+            "id": to_global_id_or_none(checkout),
+            "deliveryMethodId": graphene.Node.to_global_id(
+                "CheckoutDelivery", non_existing_id
+            ),
+        },
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "deliveryMethodId"
+    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
+
+    checkout.refresh_from_db()
+
+    assert checkout.collection_point_id is None
+    assert checkout.assigned_delivery.id != non_existing_id
+
+    assert not mocked_invalidate_checkout.called
+    assert not mocked_call_checkout_info_event.called
