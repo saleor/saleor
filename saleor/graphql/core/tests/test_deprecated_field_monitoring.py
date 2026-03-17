@@ -12,7 +12,10 @@ from ...webhook.subscription_payload import (
 )
 from ...webhook.tests.test_subscription_payload import initialize_request
 
-ORDER_QUERY_WITH_DEPRECATED_TOKEN = """
+# These tests use `Order.token` as a representative deprecated field to verify field usage monitoring.
+# If `Order.token` is ever removed from the schema, replace it with another deprecated field.
+
+QUERY_WITH_DEPRECATED_FIELD = """
     query GetOrder($id: ID!) {
         order(id: $id) {
             token
@@ -20,7 +23,7 @@ ORDER_QUERY_WITH_DEPRECATED_TOKEN = """
     }
 """
 
-ORDER_QUERY_WITH_DEPRECATED_TOKEN_ALIASED = """
+QUERY_WITH_DEPRECATED_FIELD_ALIASED = """
     query GetOrder($id: ID!) {
         order(id: $id) {
             orderToken: token
@@ -28,7 +31,7 @@ ORDER_QUERY_WITH_DEPRECATED_TOKEN_ALIASED = """
     }
 """
 
-ORDER_QUERY_WITH_DEPRECATED_TOKEN_IN_FRAGMENT = """
+QUERY_WITH_DEPRECATED_FIELD_IN_FRAGMENT = """
     fragment OrderFields on Order {
         token
     }
@@ -40,7 +43,7 @@ ORDER_QUERY_WITH_DEPRECATED_TOKEN_IN_FRAGMENT = """
     }
 """
 
-ORDER_QUERY_WITHOUT_DEPRECATED_FIELD = """
+QUERY_WITHOUT_DEPRECATED_FIELD = """
     query GetOrder($id: ID!) {
         order(id: $id) {
             number
@@ -48,7 +51,7 @@ ORDER_QUERY_WITHOUT_DEPRECATED_FIELD = """
     }
 """
 
-ORDER_SUBSCRIPTION_QUERY_WITH_DEPRECATED_TOKEN = """
+SUBSCRIPTION_QUERY_WITH_DEPRECATED_FIELD = """
     subscription {
         event {
             ... on OrderUpdated {
@@ -60,7 +63,11 @@ ORDER_SUBSCRIPTION_QUERY_WITH_DEPRECATED_TOKEN = """
     }
 """
 
-SHIPPING_LIST_METHODS_SUBSCRIPTION_QUERY_WITH_MONITOR_USAGE = """
+# `ShippingListMethodsForCheckout.shippingMethods` is declared with
+# `monitor_usage=True` (not deprecated) and is used here to test the explicit
+# opt-in monitoring path. If the field is ever removed or its `monitor_usage`
+# flag is dropped, replace with another field that carries `monitor_usage=True`.
+SUBSCRIPTION_QUERY_WITH_MONITORED_FIELD = """
     subscription {
         event {
             ... on ShippingListMethodsForCheckout {
@@ -73,7 +80,7 @@ SHIPPING_LIST_METHODS_SUBSCRIPTION_QUERY_WITH_MONITOR_USAGE = """
     }
 """
 
-ORDER_SUBSCRIPTION_QUERY_WITHOUT_DEPRECATED_FIELD = """
+SUBSCRIPTION_QUERY_WITHOUT_DEPRECATED_FIELD = """
     subscription {
         event {
             ... on OrderUpdated {
@@ -89,9 +96,9 @@ ORDER_SUBSCRIPTION_QUERY_WITHOUT_DEPRECATED_FIELD = """
 @pytest.mark.parametrize(
     "query",
     [
-        ORDER_QUERY_WITH_DEPRECATED_TOKEN,
-        ORDER_QUERY_WITH_DEPRECATED_TOKEN_ALIASED,
-        ORDER_QUERY_WITH_DEPRECATED_TOKEN_IN_FRAGMENT,
+        QUERY_WITH_DEPRECATED_FIELD,
+        QUERY_WITH_DEPRECATED_FIELD_ALIASED,
+        QUERY_WITH_DEPRECATED_FIELD_IN_FRAGMENT,
     ],
     ids=["direct", "alias", "fragment"],
 )
@@ -122,9 +129,7 @@ def test_non_deprecated_field_query_does_not_trigger_monitoring(
     variables = {"id": order_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        ORDER_QUERY_WITHOUT_DEPRECATED_FIELD, variables
-    )
+    response = staff_api_client.post_graphql(QUERY_WITHOUT_DEPRECATED_FIELD, variables)
     get_graphql_content(response)
 
     # then
@@ -137,7 +142,7 @@ def test_deprecated_field_subscription_payload_triggers_monitoring(
 ):
     # given
     webhook = subscription_webhook(
-        ORDER_SUBSCRIPTION_QUERY_WITH_DEPRECATED_TOKEN,
+        SUBSCRIPTION_QUERY_WITH_DEPRECATED_FIELD,
         WebhookEventAsyncType.ORDER_UPDATED,
     )
     request = initialize_request(app=webhook.app)
@@ -160,7 +165,7 @@ def test_deprecated_field_subscription_promise_payload_triggers_monitoring(
 ):
     # given
     webhook = subscription_webhook(
-        ORDER_SUBSCRIPTION_QUERY_WITH_DEPRECATED_TOKEN,
+        SUBSCRIPTION_QUERY_WITH_DEPRECATED_FIELD,
         WebhookEventAsyncType.ORDER_UPDATED,
     )
     request = initialize_request(app=webhook.app)
@@ -184,7 +189,7 @@ def test_non_deprecated_field_subscription_payload_does_not_trigger_monitoring(
 ):
     # given
     webhook = subscription_webhook(
-        ORDER_SUBSCRIPTION_QUERY_WITHOUT_DEPRECATED_FIELD,
+        SUBSCRIPTION_QUERY_WITHOUT_DEPRECATED_FIELD,
         WebhookEventAsyncType.ORDER_UPDATED,
     )
     request = initialize_request(app=webhook.app)
@@ -213,7 +218,7 @@ def test_monitor_usage_field_subscription_payload_triggers_monitoring(
     checkout = checkout_with_shipping_required
     checkout.shipping_address = address
     webhook = subscription_webhook(
-        SHIPPING_LIST_METHODS_SUBSCRIPTION_QUERY_WITH_MONITOR_USAGE,
+        SUBSCRIPTION_QUERY_WITH_MONITORED_FIELD,
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
     )
     request = initialize_request(app=webhook.app)
