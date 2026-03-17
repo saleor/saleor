@@ -365,74 +365,278 @@ def test_transactions_query_filter_respects_app_permissions(
     assert len(transactions) == 0
 
 
-@pytest.mark.parametrize(
-    ("field", "date_filter", "expected"),
-    [
-        ("createdAt", "gte_and_lte", "RECENT"),
-        ("createdAt", "gte_only", "RECENT"),
-        ("createdAt", "lte_only", "OLD"),
-        ("modifiedAt", "gte_and_lte", "RECENT"),
-        ("modifiedAt", "gte_only", "RECENT"),
-        ("modifiedAt", "lte_only", "OLD"),
-    ],
-)
-def test_filter_by_date_range(
-    field,
-    date_filter,
-    expected,
+def test_filter_by_created_at_gte_and_lte(
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    transaction_item_generator,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_orders)
 
     now = timezone.now()
-    old_date = now - timedelta(days=30)
-    recent_date = now - timedelta(days=5)
-
-    db_field = "created_at" if field == "createdAt" else "modified_at"
-
-    transaction_old = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="OLD", currency="USD"
+    transactions = TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="OLD-1", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="OLD-2", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="RECENT-1", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="RECENT-2", currency="USD"
+            ),
+        ]
     )
-    transaction_recent = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="RECENT", currency="USD"
-    )
+    transactions[0].created_at = now - timedelta(days=30)
+    transactions[1].created_at = now - timedelta(days=25)
+    transactions[2].created_at = now - timedelta(days=5)
+    transactions[3].created_at = now - timedelta(days=3)
+    TransactionItem.objects.bulk_update(transactions, ["created_at"])
 
-    TransactionItem.objects.filter(pk=transaction_old.pk).update(**{db_field: old_date})
-    TransactionItem.objects.filter(pk=transaction_recent.pk).update(
-        **{db_field: recent_date}
-    )
-
-    if date_filter == "gte_and_lte":
-        range_input = {
-            "gte": (now - timedelta(days=10)).isoformat(),
-            "lte": now.isoformat(),
+    variables = {
+        "where": {
+            "createdAt": {
+                "gte": (now - timedelta(days=10)).isoformat(),
+                "lte": now.isoformat(),
+            }
         }
-    elif date_filter == "gte_only":
-        range_input = {"gte": (now - timedelta(days=10)).isoformat()}
-    else:
-        range_input = {"lte": (now - timedelta(days=20)).isoformat()}
-
-    variables = {"where": {field: range_input}}
+    }
 
     # when
     response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
 
     # then
     content = get_graphql_content(response)
-    transactions = content["data"]["transactions"]["edges"]
-    assert len(transactions) == 1
-    assert transactions[0]["node"]["pspReference"] == expected
+    result = content["data"]["transactions"]["edges"]
+    assert len(result) == 2
+    returned_psp_refs = {t["node"]["pspReference"] for t in result}
+    assert returned_psp_refs == {
+        transactions[2].psp_reference,
+        transactions[3].psp_reference,
+    }
+
+
+def test_filter_by_created_at_gte(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    now = timezone.now()
+    transactions = TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="OLD", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="RECENT-1", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="RECENT-2", currency="USD"
+            ),
+        ]
+    )
+    transactions[0].created_at = now - timedelta(days=30)
+    transactions[1].created_at = now - timedelta(days=5)
+    transactions[2].created_at = now - timedelta(days=2)
+    TransactionItem.objects.bulk_update(transactions, ["created_at"])
+
+    variables = {
+        "where": {"createdAt": {"gte": (now - timedelta(days=10)).isoformat()}}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    result = content["data"]["transactions"]["edges"]
+    assert len(result) == 2
+    returned_psp_refs = {t["node"]["pspReference"] for t in result}
+    assert returned_psp_refs == {
+        transactions[1].psp_reference,
+        transactions[2].psp_reference,
+    }
+
+
+def test_filter_by_created_at_lte(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    now = timezone.now()
+    transactions = TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="OLD-1", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="OLD-2", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="RECENT", currency="USD"
+            ),
+        ]
+    )
+    transactions[0].created_at = now - timedelta(days=30)
+    transactions[1].created_at = now - timedelta(days=25)
+    transactions[2].created_at = now - timedelta(days=5)
+    TransactionItem.objects.bulk_update(transactions, ["created_at"])
+
+    variables = {
+        "where": {"createdAt": {"lte": (now - timedelta(days=20)).isoformat()}}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    result = content["data"]["transactions"]["edges"]
+    assert len(result) == 2
+    returned_psp_refs = {t["node"]["pspReference"] for t in result}
+    assert returned_psp_refs == {
+        transactions[0].psp_reference,
+        transactions[1].psp_reference,
+    }
+
+
+def test_filter_by_modified_at_gte_and_lte(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    now = timezone.now()
+    transactions = TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="OLD", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="RECENT-1", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="RECENT-2", currency="USD"
+            ),
+        ]
+    )
+    transactions[0].modified_at = now - timedelta(days=30)
+    transactions[1].modified_at = now - timedelta(days=5)
+    transactions[2].modified_at = now - timedelta(days=3)
+    TransactionItem.objects.bulk_update(transactions, ["modified_at"])
+
+    variables = {
+        "where": {
+            "modifiedAt": {
+                "gte": (now - timedelta(days=10)).isoformat(),
+                "lte": now.isoformat(),
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    result = content["data"]["transactions"]["edges"]
+    assert len(result) == 2
+    returned_psp_refs = {t["node"]["pspReference"] for t in result}
+    assert returned_psp_refs == {
+        transactions[1].psp_reference,
+        transactions[2].psp_reference,
+    }
+
+
+def test_filter_by_modified_at_gte(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    now = timezone.now()
+    transactions = TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="OLD", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="RECENT", currency="USD"
+            ),
+        ]
+    )
+    transactions[0].modified_at = now - timedelta(days=30)
+    transactions[1].modified_at = now - timedelta(days=5)
+    TransactionItem.objects.bulk_update(transactions, ["modified_at"])
+
+    variables = {
+        "where": {"modifiedAt": {"gte": (now - timedelta(days=10)).isoformat()}}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    result = content["data"]["transactions"]["edges"]
+    assert len(result) == 1
+    assert result[0]["node"]["pspReference"] == transactions[1].psp_reference
+
+
+def test_filter_by_modified_at_lte(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+
+    now = timezone.now()
+    transactions = TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="OLD", currency="USD"
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="RECENT", currency="USD"
+            ),
+        ]
+    )
+    transactions[0].modified_at = now - timedelta(days=30)
+    transactions[1].modified_at = now - timedelta(days=5)
+    TransactionItem.objects.bulk_update(transactions, ["modified_at"])
+
+    variables = {
+        "where": {"modifiedAt": {"lte": (now - timedelta(days=20)).isoformat()}}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    result = content["data"]["transactions"]["edges"]
+    assert len(result) == 1
+    assert result[0]["node"]["pspReference"] == transactions[0].psp_reference
 
 
 def test_filter_by_created_at_combined_with_psp_reference(
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    transaction_item_generator,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_orders)
@@ -441,24 +645,34 @@ def test_filter_by_created_at_combined_with_psp_reference(
     recent_date = now - timedelta(days=5)
     old_date = now - timedelta(days=30)
 
-    transaction_target = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="TARGET", currency="USD"
-    )
-    transaction_wrong_date = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="TARGET", currency="USD"
-    )
-    transaction_wrong_psp = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="OTHER", currency="USD"
+    transaction_target, transaction_wrong_date, transaction_wrong_psp = (
+        TransactionItem.objects.bulk_create(
+            [
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="TARGET",
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="TARGET",
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="OTHER",
+                    currency="USD",
+                ),
+            ]
+        )
     )
 
-    TransactionItem.objects.filter(pk=transaction_target.pk).update(
-        created_at=recent_date
-    )
-    TransactionItem.objects.filter(pk=transaction_wrong_date.pk).update(
-        created_at=old_date
-    )
-    TransactionItem.objects.filter(pk=transaction_wrong_psp.pk).update(
-        created_at=recent_date
+    transaction_target.created_at = recent_date
+    transaction_wrong_date.created_at = old_date
+    transaction_wrong_psp.created_at = recent_date
+    TransactionItem.objects.bulk_update(
+        [transaction_target, transaction_wrong_date, transaction_wrong_psp],
+        ["created_at"],
     )
 
     variables = {
@@ -484,23 +698,58 @@ def test_filter_by_event_type_eq(
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    transaction_item_generator,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_orders)
 
-    transaction_with_refund = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="REFUNDED", currency="USD"
-    )
-    transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="NO-EVENTS", currency="USD"
+    txn_refund_1, txn_refund_2, txn_charge, txn_no_events = (
+        TransactionItem.objects.bulk_create(
+            [
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="REFUNDED-1",
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="REFUNDED-2",
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="CHARGED",
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="NO-EVENTS",
+                    currency="USD",
+                ),
+            ]
+        )
     )
 
-    TransactionEvent.objects.create(
-        transaction=transaction_with_refund,
-        type=TransactionEventType.REFUND_SUCCESS,
-        amount_value=10,
-        currency="USD",
+    TransactionEvent.objects.bulk_create(
+        [
+            TransactionEvent(
+                transaction=txn_refund_1,
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=10,
+                currency="USD",
+            ),
+            TransactionEvent(
+                transaction=txn_refund_2,
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=20,
+                currency="USD",
+            ),
+            TransactionEvent(
+                transaction=txn_charge,
+                type=TransactionEventType.CHARGE_SUCCESS,
+                amount_value=30,
+                currency="USD",
+            ),
+        ]
     )
 
     variables = {
@@ -515,42 +764,70 @@ def test_filter_by_event_type_eq(
     # then
     content = get_graphql_content(response)
     transactions = content["data"]["transactions"]["edges"]
-    assert len(transactions) == 1
-    assert (
-        transactions[0]["node"]["pspReference"] == transaction_with_refund.psp_reference
-    )
+    assert len(transactions) == 2
+    psp_refs = {t["node"]["pspReference"] for t in transactions}
+    assert psp_refs == {txn_refund_1.psp_reference, txn_refund_2.psp_reference}
 
 
 def test_filter_by_event_type_one_of(
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    transaction_item_generator,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_orders)
 
-    transaction_refund = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="REFUNDED", currency="USD"
-    )
-    transaction_charge = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="CHARGED", currency="USD"
-    )
-    transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="NO-EVENTS", currency="USD"
+    (
+        transaction_refund,
+        transaction_charge,
+        _transaction_cancel,
+        _transaction_no_events,
+    ) = TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order_with_lines.pk,
+                psp_reference="REFUNDED",
+                currency="USD",
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk,
+                psp_reference="CHARGED",
+                currency="USD",
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk,
+                psp_reference="CANCELLED",
+                currency="USD",
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk,
+                psp_reference="NO-EVENTS",
+                currency="USD",
+            ),
+        ]
     )
 
-    TransactionEvent.objects.create(
-        transaction=transaction_refund,
-        type=TransactionEventType.REFUND_SUCCESS,
-        amount_value=10,
-        currency="USD",
-    )
-    TransactionEvent.objects.create(
-        transaction=transaction_charge,
-        type=TransactionEventType.CHARGE_SUCCESS,
-        amount_value=20,
-        currency="USD",
+    TransactionEvent.objects.bulk_create(
+        [
+            TransactionEvent(
+                transaction=transaction_refund,
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=10,
+                currency="USD",
+            ),
+            TransactionEvent(
+                transaction=transaction_charge,
+                type=TransactionEventType.CHARGE_SUCCESS,
+                amount_value=20,
+                currency="USD",
+            ),
+            TransactionEvent(
+                transaction=_transaction_cancel,
+                type=TransactionEventType.CANCEL_SUCCESS,
+                amount_value=15,
+                currency="USD",
+            ),
+        ]
     )
 
     variables = {
@@ -586,33 +863,56 @@ def test_filter_by_event_created_at(
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    transaction_item_generator,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_orders)
 
     now = timezone.now()
 
-    transaction_recent = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="RECENT-EVENT", currency="USD"
-    )
-    transaction_old = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="OLD-EVENT", currency="USD"
+    txn_recent_1, txn_recent_2, txn_old = TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order_with_lines.pk,
+                psp_reference="RECENT-1",
+                currency="USD",
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk,
+                psp_reference="RECENT-2",
+                currency="USD",
+            ),
+            TransactionItem(
+                order_id=order_with_lines.pk,
+                psp_reference="OLD",
+                currency="USD",
+            ),
+        ]
     )
 
-    TransactionEvent.objects.create(
-        transaction=transaction_recent,
-        type=TransactionEventType.CHARGE_SUCCESS,
-        amount_value=10,
-        currency="USD",
-        created_at=now - timedelta(days=5),
-    )
-    TransactionEvent.objects.create(
-        transaction=transaction_old,
-        type=TransactionEventType.CHARGE_SUCCESS,
-        amount_value=10,
-        currency="USD",
-        created_at=now - timedelta(days=30),
+    TransactionEvent.objects.bulk_create(
+        [
+            TransactionEvent(
+                transaction=txn_recent_1,
+                type=TransactionEventType.CHARGE_SUCCESS,
+                amount_value=10,
+                currency="USD",
+                created_at=now - timedelta(days=5),
+            ),
+            TransactionEvent(
+                transaction=txn_recent_2,
+                type=TransactionEventType.CHARGE_SUCCESS,
+                amount_value=20,
+                currency="USD",
+                created_at=now - timedelta(days=3),
+            ),
+            TransactionEvent(
+                transaction=txn_old,
+                type=TransactionEventType.CHARGE_SUCCESS,
+                amount_value=10,
+                currency="USD",
+                created_at=now - timedelta(days=30),
+            ),
+        ]
     )
 
     variables = {
@@ -627,15 +927,15 @@ def test_filter_by_event_created_at(
     # then
     content = get_graphql_content(response)
     transactions = content["data"]["transactions"]["edges"]
-    assert len(transactions) == 1
-    assert transactions[0]["node"]["pspReference"] == transaction_recent.psp_reference
+    assert len(transactions) == 2
+    psp_refs = {t["node"]["pspReference"] for t in transactions}
+    assert psp_refs == {txn_recent_1.psp_reference, txn_recent_2.psp_reference}
 
 
 def test_filter_by_event_type_and_created_at(
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    transaction_item_generator,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_orders)
@@ -644,36 +944,64 @@ def test_filter_by_event_type_and_created_at(
     recent_date = now - timedelta(days=5)
     old_date = now - timedelta(days=30)
 
-    transaction_target = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="TARGET", currency="USD"
-    )
-    transaction_wrong_type = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="WRONG-TYPE", currency="USD"
-    )
-    transaction_wrong_date = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="WRONG-DATE", currency="USD"
+    txn_target_1, txn_target_2, txn_wrong_type, txn_wrong_date = (
+        TransactionItem.objects.bulk_create(
+            [
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="TARGET-1",
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="TARGET-2",
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="WRONG-TYPE",
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="WRONG-DATE",
+                    currency="USD",
+                ),
+            ]
+        )
     )
 
-    TransactionEvent.objects.create(
-        transaction=transaction_target,
-        type=TransactionEventType.REFUND_SUCCESS,
-        amount_value=10,
-        currency="USD",
-        created_at=recent_date,
-    )
-    TransactionEvent.objects.create(
-        transaction=transaction_wrong_type,
-        type=TransactionEventType.CHARGE_SUCCESS,
-        amount_value=10,
-        currency="USD",
-        created_at=recent_date,
-    )
-    TransactionEvent.objects.create(
-        transaction=transaction_wrong_date,
-        type=TransactionEventType.REFUND_SUCCESS,
-        amount_value=10,
-        currency="USD",
-        created_at=old_date,
+    TransactionEvent.objects.bulk_create(
+        [
+            TransactionEvent(
+                transaction=txn_target_1,
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=10,
+                currency="USD",
+                created_at=recent_date,
+            ),
+            TransactionEvent(
+                transaction=txn_target_2,
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=20,
+                currency="USD",
+                created_at=now - timedelta(days=3),
+            ),
+            TransactionEvent(
+                transaction=txn_wrong_type,
+                type=TransactionEventType.CHARGE_SUCCESS,
+                amount_value=10,
+                currency="USD",
+                created_at=recent_date,
+            ),
+            TransactionEvent(
+                transaction=txn_wrong_date,
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=10,
+                currency="USD",
+                created_at=old_date,
+            ),
+        ]
     )
 
     variables = {
@@ -693,8 +1021,9 @@ def test_filter_by_event_type_and_created_at(
     # then
     content = get_graphql_content(response)
     transactions = content["data"]["transactions"]["edges"]
-    assert len(transactions) == 1
-    assert transactions[0]["node"]["pspReference"] == transaction_target.psp_reference
+    assert len(transactions) == 2
+    psp_refs = {t["node"]["pspReference"] for t in transactions}
+    assert psp_refs == {txn_target_1.psp_reference, txn_target_2.psp_reference}
 
 
 @pytest.mark.parametrize("events_value", [[], None])
@@ -703,13 +1032,16 @@ def test_filter_by_events_empty_returns_none(
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    transaction_item_generator,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_orders)
 
-    transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="PSP-1", currency="USD"
+    TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order_with_lines.pk, psp_reference="PSP-1", currency="USD"
+            ),
+        ]
     )
 
     variables = {"where": {"events": events_value}}
@@ -727,34 +1059,49 @@ def test_filter_by_events_combined_with_psp_reference(
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    transaction_item_generator,
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_orders)
 
     target_psp = "PSP-TARGET"
 
-    transaction_target = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference=target_psp, currency="USD"
-    )
-    transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference=target_psp, currency="USD"
-    )
-    transaction_same_event = transaction_item_generator(
-        order_id=order_with_lines.pk, psp_reference="PSP-OTHER", currency="USD"
+    transaction_target, _transaction_same_psp, transaction_same_event = (
+        TransactionItem.objects.bulk_create(
+            [
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference=target_psp,
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference=target_psp,
+                    currency="USD",
+                ),
+                TransactionItem(
+                    order_id=order_with_lines.pk,
+                    psp_reference="PSP-OTHER",
+                    currency="USD",
+                ),
+            ]
+        )
     )
 
-    TransactionEvent.objects.create(
-        transaction=transaction_target,
-        type=TransactionEventType.REFUND_SUCCESS,
-        amount_value=10,
-        currency="USD",
-    )
-    TransactionEvent.objects.create(
-        transaction=transaction_same_event,
-        type=TransactionEventType.REFUND_SUCCESS,
-        amount_value=10,
-        currency="USD",
+    TransactionEvent.objects.bulk_create(
+        [
+            TransactionEvent(
+                transaction=transaction_target,
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=10,
+                currency="USD",
+            ),
+            TransactionEvent(
+                transaction=transaction_same_event,
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=10,
+                currency="USD",
+            ),
+        ]
     )
 
     variables = {
