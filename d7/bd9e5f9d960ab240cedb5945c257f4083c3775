@@ -1,0 +1,23 @@
+saleor/graphql/product/mutations/product/product_media_create.py
+  7817c2a2470165f8 91-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "d7bd9e5f9d960ab240cedb5945c257f4083c3775",
+  "prompts": {
+    "7817c2a2470165f8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5ee659-f084-44b4-a717-ca441731262a",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 1,
+      "accepted_lines": 10,
+      "overriden_lines": 0
+    }
+  }
+}
