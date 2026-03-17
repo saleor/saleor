@@ -506,18 +506,17 @@ def test_product_media_create_with_media_url_when_alt_is_null(
 
 
 @pytest.mark.parametrize(
-    ("exception", "error_message"),
+    "exception",
     [
-        (RequestException("Connection refused"), "Connection refused"),
-        (InvalidIPAddress("10.0.0.1"), "Invalid IP address"),
-        (InvalidSchema("No adapters found for url"), "No adapters found for url"),
+        RequestException("Connection refused"),
+        InvalidIPAddress("10.0.0.1"),
+        InvalidSchema("No adapters found for url"),
     ],
 )
 @patch("saleor.graphql.product.utils.HTTPClient")
 def test_product_media_create_mutation_request_exception(
     mock_HTTPClient,
     exception,
-    error_message,
     staff_api_client,
     product,
     permission_manage_products,

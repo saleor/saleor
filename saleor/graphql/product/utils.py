@@ -39,25 +39,28 @@ ALT_CHAR_LIMIT = 250
 
 def validate_media_input(
     image, media_url, alt, error_code_enum
-) -> tuple[str, str] | None:
+) -> tuple[str, str, str] | None:
     """Validate media input fields.
 
-    Returns (error_message, error_code_value) if validation fails, None otherwise.
+    Returns (error_message, error_code_value, field) if validation fails, None otherwise.
     """
     if not image and not media_url:
         return (
             "Image or external URL is required.",
             error_code_enum.REQUIRED.value,
+            "",
         )
     if image and media_url:
         return (
             "Either image or external URL is required.",
             error_code_enum.DUPLICATED_INPUT_ITEM.value,
+            "",
         )
     if alt and len(alt) > ALT_CHAR_LIMIT:
         return (
             f"Alt field exceeds the character limit of {ALT_CHAR_LIMIT}.",
             error_code_enum.INVALID.value,
+            "alt",
         )
     return None
 

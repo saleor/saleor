@@ -62,7 +62,7 @@ class ProductMediaCreate(BaseMutation):
         alt = input.get("alt") or ""
 
         if error := validate_media_input(image, media_url, alt, ProductErrorCode):
-            error_message, error_code = error
+            error_message, error_code, _ = error
             raise ValidationError(
                 {
                     "input": ValidationError(

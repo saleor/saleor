@@ -437,12 +437,8 @@ class ProductBulkCreate(BaseMutation):
             if error := validate_media_input(
                 image, media_url, alt, ProductBulkCreateErrorCode
             ):
-                error_message, error_code = error
-                path = (
-                    f"media.{index}.alt"
-                    if error_code == ProductBulkCreateErrorCode.INVALID.value
-                    else f"media.{index}"
-                )
+                error_message, error_code, field = error
+                path = f"media.{index}.{field}" if field else f"media.{index}"
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
                         path=path,
