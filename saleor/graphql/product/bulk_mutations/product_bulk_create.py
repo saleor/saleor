@@ -481,7 +481,7 @@ class ProductBulkCreate(BaseMutation):
                     continue
                 if probe_result.is_image:
                     media_input["external_url"] = media_url
-                else:
+                elif probe_result.oembed_data and probe_result.media_type:
                     oembed_data = probe_result.oembed_data
                     oembed_data["supported_media_type"] = probe_result.media_type
                     media_input["oembed_data"] = oembed_data

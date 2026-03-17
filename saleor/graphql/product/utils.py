@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, NamedTuple
 from uuid import UUID
 
 import graphene
+import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, transaction
@@ -77,25 +78,35 @@ def probe_media_url(media_url: str, error_code_enum) -> MediaUrlProbeResult:
     Raises ValidationError if the URL points to an invalid image type
     or an unsupported media provider.
     """
-    with HTTPClient.send_request(
-        "GET",
-        media_url,
-        stream=True,
-        allow_redirects=False,
-        timeout=settings.COMMON_REQUESTS_TIMEOUT,
-    ) as response:
-        mime_type = get_mime_type(response.headers.get("content-type"))
-        if is_image_mimetype(mime_type):
-            if not is_valid_image_content_type(mime_type):
-                raise ValidationError(
-                    {
-                        "media_url": ValidationError(
-                            "Invalid file type.",
-                            code=error_code_enum.INVALID.value,
-                        )
-                    }
+    try:
+        with HTTPClient.send_request(
+            "GET",
+            media_url,
+            stream=True,
+            allow_redirects=False,
+            timeout=settings.COMMON_REQUESTS_TIMEOUT,
+        ) as response:
+            mime_type = get_mime_type(response.headers.get("content-type"))
+            if is_image_mimetype(mime_type):
+                if not is_valid_image_content_type(mime_type):
+                    raise ValidationError(
+                        {
+                            "media_url": ValidationError(
+                                "Invalid file type.",
+                                code=error_code_enum.INVALID.value,
+                            )
+                        }
+                    )
+                return MediaUrlProbeResult(is_image=True)
+    except requests.exceptions.RequestException as exc:
+        raise ValidationError(
+            {
+                "media_url": ValidationError(
+                    "Failed to fetch media from URL.",
+                    code=error_code_enum.INVALID.value,
                 )
-            return MediaUrlProbeResult(is_image=True)
+            }
+        ) from exc
 
     try:
         oembed_data, media_type = get_oembed_data(media_url)
@@ -103,7 +114,7 @@ def probe_media_url(media_url: str, error_code_enum) -> MediaUrlProbeResult:
         raise ValidationError(
             {
                 "media_url": ValidationError(
-                    exc.message,
+                    "Unsupported media provider or incorrect URL.",
                     code=error_code_enum.UNSUPPORTED_MEDIA_PROVIDER.value,
                 )
             }

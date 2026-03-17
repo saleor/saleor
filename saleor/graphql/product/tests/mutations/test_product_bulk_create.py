@@ -9,6 +9,9 @@ import graphene
 import PIL
 import pytest
 from measurement.measures import Weight
+from requests import RequestException
+from requests.exceptions import InvalidSchema
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
@@ -3353,3 +3356,53 @@ def test_product_bulk_create_with_media_url_when_alt_is_null(
     # then
     assert not content["results"][0]["errors"]
     assert content["results"][0]["product"]["media"][0]["alt"] == ""
+
+
+@pytest.mark.parametrize(
+    ("exception", "error_message"),
+    [
+        (RequestException("Connection refused"), "Connection refused"),
+        (InvalidIPAddress("10.0.0.1"), "Invalid IP address"),
+        (InvalidSchema("No adapters found for url"), "No adapters found for url"),
+    ],
+)
+@patch("saleor.graphql.product.utils.HTTPClient")
+def test_product_bulk_create_with_media_url_request_exception(
+    mock_HTTPClient,
+    exception,
+    error_message,
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    mock_HTTPClient.send_request.side_effect = exception
+    products = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "alt": "some media",
+                    "mediaUrl": "https://www.example.com/image.jpg",
+                }
+            ],
+        },
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    assert len(data["results"][0]["errors"]) == 1
+    error = data["results"][0]["errors"][0]
+    assert error["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error["path"] == "media.0.mediaUrl"
+    assert error["message"] == "Failed to fetch media from URL."
