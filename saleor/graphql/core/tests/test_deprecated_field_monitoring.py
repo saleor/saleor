@@ -93,6 +93,33 @@ SUBSCRIPTION_QUERY_WITHOUT_DEPRECATED_FIELD = """
 """
 
 
+# `DraftOrderCreate.orderErrors` is a deprecated field and is used here to
+# test that deprecated field usage is monitored in mutations.
+# If the field is ever removed from the schema, replace it with another deprecated
+# mutation output field.
+MUTATION_WITH_DEPRECATED_FIELD = """
+    mutation CreateDraftOrder($input: DraftOrderCreateInput!) {
+        draftOrderCreate(input: $input) {
+            orderErrors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+MUTATION_WITHOUT_DEPRECATED_FIELD = """
+    mutation CreateDraftOrder($input: DraftOrderCreateInput!) {
+        draftOrderCreate(input: $input) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
 @pytest.mark.parametrize(
     "query",
     [
@@ -130,6 +157,42 @@ def test_non_deprecated_field_query_does_not_trigger_monitoring(
 
     # when
     response = staff_api_client.post_graphql(QUERY_WITHOUT_DEPRECATED_FIELD, variables)
+    get_graphql_content(response)
+
+    # then
+    mock_record.assert_not_called()
+
+
+@patch("saleor.graphql.api.record_field_usage")
+def test_deprecated_field_mutation_triggers_monitoring(
+    mock_record, staff_api_client, permission_group_manage_orders, channel_USD
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"input": {"channelId": channel_id}}
+
+    # when
+    response = staff_api_client.post_graphql(MUTATION_WITH_DEPRECATED_FIELD, variables)
+    get_graphql_content(response)
+
+    # then
+    mock_record.assert_called_once_with("DraftOrderCreate", "orderErrors", True)
+
+
+@patch("saleor.graphql.api.record_field_usage")
+def test_non_deprecated_field_mutation_does_not_trigger_monitoring(
+    mock_record, staff_api_client, permission_group_manage_orders, channel_USD
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"input": {"channelId": channel_id}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_WITHOUT_DEPRECATED_FIELD, variables
+    )
     get_graphql_content(response)
 
     # then
