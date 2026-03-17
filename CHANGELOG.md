@@ -32,6 +32,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added new scalar `NonNegativeInt` which allows integer values greater than or equal to zero.
 - Scalars `Minute`, `Hour` and `Day` now inherit from `NonNegativeInt`, which mean GraphQL disallows negative values for time units.
 - Removed `partial` field from the `Payment` GraphQL type.
+- Added sorting and filtering support for `transactions` query:
+  - sort by `CREATED_AT`, `MODIFIED_AT`;
+  - filter by `createdAt`, `modifiedAt` date ranges and by transaction events (`type`, `createdAt`).
 
 ### Webhooks
 - For order webhook events, sync webhooks (such as `ORDER_CALCULATE_TAXES` and `ORDER_FILTER_SHIPPING_METHODS`) are no longer pre-fired before sending async webhook events. Sync webhooks are now only triggered when their data is actually requested, improving performance and decoupling async event delivery from sync webhook execution.
