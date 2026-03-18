@@ -234,19 +234,17 @@ def clean_line_reason_references(
     if errors:
         return
 
-    # Single DB query for all pages
-    pages_by_pk: dict[int, Page] = {
-        page.pk: page
-        for page in Page.objects.filter(
+    existing_page_pks: set[int] = set(
+        Page.objects.filter(
             pk__in=page_pks.values(),
             page_type=refund_reason_reference_type.pk,
-        )
-    }
+        ).values_list("pk", flat=True)
+    )
 
     # Map back to lines
     for line_pk, entry, global_id in lines_with_refs:
-        page = pages_by_pk.get(page_pks[global_id])
-        if not page:
+        page_pk = page_pks[global_id]
+        if page_pk not in existing_page_pks:
             errors.append(
                 {
                     "line_id": graphene.Node.to_global_id("OrderLine", line_pk),
@@ -256,7 +254,7 @@ def clean_line_reason_references(
                 }
             )
         else:
-            entry["line_model"].reason_reference = page
+            entry["line_model"].reason_reference_id = page_pk
 
 
 def clean_grant_refund_lines(
