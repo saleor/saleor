@@ -279,6 +279,15 @@ class OrderGrantRefundUpdate(BaseMutation):
             refund_reason_reference_type.pk if refund_reason_reference_type else None
         )
 
+        reason_reference_instance: Page | None = None
+        if should_apply:
+            assert refund_reason_reference_type_pk is not None
+            reason_reference_instance = resolve_reason_reference_page(
+                str(reason_reference_id),
+                refund_reason_reference_type_pk,
+                OrderGrantRefundUpdateErrorCode,
+            )
+
         line_ids_to_remove = []
         if remove_lines:
             line_ids_to_remove = cls.clean_remove_lines(
@@ -363,16 +372,6 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         if errors:
             raise ValidationError(errors)
-
-        reason_reference_instance: Page | None = None
-
-        if should_apply:
-            assert refund_reason_reference_type_pk is not None
-            reason_reference_instance = resolve_reason_reference_page(
-                str(reason_reference_id),
-                refund_reason_reference_type_pk,
-                OrderGrantRefundUpdateErrorCode,
-            )
 
         cleaned_input = {
             "amount": amount,

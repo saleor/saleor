@@ -222,6 +222,14 @@ class OrderGrantRefundCreate(BaseMutation):
             refund_reason_reference_type.pk if refund_reason_reference_type else None
         )
 
+        reason_reference_instance: Page | None = None
+        if should_apply and refund_reason_reference_type_pk:
+            reason_reference_instance = resolve_reason_reference_page(
+                str(reason_reference_id),
+                refund_reason_reference_type_pk,
+                OrderGrantRefundCreateErrorCode,
+            )
+
         cleaned_input_lines: list[models.OrderGrantedRefundLine] = []
         if input_lines:
             cleaned_input_lines = cls.clean_input_lines(
@@ -267,15 +275,6 @@ class OrderGrantRefundCreate(BaseMutation):
                         code=error_code,
                     )
                 }
-            )
-
-        reason_reference_instance: Page | None = None
-
-        if should_apply and refund_reason_reference_type_pk:
-            reason_reference_instance = resolve_reason_reference_page(
-                str(reason_reference_id),
-                refund_reason_reference_type_pk,
-                OrderGrantRefundCreateErrorCode,
             )
 
         return {
