@@ -6,11 +6,13 @@ from urllib.parse import urlencode
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ......account.error_codes import AccountErrorCode
 from ......account.notifications import get_default_user_payload
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.tokens import token_generator
 from ......core.utils.url import prepare_url
+from ......site import PasswordLoginMode
 from .....tests.utils import get_graphql_content
 
 REQUEST_PASSWORD_RESET_MUTATION = """
@@ -595,3 +597,26 @@ def test_account_reset_password_no_channel_provided_one_channel(
     )
 
     mocked_logger_warning.assert_not_called()
+
+
+def test_request_password_reset_disabled_password_login(
+    api_client, customer_user, site_settings, channel_PLN
+):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.DISABLED
+    site_settings.save(update_fields=["password_login_mode"])
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": "https://www.example.com",
+        "channel": channel_PLN.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["requestPasswordReset"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name

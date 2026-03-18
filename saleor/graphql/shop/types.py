@@ -20,6 +20,7 @@ from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_322,
+    ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -51,7 +52,7 @@ from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
-from .enums import GiftCardSettingsExpiryTypeEnum
+from .enums import GiftCardSettingsExpiryTypeEnum, PasswordLoginModeEnum
 from .filters import CountryFilterInput
 from .resolvers import resolve_available_shipping_methods, resolve_countries
 
@@ -381,6 +382,12 @@ class Shop(graphene.ObjectType):
         permissions=[SitePermissions.MANAGE_SETTINGS],
         required=True,
     )
+    password_login_mode = PermissionsField(
+        PasswordLoginModeEnum,
+        description="Controls whether password-based authentication is allowed."
+        + ADDED_IN_323,
+        required=True,
+    )
 
     # deprecated
     include_taxes_in_prices = graphene.Boolean(
@@ -691,6 +698,11 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_preserve_all_address_fields(_, _info, site):
         return site.settings.preserve_all_address_fields
+
+    @staticmethod
+    @load_site_callback
+    def resolve_password_login_mode(_, _info, site):
+        return site.settings.password_login_mode
 
     @staticmethod
     @load_site_callback

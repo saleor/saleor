@@ -17,6 +17,7 @@ from .....plugins.manager import get_plugins_manager
 from .....product.models import Product, ProductVariant, ProductVariantChannelListing
 from .....product.utils.variant_prices import update_discounted_prices_for_promotion
 from .....product.utils.variants import fetch_variants_for_promotion_rules
+from .....site.models import Site
 from .....warehouse.models import Stock
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -838,6 +839,10 @@ def test_update_checkout_lines_with_reservations(
         data = content["data"]["checkoutLinesUpdate"]
         assert not data["errors"]
 
+    # Clear cache for proper query count comparison.
+    # Site and site settings are cached in `auth_backend` when querying the current site.
+    Site.objects.clear_cache()
+
     # Updating multiple lines in checkout has same query count as updating one
     with django_assert_num_queries(107):
         variables = {
@@ -1109,6 +1114,10 @@ def test_add_checkout_lines_with_reservations(
         content = get_graphql_content(response)
         data = content["data"]["checkoutLinesAdd"]
         assert not data["errors"]
+
+    # Clear cache for proper query count comparison.
+    # Site and site settings are cached in `auth_backend` when querying the current site.
+    Site.objects.clear_cache()
 
     checkout.lines.exclude(id=line.id).delete()
 

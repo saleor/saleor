@@ -298,6 +298,66 @@ def test_get_or_create_user_from_payload_assigns_sub(
     assert user_from_payload.id == customer_user.id
     assert user_from_payload.private_metadata[f"oidc:{oauth_url}"] == sub_id
     assert customer_user.is_staff is False
+    assert not user_from_payload.has_usable_password()
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_clears_password_for_existing_user(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # When OIDC finds an existing user by email (not by sub), the old password
+    # should be invalidated to prevent login with stale credentials.
+
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|new-sub"
+    assert customer_user.has_usable_password()
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
+    user_from_payload, created, _ = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    assert not created
+    assert user_from_payload.id == customer_user.id
+    assert not user_from_payload.has_usable_password()
+    customer_user.refresh_from_db()
+    assert not customer_user.has_usable_password()
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_keeps_password_for_returning_oidc_user(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # When an existing OIDC user is found by email (cache miss on sub lookup),
+    # the password should NOT be cleared since they already have the OIDC identity.
+
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|existing-sub"
+    oidc_key = f"oidc:{oauth_url}"
+    customer_user.store_value_in_private_metadata({oidc_key: sub_id})
+    customer_user.save(update_fields=["private_metadata"])
+    assert customer_user.has_usable_password()
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
+    user_from_payload, created, _ = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    assert not created
+    assert user_from_payload.id == customer_user.id
+    assert user_from_payload.has_usable_password()
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")

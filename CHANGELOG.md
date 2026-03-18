@@ -32,8 +32,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added new scalar `NonNegativeInt` which allows integer values greater than or equal to zero.
 - Scalars `Minute`, `Hour` and `Day` now inherit from `NonNegativeInt`, which mean GraphQL disallows negative values for time units.
 - Removed `partial` field from the `Payment` GraphQL type.
+- Added `PasswordLoginMode` setting to control password-based authentication. When set to `DISABLED`, all password authentication mutations (`tokenCreate`, `setPassword`, `passwordChange`, `requestPasswordReset`, `tokenRefresh`) return errors. When set to `CUSTOMERS_ONLY`, staff users who log in with a password are treated as customers without staff
+permissions.
+- `staffDelete` mutation now always deletes the staff user. Previously, staff members with existing orders were only deactivated (`is_staff` set to `False`); now they are fully removed regardless of order history.
 
 ### Webhooks
+
 - For order webhook events, sync webhooks (such as `ORDER_CALCULATE_TAXES` and `ORDER_FILTER_SHIPPING_METHODS`) are no longer pre-fired before sending async webhook events. Sync webhooks are now only triggered when their data is actually requested, improving performance and decoupling async event delivery from sync webhook execution.
 -  Building payloads for webhook order events (including draft orders and fulfillments) is now delegated to a separate background task. This speeds up the execution of most order mutations by deferring the expensive payload serialization out of the request path.
 
@@ -62,6 +66,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - The app can now be installed without providing a `tokenTargetUrl` in the manifest file.
 - Removed the setting `JWT_EXPIRE` which allowed to configure Saleor to ignore the JWT token expiration. - #18856 by @NyanKiyoshi
 - Removed support for custom `User` DB models in `./manage.py createsuperuser` command. - #18890 by @NyanKiyoshi
+- OIDC: When an existing user is claimed by an OIDC provider for the first time, their password is now invalidated to prevent login with stale credentials. This covers the case where a previously deleted staff account is recreated via OIDC.
 
 #### Search improvements
 

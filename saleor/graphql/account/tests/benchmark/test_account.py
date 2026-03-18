@@ -5,6 +5,7 @@ import pytest
 from django.core.files import File
 
 from .....account.models import Group, User
+from .....site.models import Site
 from ....tests.utils import get_graphql_content
 
 
@@ -402,7 +403,7 @@ def test_users_for_federation_query_count(
     }
 
     staff_api_client.ensure_access_token()
-    with django_assert_num_queries(4):
+    with django_assert_num_queries(6):
         response = staff_api_client.post_graphql(
             query,
             variables,
@@ -411,6 +412,10 @@ def test_users_for_federation_query_count(
         )
         content = get_graphql_content(response)
         assert len(content["data"]["_entities"]) == 2
+
+    # Clear cache for proper query count comparison.
+    # Site and site settings are cached in `auth_backend` when querying the current site.
+    Site.objects.clear_cache()
 
     variables = {
         "representations": [
@@ -433,7 +438,7 @@ def test_users_for_federation_query_count(
         ],
     }
 
-    with django_assert_num_queries(4):
+    with django_assert_num_queries(6):
         response = staff_api_client.post_graphql(
             query,
             variables,
@@ -481,7 +486,7 @@ def test_addresses_for_federation_query_count(
     }
 
     staff_api_client.ensure_access_token()
-    with django_assert_num_queries(3):
+    with django_assert_num_queries(5):
         response = staff_api_client.post_graphql(
             query,
             variables,
@@ -490,6 +495,10 @@ def test_addresses_for_federation_query_count(
         )
         content = get_graphql_content(response)
         assert len(content["data"]["_entities"]) == 1
+
+    # Clear cache for proper query count comparison.
+    # Site and site settings are cached in `auth_backend` when querying the current site.
+    Site.objects.clear_cache()
 
     variables = {
         "representations": [
@@ -504,7 +513,7 @@ def test_addresses_for_federation_query_count(
         ],
     }
 
-    with django_assert_num_queries(3):
+    with django_assert_num_queries(5):
         response = staff_api_client.post_graphql(
             query,
             variables,

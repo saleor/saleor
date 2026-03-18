@@ -50,6 +50,27 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     assert not User.objects.filter(pk=staff_user.id).exists()
 
 
+def test_staff_delete_with_orders(staff_api_client, permission_manage_staff, order):
+    # given
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    order.user = staff_user
+    order.save(update_fields=["user"])
+
+    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": user_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_DELETE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+    assert data["errors"] == []
+    assert not User.objects.filter(pk=staff_user.id).exists()
+
+
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
