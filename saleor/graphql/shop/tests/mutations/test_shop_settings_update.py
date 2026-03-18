@@ -1,10 +1,12 @@
-from unittest.mock import ANY
+from unittest.mock import ANY, patch
 
 import pytest
 
 from .....core.error_codes import ShopErrorCode
+from .....core.jwt import JWT_OWNER_FIELD
 from .....site.models import Site
 from ....tests.utils import get_graphql_content
+from ...enums import PasswordLoginModeEnum
 
 SHOP_SETTINGS_UPDATE_MUTATION = """
     mutation updateSettings($input: ShopSettingsInput!) {
@@ -437,3 +439,106 @@ def test_update_default_sender_settings_invalid_email(
     assert errors == [
         {"field": "defaultMailSenderAddress", "message": "Enter a valid email address."}
     ]
+
+
+MUTATION_UPDATE_PASSWORD_LOGIN_MODE = """
+    mutation updateSettings($input: ShopSettingsInput!) {
+        shopSettingsUpdate(input: $input) {
+            shop {
+                passwordLoginMode
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "mode",
+    [PasswordLoginModeEnum.DISABLED.name, PasswordLoginModeEnum.CUSTOMERS_ONLY.name],
+)
+def test_shop_settings_update_password_login_mode_blocked_for_password_auth(
+    staff_api_client, site_settings, permission_manage_settings, mode
+):
+    # given
+    variables = {"input": {"passwordLoginMode": mode}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PASSWORD_LOGIN_MODE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "passwordLoginMode"
+    assert error["code"] == ShopErrorCode.PASSWORD_AUTH_RESTRICTION.name
+    site_settings.refresh_from_db()
+    assert site_settings.password_login_mode == PasswordLoginModeEnum.ENABLED.value
+
+
+@pytest.mark.parametrize(
+    "mode",
+    [
+        PasswordLoginModeEnum.ENABLED.name,
+        PasswordLoginModeEnum.DISABLED.name,
+        PasswordLoginModeEnum.CUSTOMERS_ONLY.name,
+    ],
+)
+def test_shop_settings_update_password_login_mode_allowed_for_oidc_auth(
+    staff_api_client, site_settings, permission_manage_settings, mode
+):
+    # given
+    oidc_owner = "mirumee.authentication.openidconnect"
+    oidc_token_payload = {JWT_OWNER_FIELD: oidc_owner}
+    variables = {"input": {"passwordLoginMode": mode}}
+
+    # when
+    with patch(
+        "saleor.graphql.context.jwt_decode_with_exception_handler",
+        return_value=oidc_token_payload,
+    ):
+        response = staff_api_client.post_graphql(
+            MUTATION_UPDATE_PASSWORD_LOGIN_MODE,
+            variables,
+            permissions=[permission_manage_settings],
+        )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert not data["errors"]
+    assert data["shop"]["passwordLoginMode"] == mode
+
+
+def test_shop_settings_update_password_login_mode_preserves_when_not_provided(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    login_mode = PasswordLoginModeEnum.ENABLED.value
+    site_settings.password_login_mode = login_mode
+    site_settings.save(update_fields=["password_login_mode"])
+    variables = {"input": {"headerText": "New header"}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_PASSWORD_LOGIN_MODE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert not data["errors"]
+    assert data["shop"]["passwordLoginMode"] == login_mode.upper()
+    site_settings.refresh_from_db()
+    assert site_settings.password_login_mode == login_mode

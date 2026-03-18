@@ -14,7 +14,7 @@ from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation
 from ..permission.enums import SitePermissions
-from . import GiftCardSettingsExpiryType
+from . import GiftCardSettingsExpiryType, PasswordLoginMode
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
 
@@ -65,6 +65,12 @@ class SiteSettings(ModelWithMetadata):
     default_mail_sender_address = models.EmailField(blank=True, null=True)
     enable_account_confirmation_by_email = models.BooleanField(default=True)
     allow_login_without_confirmation = models.BooleanField(default=False)
+    password_login_mode = models.CharField(
+        max_length=32,
+        choices=PasswordLoginMode.CHOICES,
+        default=PasswordLoginMode.ENABLED,
+        db_default=PasswordLoginMode.ENABLED,
+    )
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)

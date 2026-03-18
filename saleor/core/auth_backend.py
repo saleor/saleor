@@ -4,11 +4,14 @@ from django.conf import settings
 from ..account.models import User
 from ..graphql.account.dataloaders import UserByEmailLoader
 from ..graphql.plugins.dataloaders import AnonymousPluginManagerLoader
+from ..graphql.site.dataloaders import get_site_promise
 from ..permission.enums import (
     get_permissions_from_codenames,
     get_permissions_from_names,
 )
+from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
+from ..site import PasswordLoginMode
 from .auth import get_token_from_request
 from .jwt import (
     JWT_ACCESS_TYPE,
@@ -149,6 +152,12 @@ def load_user_from_request(request):
             "Invalid token. Create new one by using tokenCreate mutation."
         )
 
+    site_settings = get_site_promise(request).get().settings
+    password_login_mode = site_settings.password_login_mode
+
+    if password_login_mode != PasswordLoginMode.ENABLED:
+        return _resolve_user_for_password_login_restriction(user, password_login_mode)
+
     if permissions is not None:
         token_permissions = get_permissions_from_names(permissions)
         token_codenames = [perm.codename for perm in token_permissions]
@@ -157,4 +166,18 @@ def load_user_from_request(request):
 
     if payload.get("is_staff"):
         user.is_staff = True
+
     return user
+
+
+def _resolve_user_for_password_login_restriction(user: User, password_login_mode: str):
+    """Resolve authenticated user for restricted password login modes.
+
+    Returns the user with staff access stripped in CUSTOMERS_ONLY mode.
+    Raises an error when password login is DISABLED.
+    """
+    if password_login_mode == PasswordLoginMode.CUSTOMERS_ONLY:
+        user.is_staff = False
+        user.effective_permissions = Permission.objects.none()
+        return user
+    raise jwt.InvalidTokenError("The authentication method is disabled.")

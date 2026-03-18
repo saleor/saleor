@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from ..account.models import User
@@ -234,6 +235,30 @@ def gift_cards_used_in_order_event(
         for gift_card, previous_balance in balance_data
     ]
     return GiftCardEvent.objects.bulk_create(events)
+
+
+def gift_card_refunded_in_order_event(
+    gift_card: GiftCard,
+    order: "Order | None",
+    previous_balance: "Decimal",
+    current_balance: "Decimal",
+    user: User | None,
+    app: App | None,
+):
+    return GiftCardEvent.objects.create(
+        gift_card=gift_card,
+        order=order,
+        user=user,
+        app=app,
+        type=GiftCardEvents.REFUNDED_IN_ORDER,
+        parameters={
+            "balance": {
+                "currency": gift_card.currency,
+                "current_balance": current_balance,
+                "old_current_balance": previous_balance,
+            },
+        },
+    )
 
 
 def gift_cards_bought_event(

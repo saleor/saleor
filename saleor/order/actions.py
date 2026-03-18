@@ -376,7 +376,7 @@ def order_confirmed(
 
     from ..giftcard.gateway import charge_gift_card_transactions
 
-    charge_gift_card_transactions(order)
+    charge_gift_card_transactions(order, user=user, app=app)
 
 
 def handle_fully_paid_order(

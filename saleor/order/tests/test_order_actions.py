@@ -2983,7 +2983,8 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
     order = order_with_lines
     manager = get_plugins_manager(False)
 
-    gift_card_created_by_staff.current_balance_amount = Decimal(100)
+    balance = Decimal(100)
+    gift_card_created_by_staff.current_balance_amount = balance
     gift_card_created_by_staff.save(update_fields=["current_balance_amount"])
 
     transaction = transaction_item_generator(
@@ -3013,6 +3014,9 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
         gift_card_created_by_staff.current_balance_amount
         == Decimal(100) - order.total_gross_amount
     )
+    assert gift_card_created_by_staff.used_by == order.user
+    assert gift_card_created_by_staff.used_by_email == order.user_email
+    assert gift_card_created_by_staff.last_used_on is not None
 
     transaction.events.get(type=TransactionEventType.CHARGE_REQUEST)
     charge_success_event = transaction.events.get(
@@ -3024,6 +3028,17 @@ def test_order_confirmed_charges_funds_authorized_from_gift_card(
     assert order.charge_status == OrderChargeStatus.FULL
     assert order.total_authorized_amount == Decimal(0)
     assert order.total_charged_amount == order.total_gross_amount
+
+    gift_card_event = GiftCardEvent.objects.get(
+        gift_card=gift_card_created_by_staff, type=GiftCardEvents.USED_IN_ORDER
+    )
+    assert gift_card_event.order == order
+    assert Decimal(gift_card_event.parameters["balance"]["old_current_balance"]) == (
+        balance
+    )
+    assert Decimal(gift_card_event.parameters["balance"]["current_balance"]) == (
+        balance - order.total_gross_amount
+    )
 
 
 def test_order_confirmed_checks_gift_card_funds_amount_when_charging_funds_authorized_from_gift_card(
@@ -3079,6 +3094,10 @@ def test_order_confirmed_checks_gift_card_funds_amount_when_charging_funds_autho
     assert order.total_authorized_amount == Decimal(10)
     assert order.total_charged_amount == Decimal(0)
 
+    assert not GiftCardEvent.objects.filter(
+        gift_card=gift_card_created_by_staff, type=GiftCardEvents.USED_IN_ORDER
+    ).exists()
+
 
 def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_once(
     order_with_lines,
@@ -3123,6 +3142,13 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
     assert order.total_authorized_amount == Decimal(0)
     assert order.total_charged_amount == Decimal(10)
 
+    assert (
+        GiftCardEvent.objects.filter(
+            gift_card=gift_card_created_by_staff, type=GiftCardEvents.USED_IN_ORDER
+        ).count()
+        == 1
+    )
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         order_confirmed(order, user=customer_user, app=None, manager=manager)
@@ -3146,5 +3172,13 @@ def test_order_confirmed_does_not_charge_the_same_authorized_funds_more_than_onc
 
     assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
     assert order.charge_status == OrderChargeStatus.PARTIAL
+
+    # Gift card event should still be exactly 1 (not duplicated by second confirmation)
+    assert (
+        GiftCardEvent.objects.filter(
+            gift_card=gift_card_created_by_staff, type=GiftCardEvents.USED_IN_ORDER
+        ).count()
+        == 1
+    )
     assert order.total_authorized_amount == Decimal(0)
     assert order.total_charged_amount == Decimal(10)

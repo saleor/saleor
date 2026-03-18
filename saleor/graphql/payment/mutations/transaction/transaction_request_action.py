@@ -145,7 +145,9 @@ class TransactionRequestAction(BaseMutation):
                 reason_reference=reason_reference,
             )
             if transaction.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-                refund_gift_card_transaction(transaction, request_event)
+                refund_gift_card_transaction(
+                    transaction, request_event, user=user, app=app
+                )
             else:
                 request_refund_action(
                     **action_kwargs,
