@@ -233,12 +233,12 @@ class OrderGrantRefundUpdate(BaseMutation):
         lines: list[GrantRefundLineDict],
         errors: list[dict[str, Any]],
         line_ids_exclude: list[int],
-        refund_reason_reference_type,
+        refund_reason_reference_type_pk: int | None,
     ) -> list[models.OrderGrantedRefundLine]:
         return clean_grant_refund_lines(
             order=order,
             lines=lines,
-            refund_reason_reference_type=refund_reason_reference_type,
+            refund_reason_reference_type_pk=refund_reason_reference_type_pk,
             errors=errors,
             line_error_code_enum=OrderGrantRefundUpdateLineErrorCode,
             granted_refund_lines_to_exclude=line_ids_exclude,
@@ -278,6 +278,9 @@ class OrderGrantRefundUpdate(BaseMutation):
         refund_reason_reference_type = refund_reason_context[
             "refund_reason_reference_type"
         ]
+        refund_reason_reference_type_pk = (
+            refund_reason_reference_type.pk if refund_reason_reference_type else None
+        )
 
         line_ids_to_remove = []
         if remove_lines:
@@ -299,7 +302,7 @@ class OrderGrantRefundUpdate(BaseMutation):
                 add_lines,
                 add_errors,
                 line_ids_to_remove,
-                refund_reason_reference_type,
+                refund_reason_reference_type_pk,
             )
             for line in lines_to_add:
                 line.granted_refund = granted_refund
@@ -367,9 +370,10 @@ class OrderGrantRefundUpdate(BaseMutation):
         reason_reference_instance: Page | None = None
 
         if should_apply:
+            assert refund_reason_reference_type_pk is not None
             reason_reference_instance = resolve_reason_reference_page(
                 str(reason_reference_id),
-                refund_reason_reference_type,
+                refund_reason_reference_type_pk,
                 OrderGrantRefundUpdateErrorCode,
             )
 

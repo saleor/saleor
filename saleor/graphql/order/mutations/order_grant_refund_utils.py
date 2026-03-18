@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
 from ....order import models
-from ....page.models import Page, PageType
+from ....page.models import Page
 from ...core.utils import from_global_id_or_error
 
 
@@ -147,8 +147,8 @@ def assign_order_lines(
 
 def resolve_reason_reference_page(
     reason_reference_id: str,
-    reason_reference_type: PageType,
-    error_code_enum,
+    reason_reference_type_pk: int,
+    error_code_enum: Any,
 ) -> Page:
     """Resolve a reason_reference global ID to a Page instance.
 
@@ -169,7 +169,7 @@ def resolve_reason_reference_page(
         ) from None
 
     try:
-        return Page.objects.get(pk=pk, page_type=reason_reference_type.pk)
+        return Page.objects.get(pk=pk, page_type=reason_reference_type_pk)
     except (Page.DoesNotExist, ValueError):
         raise ValidationError(
             {
@@ -183,9 +183,9 @@ def resolve_reason_reference_page(
 
 def clean_line_reason_references(
     input_lines_data: dict[uuid.UUID, InputLineData],
-    refund_reason_reference_type: PageType | None,
+    refund_reason_reference_type_pk: int | None,
     errors: list[dict[str, Any]],
-    line_error_code_enum,
+    line_error_code_enum: Any,
 ) -> None:
     """Validate and resolve per-line reason_reference IDs, appending per-line errors.
 
@@ -200,7 +200,7 @@ def clean_line_reason_references(
     if not lines_with_refs:
         return
 
-    if not refund_reason_reference_type:
+    if not refund_reason_reference_type_pk:
         for line_pk, _, _ in lines_with_refs:
             errors.append(
                 {
@@ -237,7 +237,7 @@ def clean_line_reason_references(
     existing_page_pks: set[int] = set(
         Page.objects.filter(
             pk__in=page_pks.values(),
-            page_type=refund_reason_reference_type.pk,
+            page_type=refund_reason_reference_type_pk,
         ).values_list("pk", flat=True)
     )
 
@@ -261,9 +261,9 @@ def clean_grant_refund_lines(
     *,
     order: models.Order,
     lines: list[GrantRefundLineDict],
-    refund_reason_reference_type,
+    refund_reason_reference_type_pk: int | None,
     errors: list[dict[str, Any]],
-    line_error_code_enum,
+    line_error_code_enum: Any,
     granted_refund_lines_to_exclude: list[int] | None = None,
 ) -> list[models.OrderGrantedRefundLine]:
     input_lines_data = get_input_lines_data(
@@ -284,7 +284,7 @@ def clean_grant_refund_lines(
     )
     clean_line_reason_references(
         input_lines_data,
-        refund_reason_reference_type,
+        refund_reason_reference_type_pk,
         errors,
         line_error_code_enum,
     )

@@ -117,14 +117,17 @@ def test_clean_line_reason_references_resolves_valid_page(
     # When
     clean_line_reason_references(
         input_lines_data=input_lines_data,
-        refund_reason_reference_type=refund_page_type,
+        refund_reason_reference_type_pk=refund_page_type.pk,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
     )
 
     # Then
     assert not errors
-    assert input_lines_data[order_line.pk]["line_model"].reason_reference == refund_page
+    assert (
+        input_lines_data[order_line.pk]["line_model"].reason_reference_id
+        == refund_page.pk
+    )
 
 
 def test_clean_line_reason_references_skips_lines_without_reference(
@@ -147,7 +150,7 @@ def test_clean_line_reason_references_skips_lines_without_reference(
     # When
     clean_line_reason_references(
         input_lines_data=input_lines_data,
-        refund_reason_reference_type=refund_page_type,
+        refund_reason_reference_type_pk=refund_page_type.pk,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
     )
@@ -178,7 +181,7 @@ def test_clean_line_reason_references_reports_not_configured_per_line(
     # When
     clean_line_reason_references(
         input_lines_data=input_lines_data,
-        refund_reason_reference_type=None,
+        refund_reason_reference_type_pk=None,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
     )
@@ -223,7 +226,7 @@ def test_clean_line_reason_references_reports_invalid_per_line(
     # When
     clean_line_reason_references(
         input_lines_data=input_lines_data,
-        refund_reason_reference_type=refund_page_type,
+        refund_reason_reference_type_pk=refund_page_type.pk,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
     )
@@ -259,7 +262,7 @@ def test_clean_line_reason_references_reports_graphql_error_per_line(
     # When
     clean_line_reason_references(
         input_lines_data=input_lines_data,
-        refund_reason_reference_type=refund_page_type,
+        refund_reason_reference_type_pk=refund_page_type.pk,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
     )
@@ -317,11 +320,15 @@ def test_clean_line_reason_references_batches_db_queries(
     with django_assert_num_queries(1):
         clean_line_reason_references(
             input_lines_data=input_lines_data,
-            refund_reason_reference_type=refund_page_type,
+            refund_reason_reference_type_pk=refund_page_type.pk,
             errors=errors,
             line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
         )
 
     assert not errors
-    assert input_lines_data[lines_qs[0].pk]["line_model"].reason_reference == page1
-    assert input_lines_data[lines_qs[1].pk]["line_model"].reason_reference == page2
+    assert (
+        input_lines_data[lines_qs[0].pk]["line_model"].reason_reference_id == page1.pk
+    )
+    assert (
+        input_lines_data[lines_qs[1].pk]["line_model"].reason_reference_id == page2.pk
+    )

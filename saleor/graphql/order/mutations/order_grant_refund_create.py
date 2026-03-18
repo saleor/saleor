@@ -130,13 +130,13 @@ class OrderGrantRefundCreate(BaseMutation):
         cls,
         order: models.Order,
         lines: list[GrantRefundLineDict],
-        refund_reason_reference_type,
+        refund_reason_reference_type_pk: int | None,
     ) -> list[models.OrderGrantedRefundLine]:
         lines_errors: list[dict[str, str]] = []
         result = clean_grant_refund_lines(
             order=order,
             lines=lines,
-            refund_reason_reference_type=refund_reason_reference_type,
+            refund_reason_reference_type_pk=refund_reason_reference_type_pk,
             errors=lines_errors,
             line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
         )
@@ -221,11 +221,14 @@ class OrderGrantRefundCreate(BaseMutation):
         refund_reason_reference_type = refund_reason_context[
             "refund_reason_reference_type"
         ]
+        refund_reason_reference_type_pk = (
+            refund_reason_reference_type.pk if refund_reason_reference_type else None
+        )
 
         cleaned_input_lines: list[models.OrderGrantedRefundLine] = []
         if input_lines:
             cleaned_input_lines = cls.clean_input_lines(
-                order, input_lines, refund_reason_reference_type
+                order, input_lines, refund_reason_reference_type_pk
             )
         if grant_refund_for_shipping and shipping_costs_already_granted(order):
             error_code = OrderGrantRefundCreateErrorCode.SHIPPING_COSTS_ALREADY_GRANTED
@@ -271,10 +274,10 @@ class OrderGrantRefundCreate(BaseMutation):
 
         reason_reference_instance: Page | None = None
 
-        if should_apply:
+        if should_apply and refund_reason_reference_type_pk:
             reason_reference_instance = resolve_reason_reference_page(
                 str(reason_reference_id),
-                refund_reason_reference_type,
+                refund_reason_reference_type_pk,
                 OrderGrantRefundCreateErrorCode,
             )
 
