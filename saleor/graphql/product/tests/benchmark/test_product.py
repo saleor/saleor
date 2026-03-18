@@ -13,7 +13,6 @@ from .....channel.models import Channel
 from .....core.taxes import TaxType
 from .....plugins.manager import PluginsManager
 from .....product.models import ProductChannelListing, ProductMedia, ProductTranslation
-from .....site.models import Site
 from ....tests.utils import get_graphql_content
 
 
@@ -333,10 +332,6 @@ def test_retrieve_channel_listings(
                 check_no_permissions=False,
             )
         )
-
-    # Clear cache for proper query count comparison.
-    # Site and site settings are cached in `auth_backend` when querying the current site.
-    Site.objects.clear_cache()
 
     ProductChannelListing.objects.bulk_create(
         [
