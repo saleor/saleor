@@ -395,7 +395,7 @@ def get_default_fulfillment_payload(order, fulfillment):
             get_default_fulfillment_line_payload(line, attribute_data) for line in lines
         ],
         # Note: saleor keeps 'digital_lines' for backward compatibility but this
-        #       may removed once ProductType supports metadata
+        #       may be removed once ProductType supports metadata
         "digital_lines": [],
         "recipient_email": order.get_customer_email(),
         **get_site_context(),

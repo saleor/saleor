@@ -9,7 +9,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # TODO: data migration
         migrations.AlterField(
             model_name="customerevent",
             name="type",

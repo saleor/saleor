@@ -218,6 +218,9 @@ class OrderEventsEmails:
     ORDER_REFUND = "order_refund"
     FULFILLMENT = "fulfillment_confirmation"
 
+    # Kept to ensure zero-downtime migrations - will be removed in Saleor v3.24.0
+    DIGITAL_LINKS = "digital_links"
+
     CHOICES = [
         (PAYMENT, "The payment confirmation email was sent"),
         (CONFIRMED, "The order confirmed email was sent"),
@@ -227,6 +230,7 @@ class OrderEventsEmails:
         (ORDER_CANCEL, "The order cancel confirmation email was sent"),
         (ORDER_REFUND, "The order refund confirmation email was sent"),
         (FULFILLMENT, "The fulfillment confirmation email was sent"),
+        (DIGITAL_LINKS, "The email containing the digital links was sent"),
     ]
 
 

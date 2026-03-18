@@ -11,6 +11,8 @@ services:
     depends_on:
       - db
       - cache
+    ports:
+      - "127.0.0.1:8000:8000"
     volumes:
       - ..:/app
       - saleor-pre-commit-cache:/root/.cache/pre-commit/
