@@ -157,150 +157,40 @@ print(qs.explain(analyze=True, verbose=True, buffers=True))
 
 This runs EXPLAIN ANALYZE directly from Django without needing psql. Useful for a quick check, but the `data.sql` + `make explain` approach gives JSON output which is easier to analyze.
 
-## Step 5: Run EXPLAIN ANALYZE
+## Step 5: Analyze queries and generate report
 
-Use Django's `.explain()` method to run EXPLAIN ANALYZE directly from the shell:
+Use the helper script at `.claude/skills/filter-benchmark/analyze_query.py`. It does everything in one call per queryset:
+- Runs EXPLAIN ANALYZE with default planner settings
+- Runs EXPLAIN ANALYZE with `enable_seqscan = OFF` to verify index availability
+- Detects red flags (Seq Scans on large tables, row estimate mismatches, sorts, nested loops with inner seq scans)
+- Saves JSON plans to `/tmp`
+- Uploads plans to explain.dalibo.com for interactive visualization
+
+Run in Django shell:
 
 ```python
-print(
-    filtered_qs.explain(analyze=True, verbose=True, buffers=True)
-)
+import sys; sys.path.insert(0, ".claude/skills/filter-benchmark")
+from analyze_query import analyze, report
+
+# Analyze each queryset — prints quick summary + warnings inline
+analyze(filtered_qs, "created_at range")
+analyze(another_qs, "events by type")
+
+# Print a full markdown report with Dalibo links
+report()
 ```
 
-To check whether indexes would be used (forcing the planner away from sequential scans), run via raw SQL:
+Before analyzing, verify the querysets actually return rows. If EXPLAIN ANALYZE shows 0 rows, the filter input values don't match the generated data — adjust filter parameters (widen date range, use existing event types) and re-run.
 
-```python
-from django.db import connection
+The `report()` output includes a summary table and per-query details. Use it as the basis for the final report to the user, adding:
 
-sql = str(filtered_qs.query)
-with connection.cursor() as cursor:
-    cursor.execute("SET enable_seqscan = OFF;")
-    cursor.execute(f"EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) {sql}")
-    plan = cursor.fetchall()
-    cursor.execute("SET enable_seqscan = ON;")
+**1. Dataset size** — how many objects of each model, how field values are distributed
 
-import json
-print(json.dumps(plan, indent=2))
-```
-
-Run both variants — with `enable_seqscan = OFF` to verify that usable indexes exist, and with it ON (the default `.explain()`) to see what the planner actually chooses with real data.
-
-## Step 6: Analyze the query plan
-
-Before analyzing, verify the query actually returned rows. If the EXPLAIN ANALYZE output shows 0 rows returned, the filter input values don't match any data — the query plan is meaningless in that case because the planner may short-circuit or skip index lookups entirely. Adjust the filter parameters (e.g., widen the date range, use event types that exist in the generated data) and re-run until the result set is non-empty.
-
-Look for these issues:
-
-### Red flags
-- **Seq Scan on large tables**: Should see Index Scan or Bitmap Index Scan instead. A Seq Scan on 100k+ rows means the index is missing or not being used.
-- **High actual rows vs. planned rows**: Large discrepancy means stale statistics. Run `ANALYZE <table_name>` in psql.
-- **Nested Loop with Seq Scan inner**: For subquery filters (like `Exists`), the inner scan should use an index on the foreign key + filtered field.
-- **Sort without index**: If the query includes ORDER BY on a field that has an index, the plan should show Index Scan (not Sort node).
-- **High buffer reads (shared read)**: Indicates data not in cache — normal on first run, but if consistently high, the working set may be too large.
-
-### Green flags
-- **Index Scan** or **Index Only Scan** on filtered fields
-- **Bitmap Index Scan + Bitmap Heap Scan** for multi-condition filters (this is fine)
-- **Actual time** in the low milliseconds range for the main filter node
-- **Rows Removed by Filter** is small relative to rows scanned
-
-### What to report
-
-Present a clear summary that includes:
-
-**1. Dataset size**
-- How many objects of each model were created (e.g., "100,000 TransactionItems, ~250,000 TransactionEvents")
-- How field values are distributed (e.g., "created_at spread over 2 years, events distributed across all 18 event types")
-- This context is essential — a query plan on 100k rows tells a very different story than on 1k rows
-
-**2. Query plan analysis**
-- Which scan type was used for each table involved in the query
-- Whether indexes are being utilized and which specific indexes
-- For subqueries (e.g., `Exists`): what scan is used on the inner query
-- Actual execution time (both planning and execution)
-- Number of rows scanned vs. rows returned — a high ratio means the filter is doing too much work
-
-**3. Comparison** (when relevant)
-- Results with `enable_seqscan = OFF` vs. default — if the planner chooses a Seq Scan even when an index exists, the table may be small enough that a Seq Scan is genuinely faster, or statistics may be stale
-- Before/after adding a new index
-
-**4. Recommendations**
-If there are problems, suggest concrete fixes:
+**2. Recommendations** — if there are warnings, suggest concrete fixes:
 - Missing index: show the migration to add it (use `AddIndexConcurrently`)
 - Suboptimal query: suggest ORM changes in the filter function
 - Missing composite index: when filtering on multiple fields together
 
-## Step 7: Upload plans to explain.dalibo.com
-
-After running EXPLAIN ANALYZE for each filter, upload the JSON query plans to explain.dalibo.com so the user gets interactive visualization links.
-
-### How to collect JSON plans
-
-Use `.query.sql_with_params()` to get parameterized SQL, then run EXPLAIN with `FORMAT JSON`. Do NOT use `str(qs.query)` — it doesn't quote parameters properly and produces invalid SQL.
-
-```python
-import json
-from django.db import connection
-
-sql, params = filtered_qs.query.sql_with_params()
-with connection.cursor() as cursor:
-    cursor.execute(
-        f"EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) {sql}",
-        params,
-    )
-    plan = cursor.fetchone()[0]
-
-# Save to a temp file
-with open("/tmp/explain_my_filter.json", "w") as f:
-    json.dump(plan, f, indent=2)
-```
-
-Save each filter's JSON plan to a separate `/tmp/explain_<name>.json` file.
-
-### How to upload to Dalibo
-
-Use Python's `urllib` to POST each plan to `https://explain.dalibo.com/new`. The response redirects to the shareable URL:
-
-```python
-import json
-import urllib.request
-
-files = [
-    ("/tmp/explain_created_at.json", "Filter: created_at range"),
-    ("/tmp/explain_events_type.json", "Filter: events by type"),
-    # ... one entry per filter
-]
-
-for fpath, title in files:
-    with open(fpath) as f:
-        plan = json.load(f)
-
-    payload = json.dumps({
-        "plan": json.dumps(plan),
-        "title": title,
-        "query": "",
-    }).encode()
-
-    req = urllib.request.Request(
-        "https://explain.dalibo.com/new",
-        data=payload,
-        headers={"Content-Type": "application/json"},
-    )
-    resp = urllib.request.urlopen(req)
-    print(f"{title}: {resp.url}")
-```
-
-The `resp.url` is the shareable Dalibo link (e.g., `https://explain.dalibo.com/plan/abc123`).
-
-### Presenting the links
-
-Include the Dalibo links in the final report as a table:
-
-| Filter | Dalibo Link |
-|--------|------------|
-| `created_at` range | https://explain.dalibo.com/plan/... |
-| events by `type` | https://explain.dalibo.com/plan/... |
-
-## Step 8: Wrap up
+## Step 6: Wrap up
 
 After presenting the report with Dalibo links, ask the user if they want to clean up the test data. If yes, delete the objects in reverse dependency order (child models first, then parents) to avoid foreign key violations. Use `.delete()` with filtering to target only the bulk-created data — for example, filter by the date range or other markers used during generation. Print counts of deleted objects for confirmation.
