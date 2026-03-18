@@ -264,14 +264,11 @@ class OrderGrantRefundUpdate(BaseMutation):
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", None)
         reason_reference_id = input.get("reason_reference")
 
-        requestor_is_app = info.context.app is not None
-        requestor_is_user = info.context.user is not None and not requestor_is_app
-
         site = get_site_promise(info.context).get()
 
         refund_reason_context = validate_and_resolve_refund_reason_context(
             reason_reference_id=reason_reference_id,
-            requestor_is_user=bool(requestor_is_user),
+            requestor_is_user=bool(info.context.user),
             refund_reference_field_name="reason_reference",
             error_code_enum=OrderGrantRefundUpdateErrorCode,
             site_settings=site.settings,
