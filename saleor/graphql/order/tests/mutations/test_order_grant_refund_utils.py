@@ -1,18 +1,14 @@
-import uuid
-
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
 
-from .....order import models
 from .....order.error_codes import OrderGrantRefundCreateLineErrorCode
 from .....page.models import Page, PageType
 from ....core.utils import to_global_id_or_none
 from ...enums import OrderGrantRefundCreateErrorCode
 from ...mutations.order_grant_refund_utils import (
-    InputLineData,
-    clean_line_reason_references,
     resolve_reason_reference_page,
+    validate_reason_references,
 )
 
 
@@ -96,27 +92,26 @@ def test_raises_invalid_for_nonexistent_page(refund_page_type):
     )
 
 
-def test_clean_line_reason_references_resolves_valid_page(
+def test_validate_reason_references_resolves_valid_page(
     refund_page_type, refund_page, order_with_lines
 ):
     # Given
     order_line = order_with_lines.lines.first()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
     page_id = to_global_id_or_none(refund_page)
-    input_lines_data: dict[uuid.UUID, InputLineData] = {
-        order_line.pk: {
-            "line_model": models.OrderGrantedRefundLine(
-                order_line_id=order_line.pk,
-                quantity=1,
-                reason="Damaged",
-            ),
-            "reference_id": page_id,
+    lines = [
+        {
+            "id": order_line_id,
+            "quantity": 1,
+            "reason": "Damaged",
+            "reason_reference": page_id,
         }
-    }
+    ]
     errors: list = []
 
     # When
-    clean_line_reason_references(
-        input_lines_data=input_lines_data,
+    result = validate_reason_references(
+        lines=lines,
         refund_reason_reference_type_pk=refund_page_type.pk,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
@@ -124,32 +119,21 @@ def test_clean_line_reason_references_resolves_valid_page(
 
     # Then
     assert not errors
-    assert (
-        input_lines_data[order_line.pk]["line_model"].reason_reference_id
-        == refund_page.pk
-    )
+    assert result == {page_id: refund_page.pk}
 
 
-def test_clean_line_reason_references_skips_lines_without_reference(
+def test_validate_reason_references_skips_lines_without_reference(
     refund_page_type, order_with_lines
 ):
     # Given
     order_line = order_with_lines.lines.first()
-    input_lines_data: dict[uuid.UUID, InputLineData] = {
-        order_line.pk: {
-            "line_model": models.OrderGrantedRefundLine(
-                order_line_id=order_line.pk,
-                quantity=1,
-                reason="Damaged",
-            ),
-            "reference_id": None,
-        }
-    }
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+    lines = [{"id": order_line_id, "quantity": 1, "reason": "Damaged"}]
     errors: list = []
 
     # When
-    clean_line_reason_references(
-        input_lines_data=input_lines_data,
+    result = validate_reason_references(
+        lines=lines,
         refund_reason_reference_type_pk=refund_page_type.pk,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
@@ -157,30 +141,29 @@ def test_clean_line_reason_references_skips_lines_without_reference(
 
     # Then
     assert not errors
-    assert input_lines_data[order_line.pk]["line_model"].reason_reference_id is None
+    assert result == {}
 
 
-def test_clean_line_reason_references_reports_not_configured_per_line(
+def test_validate_reason_references_reports_not_configured_per_line(
     page, order_with_lines
 ):
     # Given
     order_line = order_with_lines.lines.first()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
     page_id = to_global_id_or_none(page)
-    input_lines_data: dict[uuid.UUID, InputLineData] = {
-        order_line.pk: {
-            "line_model": models.OrderGrantedRefundLine(
-                order_line_id=order_line.pk,
-                quantity=1,
-                reason="Damaged",
-            ),
-            "reference_id": page_id,
+    lines = [
+        {
+            "id": order_line_id,
+            "quantity": 1,
+            "reason": "Damaged",
+            "reason_reference": page_id,
         }
-    }
+    ]
     errors: list = []
 
     # When
-    clean_line_reason_references(
-        input_lines_data=input_lines_data,
+    validate_reason_references(
+        lines=lines,
         refund_reason_reference_type_pk=None,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
@@ -193,12 +176,10 @@ def test_clean_line_reason_references_reports_not_configured_per_line(
         line_error["code"] == OrderGrantRefundCreateLineErrorCode.NOT_CONFIGURED.value
     )
     assert line_error["message"] == "Reason reference type is not configured."
-    assert line_error["line_id"] == graphene.Node.to_global_id(
-        "OrderLine", order_line.pk
-    )
+    assert line_error["line_id"] == order_line_id
 
 
-def test_clean_line_reason_references_reports_invalid_per_line(
+def test_validate_reason_references_reports_invalid_per_line(
     refund_page_type, order_with_lines
 ):
     # Given
@@ -210,22 +191,21 @@ def test_clean_line_reason_references_reports_invalid_per_line(
         is_published=True,
     )
     order_line = order_with_lines.lines.first()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
     page_id = to_global_id_or_none(page)
-    input_lines_data: dict[uuid.UUID, InputLineData] = {
-        order_line.pk: {
-            "line_model": models.OrderGrantedRefundLine(
-                order_line_id=order_line.pk,
-                quantity=1,
-                reason="Damaged",
-            ),
-            "reference_id": page_id,
+    lines = [
+        {
+            "id": order_line_id,
+            "quantity": 1,
+            "reason": "Damaged",
+            "reason_reference": page_id,
         }
-    }
+    ]
     errors: list = []
 
     # When
-    clean_line_reason_references(
-        input_lines_data=input_lines_data,
+    validate_reason_references(
+        lines=lines,
         refund_reason_reference_type_pk=refund_page_type.pk,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
@@ -236,32 +216,29 @@ def test_clean_line_reason_references_reports_invalid_per_line(
     line_error = errors[0]
     assert line_error["code"] == OrderGrantRefundCreateLineErrorCode.INVALID.value
     assert line_error["message"] == "Invalid reason reference."
-    assert line_error["line_id"] == graphene.Node.to_global_id(
-        "OrderLine", order_line.pk
-    )
+    assert line_error["line_id"] == order_line_id
 
 
-def test_clean_line_reason_references_reports_graphql_error_per_line(
+def test_validate_reason_references_reports_graphql_error_per_line(
     refund_page_type, order_with_lines
 ):
     # Given
     order_line = order_with_lines.lines.first()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
     invalid_id = graphene.Node.to_global_id("Product", 12345)
-    input_lines_data: dict[uuid.UUID, InputLineData] = {
-        order_line.pk: {
-            "line_model": models.OrderGrantedRefundLine(
-                order_line_id=order_line.pk,
-                quantity=1,
-                reason="Damaged",
-            ),
-            "reference_id": invalid_id,
+    lines = [
+        {
+            "id": order_line_id,
+            "quantity": 1,
+            "reason": "Damaged",
+            "reason_reference": invalid_id,
         }
-    }
+    ]
     errors: list = []
 
     # When
-    clean_line_reason_references(
-        input_lines_data=input_lines_data,
+    validate_reason_references(
+        lines=lines,
         refund_reason_reference_type_pk=refund_page_type.pk,
         errors=errors,
         line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
@@ -274,12 +251,10 @@ def test_clean_line_reason_references_reports_graphql_error_per_line(
     assert line_error["message"] == (
         f"Invalid ID: {invalid_id}. Expected: Page, received: Product."
     )
-    assert line_error["line_id"] == graphene.Node.to_global_id(
-        "OrderLine", order_line.pk
-    )
+    assert line_error["line_id"] == order_line_id
 
 
-def test_clean_line_reason_references_batches_db_queries(
+def test_validate_reason_references_batches_db_queries(
     refund_page_type, order_with_lines, django_assert_num_queries
 ):
     # Given
@@ -296,39 +271,24 @@ def test_clean_line_reason_references_batches_db_queries(
         is_published=True,
     )
     lines_qs = order_with_lines.lines.all()
+    line1_id = graphene.Node.to_global_id("OrderLine", lines_qs[0].pk)
+    line2_id = graphene.Node.to_global_id("OrderLine", lines_qs[1].pk)
     page1_id = to_global_id_or_none(page1)
     page2_id = to_global_id_or_none(page2)
-    input_lines_data: dict[uuid.UUID, InputLineData] = {
-        lines_qs[0].pk: {
-            "line_model": models.OrderGrantedRefundLine(
-                order_line_id=lines_qs[0].pk,
-                quantity=1,
-            ),
-            "reference_id": page1_id,
-        },
-        lines_qs[1].pk: {
-            "line_model": models.OrderGrantedRefundLine(
-                order_line_id=lines_qs[1].pk,
-                quantity=1,
-            ),
-            "reference_id": page2_id,
-        },
-    }
+    lines = [
+        {"id": line1_id, "quantity": 1, "reason_reference": page1_id},
+        {"id": line2_id, "quantity": 1, "reason_reference": page2_id},
+    ]
     errors: list = []
 
     # When / Then — only 1 DB query regardless of number of lines
     with django_assert_num_queries(1):
-        clean_line_reason_references(
-            input_lines_data=input_lines_data,
+        result = validate_reason_references(
+            lines=lines,
             refund_reason_reference_type_pk=refund_page_type.pk,
             errors=errors,
             line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
         )
 
     assert not errors
-    assert (
-        input_lines_data[lines_qs[0].pk]["line_model"].reason_reference_id == page1.pk
-    )
-    assert (
-        input_lines_data[lines_qs[1].pk]["line_model"].reason_reference_id == page2.pk
-    )
+    assert result == {page1_id: page1.pk, page2_id: page2.pk}
