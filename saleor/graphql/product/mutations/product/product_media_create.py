@@ -54,9 +54,23 @@ class ProductMediaCreate(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    def validate_input(cls, input):
+        if not input.get("product"):
+            raise ValidationError(
+                {
+                    "product": ValidationError(
+                        "Product ID is required.",
+                        code=ProductErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, input
     ):
+        cls.validate_input(input)
+
         image = input.get("image")
         media_url = input.get("media_url")
         alt = input.get("alt") or ""

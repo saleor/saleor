@@ -543,3 +543,27 @@ def test_product_media_create_mutation_request_exception(
     assert error["code"] == ProductErrorCode.INVALID.name
     assert error["field"] == "mediaUrl"
     assert error["message"] == "Failed to fetch media from URL."
+
+
+def test_product_media_create_mutation_with_empty_product_id(
+    staff_api_client, permission_manage_products
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variables = {
+        "product": "",
+        "mediaUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_CREATE_QUERY,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "product"
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
