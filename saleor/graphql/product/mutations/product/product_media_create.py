@@ -88,6 +88,16 @@ class ProductMediaCreate(BaseMutation):
                 }
             )
 
+        if not data.get("product"):
+            raise ValidationError(
+                {
+                    "product": ValidationError(
+                        "Product ID is required.",
+                        code=ProductErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
         if alt and len(alt) > ALT_CHAR_LIMIT:
             raise ValidationError(
                 {
