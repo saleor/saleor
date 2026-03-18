@@ -12,6 +12,7 @@ GRAPHQL_OPERATION_IDENTIFIER: Final = "graphql.operation.identifier"
 GRAPHQL_OPERATION_COST: Final = "graphql.operation.cost"
 GRAPHQL_PARENT_TYPE: Final = "graphql.parent_type"
 GRAPHQL_FIELD_NAME: Final = "graphql.field_name"
+GRAPHQL_FIELD_DEPRECATED: Final = "graphql.field.deprecated"
 
 # Http
 SALEOR_SOURCE_SERVICE_NAME: Final = "saleor.source.service.name"
