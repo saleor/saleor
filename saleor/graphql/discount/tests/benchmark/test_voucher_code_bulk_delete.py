@@ -1,7 +1,6 @@
 import graphene
 import pytest
 
-from .....site.models import Site
 from ....tests.utils import get_graphql_content
 
 VOUCHER_CODE_BULK_DELETE_MUTATION = """
@@ -37,10 +36,6 @@ def test_voucher_code_bulk_delete_queries(
         )
         content = get_graphql_content(response)
         assert content["data"]["voucherCodeBulkDelete"]["count"] == 1
-
-    # Clear cache for proper query count comparison.
-    # Site and site settings are cached in `auth_backend` when querying the current site.
-    Site.objects.clear_cache()
 
     variables = {"ids": ids[1:]}
 

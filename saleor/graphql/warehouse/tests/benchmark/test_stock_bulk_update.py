@@ -1,7 +1,6 @@
 import pytest
 from django.db import connection
 
-from .....site.models import Site
 from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
 
@@ -89,10 +88,6 @@ def test_stocks_bulk_update_queries_count(
             ]
         )
         assert webhook_queries_count == 1
-
-    # Clear cache for proper query count comparison.
-    # Site and site settings are cached in `auth_backend` when querying the current site.
-    Site.objects.clear_cache()
 
     stocks_input += [
         {
