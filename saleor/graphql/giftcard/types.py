@@ -312,7 +312,8 @@ class GiftCard(ModelObjectType[models.GiftCard]):
             f"{GiftcardPermissions.MANAGE_GIFT_CARD.name} permission to access all "
             "events. Users with "
             f"{OrderPermissions.MANAGE_ORDERS.name} permission can access only "
-            f"{GiftCardEvents.USED_IN_ORDER.upper()} events."
+            f"{GiftCardEvents.USED_IN_ORDER.upper()} and "
+            f"{GiftCardEvents.REFUNDED_IN_ORDER.upper()} events."
         ),
         required=True,
         permissions=[
@@ -495,7 +496,12 @@ class GiftCard(ModelObjectType[models.GiftCard]):
                 GiftcardPermissions.MANAGE_GIFT_CARD
             )
             if not has_manage_gift_card:
-                events = filter_events_by_type(events, GiftCardEvents.USED_IN_ORDER)
+                events = [
+                    event
+                    for event in events
+                    if event.type
+                    in [GiftCardEvents.USED_IN_ORDER, GiftCardEvents.REFUNDED_IN_ORDER]
+                ]
 
             event_filter = kwargs.get("filter", {})
             if event_type_value := event_filter.get("type"):

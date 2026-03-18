@@ -7,7 +7,9 @@ import pytest
 from .....app.models import App
 from .....checkout import CheckoutAuthorizeStatus
 from .....checkout.payment_utils import update_checkout_payment_statuses
+from .....giftcard import GiftCardEvents
 from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
+from .....giftcard.models import GiftCardEvent
 from .....order import OrderEvents
 from .....page.models import Page, PageType
 from .....payment import TransactionAction, TransactionEventType
@@ -2308,6 +2310,18 @@ def test_transaction_request_refund_for_order_gift_card_charge(
         amount_value=expected_refund_amount,
     )
 
+    gift_card_event = GiftCardEvent.objects.get(
+        gift_card=gift_card_created_by_staff,
+        type=GiftCardEvents.REFUNDED_IN_ORDER,
+    )
+    assert gift_card_event.order == order
+    assert Decimal(gift_card_event.parameters["balance"]["current_balance"]) == (
+        expected_refund_amount
+    )
+    assert Decimal(gift_card_event.parameters["balance"]["old_current_balance"]) == (
+        Decimal(0)
+    )
+
 
 def test_transaction_request_refund_for_order_gift_card_charge_when_gift_card_does_not_exist_anymore(
     order_with_lines,
@@ -2352,6 +2366,10 @@ def test_transaction_request_refund_for_order_gift_card_charge_when_gift_card_do
     assert transaction.refunded_value == Decimal(0)
     assert transaction.gift_card is None
     assert transaction.available_actions == [TransactionAction.REFUND]
+
+    assert not GiftCardEvent.objects.filter(
+        type=GiftCardEvents.REFUNDED_IN_ORDER
+    ).exists()
 
     TransactionEvent.objects.get(
         transaction=transaction,
