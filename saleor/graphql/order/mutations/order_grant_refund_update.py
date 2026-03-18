@@ -266,18 +266,15 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         site = get_site_promise(info.context).get()
 
-        refund_reason_context = validate_and_resolve_refund_reason_context(
-            reason_reference_id=reason_reference_id,
-            requestor_is_user=bool(info.context.user),
-            refund_reference_field_name="reason_reference",
-            error_code_enum=OrderGrantRefundUpdateErrorCode,
-            site_settings=site.settings,
+        should_apply, refund_reason_reference_type = (
+            validate_and_resolve_refund_reason_context(
+                reason_reference_id=reason_reference_id,
+                requestor_is_user=bool(info.context.user),
+                refund_reference_field_name="reason_reference",
+                error_code_enum=OrderGrantRefundUpdateErrorCode,
+                site_settings=site.settings,
+            )
         )
-
-        should_apply = refund_reason_context["should_apply"]
-        refund_reason_reference_type = refund_reason_context[
-            "refund_reason_reference_type"
-        ]
         refund_reason_reference_type_pk = (
             refund_reason_reference_type.pk if refund_reason_reference_type else None
         )
