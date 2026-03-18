@@ -1,19 +1,22 @@
+from unittest.mock import MagicMock
+
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from promise import Promise
 
 from ....graphql.app.enums import CircuitBreakerState
 from ....webhook.event_types import WebhookEventSyncType
 from .utils import create_breaker_board
 
 
-def test_breaker_board_failure(
+def test_breaker_board_failure_for_func_wrapper(
     settings, breaker_storage, app_with_webhook, failed_response_function_mock
 ):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     breaker_board = create_breaker_board(breaker_storage)
     app, webhook = app_with_webhook
-    wrapped_function_mock = breaker_board(failed_response_function_mock)
+    wrapped_function_mock = breaker_board.wrap_func(failed_response_function_mock)
     assert failed_response_function_mock.call_count == 0
 
     # when
@@ -32,14 +35,48 @@ def test_breaker_board_failure(
     assert changed_at > 0
 
 
-def test_breaker_board_failure_ignored_webhook_event_type(
+def test_breaker_board_failure_for_promise_wrapper(
+    settings, breaker_storage, app_with_webhook
+):
+    # given
+    settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
+    breaker_board = create_breaker_board(breaker_storage)
+    app, webhook = app_with_webhook
+
+    wrapped_mocked_promise_func = MagicMock(return_value=Promise.resolve(None))
+    wrapped_function_mock = breaker_board.wrap_promise_func(wrapped_mocked_promise_func)
+
+    # when
+    wrapped_function_mock(
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+        static_payload="",
+        webhook=webhook,
+        allow_replica=True,
+    ).get()
+
+    wrapped_function_mock(
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+        static_payload="",
+        webhook=webhook,
+        allow_replica=True,
+    ).get()
+    breaker_board.update_breaker_state(app)
+
+    # then only one call was made due to failure threshold
+    assert wrapped_mocked_promise_func.call_count == 1
+    status, changed_at = breaker_board.storage.get_app_state(app.id)
+    assert status == CircuitBreakerState.OPEN
+    assert changed_at > 0
+
+
+def test_breaker_board_failure_ignored_webhook_event_type_for_func_wrapper(
     settings, breaker_storage, app_with_webhook, failed_response_function_mock
 ):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     breaker_board = create_breaker_board(breaker_storage)
     app, webhook = app_with_webhook
-    wrapped_function_mock = breaker_board(failed_response_function_mock)
+    wrapped_function_mock = breaker_board.wrap_func(failed_response_function_mock)
     assert failed_response_function_mock.call_count == 0
 
     # when
@@ -53,14 +90,48 @@ def test_breaker_board_failure_ignored_webhook_event_type(
     assert changed_at == 0
 
 
-def test_breaker_board_success(
+def test_breaker_board_failure_ignored_webhook_event_type_for_promise_func_wrapper(
+    settings,
+    breaker_storage,
+    app_with_webhook,
+):
+    # given
+    settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
+    breaker_board = create_breaker_board(breaker_storage)
+    app, webhook = app_with_webhook
+
+    wrapped_mocked_promise_func = MagicMock(return_value=Promise.resolve(None))
+    wrapped_function_mock = breaker_board.wrap_promise_func(wrapped_mocked_promise_func)
+
+    # when
+    wrapped_function_mock(
+        event_type=WebhookEventSyncType.PAYMENT_CAPTURE,
+        static_payload="",
+        webhook=webhook,
+        allow_replica=True,
+    )
+    wrapped_function_mock(
+        event_type=WebhookEventSyncType.PAYMENT_CAPTURE,
+        static_payload="",
+        webhook=webhook,
+        allow_replica=True,
+    )
+
+    # then two calls were made despite failure threshold due to webhook event type
+    assert wrapped_mocked_promise_func.call_count == 2
+    status, changed_at = breaker_board.storage.get_app_state(app.id)
+    assert status == CircuitBreakerState.CLOSED
+    assert changed_at == 0
+
+
+def test_breaker_board_success_for_func_wrapper(
     settings, breaker_storage, app_with_webhook, success_response_function_mock
 ):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     breaker_board = create_breaker_board(breaker_storage)
     app, webhook = app_with_webhook
-    wrapped_function_mock = breaker_board(success_response_function_mock)
+    wrapped_function_mock = breaker_board.wrap_func(success_response_function_mock)
     assert success_response_function_mock.call_count == 0
 
     # when
@@ -74,6 +145,39 @@ def test_breaker_board_success(
 
     # then
     assert success_response_function_mock.call_count == 2
+    status, changed_at = breaker_board.storage.get_app_state(app.id)
+    assert status == CircuitBreakerState.CLOSED
+    assert changed_at == 0
+
+
+def test_breaker_board_success_for_promise_func_wrapper(
+    settings, breaker_storage, app_with_webhook
+):
+    # given
+    settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
+    breaker_board = create_breaker_board(breaker_storage)
+    app, webhook = app_with_webhook
+
+    wrapped_mocked_promise_func = MagicMock(return_value=Promise.resolve(None))
+    wrapped_function_mock = breaker_board.wrap_promise_func(wrapped_mocked_promise_func)
+
+    # when
+    wrapped_function_mock(
+        event_type=WebhookEventSyncType.PAYMENT_CAPTURE,
+        static_payload="",
+        webhook=webhook,
+        allow_replica=True,
+    )
+    wrapped_function_mock(
+        event_type=WebhookEventSyncType.PAYMENT_CAPTURE,
+        static_payload="",
+        webhook=webhook,
+        allow_replica=True,
+    )
+    breaker_board.update_breaker_state(app)
+
+    # then
+    assert wrapped_mocked_promise_func.call_count == 2
     status, changed_at = breaker_board.storage.get_app_state(app.id)
     assert status == CircuitBreakerState.CLOSED
     assert changed_at == 0
@@ -108,8 +212,12 @@ def test_breaker_board_threshold(
     )
     # given
     app, webhook = app_with_webhook
-    wrapped_function_mock_success = breaker_board(success_response_function_mock)
-    wrapped_function_mock_failed = breaker_board(failed_response_function_mock)
+    wrapped_function_mock_success = breaker_board.wrap_func(
+        success_response_function_mock
+    )
+    wrapped_function_mock_failed = breaker_board.wrap_func(
+        failed_response_function_mock
+    )
 
     # when
     for _ in range(success_attempts):
@@ -139,7 +247,9 @@ def test_breaker_board_clear_state_for_app(
         breaker_storage, failure_threshold=3, failure_min_count=1
     )
     app, webhook = app_with_webhook
-    wrapped_function_mock_failed = breaker_board(failed_response_function_mock)
+    wrapped_function_mock_failed = breaker_board.wrap_func(
+        failed_response_function_mock
+    )
 
     # when
     for _ in range(3):

@@ -255,9 +255,9 @@ def trigger_webhook_sync_promise_if_not_cached(
         return response_data
 
     return trigger_webhook_sync_promise(
-        event_type,
-        webhook,
-        allow_replica,
+        event_type=event_type,
+        webhook=webhook,
+        allow_replica=allow_replica,
         static_payload=static_payload,
         subscribable_object=subscribable_object,
         timeout=request_timeout,
@@ -505,6 +505,7 @@ def trigger_webhook_sync(
 
 
 def trigger_webhook_sync_promise(
+    *,
     event_type: str,
     webhook: "Webhook",
     allow_replica,
@@ -551,8 +552,10 @@ def trigger_webhook_sync_promise(
 
 
 if breaker_board := initialize_breaker_board():
-    trigger_webhook_sync = breaker_board(trigger_webhook_sync)
-    trigger_webhook_sync_promise = breaker_board(trigger_webhook_sync_promise)
+    trigger_webhook_sync = breaker_board.wrap_func(trigger_webhook_sync)
+    trigger_webhook_sync_promise = breaker_board.wrap_promise_func(
+        trigger_webhook_sync_promise
+    )
 
 
 def trigger_taxes_all_webhooks_sync(
