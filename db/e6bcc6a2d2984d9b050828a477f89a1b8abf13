@@ -1,0 +1,31 @@
+saleor/graphql/payment/mutations/transaction/transaction_request_action.py
+  19e5e07b03cd4dc6 211,218,223-224
+saleor/graphql/payment/utils.py
+  19e5e07b03cd4dc6 71,88
+saleor/graphql/payment/tests/test_utils.py
+  19e5e07b03cd4dc6 27-29,108-110,131-133,156-158
+saleor/graphql/order/mutations/order_grant_refund_create.py
+  19e5e07b03cd4dc6 212,219
+saleor/graphql/order/mutations/order_grant_refund_update.py
+  19e5e07b03cd4dc6 269,276
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "dbe6bcc6a2d2984d9b050828a477f89a1b8abf13",
+  "prompts": {
+    "19e5e07b03cd4dc6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f5b3748-1689-4bd6-94af-caf11bcc63d5",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 44,
+      "total_deletions": 102,
+      "accepted_lines": 23,
+      "overriden_lines": 1
+    }
+  }
+}
