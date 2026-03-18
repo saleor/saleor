@@ -15,11 +15,6 @@ class Migration(migrations.Migration):
                     # Adds 'db_default=False' for backward-compatibility
                     field=models.BooleanField(default=False, db_default=False),
                 ),
-                # TODO:
-                # migrations.RunPython(
-                #     migrations.RunPython.noop,
-                #     todo,
-                # ),
             ],
             # Will be dropped from the actual DB in Saleor v3.24.0
             state_operations=[
