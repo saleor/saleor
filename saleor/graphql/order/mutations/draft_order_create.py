@@ -121,7 +121,8 @@ class DraftOrderInput(BaseInputObjectType):
         description="ID of a selected shipping method.", name="shippingMethod"
     )
     voucher = graphene.ID(
-        description="ID of the voucher associated with the order.",
+        description=f"ID of the voucher associated with the order."
+        f"{DEPRECATED_IN_3X_INPUT} Use `voucherCode` instead.",
         name="voucher",
         deprecation_reason="Use `voucherCode` instead.",
     )

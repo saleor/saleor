@@ -27038,7 +27038,7 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   shippingMethod: ID
 
   """ID of the voucher associated with the order."""
-  voucher: ID
+  voucher: ID @deprecated(reason: "Use `voucherCode` instead.")
 
   """
   A code of the voucher associated with the order.
@@ -27188,7 +27188,7 @@ input DraftOrderInput @doc(category: "Orders") {
   shippingMethod: ID
 
   """ID of the voucher associated with the order."""
-  voucher: ID
+  voucher: ID @deprecated(reason: "Use `voucherCode` instead.")
 
   """
   A code of the voucher associated with the order.
