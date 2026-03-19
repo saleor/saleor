@@ -208,7 +208,7 @@ def test_deprecated_field_subscription_payload_triggers_monitoring(
         SUBSCRIPTION_QUERY_WITH_DEPRECATED_FIELD,
         WebhookEventAsyncType.ORDER_UPDATED,
     )
-    request = initialize_request(app=webhook.app)
+    request = initialize_request()
 
     # when
     generate_payload_from_subscription(
@@ -216,6 +216,7 @@ def test_deprecated_field_subscription_payload_triggers_monitoring(
         subscribable_object=order,
         subscription_query=webhook.subscription_query,
         request=request,
+        app=webhook.app,
     )
 
     # then
@@ -231,7 +232,7 @@ def test_deprecated_field_subscription_promise_payload_triggers_monitoring(
         SUBSCRIPTION_QUERY_WITH_DEPRECATED_FIELD,
         WebhookEventAsyncType.ORDER_UPDATED,
     )
-    request = initialize_request(app=webhook.app)
+    request = initialize_request()
 
     # when
     promise = generate_payload_promise_from_subscription(
@@ -239,6 +240,7 @@ def test_deprecated_field_subscription_promise_payload_triggers_monitoring(
         subscribable_object=order,
         subscription_query=webhook.subscription_query,
         request=request,
+        app=webhook.app,
     )
     promise.get()
 
@@ -255,7 +257,7 @@ def test_non_deprecated_field_subscription_payload_does_not_trigger_monitoring(
         SUBSCRIPTION_QUERY_WITHOUT_DEPRECATED_FIELD,
         WebhookEventAsyncType.ORDER_UPDATED,
     )
-    request = initialize_request(app=webhook.app)
+    request = initialize_request()
 
     # when
     generate_payload_from_subscription(
@@ -263,6 +265,7 @@ def test_non_deprecated_field_subscription_payload_does_not_trigger_monitoring(
         subscribable_object=order,
         subscription_query=webhook.subscription_query,
         request=request,
+        app=webhook.app,
     )
 
     # then
@@ -284,7 +287,7 @@ def test_monitor_usage_field_subscription_payload_triggers_monitoring(
         SUBSCRIPTION_QUERY_WITH_MONITORED_FIELD,
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
     )
-    request = initialize_request(app=webhook.app)
+    request = initialize_request()
     shipping_method_data = convert_to_shipping_method_data(
         shipping_method,
         shipping_method.channel_listings.get(channel=checkout.channel),
@@ -296,6 +299,7 @@ def test_monitor_usage_field_subscription_payload_triggers_monitoring(
         subscribable_object=(checkout, [shipping_method_data]),
         subscription_query=webhook.subscription_query,
         request=request,
+        app=webhook.app,
     )
 
     # then
