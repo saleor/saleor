@@ -192,6 +192,8 @@ class TransactionItem(ModelWithMetadata):
             BTreeIndex(fields=["cc_brand"], name="cc_brand_idx"),
             BTreeIndex(fields=["psp_reference"], name="psp_reference_idx"),
             BTreeIndex(fields=["app_identifier"], name="app_identifier_idx"),
+            BTreeIndex(fields=["created_at"], name="transaction_created_at_idx"),
+            BTreeIndex(fields=["modified_at"], name="transaction_modified_at_idx"),
         ]
         constraints = [
             models.UniqueConstraint(
@@ -256,6 +258,10 @@ class TransactionEvent(models.Model):
 
     class Meta:
         ordering = ("pk",)
+        indexes = [
+            BTreeIndex(fields=["created_at"], name="transactionevent_created_at_idx"),
+            BTreeIndex(fields=["type"], name="transactionevent_type_idx"),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=["transaction_id", "idempotency_key"],

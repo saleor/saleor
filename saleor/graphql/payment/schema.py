@@ -3,7 +3,7 @@ import graphene
 from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_322
+from ..core.descriptions import ADDED_IN_322, ADDED_IN_323
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
@@ -34,6 +34,7 @@ from .resolvers import (
     resolve_transaction,
     resolve_transactions,
 )
+from .sorters import TransactionSortingInput
 from .types import (
     CardPaymentMethodDetails,
     GiftCardPaymentMethodDetails,
@@ -101,6 +102,9 @@ class PaymentQueries(graphene.ObjectType):
         TransactionCountableConnection,
         where=TransactionWhereInput(
             description="Where filtering options for transactions."
+        ),
+        sort_by=TransactionSortingInput(
+            description="Sort transactions." + ADDED_IN_323
         ),
         description=(
             "List of transactions. "

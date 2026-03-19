@@ -686,6 +686,13 @@ type Query {
     """Where filtering options for transactions."""
     where: TransactionWhereInput
 
+    """
+    Sort transactions.
+    
+    Added in Saleor 3.23.
+    """
+    sortBy: TransactionSortingInput
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -15570,11 +15577,85 @@ input TransactionWhereInput @doc(category: "Payments") {
   """Filter by app identifier."""
   appIdentifier: StringFilterInput
 
+  """
+  Filter transactions by created at date.
+  
+  Added in Saleor 3.23.
+  """
+  createdAt: DateTimeRangeInput
+
+  """
+  Filter transactions by modified at date.
+  
+  Added in Saleor 3.23.
+  """
+  modifiedAt: DateTimeRangeInput
+
+  """
+  Filter by transaction events. Each list item represents conditions that must be satisfied by a single event. The filter matches transactions that have related events meeting all specified groups of conditions.
+  
+  Added in Saleor 3.23.
+  """
+  events: [TransactionEventFilterInput!]
+
   """List of conditions that must be met."""
   AND: [TransactionWhereInput!]
 
   """A list of conditions of which at least one must be met."""
   OR: [TransactionWhereInput!]
+}
+
+"""
+Filter input for transaction events data.
+
+Added in Saleor 3.23.
+"""
+input TransactionEventFilterInput @doc(category: "Payments") {
+  """
+  Filter transaction events by created at date.
+  
+  Added in Saleor 3.23.
+  """
+  createdAt: DateTimeRangeInput
+
+  """
+  Filter transaction events by type.
+  
+  Added in Saleor 3.23.
+  """
+  type: TransactionEventTypeEnumFilterInput
+}
+
+input TransactionEventTypeEnumFilterInput @doc(category: "Payments") {
+  """The value equal to."""
+  eq: TransactionEventTypeEnum
+
+  """The value included in."""
+  oneOf: [TransactionEventTypeEnum!]
+}
+
+input TransactionSortingInput @doc(category: "Payments") {
+  """Specifies the direction in which to sort transactions."""
+  direction: OrderDirection!
+
+  """Sort transactions by the selected field."""
+  field: TransactionSortField!
+}
+
+enum TransactionSortField @doc(category: "Payments") {
+  """
+  Sort transactions by creation date. 
+  
+  Added in Saleor 3.23.
+  """
+  CREATED_AT
+
+  """
+  Sort transactions by modification date. 
+  
+  Added in Saleor 3.23.
+  """
+  MODIFIED_AT
 }
 
 type PageCountableConnection @doc(category: "Pages") {
