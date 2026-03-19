@@ -1,4 +1,4 @@
-"""Test the API's checkout process over fullly non-shippable orders."""
+"""Test the API's checkout process over fully non-shippable orders."""
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....plugins.manager import get_plugins_manager
