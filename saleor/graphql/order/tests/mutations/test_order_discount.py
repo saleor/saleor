@@ -16,6 +16,7 @@ from .....order import OrderEvents, OrderStatus
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
+from .....order.models import OrderEvent
 from .....order.utils import invalidate_order_prices
 from ....discount.enums import DiscountValueTypeEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -2004,6 +2005,151 @@ def test_delete_discount_from_order_line(
     assert line_data.get("line_pk") == str(line.pk)
 
     assert not line.discounts.exists()
+
+
+ORDER_QUERY_WITH_EVENT_LINE_DISCOUNTS = """
+query OrderDetails($id: ID!) {
+  order(id: $id) {
+    events {
+      type
+      lines {
+        discount {
+          valueType
+          value
+          amount {
+            amount
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_total")
+def test_query_order_after_line_discount_removed_returns_discount_event_data(
+    mocked_calculate_order_line_total,
+    mocked_calculate_order_line_unit,
+    draft_order,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    """We used to have a bug here where when we removed order line discount, the order event data was incorrectly captured.
+
+    This This test case removes order line discount and validates that the order event data is correctly captured now.
+    """
+    # given
+    order = draft_order
+    line = order.lines.first()
+
+    line_undiscounted_price = TaxedMoney(
+        line.undiscounted_base_unit_price, line.undiscounted_base_unit_price
+    )
+    line_undiscounted_total_price = line_undiscounted_price * line.quantity
+
+    mocked_calculate_order_line_unit.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_price,
+        price_with_discounts=line_undiscounted_price,
+    )
+    mocked_calculate_order_line_total.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_total_price,
+        price_with_discounts=line_undiscounted_total_price,
+    )
+
+    line.unit_discount_amount = Decimal("2.5")
+    line.unit_discount_type = DiscountValueType.FIXED
+    line.unit_discount_value = Decimal("2.5")
+    line.save()
+
+    discount = line.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal("2.5"),
+        currency=order.currency,
+    )
+
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_REMOVE, variables)
+
+    # then - querying order events should not crash
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_WITH_EVENT_LINE_DISCOUNTS, {"id": order_id}
+    )
+    content = get_graphql_content(response)
+
+    order_data = content["data"]["order"]
+    assert len(order_data["events"]) == 1
+
+    event = order_data["events"][0]
+    assert event["type"] == OrderEvents.ORDER_LINE_DISCOUNT_REMOVED.upper()
+
+    event_lines = event["lines"]
+    assert len(event_lines) == 1
+
+    discount_data = event_lines[0]["discount"]
+    assert discount_data["valueType"] == discount.value_type.upper()
+    assert discount_data["value"] == discount.value
+
+
+def test_query_order_event_with_null_discount_value_type(
+    draft_order,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    """We used to have a bug here where when we removed order line discount, the order event data was incorrectly captured.
+
+    This in turn broke the resolver and made the code crash. This test replicates the
+    broken event and checks whether resolver asking for `value_type` crashes when the
+    value type is None.
+    """
+
+    # given
+    order = draft_order
+    line = order.lines.first()
+
+    OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.ORDER_LINE_DISCOUNT_REMOVED,
+        parameters={
+            "lines": [
+                {
+                    "quantity": line.quantity,
+                    "line_pk": str(line.pk),
+                    "item": str(line),
+                    "discount": {
+                        "value": Decimal(0),
+                        "amount_value": Decimal(0),
+                        "currency": order.currency,
+                        "value_type": None,
+                        "reason": None,
+                    },
+                }
+            ]
+        },
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_WITH_EVENT_LINE_DISCOUNTS, {"id": order_id}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["order"]
+    assert len(order_data["events"]) == 1
+    event = order_data["events"][0]
+    assert event["type"] == OrderEvents.ORDER_LINE_DISCOUNT_REMOVED.upper()
 
 
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
