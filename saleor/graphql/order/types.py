@@ -180,6 +180,13 @@ logger = logging.getLogger(__name__)
 
 
 def get_order_discount_event(discount_obj: dict):
+    # Value type is required in OrderDiscount class.
+    # Such event, without `value_type` filled, could have been created when the code was buggy.
+    # Such events cannot be repaired, this logic only guards code from crashing.
+    value_type = discount_obj.get("value_type")
+    if not value_type:
+        return None
+
     currency = discount_obj["currency"]
 
     amount = prices.Money(Decimal(discount_obj["amount_value"]), currency)
@@ -192,7 +199,7 @@ def get_order_discount_event(discount_obj: dict):
     return OrderEventDiscountObject(
         value=discount_obj.get("value"),
         amount=amount,
-        value_type=discount_obj.get("value_type"),
+        value_type=value_type,
         reason=discount_obj.get("reason"),
         old_value_type=discount_obj.get("old_value_type"),
         old_value=discount_obj.get("old_value"),
