@@ -2473,9 +2473,10 @@ class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
 
 
 class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
-    shipping_methods = NonNullList(
-        ShippingMethod,
+    shipping_methods = BaseField(
+        NonNullList(ShippingMethod),
         description="Shipping methods that can be used with this checkout.",
+        monitor_usage=True,
     )
 
     @staticmethod
