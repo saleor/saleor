@@ -944,3 +944,6 @@ class OrderGrantedRefundLine(models.Model):
     )
 
     reason = models.TextField(blank=True, null=True, default="")
+    reason_reference = models.ForeignKey(
+        "page.Page", related_name="+", on_delete=models.SET_NULL, null=True, blank=True
+    )

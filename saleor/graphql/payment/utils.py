@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 from django.core.exceptions import ValidationError
 
+from ...page.models import PageType
 from ...payment import models as payment_models
 from ...site.models import SiteSettings
 
@@ -53,12 +54,8 @@ def validate_and_resolve_refund_reason_context(
     refund_reference_field_name: str,
     error_code_enum,
     site_settings: SiteSettings,
-):
+) -> tuple[bool, PageType | None]:
     refund_reason_reference_type = site_settings.refund_reason_reference_type
-
-    is_passing_reason_reference_required: bool = (
-        refund_reason_reference_type is not None
-    )
 
     if not refund_reason_reference_type and reason_reference_id:
         raise ValidationError(
@@ -71,7 +68,7 @@ def validate_and_resolve_refund_reason_context(
         ) from None
 
     if (
-        is_passing_reason_reference_required
+        refund_reason_reference_type is not None
         and reason_reference_id is None
         and requestor_is_user
     ):
@@ -88,8 +85,4 @@ def validate_and_resolve_refund_reason_context(
         reason_reference_id is not None and refund_reason_reference_type
     )
 
-    return {
-        "is_passing_reason_reference_required": is_passing_reason_reference_required,
-        "refund_reason_reference_type": refund_reason_reference_type,
-        "should_apply": should_apply,
-    }
+    return should_apply, refund_reason_reference_type

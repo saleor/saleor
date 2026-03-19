@@ -24,11 +24,9 @@ def test_no_reference_type_configured_no_reference_id_provided(site_settings):
     )
 
     # Then
-    assert result == {
-        "is_passing_reason_reference_required": False,
-        "refund_reason_reference_type": None,
-        "should_apply": False,
-    }
+    should_apply, refund_reason_reference_type = result
+    assert should_apply is False
+    assert refund_reason_reference_type is None
 
 
 def test_no_reference_type_configured_reference_id_provided_raises_invalid(
@@ -107,11 +105,9 @@ def test_reference_type_configured_no_reference_id_app_requestor_success(
     )
 
     # Then
-    assert result == {
-        "is_passing_reason_reference_required": True,
-        "refund_reason_reference_type": page_type,
-        "should_apply": False,
-    }
+    should_apply, refund_reason_reference_type = result
+    assert should_apply is False
+    assert refund_reason_reference_type == page_type
 
 
 def test_reference_type_configured_reference_id_provided_success(site_settings):
@@ -132,11 +128,9 @@ def test_reference_type_configured_reference_id_provided_success(site_settings):
     )
 
     # Then
-    assert result == {
-        "is_passing_reason_reference_required": True,
-        "refund_reason_reference_type": page_type,
-        "should_apply": True,
-    }
+    should_apply, refund_reason_reference_type = result
+    assert should_apply is True
+    assert refund_reason_reference_type == page_type
 
 
 def test_reference_type_configured_reference_id_provided_app_requestor_success(
@@ -159,11 +153,9 @@ def test_reference_type_configured_reference_id_provided_app_requestor_success(
     )
 
     # Then
-    assert result == {
-        "is_passing_reason_reference_required": True,
-        "refund_reason_reference_type": page_type,
-        "should_apply": True,
-    }
+    should_apply, refund_reason_reference_type = result
+    assert should_apply is True
+    assert refund_reason_reference_type == page_type
 
 
 def test_custom_field_name_in_error_message(site_settings):
@@ -238,43 +230,3 @@ def test_different_error_code_enum(site_settings):
         error_dict["refundReasonReference"][0].code
         == TransactionRequestRefundForGrantedRefundErrorCode.INVALID.value
     )
-
-
-def test_is_passing_reason_reference_required_when_no_reference_type(site_settings):
-    # Given: No reference type configured
-    site_settings.refund_reason_reference_type = None
-    site_settings.save()
-
-    # When
-    result = validate_and_resolve_refund_reason_context(
-        reason_reference_id=None,
-        requestor_is_user=False,
-        refund_reference_field_name="refundReasonReference",
-        error_code_enum=TransactionRequestActionErrorCode,
-        site_settings=site_settings,
-    )
-
-    # Then
-    assert result["is_passing_reason_reference_required"] is False
-
-
-def test_is_passing_reason_reference_required_when_reference_type_configured(
-    site_settings,
-):
-    # Given: Reference type configured
-    page_type = PageType(name="Refund Reasons", slug="refund-reasons")
-    page_type.save()
-    site_settings.refund_reason_reference_type = page_type
-    site_settings.save()
-
-    # When
-    result = validate_and_resolve_refund_reason_context(
-        reason_reference_id=None,
-        requestor_is_user=False,
-        refund_reference_field_name="refundReasonReference",
-        error_code_enum=TransactionRequestActionErrorCode,
-        site_settings=site_settings,
-    )
-
-    # Then
-    assert result["is_passing_reason_reference_required"] is True
