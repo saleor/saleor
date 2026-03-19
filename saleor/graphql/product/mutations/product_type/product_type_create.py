@@ -52,6 +52,9 @@ class ProductTypeInput(BaseInputObjectType):
             "Determines if products are digital - doesn't have any effect, "
             "it's present for backward-compatibility."
         ),
+        deprecation_reason=(
+            "Will be removed in v3.24.0, use metadata or attributes instead."
+        ),
         required=False,
     )
     weight = WeightScalar(description="Weight of the ProductType items.")

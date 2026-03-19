@@ -7252,7 +7252,7 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   """
   Whether the product type is digital - doesn't have any effect, it's present for backward-compatibility.
   """
-  isDigital: Boolean!
+  isDigital: Boolean! @deprecated(reason: "Will be removed in v3.24.0, use metadata or attributes instead.")
 
   """Weight of the product type."""
   weight: Weight
@@ -15339,7 +15339,7 @@ enum ProductTypeConfigurable @doc(category: "Products") {
 }
 
 enum ProductTypeEnum @doc(category: "Products") {
-  DIGITAL
+  DIGITAL @deprecated(reason: "DIGITAL will removed in Saleor 3.24.0. Instead, either use: SHIPPING_REQUIRED, metadata, or attributes.")
   SHIPPABLE
 }
 
@@ -15356,7 +15356,7 @@ enum ProductTypeSortField @doc(category: "Products") {
   NAME
 
   """Sort products by type."""
-  DIGITAL
+  DIGITAL @deprecated(reason: "DIGITAL will removed in Saleor 3.24.0. Use SHIPPING_REQUIRED instead.")
 
   """Sort products by shipping."""
   SHIPPING_REQUIRED

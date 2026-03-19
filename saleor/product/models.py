@@ -126,8 +126,7 @@ class ProductType(ModelWithMetadata):
     is_shipping_required = models.BooleanField(default=True)
 
     # Note: has no effect, it's only kept for backward-compatibility as some users
-    #       use that field due to not having support for metadata. Thus we cannot
-    #       remove this flag until we add metadata support.
+    #       use that field. Will be removed in Saleor v3.24.0
     is_digital = models.BooleanField(default=False)
 
     weight = MeasurementField(

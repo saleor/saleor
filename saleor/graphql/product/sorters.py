@@ -346,6 +346,17 @@ class ProductTypeSortField(BaseEnum):
             return f"Sort products by {descriptions[self.name]}."
         raise ValueError(f"Unsupported enum value: {self.value}")
 
+    @property
+    def deprecation_reason(self):
+        deprecations = {
+            ProductTypeSortField.DIGITAL.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+                "DIGITAL will removed in Saleor 3.24.0. Use SHIPPING_REQUIRED instead."
+            ),
+        }
+        if self.name in deprecations:
+            return deprecations[self.name]
+        return None
+
 
 class ProductTypeSortingInput(SortInputObjectType):
     class Meta:

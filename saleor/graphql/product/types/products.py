@@ -1742,6 +1742,9 @@ class ProductType(ModelObjectType[models.ProductType]):
             "Whether the product type is digital - doesn't have any effect, "
             "it's present for backward-compatibility."
         ),
+        deprecation_reason=(
+            "Will be removed in v3.24.0, use metadata or attributes instead."
+        ),
     )
     weight = graphene.Field(Weight, description="Weight of the product type.")
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
