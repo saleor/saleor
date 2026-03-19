@@ -15,7 +15,7 @@ Usage from Django shell:
 
 import json
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 from django.db import connection
@@ -141,7 +141,7 @@ def _upload_to_dalibo(plan: list, title: str) -> str:
         data=payload,
         headers={"Content-Type": "application/json"},
     )
-    resp = urllib.request.urlopen(req)
+    resp = urllib.request.urlopen(req, timeout=10)
     return resp.url
 
 
