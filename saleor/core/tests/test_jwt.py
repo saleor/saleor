@@ -4,10 +4,13 @@ from cryptography.hazmat.primitives import serialization
 from django.urls import reverse
 
 from ..jwt import (
+    JWT_ACCESS_TYPE,
     create_access_token_for_app,
     create_access_token_for_app_extension,
+    get_user_from_access_payload,
     jwt_decode,
     jwt_encode,
+    jwt_user_payload,
 )
 from ..utils import build_absolute_uri
 
@@ -186,3 +189,36 @@ def test_jwt_encode_creates_token_signed_with_rs256(settings):
     # then
     headers = jwt.get_unverified_header(token)
     assert headers.get("alg") == "RS256"
+
+
+def test_get_user_from_access_payload_with_is_staff_true(
+    staff_user, settings, permission_manage_products
+):
+    # given
+    staff_user.user_permissions.add(permission_manage_products)
+    payload = jwt_user_payload(staff_user, JWT_ACCESS_TYPE, settings.JWT_TTL_ACCESS)
+    assert payload["is_staff"] is True
+
+    # when
+    user = get_user_from_access_payload(payload)
+
+    # then
+    assert user == staff_user
+    assert user.is_staff is True
+    assert permission_manage_products in user.effective_permissions
+
+
+def test_get_user_from_access_payload_for_customer(customer_user, settings):
+    # given
+    payload = jwt_user_payload(
+        customer_user,
+        JWT_ACCESS_TYPE,
+        settings.JWT_TTL_ACCESS,
+    )
+
+    # when
+    user = get_user_from_access_payload(payload)
+
+    # then
+    assert user == customer_user
+    assert user.is_staff is False

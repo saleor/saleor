@@ -9,6 +9,7 @@ class ShopErrorCode(Enum):
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     UNIQUE = "unique"
+    PASSWORD_AUTH_RESTRICTION = "password_auth_restriction"
 
 
 class MetadataErrorCode(Enum):

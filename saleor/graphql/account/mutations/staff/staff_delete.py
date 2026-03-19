@@ -1,7 +1,6 @@
 import graphene
 
 from .....account import models
-from .....account.utils import remove_staff_member
 from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
@@ -43,7 +42,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         cls.clean_instance(info, instance)
 
         db_id = instance.id
-        remove_staff_member(instance)
+        instance.delete()
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id

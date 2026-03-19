@@ -44,7 +44,7 @@ def test_apps_for_federation_query_count(
     }
 
     staff_api_client.ensure_access_token()
-    with django_assert_num_queries(4):
+    with django_assert_num_queries(6):
         response = staff_api_client.post_graphql(
             query,
             variables,
@@ -64,7 +64,7 @@ def test_apps_for_federation_query_count(
         ],
     }
 
-    with django_assert_num_queries(4):
+    with django_assert_num_queries(6):
         response = staff_api_client.post_graphql(
             query,
             variables,

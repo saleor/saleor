@@ -13,7 +13,9 @@ from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....site.dataloaders import get_site_promise
 from ...types import User
+from .utils import check_password_login_not_disabled
 
 
 class PasswordChange(BaseMutation):
@@ -45,6 +47,9 @@ class PasswordChange(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        site_settings = get_site_promise(info.context).get().settings
+        check_password_login_not_disabled(site_settings)
+
         user = info.context.user
         user = cast(models.User, user)
         old_password = data.get("old_password")

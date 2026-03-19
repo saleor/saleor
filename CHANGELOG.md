@@ -35,8 +35,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added sorting and filtering support for `transactions` query:
   - sort by `CREATED_AT`, `MODIFIED_AT`;
   - filter by `createdAt`, `modifiedAt` date ranges and by transaction events (`type`, `createdAt`).
+- Added `PasswordLoginMode` setting to control password-based authentication. When set to `DISABLED`, all password authentication mutations (`tokenCreate`, `setPassword`, `passwordChange`, `requestPasswordReset`, `tokenRefresh`) return errors. When set to `CUSTOMERS_ONLY`, staff users who log in with a password are treated as customers without staff
+permissions.
+- `staffDelete` mutation now always deletes the staff user. Previously, staff members with existing orders were only deactivated (`is_staff` set to `False`); now they are fully removed regardless of order history.
 
 ### Webhooks
+
 - For order webhook events, sync webhooks (such as `ORDER_CALCULATE_TAXES` and `ORDER_FILTER_SHIPPING_METHODS`) are no longer pre-fired before sending async webhook events. Sync webhooks are now only triggered when their data is actually requested, improving performance and decoupling async event delivery from sync webhook execution.
 -  Building payloads for webhook order events (including draft orders and fulfillments) is now delegated to a separate background task. This speeds up the execution of most order mutations by deferring the expensive payload serialization out of the request path.
 
@@ -50,12 +54,14 @@ All notable, unreleased changes to this project will be documented in this file.
    - `CheckoutProblemDeliveryMethodInvalid`: the selected delivery method is no longer valid (e.g., the shipping address no longer falls within it). This problem blocks `checkoutComplete` until a valid delivery method is assigned via `checkoutDeliveryMethodUpdate`.
 
    See the [upgrading guide](https://docs.saleor.io/upgrade-guides/3-22-to-3-23##explicit-delivery-options-calculation) to learn more.
+  - `checkoutDeliveryMethodUpdate` mutation now accepts `CheckoutDelivery` ID as `deliveryMethodId` (ID returned by `deliveryOptionsCalculate` mutation). Usage of `ShippingMethod` ID is deprecated in favor of `CheckoutDelivery` ID.
 
 
 
 ### Other changes
 
 - Fix Google OAuth OIDC login failing with `invalid_scope` error when `enable_refresh_token` is enabled. Google does not support the `offline_access` scope; use `access_type=offline` authorization parameter instead. - #18919 by @dnplkndll
+- Add `saleor.graphql.field.usage` OTel metric to track GraphQL field resolver call counts. The metric is emitted for deprecated fields (detected automatically) and for fields explicitly opted in with `monitor_usage=True` on a `BaseField` declaration.
 - Fix send order confirmation email to staff - #18342 by @Shaokun-X
 - Validation on `AppExtension` is now removed. Saleor will accept string values for `mount` and `target` from Manifest during App installation and JSON value for `options` field.
 Validation is now performed on the frontend (Dashboard). This change increases velocity of features related to apps and extensions, now Dashboard is only entity that ensures the contract
@@ -63,6 +69,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - The app can now be installed without providing a `tokenTargetUrl` in the manifest file.
 - Removed the setting `JWT_EXPIRE` which allowed to configure Saleor to ignore the JWT token expiration. - #18856 by @NyanKiyoshi
 - Removed support for custom `User` DB models in `./manage.py createsuperuser` command. - #18890 by @NyanKiyoshi
+- OIDC: When an existing user is claimed by an OIDC provider for the first time, their password is now invalidated to prevent login with stale credentials. This covers the case where a previously deleted staff account is recreated via OIDC.
 
 #### Search improvements
 
@@ -81,3 +88,4 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 
 - Deprecate the `hasVariants` field on `ProductType`.
 - Deprecate export mutations (`exportProducts`, `exportGiftCards`, `exportVoucherCodes`). All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.
+- Deprecate `voucher` input field on `DraftOrderInput` and `DraftOrderCreateInput`. Use `voucherCode` instead.

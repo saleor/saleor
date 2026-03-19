@@ -43,6 +43,14 @@ METRIC_GRAPHQL_SLOW_OPERATION_DURATION = meter.create_metric(
     bucket_boundaries=DEFAULT_DURATION_BUCKETS,
 )
 
+METRIC_GRAPHQL_FIELD_USAGE = meter.create_metric(
+    "saleor.graphql.field.usage",
+    scope=Scope.CORE,
+    type=MetricType.COUNTER,
+    unit=Unit.CALL,
+    description="Number of times a GraphQL field was resolved.",
+)
+
 QUERY_COST_BUCKETS = [
     0,
     5,
@@ -155,3 +163,13 @@ def record_request_count(
 def record_request_duration() -> AbstractContextManager[dict[str, AttributeValue]]:
     attributes: dict[str, AttributeValue] = {}
     return meter.record_duration(METRIC_REQUEST_DURATION, attributes=attributes)
+
+
+def record_field_usage(parent_type: str, field_name: str, deprecated: bool) -> None:
+    attributes: dict[str, AttributeValue] = {
+        saleor_attributes.GRAPHQL_PARENT_TYPE: parent_type,
+        saleor_attributes.GRAPHQL_FIELD_NAME: field_name,
+    }
+    if deprecated:
+        attributes[saleor_attributes.GRAPHQL_FIELD_DEPRECATED] = True
+    meter.record(METRIC_GRAPHQL_FIELD_USAGE, 1, Unit.CALL, attributes=attributes)
