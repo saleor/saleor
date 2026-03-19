@@ -18,12 +18,14 @@ on:
       - "**/pnpm-lock.yaml"
       - "**/package-lock.json"
 
+permissions: {}
+
 jobs:
   default:
     permissions:
       contents: read
       pull-requests: write
-    uses: saleor/saleor-internal-actions/.github/workflows/run-license-check.yaml@v1
+    uses: saleor/saleor-internal-actions/.github/workflows/run-license-check.yaml@49a069ae9731cfccf3a1033fe1da4e3da84f4f2a # v1.11.0
     with:
       # List of ecosystems to scan.
       ecosystems: >-

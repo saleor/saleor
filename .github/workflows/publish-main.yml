@@ -6,11 +6,19 @@ on:
       - main
       - ci/**
 
+permissions: {}
+
 jobs:
   publish:
     uses: ./.github/workflows/publish-containers.yml
+
+    permissions:
+      contents: read
+      id-token: write # needed for AWS/ECR login (not used, but required permission)
+      packages: write # needed for GHCR
+
     with:
       prefix: unstable-
-    secrets:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
-      SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
+      notification-environment: notify-slack-releasing
+      publish-environment: publish-main
+    secrets: inherit

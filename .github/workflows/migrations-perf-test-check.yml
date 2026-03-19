@@ -7,6 +7,8 @@ on:
       - "**/migrations/**"
     types: [labeled, unlabeled, opened, closed]
 
+permissions: {}
+
 jobs:
   # Contributors of Saleor sometimes forget about executing migrations performance
   # tests on PRs. This job is enforcing decision what to do. The decision is made by
@@ -17,6 +19,8 @@ jobs:
   # - migrations perf test - whenever migrations require performance tests
   check-migrations-perf-test-decision:
     runs-on: ubuntu-latest
+    permissions: {}
+
     steps:
       - uses: actions/checkout@v5
       - name: Check if the decision about migrations perf test was made

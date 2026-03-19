@@ -9,6 +9,7 @@ jobs:
     name: Run migrations performance test
     if: ${{ (((github.event.action == 'labeled') && (github.event.label.name == 'migrations perf test')) || ((github.event.action == 'opened') && contains(github.event.pull_request.labels.*.name, 'migrations perf test')) && github.repository == 'saleor/saleor') }}
     runs-on: ubuntu-latest
+    environment: migrations-perf-test
     permissions:
       id-token: write # needed by aws-actions/configure-aws-credentials
       contents: read
@@ -16,21 +17,31 @@ jobs:
       - uses: actions/checkout@v5
       - uses: rlespinasse/github-slug-action@c33ff65466c58d57e4d796f88bb1ae0ff26ee453 # v5.2.0
 
-      - name: Configure AWS Credentials
+      - id: aws-login
+        name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
           aws-region: ${{ vars.AWS_TESTENVS_REGION }}
+          # No need to expose the credentials in GITHUB_ENV, instead we only share the
+          # credentials on a need-to-know basis
+          output-env-credentials: "false"
+          output-credentials: "true"
 
       - name: Build and push
         uses: kciter/aws-ecr-action@ea6db9ecebec495c996b0f084c8ea1591f1185d7 # v5
         with:
-          access_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
-          secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          access_key_id: ${{ steps.aws-login.outputs.aws-access-key-id }}
+          secret_access_key: ${{ steps.aws-login.outputs.aws-secret-access-key }}
           account_id: ${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}
           repo: saleor-testenvs
           region: ${{ vars.AWS_TESTENVS_REGION }}
           tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
+        env:
+          # No input field is present for the session token which thus causes
+          # errors with message: 'The security token included in the request is invalid'
+          # as AWS expects to receive a session token alongside the access key.
+          AWS_SESSION_TOKEN: ${{ steps.aws-login.outputs.aws-session-token }}
 
       - name: Get pull number
         run: |
@@ -39,9 +50,9 @@ jobs:
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
-          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ steps.aws-login.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws-login.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws-login.outputs.aws-session-token }}
           REGION: ${{ vars.AWS_TESTENVS_REGION }}
           FunctionName: migrations-perf-test-manager
           Payload: >-
@@ -58,6 +69,7 @@ jobs:
     name: Cleanup after migrations performance test
     if: ${{ (((github.event.action == 'unlabeled') && (github.event.label.name == 'migrations perf test')) || ((github.event.action == 'closed') && contains(github.event.pull_request.labels.*.name, 'migrations perf test')) && github.repository == 'saleor/saleor') }}
     runs-on: ubuntu-latest
+    environment: migrations-perf-test
     permissions:
       id-token: write # needed by aws-actions/configure-aws-credentials
       contents: read
@@ -69,18 +81,23 @@ jobs:
         run: |
           echo "PULL_ID=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
-      - name: Configure AWS Credentials
+      - id: aws-login
+        name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}:role/${{ secrets.AWS_TESTENVS_CICD_ROLE_NAME }}
           aws-region: ${{ vars.AWS_TESTENVS_REGION }}
+          # No need to expose the credentials in GITHUB_ENV, instead we only share the
+          # credentials on a need-to-know basis
+          output-env-credentials: "false"
+          output-credentials: "true"
 
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@2ea0b5791eba7a9513ddf0fb7f91aa8f098b6458 # v3.4.0
         with:
-          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ steps.aws-login.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws-login.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws-login.outputs.aws-session-token }}
           REGION: ${{ vars.AWS_TESTENVS_REGION }}
           FunctionName: migrations-perf-test-manager
           Payload: >-
