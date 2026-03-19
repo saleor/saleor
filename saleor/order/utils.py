@@ -359,12 +359,7 @@ def add_variant_to_order(
 
     Returns an order line the variant was added to.
     """
-    is_new_line = not line_data.line_id
-    if not is_new_line:
-        if line_data.line_id is None:
-            raise ValueError(
-                "Adding a non-existent line to an order is an invalid operation"
-            )
+    if line_data.line_id is not None:
         line = order.lines.get(pk=line_data.line_id)
         old_quantity = line.quantity
         new_quantity = old_quantity + line_data.quantity
