@@ -59,8 +59,8 @@ class ProductTypeEnum(BaseEnum):
     def deprecation_reason(self):
         deprecations = {
             ProductTypeEnum.DIGITAL.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                "DIGITAL will removed in Saleor 3.24.0. "
-                "Instead, either use: SHIPPING_REQUIRED, metadata, or attributes."
+                "DIGITAL will removed in Saleor 3.24.0, use metadata or "
+                "attributes instead."
             )
         }
         if self.name in deprecations:
