@@ -1,3 +1,5 @@
+import copy
+
 import graphene
 
 from ....core.tracing import traced_atomic_transaction
@@ -45,6 +47,8 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         order = order_line.order
         cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order)
+
+        order_line_before_deletion = copy.deepcopy(order_line)
         with traced_atomic_transaction():
             remove_discount_from_order_line(order_line, order)
             app = get_app_promise(info.context).get()
@@ -52,7 +56,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
                 order=order,
                 user=info.context.user,
                 app=app,
-                line=order_line,
+                line=order_line_before_deletion,
             )
 
             invalidate_order_prices(order, save=True)
