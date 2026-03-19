@@ -161,6 +161,7 @@ from .dataloaders import (
     OrderByNumberLoader,
     OrderEventsByIdLoader,
     OrderEventsByOrderIdLoader,
+    OrderGrantedRefundByIdLoader,
     OrderGrantedRefundLinesByOrderGrantedRefundIdLoader,
     OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
@@ -274,7 +275,35 @@ class OrderGrantedRefundLine(
     def resolve_reason_reference(
         root: SyncWebhookControlContext[models.OrderGrantedRefundLine], info
     ):
-        raise NotImplementedError("not implemented yet")
+        if not root.node.reason_reference_id:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+
+            def _wrap_with_channel(granted_refund):
+                return (
+                    ChannelByOrderIdLoader(info.context)
+                    .load(granted_refund.order_id)
+                    .then(
+                        lambda channel: ChannelContext(
+                            node=page, channel_slug=channel.slug
+                        )
+                    )
+                )
+
+            return (
+                OrderGrantedRefundByIdLoader(info.context)
+                .load(root.node.granted_refund_id)
+                .then(_wrap_with_channel)
+            )
+
+        return (
+            PageByIdLoader(info.context)
+            .load(root.node.reason_reference_id)
+            .then(wrap_page_with_context)
+        )
 
 
 class OrderGrantedRefund(
