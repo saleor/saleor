@@ -190,6 +190,13 @@ class BreakerBoard:
         self.storage.register_event(app_id, "total", self.ttl_seconds)
 
     def wrap_func(self, func):
+        """Wrap a synchronous webhook function with circuit breaker logic.
+
+        For monitored event types, evaluates current breaker state before calling the function.
+        When OPEN, skips execution entirely — or runs without recording for dry-run events.
+        On execution, registers success or error with the breaker based on whether the response is non-None.
+        """
+
         def inner(*args, **kwargs):
             event_type: str = kwargs.get("event_type") or args[0]
             webhook: Webhook = kwargs.get("webhook") or args[2]
@@ -221,6 +228,13 @@ class BreakerBoard:
         return inner
 
     def wrap_promise_func(self, promise_func):
+        """Wrap a Promise-returning webhook function with circuit breaker logic.
+
+        For monitored event types, evaluates current breaker state before calling the function.
+        When OPEN, resolves immediately with None — or executes without tracking for dry-run events.
+        On execution, chains .then() to inspect the resolved value and register success or error with the breaker.
+        """
+
         def inner(*args, **kwargs):
             event_type: str = kwargs.get("event_type") or args[0]
             webhook: Webhook = kwargs.get("webhook") or args[2]
