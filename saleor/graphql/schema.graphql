@@ -27674,6 +27674,7 @@ type OrderGrantRefundCreateError @doc(category: "Orders") {
 enum OrderGrantRefundCreateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
+  NOT_CONFIGURED
   SHIPPING_COSTS_ALREADY_GRANTED
   AMOUNT_GREATER_THAN_AVAILABLE
   REQUIRED
@@ -27700,6 +27701,8 @@ enum OrderGrantRefundCreateLineErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   QUANTITY_GREATER_THAN_AVAILABLE
+  INVALID
+  NOT_CONFIGURED
 }
 
 input OrderGrantRefundCreateInput @doc(category: "Orders") {
@@ -27788,6 +27791,7 @@ type OrderGrantRefundUpdateError @doc(category: "Orders") {
 enum OrderGrantRefundUpdateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
+  NOT_CONFIGURED
   REQUIRED
   INVALID
   AMOUNT_GREATER_THAN_AVAILABLE
@@ -27814,6 +27818,8 @@ enum OrderGrantRefundUpdateLineErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   QUANTITY_GREATER_THAN_AVAILABLE
+  INVALID
+  NOT_CONFIGURED
 }
 
 input OrderGrantRefundUpdateInput @doc(category: "Orders") {
