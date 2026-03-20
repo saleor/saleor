@@ -6,13 +6,12 @@ from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types.common import ReturnReasonReferenceTypeClearError
+from ...site.dataloaders import get_site_promise
 from ..types import ReturnSettings
 
 
 class ReturnReasonReferenceTypeClear(BaseMutation):
-    return_settings = graphene.Field(
-        ReturnSettings, description="Return settings.", required=True
-    )
+    return_settings = graphene.Field(ReturnSettings, description="Return settings.")
 
     class Meta:
         description = (
@@ -28,4 +27,11 @@ class ReturnReasonReferenceTypeClear(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        raise NotImplementedError("not implemented yet")
+        site = get_site_promise(info.context).get()
+        settings = site.settings
+
+        settings.return_reason_reference_type = None
+
+        settings.save(update_fields=["return_reason_reference_type"])
+
+        return ReturnReasonReferenceTypeClear(return_settings=settings)
