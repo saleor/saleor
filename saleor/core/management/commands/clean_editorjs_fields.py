@@ -199,7 +199,7 @@ class Command(BaseCommand):
                 continue
 
             # Dump to string before cleaning as the object will be mutated
-            before = json.dumps(contents, indent=2)
+            before = json.dumps(contents, indent=2, sort_keys=True)
 
             # Perform the cleaning
 
@@ -217,7 +217,7 @@ class Command(BaseCommand):
                 )
                 continue
 
-            after = json.dumps(cleaned, indent=2)
+            after = json.dumps(cleaned, indent=2, sort_keys=True)
 
             if after == before:
                 continue

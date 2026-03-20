@@ -231,7 +231,6 @@ class EditorJSListDataModel(StrictBaseModel):
         current_depth: int,
         max_depth: int,
     ) -> str:
-        # TODO: depth validation shouldn't only happen in to_text
         if current_depth > max_depth:
             raise ValidationError(
                 "Invalid EditorJS list: maximum nesting level exceeded"
