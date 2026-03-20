@@ -13,7 +13,6 @@ from pydantic import (
 )
 
 from .cleaners import (
-    _clean_legacy_list_items,
     _clean_meta_dict,
     _clean_nested_list_items,
     _clean_text,
@@ -28,10 +27,9 @@ URL = Annotated[str, AfterValidator(_clean_url_value)]
 
 MetaValue = int | float | bool | Text | None
 MetaDict = Annotated[dict[Text, MetaValue], AfterValidator(_clean_meta_dict)]
-ListItem = Union["EditorJSNestedListItemModel", Text | None]
+ListItem = Union["EditorJSNestedListItemModel", Text, None]
 ListItems = Annotated[
     list[ListItem] | None,
-    BeforeValidator(_clean_legacy_list_items),
     BeforeValidator(_clean_nested_list_items),
 ]
 ListStyle = Annotated[

@@ -76,17 +76,6 @@ def _clean_meta_dict(value: dict) -> dict:
     return value
 
 
-def _clean_legacy_list_items(value: Any) -> Any:
-    if isinstance(value, list) and value and isinstance(value[0], str):
-        cleaned_items: list[str] = []
-        for item in value:
-            if not isinstance(item, str):
-                return value
-            cleaned_items.append(_clean_text(item))
-        return cleaned_items
-    return value
-
-
 def _clean_nested_list_items(items: Any, current_depth: int = 0) -> Any:
     """Validate the depth of nested EditorJS list isn't excessive.
 
