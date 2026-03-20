@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from prices import Money, TaxedMoney
 
 from ...account.models import User
-from ...core.taxes import TaxData, TaxLineData, TaxType
+from ...core.taxes import TaxType
 from ...graphql.core import SaleorContext
 from ...order.interface import OrderTaxedPricesData
 from ...payment.interface import (
@@ -24,29 +24,6 @@ if TYPE_CHECKING:
     from ...discount.models import Promotion
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
-
-
-def sample_tax_data(obj_with_lines: Union["Order", "Checkout"]) -> TaxData:
-    unit = Decimal("10.00")
-    unit_gross = Decimal("12.30")
-    lines = [
-        TaxLineData(
-            total_net_amount=unit * 3,
-            total_gross_amount=unit_gross * 3,
-            tax_rate=Decimal(23),
-        )
-        for _ in obj_with_lines.lines.all()
-    ]
-
-    shipping = Decimal("50.00")
-    shipping_gross = Decimal("63.20")
-
-    return TaxData(
-        shipping_price_net_amount=shipping,
-        shipping_price_gross_amount=shipping_gross,
-        shipping_tax_rate=Decimal(23),
-        lines=lines,
-    )
 
 
 class PluginSample(BasePlugin):
@@ -287,16 +264,6 @@ class PluginSample(BasePlugin):
 
     def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
         return Decimal("0.080").quantize(Decimal(".01"))
-
-    def get_taxes_for_checkout(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines,
-        app_identifier,
-        previous_value,
-        pregenerated_subscription_payloads=None,
-    ) -> Optional["TaxData"]:
-        return sample_tax_data(checkout_info.checkout)
 
     def sample_not_implemented(self, previous_value):
         return NotImplemented

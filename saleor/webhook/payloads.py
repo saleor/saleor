@@ -14,7 +14,6 @@ from graphene.utils.str_converters import to_camel_case
 from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
-from ..checkout import base_calculations
 from ..checkout.models import Checkout
 from ..checkout.utils import get_checkout_metadata
 from ..core.db.connection import allow_writer
@@ -26,7 +25,6 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..discount.utils.voucher import is_order_level_voucher
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
@@ -44,14 +42,12 @@ from .event_types import WebhookEventAsyncType
 from .payload_serializers import PayloadSerializer
 from .serializers import (
     serialize_checkout_lines,
-    serialize_checkout_lines_for_tax_calculation,
     serialize_product_attributes,
     serialize_variant_attributes,
 )
 from .transport.utils import from_payment_app_id
 
 if TYPE_CHECKING:
-    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..discount.models import Promotion
     from ..invoice.models import Invoice
     from ..payment.interface import (
@@ -1240,95 +1236,6 @@ def generate_translation_payload(
         translation_data.update(context)
 
     return json.dumps(translation_data)
-
-
-@allow_writer()
-@traced_payload_generator
-def generate_checkout_payload_for_tax_calculation(
-    checkout_info: "CheckoutInfo",
-    lines: list["CheckoutLineInfo"],
-):
-    checkout = checkout_info.checkout
-    tax_configuration = checkout_info.tax_configuration
-    prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-
-    serializer = PayloadSerializer()
-
-    checkout_fields = ("currency",)
-
-    # Prepare checkout data
-    address = checkout_info.shipping_address or checkout_info.billing_address
-
-    total_amount = quantize_price(
-        base_calculations.base_checkout_total(checkout_info, lines).amount,
-        checkout.currency,
-    )
-
-    # Prepare user data
-    user = checkout_info.user
-    user_id = None
-    user_public_metadata = {}
-    if user:
-        user_id = graphene.Node.to_global_id("User", user.id)
-        user_public_metadata = user.metadata
-
-    # order promotion discount and entire_order voucher discount with
-    # apply_once_per_order set to False is not already included in the total price
-    discounted_object_promotion = bool(checkout_info.discounts)
-    discount_not_included = discounted_object_promotion or is_order_level_voucher(
-        checkout_info.voucher
-    )
-    if not checkout.discount_amount:
-        discounts = []
-    else:
-        discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
-        discount_name = checkout.discount_name
-        discounts = (
-            [{"name": discount_name, "amount": discount_amount}]
-            if discount_amount and discount_not_included
-            else []
-        )
-
-    # Prepare shipping data
-    assigned_delivery = checkout.assigned_delivery
-    shipping_method_name = None
-    if assigned_delivery:
-        shipping_method_name = assigned_delivery.name
-    shipping_method_amount = quantize_price(
-        base_calculations.base_checkout_delivery_price(checkout_info, lines).amount,
-        checkout.currency,
-    )
-
-    # Prepare line data
-    lines_dict_data = serialize_checkout_lines_for_tax_calculation(checkout_info, lines)
-
-    checkout_data = serializer.serialize(
-        [checkout],
-        fields=checkout_fields,
-        pk_field_name="token",
-        additional_fields={
-            "channel": (lambda c: c.channel, CHANNEL_FIELDS),
-            "address": (lambda _: address, ADDRESS_FIELDS),
-        },
-        extra_dict_data={
-            "user_id": user_id,
-            "user_public_metadata": user_public_metadata,
-            "included_taxes_in_prices": prices_entered_with_tax,
-            "total_amount": total_amount,
-            "shipping_amount": shipping_method_amount,
-            "shipping_name": shipping_method_name,
-            "discounts": discounts,
-            "lines": lines_dict_data,
-            "metadata": (
-                lambda c=checkout: (
-                    get_checkout_metadata(c).metadata  # type: ignore[union-attr]
-                    if hasattr(c, "metadata_storage")
-                    else {}
-                )
-            ),
-        },
-    )
-    return checkout_data
 
 
 @allow_writer()

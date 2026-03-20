@@ -10,8 +10,6 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
-
-# from ....webhook.transport.synchronous import trigger_taxes_all_webhooks_sync
 from ...webhooks.parser import parse_tax_data
 from ...webhooks.shared import (
     get_taxes,

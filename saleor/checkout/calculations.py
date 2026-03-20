@@ -648,15 +648,17 @@ def _get_taxes_for_checkout(
     is missing due to the absence of a configured tax app.
     """
     from .utils import log_address_if_validation_skipped_for_checkout
+    from .webhooks import calculate_taxes as checkout_calculate_taxes
 
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
     tax_data = None
     try:
-        tax_data = manager.get_taxes_for_checkout(
+        tax_data = checkout_calculate_taxes.get_taxes(
             checkout_info,
             lines,
             tax_app_identifier,
+            requestor=manager.requestor_getter,
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
     except TaxDataError as e:

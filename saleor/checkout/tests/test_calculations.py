@@ -197,7 +197,6 @@ def test_fetch_checkout_data_plugins(
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
     currency = checkout_with_items.currency
-    plugins_manager.get_taxes_for_checkout = Mock(return_value=None)
 
     totals, tax_rates = zip(
         *[
@@ -261,7 +260,6 @@ def test_fetch_checkout_data_plugins_allow_sync_webhooks_set_to_false(
     checkout_with_items.save(update_fields=["price_expiration"])
 
     currency = checkout_with_items.currency
-    plugins_manager.get_taxes_for_checkout = Mock(return_value=None)
 
     previous_subtotal = checkout_with_items.subtotal
     previous_shipping_price = checkout_with_items.shipping_price
@@ -571,7 +569,9 @@ def test_set_checkout_base_prices_no_charge_taxes_with_order_promotion(
 
 
 @freeze_time("2020-12-12 12:00:00")
+@patch("saleor.checkout.webhooks.calculate_taxes.get_taxes")
 def test_fetch_checkout_data_webhooks_success(
+    mocked_get_taxes,
     plugins_manager,
     fetch_kwargs,
     checkout_with_items,
@@ -581,7 +581,7 @@ def test_fetch_checkout_data_webhooks_success(
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
     currency = checkout_with_items.currency
-    plugins_manager.get_taxes_for_checkout = Mock(return_value=tax_data)
+    mocked_get_taxes.return_value = tax_data
 
     # when
     fetch_checkout_data(**fetch_kwargs)
@@ -600,22 +600,30 @@ def test_fetch_checkout_data_webhooks_success(
 
 
 @freeze_time("2020-12-12 12:00:00")
+@patch("saleor.checkout.webhooks.calculate_taxes.get_taxes")
 def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
-    checkout_with_items_and_shipping, settings
+    mocked_get_taxes, checkout_with_items_and_shipping, settings
 ):
-    """Test tax exemption when taxes are included in prices.
-
-    Use PluginSample to test tax exemption.
-    PluginSample always return same values of calculated taxes:
-
-    shipping_price_net_amount = 50
-    shipping_price_gross_amount = 63.20
-
-    Each line is treated as line with 3 units where unite gross value = 12.30 and net
-    value = 10
-    """
+    """Test tax exemption when taxes are included in prices."""
     # given
-    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    expected_total_net = Decimal("10.00") * 3
+    expected_total_gross = Decimal("12.30") * 3
+    expected_shipping_net = Decimal("50.00")
+    expected_shipping_gross = Decimal("63.20")
+
+    mocked_get_taxes.return_value = TaxData(
+        shipping_price_net_amount=expected_shipping_net,
+        shipping_price_gross_amount=expected_shipping_gross,
+        shipping_tax_rate=Decimal(23),
+        lines=[
+            TaxLineData(
+                total_net_amount=expected_total_net,
+                total_gross_amount=expected_total_gross,
+                tax_rate=Decimal(23),
+            )
+            for _ in checkout_with_items_and_shipping.lines.all()
+        ],
+    )
     manager = get_plugins_manager(allow_replica=False)
 
     checkout = checkout_with_items_and_shipping
@@ -643,12 +651,16 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
 
     # then
 
+    # Set net and gross to the same value to simulate the moment, when taxes are calculated
+    # for the first time
     one_line_total_price = TaxedMoney(
-        net=Money("30.0", currency), gross=Money("30.0", currency)
+        net=Money(expected_total_net, currency),
+        gross=Money(expected_total_net, currency),
     )
     all_lines_total_price = len(lines_info) * one_line_total_price
     shipping_price = TaxedMoney(
-        net=Money("50.0", currency), gross=Money("50.0", currency)
+        net=Money(expected_shipping_net, currency),
+        gross=Money(expected_shipping_net, currency),
     )
 
     for line in checkout.lines.all():
@@ -663,8 +675,9 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
 
 
 @freeze_time("2020-12-12 12:00:00")
+@patch("saleor.checkout.webhooks.calculate_taxes.get_taxes")
 def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_prices(
-    checkout_with_items_and_shipping, settings
+    mocked_get_taxes, checkout_with_items_and_shipping, settings
 ):
     """Test tax exemption when taxes are not included in prices.
 
@@ -672,7 +685,6 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
     tax plugins should be ignored and only net prices should be calculated and returned.
     """
     # given
-    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager(allow_replica=False)
 
     checkout = checkout_with_items_and_shipping
@@ -716,11 +728,12 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
 
     assert checkout.total == shipping_price + all_lines_total_price
     assert checkout.subtotal == all_lines_total_price
+    assert not mocked_get_taxes.called
 
 
 @freeze_time()
 @patch("saleor.plugins.manager.PluginsManager.calculate_checkout_total")
-@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
+@patch("saleor.checkout.webhooks.calculate_taxes.get_taxes")
 @override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
 def test_fetch_checkout_data_calls_plugin(
     mock_get_taxes,
@@ -759,9 +772,8 @@ def test_fetch_checkout_data_calls_plugin(
 
 @freeze_time()
 @patch("saleor.plugins.manager.PluginsManager.calculate_checkout_total")
-@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
+@patch("saleor.checkout.webhooks.calculate_taxes.get_taxes")
 @patch("saleor.checkout.calculations._apply_tax_data")
-@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
 def test_fetch_checkout_data_calls_tax_app(
     mock_apply_tax_data,
     mock_get_taxes,
@@ -801,10 +813,9 @@ def test_fetch_checkout_data_calls_tax_app(
 
 @freeze_time()
 @patch("saleor.plugins.manager.PluginsManager.calculate_checkout_total")
-@patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
+@patch("saleor.checkout.webhooks.calculate_taxes.get_taxes")
 @patch("saleor.checkout.calculations._apply_tax_data")
-@override_settings(PLUGINS=["saleor.plugins.tests.sample_plugins.PluginSample"])
-def test_fetch_checkout_data_calls_tax_app_when_allow_sync_webhooks_set_to_false(
+def test_fetch_checkout_data_dont_call_tax_app_when_allow_sync_webhooks_set_to_false(
     mock_apply_tax_data,
     mock_get_taxes,
     mock_calculate_checkout_total,
@@ -1032,7 +1043,6 @@ def test_calculate_and_add_tax_empty_tax_data_logging_address(
         "calculate_checkout_shipping": Mock(return_value=zero_money),
         "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
         "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_taxes_for_checkout": Mock(return_value=None),
     }
     manager = Mock(**manager_methods)
 
@@ -1062,9 +1072,11 @@ def test_calculate_and_add_tax_empty_tax_data_logging_address(
     [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
 )
 @patch.object(logger, "warning")
+@patch("saleor.checkout.webhooks.calculate_taxes.get_taxes")
 @patch("saleor.checkout.calculations._set_checkout_base_prices")
 def test_fetch_checkout_data_tax_data_with_tax_data_error(
     mock_set_base_prices,
+    mocked_get_taxes,
     mocked_logger,
     prices_entered_with_tax,
     tax_app_id,
@@ -1081,6 +1093,8 @@ def test_fetch_checkout_data_tax_data_with_tax_data_error(
     error_msg = "Invalid tax data"
     errors = [{"error1": "Negative tax data"}, {"error2": "Invalid tax data"}]
     returned_tax_error = TaxDataError(message=error_msg, errors=errors)
+    mocked_get_taxes.side_effect = returned_tax_error
+
     zero_money = zero_taxed_money(checkout.currency)
     manager_methods = {
         "calculate_checkout_total": Mock(return_value=zero_money),
@@ -1089,7 +1103,6 @@ def test_fetch_checkout_data_tax_data_with_tax_data_error(
         "calculate_checkout_shipping": Mock(return_value=zero_money),
         "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
         "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_taxes_for_checkout": Mock(side_effect=returned_tax_error),
     }
     manager = Mock(**manager_methods)
 
@@ -1136,7 +1149,6 @@ def test_fetch_checkout_data_tax_data_missing_tax_id_empty_tax_data(
         "calculate_checkout_shipping": Mock(return_value=zero_money),
         "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
         "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_taxes_for_checkout": Mock(return_value=None),
     }
     manager = Mock(**manager_methods)
 
