@@ -11,7 +11,8 @@ from ....channel.models import Channel
 from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
-from ....product.models import Category, ChannelPriceChange, VariantPriceUpdatedInfo
+from ....product.interface import ChannelPriceChange, VariantPriceUpdatedInfo
+from ....product.models import Category
 from ....shipping.models import ShippingMethod, ShippingZone
 from ....site.models import SiteSettings
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType

@@ -9,6 +9,7 @@ from faker import Faker
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
+from ..interface import ChannelPriceChange, VariantPriceUpdatedInfo
 from ..models import Product, ProductChannelListing, ProductVariantChannelListing
 from ..tasks import (
     _get_preorder_variants_to_clean,
@@ -171,7 +172,7 @@ def test_recalculate_discounted_price_for_products_task(
     assert recalculate_discounted_price_for_products_task_mock.called
 
 
-@patch("saleor.product.tasks.update_discounted_prices_for_promotion")
+@patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value={})
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
 def test_recalculate_discounted_price_for_products_task_with_correct_prices(
     recalculate_discounted_price_for_products_task_mock,
@@ -189,7 +190,7 @@ def test_recalculate_discounted_price_for_products_task_with_correct_prices(
     assert not update_discounted_prices_for_promotion_mock.called
 
 
-@patch("saleor.product.tasks.update_discounted_prices_for_promotion")
+@patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value={})
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
 def test_recalculate_discounted_price_for_products_task_updates_only_dirty_listings(
     recalculate_discounted_price_for_products_task_mock,
@@ -318,3 +319,70 @@ def test_mem_usage_recalculate_discounted_price_for_products_task(
     lots_of_products_with_variants,
 ):
     recalculate_discounted_price_for_products_task()
+
+
+@patch("saleor.product.tasks.get_plugins_manager")
+@patch("saleor.product.tasks.get_webhooks_for_event")
+@patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
+def test_recalculate_discounted_price_triggers_variant_price_updated_webhook(
+    recalculate_task_mock,
+    get_webhooks_mock,
+    get_manager_mock,
+    product_list,
+    channel_USD,
+):
+    # given
+    variant_listings = ProductVariantChannelListing.objects.filter(
+        variant__product__in=product_list
+    )
+    expected_prices = {
+        listing.variant_id: listing.price_amount for listing in variant_listings
+    }
+    current_price = Decimal(1)
+    ProductChannelListing.objects.update(
+        discounted_price_amount=current_price, discounted_price_dirty=True
+    )
+    ProductVariantChannelListing.objects.update(discounted_price_amount=current_price)
+
+    mock_webhooks = [patch]
+    get_webhooks_mock.return_value = mock_webhooks
+    mock_manager = get_manager_mock.return_value
+
+    # when
+    recalculate_discounted_price_for_products_task()
+
+    # then
+    assert mock_manager.product_variant_price_updated.called
+    calls = mock_manager.product_variant_price_updated.call_args_list
+    assert len(calls) == len(expected_prices)
+    for call in calls:
+        price_info = call[0][0]
+        assert isinstance(price_info, VariantPriceUpdatedInfo)
+        assert len(price_info.changed_prices) == 1
+        cp = price_info.changed_prices[0]
+        assert isinstance(cp, ChannelPriceChange)
+        assert cp.channel_id == channel_USD.id
+        assert cp.currency == channel_USD.currency_code
+        assert cp.previous_price_amount == current_price
+        assert cp.new_price_amount == expected_prices[price_info.variant_id]
+
+
+@patch("saleor.product.tasks.get_plugins_manager")
+@patch("saleor.product.tasks.get_webhooks_for_event")
+@patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value={})
+@patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
+def test_recalculate_discounted_price_no_webhook_when_prices_unchanged(
+    recalculate_task_mock,
+    update_prices_mock,
+    get_webhooks_mock,
+    get_manager_mock,
+    product_list,
+):
+    # given
+    ProductChannelListing.objects.update(discounted_price_dirty=True)
+
+    # when
+    recalculate_discounted_price_for_products_task()
+
+    # then
+    assert not get_manager_mock.called
