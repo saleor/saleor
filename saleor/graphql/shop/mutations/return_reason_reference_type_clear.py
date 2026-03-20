@@ -11,9 +11,7 @@ from ..types import ReturnSettings
 
 
 class ReturnReasonReferenceTypeClear(BaseMutation):
-    return_settings = graphene.Field(
-        ReturnSettings, description="Return settings.", required=True
-    )
+    return_settings = graphene.Field(ReturnSettings, description="Return settings.")
 
     class Meta:
         description = (

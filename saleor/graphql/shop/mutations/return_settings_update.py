@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....permission.enums import SitePermissions
+from ....site.error_codes import ReturnSettingsErrorCode
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_SHOP
@@ -28,9 +29,7 @@ class ReturnSettingsUpdateInput(BaseInputObjectType):
 
 
 class ReturnSettingsUpdate(BaseMutation):
-    return_settings = graphene.Field(
-        ReturnSettings, description="Return settings.", required=True
-    )
+    return_settings = graphene.Field(ReturnSettings, description="Return settings.")
 
     class Arguments:
         input = ReturnSettingsUpdateInput(
@@ -50,6 +49,16 @@ class ReturnSettingsUpdate(BaseMutation):
     ):
         return_reason_reference_type = input.get("return_reason_reference_type")
 
+        if not return_reason_reference_type:
+            raise ValidationError(
+                {
+                    "return_reason_reference_type": ValidationError(
+                        "This field is required.",
+                        code=ReturnSettingsErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
         site = get_site_promise(info.context).get()
         settings = site.settings
 
@@ -62,9 +71,7 @@ class ReturnSettingsUpdate(BaseMutation):
                     field="return_reason_reference_type",
                 )
             except ValidationError as e:
-                response = cls.handle_errors(e)
-                response.return_settings = settings
-                return response
+                return cls.handle_errors(e)
 
             settings.return_reason_reference_type = model_type
 

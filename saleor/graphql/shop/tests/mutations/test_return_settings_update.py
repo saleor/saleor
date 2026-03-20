@@ -119,7 +119,9 @@ def test_change_page_type(
     assert site_settings.return_reason_reference_type == page_type
 
 
-def test_empty_id_success(staff_api_client, permission_manage_settings, site_settings):
+def test_empty_id_returns_error(
+    staff_api_client, permission_manage_settings, site_settings
+):
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
@@ -136,9 +138,11 @@ def test_empty_id_success(staff_api_client, permission_manage_settings, site_set
     content = get_graphql_content(response)
     data = content["data"]["returnSettingsUpdate"]
 
-    assert not data["errors"]
-    assert data["returnSettings"]
-    assert data["returnSettings"]["reasonReferenceType"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "returnReasonReferenceType"
+    assert data["errors"][0]["code"] == ReturnSettingsErrorCode.REQUIRED.name
+    assert data["errors"][0]["message"] == "This field is required."
+    assert data["returnSettings"] is None
 
 
 def test_nonexistent_page_type(staff_api_client, permission_manage_settings):
@@ -162,6 +166,10 @@ def test_nonexistent_page_type(staff_api_client, permission_manage_settings):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "returnReasonReferenceType"
     assert data["errors"][0]["code"] == ReturnSettingsErrorCode.NOT_FOUND.name
+    assert (
+        data["errors"][0]["message"] == f"Couldn't resolve to a node: {nonexistent_id}"
+    )
+    assert data["returnSettings"] is None
 
 
 def test_wrong_node_type(staff_api_client, permission_manage_settings, product):
@@ -185,6 +193,7 @@ def test_wrong_node_type(staff_api_client, permission_manage_settings, product):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "returnReasonReferenceType"
     assert data["errors"][0]["code"] == ReturnSettingsErrorCode.GRAPHQL_ERROR.name
+    assert data["returnSettings"] is None
 
 
 def test_invalid_id_format(staff_api_client, permission_manage_settings):
@@ -207,6 +216,7 @@ def test_invalid_id_format(staff_api_client, permission_manage_settings):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "returnReasonReferenceType"
     assert data["errors"][0]["code"] == ReturnSettingsErrorCode.GRAPHQL_ERROR.name
+    assert data["returnSettings"] is None
 
 
 def test_no_permission_staff(staff_api_client, page_type):

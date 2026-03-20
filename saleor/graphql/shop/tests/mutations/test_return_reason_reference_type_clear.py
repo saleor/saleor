@@ -44,7 +44,6 @@ def test_by_staff_success(
     assert data["returnSettings"]
     assert data["returnSettings"]["reasonReferenceType"] is None
 
-    # Verify database update
     site_settings.refresh_from_db()
     assert site_settings.return_reason_reference_type is None
 
@@ -72,7 +71,6 @@ def test_by_app_success(
     assert data["returnSettings"]
     assert data["returnSettings"]["reasonReferenceType"] is None
 
-    # Verify database update
     site_settings.refresh_from_db()
     assert site_settings.return_reason_reference_type is None
 
@@ -99,7 +97,6 @@ def test_when_already_none(staff_api_client, site_settings, permission_manage_se
     assert data["returnSettings"]
     assert data["returnSettings"]["reasonReferenceType"] is None
 
-    # Verify database state remains unchanged
     site_settings.refresh_from_db()
     assert site_settings.return_reason_reference_type is None
 
