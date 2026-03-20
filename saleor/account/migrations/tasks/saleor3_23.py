@@ -17,7 +17,9 @@ task_logger = get_task_logger(f"{__name__}.celery")
 
 @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
-def delete_digital_customer_events(current_depth: int, max_depth: int = 10000):
+def delete_digital_customer_events(
+    current_depth: int, max_depth: int = DELETE_DIGITAL_CUSTOMER_EVENTS_MAX_DEPTH
+):
     """Delete any event found in DB for legacy digital orders.
 
     Support for legacy digital orders has been removed for this Saleor

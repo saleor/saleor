@@ -9,7 +9,7 @@ def delete_legacy_customerevents(apps, _schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         delete_digital_customer_events.delay(current_depth=0)
 
-    sender = registry.get_app_config("product")
+    sender = registry.get_app_config("account")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 
