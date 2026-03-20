@@ -87,6 +87,29 @@ def _clean_legacy_list_items(value: Any) -> Any:
     return value
 
 
+def _clean_nested_list_items(items: Any, current_depth: int = 0) -> Any:
+    """Validate the depth of nested EditorJS list isn't excessive.
+
+    Important: this a "before" pydantic validator, meaning types aren't checked
+               yet as we want to run this validator early (instead of late).
+    """
+    if current_depth == settings.EDITOR_JS_LISTS_MAX_DEPTH:
+        raise ValidationError("Invalid EditorJS list: maximum nesting level exceeded")
+
+    # Type is invalid, skip it - we don't raise b/c pydantic will already take care
+    # of that and will show a helpful error
+    if not isinstance(items, list):
+        return items
+
+    for item in items:
+        # Type is invalid, skip it (pydantic will take care of raising)
+        if not isinstance(item, dict):
+            continue
+        if child_items := item.get("items"):
+            _clean_nested_list_items(child_items, current_depth + 1)
+    return items
+
+
 @overload
 def _clean_text(text: None) -> None: ...
 

@@ -1,3 +1,3 @@
-from .converters import editorjs_to_text, parse_editorjs
+from .converters import clean_editorjs, editorjs_to_text, parse_editorjs
 
-__all__ = ("parse_editorjs", "editorjs_to_text")
+__all__ = ("clean_editorjs", "parse_editorjs", "editorjs_to_text")
