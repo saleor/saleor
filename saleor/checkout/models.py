@@ -41,7 +41,7 @@ class CheckoutDelivery(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     checkout = models.ForeignKey(
         "checkout.Checkout",
-        related_name="shipping_methods",
+        related_name="deliveries",
         on_delete=models.CASCADE,
     )
     external_shipping_method_id = models.CharField(

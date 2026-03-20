@@ -24,6 +24,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed Adyen plugin (payment gateway). [Switch to the app](https://docs.saleor.io/developer/app-store/apps/adyen/overview).
 - Removed `partial` field from the `Payment` GraphQL type. This field was an Adyen-specific workaround and always returned `false` after the Adyen plugin removal. Ensure you are not relying on this field (on Adyen gateway in general) before upgrading.
 - Removed the NP Atobarai payment gateway plugin (`saleor.payment.gateways.np_atobarai`). Use the [App](https://docs.saleor.io/developer/app-store/apps/np-atobarai/overview) instead.
+- Removed support for the legacy digital products API - #18952 by @NyanKiyoshi
+
+  Important: digital products are still fully supported in Saleor. Only the legacy,
+  undocumented digital content API has been removed, the supported approach is documented here: https://docs.saleor.io/recipes/digital-products
 
 ### GraphQL API
 
@@ -32,6 +36,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added new scalar `NonNegativeInt` which allows integer values greater than or equal to zero.
 - Scalars `Minute`, `Hour` and `Day` now inherit from `NonNegativeInt`, which mean GraphQL disallows negative values for time units.
 - Removed `partial` field from the `Payment` GraphQL type.
+- Added sorting and filtering support for `transactions` query:
+  - sort by `CREATED_AT`, `MODIFIED_AT`;
+  - filter by `createdAt`, `modifiedAt` date ranges and by transaction events (`type`, `createdAt`).
 - Added `PasswordLoginMode` setting to control password-based authentication. When set to `DISABLED`, all password authentication mutations (`tokenCreate`, `setPassword`, `passwordChange`, `requestPasswordReset`, `tokenRefresh`) return errors. When set to `CUSTOMERS_ONLY`, staff users who log in with a password are treated as customers without staff
 permissions.
 - `staffDelete` mutation now always deletes the staff user. Previously, staff members with existing orders were only deactivated (`is_staff` set to `False`); now they are fully removed regardless of order history.

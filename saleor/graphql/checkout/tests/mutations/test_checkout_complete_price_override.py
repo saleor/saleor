@@ -582,11 +582,11 @@ def test_checkout_complete_with_price_override_and_gift_promotion(
     address,
     shipping_method,
     checkout_delivery,
-    digital_content,
+    product_without_shipping,
 ):
     # given
     rule = gift_promotion_rule
-    gift = digital_content.product_variant
+    gift = product_without_shipping.variants.get()
     rule.gifts.set([gift])
     gift_price = Decimal(10)
     assert gift.channel_listings.get().price_amount == gift_price

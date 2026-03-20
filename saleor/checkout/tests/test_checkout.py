@@ -816,10 +816,10 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable_missing_deliv
 
 
 def test_get_discount_for_checkout_shipping_voucher_not_applicable_delivery_not_required(
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
 ):
     # given
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
     voucher = Voucher.objects.create(
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,

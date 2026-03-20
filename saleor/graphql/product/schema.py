@@ -6,9 +6,6 @@ from ...core.search import prefix_search
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
 from ...product import models
-from ...product.deprecations import (
-    DEPRECATION_WARNING_MESSAGE as DEPRECATION_DIGITAL_CONTENT,
-)
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..channel.utils import get_default_channel_slug_or_graphql_error
@@ -27,7 +24,6 @@ from ..core.fields import (
     BaseField,
     ConnectionField,
     FilterConnectionField,
-    PermissionsField,
 )
 from ..core.tracing import traced_resolver
 from ..core.types import NonNullList
@@ -105,12 +101,6 @@ from .mutations.channels import (
     ProductChannelListingUpdate,
     ProductVariantChannelListingUpdate,
 )
-from .mutations.digital_contents import (
-    DigitalContentCreate,
-    DigitalContentDelete,
-    DigitalContentUpdate,
-    DigitalContentUrlCreate,
-)
 from .resolvers import (
     resolve_categories,
     resolve_category_by_translated_slug,
@@ -118,8 +108,6 @@ from .resolvers import (
     resolve_collection_by_slug,
     resolve_collection_by_translated_slug,
     resolve_collections,
-    resolve_digital_content_by_id,
-    resolve_digital_contents,
     resolve_product,
     resolve_product_type_by_id,
     resolve_product_types,
@@ -141,8 +129,6 @@ from .types import (
     CategoryCountableConnection,
     Collection,
     CollectionCountableConnection,
-    DigitalContent,
-    DigitalContentCountableConnection,
     Product,
     ProductCountableConnection,
     ProductType,
@@ -153,27 +139,6 @@ from .types import (
 
 
 class ProductQueries(graphene.ObjectType):
-    digital_content = PermissionsField(
-        DigitalContent,
-        description="Look up digital content by ID.",
-        id=graphene.Argument(
-            graphene.ID, description="ID of the digital content.", required=True
-        ),
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-        ],
-        doc_category=DOC_CATEGORY_PRODUCTS,
-        deprecation_reason=DEPRECATION_DIGITAL_CONTENT,
-    )
-    digital_contents = ConnectionField(
-        DigitalContentCountableConnection,
-        description="List of digital content.",
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-        ],
-        doc_category=DOC_CATEGORY_PRODUCTS,
-        deprecation_reason=DEPRECATION_DIGITAL_CONTENT,
-    )
     categories = FilterConnectionField(
         CategoryCountableConnection,
         filter=CategoryFilterInput(description="Filtering options for categories."),
@@ -461,18 +426,6 @@ class ProductQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @staticmethod
-    def resolve_digital_content(_root, info: ResolveInfo, *, id):
-        _, id = from_global_id_or_error(id, DigitalContent)
-        return resolve_digital_content_by_id(info, id)
-
-    @staticmethod
-    def resolve_digital_contents(_root, info: ResolveInfo, **kwargs):
-        qs = resolve_digital_contents(info)
-        return create_connection_slice(
-            qs, info, kwargs, DigitalContentCountableConnection
-        )
-
-    @staticmethod
     @traced_resolver
     def resolve_product(
         _root,
@@ -729,20 +682,6 @@ class ProductMutations(graphene.ObjectType):
     product_type_update = ProductTypeUpdate.Field()
     product_type_reorder_attributes = ProductTypeReorderAttributes.Field()
     product_reorder_attribute_values = ProductReorderAttributeValues.Field()
-
-    digital_content_create = DigitalContentCreate.Field(
-        deprecation_reason=DEPRECATION_DIGITAL_CONTENT
-    )
-    digital_content_delete = DigitalContentDelete.Field(
-        deprecation_reason=DEPRECATION_DIGITAL_CONTENT
-    )
-    digital_content_update = DigitalContentUpdate.Field(
-        deprecation_reason=DEPRECATION_DIGITAL_CONTENT
-    )
-
-    digital_content_url_create = DigitalContentUrlCreate.Field(
-        deprecation_reason=DEPRECATION_DIGITAL_CONTENT
-    )
 
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()

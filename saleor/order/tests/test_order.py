@@ -13,7 +13,6 @@ from ...discount.models import (
     DiscountValueType,
 )
 from ...discount.utils.voucher import validate_voucher_in_order
-from ...graphql.core.utils import to_global_id_or_none
 from ...graphql.order.utils import OrderLineData
 from ...graphql.tests.utils import get_graphql_content
 from ...payment import ChargeStatus
@@ -27,17 +26,12 @@ from ..calculations import fetch_order_prices_if_expired
 from ..events import (
     OrderEventsEmails,
     event_fulfillment_confirmed_notification,
-    event_fulfillment_digital_links_notification,
     event_order_cancelled_notification,
     event_order_confirmation_notification,
     event_order_refunded_notification,
     event_payment_confirmed_notification,
 )
 from ..models import Order
-from ..notifications import (
-    get_default_fulfillment_payload,
-    send_fulfillment_confirmation_to_customer,
-)
 from ..utils import (
     add_variant_to_order,
     change_order_line_quantity,
@@ -829,102 +823,6 @@ def test_change_order_line_quantity_changes_total_prices(
     assert line_info.line.total_price == line_info.line.unit_price * new_quantity
 
 
-@patch("saleor.plugins.manager.PluginsManager.notify")
-@pytest.mark.parametrize(
-    ("has_standard", "has_digital"), [(True, True), (True, False), (False, True)]
-)
-def test_send_fulfillment_order_lines_mails_by_user(
-    mocked_notify,
-    staff_user,
-    fulfilled_order,
-    fulfillment,
-    digital_content,
-    has_standard,
-    has_digital,
-):
-    manager = get_plugins_manager(allow_replica=False)
-    redirect_url = "http://localhost.pl"
-    order = fulfilled_order
-    order.redirect_url = redirect_url
-    assert order.lines.count() == 2
-
-    if not has_standard:
-        line = order.lines.all()[0]
-        line.variant = digital_content.product_variant
-        assert line.is_digital
-        line.save()
-
-    if has_digital:
-        line = order.lines.all()[1]
-        line.variant = digital_content.product_variant
-        assert line.is_digital
-        line.save()
-
-    send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=staff_user, app=None, manager=manager
-    )
-    expected_payload = get_default_fulfillment_payload(order, fulfillment)
-    expected_payload["requester_user_id"] = to_global_id_or_none(staff_user)
-    expected_payload["requester_app_id"] = None
-
-    assert mocked_notify.call_count == 1
-    call_args = mocked_notify.call_args_list[0]
-    called_args = call_args.args
-    called_kwargs = call_args.kwargs
-    assert called_args[0] == "order_fulfillment_confirmation"
-    assert len(called_kwargs) == 2
-    assert called_kwargs["payload_func"]() == expected_payload
-    assert called_kwargs["channel_slug"] == fulfilled_order.channel.slug
-
-
-@patch("saleor.plugins.manager.PluginsManager.notify")
-@pytest.mark.parametrize(
-    ("has_standard", "has_digital"), [(True, True), (True, False), (False, True)]
-)
-def test_send_fulfillment_order_lines_mails_by_app(
-    mocked_notify,
-    app,
-    fulfilled_order,
-    fulfillment,
-    digital_content,
-    has_standard,
-    has_digital,
-):
-    manager = get_plugins_manager(allow_replica=False)
-    redirect_url = "http://localhost.pl"
-    order = fulfilled_order
-    order.redirect_url = redirect_url
-    assert order.lines.count() == 2
-
-    if not has_standard:
-        line = order.lines.all()[0]
-        line.variant = digital_content.product_variant
-        assert line.is_digital
-        line.save()
-
-    if has_digital:
-        line = order.lines.all()[1]
-        line.variant = digital_content.product_variant
-        assert line.is_digital
-        line.save()
-
-    send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=None, app=app, manager=manager
-    )
-    expected_payload = get_default_fulfillment_payload(order, fulfillment)
-    expected_payload["requester_user_id"] = None
-    expected_payload["requester_app_id"] = to_global_id_or_none(app)
-
-    assert mocked_notify.call_count == 1
-    call_args = mocked_notify.call_args_list[0]
-    called_args = call_args.args
-    called_kwargs = call_args.kwargs
-    assert called_args[0] == "order_fulfillment_confirmation"
-    assert len(called_kwargs) == 2
-    assert called_kwargs["payload_func"]() == expected_payload
-    assert called_kwargs["channel_slug"] == fulfilled_order.channel.slug
-
-
 @pytest.mark.parametrize(
     ("event_fun", "expected_event_type"),
     [
@@ -954,7 +852,6 @@ def test_email_sent_event_with_user(order, event_fun, expected_event_type):
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
-        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
         (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
     ],
 )
@@ -983,7 +880,6 @@ def test_email_sent_event_with_user_without_app(order, event_fun, expected_event
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
-        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
         (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
     ],
 )
@@ -1034,7 +930,6 @@ def test_email_sent_event_without_user_pk(order, event_fun, expected_event_type)
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
-        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
         (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
     ],
 )

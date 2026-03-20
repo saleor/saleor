@@ -51,9 +51,6 @@ class SiteSettings(ModelWithMetadata):
         choices=WeightUnits.CHOICES,
         default=WeightUnits.KG,
     )
-    automatic_fulfillment_digital_products = models.BooleanField(default=False)
-    default_digital_max_downloads = models.IntegerField(blank=True, null=True)
-    default_digital_url_valid_days = models.IntegerField(blank=True, null=True)
     company_address = models.ForeignKey(
         "account.Address", blank=True, null=True, on_delete=models.SET_NULL
     )

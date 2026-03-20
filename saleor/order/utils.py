@@ -45,7 +45,6 @@ from ..giftcard.models import GiftCard
 from ..giftcard.search import mark_gift_cards_search_index_as_dirty
 from ..payment import TransactionEventType
 from ..payment.model_helpers import get_total_authorized
-from ..product.utils.digital_products import get_default_digital_content_settings
 from ..tax.utils import get_display_gross_prices, get_tax_class_kwargs_for_order_line
 from ..warehouse.management import (
     decrease_allocations,
@@ -84,28 +83,6 @@ def get_order_country(order: Order) -> str:
     return get_active_country(
         order.channel, order.shipping_address, order.billing_address
     )
-
-
-def order_line_needs_automatic_fulfillment(line_data: OrderLineInfo) -> bool:
-    """Check if given line is digital and should be automatically fulfilled."""
-    digital_content_settings = get_default_digital_content_settings()
-    default_automatic_fulfillment = digital_content_settings["automatic_fulfillment"]
-    content = line_data.digital_content
-    if not content:
-        return False
-    if default_automatic_fulfillment and content.use_default_settings:
-        return True
-    if content.automatic_fulfillment:
-        return True
-    return False
-
-
-def order_needs_automatic_fulfillment(lines_data: list["OrderLineInfo"]) -> bool:
-    """Check if order has digital products which should be automatically fulfilled."""
-    for line_data in lines_data:
-        if line_data.is_digital and order_line_needs_automatic_fulfillment(line_data):
-            return True
-    return False
 
 
 def get_voucher_discount_assigned_to_order(order: Order):
@@ -382,8 +359,7 @@ def add_variant_to_order(
 
     Returns an order line the variant was added to.
     """
-    is_new_line = not line_data.line_id
-    if not is_new_line:
+    if line_data.line_id is not None:
         line = order.lines.get(pk=line_data.line_id)
         old_quantity = line.quantity
         new_quantity = old_quantity + line_data.quantity

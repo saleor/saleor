@@ -539,23 +539,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return self.total_charged - self.total.gross
 
 
-class OrderLineQueryset(models.QuerySet["OrderLine"]):
-    def digital(self):
-        """Return lines with digital products."""
-        for line in self.all():
-            if line.is_digital:
-                yield line
-
-    def physical(self):
-        """Return lines with physical products."""
-        for line in self.all():
-            if not line.is_digital:
-                yield line
-
-
-OrderLineManager = models.Manager.from_queryset(OrderLineQueryset)
-
-
 class OrderLine(ModelWithMetadata):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
@@ -744,8 +727,6 @@ class OrderLine(ModelWithMetadata):
     # It depends on channel.draft_order_line_price_freeze_period setting.
     draft_base_price_expire_at = models.DateTimeField(blank=True, null=True)
 
-    objects = OrderLineManager()
-
     class Meta(ModelWithMetadata.Meta):
         ordering = ("created_at", "id")
 
@@ -764,15 +745,6 @@ class OrderLine(ModelWithMetadata):
     @property
     def quantity_unfulfilled(self):
         return self.quantity - self.quantity_fulfilled
-
-    @property
-    def is_digital(self) -> bool:
-        """Check if a variant is digital and contains digital content."""
-        if not self.variant:
-            return False
-        is_digital = self.variant.is_digital()
-        has_digital = hasattr(self.variant, "digital_content")
-        return is_digital and has_digital
 
 
 class Fulfillment(ModelWithMetadata):

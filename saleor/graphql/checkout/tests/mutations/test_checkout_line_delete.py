@@ -267,12 +267,12 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
 def test_checkout_line_marks_shipping_as_stale_if_removed_product_with_shipping(
     user_api_client,
     checkout_with_item,
-    digital_content,
+    product_without_shipping,
     address,
     checkout_delivery,
 ):
     checkout = checkout_with_item
-    digital_variant = digital_content.product_variant
+    variant = product_without_shipping.variants.get()
     checkout.shipping_address = address
     checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save()
@@ -280,7 +280,7 @@ def test_checkout_line_marks_shipping_as_stale_if_removed_product_with_shipping(
     checkout_info = fetch_checkout_info(
         checkout, [], get_plugins_manager(allow_replica=False)
     )
-    add_variant_to_checkout(checkout_info, digital_variant, 1)
+    add_variant_to_checkout(checkout_info, variant, 1)
     line = checkout.lines.first()
 
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)

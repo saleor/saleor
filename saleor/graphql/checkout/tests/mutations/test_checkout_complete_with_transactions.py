@@ -3937,9 +3937,9 @@ def test_checkout_complete_without_redirect_url(
     )
 
 
-def test_checkout_complete_with_digital(
+def test_checkout_complete_without_shipping_products(
     api_client,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
     address,
     address_usa,
     transaction_events_generator,
@@ -3951,7 +3951,7 @@ def test_checkout_complete_with_digital(
     user_address_count = customer_user.addresses.count()
 
     checkout = prepare_checkout_for_test(
-        checkout_with_digital_item,
+        checkout_without_shipping_required,
         address,
         address_usa,
         None,
@@ -3984,9 +3984,9 @@ def test_checkout_complete_with_digital(
     assert customer_user.addresses.count() == user_address_count + 2
 
 
-def test_checkout_complete_with_digital_no_shipping_address_set(
+def test_checkout_complete_without_shipping_and_no_shipping_address_set(
     api_client,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
     address,
     transaction_events_generator,
     transaction_item_generator,
@@ -3994,7 +3994,7 @@ def test_checkout_complete_with_digital_no_shipping_address_set(
 ):
     # given
     checkout = prepare_checkout_for_test(
-        checkout_with_digital_item,
+        checkout_without_shipping_required,
         None,
         address,
         None,
@@ -4022,9 +4022,9 @@ def test_checkout_complete_with_digital_no_shipping_address_set(
     assert order.billing_address
 
 
-def test_checkout_complete_with_digital_saving_addresses_off(
+def test_checkout_complete_without_shipping_saving_addresses_off(
     api_client,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
     address,
     address_usa,
     transaction_events_generator,
@@ -4036,7 +4036,7 @@ def test_checkout_complete_with_digital_saving_addresses_off(
     user_address_count = customer_user.addresses.count()
 
     checkout = prepare_checkout_for_test(
-        checkout_with_digital_item,
+        checkout_without_shipping_required,
         address,
         address_usa,
         None,

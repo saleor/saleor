@@ -12,9 +12,6 @@ SHOP_SETTINGS_UPDATE_MUTATION = """
     mutation updateSettings($input: ShopSettingsInput!) {
         shopSettingsUpdate(input: $input) {
             shop {
-                automaticFulfillmentDigitalProducts
-                defaultDigitalMaxDownloads
-                defaultDigitalUrlValidDays
                 headerText,
                 includeTaxesInPrices,
                 chargeTaxesOnShipping,
@@ -36,42 +33,6 @@ SHOP_SETTINGS_UPDATE_MUTATION = """
         }
     }
 """
-
-
-def test_shop_digital_content_settings_mutation(
-    staff_api_client, site_settings, permission_manage_settings
-):
-    # given
-    query = SHOP_SETTINGS_UPDATE_MUTATION
-
-    max_downloads = 15
-    url_valid_days = 30
-    variables = {
-        "input": {
-            "automaticFulfillmentDigitalProducts": True,
-            "defaultDigitalMaxDownloads": max_downloads,
-            "defaultDigitalUrlValidDays": url_valid_days,
-        }
-    }
-
-    assert not site_settings.automatic_fulfillment_digital_products
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["shopSettingsUpdate"]["shop"]
-    assert data["automaticFulfillmentDigitalProducts"]
-    assert data["defaultDigitalMaxDownloads"]
-    assert data["defaultDigitalUrlValidDays"]
-    site_settings.refresh_from_db()
-    assert site_settings.automatic_fulfillment_digital_products
-    assert site_settings.default_digital_max_downloads == max_downloads
-    assert site_settings.default_digital_url_valid_days == url_valid_days
-    assert site_settings.preserve_all_address_fields is False
 
 
 def test_shop_settings_mutation(

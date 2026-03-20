@@ -167,7 +167,6 @@ from ..resolvers import (
 )
 from ..sorters import MediaSortingInput, ProductVariantSortingInput
 from .channels import ProductChannelListing, ProductVariantChannelListing
-from .digital_contents import DigitalContent
 
 destination_address_argument = graphene.Argument(
     account_types.AddressInput,
@@ -405,11 +404,6 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         type_name="product variant",
         resolver=ChannelContextType.resolve_translation,
     )
-    digital_content = PermissionsField(
-        DigitalContent,
-        description="Digital content for the product variant.",
-        permissions=[ProductPermissions.MANAGE_PRODUCTS],
-    )
     stocks = PermissionsField(
         NonNullList(Stock),
         description="Stocks for the product variant.",
@@ -614,10 +608,6 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
         ).load((root.node.id, country_code, channel_slug))
-
-    @staticmethod
-    def resolve_digital_content(root: ChannelContext[models.ProductVariant], _info):
-        return getattr(root.node, "digital_content", None)
 
     @classmethod
     def resolve_assigned_attribute(
@@ -1747,7 +1737,14 @@ class ProductType(ModelObjectType[models.ProductType]):
         required=True, description="Whether shipping is required for this product type."
     )
     is_digital = graphene.Boolean(
-        required=True, description="Whether the product type is digital."
+        required=True,
+        description=(
+            "Whether the product type is digital - doesn't have any effect, "
+            "it's present for backward-compatibility."
+        ),
+        deprecation_reason=(
+            "Will be removed in v3.24.0, use metadata or attributes instead."
+        ),
     )
     weight = graphene.Field(Weight, description="Weight of the product type.")
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)

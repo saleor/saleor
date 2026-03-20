@@ -32,20 +32,11 @@ class ShopSettingsInput(graphene.InputObjectType):
         )
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
-    automatic_fulfillment_digital_products = graphene.Boolean(
-        description="Enable automatic fulfillment for all digital products."
-    )
     fulfillment_auto_approve = graphene.Boolean(
         description="Enable automatic approval of all new fulfillments."
     )
     fulfillment_allow_unpaid = graphene.Boolean(
         description="Enable ability to approve fulfillments which are unpaid."
-    )
-    default_digital_max_downloads = graphene.Int(
-        description="Default number of max downloads per digital content URL."
-    )
-    default_digital_url_valid_days = graphene.Int(
-        description="Default number of days which digital content URL will be valid."
     )
     default_mail_sender_name = graphene.String(
         description="Default email sender's name."

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
+from promise import Promise
 
 from ...core.telemetry import (
     MetricType,
@@ -188,7 +189,14 @@ class BreakerBoard:
     def register_success(self, app_id: int):
         self.storage.register_event(app_id, "total", self.ttl_seconds)
 
-    def __call__(self, func):
+    def wrap_func(self, func):
+        """Wrap a synchronous webhook function with circuit breaker logic.
+
+        For monitored event types, evaluates current breaker state before calling the function.
+        When OPEN, skips execution entirely — or runs without recording for dry-run events.
+        On execution, registers success or error with the breaker based on whether the response is non-None.
+        """
+
         def inner(*args, **kwargs):
             event_type: str = kwargs.get("event_type") or args[0]
             webhook: Webhook = kwargs.get("webhook") or args[2]
@@ -208,15 +216,54 @@ class BreakerBoard:
                     return func(*args, **kwargs)
 
             response = func(*args, **kwargs)
+
             if response is None:
                 self.register_error(app.id)
             else:
                 self.register_success(app.id)
-
             return response
 
         inner.__wrapped__ = func  # type: ignore[attr-defined]
 
+        return inner
+
+    def wrap_promise_func(self, promise_func):
+        """Wrap a Promise-returning webhook function with circuit breaker logic.
+
+        For monitored event types, evaluates current breaker state before calling the function.
+        When OPEN, resolves immediately with None — or executes without tracking for dry-run events.
+        On execution, chains .then() to inspect the resolved value and register success or error with the breaker.
+        """
+
+        def inner(*args, **kwargs):
+            event_type: str = kwargs.get("event_type") or args[0]
+            webhook: Webhook = kwargs.get("webhook") or args[2]
+
+            if event_type not in settings.BREAKER_BOARD_SYNC_EVENTS:
+                # Execute webhook without affecting breaker state
+                return promise_func(*args, **kwargs)
+
+            app = webhook.app
+            state = self.update_breaker_state(app)
+            if state == CircuitBreakerState.OPEN:
+                if event_type not in settings.BREAKER_BOARD_DRY_RUN_SYNC_EVENTS:
+                    # Skip func execution to prevent sending webhooks
+                    return Promise.resolve(None)
+                # Dry-run: execute webhook, but ignore result (pretend it's skipped)
+                return promise_func(*args, **kwargs)
+
+            response = promise_func(*args, **kwargs)
+
+            def process_response(data_response):
+                if data_response is None:
+                    self.register_error(app.id)
+                else:
+                    self.register_success(app.id)
+                return data_response
+
+            return response.then(process_response)
+
+        inner.__wrapped__ = promise_func  # type: ignore[attr-defined]
         return inner
 
 

@@ -1453,56 +1453,6 @@ def test_order_fulfill_preorder_waiting_fulfillment(
     )
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
-def test_create_digital_fulfillment(
-    mock_email_fulfillment,
-    digital_content,
-    staff_api_client,
-    order_with_lines,
-    warehouse,
-    permission_group_manage_orders,
-):
-    order = order_with_lines
-    query = ORDER_FULFILL_MUTATION
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    order_line = order.lines.first()
-    order_line.variant = digital_content.product_variant
-    order_line.save()
-    order_line.allocations.all().delete()
-
-    stock = digital_content.product_variant.stocks.get(warehouse=warehouse)
-    Allocation.objects.create(
-        order_line=order_line, stock=stock, quantity_allocated=order_line.quantity
-    )
-
-    second_line = order.lines.last()
-    first_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
-    second_line_id = graphene.Node.to_global_id("OrderLine", second_line.id)
-    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
-
-    variables = {
-        "order": order_id,
-        "input": {
-            "notifyCustomer": True,
-            "lines": [
-                {
-                    "orderLineId": first_line_id,
-                    "stocks": [{"quantity": 1, "warehouse": warehouse_id}],
-                },
-                {
-                    "orderLineId": second_line_id,
-                    "stocks": [{"quantity": 1, "warehouse": warehouse_id}],
-                },
-            ],
-        },
-    }
-    response = staff_api_client.post_graphql(query, variables)
-    get_graphql_content(response)
-
-    assert mock_email_fulfillment.call_count == 1
-
-
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_order_fulfill_tracking_number_updated_event_triggered(
     mocked_webhooks,

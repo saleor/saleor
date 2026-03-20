@@ -271,11 +271,6 @@ class Shop(graphene.ObjectType):
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
     translation = TranslationField(ShopTranslation, type_name="shop", resolver=None)
-    automatic_fulfillment_digital_products = PermissionsField(
-        graphene.Boolean,
-        description="Enable automatic fulfillment for all digital products.",
-        permissions=[SitePermissions.MANAGE_SETTINGS],
-    )
     reserve_stock_duration_anonymous_user = PermissionsField(
         graphene.Int,
         description=(
@@ -298,16 +293,6 @@ class Shop(graphene.ObjectType):
             "Default number of maximum line quantity in single checkout "
             "(per single checkout line)."
         ),
-        permissions=[SitePermissions.MANAGE_SETTINGS],
-    )
-    default_digital_max_downloads = PermissionsField(
-        graphene.Int,
-        description="Default number of max downloads per digital content URL.",
-        permissions=[SitePermissions.MANAGE_SETTINGS],
-    )
-    default_digital_url_valid_days = PermissionsField(
-        graphene.Int,
-        description="Default number of days which digital content URL will be valid.",
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
     company_address = graphene.Field(
@@ -588,11 +573,6 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @load_site_callback
-    def resolve_automatic_fulfillment_digital_products(_, _info, site):
-        return site.settings.automatic_fulfillment_digital_products
-
-    @staticmethod
-    @load_site_callback
     def resolve_reserve_stock_duration_anonymous_user(_, _info, site):
         return site.settings.reserve_stock_duration_anonymous_user
 
@@ -605,16 +585,6 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_limit_quantity_per_checkout(_, _info, site):
         return site.settings.limit_quantity_per_checkout
-
-    @staticmethod
-    @load_site_callback
-    def resolve_default_digital_max_downloads(_, _info, site):
-        return site.settings.default_digital_max_downloads
-
-    @staticmethod
-    @load_site_callback
-    def resolve_default_digital_url_valid_days(_, _info, site):
-        return site.settings.default_digital_url_valid_days
 
     @staticmethod
     def resolve_staff_notification_recipients(_, info):

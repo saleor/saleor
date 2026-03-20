@@ -1,4 +1,3 @@
-import uuid
 from functools import partial
 from typing import cast
 
@@ -57,7 +56,7 @@ from ..core.types import (
 from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
-from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader, OrdersByUserLoader
+from ..order.dataloaders import OrderByIdLoader, OrdersByUserLoader
 from ..order.filters import CustomerOrderWhereInput
 from ..payment.types import StoredPaymentMethod
 from ..plugins.dataloaders import get_plugin_manager_promise
@@ -231,9 +230,6 @@ class CustomerEvent(ModelObjectType[models.CustomerEvent]):
     order = graphene.Field(
         "saleor.graphql.order.types.Order", description="The concerned order."
     )
-    order_line = graphene.Field(
-        "saleor.graphql.order.types.OrderLine", description="The concerned order line."
-    )
 
     class Meta:
         description = "History log of the customer."
@@ -284,22 +280,6 @@ class CustomerEvent(ModelObjectType[models.CustomerEvent]):
             return (
                 OrderByIdLoader(info.context)
                 .load(root.order_id)
-                .then(_wrap_with_sync_webhook_control_context)
-            )
-        return None
-
-    @staticmethod
-    def resolve_order_line(root: models.CustomerEvent, info: ResolveInfo):
-        if "order_line_pk" in root.parameters:
-
-            def _wrap_with_sync_webhook_control_context(line):
-                if not line:
-                    return None
-                return SyncWebhookControlContext(node=line, allow_sync_webhooks=False)
-
-            return (
-                OrderLineByIdLoader(info.context)
-                .load(uuid.UUID(root.parameters["order_line_pk"]))
                 .then(_wrap_with_sync_webhook_control_context)
             )
         return None

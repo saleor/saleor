@@ -20,7 +20,6 @@ class Command(BaseCommand):
     # Directories to scan for invalid files
     DIRECTORIES_TO_SCAN = [
         "file_upload/",  # Files uploaded via FileUpload mutation
-        "digital_contents/",  # Files uploaded via DigitalContentCreate mutation
     ]
 
     def add_arguments(self, parser):

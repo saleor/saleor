@@ -619,30 +619,6 @@ def test_add_private_metadata_for_collection(
     )
 
 
-def test_add_private_metadata_for_digital_content(
-    staff_api_client, permission_manage_products, digital_content
-):
-    # given
-    digital_content_id = graphene.Node.to_global_id(
-        "DigitalContent", digital_content.pk
-    )
-
-    # when
-    response = execute_update_private_metadata_for_item(
-        staff_api_client,
-        permission_manage_products,
-        digital_content_id,
-        "DigitalContent",
-    )
-
-    # then
-    assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"],
-        digital_content,
-        digital_content_id,
-    )
-
-
 def test_add_private_metadata_for_fulfillment(
     staff_api_client, permission_manage_orders, fulfillment
 ):

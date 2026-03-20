@@ -152,9 +152,9 @@ def test_excluded_shipping_methods_for_order(
     assert webhook_reason in excluded_method.reason
 
     mocked_webhook.assert_called_once_with(
-        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-        shipping_webhook,
-        False,
+        event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+        webhook=shipping_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
@@ -283,9 +283,9 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
 
     event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     mocked_webhook.assert_any_call(
-        event_type,
-        shipping_webhook,
-        False,
+        event_type=event_type,
+        webhook=shipping_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
@@ -293,9 +293,9 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         requestor=None,
     )
     mocked_webhook.assert_any_call(
-        event_type,
-        second_shipping_webhook,
-        False,
+        event_type=event_type,
+        webhook=second_shipping_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
@@ -436,9 +436,9 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     assert webhook_second_reason in em_1.reason
 
     mocked_webhook.assert_any_call(
-        event_type,
-        first_webhook,
-        False,
+        event_type=event_type,
+        webhook=first_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
@@ -446,9 +446,9 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
         requestor=None,
     )
     mocked_webhook.assert_any_call(
-        event_type,
-        second_webhook,
-        False,
+        event_type=event_type,
+        webhook=second_webhook,
+        allow_replica=False,
         static_payload=payload,
         subscribable_object=(order_with_lines, available_shipping_methods),
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,

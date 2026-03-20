@@ -929,10 +929,6 @@ QUERY_PRODUCT_TYPES_PAGINATION = """
             ["ProductTypeProductType2", "ProductTypeProductType1", "ProductType3"],
         ),
         (
-            {"field": "DIGITAL", "direction": "ASC"},
-            ["ProductType2", "ProductTypeProductType1", "ProductTypeProductType2"],
-        ),
-        (
             {"field": "SHIPPING_REQUIRED", "direction": "ASC"},
             ["ProductType1", "ProductType3", "ProductTypeProductType1"],
         ),
