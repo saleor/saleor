@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("site", "0046_remove_digital_content_settings_from_state"),
+        ("site", "0045_merge_20260223_0944"),
     ]
 
     operations = [
