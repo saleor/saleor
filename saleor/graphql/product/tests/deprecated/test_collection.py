@@ -39,7 +39,8 @@ def test_collections_query_with_default_channel_slug(
     assert collection_data["name"] == published_collection.name
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["description"] == json.dumps(
-        published_collection.description
+        published_collection.description,
+        sort_keys=True,
     )
     assert (
         collection_data["products"]["totalCount"]

@@ -2,8 +2,8 @@ import datetime
 
 import pytest
 
+from ....core.editorjs import editorjs_to_text
 from ....core.units import MeasurementUnits
-from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.text import safe_truncate
 from ....tests.utils import dummy_editorjs
 from ... import AttributeEntityType, AttributeInputType, AttributeType
@@ -325,7 +325,7 @@ def rich_text_attribute(db):
     text = "Rich text attribute content."
     AttributeValue.objects.create(
         attribute=attribute,
-        name=safe_truncate(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
+        name=safe_truncate(editorjs_to_text(dummy_editorjs(text)), 50),
         slug=f"instance_{attribute.id}",
         rich_text=dummy_editorjs(text),
     )
@@ -346,7 +346,7 @@ def rich_text_attribute_page_type(db):
     text = "Rich text attribute content."
     AttributeValue.objects.create(
         attribute=attribute,
-        name=safe_truncate(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
+        name=safe_truncate(editorjs_to_text(dummy_editorjs(text)), 50),
         slug=f"instance_{attribute.id}",
         rich_text=dummy_editorjs(text),
     )
@@ -362,9 +362,7 @@ def rich_text_attribute_with_many_values(rich_text_attribute):
         values.append(
             AttributeValue(
                 attribute=attribute,
-                name=safe_truncate(
-                    clean_editor_js(dummy_editorjs(text), to_string=True), 50
-                ),
+                name=safe_truncate(editorjs_to_text(dummy_editorjs(text)), 50),
                 slug=f"instance_{attribute.id}_{i}",
                 rich_text=dummy_editorjs(text),
             )

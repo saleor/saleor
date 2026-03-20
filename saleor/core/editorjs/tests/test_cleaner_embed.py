@@ -56,7 +56,7 @@ def test_cleans_size_caption_blocks(
     actual = None
 
     try:
-        actual = clean_editorjs(data)
+        actual = clean_editorjs(data, for_django=False)
     except pydantic_core.ValidationError as exc:
         error = exc
 

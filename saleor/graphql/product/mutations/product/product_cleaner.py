@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 
-from .....core.utils.editorjs import clean_editor_js
+from .....core.editorjs import editorjs_to_text
 from .....product.error_codes import ProductErrorCode
 from ....core.validators import validate_slug_and_generate_if_needed
 
@@ -30,5 +30,5 @@ def clean_description(cleaned_input: dict):
     if "description" in cleaned_input:
         description = cleaned_input["description"]
         cleaned_input["description_plaintext"] = (
-            clean_editor_js(description, to_string=True) if description else ""
+            editorjs_to_text(description) if description else ""
         )

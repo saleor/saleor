@@ -1,6 +1,8 @@
 import json
 import warnings
 
+import django.core.exceptions
+import pydantic_core
 import pytest
 from django.utils.html import strip_tags
 
@@ -14,8 +16,25 @@ def assert_paragraph_cleaned(text_input: str, expected_text_output: str) -> None
         "blocks": [{"type": "paragraph", "data": {"text": expected_text_output}}]
     }
 
-    actual = clean_editorjs(input)
+    actual = clean_editorjs(input, for_django=False)
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("for_django", "expected_exception_cls"),
+    [
+        (True, django.core.exceptions.ValidationError),
+        (False, pydantic_core.ValidationError),
+    ],
+)
+def test_converts_exceptions_to_django(
+    for_django: bool, expected_exception_cls: type[BaseException]
+):
+    """Passing ``for_django=True`` it raise a Django exception instead of pydantic."""
+
+    input_data = {"blocks": 1}
+    with pytest.raises(expected_exception_cls):
+        clean_editorjs(input_data, for_django=for_django)
 
 
 @pytest.mark.parametrize(
@@ -214,7 +233,7 @@ def test_clean_text_data_block_allow_custom_attribute_values(
 def test_clean_editor_js_no_blocks(
     _case: str, input_data: dict, expected_dict_out: dict
 ):
-    result = clean_editorjs(input_data)
+    result = clean_editorjs(input_data, for_django=False)
     assert result == expected_dict_out
 
     result = editorjs_to_text(input_data)
@@ -289,7 +308,7 @@ def test_clean_editor_js_for_complex_description(no_link_rel):
     }
 
     # when
-    result = clean_editorjs(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     assert result == data
@@ -420,7 +439,7 @@ def test_cleans_all_editor_js_blocks(_case, data, expected_data):
     """Check all block types supported by Saleor and ensure they all gets cleaned."""
 
     with warnings.catch_warnings(record=True):
-        actual = clean_editorjs({"blocks": [data]})
+        actual = clean_editorjs({"blocks": [data]}, for_django=False)
 
     assert len(actual["blocks"]) == 1
     actual = actual["blocks"][0]

@@ -5,9 +5,9 @@ from django.db import models, transaction
 from django.db.models import Case, Exists, F, OrderBy, OuterRef, Q, Value, When
 
 from ...core.db.fields import SanitizedJSONField
+from ...core.editorjs import clean_editorjs
 from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
 from ...core.units import MeasurementUnits
-from ...core.utils.editorjs import clean_editor_js
 from ...core.utils.translations import Translation
 from ...page.models import Page, PageType
 from ...permission.enums import PageTypePermissions, ProductTypePermissions
@@ -372,7 +372,7 @@ class AttributeValue(ModelWithExternalReference):
     attribute = models.ForeignKey(
         Attribute, related_name="values", on_delete=models.CASCADE
     )
-    rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     plain_text = models.TextField(
         blank=True,
         null=True,
@@ -505,7 +505,7 @@ class AttributeValueTranslation(Translation):
         AttributeValue, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=250)
-    rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     plain_text = models.TextField(
         blank=True,
         null=True,

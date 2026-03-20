@@ -5,8 +5,8 @@ from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 
 from ..core.db.fields import SanitizedJSONField
+from ..core.editorjs import clean_editorjs
 from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
-from ..core.utils.editorjs import clean_editor_js
 from ..permission.enums import PagePermissions, PageTypePermissions
 from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 
@@ -31,7 +31,7 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
     page_type = models.ForeignKey(
         "PageType", related_name="pages", on_delete=models.CASCADE
     )
-    content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     search_vector = SearchVectorField(blank=True, null=True)
     search_index_dirty = models.BooleanField(default=True, db_default=True)
@@ -59,7 +59,7 @@ class PageTranslation(SeoModelTranslationWithSlug):
         Page, related_name="translations", on_delete=models.CASCADE
     )
     title = models.CharField(max_length=255, blank=True, null=True)
-    content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
 
     class Meta:
         constraints = [

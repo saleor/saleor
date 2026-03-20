@@ -99,7 +99,7 @@ def test_clean_editor_js_invalid_url():
     }
 
     # when
-    result = clean_editorjs(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     cleaned_text = result["blocks"][0]["data"]["text"]
@@ -115,7 +115,7 @@ def test_clean_editor_js_image_invalid_url():
 
     # when
     with warnings.catch_warnings(record=True) as warns:
-        result = clean_editorjs(data)
+        result = clean_editorjs(data, for_django=False)
 
         assert len(warns) == 1
         assert "disallowed URL was sent" in str(warns[0].message)
@@ -131,7 +131,7 @@ def test_clean_editor_js_image_disallowed_scheme():
 
     # when
     with warnings.catch_warnings(record=True) as warns:
-        result = clean_editorjs(data)
+        result = clean_editorjs(data, for_django=False)
 
         assert len(warns) == 1
         assert "disallowed URL was sent" in str(warns[0].message)

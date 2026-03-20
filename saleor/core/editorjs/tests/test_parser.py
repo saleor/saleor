@@ -59,6 +59,6 @@ def test_clean_editorjs_legacy_rejects_invalid(
     data = {"blocks": [data]}
 
     with pytest.raises(pydantic_core.ValidationError) as exc:
-        clean_editorjs(data)
+        clean_editorjs(data, for_django=False)
 
     assert expected_error in str(exc.value)

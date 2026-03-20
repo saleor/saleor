@@ -11,8 +11,8 @@ from django.db.models.functions import Cast, Concat
 
 from ...attribute import AttributeInputType
 from ...attribute.models import AssignedVariantAttribute, Attribute, AttributeValue
+from ...core.editorjs import editorjs_to_text
 from ...core.utils import build_absolute_uri
-from ...core.utils.editorjs import clean_editor_js
 from ...product.models import (
     ProductChannelListing,
     ProductVariant,
@@ -481,9 +481,7 @@ def prepare_attribute_value(attribute_data: AttributeData):
                 else f"{data.value_name} {data.unit}"
             )
         ),
-        AttributeInputType.RICH_TEXT: (
-            lambda data: clean_editor_js(data.rich_text, to_string=True)
-        ),
+        AttributeInputType.RICH_TEXT: lambda data: editorjs_to_text(data.rich_text),
         AttributeInputType.BOOLEAN: (
             lambda data: str(data.boolean) if data.boolean is not None else None
         ),

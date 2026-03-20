@@ -81,7 +81,7 @@ def test_promotion_create_translation(
     translation_data = data["promotion"]["translation"]
 
     assert translation_data["name"] == "Polish promotion name"
-    assert translation_data["description"] == json.dumps(description_json)
+    assert json.loads(translation_data["description"]) == description_json
     assert translation_data["language"]["code"] == "PL"
     assert translation_data["__typename"] == "PromotionTranslation"
 

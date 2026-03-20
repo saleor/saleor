@@ -79,7 +79,7 @@ def test_promotion_rule_create_translation(
     translation_data = data["promotionRule"]["translation"]
 
     assert translation_data["name"] == "Polish rule name"
-    assert translation_data["description"] == json.dumps(description_json)
+    assert json.loads(translation_data["description"]) == description_json
     assert translation_data["language"]["code"] == "PL"
 
     translation = promotion_rule.translations.first()

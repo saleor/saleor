@@ -39,7 +39,7 @@ def test_clean_editor_js_for_list(no_link_rel):
     }
 
     # when
-    result = clean_editorjs(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     assert result == data
@@ -83,7 +83,7 @@ def test_clean_editor_js_for_list_invalid_url():
     }
 
     # when
-    result = clean_editorjs(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     # Paragraph with invalid url should be cleaned
@@ -179,7 +179,7 @@ def test_clean_editorjs_legacy(
     err = None
 
     try:
-        actual_results = clean_editorjs(data)
+        actual_results = clean_editorjs(data, for_django=False)
     except pydantic_core.ValidationError as exc:
         err = exc
 
@@ -254,7 +254,7 @@ def test_clean_editorjs_legacy_works_for_valid_inputs(_case: str, data: dict):
     data = {"blocks": [data]}
 
     expected = deepcopy(data)
-    actual = clean_editorjs(data)
+    actual = clean_editorjs(data, for_django=False)
 
     # Valid data shouldn't have alterated
     assert actual == expected
@@ -426,7 +426,7 @@ def test_clean_editorjs_legacy_works_for_valid_inputs(_case: str, data: dict):
 def test_cleans_editorjs_nested_lists(_case: str, data: dict, expected_results: dict):
     data = {"blocks": [data]}
 
-    actual = clean_editorjs(data)
+    actual = clean_editorjs(data, for_django=False)
 
     blocks = actual["blocks"]
     assert len(blocks) == 1
@@ -559,7 +559,7 @@ def test_clean_editorjs_rejects_invalid_nested_lists(
     data = {"blocks": [data]}
 
     with pytest.raises(pydantic_core.ValidationError) as exc:
-        clean_editorjs(data)
+        clean_editorjs(data, for_django=False)
 
     assert_pydantic_errors(exc.value, expected_errors)
 
@@ -598,4 +598,4 @@ def test_clean_editorjs_rejects_too_deep_nested_list(settings):
         django.core.exceptions.ValidationError,
         match="Invalid EditorJS list: maximum nesting level exceeded",
     ):
-        clean_editorjs(data)
+        clean_editorjs(data, for_django=False)

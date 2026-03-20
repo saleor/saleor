@@ -9,11 +9,11 @@ from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 from text_unidecode import unidecode
 
+from ....core.editorjs import editorjs_to_text
 from ....core.exceptions import UnsupportedMediaProviderException
 from ....core.http_client import HTTPClient
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
-from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
@@ -257,7 +257,7 @@ class ProductBulkCreate(BaseMutation):
 
         description = cleaned_input.get("description")
         cleaned_input["description_plaintext"] = (
-            clean_editor_js(description, to_string=True) if description else ""
+            editorjs_to_text(description) if description else ""
         )
 
         slug = cleaned_input.get("slug")

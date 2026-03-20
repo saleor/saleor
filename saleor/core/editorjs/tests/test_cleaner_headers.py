@@ -11,7 +11,7 @@ def test_heading_level_cleaned():
     data_input = {"type": "header", "data": {"level": DIRTY}}
 
     with pytest.raises(pydantic_core.ValidationError) as exc:
-        clean_editorjs({"blocks": [data_input]})
+        clean_editorjs({"blocks": [data_input]}, for_django=False)
 
     error_list = exc.value.errors()
     assert len(error_list) == 1

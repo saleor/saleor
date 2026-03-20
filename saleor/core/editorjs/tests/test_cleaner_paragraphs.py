@@ -37,7 +37,7 @@ def test_clean_editor_js(input_html: str, expected_output_html: str, no_link_rel
     }
 
     # when
-    result = clean_editorjs(input_data)
+    result = clean_editorjs(input_data, for_django=False)
 
     # then
     assert result == expected_output
@@ -63,7 +63,7 @@ def test_clean_editor_js_for_malicious_value():
     }
 
     # when
-    result = clean_editorjs(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     # Malicious elements should be stripped.

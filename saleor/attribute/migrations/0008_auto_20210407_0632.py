@@ -3,7 +3,7 @@
 from django.db import migrations, models
 
 import saleor.core.db.fields
-import saleor.core.utils.editorjs
+import saleor.core.editorjs
 
 
 class Migration(migrations.Migration):
@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             field=saleor.core.db.fields.SanitizedJSONField(
                 blank=True,
                 null=True,
-                sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                sanitizer=saleor.core.editorjs.clean_editorjs,
             ),
         ),
         migrations.AddField(
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             field=saleor.core.db.fields.SanitizedJSONField(
                 blank=True,
                 null=True,
-                sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                sanitizer=saleor.core.editorjs.clean_editorjs,
             ),
         ),
         migrations.AlterField(

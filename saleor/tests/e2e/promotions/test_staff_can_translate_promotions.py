@@ -116,7 +116,8 @@ def test_staff_translate_promotions_core_2119(
     assert promotion_translation_data["language"]["code"] == "PL"
     assert promotion_translation_data["name"] == "Promocja Testowa"
     assert promotion_translation_data["description"] == json.dumps(
-        promotion_translated_description
+        promotion_translated_description,
+        sort_keys=True,
     )
 
     # Step 3 - Get list of promotions rules translations
@@ -143,5 +144,6 @@ def test_staff_translate_promotions_core_2119(
     assert promotion_rule_translation_data["language"]["code"] == "PL"
     assert promotion_rule_translation_data["name"] == "Testowa Reguła"
     assert promotion_rule_translation_data["description"] == json.dumps(
-        rule_translated_description
+        rule_translated_description,
+        sort_keys=True,
     )
