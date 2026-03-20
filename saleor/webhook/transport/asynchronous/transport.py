@@ -16,7 +16,7 @@ from django.db import transaction
 from opentelemetry.trace import StatusCode
 from promise import Promise
 
-from ....app.utils import refresh_webhook_mutex
+from ....app.utils import acquire_webhook_lock
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
@@ -807,7 +807,7 @@ def send_webhook_request_async(
 
 
 @app.task(
-    queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
+    queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
     bind=True,
 )
 @allow_writer()
@@ -817,37 +817,22 @@ def send_webhooks_async_for_app(
     app_id,
     telemetry_context: TelemetryTaskContext,
 ) -> None:
-    processed = _process_send_webhooks_async_for_app(
-        self.request.id, app_id, telemetry_context
-    )
-
-    with refresh_webhook_mutex(app_id) as mutex:
-        # Mutex lock_id (acquisition timestamp) is needed
-        # for message deduplication in AWS SQS FIFO queues
-        # It must be updated after each successful acquisition to allow
-        # next iterations within 5-minute deduplication interval
-        if processed:
-            send_webhooks_async_for_app.apply_async(
-                kwargs={
-                    "app_id": app_id,
-                    "telemetry_context": telemetry_context.to_dict(),
-                },
-                queue=self.queue,
-                MessageGroupId=get_domain(),
-                MessageDeduplicationId=f"{app_id}:{mutex.lock_id}",
-                bind=True,
-            )
+    with acquire_webhook_lock(app_id) as acquired:
+        if not acquired:
+            return
+        process_async_webhooks_for_app(self.request.id, app_id, telemetry_context)
 
 
 @allow_writer()
-def _process_send_webhooks_async_for_app(
+def process_async_webhooks_for_app(
     task_id: str, app_id: int, telemetry_context: TelemetryTaskContext
 ):
     domain = get_domain()
     deliveries = get_deliveries_for_app(app_id, WEBHOOK_ASYNC_BATCH_SIZE)
 
     if not deliveries:
-        return False
+        logger.info("No pending deliveries found for App ID: %s", app_id)
+        return
 
     attempts_for_deliveries = create_attempts_for_deliveries(deliveries, task_id)
     failed_deliveries_attempts = []
@@ -929,7 +914,6 @@ def _process_send_webhooks_async_for_app(
 
     process_failed_deliveries(failed_deliveries_attempts, MAX_WEBHOOK_RETRIES)
     clear_successful_deliveries(successful_deliveries)
-    return True
 
 
 def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):

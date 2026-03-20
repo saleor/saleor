@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from ..webhook.event_types import WebhookEventSyncType
@@ -28,15 +28,23 @@ def get_active_tax_apps(identifiers: list[str] | None = None):
 
 
 @contextmanager
-def refresh_webhook_mutex(app_id: int):
-    """Get mutex object and refresh acquisition date."""
-    with transaction.atomic():
-        mutex, _created = AppWebhookMutex.objects.select_for_update(
-            of=(["self"])
-        ).get_or_create(app_id=app_id)
+def acquire_webhook_lock(app_id: int):
+    try:
+        with transaction.atomic():
+            mutex = AppWebhookMutex.objects.select_for_update(
+                nowait=True, of=(["self"])
+            ).get(app_id=app_id)
 
-        if not _created:
             mutex.acquired_at = timezone.now()
             mutex.save(update_fields=["acquired_at"])
+            yield True
 
-        yield mutex
+    except DatabaseError:
+        logger.warning("Couldn't acquire the webhook lock. App ID: %s", app_id)
+        yield False
+
+    except AppWebhookMutex.DoesNotExist:
+        logger.warning("AppWebhookMutex entry does not exist. App ID: %s", app_id)
+        AppWebhookMutex.objects.get_or_create(app_id=app_id)
+        with acquire_webhook_lock(app_id) as acquired:
+            yield acquired
