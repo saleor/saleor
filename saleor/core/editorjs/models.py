@@ -42,14 +42,14 @@ LineantNumeric = Annotated[int | float, BeforeValidator(maybe_to_int)]
 class StrictBaseModel(UnsafeBaseModel):
     """Strict version of the pydantic BaseModel.
 
-    Forbids any extra field - extra fields could be a XSS vector due to not
+    Drops any extra field - extra fields could be a XSS vector due to not
     being cleaned or assessed. For example, upgrading the EditorJS client-side
     library could lead to new fields being added (thus opening new XSS holes),
     as well some unofficial client-side libraries add custom (non-official) fields
     which could be exploited.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
 
 class SizeDataModel(StrictBaseModel):
@@ -133,16 +133,11 @@ class EditorJSEmbedDataModel(SizeDataModel):
     service: Text | None = None
 
 
-class ImageFileModel(UnsafeBaseModel):
+class ImageFileModel(StrictBaseModel):
     """Represent ``image.file`` object from EditorJS.
 
     https://github.com/editor-js/image/blob/d7f0afb5f2e0110dc716941268e6689857a58830/README.md#output-data
     """
-
-    # Drop any unknown field - as per EditorJS specs, the 'image.file' object can
-    # contain anything
-    # TODO: test case
-    model_config = ConfigDict(extra="ignore")
 
     url: URL | None = None
 
@@ -455,8 +450,3 @@ class EditorJSDocumentModel(StrictBaseModel):
     version: Text | None = None
     time: int | float | None = None
     blocks: list[EditorJSBlockModel] | None = None
-
-
-# TODO: tests:
-#    - Cannot provide unknown 'type'
-#    - Cannot provide extra data

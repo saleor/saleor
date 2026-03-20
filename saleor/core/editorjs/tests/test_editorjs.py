@@ -650,6 +650,47 @@ def test_clean_editor_js_image_disallowed_scheme():
     assert result["blocks"][0]["data"]["file"]["url"] == "#invalid"
 
 
+def test_clean_editorjs_image_can_put_extras():
+    """Ensure user can provide extra fields in 'data.image.file' without error.
+
+    This shouldn't be rejected, but any extra field provided should be automatically
+    deleted by Pydantic in order to prevent XSS attacks against unknown/unsupported
+    fields.
+
+    This is needed due to EditorJS specs stating that data.image.file can contain
+    anything.
+    """
+
+    input_data = {
+        "blocks": [
+            {
+                "type": "image",
+                "data": {
+                    "file": {
+                        # OK: known field
+                        "url": "https://example.com/image.png",
+                        # Unknown fields, thus should be dropped (but shouldn't return an
+                        # error)
+                        "foo": "bar",
+                        DIRTY: DIRTY,
+                    }
+                },
+            }
+        ]
+    }
+    expected_output = {
+        "blocks": [
+            {
+                "type": "image",
+                "data": {"file": {"url": "https://example.com/image.png"}},
+            }
+        ]
+    }
+
+    actual_output = clean_editorjs(input_data, for_django=False)
+    assert actual_output == expected_output
+
+
 @pytest.mark.parametrize(
     ("_case", "data", "expected_results", "expected_errors"),
     [
