@@ -1,0 +1,23 @@
+saleor/graphql/shop/tests/mutations/test_refund_settings_update.py
+  e3d5250cb1fba027 4,164-168,189-192,214-221
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "b489836bc2d9af25ff23a3aaa9a8924089c3707a",
+  "prompts": {
+    "e3d5250cb1fba027": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b95f2717-2ea3-43bd-aa97-62e15b8efb46",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>",
+      "messages": [],
+      "total_additions": 26,
+      "total_deletions": 14,
+      "accepted_lines": 18,
+      "overriden_lines": 0
+    }
+  }
+}
