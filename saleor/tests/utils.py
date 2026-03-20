@@ -1,7 +1,7 @@
 import json
 import math
 from decimal import Decimal
-from typing import Literal, overload
+from typing import Any, Literal, overload
 
 import pytest
 from django.conf import settings
@@ -66,12 +66,12 @@ def dummy_editorjs(text: str, json_format: Literal[True]) -> str: ...
 @overload
 def dummy_editorjs(
     text: str, json_format: Literal[False] = False
-) -> EditorJSDocumentModel: ...
+) -> dict[str, Any]: ...
 
 
-def dummy_editorjs(text: str, json_format: bool = False) -> EditorJSDocumentModel | str:
-    data = EditorJSDocumentModel(
-        blocks=[{"data": {"text": text}, "type": "paragraph"}]
+def dummy_editorjs(text: str, json_format: bool = False) -> dict[str, Any] | str:
+    data = EditorJSDocumentModel.model_validate(
+        {"blocks": [{"data": {"text": text}, "type": "paragraph"}]}
     ).model_dump(exclude_unset=True)
 
     if json_format:
