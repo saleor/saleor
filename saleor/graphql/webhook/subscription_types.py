@@ -51,6 +51,7 @@ from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_320,
     ADDED_IN_321,
+    ADDED_IN_322,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -1049,6 +1050,80 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
     def resolve_warehouse(root, info: ResolveInfo):
         _, stock = root
         return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
+
+
+class ChannelPriceChange(graphene.ObjectType):
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description="The channel where the price changed.",
+        required=True,
+    )
+    previous_price = graphene.Field(
+        "saleor.graphql.core.types.money.Money",
+        description="The previous discounted price.",
+        required=True,
+    )
+    new_price = graphene.Field(
+        "saleor.graphql.core.types.money.Money",
+        description="The new discounted price.",
+        required=True,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class ProductVariantPriceUpdated(SubscriptionObjectType, ProductVariantBase):
+    changed_prices = NonNullList(
+        ChannelPriceChange,
+        description="Per-channel price changes that triggered this event.",
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when product variant discounted price is recalculated."
+            + ADDED_IN_322
+        )
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+    @staticmethod
+    def resolve_product_variant(root, info: ResolveInfo, channel=None):
+        _, price_info = root
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(price_info.variant_id)
+            .then(lambda variant: ChannelContext(node=variant, channel_slug=channel))
+        )
+
+    @staticmethod
+    def resolve_changed_prices(root, info: ResolveInfo):
+        from prices import Money
+
+        _, price_info = root
+        channel_ids = [cp.channel_id for cp in price_info.changed_prices]
+        return (
+            ChannelByIdLoader(info.context)
+            .load_many(channel_ids)
+            .then(
+                lambda channels: [
+                    {
+                        "channel": channel,
+                        "previous_price": Money(
+                            amount=cp.previous_price_amount, currency=cp.currency
+                        ),
+                        "new_price": Money(
+                            amount=cp.new_price_amount, currency=cp.currency
+                        ),
+                    }
+                    for channel, cp in zip(
+                        channels, price_info.changed_prices, strict=False
+                    )
+                ]
+            )
+        )
 
 
 class ProductExportCompleted(SubscriptionObjectType):
@@ -3004,6 +3079,7 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,
     WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: ProductVariantBackInStock,
     WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: ProductVariantStockUpdated,
+    WebhookEventAsyncType.PRODUCT_VARIANT_PRICE_UPDATED: ProductVariantPriceUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: ProductVariantDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: (
         ProductVariantMetadataUpdated

@@ -1978,6 +1978,22 @@ class WebhookPlugin(BasePlugin):
             )
         return previous_value
 
+    def product_variant_price_updated(
+        self, variant_price_info, previous_value: None, webhooks=None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_VARIANT_PRICE_UPDATED
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+            self.trigger_webhooks_async(
+                None,
+                event_type,
+                webhooks,
+                variant_price_info,
+                self.requestor,
+            )
+        return previous_value
+
     def product_variant_deleted(
         self, product_variant: "ProductVariant", previous_value: None, webhooks=None
     ) -> None:

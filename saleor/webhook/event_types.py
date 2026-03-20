@@ -142,6 +142,7 @@ class WebhookEventAsyncType:
     PRODUCT_VARIANT_OUT_OF_STOCK = "product_variant_out_of_stock"
     PRODUCT_VARIANT_BACK_IN_STOCK = "product_variant_back_in_stock"
     PRODUCT_VARIANT_STOCK_UPDATED = "product_variant_stock_updated"
+    PRODUCT_VARIANT_PRICE_UPDATED = "product_variant_price_updated"
 
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
@@ -596,6 +597,10 @@ class WebhookEventAsyncType:
         },
         PRODUCT_VARIANT_STOCK_UPDATED: {
             "name": "Product variant stock updated",
+            "permission": ProductPermissions.MANAGE_PRODUCTS,
+        },
+        PRODUCT_VARIANT_PRICE_UPDATED: {
+            "name": "Product variant price updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
         },
         CHECKOUT_CREATED: {

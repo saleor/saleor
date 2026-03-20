@@ -2077,6 +2077,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
+  PRODUCT_VARIANT_PRICE_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -2652,6 +2653,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
+  PRODUCT_VARIANT_PRICE_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -14324,6 +14326,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
   PRODUCT_VARIANT_STOCK_UPDATED
+  PRODUCT_VARIANT_PRICE_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   CHECKOUT_FULLY_AUTHORIZED
@@ -35483,6 +35486,45 @@ type ProductVariantStockUpdated implements Event @doc(category: "Products") {
 
   """Look up a warehouse."""
   warehouse: Warehouse
+}
+
+"""
+Event sent when product variant discounted price is recalculated.
+
+Added in Saleor 3.22.
+"""
+type ProductVariantPriceUpdated implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+
+  """Per-channel price changes that triggered this event."""
+  changedPrices: [ChannelPriceChange!]
+}
+
+type ChannelPriceChange {
+  """The channel where the price changed."""
+  channel: Channel!
+
+  """The previous discounted price."""
+  previousPrice: Money!
+
+  """The new discounted price."""
+  newPrice: Money!
 }
 
 """Event sent when product variant is deleted."""

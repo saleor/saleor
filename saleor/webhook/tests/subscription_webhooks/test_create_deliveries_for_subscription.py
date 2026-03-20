@@ -11,7 +11,7 @@ from ....channel.models import Channel
 from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
-from ....product.models import Category
+from ....product.models import Category, ChannelPriceChange, VariantPriceUpdatedInfo
 from ....shipping.models import ShippingMethod, ShippingZone
 from ....site.models import SiteSettings
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -1545,6 +1545,50 @@ def test_product_variant_stock_updated(
         }
     )
 
+    assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_variant_price_updated(
+    variant_with_many_stocks,
+    channel_USD,
+    subscription_product_variant_price_updated_webhook,
+):
+    # given
+    webhooks = [subscription_product_variant_price_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_VARIANT_PRICE_UPDATED
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    price_info = VariantPriceUpdatedInfo(
+        variant_id=variant.id,
+        changed_prices=[
+            ChannelPriceChange(
+                channel_id=channel_USD.id,
+                previous_price_amount=Decimal("10.00"),
+                new_price_amount=Decimal("8.00"),
+                currency="USD",
+            )
+        ],
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, price_info, webhooks)
+
+    # then
+    expected_payload = json.dumps(
+        {
+            "productVariant": {"id": variant_id},
+            "changedPrices": [
+                {
+                    "channel": {"slug": channel_USD.slug},
+                    "previousPrice": {"amount": 10.0, "currency": "USD"},
+                    "newPrice": {"amount": 8.0, "currency": "USD"},
+                }
+            ],
+        }
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
