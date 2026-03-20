@@ -158,8 +158,10 @@ def test_refund_settings_update_invalid_id_format(
     )
 
     # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert "errors" in content
+    content = get_graphql_content(response)
+    data = content["data"]["refundSettingsUpdate"]
+    assert data["errors"]
+    assert data["refundSettings"] is None
 
 
 def test_refund_settings_update_nonexistent_page_type(
@@ -179,8 +181,10 @@ def test_refund_settings_update_nonexistent_page_type(
     )
 
     # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert "errors" in content
+    content = get_graphql_content(response)
+    data = content["data"]["refundSettingsUpdate"]
+    assert data["errors"]
+    assert data["refundSettings"] is None
 
 
 def test_refund_settings_update_wrong_page_type(
@@ -200,8 +204,10 @@ def test_refund_settings_update_wrong_page_type(
     )
 
     # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert "errors" in content
+    content = get_graphql_content(response)
+    data = content["data"]["refundSettingsUpdate"]
+    assert data["errors"]
+    assert data["refundSettings"] is None
 
 
 def test_refund_settings_update_no_permission_staff(staff_api_client, page_type):
