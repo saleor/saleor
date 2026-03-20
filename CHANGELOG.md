@@ -28,6 +28,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
   Important: digital products are still fully supported in Saleor. Only the legacy,
   undocumented digital content API has been removed, the supported approach is documented here: https://docs.saleor.io/recipes/digital-products
+- Product media images from external URLs are now fetched asynchronously via background tasks in `productMediaCreate` and `productBulkCreate` mutations, improving response times. During download, the API returns HTTP 503 for the media image.
 
 ### GraphQL API
 
