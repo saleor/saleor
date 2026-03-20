@@ -130,11 +130,11 @@ class App(ModelWithMetadata):
 
 
 class AppWebhookMutex(models.Model):
-    app = models.OneToOneField(
+    app = models.ForeignKey(
         App,
+        unique=True,
         on_delete=models.CASCADE,
-        related_name="webhook_mutex",
-        verbose_name="App",
+        related_name="+",
     )
     acquired_at = models.DateTimeField(default=timezone.now)
 
