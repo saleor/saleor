@@ -1073,7 +1073,7 @@ class ChannelPriceChange(graphene.ObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class ProductVariantPriceUpdated(SubscriptionObjectType, ProductVariantBase):
+class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType, ProductVariantBase):
     changed_prices = NonNullList(
         ChannelPriceChange,
         description="Per-channel price changes that triggered this event.",
@@ -3079,7 +3079,7 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,
     WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: ProductVariantBackInStock,
     WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: ProductVariantStockUpdated,
-    WebhookEventAsyncType.PRODUCT_VARIANT_PRICE_UPDATED: ProductVariantPriceUpdated,
+    WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED: ProductVariantDiscountedPriceUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: ProductVariantDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: (
         ProductVariantMetadataUpdated

@@ -11,6 +11,6 @@ class ChannelPriceChange:
 
 
 @dataclass
-class VariantPriceUpdatedInfo:
+class VariantDiscountedPriceUpdatedInfo:
     variant_id: int
     changed_prices: list[ChannelPriceChange]

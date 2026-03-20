@@ -1295,10 +1295,10 @@ PRODUCT_VARIANT_STOCK_UPDATED = """
     }
 """
 
-PRODUCT_VARIANT_PRICE_UPDATED = """
+PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED = """
     subscription{
       event{
-        ...on ProductVariantPriceUpdated{
+        ...on ProductVariantDiscountedPriceUpdated{
           productVariant{
             id
           }

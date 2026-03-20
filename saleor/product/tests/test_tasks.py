@@ -9,7 +9,7 @@ from faker import Faker
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
-from ..interface import ChannelPriceChange, VariantPriceUpdatedInfo
+from ..interface import ChannelPriceChange, VariantDiscountedPriceUpdatedInfo
 from ..models import Product, ProductChannelListing, ProductVariantChannelListing
 from ..tasks import (
     _get_preorder_variants_to_clean,
@@ -352,12 +352,12 @@ def test_recalculate_discounted_price_triggers_variant_price_updated_webhook(
     recalculate_discounted_price_for_products_task()
 
     # then
-    assert mock_manager.product_variant_price_updated.called
-    calls = mock_manager.product_variant_price_updated.call_args_list
+    assert mock_manager.product_variant_discounted_price_updated.called
+    calls = mock_manager.product_variant_discounted_price_updated.call_args_list
     assert len(calls) == len(expected_prices)
     for call in calls:
         price_info = call[0][0]
-        assert isinstance(price_info, VariantPriceUpdatedInfo)
+        assert isinstance(price_info, VariantDiscountedPriceUpdatedInfo)
         assert len(price_info.changed_prices) == 1
         cp = price_info.changed_prices[0]
         assert isinstance(cp, ChannelPriceChange)

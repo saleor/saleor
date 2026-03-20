@@ -1353,7 +1353,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after a product
     # variant price is updated.
-    product_variant_price_updated: Callable[[Any, Any, None], Any]
+    product_variant_discounted_price_updated: Callable[[Any, Any, None], Any]
 
     # Trigger when product variant metadata is updated.
     #

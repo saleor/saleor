@@ -877,10 +877,12 @@ class PluginsManager(PaymentInterface):
             channel_slug=None,
         )
 
-    def product_variant_price_updated(self, variant_price_info, webhooks=None):
+    def product_variant_discounted_price_updated(
+        self, variant_price_info, webhooks=None
+    ):
         default_value = None
         return self.__run_method_on_plugins(
-            "product_variant_price_updated",
+            "product_variant_discounted_price_updated",
             default_value,
             variant_price_info,
             webhooks=webhooks,

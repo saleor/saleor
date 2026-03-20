@@ -11,7 +11,7 @@ from ....channel.models import Channel
 from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
-from ....product.interface import ChannelPriceChange, VariantPriceUpdatedInfo
+from ....product.interface import ChannelPriceChange, VariantDiscountedPriceUpdatedInfo
 from ....product.models import Category
 from ....shipping.models import ShippingMethod, ShippingZone
 from ....site.models import SiteSettings
@@ -1551,18 +1551,18 @@ def test_product_variant_stock_updated(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_product_variant_price_updated(
+def test_product_variant_discounted_price_updated(
     variant_with_many_stocks,
     channel_USD,
-    subscription_product_variant_price_updated_webhook,
+    subscription_product_variant_discounted_price_updated_webhook,
 ):
     # given
-    webhooks = [subscription_product_variant_price_updated_webhook]
-    event_type = WebhookEventAsyncType.PRODUCT_VARIANT_PRICE_UPDATED
+    webhooks = [subscription_product_variant_discounted_price_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
     variant = variant_with_many_stocks
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
-    price_info = VariantPriceUpdatedInfo(
+    price_info = VariantDiscountedPriceUpdatedInfo(
         variant_id=variant.id,
         changed_prices=[
             ChannelPriceChange(

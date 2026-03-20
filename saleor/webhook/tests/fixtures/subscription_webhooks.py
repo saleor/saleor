@@ -481,10 +481,10 @@ def subscription_product_variant_stock_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
-def subscription_product_variant_price_updated_webhook(subscription_webhook):
+def subscription_product_variant_discounted_price_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        queries.PRODUCT_VARIANT_PRICE_UPDATED,
-        WebhookEventAsyncType.PRODUCT_VARIANT_PRICE_UPDATED,
+        queries.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED,
+        WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED,
     )
 
 
