@@ -2,7 +2,6 @@ import datetime
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import Optional
-from uuid import uuid4
 
 import graphene
 from django.conf import settings
@@ -11,7 +10,6 @@ from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.db.models import JSONField, TextField
-from django.urls import reverse
 from django.utils import timezone
 from django_measurement.models import MeasurementField
 from measurement.measures import Weight
@@ -28,7 +26,6 @@ from ..core.models import (
     SortableModel,
 )
 from ..core.units import WeightUnits
-from ..core.utils import build_absolute_uri
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, get_translation
 from ..core.weight import zero_weight
@@ -127,7 +124,11 @@ class ProductType(ModelWithMetadata):
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     kind = models.CharField(max_length=32, choices=ProductTypeKind.CHOICES)
     is_shipping_required = models.BooleanField(default=True)
+
+    # Note: has no effect, it's only kept for backward-compatibility as some users
+    #       use that field. Will be removed in Saleor v3.24.0
     is_digital = models.BooleanField(default=False)
+
     weight = MeasurementField(
         measurement=Weight,
         unit_choices=WeightUnits.CHOICES,
@@ -441,10 +442,6 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     def is_gift_card(self) -> bool:
         return self.product.product_type.kind == ProductTypeKind.GIFT_CARD
 
-    def is_digital(self) -> bool:
-        is_digital = self.product.product_type.is_digital
-        return not self.is_shipping_required() and is_digital
-
     def display_product(self, translated: bool = False) -> str:
         if translated:
             product = get_translation(self.product).name or ""
@@ -582,55 +579,6 @@ class VariantChannelListingPromotionRule(models.Model):
 
     class Meta:
         unique_together = [["variant_channel_listing", "promotion_rule"]]
-
-
-class DigitalContent(ModelWithMetadata):
-    FILE = "file"
-    TYPE_CHOICES = ((FILE, "digital_product"),)
-    use_default_settings = models.BooleanField(default=True)
-    automatic_fulfillment = models.BooleanField(default=False)
-    content_type = models.CharField(max_length=128, default=FILE, choices=TYPE_CHOICES)
-    product_variant = models.OneToOneField(
-        ProductVariant, related_name="digital_content", on_delete=models.CASCADE
-    )
-    content_file = models.FileField(upload_to="digital_contents", blank=True)
-    max_downloads = models.IntegerField(blank=True, null=True)
-    url_valid_days = models.IntegerField(blank=True, null=True)
-
-    def create_new_url(self) -> "DigitalContentUrl":
-        return self.urls.create()
-
-
-class DigitalContentUrl(models.Model):
-    token = models.UUIDField(editable=False, unique=True)
-    content = models.ForeignKey(
-        DigitalContent, related_name="urls", on_delete=models.CASCADE
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    download_num = models.IntegerField(default=0)
-    line = models.OneToOneField(
-        "order.OrderLine",
-        related_name="digital_content_url",
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-    )
-
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        if not self.token:
-            self.token = str(uuid4()).replace("-", "")
-        super().save(
-            force_insert=force_insert,
-            force_update=force_update,
-            using=using,
-            update_fields=update_fields,
-        )
-
-    def get_absolute_url(self) -> str | None:
-        url = reverse("digital-product", kwargs={"token": str(self.token)})
-        return build_absolute_uri(url)
 
 
 class ProductMedia(SortableModel, ModelWithMetadata):

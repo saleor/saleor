@@ -137,7 +137,7 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
     ThumbnailByProductMediaIdSizeAndFormatLoader,
 )
-from ..product.types import DigitalContentUrl, ProductVariant
+from ..product.types import ProductVariant
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
@@ -1002,7 +1002,6 @@ class OrderLine(
     tax_rate = graphene.Float(
         required=True, description="Rate of tax applied on product variant."
     )
-    digital_content_url = graphene.Field(DigitalContentUrl)
     thumbnail = ThumbnailField()
     unit_price = graphene.Field(
         TaxedMoney,
@@ -2300,8 +2299,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 fulfillments_to_return = fulfillments
             else:
                 fulfillments_to_return = filter(
-                    lambda fulfillment: fulfillment.status
-                    != FulfillmentStatus.CANCELED,
+                    lambda fulfillment: (
+                        fulfillment.status != FulfillmentStatus.CANCELED
+                    ),
                     fulfillments,
                 )
             return [

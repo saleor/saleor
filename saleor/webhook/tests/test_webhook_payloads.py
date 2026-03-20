@@ -1969,13 +1969,16 @@ def test_generate_checkout_payload_for_tax_calculation_gift_promotion(
 
 
 @patch("saleor.webhook.payloads.serialize_checkout_lines_for_tax_calculation")
-def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
+def test_generate_checkout_payload_for_tax_calculation_for_checkout_without_shipping(
     mocked_serialize_checkout_lines_for_tax_calculation,
     mocked_fetch_checkout,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
+    address,
 ):
     prices_entered_with_tax = True
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save(update_fields=["billing_address"])
     currency = checkout.currency
 
     tax_configuration = checkout.channel.tax_configuration

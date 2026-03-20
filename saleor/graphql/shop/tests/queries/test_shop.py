@@ -390,40 +390,6 @@ def test_query_charge_taxes_on_shipping(api_client, site_settings):
     assert data["chargeTaxesOnShipping"] == charge_taxes_on_shipping
 
 
-def test_query_digital_content_settings(
-    staff_api_client, site_settings, permission_manage_settings
-):
-    # given
-    query = """
-    query {
-        shop {
-            automaticFulfillmentDigitalProducts
-            defaultDigitalMaxDownloads
-            defaultDigitalUrlValidDays
-        }
-    }"""
-
-    max_download = 2
-    url_valid_days = 3
-    site_settings.automatic_fulfillment_digital_products = True
-    site_settings.default_digital_max_downloads = max_download
-    site_settings.default_digital_url_valid_days = url_valid_days
-    site_settings.save()
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_settings]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]
-    automatic_fulfillment = site_settings.automatic_fulfillment_digital_products
-    assert data["automaticFulfillmentDigitalProducts"] == automatic_fulfillment
-    assert data["defaultDigitalMaxDownloads"] == max_download
-    assert data["defaultDigitalUrlValidDays"] == url_valid_days
-
-
 QUERY_RETRIEVE_DEFAULT_MAIL_SENDER_SETTINGS = """
     {
       shop {

@@ -20,7 +20,6 @@ dist/
 /media/
 /node_modules/
 /static/
-/digital_contents/
 # Environments
 .env
 .venv

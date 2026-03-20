@@ -517,12 +517,12 @@ def test_checkout_shipping_method_update_shipping_zone_without_channel(
     assert checkout.shipping_method_name is None
 
 
-def test_checkout_update_shipping_method_with_digital(
-    api_client, checkout_with_digital_item, address, shipping_method
+def test_checkout_update_shipping_method_when_shipping_not_required(
+    api_client, checkout_without_shipping_required, address, shipping_method
 ):
-    """Test updating the shipping method of a digital order throws an error."""
+    """Test updating the shipping method of an order without shipping throws an error."""
 
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.pk)
     variables = {"id": to_global_id_or_none(checkout), "shippingMethodId": method_id}
 

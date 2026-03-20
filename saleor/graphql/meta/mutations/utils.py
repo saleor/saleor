@@ -47,7 +47,6 @@ TYPE_UPDATED_FIELD = {
     "ProductType": None,
     "ProductMedia": None,
     "ProductVariant": "updated_at",
-    "DigitalContent": None,
     "Collection": None,
     "ShippingMethod": None,
     "ShippingZone": None,

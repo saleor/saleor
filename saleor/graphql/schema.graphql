@@ -308,39 +308,6 @@ type Query {
     last: Int
   ): ShippingZoneCountableConnection @doc(category: "Shipping")
 
-  """
-  Look up digital content by ID.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  digitalContent(
-    """ID of the digital content."""
-    id: ID!
-  ): DigitalContent @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
-
-  """
-  List of digital content.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  digitalContents(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): DigitalContentCountableConnection @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
-
   """List of the shop's categories."""
   categories(
     """Filtering options for categories."""
@@ -7289,8 +7256,10 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   """Whether shipping is required for this product type."""
   isShippingRequired: Boolean!
 
-  """Whether the product type is digital."""
-  isDigital: Boolean!
+  """
+  Whether the product type is digital - doesn't have any effect, it's present for backward-compatibility.
+  """
+  isDigital: Boolean! @deprecated(reason: "Will be removed in v3.24.0, use metadata or attributes instead.")
 
   """Weight of the product type."""
   weight: Weight
@@ -8790,13 +8759,6 @@ type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes 
   ): ProductVariantTranslation
 
   """
-  Digital content for the product variant.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  digitalContent: DigitalContent
-
-  """
   Stocks for the product variant.
   
   Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
@@ -9907,86 +9869,6 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
   """List of product variant attribute values that can be translated."""
   attributeValues: [AttributeValueTranslatableContent!]!
 }
-
-"""Represents digital content associated with a product variant."""
-type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Products") {
-  """The ID of the digital content."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Default settings indicator for digital content."""
-  useDefaultSettings: Boolean!
-
-  """Indicator for automatic fulfillment of digital content."""
-  automaticFulfillment: Boolean!
-
-  """File associated with digital content."""
-  contentFile: String!
-
-  """Maximum number of allowed downloads for the digital content."""
-  maxDownloads: Int
-
-  """Number of days the URL for the digital content remains valid."""
-  urlValidDays: Int
-
-  """List of URLs for the digital variant."""
-  urls: [DigitalContentUrl!]
-
-  """Product variant assigned to digital content."""
-  productVariant: ProductVariant!
-}
-
-"""Represents a URL for digital content."""
-type DigitalContentUrl implements Node @doc(category: "Products") {
-  """The ID of the digital content URL."""
-  id: ID!
-
-  """Digital content associated with the URL."""
-  content: DigitalContent!
-
-  """Date and time when the digital content URL was created."""
-  created: DateTime!
-
-  """Number of times digital content has been downloaded."""
-  downloadNum: Int!
-
-  """URL for digital content."""
-  url: String
-
-  """UUID of digital content."""
-  token: UUID!
-}
-
-scalar UUID
 
 """Represents stock."""
 type Stock implements Node @doc(category: "Products") {
@@ -11693,6 +11575,8 @@ Represents a delivery method chosen for the checkout. `Warehouse` type is used w
 """
 union DeliveryMethod = Warehouse | ShippingMethod
 
+scalar UUID
+
 """Represents a payment transaction."""
 type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Payments") {
   """The ID of the object."""
@@ -12304,7 +12188,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """Rate of tax applied on product variant."""
   taxRate: Float!
-  digitalContentUrl: DigitalContentUrl
   thumbnail(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -13936,9 +13819,6 @@ type CustomerEvent implements Node @doc(category: "Users") {
 
   """The concerned order."""
   order: Order
-
-  """The concerned order line."""
-  orderLine: OrderLine
 }
 
 enum CustomerEventsEnum @doc(category: "Users") {
@@ -15087,13 +14967,6 @@ type Shop implements ObjectWithMetadata {
   ): ShopTranslation
 
   """
-  Enable automatic fulfillment for all digital products.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  automaticFulfillmentDigitalProducts: Boolean
-
-  """
   Default number of minutes stock will be reserved for anonymous checkout or null when stock reservation is disabled.
   
   Requires one of the following permissions: MANAGE_SETTINGS.
@@ -15113,20 +14986,6 @@ type Shop implements ObjectWithMetadata {
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
   limitQuantityPerCheckout: Int
-
-  """
-  Default number of max downloads per digital content URL.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  defaultDigitalMaxDownloads: Int
-
-  """
-  Default number of days which digital content URL will be valid.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  defaultDigitalUrlValidDays: Int
 
   """Company address."""
   companyAddress: Address
@@ -15359,24 +15218,6 @@ input ShippingZoneFilterInput @doc(category: "Shipping") {
   channels: [ID!]
 }
 
-"""A connection to a list of digital content items."""
-type DigitalContentCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [DigitalContentCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type DigitalContentCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: DigitalContent!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
 input CategoryFilterInput @doc(category: "Products") {
   search: String
   metadata: [MetadataFilter!]
@@ -15505,7 +15346,7 @@ enum ProductTypeConfigurable @doc(category: "Products") {
 }
 
 enum ProductTypeEnum @doc(category: "Products") {
-  DIGITAL
+  DIGITAL @deprecated(reason: "DIGITAL will removed in Saleor 3.24.0, use metadata or attributes instead.")
   SHIPPABLE
 }
 
@@ -15522,7 +15363,7 @@ enum ProductTypeSortField @doc(category: "Products") {
   NAME
 
   """Sort products by type."""
-  DIGITAL
+  DIGITAL @deprecated(reason: "DIGITAL will removed in Saleor 3.24.0. Use SHIPPING_REQUIRED instead.")
 
   """Sort products by shipping."""
   SHIPPING_REQUIRED
@@ -18506,52 +18347,6 @@ type Mutation {
     """ID of a product."""
     productId: ID!
   ): ProductReorderAttributeValues @doc(category: "Products")
-
-  """
-  Create new digital content. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  digitalContentCreate(
-    """Fields required to create a digital content."""
-    input: DigitalContentUploadInput!
-
-    """ID of a product variant to upload digital content."""
-    variantId: ID!
-  ): DigitalContentCreate @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
-
-  """
-  Remove digital content assigned to given variant. 
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  digitalContentDelete(
-    """ID of a product variant with digital content to remove."""
-    variantId: ID!
-  ): DigitalContentDelete @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
-
-  """
-  Updates digital content. 
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  digitalContentUpdate(
-    """Fields required to update a digital content."""
-    input: DigitalContentInput!
-
-    """ID of a product variant with digital content to update."""
-    variantId: ID!
-  ): DigitalContentUpdate @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
-
-  """
-  Generate new URL to digital content. 
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  digitalContentUrlCreate(
-    """Fields required to create a new url."""
-    input: DigitalContentUrlCreateInput!
-  ): DigitalContentUrlCreate @doc(category: "Products") @deprecated(reason: "Support for Digital Content is deprecated and will be removed in Saleor v3.23.0. This functionality is legacy and undocumented, and is not part of the supported API. Users should not rely on this behavior.")
 
   """
   Creates a new variant for a product. 
@@ -23131,20 +22926,11 @@ input ShopSettingsInput {
   """Default weight unit."""
   defaultWeightUnit: WeightUnitsEnum
 
-  """Enable automatic fulfillment for all digital products."""
-  automaticFulfillmentDigitalProducts: Boolean
-
   """Enable automatic approval of all new fulfillments."""
   fulfillmentAutoApprove: Boolean
 
   """Enable ability to approve fulfillments which are unpaid."""
   fulfillmentAllowUnpaid: Boolean
-
-  """Default number of max downloads per digital content URL."""
-  defaultDigitalMaxDownloads: Int
-
-  """Default number of days which digital content URL will be valid."""
-  defaultDigitalUrlValidDays: Int
 
   """Default email sender's name."""
   defaultMailSenderName: String
@@ -23833,7 +23619,6 @@ enum ProductErrorCode @doc(category: "Products") {
   NOT_FOUND
   REQUIRED
   UNIQUE
-  VARIANT_NO_DIGITAL_CONTENT
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
@@ -25149,7 +24934,9 @@ input ProductTypeInput @doc(category: "Products") {
   """Determines if shipping is required for products of this variant."""
   isShippingRequired: Boolean
 
-  """Determines if products are digital."""
+  """
+  Determines if products are digital - doesn't have any effect, it's present for backward-compatibility.
+  """
   isDigital: Boolean
 
   """Weight of the ProductType items."""
@@ -25220,124 +25007,6 @@ type ProductReorderAttributeValues @doc(category: "Products") {
   product: Product
   productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ProductError!]!
-}
-
-"""
-Create new digital content. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
-
-Requires one of the following permissions: MANAGE_PRODUCTS.
-"""
-type DigitalContentCreate @doc(category: "Products") {
-  variant: ProductVariant
-  content: DigitalContent
-  productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [ProductError!]!
-}
-
-input DigitalContentUploadInput @doc(category: "Products") {
-  """Use default digital content settings for this product."""
-  useDefaultSettings: Boolean!
-
-  """
-  Determines how many times a download link can be accessed by a customer.
-  """
-  maxDownloads: Int
-
-  """
-  Determines for how many days a download link is active since it was generated.
-  """
-  urlValidDays: Int
-
-  """Overwrite default automatic_fulfillment setting for variant."""
-  automaticFulfillment: Boolean
-
-  """
-  Fields required to update the digital content metadata. Can be read by any API client authorized to read the object it's attached to.
-  
-  Warning: never store sensitive information, including financial data such as credit card details.
-  """
-  metadata: [MetadataInput!]
-
-  """
-  Fields required to update the digital content private metadata. Requires permissions to modify and to read the metadata of the object it's attached to.
-  
-  Warning: never store sensitive information, including financial data such as credit card details.
-  """
-  privateMetadata: [MetadataInput!]
-
-  """Represents an file in a multipart request."""
-  contentFile: Upload!
-}
-
-"""
-Remove digital content assigned to given variant. 
-
-Requires one of the following permissions: MANAGE_PRODUCTS.
-"""
-type DigitalContentDelete @doc(category: "Products") {
-  variant: ProductVariant
-  productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [ProductError!]!
-}
-
-"""
-Updates digital content. 
-
-Requires one of the following permissions: MANAGE_PRODUCTS.
-"""
-type DigitalContentUpdate @doc(category: "Products") {
-  variant: ProductVariant
-  content: DigitalContent
-  productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [ProductError!]!
-}
-
-input DigitalContentInput @doc(category: "Products") {
-  """Use default digital content settings for this product."""
-  useDefaultSettings: Boolean!
-
-  """
-  Determines how many times a download link can be accessed by a customer.
-  """
-  maxDownloads: Int
-
-  """
-  Determines for how many days a download link is active since it was generated.
-  """
-  urlValidDays: Int
-
-  """Overwrite default automatic_fulfillment setting for variant."""
-  automaticFulfillment: Boolean
-
-  """
-  Fields required to update the digital content metadata. Can be read by any API client authorized to read the object it's attached to.
-  
-  Warning: never store sensitive information, including financial data such as credit card details.
-  """
-  metadata: [MetadataInput!]
-
-  """
-  Fields required to update the digital content private metadata. Requires permissions to modify and to read the metadata of the object it's attached to.
-  
-  Warning: never store sensitive information, including financial data such as credit card details.
-  """
-  privateMetadata: [MetadataInput!]
-}
-
-"""
-Generate new URL to digital content. 
-
-Requires one of the following permissions: MANAGE_PRODUCTS.
-"""
-type DigitalContentUrlCreate @doc(category: "Products") {
-  productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [ProductError!]!
-  digitalContentUrl: DigitalContentUrl
-}
-
-input DigitalContentUrlCreateInput @doc(category: "Products") {
-  """Digital content ID which URL will belong to."""
-  content: ID!
 }
 
 """
