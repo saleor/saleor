@@ -1022,6 +1022,9 @@ patch_executor()
 UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
     "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", None
 )
+
+WEBHOOK_LEGACY_MODE = get_bool_from_env("WEBHOOK_LEGACY_MODE", False)
+
 # Queue name for "async webhook" events
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
 

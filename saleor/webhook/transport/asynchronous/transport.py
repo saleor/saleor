@@ -16,7 +16,6 @@ from django.db import transaction
 from opentelemetry.trace import StatusCode
 from promise import Promise
 
-from ....app.models import AppWebhookMutex
 from ....app.utils import refresh_webhook_mutex
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -452,35 +451,26 @@ def trigger_webhooks_async_for_multiple_objects(
         )
 
     def process_deliveries(deliveries_list):
-        send_webhooks_for_deliveries(deliveries_list, domain=domain, queue=queue)
+        maybe_send_webhooks_async(deliveries_list, domain=domain, queue=queue)
 
     process_deliveries(deliveries)
     if delivery_promise:
         delivery_promise.then(process_deliveries).get()
 
 
-def send_webhooks_for_deliveries(
+def maybe_send_webhooks_async(
     deliveries: list[EventDelivery],
-    *,
     domain: str | None = None,
     queue: str | None = None,
     telemetry_context: TelemetryTaskContext | None = None,
 ):
+    """Trigger async webhooks for deliveries only if legacy mode is enabled."""
+    if not settings.WEBHOOK_LEGACY_MODE:
+        return
+
     domain = domain or get_domain()
     telemetry_context = telemetry_context or get_task_context()
 
-    if settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME:
-        send_webhooks_async_in_batches(deliveries, domain, telemetry_context)
-    else:
-        send_webhooks_async(deliveries, domain, queue, telemetry_context)
-
-
-def send_webhooks_async(
-    deliveries: list[EventDelivery],
-    domain: str,
-    queue: str | None,
-    telemetry_context: TelemetryTaskContext,
-):
     for delivery in deliveries:
         message_group_id = get_sqs_message_group_id(domain, app=delivery.webhook.app)
         send_webhook_request_async.apply_async(
@@ -493,30 +483,6 @@ def send_webhooks_async(
                 default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
             ),
             MessageGroupId=message_group_id,  # for AWS SQS fair queues
-        )
-
-
-def send_webhooks_async_in_batches(
-    deliveries: list[EventDelivery],
-    domain: str,
-    telemetry_context: TelemetryTaskContext,
-):
-    apps_id = {delivery.webhook.app_id for delivery in deliveries}
-    app_lock_ids = {
-        mutex.app_id: mutex.lock_id
-        for mutex in AppWebhookMutex.objects.filter(app_id__in=apps_id)
-    }
-    for app_id in apps_id:
-        lock_id = app_lock_ids.get(app_id)
-        send_webhooks_async_for_app.apply_async(
-            kwargs={
-                "app_id": app_id,
-                "telemetry_context": telemetry_context.to_dict(),
-            },
-            queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
-            MessageGroupId=domain,
-            MessageDeduplicationId=f"{app_id}:{lock_id}",
-            bind=True,
         )
 
 
@@ -745,7 +711,7 @@ def _generate_deferred_payloads(
                     EventDelivery.objects.bulk_update(
                         event_deliveries_for_bulk_update, ["payload"]
                     )
-        send_webhooks_for_deliveries(
+        maybe_send_webhooks_async(
             event_deliveries_for_bulk_update,
             telemetry_context=telemetry_context,
             queue=send_webhook_queue,
