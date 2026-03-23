@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Made `refundSettings` field on `RefundSettingsUpdate` mutation nullable to correctly reflect that it can be `null` when errors occur.
 - Fix missing denormalization of shipping methods metadata when creating an order.
   - Shipping method metadata is now copied to dedicated order fields (`shipping_method_metadata` and `shipping_method_private_metadata`) during checkout-to-order conversion. This ensures that order metadata remains consistent even if the original shipping method is modified or deleted. As a result, updates made to a shipping method's metadata after order creation will no longer be reflected in the order's `shippingMethod.metadata` field.
   - Shipping method metadata is now also denormalized during draft order finalization, ensuring consistent behavior across all order creation flows.
@@ -28,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
   Important: digital products are still fully supported in Saleor. Only the legacy,
   undocumented digital content API has been removed, the supported approach is documented here: https://docs.saleor.io/recipes/digital-products
+- Product media images from external URLs are now fetched asynchronously via background tasks in `productMediaCreate` and `productBulkCreate` mutations, improving response times. During download, the API returns HTTP 503 for the media image.
 
 ### GraphQL API
 

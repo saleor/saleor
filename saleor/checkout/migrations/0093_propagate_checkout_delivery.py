@@ -4,12 +4,12 @@ from django.apps import apps as registry
 from django.db import migrations
 from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_21 import fix_shared_address_instances_task
+from .tasks.saleor3_23 import propagate_checkout_deliveries_task
 
 
-def fix_shared_address_instances(apps, schema_editor):
+def propagate_checkout_deliveries(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
-        fix_shared_address_instances_task.delay()
+        propagate_checkout_deliveries_task.delay()
 
     sender = registry.get_app_config("checkout")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
@@ -17,9 +17,9 @@ def fix_shared_address_instances(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("checkout", "0087_merge_20251223_1336"),
+        ("checkout", "0092_alter_checkoutdelivery_checkout"),
     ]
 
     operations = [
-        migrations.RunPython(fix_shared_address_instances),
+        migrations.RunPython(propagate_checkout_deliveries, migrations.RunPython.noop),
     ]

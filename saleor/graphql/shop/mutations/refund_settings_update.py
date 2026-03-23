@@ -26,9 +26,7 @@ class RefundSettingsUpdateInput(BaseInputObjectType):
 
 
 class RefundSettingsUpdate(BaseMutation):
-    refund_settings = graphene.Field(
-        RefundSettings, description="Refund settings.", required=True
-    )
+    refund_settings = graphene.Field(RefundSettings, description="Refund settings.")
 
     class Arguments:
         input = RefundSettingsUpdateInput(

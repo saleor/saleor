@@ -1,0 +1,44 @@
+rules:
+  - id: django-migration-wrong-app-config
+    message: |
+      registry.get_app_config("$APP") does not match the first app in Migration.dependencies.
+      The argument must be the app label of the migration's own app.
+      Nature of semgrep and how it can verify this rule it's expected that the first tuple in Migration.dependencies
+      will be dependency to a previous migration from the same app.
+      If dependency to a previous migration from the same app is not required it's fine to ignore this semgrep rule.
+      Fix: change "$APP" to match the app name where the migration is.
+    metadata:
+      category: correctness
+      technology:
+        - django
+    languages:
+      - python
+    severity: ERROR
+    paths:
+      include:
+        - "**/migrations/*.py"
+    patterns:
+      - pattern: |
+          $SENDER = registry.get_app_config("$APP")
+      - pattern-not-inside: |
+          ...
+          $SENDER = registry.get_app_config("$APP")
+          ...
+          class Migration(...):
+              dependencies = [
+                  ("$APP", ...),
+                  ...,
+              ]
+              ...
+          ...
+      - pattern-not-inside: |
+          ...
+          class Migration(...):
+              dependencies = [
+                  ("$APP", ...),
+                  ...,
+              ]
+              ...
+          ...
+          $SENDER = registry.get_app_config("$APP")
+          ...
