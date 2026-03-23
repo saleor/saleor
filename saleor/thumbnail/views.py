@@ -30,6 +30,8 @@ from .utils import (
 
 logger = logging.getLogger(__name__)
 
+PENDING_IMAGE_RETRY_AFTER = "60"
+
 
 class ModelData(NamedTuple):
     model: type[App | AppInstallation | Category | Collection | ProductMedia | User]
@@ -107,7 +109,9 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str | None = 
     if not bool(image):
         if is_product_media_image_pending(object_type, instance):
             return HttpResponse(
-                "Image has not been fetched yet, try later.", status=503
+                "Image has not been fetched yet, try later.",
+                status=503,
+                headers={"Retry-After": PENDING_IMAGE_RETRY_AFTER},
             )
         return HttpResponseNotFound("There is no image for provided instance.")
 
@@ -170,7 +174,9 @@ def handle_original_image(request, instance_id: str):
     if not bool(image):
         if is_product_media_image_pending(object_type, instance):
             return HttpResponse(
-                "Image has not been fetched yet, try later.", status=503
+                "Image has not been fetched yet, try later.",
+                status=503,
+                headers={"Retry-After": PENDING_IMAGE_RETRY_AFTER},
             )
         return HttpResponseNotFound("There is no image for provided instance.")
 

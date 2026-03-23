@@ -217,6 +217,7 @@ def test_handle_thumbnail_view_for_product_media_image_type_with_external_url_bu
 
     # then
     assert response.status_code == 503
+    assert response["Retry-After"] == "60"
 
 
 def test_handle_thumbnail_view_invalid_object_type(client, order):
@@ -598,3 +599,4 @@ def test_handle_original_image_for_product_media_image_type_with_external_url_bu
 
     # then
     assert response.status_code == 503
+    assert response["Retry-After"] == "60"
