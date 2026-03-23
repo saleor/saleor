@@ -30,11 +30,7 @@ def _clean_url_value(dirty_url: str | None) -> str:
     except ValueError:
         parsed_url = None
 
-    if (
-        parsed_url is None
-        or parsed_url.scheme
-        not in ALLOWED_URL_SCHEMES | settings.HTML_CLEANER_PREFS.allowed_schemes
-    ):
+    if parsed_url is None or parsed_url.scheme not in ALLOWED_URL_SCHEMES:
         warnings.warn(
             f"An invalid url or disallowed URL was sent: {dirty_url}",
             stacklevel=3,
@@ -51,10 +47,6 @@ def _clean_url_value(dirty_url: str | None) -> str:
     url_cleaner = URL_SCHEME_CLEANERS.get(parsed_url.scheme, None)
 
     if url_cleaner is None:
-        if parsed_url.scheme in settings.HTML_CLEANER_PREFS.allowed_schemes:
-            # Deprecated: this is only for backward compatibility - it doesn't define
-            #             a cleaner which is dangerous.
-            return dirty_url
         # NOTE: this exception should never happen unless a maintainer didn't read the
         #       comment in ALLOWED_URL_SCHEMES
         raise KeyError("No URL cleaner defined", parsed_url.scheme)
@@ -114,7 +106,7 @@ def _clean_text(text: str | None) -> str | None:
 
     return nh3.clean(
         text,
-        url_schemes=ALLOWED_URL_SCHEMES | settings.HTML_CLEANER_PREFS.allowed_schemes,
+        url_schemes=ALLOWED_URL_SCHEMES,
         attributes=settings.HTML_CLEANER_PREFS.allowed_attributes,
         tag_attribute_values=settings.HTML_CLEANER_PREFS.allowed_attribute_values,
         link_rel=settings.HTML_CLEANER_PREFS.link_rel,
