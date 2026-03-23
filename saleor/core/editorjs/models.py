@@ -232,15 +232,16 @@ class EditorJSListDataModel(StrictBaseModel):
         if isinstance(node, str):
             return node
 
-        if not node or node.items:
+        if not node:
             return ""
 
         parts = []
 
+        if node.content:
+            parts.append(node.content)
+
         for item in node.items:
             if isinstance(item, EditorJSNestedListItemModel):
-                if item.content:
-                    parts.append(item.content)
                 if part := self.to_text(
                     item, current_depth=current_depth + 1, max_depth=max_depth
                 ):

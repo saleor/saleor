@@ -79,7 +79,7 @@ def _clean_meta_dict(value: dict) -> dict:
 def _clean_nested_list_items(items: Any, current_depth: int = 0) -> Any:
     """Validate the depth of nested EditorJS list isn't excessive.
 
-    Important: this a "before" pydantic validator, meaning types aren't checked
+    Important: this is a "before" pydantic validator, meaning types aren't checked
                yet as we want to run this validator early (instead of late).
     """
     if current_depth == settings.EDITOR_JS_LISTS_MAX_DEPTH:

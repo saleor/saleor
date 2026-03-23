@@ -76,6 +76,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Removed the setting `JWT_EXPIRE` which allowed to configure Saleor to ignore the JWT token expiration. - #18856 by @NyanKiyoshi
 - Removed support for custom `User` DB models in `./manage.py createsuperuser` command. - #18890 by @NyanKiyoshi
 - OIDC: When an existing user is claimed by an OIDC provider for the first time, their password is now invalidated to prevent login with stale credentials. This covers the case where a previously deleted staff account is recreated via OIDC.
+- Deprecate `voucher` input field on `DraftOrderInput` and `DraftOrderCreateInput`. Use `voucherCode` instead.
 
 #### Search improvements
 
