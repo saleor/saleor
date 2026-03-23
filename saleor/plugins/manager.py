@@ -877,6 +877,18 @@ class PluginsManager(PaymentInterface):
             channel_slug=None,
         )
 
+    def product_variant_discounted_price_updated(
+        self, variant_price_info, webhooks=None
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_variant_discounted_price_updated",
+            default_value,
+            variant_price_info,
+            webhooks=webhooks,
+            channel_slug=None,
+        )
+
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
     def product_variant_deleted(self, product_variant: "ProductVariant", webhooks=None):

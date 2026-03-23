@@ -1295,6 +1295,31 @@ PRODUCT_VARIANT_STOCK_UPDATED = """
     }
 """
 
+PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED = """
+    subscription{
+      event{
+        ...on ProductVariantDiscountedPriceUpdated{
+          productVariant{
+            id
+          }
+          changedPrices{
+            channel{
+              slug
+            }
+            previousPrice{
+              amount
+              currency
+            }
+            newPrice{
+              amount
+              currency
+            }
+          }
+        }
+      }
+    }
+"""
+
 ORDER_CREATED = """
     subscription{
       event{
