@@ -23165,7 +23165,7 @@ Requires one of the following permissions: MANAGE_SETTINGS.
 """
 type RefundSettingsUpdate @doc(category: "Shop") {
   """Refund settings."""
-  refundSettings: RefundSettings!
+  refundSettings: RefundSettings
   refundSettingsErrors: [RefundSettingsUpdateError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [RefundSettingsUpdateError!]!
 }
