@@ -1,6 +1,7 @@
 import graphene
 from django.conf import settings
 from graphene import AbstractType, Union
+from prices import Money
 from rx import Observable
 
 from ... import __version__
@@ -1100,10 +1101,10 @@ class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType, ProductVarian
 
     @staticmethod
     def resolve_changed_prices(root, info: ResolveInfo):
-        from prices import Money
-
         _, price_info = root
-        channel_ids = [cp.channel_id for cp in price_info.changed_prices]
+        channel_ids = [
+            channel_price.channel_id for channel_price in price_info.changed_prices
+        ]
         return (
             ChannelByIdLoader(info.context)
             .load_many(channel_ids)
@@ -1112,13 +1113,15 @@ class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType, ProductVarian
                     {
                         "channel": channel,
                         "previous_price": Money(
-                            amount=cp.previous_price_amount, currency=cp.currency
+                            amount=channel_price.previous_price_amount,
+                            currency=channel_price.currency,
                         ),
                         "new_price": Money(
-                            amount=cp.new_price_amount, currency=cp.currency
+                            amount=channel_price.new_price_amount,
+                            currency=channel_price.currency,
                         ),
                     }
-                    for channel, cp in zip(
+                    for channel, channel_price in zip(
                         channels, price_info.changed_prices, strict=False
                     )
                 ]

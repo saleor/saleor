@@ -1562,14 +1562,18 @@ def test_product_variant_discounted_price_updated(
     variant = variant_with_many_stocks
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
+    previous_price = Decimal("10.00")
+    new_price = Decimal("8.00")
+    currency = channel_USD.currency_code
+
     price_info = VariantDiscountedPriceUpdatedInfo(
         variant_id=variant.id,
         changed_prices=[
             ChannelPriceChange(
                 channel_id=channel_USD.id,
-                previous_price_amount=Decimal("10.00"),
-                new_price_amount=Decimal("8.00"),
-                currency="USD",
+                previous_price_amount=previous_price,
+                new_price_amount=new_price,
+                currency=currency,
             )
         ],
     )
@@ -1578,19 +1582,20 @@ def test_product_variant_discounted_price_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, price_info, webhooks)
 
     # then
-    expected_payload = json.dumps(
-        {
-            "productVariant": {"id": variant_id},
-            "changedPrices": [
-                {
-                    "channel": {"slug": channel_USD.slug},
-                    "previousPrice": {"amount": 10.0, "currency": "USD"},
-                    "newPrice": {"amount": 8.0, "currency": "USD"},
-                }
-            ],
-        }
-    )
-    assert deliveries[0].payload.get_payload() == expected_payload
+    payload = json.loads(deliveries[0].payload.get_payload())
+    assert payload == {
+        "productVariant": {"id": variant_id},
+        "changedPrices": [
+            {
+                "channel": {"slug": channel_USD.slug},
+                "previousPrice": {
+                    "amount": previous_price,
+                    "currency": currency,
+                },
+                "newPrice": {"amount": new_price, "currency": currency},
+            }
+        ],
+    }
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 

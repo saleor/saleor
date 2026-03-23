@@ -30,7 +30,55 @@
 - When asserting GraphQL errors, assert error message too
 - When asserting to Enum, import enum in a test file and use `assert error.code == MyEnum.SOME_ERROR.name` instead plain string comparison
 - Avoid assertion to plain values, if you already have references to existing value. For example, when you create entity in database and assert if entity is returned in response, compare response fields with entity fields, instead plain values.
--
+**Bad:**
+```python
+variant_channel_listing.price_amount = Decimal("9.99")
+variant_channel_listing.save()
+# ...
+assert result.price_amount == Decimal("9.99")
+```
+
+**Good:**
+```python
+price = Decimal("9.99")
+variant_channel_listing.price_amount = price
+variant_channel_listing.save()
+# ...
+assert result.price_amount == price
+```
+- When comparing JSON payloads in tests, use `json.loads()` to compare dicts instead of comparing serialized strings with `json.dumps()`. String comparison breaks when key order changes.
+
+**Bad:**
+```python
+expected = json.dumps({"name": "foo", "value": 1})
+assert result.get_payload() == expected
+```
+
+**Good:**
+```python
+expected = {"name": "foo", "value": 1}
+assert json.loads(result.get_payload()) == expected
+```
+- When setting up test data, extract values into variables and reuse them in assertions. Do not repeat literal values between setup and assertion — use the variable instead.
+
+
+# Webhooks and Events
+
+## Dispatching webhook events
+
+When triggering plugin manager methods to dispatch webhook events, always use `call_event` from `saleor.core.utils.events` instead of calling the manager method directly.
+
+**Bad:**
+```python
+manager.product_variant_discounted_price_updated(price_info, webhooks=webhooks)
+```
+
+**Good:**
+```python
+from saleor.core.utils.events import call_event
+
+call_event(manager.product_variant_discounted_price_updated, price_info, webhooks=webhooks)
+```
 
 # Concurrency and Thread Safety
 

@@ -14,6 +14,7 @@ from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
+from ..core.utils.events import call_event
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
 from ..plugins.manager import get_plugins_manager
@@ -246,7 +247,11 @@ def _send_variant_price_updated_webhooks(
             variant_id=variant_id,
             changed_prices=changed_prices,
         )
-        manager.product_variant_discounted_price_updated(price_info, webhooks=webhooks)
+        call_event(
+            manager.product_variant_discounted_price_updated,
+            price_info,
+            webhooks=webhooks,
+        )
 
 
 @app.task

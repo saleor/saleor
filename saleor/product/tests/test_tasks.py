@@ -321,6 +321,7 @@ def test_mem_usage_recalculate_discounted_price_for_products_task(
     recalculate_discounted_price_for_products_task()
 
 
+@patch("saleor.product.tasks.call_event")
 @patch("saleor.product.tasks.get_plugins_manager")
 @patch("saleor.product.tasks.get_webhooks_for_event")
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
@@ -328,6 +329,7 @@ def test_recalculate_discounted_price_triggers_variant_price_updated_webhook(
     recalculate_task_mock,
     get_webhooks_mock,
     get_manager_mock,
+    call_event_mock,
     product_list,
     channel_USD,
 ):
@@ -346,17 +348,16 @@ def test_recalculate_discounted_price_triggers_variant_price_updated_webhook(
 
     mock_webhooks = [patch]
     get_webhooks_mock.return_value = mock_webhooks
-    mock_manager = get_manager_mock.return_value
 
     # when
     recalculate_discounted_price_for_products_task()
 
     # then
-    assert mock_manager.product_variant_discounted_price_updated.called
-    calls = mock_manager.product_variant_discounted_price_updated.call_args_list
+    assert call_event_mock.called
+    calls = call_event_mock.call_args_list
     assert len(calls) == len(expected_prices)
     for call in calls:
-        price_info = call[0][0]
+        price_info = call[0][1]
         assert isinstance(price_info, VariantDiscountedPriceUpdatedInfo)
         assert len(price_info.changed_prices) == 1
         cp = price_info.changed_prices[0]
@@ -367,7 +368,7 @@ def test_recalculate_discounted_price_triggers_variant_price_updated_webhook(
         assert cp.new_price_amount == expected_prices[price_info.variant_id]
 
 
-@patch("saleor.product.tasks.get_plugins_manager")
+@patch("saleor.product.tasks.call_event")
 @patch("saleor.product.tasks.get_webhooks_for_event")
 @patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value={})
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
@@ -375,7 +376,7 @@ def test_recalculate_discounted_price_no_webhook_when_prices_unchanged(
     recalculate_task_mock,
     update_prices_mock,
     get_webhooks_mock,
-    get_manager_mock,
+    call_event_mock,
     product_list,
 ):
     # given
@@ -385,4 +386,4 @@ def test_recalculate_discounted_price_no_webhook_when_prices_unchanged(
     recalculate_discounted_price_for_products_task()
 
     # then
-    assert not get_manager_mock.called
+    assert not call_event_mock.called
