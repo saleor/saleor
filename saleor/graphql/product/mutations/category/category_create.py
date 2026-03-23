@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....core.utils.editorjs import clean_editor_js
+from .....core.editorjs import editorjs_to_text
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
@@ -76,7 +76,7 @@ class CategoryCreate(DeprecatedModelMutation):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         description = cleaned_input.get("description")
         cleaned_input["description_plaintext"] = (
-            clean_editor_js(description, to_string=True) if description else ""
+            editorjs_to_text(description) if description else ""
         )
         try:
             cleaned_input = validate_slug_and_generate_if_needed(

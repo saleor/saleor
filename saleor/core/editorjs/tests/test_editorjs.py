@@ -2,13 +2,16 @@ import json
 import warnings
 from copy import deepcopy
 
+import django.core.exceptions
+import pydantic_core
 import pytest
-from django.core.exceptions import ValidationError
 from django.utils.html import strip_tags
 
 from ...cleaners.html import HtmlCleanerSettings
 from ...deprecations import SaleorDeprecationWarning
-from ..editorjs import clean_editor_js, clean_text_data_block, clean_url
+from .. import clean_editorjs, editorjs_to_text
+from ..cleaners import _clean_url_value
+from .conftest import assert_pydantic_errors
 
 DIRTY = "<img src=x onerror=alert(1)>"
 CLEAN = '<img src="x">'
@@ -26,6 +29,16 @@ XSS_URLS = [
     "&#x6A;avascript&#0000058&#0000097lert(1)",
     "&#x6A;avascript:%20alert(1)",
 ]
+
+
+def assert_paragraph_cleaned(text_input: str, expected_text_output: str) -> None:
+    input = {"blocks": [{"type": "paragraph", "data": {"text": text_input}}]}
+    expected = {
+        "blocks": [{"type": "paragraph", "data": {"text": expected_text_output}}]
+    }
+
+    actual = clean_editorjs(input, for_django=False)
+    assert actual == expected
 
 
 @pytest.fixture
@@ -68,7 +81,7 @@ def cleaner_settings(settings):
 )
 def test_clean_url(input_url, expected_cleaned_url, is_allowed):
     with warnings.catch_warnings(record=True) as warns:
-        actual = clean_url(input_url)
+        actual = _clean_url_value(input_url)
 
         expected_warning_count = 0 if is_allowed else 1
         assert len(warns) == expected_warning_count
@@ -88,8 +101,8 @@ def test_clean_url(input_url, expected_cleaned_url, is_allowed):
     ],
 )
 def test_clean_url_error_handling(input_url: str, expected_error: str):
-    with pytest.raises(ValidationError, match=expected_error):
-        clean_url(input_url)
+    with pytest.raises(django.core.exceptions.ValidationError, match=expected_error):
+        _clean_url_value(input_url)
 
 
 def test_clean_url_allows_custom_allow_list(monkeypatch, cleaner_settings):
@@ -102,7 +115,7 @@ def test_clean_url_allows_custom_allow_list(monkeypatch, cleaner_settings):
 
     # Should refuse the URL scheme if it's not allowed
     with warnings.catch_warnings(record=True):
-        assert clean_url(url) == "#invalid"
+        assert _clean_url_value(url) == "#invalid"
 
     # Catches warnings due to deprecation notices from Saleor (v3.23.0)
     with warnings.catch_warnings(record=True):
@@ -111,10 +124,10 @@ def test_clean_url_allows_custom_allow_list(monkeypatch, cleaner_settings):
 
     # When allowed it should allow the use of that URL scheme even if a cleaner
     # isn't defined.
-    assert clean_url(url) == url
-    assert clean_url("other:") == "other:"
+    assert _clean_url_value(url) == url
+    assert _clean_url_value("other:") == "other:"
     with warnings.catch_warnings(record=True):
-        assert clean_url("not-ok:") == "#invalid"
+        assert _clean_url_value("not-ok:") == "#invalid"
 
 
 @pytest.mark.parametrize(
@@ -194,8 +207,7 @@ def test_clean_url_allows_custom_allow_list(monkeypatch, cleaner_settings):
     ],
 )
 def test_clean_text_data_block(_case: str, text: str, expected_cleaned_text: str):
-    actual = clean_text_data_block(text)
-    assert actual == expected_cleaned_text
+    assert_paragraph_cleaned(text, expected_cleaned_text)
 
 
 @pytest.mark.parametrize(
@@ -235,8 +247,7 @@ def test_clean_text_data_block_allow_custom_attributes(
     )
     cleaner_settings.reload()
 
-    actual = clean_text_data_block(html_input)
-    assert actual == expected_output
+    assert_paragraph_cleaned(html_input, expected_output)
 
 
 @pytest.mark.parametrize(
@@ -302,72 +313,68 @@ def test_clean_text_data_block_allow_custom_attribute_values(
     )
     cleaner_settings.reload()
 
-    actual = clean_text_data_block(html_input)
-    assert actual == expected_output
+    assert_paragraph_cleaned(html_input, expected_output)
 
 
 @pytest.mark.parametrize(
-    "text",
+    ("input_html", "expected_output_html"),
     [
-        "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products "
-        "at unreal prices. Literally, they are not real products, but the Saleor demo "
-        "store is a genuine e-commerce leader.",
-        'The Saleor Winter Sale is snowed <a href="https://docs.saleor.io/">',
-        'The Saleor Sale is snowed <a href="https://docs.saleor.io/">. Test.',
-        'The Saleor Winter Sale is snowed <a href="https://docs.saleor.io/">. '
-        'Test <a href="https://docs.saleor.io/">.',
-        "",
-        "The Saleor Winter Sale is snowed <a >",
+        (
+            (
+                "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products "
+                "at unreal prices. Literally, they are not real products, but the Saleor demo "
+                "store is a genuine e-commerce leader."
+                'The Saleor Winter Sale is snowed <a href="https://docs.saleor.io/"></a>'
+                'The Saleor Sale is snowed <a href="https://docs.saleor.io/">Test</a>.'
+                ""
+                "The Saleor Winter Sale is snowed <a >"
+            ),
+            (
+                "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products "
+                "at unreal prices. Literally, they are not real products, but the Saleor demo "
+                "store is a genuine e-commerce leader."
+                'The Saleor Winter Sale is snowed <a href="https://docs.saleor.io/"></a>'
+                'The Saleor Sale is snowed <a href="https://docs.saleor.io/">Test</a>.'
+                ""
+                "The Saleor Winter Sale is snowed <a></a>"
+            ),
+        )
     ],
 )
-def test_clean_editor_js(text):
+def test_clean_editor_js(input_html: str, expected_output_html: str, no_link_rel):
     # given
-    data = {"blocks": [{"data": {"text": text}, "type": "paragraph"}]}
+    input_data = {"blocks": [{"data": {"text": input_html}, "type": "paragraph"}]}
+    expected_output = {
+        "blocks": [{"data": {"text": expected_output_html}, "type": "paragraph"}]
+    }
 
     # when
-    result = clean_editor_js(data)
+    result = clean_editorjs(input_data, for_django=False)
 
     # then
-    assert result == data
+    assert result == expected_output
 
     # when
-    result = clean_editor_js(data, to_string=True)
+    result = editorjs_to_text(input_data)
 
     # then
-    assert result == strip_tags(text)
+    assert result == strip_tags(expected_output_html)
 
 
-def test_clean_editor_js_no_blocks():
-    # given
-    data = {}
+@pytest.mark.parametrize(
+    ("_case", "input_data", "expected_dict_out"),
+    [
+        ("No block provided", {}, {}),
+        ("Empty block list", {"blocks": []}, {"blocks": []}),
+    ],
+)
+def test_clean_editor_js_no_blocks(
+    _case: str, input_data: dict, expected_dict_out: dict
+):
+    result = clean_editorjs(input_data, for_django=False)
+    assert result == expected_dict_out
 
-    # when
-    result = clean_editor_js(data)
-
-    # then
-    assert result == data
-
-    # when
-    result = clean_editor_js(data, to_string=True)
-
-    # then
-    assert result == ""
-
-
-def test_clean_editor_js_no_data():
-    # given
-    data = {"blocks": []}
-
-    # when
-    result = clean_editor_js(data)
-
-    # then
-    assert result == data
-
-    # when
-    result = clean_editor_js(data, to_string=True)
-
-    # then
+    result = editorjs_to_text(input_data)
     assert result == ""
 
 
@@ -389,7 +396,7 @@ def test_clean_editor_js_invalid_url():
     }
 
     # when
-    result = clean_editor_js(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     cleaned_text = result["blocks"][0]["data"]["text"]
@@ -398,14 +405,14 @@ def test_clean_editor_js_invalid_url():
     assert "The Saleor Winter Sale" in cleaned_text
 
 
-def test_clean_editor_js_for_list():
+def test_clean_editor_js_for_list(no_link_rel):
     # given
     data = {
         "blocks": [
             {
                 "data": {
                     "text": "The Saleor Winter Sale is snowed "
-                    '<a href="https://docs.saleor.io/">. Test.'
+                    '<a href="https://docs.saleor.io/">Test</a>.'
                 },
                 "type": "paragraph",
             },
@@ -415,7 +422,7 @@ def test_clean_editor_js_for_list():
                     "style": "unordered",
                     "items": [
                         "It is a block-styled editor "
-                        '<a href="https://docs.saleor.io/">.',
+                        '<a href="https://docs.saleor.io/"></a>.',
                         "It returns clean data output in JSON",
                         "Designed to be extendable and pluggable with a simple API",
                         "",
@@ -426,18 +433,18 @@ def test_clean_editor_js_for_list():
     }
 
     # when
-    result = clean_editor_js(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     assert result == data
 
     # when
-    result = clean_editor_js(data, to_string=True)
+    result = editorjs_to_text(data)
 
     # then
     assert result == strip_tags(
         "The Saleor Winter Sale is snowed "
-        '<a href="https://docs.saleor.io/">. Test.'
+        '<a href="https://docs.saleor.io/">Test</a>.'
         " It is a block-styled editor "
         '<a href="https://docs.saleor.io/">.'
         " It returns clean data output in JSON"
@@ -470,7 +477,7 @@ def test_clean_editor_js_for_list_invalid_url():
     }
 
     # when
-    result = clean_editor_js(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     # Paragraph with invalid url should be cleaned
@@ -488,14 +495,14 @@ def test_clean_editor_js_for_list_invalid_url():
     )
 
 
-def test_clean_editor_js_for_complex_description():
+def test_clean_editor_js_for_complex_description(no_link_rel):
     # given
     data = {
         "blocks": [
             {
                 "data": {
-                    "text": "The Saleor Winter Sale is snowed"
-                    '<a href="https://docs.saleor.io/">. Test.'
+                    "text": "The Saleor Winter Sale is snowed "
+                    '<a href="https://docs.saleor.io/">Test</a>.'
                 },
                 "type": "paragraph",
             },
@@ -556,18 +563,18 @@ def test_clean_editor_js_for_complex_description():
     }
 
     # when
-    result = clean_editor_js(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     assert result == data
 
     # when
-    result = clean_editor_js(data, to_string=True)
+    result = editorjs_to_text(data)
 
     # then
     assert result == strip_tags(
-        "The Saleor Winter Sale is snowed"
-        '<a href="https://docs.saleor.io/">. Test.'
+        "The Saleor Winter Sale is snowed "
+        '<a href="https://docs.saleor.io/">Test</a>.'
         " The one thing you be sure of is: Polish winters are quite"
         " unpredictable. The coldest months are January and February"
         " with temperatures around -3.0 °C (on average), but the"
@@ -599,7 +606,7 @@ def test_clean_editor_js_for_malicious_value():
     }
 
     # when
-    result = clean_editor_js(data)
+    result = clean_editorjs(data, for_django=False)
 
     # then
     # Malicious elements should be stripped.
@@ -618,7 +625,7 @@ def test_clean_editor_js_image_invalid_url():
 
     # when
     with warnings.catch_warnings(record=True) as warns:
-        result = clean_editor_js(data)
+        result = clean_editorjs(data, for_django=False)
 
         assert len(warns) == 1
         assert "disallowed URL was sent" in str(warns[0].message)
@@ -634,7 +641,7 @@ def test_clean_editor_js_image_disallowed_scheme():
 
     # when
     with warnings.catch_warnings(record=True) as warns:
-        result = clean_editor_js(data)
+        result = clean_editorjs(data, for_django=False)
 
         assert len(warns) == 1
         assert "disallowed URL was sent" in str(warns[0].message)
@@ -643,8 +650,49 @@ def test_clean_editor_js_image_disallowed_scheme():
     assert result["blocks"][0]["data"]["file"]["url"] == "#invalid"
 
 
+def test_clean_editorjs_image_can_put_extras():
+    """Ensure user can provide extra fields in 'data.image.file' without error.
+
+    This shouldn't be rejected, but any extra field provided should be automatically
+    deleted by Pydantic in order to prevent XSS attacks against unknown/unsupported
+    fields.
+
+    This is needed due to EditorJS specs stating that data.image.file can contain
+    anything.
+    """
+
+    input_data = {
+        "blocks": [
+            {
+                "type": "image",
+                "data": {
+                    "file": {
+                        # OK: known field
+                        "url": "https://example.com/image.png",
+                        # Unknown fields, thus should be dropped (but shouldn't return an
+                        # error)
+                        "foo": "bar",
+                        DIRTY: DIRTY,
+                    }
+                },
+            }
+        ]
+    }
+    expected_output = {
+        "blocks": [
+            {
+                "type": "image",
+                "data": {"file": {"url": "https://example.com/image.png"}},
+            }
+        ]
+    }
+
+    actual_output = clean_editorjs(input_data, for_django=False)
+    assert actual_output == expected_output
+
+
 @pytest.mark.parametrize(
-    ("_case", "data", "expected_results"),
+    ("_case", "data", "expected_results", "expected_errors"),
     [
         (
             "Should clean list items",
@@ -663,6 +711,7 @@ def test_clean_editor_js_image_disallowed_scheme():
                     "items": ['<img src="invalid">'],
                 },
             },
+            None,
         ),
         (
             "Should be able to clean when 1st item is empty",
@@ -681,6 +730,7 @@ def test_clean_editor_js_image_disallowed_scheme():
                     "items": ["", '<img src="invalid">'],
                 },
             },
+            None,
         ),
         (
             "Should clean the style field",
@@ -692,17 +742,22 @@ def test_clean_editor_js_image_disallowed_scheme():
                 },
             },
             # Expects:
-            {
-                "type": "list",
-                "data": {
-                    "style": 'unordered"/&gt;',
-                    "items": [],
-                },
-            },
+            None,
+            [
+                {
+                    "loc": ("blocks", 0, "list", "data", "style"),
+                    "msg": "Input should be 'ordered', 'unordered' or 'checklist'",
+                }
+            ],
         ),
     ],
 )
-def test_clean_editorjs_legacy(_case: str, data: dict, expected_results: dict):
+def test_clean_editorjs_legacy(
+    _case: str,
+    data: dict,
+    expected_results: dict | None,
+    expected_errors: list[dict] | None,
+):
     """Ensure that legacy lists (non-nested) are supported.
 
     Format: https://github.com/editor-js/list-legacy/blob/381254443234ebbec9cc508fa8a7b982b6a79418/README.md#output-data
@@ -710,11 +765,22 @@ def test_clean_editorjs_legacy(_case: str, data: dict, expected_results: dict):
 
     data = {"blocks": [data]}
 
-    actual_results = clean_editor_js(data)
-    blocks = actual_results["blocks"]
-    assert len(blocks) == 1
+    actual_results = None
+    err = None
 
-    assert blocks[0] == expected_results
+    try:
+        actual_results = clean_editorjs(data, for_django=False)
+    except pydantic_core.ValidationError as exc:
+        err = exc
+
+    if expected_errors is not None:
+        assert err is not None
+        assert_pydantic_errors(err, expected_errors)
+    else:
+        assert err is None
+        blocks = actual_results["blocks"]
+        assert len(blocks) == 1
+        assert blocks == [expected_results]
 
 
 @pytest.mark.parametrize(
@@ -764,7 +830,7 @@ def test_clean_editorjs_legacy(_case: str, data: dict, expected_results: dict):
             },
         ),
         (
-            "Nulled meta is OK",
+            "Null meta is OK",
             {
                 "type": "list",
                 "data": {
@@ -778,7 +844,7 @@ def test_clean_editorjs_legacy_works_for_valid_inputs(_case: str, data: dict):
     data = {"blocks": [data]}
 
     expected = deepcopy(data)
-    actual = clean_editor_js(data)
+    actual = clean_editorjs(data, for_django=False)
 
     # Valid data shouldn't have alterated
     assert actual == expected
@@ -787,7 +853,7 @@ def test_clean_editorjs_legacy_works_for_valid_inputs(_case: str, data: dict):
 @pytest.mark.parametrize(
     ("_case", "data", "expected_error"),
     [
-        ("Missing type", {}, "Missing required key: 'type'"),
+        ("Missing type", {}, "Unable to extract tag using discriminator 'type'"),
         (
             "Items invalid type",
             {
@@ -796,7 +862,7 @@ def test_clean_editorjs_legacy_works_for_valid_inputs(_case: str, data: dict):
                     "items": 1,
                 },
             },
-            "Invalid EditorJS list: items property must be an array",
+            "Input should be a valid list",
         ),
         (
             "Items invalid type inside array",
@@ -806,7 +872,7 @@ def test_clean_editorjs_legacy_works_for_valid_inputs(_case: str, data: dict):
                     "items": [1],
                 },
             },
-            "Invalid EditorJS list: items must be either a string or an object",
+            "Input should be a valid dictionary or instance of EditorJSNestedListItemModel",
         ),
         (
             "Items invalid type inside array after valid value",
@@ -816,7 +882,7 @@ def test_clean_editorjs_legacy_works_for_valid_inputs(_case: str, data: dict):
                     "items": ["valid", 1],
                 },
             },
-            "Invalid EditorJS list: items must be strings",
+            "Input should be a valid dictionary or instance of EditorJSNestedListItemModel",
         ),
         (
             "Items invalid type inside style field",
@@ -827,7 +893,7 @@ def test_clean_editorjs_legacy_works_for_valid_inputs(_case: str, data: dict):
                     "items": ["valid"],
                 },
             },
-            "Invalid EditorJS list: style property must be a string",
+            "Input should be 'ordered', 'unordered' or 'checklist'",
         ),
     ],
 )
@@ -838,8 +904,10 @@ def test_clean_editorjs_legacy_rejects_invalid(
 
     data = {"blocks": [data]}
 
-    with pytest.raises(ValidationError, match=expected_error):
-        clean_editor_js(data)
+    with pytest.raises(pydantic_core.ValidationError) as exc:
+        clean_editorjs(data, for_django=False)
+
+    assert expected_error in str(exc.value)
 
 
 @pytest.mark.parametrize(
@@ -1008,7 +1076,7 @@ def test_clean_editorjs_legacy_rejects_invalid(
 def test_cleans_editorjs_nested_lists(_case: str, data: dict, expected_results: dict):
     data = {"blocks": [data]}
 
-    actual = clean_editor_js(data)
+    actual = clean_editorjs(data, for_django=False)
 
     blocks = actual["blocks"]
     assert len(blocks) == 1
@@ -1017,7 +1085,7 @@ def test_cleans_editorjs_nested_lists(_case: str, data: dict, expected_results: 
 
 
 @pytest.mark.parametrize(
-    ("_case", "data", "expected_error"),
+    ("_case", "data", "expected_errors"),
     [
         (
             "Item contains invalid type",
@@ -1041,7 +1109,34 @@ def test_cleans_editorjs_nested_lists(_case: str, data: dict, expected_results: 
                     ],
                 },
             },
-            "Invalid EditorJS list: items must be objects",
+            [
+                {
+                    "loc": (
+                        "blocks",
+                        0,
+                        "list",
+                        "data",
+                        "items",
+                        0,
+                        "EditorJSNestedListItemModel",
+                        "items",
+                        1,
+                    ),
+                    "msg": "Input should be a valid dictionary or instance of EditorJSNestedListItemModel",
+                },
+                {
+                    "loc": (
+                        "blocks",
+                        0,
+                        "list",
+                        "data",
+                        "items",
+                        0,
+                        "function-after[_clean_text(), str]",
+                    ),
+                    "msg": "Input should be a valid string",
+                },
+            ],
         ),
         (
             "Invalid type in meta",
@@ -1049,10 +1144,32 @@ def test_cleans_editorjs_nested_lists(_case: str, data: dict, expected_results: 
                 "type": "list",
                 "data": {"meta": {"key": object()}},
             },
-            (
-                "Invalid meta block for EditorJS: value of a meta must either a string, "
-                "an integer, or a float"
-            ),
+            [
+                {
+                    "loc": ("blocks", 0, "list", "data", "meta", "key", "int"),
+                    "msg": "Input should be a valid integer",
+                },
+                {
+                    "loc": ("blocks", 0, "list", "data", "meta", "key", "float"),
+                    "msg": "Input should be a valid number",
+                },
+                {
+                    "loc": ("blocks", 0, "list", "data", "meta", "key", "bool"),
+                    "msg": "Input should be a valid boolean",
+                },
+                {
+                    "loc": (
+                        "blocks",
+                        0,
+                        "list",
+                        "data",
+                        "meta",
+                        "key",
+                        "function-after[_clean_text(), str]",
+                    ),
+                    "msg": "Input should be a valid string",
+                },
+            ],
         ),
         (
             "Too many fields in meta",
@@ -1060,15 +1177,50 @@ def test_cleans_editorjs_nested_lists(_case: str, data: dict, expected_results: 
                 "type": "list",
                 "data": {"meta": {str(i): i for i in range(11)}},
             },
-            "Invalid meta block for EditorJS: too many fields",
+            [
+                {
+                    "loc": ("blocks", 0, "list", "data", "meta"),
+                    "msg": "Value error, Invalid meta block for EditorJS: too many fields",
+                }
+            ],
         ),
         (
             "Keys must be a string",
             {"type": "list", "data": {"meta": {1: "string"}}},
-            "Invalid property for a meta member for EditorJS: must a string",
+            [
+                {
+                    "loc": ("blocks", 0, "list", "data", "meta", 1, "[key]"),
+                    "msg": "Input should be a valid string",
+                }
+            ],
         ),
-        (
-            "List too deep",
+    ],
+)
+def test_clean_editorjs_rejects_invalid_nested_lists(
+    _case: str,
+    data: dict,
+    expected_errors: list[dict],
+    settings,
+):
+    """Ensure when invalid data is provided a nested lists, it's rejected."""
+
+    settings.EDITOR_JS_LISTS_MAX_DEPTH = 3
+
+    data = {"blocks": [data]}
+
+    with pytest.raises(pydantic_core.ValidationError) as exc:
+        clean_editorjs(data, for_django=False)
+
+    assert_pydantic_errors(exc.value, expected_errors)
+
+
+def test_clean_editorjs_rejects_too_deep_nested_list(settings):
+    """A nested list that's too deep should be rejected as it's likely malicious."""
+
+    settings.EDITOR_JS_LISTS_MAX_DEPTH = 3
+
+    data = {
+        "blocks": [
             {
                 "type": "list",
                 "data": {
@@ -1089,24 +1241,14 @@ def test_cleans_editorjs_nested_lists(_case: str, data: dict, expected_results: 
                     ]
                 },
             },
-            "Invalid EditorJS list: maximum nesting level exceeeded",
-        ),
-    ],
-)
-def test_clean_editorjs_rejects_invalid_nested_lists(
-    _case: str,
-    data: dict,
-    expected_error: str,
-    settings,
-):
-    """Ensure when invalid data is provided a nested lists, it's rejected."""
+        ]
+    }
 
-    settings.EDITOR_JS_LISTS_MAX_DEPTH = 3
-
-    data = {"blocks": [data]}
-
-    with pytest.raises(ValidationError, match=expected_error):
-        clean_editor_js(data)
+    with pytest.raises(
+        django.core.exceptions.ValidationError,
+        match="Invalid EditorJS list: maximum nesting level exceeded",
+    ):
+        clean_editorjs(data, for_django=False)
 
 
 def test_heading_level_cleaned():
@@ -1114,13 +1256,21 @@ def test_heading_level_cleaned():
 
     data_input = {"type": "header", "data": {"level": DIRTY}}
 
-    with pytest.raises(ValidationError, match="Heading level must be an integer"):
-        clean_editor_js({"blocks": [data_input]})
+    with pytest.raises(pydantic_core.ValidationError) as exc:
+        clean_editorjs({"blocks": [data_input]}, for_django=False)
+
+    error_list = exc.value.errors()
+    assert len(error_list) == 1
+
+    [err] = error_list
+    assert err["input"] == DIRTY
+    assert err["loc"] == ("blocks", 0, "header", "data", "level")
+    assert err["msg"] == "Value error, Value must be an integer"
 
 
 @pytest.mark.parametrize("block_type", ["image", "quote", "embed"])
 @pytest.mark.parametrize(
-    ("data_field", "expected_results", "excepted_error"),
+    ("data_field", "expected_results", "expected_errors"),
     [
         (
             {"width": "1", "height": "1"},
@@ -1137,12 +1287,22 @@ def test_heading_level_cleaned():
         (
             {"width": DIRTY},
             None,
-            "width must be an integer",
+            [
+                {
+                    "msg": "Value error, Value must be an integer",
+                    "input": DIRTY,
+                }
+            ],
         ),
         (
             {"height": DIRTY},
             None,
-            "height must be an integer",
+            [
+                {
+                    "msg": "Value error, Value must be an integer",
+                    "input": DIRTY,
+                }
+            ],
         ),
     ],
 )
@@ -1150,21 +1310,22 @@ def test_cleans_size_caption_blocks(
     block_type: str,
     data_field: dict,
     expected_results: dict | None,
-    excepted_error: str | None,
+    expected_errors: list[dict] | None,
 ):
     """Ensure all block types that have a caption field have their size fields cleaned."""
 
     data = {"blocks": [{"type": block_type, "data": data_field}]}
     error = None
+    actual = None
 
     try:
-        actual = clean_editor_js(data)
-    except ValidationError as exc:
+        actual = clean_editorjs(data, for_django=False)
+    except pydantic_core.ValidationError as exc:
         error = exc
 
-    if excepted_error is not None:
+    if expected_errors is not None:
         assert error is not None, "Expected an error but didn't find one"
-        assert error.message == excepted_error
+        assert_pydantic_errors(error, expected_errors)
     else:
         assert error is None, "Didn't expect an error"
 
@@ -1279,9 +1440,26 @@ def test_cleans_all_editor_js_blocks(_case, data, expected_data):
     """Check all block types supported by Saleor and ensure they all gets cleaned."""
 
     with warnings.catch_warnings(record=True):
-        actual = clean_editor_js({"blocks": [data]})
+        actual = clean_editorjs({"blocks": [data]}, for_django=False)
 
     assert len(actual["blocks"]) == 1
     actual = actual["blocks"][0]
 
     assert actual == expected_data
+
+
+@pytest.mark.parametrize(
+    ("for_django", "expected_exception_cls"),
+    [
+        (True, django.core.exceptions.ValidationError),
+        (False, pydantic_core.ValidationError),
+    ],
+)
+def test_converts_exceptions_to_django(
+    for_django: bool, expected_exception_cls: type[BaseException]
+):
+    """Passing ``for_django=True`` it raise a Django exception instead of pydantic."""
+
+    input_data = {"blocks": 1}
+    with pytest.raises(expected_exception_cls):
+        clean_editorjs(input_data, for_django=for_django)

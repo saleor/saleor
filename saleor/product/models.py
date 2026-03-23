@@ -19,6 +19,7 @@ from prices import Money
 
 from ..channel.models import Channel
 from ..core.db.fields import MoneyField, SanitizedJSONField
+from ..core.editorjs import clean_editorjs
 from ..core.models import (
     ModelWithExternalReference,
     ModelWithMetadata,
@@ -26,7 +27,6 @@ from ..core.models import (
     SortableModel,
 )
 from ..core.units import WeightUnits
-from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, get_translation
 from ..core.weight import zero_weight
 from ..discount.models import PromotionRule
@@ -52,7 +52,7 @@ ALL_PRODUCTS_PERMISSIONS = [
 class Category(ModelWithMetadata, MPTTModel, SeoModel):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     description_plaintext = TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
     parent = models.ForeignKey(
@@ -87,7 +87,7 @@ class CategoryTranslation(SeoModelTranslationWithSlug):
         Category, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128, blank=True, null=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
 
     class Meta:
         constraints = [
@@ -99,7 +99,7 @@ class CategoryTranslation(SeoModelTranslationWithSlug):
         unique_together = (("language_code", "category"),)
 
     def __str__(self) -> str:
-        return self.name if self.name else str(self.pk)
+        return self.name or str(self.pk)
 
     def __repr__(self) -> str:
         class_ = type(self)
@@ -177,7 +177,7 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     )
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     description_plaintext = TextField(blank=True)
     search_document = models.TextField(blank=True, default="")
     search_vector = SearchVectorField(blank=True, null=True)
@@ -269,7 +269,7 @@ class ProductTranslation(SeoModelTranslationWithSlug):
         Product, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=250, blank=True, null=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
 
     class Meta:
         constraints = [
@@ -281,7 +281,7 @@ class ProductTranslation(SeoModelTranslationWithSlug):
         unique_together = (("language_code", "product"),)
 
     def __str__(self) -> str:
-        return self.name if self.name else str(self.pk)
+        return self.name or str(self.pk)
 
     def __repr__(self) -> str:
         class_ = type(self)
@@ -658,7 +658,7 @@ class Collection(SeoModel, ModelWithMetadata):
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
 
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
 
     objects = managers.CollectionManager()
 
@@ -704,7 +704,7 @@ class CollectionTranslation(SeoModelTranslationWithSlug):
         Collection, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128, blank=True, null=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
 
     class Meta:
         constraints = [
@@ -720,7 +720,7 @@ class CollectionTranslation(SeoModelTranslationWithSlug):
         return f"{class_.__name__}(pk={self.pk!r}, name={self.name!r}, collection_pk={self.collection_id!r})"
 
     def __str__(self) -> str:
-        return self.name if self.name else str(self.pk)
+        return self.name or str(self.pk)
 
     def get_translated_object_id(self):
         return "Collection", self.collection_id

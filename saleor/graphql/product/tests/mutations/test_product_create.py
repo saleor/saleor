@@ -643,7 +643,7 @@ def test_create_product_with_rich_text_attribute(
         "Attribute", rich_text_attribute.id
     )
     rich_text_value = dummy_editorjs("test product" * 5)
-    rich_text = json.dumps(rich_text_value)
+    rich_text = json.dumps(rich_text_value, sort_keys=True)
 
     # test creating root product
     variables = {

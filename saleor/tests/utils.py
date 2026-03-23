@@ -1,6 +1,7 @@
 import json
 import math
 from decimal import Decimal
+from typing import Any, Literal, overload
 
 import pytest
 from django.conf import settings
@@ -9,6 +10,7 @@ from opentelemetry.sdk.metrics.export import DataPointT, Metric, MetricsData
 from opentelemetry.sdk.trace import ReadableSpan
 
 from ..core.db.connection import allow_writer
+from ..core.editorjs.models import EditorJSDocumentModel
 from ..core.telemetry import Scope
 
 
@@ -59,9 +61,23 @@ def prepare_test_db_connections():
     connections[replica] = FakeDbReplicaConnection(connections[replica])  # type: ignore[assignment]
 
 
-def dummy_editorjs(text, json_format=False):
-    data = {"blocks": [{"data": {"text": text}, "type": "paragraph"}]}
-    return json.dumps(data) if json_format else data
+@overload
+def dummy_editorjs(text: str, json_format: Literal[True]) -> str: ...
+@overload
+def dummy_editorjs(
+    text: str, json_format: Literal[False] = False
+) -> dict[str, Any]: ...
+
+
+def dummy_editorjs(text: str, json_format: bool = False) -> dict[str, Any] | str:
+    data = EditorJSDocumentModel.model_validate(
+        {"blocks": [{"data": {"text": text}, "type": "paragraph"}]}
+    ).model_dump(exclude_unset=True)
+
+    if json_format:
+        return json.dumps(data, sort_keys=True)
+
+    return data
 
 
 def round_down(price: Decimal) -> Decimal:

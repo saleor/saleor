@@ -2,7 +2,7 @@ import graphene
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
-from ....core.utils.editorjs import clean_editor_js
+from ....core.editorjs import editorjs_to_text
 from ....core.utils.text import safe_truncate
 from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeValue
@@ -46,7 +46,7 @@ class AttributeValueTranslate(BaseTranslateMutation):
         if "name" not in input_data.keys() or input_data["name"] is None:
             if instance.attribute.input_type == AttributeInputType.RICH_TEXT:
                 input_data["name"] = safe_truncate(
-                    clean_editor_js(input_data["rich_text"], to_string=True), 250
+                    editorjs_to_text(input_data["rich_text"]), 250
                 )
             elif instance.attribute.input_type == AttributeInputType.PLAIN_TEXT:
                 input_data["name"] = safe_truncate(input_data["plain_text"], 250)

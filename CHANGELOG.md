@@ -62,7 +62,9 @@ permissions.
    See the [upgrading guide](https://docs.saleor.io/upgrade-guides/3-22-to-3-23##explicit-delivery-options-calculation) to learn more.
   - `checkoutDeliveryMethodUpdate` mutation now accepts `CheckoutDelivery` ID as `deliveryMethodId` (ID returned by `deliveryOptionsCalculate` mutation). Usage of `ShippingMethod` ID is deprecated in favor of `CheckoutDelivery` ID.
 
+### EditorJS (Rich Text Editor)
 
+- Made the EditorJS parser stricter. We no longer accept unknown/extra fields. - #18969 by @NyanKiyoshi
 
 ### Other changes
 
