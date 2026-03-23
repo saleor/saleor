@@ -16,6 +16,7 @@ from django.db import transaction
 from opentelemetry.trace import StatusCode
 from promise import Promise
 
+from ....app.utils import acquire_webhook_lock
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
@@ -450,26 +451,39 @@ def trigger_webhooks_async_for_multiple_objects(
         )
 
     def process_deliveries(deliveries_list):
-        for delivery in deliveries_list:
-            message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
-            # TODO: switch to new `send_webhooks_async_for_app` task when we have
-            # deduplication mechanism in place.
-
-            send_webhook_request_async.apply_async(
-                kwargs={
-                    "event_delivery_id": delivery.pk,
-                    "telemetry_context": get_task_context().to_dict(),
-                },
-                queue=get_queue_name_for_webhook(
-                    delivery.webhook,
-                    default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-                ),
-                MessageGroupId=message_group_id,  # for AWS SQS fair queues
-            )
+        maybe_send_webhooks_async(deliveries_list, domain=domain, queue=queue)
 
     process_deliveries(deliveries)
     if delivery_promise:
         delivery_promise.then(process_deliveries).get()
+
+
+def maybe_send_webhooks_async(
+    deliveries: list[EventDelivery],
+    domain: str | None = None,
+    queue: str | None = None,
+    telemetry_context: TelemetryTaskContext | None = None,
+):
+    """Trigger async webhooks for deliveries only if legacy mode is enabled."""
+    if not settings.WEBHOOK_LEGACY_MODE:
+        return
+
+    domain = domain or get_domain()
+    telemetry_context = telemetry_context or get_task_context()
+
+    for delivery in deliveries:
+        message_group_id = get_sqs_message_group_id(domain, app=delivery.webhook.app)
+        send_webhook_request_async.apply_async(
+            kwargs={
+                "event_delivery_id": delivery.pk,
+                "telemetry_context": telemetry_context.to_dict(),
+            },
+            queue=get_queue_name_for_webhook(
+                delivery.webhook,
+                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+            ),
+            MessageGroupId=message_group_id,  # for AWS SQS fair queues
+        )
 
 
 def trigger_webhooks_async(
@@ -697,24 +711,11 @@ def _generate_deferred_payloads(
                     EventDelivery.objects.bulk_update(
                         event_deliveries_for_bulk_update, ["payload"]
                     )
-        domain = get_domain()
-        for delivery in event_deliveries_for_bulk_update:
-            # Trigger webhook delivery task when the payload is ready.
-            message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
-            # TODO: switch to new `send_webhooks_async_for_app` task when we have
-            # deduplication mechanism in place.
-            send_webhook_request_async.apply_async(
-                kwargs={
-                    "event_delivery_id": delivery.pk,
-                    "telemetry_context": telemetry_context.to_dict(),
-                },
-                queue=get_queue_name_for_webhook(
-                    delivery.webhook,
-                    default_queue=send_webhook_queue
-                    or settings.WEBHOOK_CELERY_QUEUE_NAME,
-                ),
-                MessageGroupId=message_group_id,  # for AWS SQS fair queues
-            )
+        maybe_send_webhooks_async(
+            event_deliveries_for_bulk_update,
+            telemetry_context=telemetry_context,
+            queue=send_webhook_queue,
+        )
 
     Promise.all(data_promises).then(with_subscription_payload).get()
     return
@@ -739,7 +740,7 @@ def send_webhook_request_async(
 
     webhook = delivery.webhook
     domain = get_domain()
-    attempt = create_attempt(delivery, self.request.id)
+    attempt = create_attempt(delivery, self.request.id, with_save=True)
     response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
     retry_on_failure = False
 
@@ -786,7 +787,7 @@ def send_webhook_request_async(
         )
 
     if response.status == EventDeliveryStatus.FAILED:
-        attempt_update(attempt, response)
+        attempt_update(attempt, response, with_save=True)
         if retry_on_failure:
             handle_webhook_retry(self, webhook, response, delivery, attempt)
         delivery_update(delivery, EventDeliveryStatus.FAILED)
@@ -805,6 +806,31 @@ def send_webhook_request_async(
     clear_successful_delivery(delivery)
 
 
+@app.task(queue=settings.WEBHOOK_CELERY_QUEUE_NAME)
+@task_with_telemetry_context
+def trigger_send_webhooks_async_for_apps(
+    telemetry_context: TelemetryTaskContext,
+):
+    domain = get_domain()
+    app_ids = (
+        EventDelivery.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .select_related("webhook__app_id")
+        .filter(status=EventDeliveryStatus.PENDING)
+        .values_list("webhook__app_id", flat=True)
+        .distinct()
+    )
+    for app_id in app_ids:
+        send_webhooks_async_for_app.apply_async(
+            kwargs={
+                "app_id": app_id,
+                "telemetry_context": telemetry_context.to_dict(),
+            },
+            queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
+            MessageGroupId=get_sqs_message_group_id(domain, app_id),
+            bind=True,
+        )
+
+
 @app.task(
     queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
     bind=True,
@@ -816,15 +842,24 @@ def send_webhooks_async_for_app(
     app_id,
     telemetry_context: TelemetryTaskContext,
 ) -> None:
+    with acquire_webhook_lock(app_id) as acquired:
+        if not acquired:
+            return
+        process_async_webhooks_for_app(self.request.id, app_id, telemetry_context)
+
+
+@allow_writer()
+def process_async_webhooks_for_app(
+    task_id: str, app_id: int, telemetry_context: TelemetryTaskContext
+):
     domain = get_domain()
     deliveries = get_deliveries_for_app(app_id, WEBHOOK_ASYNC_BATCH_SIZE)
 
     if not deliveries:
+        logger.info("No pending deliveries found for App ID: %s", app_id)
         return
 
-    attempts_for_deliveries = create_attempts_for_deliveries(
-        deliveries, self.request.id
-    )
+    attempts_for_deliveries = create_attempts_for_deliveries(deliveries, task_id)
     failed_deliveries_attempts = []
     successful_deliveries = []
 
@@ -872,9 +907,14 @@ def send_webhooks_async_for_app(
                 sync=False,
             )
             if response.status == EventDeliveryStatus.FAILED:
-                attempt_update(attempt, response, with_save=False)
-                failed_deliveries_attempts.append((delivery, attempt, attempt_count))
-            elif response.status == EventDeliveryStatus.SUCCESS:
+                attempt_update(attempt, response, with_save=True)
+                failed_deliveries_attempts.append(
+                    (delivery, attempt, attempt_count, response)
+                )
+                # if encounter failure stop processing further deliveries
+                # in case app is not responding
+                break
+            if response.status == EventDeliveryStatus.SUCCESS:
                 task_logger.info(
                     "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
                     webhook.id,
@@ -889,21 +929,16 @@ def send_webhooks_async_for_app(
             response = WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED
             )
-            attempt_update(attempt, response, with_save=False)
-            failed_deliveries_attempts.append((delivery, attempt, attempt_count))
+            attempt_update(attempt, response, with_save=True)
+            failed_deliveries_attempts.append(
+                (delivery, attempt, attempt_count, response)
+            )
 
         observability.report_event_delivery_attempt(attempt)
         successful_deliveries.append(delivery)
 
     process_failed_deliveries(failed_deliveries_attempts, MAX_WEBHOOK_RETRIES)
     clear_successful_deliveries(successful_deliveries)
-
-    send_webhooks_async_for_app.apply_async(
-        kwargs={
-            "app_id": app_id,
-            "telemetry_context": telemetry_context.to_dict(),
-        },
-    )
 
 
 def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):

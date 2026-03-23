@@ -105,3 +105,6 @@ TELEMETRY_METER_CLASS = "saleor.core.telemetry.tests.TestMeter"
 
 # New default in Saleor v3.23.0
 HTML_CLEANER_PREFS.link_rel = "noopener noreferrer"  # noqa: F405 # HTML_CLEANER_PREFS exists
+
+# Enable legacy webhook mode to avoid tests adaptation before the new fair webhook system is fully implemented.
+WEBHOOK_LEGACY_MODE = True

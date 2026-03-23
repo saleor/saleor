@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from django.contrib.auth.hashers import make_password
 from django.db import models
+from django.utils import timezone
 from django.utils.text import Truncator
 from oauthlib.common import generate_token
 
@@ -126,6 +127,16 @@ class App(ModelWithMetadata):
 
         perm_value = perm.value if isinstance(perm, BasePermissionEnum) else perm
         return perm_value in self.get_permissions()
+
+
+class AppWebhookMutex(models.Model):
+    app = models.ForeignKey(
+        App,
+        unique=True,
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+    acquired_at = models.DateTimeField(default=timezone.now)
 
 
 class AppTokenManager(models.Manager["AppToken"]):
