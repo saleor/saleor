@@ -32,6 +32,7 @@
 - Avoid assertion to plain values, if you already have references to existing value. For example, when you create entity in database and assert if entity is returned in response, compare response fields with entity fields, instead plain values.
 - When building GraphQL query variables, use enum values instead of plain strings. For example: `{"field": TransactionSortField.CREATED_AT.name}` instead of `{"field": "CREATED_AT"}`
 - Do not write unnecessary prefix to test names. If file name is `test_my_mutation.py`, do not write `test_my_mutation_with_x_y` but `test_with_x_y`
+- When testing graphQL cases with expected errors ALWAYS assert expected length of errors list
 
 # Concurrency and Thread Safety
 
