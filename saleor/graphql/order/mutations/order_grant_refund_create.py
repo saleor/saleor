@@ -23,9 +23,9 @@ from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
-    assign_order_lines,
-    get_input_lines_data,
-    handle_lines_with_quantity_already_refunded,
+    GrantRefundLineDict,
+    clean_grant_refund_lines,
+    resolve_reason_reference_page,
     shipping_costs_already_granted,
 )
 
@@ -57,6 +57,10 @@ class OrderGrantRefundCreateLineInput(BaseInputObjectType):
         description="The quantity of line items to be marked to refund.", required=True
     )
     reason = graphene.String(description="Reason of the granted refund for the line.")
+    reason_reference = graphene.ID(
+        description="ID of a `Page` (Model) to reference in reason for the line."
+        + ADDED_IN_322,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -125,29 +129,28 @@ class OrderGrantRefundCreate(BaseMutation):
     def clean_input_lines(
         cls,
         order: models.Order,
-        lines: list[dict[str, str | int]],
-    ) -> tuple[list[models.OrderGrantedRefundLine], list[dict[str, str]] | None]:
-        errors: list[dict[str, str]] = []
-        input_lines_data = get_input_lines_data(
-            lines, errors, OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value
+        lines: list[GrantRefundLineDict],
+        refund_reason_reference_type_pk: int | None,
+    ) -> list[models.OrderGrantedRefundLine]:
+        lines_errors: list[dict[str, str]] = []
+        result = clean_grant_refund_lines(
+            order=order,
+            lines=lines,
+            refund_reason_reference_type_pk=refund_reason_reference_type_pk,
+            errors=lines_errors,
+            line_error_code_enum=OrderGrantRefundCreateLineErrorCode,
         )
-        assign_order_lines(
-            order,
-            input_lines_data,
-            errors,
-            OrderGrantRefundCreateLineErrorCode.NOT_FOUND.value,
-        )
-        handle_lines_with_quantity_already_refunded(
-            order,
-            input_lines_data,
-            errors,
-            OrderGrantRefundCreateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.value,
-        )
-
-        if errors:
-            return [], errors
-
-        return list(input_lines_data.values()), None
+        if lines_errors:
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Provided input for lines is invalid.",
+                        code=OrderGrantRefundCreateErrorCode.INVALID.value,
+                        params={"lines": lines_errors},
+                    ),
+                }
+            )
+        return result
 
     @classmethod
     def calculate_amount(
@@ -189,32 +192,6 @@ class OrderGrantRefundCreate(BaseMutation):
             )
 
     @classmethod
-    def _resolve_refund_reason_instance(
-        cls, /, reason_reference_id: str, refund_reason_reference_type_id: int
-    ):
-        reason_reference_pk = cls.get_global_id_or_error(
-            reason_reference_id, only_type="Page", field="reason_reference"
-        )
-
-        try:
-            reason_reference_instance = Page.objects.get(
-                pk=reason_reference_pk,
-                page_type=refund_reason_reference_type_id,
-            )
-
-            return reason_reference_instance
-
-        except Page.DoesNotExist:
-            raise ValidationError(
-                {
-                    "reason_reference": ValidationError(
-                        "Invalid reason reference. Must be an ID of a Model (Page)",
-                        code=OrderGrantRefundCreateErrorCode.INVALID.value,
-                    )
-                }
-            ) from None
-
-    @classmethod
     def clean_input(
         cls,
         info: ResolveInfo,
@@ -230,21 +207,34 @@ class OrderGrantRefundCreate(BaseMutation):
 
         cls.validate_input(input)
 
+        site = get_site_promise(info.context).get()
+
+        should_apply, refund_reason_reference_type = (
+            validate_and_resolve_refund_reason_context(
+                reason_reference_id=reason_reference_id,
+                requestor_is_user=bool(info.context.user),
+                refund_reference_field_name="reason_reference",
+                error_code_enum=OrderGrantRefundCreateErrorCode,
+                site_settings=site.settings,
+            )
+        )
+        refund_reason_reference_type_pk = (
+            refund_reason_reference_type.pk if refund_reason_reference_type else None
+        )
+
+        reason_reference_instance: Page | None = None
+        if should_apply and refund_reason_reference_type_pk:
+            reason_reference_instance = resolve_reason_reference_page(
+                str(reason_reference_id),
+                refund_reason_reference_type_pk,
+                OrderGrantRefundCreateErrorCode,
+            )
+
         cleaned_input_lines: list[models.OrderGrantedRefundLine] = []
         if input_lines:
-            cleaned_input_lines, lines_errors = cls.clean_input_lines(
-                order, input_lines
+            cleaned_input_lines = cls.clean_input_lines(
+                order, input_lines, refund_reason_reference_type_pk
             )
-            if lines_errors:
-                raise ValidationError(
-                    {
-                        "lines": ValidationError(
-                            "Provided input for lines is invalid.",
-                            code=OrderGrantRefundCreateErrorCode.INVALID.value,
-                            params={"lines": lines_errors},
-                        ),
-                    }
-                )
         if grant_refund_for_shipping and shipping_costs_already_granted(order):
             error_code = OrderGrantRefundCreateErrorCode.SHIPPING_COSTS_ALREADY_GRANTED
             raise ValidationError(
@@ -285,31 +275,6 @@ class OrderGrantRefundCreate(BaseMutation):
                         code=error_code,
                     )
                 }
-            )
-
-        requestor_is_app = info.context.app is not None
-        requestor_is_user = info.context.user is not None and not requestor_is_app
-
-        site = get_site_promise(info.context).get()
-
-        refund_reason_context = validate_and_resolve_refund_reason_context(
-            reason_reference_id=reason_reference_id,
-            requestor_is_user=bool(requestor_is_user),
-            refund_reference_field_name="reason_reference",
-            error_code_enum=OrderGrantRefundCreateErrorCode,
-            site_settings=site.settings,
-        )
-
-        should_apply = refund_reason_context["should_apply"]
-        refund_reason_reference_type = refund_reason_context[
-            "refund_reason_reference_type"
-        ]
-
-        reason_reference_instance: Page | None = None
-
-        if should_apply:
-            reason_reference_instance = cls._resolve_refund_reason_instance(
-                str(reason_reference_id), refund_reason_reference_type.pk
             )
 
         return {

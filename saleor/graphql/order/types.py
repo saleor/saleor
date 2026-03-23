@@ -161,6 +161,7 @@ from .dataloaders import (
     OrderByNumberLoader,
     OrderEventsByIdLoader,
     OrderEventsByOrderIdLoader,
+    OrderGrantedRefundByIdLoader,
     OrderGrantedRefundLinesByOrderGrantedRefundIdLoader,
     OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
@@ -248,6 +249,12 @@ class OrderGrantedRefundLine(
         required=True,
     )
     reason = graphene.String(description="Reason for refunding the line.")
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason Model (Page) reference for this refund line."
+        + ADDED_IN_322,
+    )
 
     class Meta:
         default_resolver = (
@@ -269,6 +276,40 @@ class OrderGrantedRefundLine(
             OrderLineByIdLoader(info.context)
             .load(root.node.order_line_id)
             .then(_wrap_with_sync_webhook_control_context)
+        )
+
+    @staticmethod
+    def resolve_reason_reference(
+        root: SyncWebhookControlContext[models.OrderGrantedRefundLine], info
+    ):
+        if not root.node.reason_reference_id:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+
+            def _wrap_with_channel(granted_refund):
+                return (
+                    ChannelByOrderIdLoader(info.context)
+                    .load(granted_refund.order_id)
+                    .then(
+                        lambda channel: ChannelContext(
+                            node=page, channel_slug=channel.slug
+                        )
+                    )
+                )
+
+            return (
+                OrderGrantedRefundByIdLoader(info.context)
+                .load(root.node.granted_refund_id)
+                .then(_wrap_with_channel)
+            )
+
+        return (
+            PageByIdLoader(info.context)
+            .load(root.node.reason_reference_id)
+            .then(wrap_page_with_context)
         )
 
 
@@ -819,6 +860,15 @@ class FulfillmentLine(
         lambda: OrderLine,
         description="The order line to which the fulfillment line is related.",
     )
+    reason = graphene.String(
+        description="Reason for returning this fulfillment line." + ADDED_IN_322,
+    )
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason Model (Page) reference for this fulfillment line."
+        + ADDED_IN_322,
+    )
 
     class Meta:
         default_resolver = (
@@ -842,6 +892,16 @@ class FulfillmentLine(
             .load(root.node.order_line_id)
             .then(_wrap_with_sync_webhook_control_context)
         )
+
+    @staticmethod
+    def resolve_reason(root: SyncWebhookControlContext[models.FulfillmentLine], info):
+        raise NotImplementedError("not implemented yet")
+
+    @staticmethod
+    def resolve_reason_reference(
+        root: SyncWebhookControlContext[models.FulfillmentLine], info
+    ):
+        raise NotImplementedError("not implemented yet")
 
 
 class Fulfillment(
@@ -877,6 +937,15 @@ class Fulfillment(
         Money,
         description="Total refunded amount assigned to this fulfillment.",
         required=False,
+    )
+    reason = graphene.String(
+        description="Reason for returning this fulfillment." + ADDED_IN_322,
+    )
+    reason_reference = graphene.Field(
+        Page,
+        required=False,
+        description="Reason Model (Page) reference for this fulfillment."
+        + ADDED_IN_322,
     )
 
     class Meta:
@@ -975,6 +1044,16 @@ class Fulfillment(
             .load(fulfillment.order_id)
             .then(_resolve_total_refund_amount)
         )
+
+    @staticmethod
+    def resolve_reason(root: SyncWebhookControlContext[models.Fulfillment], info):
+        raise NotImplementedError("not implemented yet")
+
+    @staticmethod
+    def resolve_reason_reference(
+        root: SyncWebhookControlContext[models.Fulfillment], info
+    ):
+        raise NotImplementedError("not implemented yet")
 
 
 class OrderLine(
