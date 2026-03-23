@@ -11,7 +11,7 @@ def clean_duplicated_gift_lines(apps, _schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         clean_duplicated_gift_lines_task.delay()
 
-    sender = registry.get_app_config("checkout")
+    sender = registry.get_app_config("order")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 

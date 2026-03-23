@@ -11,7 +11,7 @@ def populate_user_number_of_orders(apps, _schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         populate_user_number_of_orders_task.delay()
 
-    sender = registry.get_app_config("order")
+    sender = registry.get_app_config("account")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 

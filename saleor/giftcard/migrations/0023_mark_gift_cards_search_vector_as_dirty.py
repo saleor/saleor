@@ -11,7 +11,7 @@ def mark_gift_cards_search_index_as_dirty(apps, _schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         mark_gift_cards_search_index_as_dirty_task.delay()
 
-    sender = registry.get_app_config("attribute")
+    sender = registry.get_app_config("giftcard")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 
