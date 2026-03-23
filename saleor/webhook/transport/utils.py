@@ -665,9 +665,11 @@ def to_payment_app_id(app: "App", external_id: str) -> "str":
     return f"{APP_ID_PREFIX}:{app_identifier}:{external_id}"
 
 
-def get_sqs_message_group_id(domain: str, app: App | None = None) -> str:
+def get_sqs_message_group_id(domain: str, app: App | int | None = None) -> str:
     if app is None:
         group_id = domain
+    elif isinstance(app, int):
+        group_id = f"{domain}:{app}"
     else:
         identifier = slugify(app.identifier) if app.identifier else app.id
         group_id = f"{domain}:{identifier}"

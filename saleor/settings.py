@@ -40,6 +40,7 @@ from .core.schedules import (
     initiated_page_search_update_schedule,
     initiated_product_search_update_schedule,
     initiated_promotion_webhook_schedule,
+    initiated_async_webhooks_schedule,
 )
 from .graphql.graphql_core import (
     patch_execution_context,
@@ -755,6 +756,10 @@ CELERY_BEAT_SCHEDULE = {
         # readiness for automatic completion.
         "task": "saleor.checkout.tasks.trigger_automatic_checkout_completion_task",
         "schedule": initiated_checkout_automatic_completion_schedule,
+    },
+    "async-webhooks": {
+        "task": "saleor.webhook.transport.asynchronous.transport.trigger_send_webhooks_async_for_apps",
+        "schedule": initiated_async_webhooks_schedule,
     },
 }
 

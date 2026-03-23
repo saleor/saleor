@@ -806,6 +806,31 @@ def send_webhook_request_async(
     clear_successful_delivery(delivery)
 
 
+@app.task(queue=settings.WEBHOOK_CELERY_QUEUE_NAME)
+@task_with_telemetry_context
+def trigger_send_webhooks_async_for_apps(
+    telemetry_context: TelemetryTaskContext,
+):
+    domain = get_domain()
+    app_ids = (
+        EventDelivery.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .select_related("webhook__app_id")
+        .filter(status=EventDeliveryStatus.PENDING)
+        .values_list("webhook__app_id", flat=True)
+        .distinct()
+    )
+    for app_id in app_ids:
+        send_webhooks_async_for_app.apply_async(
+            kwargs={
+                "app_id": app_id,
+                "telemetry_context": telemetry_context.to_dict(),
+            },
+            queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
+            MessageGroupId=get_sqs_message_group_id(domain, app_id),
+            bind=True,
+        )
+
+
 @app.task(
     queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
     bind=True,
