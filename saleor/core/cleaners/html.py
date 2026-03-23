@@ -1,18 +1,14 @@
 import json
 import os
-import warnings
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Self
 
 import nh3
 
-from ..deprecations import SaleorDeprecationWarning
-
 
 @dataclass
 class HtmlCleanerSettings:
-    allowed_schemes: set[str] = field(default_factory=set)
     allowed_attributes: dict[str, set[str]] = field(
         default_factory=lambda: deepcopy(nh3.ALLOWED_ATTRIBUTES)
     )
@@ -37,31 +33,7 @@ class HtmlCleanerSettings:
 
     def reload(self) -> Self:
         # NOTE: 'or None' is needed as blank string should be treated as None
-        self.link_rel = os.getenv("EDITOR_JS_LINK_REL") or None
-        if self.link_rel is None:
-            warnings.warn(
-                (
-                    "EDITOR_JS_LINK_REL=None default will be removed in Saleor 3.23.0, "
-                    'use EDITOR_JS_LINK_REL="noopener noreferrer" instead'
-                ),
-                category=SaleorDeprecationWarning,
-                stacklevel=2,
-            )
-
-        if allowed_schemes_str := os.getenv("UNSAFE_EDITOR_JS_ALLOWED_URL_SCHEMES"):
-            # This is deprecated, each URL scheme must have a cleaner implemented
-            # we cannot continue to allow to add custom schemes without cleaners
-            # as this is risky.
-            warnings.warn(
-                (
-                    "UNSAFE_EDITOR_JS_ALLOWED_URL_SCHEMES will be removed in Saleor 3.23.0, "
-                    "open a feature request at https://github.com/saleor/saleor/issues "
-                    "to add out of the box support for the URL scheme(s) you need"
-                ),
-                category=SaleorDeprecationWarning,
-                stacklevel=3,
-            )
-            self.allowed_schemes = {x.strip() for x in allowed_schemes_str.split(",")}
+        self.link_rel = os.getenv("EDITOR_JS_LINK_REL", "noopener noreferrer") or None
 
         if allowed_attributes_str := os.getenv("EDITOR_JS_ALLOWED_ATTRIBUTES"):
             for html_tag, allowed_attributes in json.loads(

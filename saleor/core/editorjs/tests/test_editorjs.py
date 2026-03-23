@@ -8,7 +8,6 @@ import pytest
 from django.utils.html import strip_tags
 
 from ...cleaners.html import HtmlCleanerSettings
-from ...deprecations import SaleorDeprecationWarning
 from .. import clean_editorjs, editorjs_to_text
 from ..cleaners import _clean_url_value
 from .conftest import assert_pydantic_errors
@@ -47,14 +46,11 @@ def cleaner_settings(settings):
 
     # NOTE: use env vars to control the settings (using prefs.reload())
     #       to ensure the parsing logic of env var is tested
-    #
-    # Warnings need to be captured due to deprecation warnings for Saleor v3.23.0
-    with warnings.catch_warnings(record=True, category=SaleorDeprecationWarning):
-        prefs = HtmlCleanerSettings()
-        settings.HTML_CLEANER_PREFS = prefs
+    prefs = HtmlCleanerSettings()
+    settings.HTML_CLEANER_PREFS = prefs
 
-        yield prefs
-        settings.HTML_CLEANER_PREFS = old_prefs
+    yield prefs
+    settings.HTML_CLEANER_PREFS = old_prefs
 
 
 @pytest.mark.parametrize(
@@ -62,6 +58,7 @@ def cleaner_settings(settings):
     # Invalid cases
     [(url, "#invalid", False) for url in XSS_URLS]
     + [
+        ("not-allowed:foo", "#invalid", False),
         # Valid cases
         ("https://example.com", "https://example.com", True),
         ("http://example.com", "http://example.com", True),
@@ -103,31 +100,6 @@ def test_clean_url(input_url, expected_cleaned_url, is_allowed):
 def test_clean_url_error_handling(input_url: str, expected_error: str):
     with pytest.raises(django.core.exceptions.ValidationError, match=expected_error):
         _clean_url_value(input_url)
-
-
-def test_clean_url_allows_custom_allow_list(monkeypatch, cleaner_settings):
-    """Ensure that we allow to override the settings to add more allowed URL schemes.
-
-    This is a backward compatibility check, it will be removed in 3.23.0.
-    """
-
-    url = "non-default:foo"
-
-    # Should refuse the URL scheme if it's not allowed
-    with warnings.catch_warnings(record=True):
-        assert _clean_url_value(url) == "#invalid"
-
-    # Catches warnings due to deprecation notices from Saleor (v3.23.0)
-    with warnings.catch_warnings(record=True):
-        monkeypatch.setenv("UNSAFE_EDITOR_JS_ALLOWED_URL_SCHEMES", "non-default,other")
-        cleaner_settings.reload()
-
-    # When allowed it should allow the use of that URL scheme even if a cleaner
-    # isn't defined.
-    assert _clean_url_value(url) == url
-    assert _clean_url_value("other:") == "other:"
-    with warnings.catch_warnings(record=True):
-        assert _clean_url_value("not-ok:") == "#invalid"
 
 
 @pytest.mark.parametrize(
@@ -246,6 +218,7 @@ def test_clean_text_data_block_allow_custom_attributes(
         json.dumps(allowed_attributes),
     )
     cleaner_settings.reload()
+    cleaner_settings.link_rel = None
 
     assert_paragraph_cleaned(html_input, expected_output)
 
@@ -312,6 +285,7 @@ def test_clean_text_data_block_allow_custom_attribute_values(
         ),
     )
     cleaner_settings.reload()
+    cleaner_settings.link_rel = None
 
     assert_paragraph_cleaned(html_input, expected_output)
 

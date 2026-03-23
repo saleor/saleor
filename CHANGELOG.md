@@ -65,6 +65,21 @@ permissions.
 ### EditorJS (Rich Text Editor)
 
 - Made the EditorJS parser stricter. We no longer accept unknown/extra fields. - #18969 by @NyanKiyoshi
+- Removed the following deprecated behaviors:
+
+  - `EDITOR_JS_LINK_REL` configuration behavior has changed.
+    Links rendered by EditorJS (`<a href="..." rel="...">`) now default to
+    `rel="noopener noreferrer"` instead of an empty value.
+    Learn more in the [documentation][EDITOR_JS_LINK_REL].
+  - `UNSAFE_EDITOR_JS_ALLOWED_URL_SCHEMES` has been removed.
+    It's no longer possible to extend the list of allowed URL schemes via settings.
+
+    If you require support for additional URL schemes, open a request:
+    https://github.com/saleor/saleor/issues
+
+  (Via #18976 by @NyanKiyoshi)
+
+[EDITOR_JS_LINK_REL]: https://docs.saleor.io/setup/configuration#editor_js_link_rel
 
 ### Other changes
 
